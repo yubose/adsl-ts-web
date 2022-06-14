@@ -23,17 +23,22 @@ const path = require('path')
 const fs = require('fs-extra')
 const fg = require('fast-glob')
 const chokidar = require('chokidar')
-const ws = require('ws')
+const createWss = require('../scripts/wss')
+const watch = require('../scripts/watch')
 
 const { log } = console
 const { blue, cyan, green, magenta, red, yellow } = u
 const loadAsYml = (p) => fs.readFileSync(p, 'utf8')
 const aqua = chalk.keyword('aquamarine')
 const coolGold = chalk.keyword('navajowhite')
-const serializeErr = (e) => ({
-  code: e?.code,
-  name: e?.name,
-  message: e?.message,
+
+/**
+ * @param { unknown } error
+ */
+const serializeError = (error) => ({
+  code: error?.code,
+  name: error?.name,
+  message: error?.message,
 })
 
 const ADD_DIR = 'ADD_DIR'
@@ -71,6 +76,8 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
 
   /** @type ws.Server */
   let wss
+  /** @type { ReturnType<typeof createWss> } */
+  let wssApi
 
   /** @type { ws.WebSocket } */
   let socket
@@ -89,7 +96,7 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
       set(json, 'Dashboard.config', configKey)
       fs.writeFileSync(pathToAnalysisDashboardFile, toYml(json), 'utf8')
       log(
-        `${green(`Changed analysis Dashboard config from `)} to ` +
+        `${green(`Changed analysis app from `)}` +
           `${cyan(configBefore)} to ${yellow(configKey)}`,
       )
     } else {
@@ -105,14 +112,6 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
 
   docDiagnostics.use(docRoot)
   docDiagnostics.use(docVisitor)
-
-  function emit(message) {
-    wss.clients.forEach((client) => {
-      client.send(JSON.stringify(message, null, 2), function onSend(err) {
-        if (err) log(`${tag} ${yellow('Error')}`, serializeErr(err))
-      })
-    })
-  }
 
   async function runDiagnostics(data) {
     let { preload = [], pages = [], root: rootObject } = data
@@ -186,122 +185,51 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
     return diagnostics
   }
 
-  function watch() {
-    const tag = `[${blue('watch')}]`
-
-    /**
-     * @param { (args:{ isFile: boolean; isFolder: boolean; name: string; path: string }) => void } fn
-     * @returns
-     */
-    function onWatchEvent(fn) {
-      async function onEvent(filepath) {
-        filepath = path.resolve(filepath)
-        const stats = await fs.stat(filepath)
-        const pathObject = path.parse(filepath)
-        return fn({
-          isFile: stats.isFile(),
-          isFolder: stats.isDirectory(),
-          name: pathObject.name,
-          path: filepath,
-        })
-      }
-      return onEvent
-    }
-
-    watcher = chokidar.watch(watchGlobs, {
-      ignoreInitial: false,
-      ignorePermissionErrors: true,
-      ...watchOptions,
-    })
-
-    watcher
-      .on('ready', () => {
-        const watchedFiles = watcher?.getWatched()
-        const watchCount = watchedFiles
-          ? u
-              .values(watchedFiles)
-              .reduce((count, files) => (count += files.length || 0), 0)
-          : 0
-        log(`${tag} Watching ${yellow(watchCount)} files`)
-      })
-      .on(
-        'add',
-        onWatchEvent((args) => emit({ type: ADD_FILE, ...args })),
-      )
-      .on(
-        'addDir',
-        onWatchEvent((args) => emit({ type: ADD_DIR, ...args })),
-      )
-      .on(
-        'change',
-        onWatchEvent((args) => emit({ type: FILE_CHANGED, ...args })),
-      )
-      .on('error', (err) => emit({ type: WATCH_ERROR, ...serializeErr(err) }))
-      .on('unlink', (filepath) => emit({ type: FILE_REMOVED, filepath }))
-      .on('unlinkDir', (dir) => emit({ type: DIR_REMOVED, dir }))
-  }
-
   /**
    * @param { ws.ServerOptions } opts
    */
   function listen(opts) {
-    const tag = `[${u.cyan('wss')}]`
-    wss = new ws.WebSocketServer({ port: 3020, host: '127.0.0.1', ...opts })
-    wss
-      .on('connection', (s, req) => {
-        log(`${tag} Connected`)
-        socket = s
+    wssApi = createWss({
+      log,
+      port: 3020,
+      host: '127.0.0.1',
+      on: {},
+      serializeError,
+      ...opts,
+    })
 
-        const reqTag = `[${chalk.keyword('aquamarine')('wss-req')}]`
-        req.on('data', (chunk) => log(`${reqTag} Data ${chunk.toString()}`))
-        req.on('close', () => log(`${reqTag} Closed`))
-        req.on('end', () => log(`${reqTag} Ended`))
-        req.on('pause', () => log(`${reqTag} Pauseeed`))
-        req.on('resume', () => log(`${reqTag} Resumed`))
-        req.on('readable', () => log(`${reqTag} Readable`))
+    const stag = wssApi.tag.server
 
-        const stag = `[${chalk.keyword('navajowhite')('wss-socket')}]`
-        socket.on('open', () => log(`${stag} Opened`))
-        socket.on('close', () => log(`${stag} Closed`))
-        socket.on('error', (err) => log(`${stag} Error`, serializeErr(err)))
-        socket.on('unexpected-response', (err) =>
-          log(`${stag} ${red('Unexpected response')}`, serializeErr(err)),
-        )
-        socket.on('message', async function onMessage(chunk) {
-          const data = JSON.parse(u.isStr(chunk) ? chunk : chunk.toString())
-          log(`${stag} Message`, data)
+    wss = wssApi.server
 
-          switch (data?.type) {
-            case 'CONNECTED': {
-              if (data.id === 'diagnostics') {
-                return emit({ type: 'PUBLISHING_DIAGNOSTICS' })
-              }
-              break
-            }
-            case RUN_DIAGNOSTICS: {
-              return emit({
-                type: 'DIAGNOSTICS',
-                diagnostics: await runDiagnostics(data),
-              })
-            }
+    wssApi.on('message', async function onMessage(chunk) {
+      const data = JSON.parse(u.isStr(chunk) ? chunk : chunk.toString())
+      log(`${stag} Message`, data)
+
+      switch (data?.type) {
+        case 'CONNECTED': {
+          if (data.id === 'diagnostics') {
+            return wssApi.emit({ type: 'PUBLISHING_DIAGNOSTICS' })
           }
-
-          messages.push({
-            type: data?.type,
-            timestamp: new Date().toISOString(),
+          break
+        }
+        case RUN_DIAGNOSTICS: {
+          return wssApi.emit({
+            type: 'DIAGNOSTICS',
+            diagnostics: await runDiagnostics(data),
           })
-        })
-      })
-      .on('listening', () => log(`${tag} Listening`))
-      .on('close', () => log(`${tag} Closed`))
-      .on('error', (err) => console.error(`${tag} Error`, serializeErr(err)))
+        }
+      }
+    })
+
+    return this
   }
 
   /**
-   *
-   * @param { import('webpack-dev-server/types/lib/Server') } devServer
+   * @param { import('webpack-dev-server') } devServer
+   * @param { { APP: string; local?: boolean } } env
    */
-  function registerRoutes() {
+  function registerRoutes(devServer, env) {
     const findMatchingFileName = (filepaths, n) =>
       filepaths.find((fp) => fp.includes(n))
 
@@ -321,9 +249,12 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
 
     devServer?.app?.get(`/analysis/:appname/:filename`, (req, res) => {
       let { appname = configKey, filename } = req.params
-      log(`Requesting file: ${aqua(filename)}`)
+      log(`Requesting file: ${aqua(filename)} in ${yellow(appname)} app`)
       if (filename.includes('_en')) filename = filename.replace('_en', '')
+      if (filename.endsWith('.yml')) filename = filename.replace('.yml', '')
+      log(`Formatted filename: ${yellow(filename)}`)
       const glob = path.join(basedir, appname, '**/*.yml')
+      log(`Glob: ${yellow(glob)}`)
       const filepaths = fg.sync(glob)
       const filepath = findMatchingFileName(filepaths, filename)
       const fileyml = loadAsYml(filepath)
@@ -379,6 +310,67 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
         },
       })
     })
+
+    if (env.local && devServer) {
+      const dir = path.join(basedir, configKey)
+      const glob = path.join(dir, '**/*')
+      const getRouteFilePath = (r, ext = '') =>
+        path.join(dir, r + (ext ? `.${ext}` : ''))
+
+      if (!fs.existsSync(dir)) {
+        throw new Error(`The directory ${yellow(dir)} does not exist`)
+      }
+
+      const routeFilePaths = [
+        {
+          name: configKey,
+          path: getRouteFilePath(configKey, 'yml'),
+          ext: '.yml',
+        },
+        {
+          name: 'cadlEndpoint',
+          path: getRouteFilePath('cadlEndpoint', 'yml'),
+          ext: '.yml',
+        },
+      ]
+
+      const filepaths = fg.sync(glob, { onlyFiles: true })
+
+      filepaths.forEach((filepath) => {
+        const routeObject = {
+          name: path
+            .basename(filepath, path.extname(filepath))
+            .replace(/_en/, ''),
+          path: filepath,
+          ext: path.extname(filepath),
+        }
+        routeFilePaths.push(routeObject)
+        if (!fs.existsSync(filepath)) {
+          log(
+            `${red(`The file at`)} ${yellow(filepath)} ${red(
+              `does not exist`,
+            )}`,
+          )
+        }
+      })
+
+      log(`Registering ${yellow(routeFilePaths.length)} routes`)
+
+      routeFilePaths.forEach((obj) => {
+        const trimmedName = obj.name.replace(/_en/, '')
+        const route = obj.ext
+          ? new RegExp(`(${trimmedName})(${obj.ext})$`)
+          : new RegExp(trimmedName)
+        log(`Registering route ${yellow(trimmedName)}`)
+
+        devServer.app.get(route, (req, res) => {
+          res.status(200).sendFile(obj.path)
+        })
+      })
+
+      devServer.app.get('/local')
+    }
+    return this
   }
 
   // const compiler = webpack({
@@ -412,12 +404,37 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
 
   return {
     basedir,
-    watch,
+    watch(opts) {
+      return watch.call(this, {
+        ...opts,
+        ...watchOptions,
+        basedir,
+        log,
+        on: {
+          ready: (_, __, watchCount) => {
+            log(`${watch.tag} Watching ${yellow(watchCount)} files`)
+          },
+          add: (args) => wssApi.emit(args),
+          addDir: (args) => wssApi.emit(args),
+          change: (args) => wssApi.emit(args),
+          unlink: (args) => wssApi.emit(args),
+          unlinkDir: (args) => wssApi.emit(args),
+          error({ error }) {
+            const err = serializeError(error)
+            log(yellow(`[${err.name}] ${red(err.message)}`))
+          },
+        },
+      })
+    },
     /**
      * @param { ws.ServerOptions } opts
      */
-    listen: (opts) => listen({ ...wssOptions, ...opts }),
-    registerRoutes: () => registerRoutes(devServer),
+    listen(opts) {
+      return listen.call(this, { ...wssOptions, ...opts })
+    },
+    registerRoutes() {
+      return registerRoutes.call(this, devServer, env)
+    },
     get watcher() {
       return watcher
     },

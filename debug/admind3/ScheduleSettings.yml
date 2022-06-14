@@ -1,0 +1,732 @@
+ScheduleSettings:
+  # xd page number64
+  pageNumber: "370"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..formData.providerList@: =.Global.providerAll
+    - if:
+        - .Global.locationAll
+        - actionType: evalObject
+          object:
+            - ..formData.locationId@: =.Global.locationAll.0.id
+            - .Global.locationId@: =..formData.locationId
+        - continue
+    - actionType: updateObject
+      dataKey: Global.acceptInfo
+      dataObject: {}
+  viewPort: top
+  title: "Schedule Settings"
+  formData:
+    providerList: []       
+    locationId: ""
+    reasonForVisit: []
+  pageGoto: ""
+  visitReason:
+    docResp:
+      doc: []
+    docIn:
+      type: .DocType.VisitReason
+      id:
+      xfname: eid
+      obfname: "mtime"
+      _nonce: =.Global._nonce
+      name:
+        data:
+          reasonForVisit: []
+    document:
+      type: .DocType.VisitReason
+      eid:
+      name:
+        data:
+          reasonForVisit: []
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: visitReason.document
+      get:
+        .DocAPI.get: ""
+        api: rd
+        dataIn: visitReason.docIn
+        dataOut: ScheduleSettings.visitReason.docResp
+  reasonObj:
+    reason: ""
+    duration: "5 min"
+    document: []
+  document:
+    - title: New Patient Forms
+      pageName: NewPatFormPreviewPage1
+    - title: COVID-19 Testing Consent - New Patient
+      pageName: Cov19TestNewPatPreviewPage1
+    - title: COVID-19 Testing Consent Form
+      pageName: Cov19TestFormPreviewPage1
+    - title: Pfizer-BioNTech Vaccine - First Dose
+      pageName: PfizerVaccineFirDosePreviewPage1
+    - title: Pfizer-BioNTech Vaccine - Second Dose
+      pageName: PfizerVaccineSecDosePreviewPage1
+    - title: Moderna Vaccine Form - First Dose
+      pageName: ModernaVaccineFirDosePreviewPage1
+    - title: Moderna Vaccine Form - Second Dose
+      pageName: ModernaVaccineSecDosePreviewPage1
+  components:
+    - .BaseCheckView:
+      viewTag: reasonNullView
+      message: "Please enter your reason"
+    - .TotalView:
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .InnerBodyView:
+          children:
+            - .PageTitleLabel:
+              style:
+                fontWeight: "600"
+            - .GotoBack: ""
+              style:
+                top: "0.045"
+            - .ContentBar:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.05"
+                    width: "0.37"
+                    left: "0.03"
+                    height: "0.04"
+                    boxSizing: border-box
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xd8d8d8"
+                    borderRadius: "3"
+                    textAlign:
+                      y: center
+                  children:
+                    - type: image
+                      path: searchGray.svg
+                      style:
+                        marginLeft: "0.01"
+                        width: "0.01"
+                        display: inline-block
+                    - type: textField
+                      placeholder: Search here
+                      style:
+                        width: "0.1"
+                        height: "0.035"
+                        display: inline-block
+                        border:
+                          style: "1"
+                        marginLeft: "0.01"
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.providerList
+                  iteratorVar: itemObject
+                  style:
+                    width: '0.79'
+                    left: "0.03"
+                    height: "auto"
+                    margin: "0"
+                    marginTop: "0.006"
+                    float: left
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        marginTop: "0.04"
+                        display: inline-block
+                        width: '0.195'
+                        height: '0.17'
+                        boxSizing: border-box
+                      children:
+                        - .ScheduleSettingsLiView:
+                          children:
+                            - type: image
+                              path: providerDefault.svg
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.name.data.avatar
+                              style:
+                                left: "0.012"
+                                top: "0.02"
+                                height: "0.076"
+                                width: "0.043"
+                                # border: 
+                                #   style: "3"
+                                # borderColor: "0xc1c1c1"
+                                # borderWidth: "1"
+                                borderRadius: "5"
+                                textAlign:
+                                  x: center
+                                  y: center
+                            - type: label
+                              dataKey: itemObject.name.data.fullName
+                              style:
+                                left: "0.065"
+                                top: "0.04"
+                                fontSize: .Nfont.nf4
+                                fontWeight: "600"
+                                fontFamily: "Arial"
+                                overflow: hidden
+                                textOverflow: ellipsis
+                                whiteSpace: nowrap
+                                color:
+                                width: "0.1"
+                            - type: label
+                              text:
+                              dataKey: itemObject.name.data.selectedSpecialty
+                              style:
+                                left: "0.065"
+                                top: "0.065"
+                                width: "0.1"
+                                fontSize: .Nfont.nf2
+                                fontFamily: "sans-serif"
+                                color: "0x666666"
+                                overflow: hidden
+                                textOverflow: ellipsis
+                                whiteSpace: nowrap
+                            - type: view
+                              style:
+                                left: "0.012"
+                                width: "0.152"
+                                height: "0.04"
+                                top: "0.12"
+                                # backgroundColor: "0xff0000"
+                              children:
+                                - type: button
+                                  text: Reason/Fee
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - .Global.acceptInfo@: $var
+                                    - goto: ProviderReason
+                                  style:
+                                    width: "0.07"
+                                    height: "0.03"
+                                    fontSize: .Nfont.nf2
+                                    fontFamily: "Arial"
+                                    boxSizing: border-box
+                                    display: inline-block
+                                    color: "0x005795"
+                                    backgroundColor: "0xffffff"
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0x005795"
+                                    borderRadius: "5"
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                - type: button
+                                  text: Availability
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - .Global.acceptInfo@: $var
+                                    - goto: SchduleSetting
+                                  style:
+                                    width: "0.07"
+                                    marginLeft: "0.012"
+                                    height: "0.03"
+                                    fontSize: .Nfont.nf2
+                                    fontFamily: "Arial"
+                                    boxSizing: border-box
+                                    color: "0x005795"
+                                    backgroundColor: "0xffffff"
+                                    display: inline-block
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0x005795"
+                                    borderRadius: "5"
+                                    textAlign:
+                                      x: center
+                                      y: center
+        - type: popUp
+          # - type: view
+          viewTag: reasonView
+          style:
+            width: "1"
+            top: "0"
+            left: "0"
+            height: "1"
+            backgroundColor: "0x00000033"
+            zIndex: "1000"
+          children:
+            - type: scrollView
+              viewTag: reasonForVisitTag
+              style:
+                left: "0.6"
+                top: "0"
+                width: "0.4"
+                height: "1"
+                overflow: scroll
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Reason For Visit"
+                    - .Closebutton:
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..reasonObj.reason@: ""
+                            - ..reasonObj.duration@: "5 min"
+                            - ..reasonObj.document@: []
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: documentView
+                        - actionType: popUpDismiss
+                          popUpView: reasonView
+                        - actionType: popUpDismiss
+                          popUpView: documentView
+                - type: textField
+                  placeholder: select
+                  dataKey: reasonObj.document
+                  viewTag: docFieldView
+                  isEditable: "false"
+                  onClick:
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: documentView
+                    - actionType: popUp
+                      popUpView: documentView
+                  style:
+                    left: "0.203"
+                    top: "0.11"
+                    width: "0.175"
+                    height: "0.03"
+                    boxSizing: border-box
+                    border:
+                      style: "3"
+                    borderColor: "0x00000066"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    # boxSizing: border-box
+                    zIndex: "100"
+                    textAlign:
+                      y: center
+                - type: view
+                  # viewTag: docFieldView
+                  onClick:
+                    - actionType: popUp
+                      popUpView: documentView
+                  style:
+                    left: "0.203"
+                    top: "0.11"
+                    width: "0.175"
+                    height: "0.03"
+                    boxSizing: border-box
+                    border:
+                      style: "3"
+                    borderColor: "0x00000066"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    # boxSizing: border-box
+                    zIndex: "100"
+                    textAlign:
+                      y: center
+                - type: view
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: documentView
+                  style:
+                    height: "0.92"
+                    width: "0.4"
+                    top: "0.08"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.15"
+                        backgroundColor: "0xffffff"
+                        zIndex: "10"
+                      children:
+                        - type: textField
+                          placeholder: Enter Reason Here
+                          dataKey: reasonObj.reason
+                          style:
+                            left: "0.025"
+                            top: "0.03"
+                            width: "0.1"
+                            height: "0.03"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000066"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                        - type: select
+                          placeholder: Select
+                          dataKey: reasonObj.duration
+                          options: .Duration
+                          style:
+                            left: "0.14"
+                            top: "0.03"
+                            width: "0.05"
+                            height: "0.03"
+                            boxSizing: content-box
+                            border:
+                              style: "3"
+                            borderColor: "0x00000066"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                        - type: button
+                          text: Create new reason
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - ..reasonObj.reason
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: reasonNullView
+                                      wait: true
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..formData.reasonForVisit
+                                      value: =..reasonObj
+                            - actionType: evalObject
+                              object:
+                                - ..reasonObj.reason@: ""
+                                - ..reasonObj.duration@: "5 min"
+                                - ..reasonObj.document@: []
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: documentView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: reasonForVisitTag
+                          style:
+                            left: "0.15"
+                            top: "0.1"
+                            width: "0.1"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            border:
+                              style: "3"
+                            borderColor: "0x005795"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            textAlign:
+                              x: center
+                    - type: button
+                      text: Save
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..visitReason.document.name.data.reasonForVisit@: =..formData.reasonForVisit
+                            - .Global.jwt.edge.bvid@: =.Global.acceptInfo.bsig
+                            - =.Global.jwt.edgeAPI.store: ""
+                            # - ..visitReason.document.name.data.reasonForVisit@: []
+                            - =..visitReason.docAPI.store: ""
+                            # - =.builtIn.search.updateEsData:
+                            #     dataIn:
+                            #       id: =.Global.acceptInfo.bsig
+                            #       type: '79360'
+                            #     dataOut: ScheduleSettings.res
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: popUp
+                          popUpView: successView
+                        - actionType: popUpDismiss
+                          popUpView: reasonView
+                        # - actionType;
+                      style:
+                        left: "0.32"
+                        top: "0.22"
+                        width: "0.06"
+                        height: "0.035"
+                        color: "0xffffff"
+                        backgroundColor: "0x005795"
+                        border:
+                          style: "3"
+                        borderColor: "0x005795"
+                        borderWidth: "1"
+                        borderRadius: "5"
+                    - type: view
+                      style:
+                        left: "0"
+                        top: "0.26"
+                        width: "0.4"
+                        height: "0.05"
+                        border:
+                          style: "2"
+                        borderColor: "0x00000033"
+                        borderWidth: "1"
+                        # backgroundColor: "0xcdcdcd"
+                      children:
+                        - type: label
+                          text: Reason for Visit
+                          style:
+                            left: "0.025"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: label
+                          text: Duration
+                          style:
+                            left: "0.15"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: label
+                          text: Documents
+                          style:
+                            left: "0.275"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign:
+                              x: center
+                              y: center
+                    - type: view
+                      style:
+                        left: "0"
+                        top: "0.31"
+                        width: "0.4"
+                        height: "0.61"
+                        backgroundColor: "0xefefef"
+                      children:
+                        - type: view
+                          style:
+                            left: "0"
+                            top: "0.001"
+                            width: "0.4"
+                            height: "0.05"
+                            backgroundColor: "0xffffff"
+                          children:
+                            - type: label
+                              contentType: messageHidden
+                              text: No settings created
+                              style:
+                                top: "0.01"
+                                width: "0.4"
+                                height: "0.04"
+                                left: "0"
+                                textAlign:
+                                  x: center
+                                fontSize: .Nfont.nf2
+                                color: "0x00000088"
+                        - type: scrollView
+
+                          style:
+                            top: "0.001"
+                            width: "0.4"
+                            height: "0.6"
+                            overflow: scroll
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: =..formData.reasonForVisit
+                              iteratorVar: itemObject
+                              viewTag: reasonTag
+                              style:
+                                width: "0.4"
+                                height: "0.6"
+                                margin: "0"
+                                left: "0"
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    height: "0.05"
+                                    left: ""
+                                    width: "0.4"
+                                    border:
+                                      style: "2"
+                                    borderColor: "0x00000033"
+                                    borderWidth: "1"
+                                    backgroundColor: "0xffffff"
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.reason
+                                      style:
+                                        width: "0.1"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.025"
+                                        textAlign:
+                                          x: center
+                                    - type: label
+                                      dataKey: itemObject.duration
+                                      style:
+                                        width: "0.1"
+                                        height: "0.03"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.15"
+                                        textAlign:
+                                          x: center
+                                    - type: select
+                                      # dataKey: itemObject.document
+                                      options: itemObject.document
+                                      style:
+                                        width: "0.06"
+                                        height: "0.03"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.3"
+                                        border:
+                                          style: "3"
+                                        borderRadius: "3"
+                                        borderColor: "0x00000033"
+                                        textAlign:
+                                          x: center
+                                    - type: image
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - =.builtIn.array.removeByName:
+                                                  dataIn:
+                                                    object: =..formData.reasonForVisit
+                                                    key: "reason"
+                                                    name: $var.reason
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: reasonTag
+                                        # - actionType: refresh
+                                      path: delete.svg
+                                      style:
+                                        left: "0.37"
+                                        top: "0.015"
+                                        width: "0.01"
+
+        - type: popUp
+          viewTag: documentView
+          style:
+            left: "0.8"
+            width: "0.175"
+            height: "0.25"
+            top: "0.15"
+            backgroundColor: "0xffffff"
+            boxShadow: "1px 1px #f0f0f0"
+            zIndex: "10000"
+          children:
+            - type: scrollView
+              style:
+                left: "0"
+                top: "0"
+                width: "0.175"
+                height: "0.27"
+                overflow: scroll
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..document
+                  iteratorVar: itemObject
+                  viewTag: docListView
+                  style:
+                    width: "0.175"
+                    left: "0"
+                    marginTop: "0"
+                    height: "0.25"
+                    padding: "0"
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      style:
+                        width: "0.175"
+                        left: "0"
+                        height: "0.035"
+                        border:
+                          style: "1"
+                      children:
+                        - type: image
+                          viewTag: selectView
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.array.has:
+                                        dataIn:
+                                          object: =..reasonObj.document
+                                          value: $var.title
+                                    - checkOn.svg
+                                    - checkOff.svg
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - if:
+                                      - =.builtIn.array.has:
+                                          dataIn:
+                                            object: =..reasonObj.document
+                                            value: $var.title
+                                      - =.builtIn.array.removeByValue:
+                                          dataIn:
+                                            object: =..reasonObj.document
+                                            value: $var.title
+                                      - =.builtIn.array.add:
+                                          dataIn:
+                                            object: =..reasonObj.document
+                                            value: $var.title
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: docListView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: docFieldView
+                          style:
+                            top: "0.0075"
+                            left: "0.005"
+                            width: "0.011"
+                        - type: label
+                          dataKey: itemObject.title
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - if:
+                                      - true
+                                      - goto: $var.pageName
+                                      - goto: $var.pageName
+                          style:
+                            top: "0"
+                            left: "0.024"
+                            width: "0.15"
+                            height: "0.035"
+                            fontFamily: "Raleway"
+                            fontSize: .Nfont.nf0
+                            textAlign:
+                              y: center

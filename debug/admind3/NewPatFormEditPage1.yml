@@ -1,0 +1,896 @@
+NewPatFormEditPage1:
+  #xd page number: 1080
+  pageNumber: "450"
+
+  title: "New Patient Form"
+
+  init:
+    #Page initialization
+    - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.formData.back_InsuranceCard
+      dataObject: .EmptyObj
+
+    - actionType: updateObject
+      dataKey: Global.formData.front_IDCard
+      dataObject: .EmptyObj
+
+    - actionType: updateObject
+      dataKey: Global.formData.front_InsuranceCard
+      dataObject: .EmptyObj
+    - if:
+        - =.Global.formData.newPatientFormEdit.id
+        - ..formData.patientInfo@: =.Global.formData.newPatientFormEdit.name.data.patientInfo
+        - continue
+    - if:
+        - =.Global.formData.firstToNewPatientForm
+        - actionType: evalObject
+          object:
+            - ..apiRequest.patientForm.docReq.name.data@: =.SelectData.newPatientFormDM
+            - ..formData.patientInfo@: =.SelectData.newPatientFormDM.patientInfo
+
+            - ..formData.patientInfo.firstName@: =.Global.patientInfo.name.data.basicInfo.firstName
+            - ..formData.patientInfo.middleName@: =.Global.patientInfo.name.data.basicInfo.middleName
+            - ..formData.patientInfo.lastName@: =.Global.patientInfo.name.data.basicInfo.lastName
+            - ..formData.patientInfo.dateOfBirth@: =.Global.patientInfo.name.data.basicInfo.dateOfBirth
+            - ..formData.patientInfo.gender@: =.Global.patientInfo.name.data.basicInfo.gender
+            - ..formData.patientInfo.address@: =.Global.patientInfo.name.data.contactInfo.address.line
+            - ..formData.patientInfo.secondLine@: =.Global.patientInfo.name.data.contactInfo.address.secondLine
+            - ..formData.patientInfo.city@: =.Global.patientInfo.name.data.contactInfo.address.city
+            - ..formData.patientInfo.state@: =.Global.patientInfo.name.data.contactInfo.address.state
+            - ..formData.patientInfo.zipCode@: =.Global.patientInfo.name.data.contactInfo.address.zipCode
+            - ..formData.patientInfo.mainContact@: =.Global.patientInfo.name.data.basicInfo.phone
+            - ..formData.patientInfo.alternativePhone@: =.Global.patientInfo.name.data.contactInfo.alternatePhone
+            - ..formData.patientInfo.email@: =.Global.patientInfo.name.data.employment.email
+            - ..formData.patientInfo.employer@: =.Global.patientInfo.name.data.employment.employerName
+            - ..formData.patientInfo.occupation@: =.Global.patientInfo.name.data.employment.Occupation
+            - ..formData.patientInfo.phoneNumber@: =.Global.patientInfo.name.data.emergencyContact.phone
+            - ..formData.patientInfo.relation@: =.Global.patientInfo.name.data.emergencyContact.relation
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =.Global.patientInfo.name.data.emergencyContact.firstName
+                  - " "
+                  - =.Global.patientInfo.name.data.emergencyContact.middleName
+                  - " "
+                  - =.Global.patientInfo.name.data.emergencyContact.lastName
+                dataOut: NewPatFormEditPage1.formData.patientInfo.name
+        - continue
+    # - .Global.formData.newPatientFormEdit@: =.Global.formData.medicalRecords
+    # - ..formData.symptomProfile@: =.Global.formData.newPatientFormEdit.name.data.patientInfo
+  formData:
+    #Input data here
+    patientInfo:
+      isKnownShare: false
+      isKnownInfo: false
+  formDataTemp:
+    # Input data temp here, datatemp should not mix with formData
+    isGender:
+      - key: gender
+        value: Male
+        width: "0.045"
+      - key: gender
+        value: Female
+        width: "0.05"
+      - key: gender
+        value: Other
+        width: "0.045"
+  apiRequest:
+    #Input data request here
+    patientForm:
+      docResp: ""
+      docReq:
+        id: ""
+        eid: .Global.formData.meetingDocEid
+        reid: .Global.formData.meetingDocReid
+        type: .DocType.PatientForm
+        name:
+          data: ""
+          title: "New Patient Forms"
+          user: .Global.patientInfo.name.data.basicInfo.fullName
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: NewPatFormEditPage1.apiRequest.patientForm.docReq
+          dataOut: NewPatFormEditPage1.apiRequest.patientForm.docResp
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.815"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormRight:
+                  onClick:
+                    goto: NewPatFormEditPage2
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - .PatientFormTitle:
+                      img: patForm3_1.svg
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.705"
+                        overflow: scroll
+                      children:
+                        - .ProFormsLabel:
+                          text: "Patient Info"
+                          style:
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.nf4
+                            marginTop: "0.01"
+                        - .ProFormsLabel:
+                          text: "About"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.02"
+                        # first name/ middle name / last name
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "First Name"
+                                - .ProFormsTextField:
+
+
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Middle Name"
+                                - .ProFormsTextField:
+
+
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Last Name"
+                                - .ProFormsTextField: # date of birth /gender
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                          children:
+                            - type: view
+                              style:
+                                display: "inline-block"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Date of Birth"
+                                - .ProFormsCalendarView:
+                                  style:
+                                    width: "0.12"
+                                  children:
+                                    - .ProFormsCalendarField:
+                                    - .ProFormsCalendarImg:
+                            - type: view
+                              style:
+                                display: "inline-block"
+                                marginLeft: "0.016"
+                              children:
+                                # gender
+                                - .ProFormsLabel:
+                                  text: "Gender"
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.isGender
+                                  iteratorVar: itemObject
+                                  viewTag: genderTag
+                                  style:
+                                    width: "0.25"
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        display: inline-block
+                                        marginTop: '0.02'
+                                        width: itemObject.width
+                                      children:
+                                        - type: image
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.gender
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..formData.gender
+                                                            string2: $var.value
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..formData
+                                                            key: $var.key
+                                                            value: ""
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..formData
+                                                            key: $var.key
+                                                            value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: genderTag
+                                        - .ProFormsLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            display: "inline-block"
+                                            marginLeft: "0.005"
+                                            fontWeight: "500"
+                            # address
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Address Line"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.1898"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Address Second Line"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.1898"
+                        # city/ county/ state / zipCode
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "City"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.08944"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "County"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.08944"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "State"
+                                - type: select
+                                  dataKey:
+                                  options: .SelectData.state
+                                  required: "true"
+                                  style:
+                                    marginTop: "0.0046"
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xdedede"
+                                    borderRadius: "4"
+                                    textIndent: "0.8em"
+                                    color: "0x333333"
+                                    fontSize: .Nfont.nf1
+                                    fontFamily: "Arial"
+                                    width: "0.08944"
+                                    height: "0.0405"
+                                    boxSizing: border-box
+
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Zip Code"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.08944"
+                        # phone /alternate phone/ email
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Phone #"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Alternate Phone #"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Email"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.12272"
+                        - .ProFormsLabel:
+                          text: "Emergency Contact"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.03"
+                        # name/ relation / phone
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Name"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Relation"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Phone #"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.12272"
+                        - .ProFormsLabel:
+                          text: "Employment"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.03"
+                        # employer / occupation
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Employer"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.1898"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Occupation"
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.1898"
+                        # select 
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            width: "0.39"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.isConsent
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.39"
+                                marginTop: "0.02"
+                              children:
+                                - type: listItem
+                                  viewTag: isConsentTag
+                                  itemObject:
+                                  style:
+                                    width: "0.39"
+                                    height: "0.035"
+                                  children:
+                                    - type: image
+                                      path: selectGray.svg
+                                      style:
+                                        width: "0.008"
+                                        display: inline-block
+                                    - .ProFormsLabel:
+                                      dataKey: itemObject.value
+                                      style:
+                                        marginLeft: "0.005"
+                                        display: inline-block
+            #             ## CONTENT TITLE
+            #             - .FormsContentTitle:
+            #               text: "Patient Info"
+            #               style:
+            #                 marginTop: "0"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.02"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # First Name
+            #                 - type: view
+            #                   style:
+            #                     marginLeft: "0"
+            #                     width: "0.07"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "First Name"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.firstName
+            #                 # Middle Name
+            #                 - type: view
+            #                   style:
+            #                     marginLeft: "0.08"
+            #                     width: "0.07"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Middle Name"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.middleName
+            #                 # Last Name
+            #                 - type: view
+            #                   style:
+            #                     marginLeft: "0.16"
+            #                     width: "0.07"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Last Name"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.lastName
+            #                 # Date of Birth
+            #                 - type: view
+            #                   style:
+            #                     marginLeft: "0.24"
+            #                     width: "0.07"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Date of Birth"
+            #                       style:
+            #                         width: "0.07"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       # placeholder: Select here
+            #                       dataKey: formData.patientInfo.dateOfBirth
+            #                       style:
+            #                         width: "0.07"
+            #                 # Gender
+            #                 - type: view
+            #                   style:
+            #                     left: "0.32"
+            #                     width: "0.07"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Gender"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.gender
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # Address Line
+            #                 - type: view
+            #                   style:
+            #                     left: "0"
+            #                     width: "0.12"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Address Line"
+            #                       style:
+            #                         width: "0.09"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: 
+            #                       style:
+            #                         width: "0.09"
+            #                 # Address Second Line
+            #                 - type: view
+            #                   style:
+            #                     left: "0.1"
+            #                     width: "0.06"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Address Second Line"
+            #                       style:
+            #                         width: "0.09"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: 
+            #                       style:
+            #                         width: "0.09"
+            #                 # City
+            #                 - type: view
+            #                   style:
+            #                     left: "0.2"
+            #                     width: "0.056"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "City"
+            #                       style:
+            #                         width: "0.056"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.city
+            #                       style:
+            #                         width: "0.056"
+            #                 # State
+            #                 - type: view
+            #                   style:
+            #                     left: "0.266"
+            #                     width: "0.056"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "State"
+            #                       style:
+            #                         width: "0.056"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.state
+            #                       style:
+            #                         width: "0.056"
+            #                 # Zip Code
+            #                 - type: view
+            #                   style:
+            #                     left: "0.332"
+            #                     width: "0.056"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Zip Code"
+            #                       style:
+            #                         width: "0.056"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.zipCode
+            #                       style:
+            #                         width: "0.056"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # Patient county of residence
+            #                 - type: view
+            #                   style:
+            #                     left: "0"
+            #                     width: "0.39"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Patient county of residence"
+            #                       style:
+            #                         width: "0.39"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.residence
+            #                       style:
+            #                         width: "0.39"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # Phone number (Main Contact)
+            #                 - type: view
+            #                   style:
+            #                     left: "0vw"
+            #                     width: "0.19"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Phone number (Main Contact)"
+            #                       style:
+            #                         width: "0.19"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.mainContact
+            #                       style:
+            #                         width: "0.19"
+            #                 # Alternative phone number
+            #                 - type: view
+            #                   style:
+            #                     left: "0.2"
+            #                     width: "0.19"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Alternative phone number"
+            #                       style:
+            #                         width: "0.19"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.alternativePhone
+            #                       style:
+            #                         width: "0.19"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # Email
+            #                 - type: view
+            #                   style:
+            #                     left: "0"
+            #                     width: "0.39"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Email"
+            #                       style:
+            #                         width: "0.39"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.email
+            #                       style:
+            #                         width: "0.39"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # Employer
+            #                 - type: view
+            #                   style:
+            #                     left: "0"
+            #                     width: "0.39"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Employer"
+            #                       style:
+            #                         width: "0.39"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.employer
+            #                       style:
+            #                         width: "0.39"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # Occupation
+            #                 - type: view
+            #                   style:
+            #                     left: "0"
+            #                     width: "0.39"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Occupation"
+            #                       style:
+            #                         width: "0.39"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.occupation
+            #                       style:
+            #                         width: "0.39"
+            #             ## CONTENT TITLE
+            #             - .FormsContentTitle:
+            #               text: "Emergency Contact"
+            #               style:
+            #                 marginTop: "0.02"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # First Name
+            #                 - type: view
+            #                   style:
+            #                     left: "0"
+            #                     width: "0.19"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Name"
+            #                       style:
+            #                         width: "0.19"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.name
+            #                       style:
+            #                         width: "0.19"
+            #                 # Relation
+            #                 - type: view
+            #                   style:
+            #                     left: "0.2"
+            #                     width: "0.19"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Relation"
+            #                       style:
+            #                         width: "0.19"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.relation
+            #                       style:
+            #                         width: "0.19"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.01"
+            #                 width: "0.39"
+            #                 height: "0.07"
+            #               children:
+            #                 # Phone number
+            #                 - type: view
+            #                   style:
+            #                     left: "0"
+            #                     width: "0.39"
+            #                   children:
+            #                     - .FormsTextFieldLabel:
+            #                       text: "Phone number"
+            #                       style:
+            #                         width: "0.39"
+            #                     - .FormsTextField:
+            #                       isEditable: "true"
+            #                       dataKey: formData.patientInfo.phoneNumber
+            #                       style:
+            #                         width: "0.39"
+            #             - type: view
+            #               style:
+            #                 marginTop: "0.02"
+            #                 width: "0.39"
+            #                 height: "0.1"
+            #               children:
+            #                 - type: view
+            #                   style:
+            #                     width: "0.39"
+            #                     height: "0.04"
+            #                     marginTop: "0.01"
+            #                   children:
+            #                     - type: image
+            #                       path: 
+            #                         emit:
+            #                           actions:
+            #                             - if:
+            #                               - =.builtIn.string.equal:
+            #                                   dataIn:
+            #                                     string1: true
+            #                                     string2: =.Global.formData.newPatientFormEdit.name.data.patientInfo.isKnownInfo
+            #                               - selectBlue.svg
+            #                               - selectGray.svg
+            #                       style:
+            #                         width: "0.013"
+            #                         height: "0.023"
+            #                         top: "0.01"
+            #                     - type: label
+            #                       text: "I consent above information is true and correct."
+            #                       style:
+            #                         height: "0.04"
+            #                         left: "0.02"
+            #                         fontSize: .Nfont.nf4
+            #                         color: "0x707070"
+            #                         top: "0"
+            #                         textAlign:
+            #                           y: center
+            #                 - type: view
+            #                   style:
+            #                     width: "0.39"
+            #                     height: "0.04"
+            #                     marginTop: "0.01"
+            #                   children:
+            #                     - type: image
+            #                       path: 
+            #                         emit:
+            #                           actions:
+            #                             - if:
+            #                               - =.builtIn.string.equal:
+            #                                   dataIn:
+            #                                     string1: true
+            #                                     string2: =.Global.formData.newPatientFormEdit.name.data.patientInfo.isKnownShare
+            #                               - selectBlue.svg
+            #                               - selectGray.svg
+            #                       style:
+            #                         width: "0.013"
+            #                         height: "0.023"
+            #                         top: "0.01"
+            #                     - type: label
+            #                       text: "I agree to share my information with said provider."
+            #                       style:
+            #                         height: "0.04"
+            #                         left: "0.02"
+            #                         fontSize: .Nfont.nf4
+            #                         color: "0x707070"
+            #                         top: "0"
+            #                         textAlign:
+            #                           y: center
+            #         # - .FormsCloseButton:
+            # - .FormsBottomView: 
+            #   children:
+            #     - .FormsBottomButtons:
+            #       children:
+            #         # - .FormsBottomLeftButton:
+            #         # - .FormsBottomRightButton:                     
+            #         - .FormsBottomMiddleButton:
+            #           onClick:
+            #             - actionType: evalObject
+            #               object:
+            #                 - =..apiRequest.patientForm.docAPI.store: ""
+            #                 - .Global.formData.firstToNewPatientForm@: false
+            #             - goto: NewPatFormEditPage2
+
+            - .FormsRightButtonsView:
+              children:
+                - .FormsRightButton:
+                - .FormsRightButton:
+                  img: keyboard.svg
+                  msg: "Macro"
+                  style:
+                    marginTop: "0.002"
+                    backgroundColor: "0x1263a8"

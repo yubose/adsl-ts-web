@@ -1,0 +1,1190 @@
+FluVaccinationConsentFormSpanish:
+  title: Flu Vaccination Consent Form 2020-2021(Spanish)
+
+  init:
+    #Page initialization
+    - .SignInCheck
+
+  formData:
+    #Input data here
+
+    selectStatusOne:
+      Vaccination:
+        isRequired: ""
+    selectStatusTwo:
+      Vaccination:
+        isRequired: ""
+    selectStatusThree:
+      Vaccination:
+        isRequired: ""
+    selectStatusFour:
+      Vaccination:
+        isRequired: ""
+    selectStatusInjection:
+      # isRequired: false
+      isRequired: ""
+
+  formDataTemp:
+    #Input data temp here, datatemp should not mix with formData
+    isClaimsAd: false
+    VaccinationConsentOne:
+      - key: isRequired
+        value: "Yes"
+      - key: isRequired
+        value: "No"
+    VaccinationConsentTwo:
+      - key: isRequired
+        value: "Yes"
+      - key: isRequired
+        value: "No"
+    VaccinationConsentThree:
+      - key: isRequired
+        value: "Yes"
+      - key: isRequired
+        value: "No"
+    VaccinationConsentFour:
+      - key: isRequired
+        value: "Yes"
+      - key: isRequired
+        value: "No"
+  apiRequest:
+    #Input data request here
+    # FluVaccinationConsentFormSpanish文档
+    FluVaccinationConsentFormSpanish:
+      docResp: ""
+      docReq:
+        .Document: ""
+        eid: .Global.formData.appointment.id
+        type: .DocType.FluVaccinationConsentFormSpanish
+        name:
+          title: "Flu Vaccination Consent Form 2020-2021(Spanish)"
+          user: .Global.currentUser.vertex.name.userName
+          type: "text/plain"
+          subtype: "0" #0是未完成，1是完成
+          data:
+            signatureId: ""
+            whetherSign: ""
+            authority: ""
+            facilityInfo:
+              facilityName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+              location: .Global.currentFacility.name.basicInfo.location
+              email: .Global.currentFacility.name.basicInfo.email
+              aiTmedID: .Global.currentFacility.name.basicInfo.locationID
+              phone: .Global.currentFacility.name.basicInfo.phoneNumber
+              fax: ""
+            providerInfo:
+              providerFullName: ""
+              signDate: ""
+            patientInfo:
+              examDate: .FluVaccinationConsentFormSpanish.appointmentInfo.stime
+              patientName: .Global.currentMeetingPatientProfile.fullName
+              dob: .Global.currentMeetingPatientProfile.birth
+              aiTmedID: .Global.currentMeetingPatientProfile.userName
+              phone: .Global.currentMeetingPatientProfile.phone
+              email: .Global.currentMeetingPatientProfile.email
+            fluVaccinationInfo:
+              officeUseDescription:
+                Lot: ""
+                Exp: ""
+                Nurse: ""
+                locationOfInjection: ""
+              companyName: ""
+              VaccinationConsentOne: ""
+              VaccinationConsentTwo: ""
+              VaccinationConsentThree: ""
+              VaccinationConsentFour: ""
+              certifyCheck: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: FluVaccinationConsentFormSpanish.apiRequest.FluVaccinationConsentFormSpanish.docReq
+          dataOut: FluVaccinationConsentFormSpanish.apiRequest.FluVaccinationConsentFormSpanish.docResp
+          subtype:
+            mediaType: "text/plain"
+        get:
+          api: rd
+          dataKey: FluVaccinationConsentFormSpanish.docResp
+          id: .Global.Note.id
+          xfname: eid
+          type: .DocType.FluVaccinationConsentFormSpanish
+          maxcount: "1"
+        delete:
+          api: dx
+          dataIn: FluVaccinationConsentFormSpanish.apiRequest.FluVaccinationConsentFormSpanish.docReq
+
+  components:
+    - type: scrollView
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.9"
+        overflow: scroll
+      children:
+        - type: view
+          style:
+            height: "auto"
+            width: "0.9"
+            left: "0.05"
+          children:
+            - type: view
+              style:
+                marginTop: "0.04"
+                height: "0.15"
+                width: '0.9'
+              children:
+                - type: view
+                  style:
+                    top: "0"
+                    left: "0.4"
+                    height: "auto"
+                    width: "0.5"
+                    overflow: hidden
+                  children:
+                    - type: label
+                      text: A&C Urgent Care
+                      dataKey: Global.formData.medicalRecords.name.data.facilityInfo.facilityName
+                      style:
+                        height: "auto"
+                        width: "0.3"
+                        color: "0x0f0f0f"
+                        fontSize: .Nfont.h4
+                        fontFamily: "Roboto"
+                    - type: label
+                      text: 1000 S Anaheim Blvd Ste 200 Anaheim, CA 92805
+                      dataKey: Global.formData.medicalRecords.name.data.facilityInfo.location
+                      style:
+                        marginTop: '0.01'
+                        height: "auto"
+                        width: "0.5"
+                        color: "0x0f0f0f"
+                        fontSize: .Nfont.nf6
+                        fontFamily: "Roboto"
+                    - type: label
+                      text: www.website.com
+                      dataKey:
+                      style:
+                        marginTop: '0.01'
+                        height: "auto"
+                        width: "0.5"
+                        color: "0x0f0f0f"
+                        fontSize: .Nfont.nf6
+                        fontFamily: "Roboto"
+                - type: view
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "0.1"
+                    width: "0.22"
+                  children:
+                    - type: image
+                      path: hospital.png
+                      dataKey:
+                      style:
+                        height: "0.1"
+                        width: "0.22"
+            - type: view
+              style:
+                height: "auto"
+                width: "0.8"
+                left: "0"
+                marginTop: "0.035"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    left: "0.08"
+                    width: "0.8"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      text: loremipsum@dictew.com
+                      dataKey: Global.formData.medicalRecords.name.data.facilityInfo.email
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Email
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.12"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.8"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      text: A&Curgentcare
+                      dataKey: Global.formData.medicalRecords.name.data.facilityInfo.aiTmedID
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: AiTmed ID
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.2"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.8"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      dataKey: Global.formData.medicalRecords.name.data.facilityInfo.phone
+                      text: +1 (657) 220-5555
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Phone
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.15"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.8"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      dataKey: Global.formData.medicalRecords.name.data.facilityInfo.fax
+                      # text:  +1 (657) 220-5556
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Fax
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.1"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+            - type: view
+              style:
+                marginTop: "0.03"
+                left: "0"
+                width: "0.9"
+                height: "0.01"
+                backgroundColor: "0x707070"
+        - type: view
+          style:
+            height: "auto"
+            width: "0.9"
+            left: "0.05"
+          children:
+            - type: view
+              style:
+                marginTop: "0.02"
+                height: "auto"
+                width: "0.9"
+                left: "0"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.82"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtime_en
+                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.examDate
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Exam Date
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.22"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.82"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      text: Melissa L. West
+                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.patientName
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Patient Name
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.27"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.82"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.dob
+                      text: 02/13/1994
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Date of Birth
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.15"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.82"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.aiTmedID
+                      text: Mellissa1234
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: AiTmed ID
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.25"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.82"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.phone
+                      text: +1 (213) 706-4507
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Phone
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.15"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    left: "0.08"
+                    width: "0.82"
+                    height: "0.03"
+                  children:
+                    - type: label
+                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.email
+                      text: loremipsum@ticdes.com
+                      style:
+                        left: "0.32"
+                        width: "0.5"
+                        fontSize: .Nfont.nf2
+                        wordBreak: break-all
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: label
+                      text: Email
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "auto"
+                        width: "0.13"
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x757575"
+            - type: view
+              style:
+                marginTop: "0.03"
+                left: "0"
+                width: "0.9"
+                height: "0.01"
+                backgroundColor: "0x707070"
+        - type: view
+          style:
+            marginTop: "0.04"
+            height: "auto"
+            width: "0.9"
+            left: "0.05"
+          children:
+            - type: label
+              text: "Company Name/Referred by"
+              dataKey:
+              style:
+                height: "auto"
+                width: "0.4"
+                color: "0x0f0f0f"
+                fontSize: .Nfont.nf2
+                fontStyle: bold
+                fontFamily: "Roboto"
+            - type: view
+              style:
+                marginTop: "0.02"
+                height: "0.06"
+                width: "0.8"
+              children:
+                - type: label
+                  placeholder: "Enter here"
+                  isEditable: false
+                  dataKey: Global.formData.medicalRecords.name.data.fluVaccinationInfo.companyName
+                  style:
+                    top: "0"
+                    left: "0"
+                    width: "0.26"
+                    height: "0.06"
+                    fontSize: .Nfont.nf2
+                    fontFamily: Roboto
+                    color: "0x0f0f0f"
+                    borderRadius: "3"
+                    border:
+                      style: 3
+                    borderColor: "0xcccccc"
+                    borderWidth: "1.3"
+                    textAlign:
+                      y: center
+        - type: view
+          style:
+            marginTop: "0.02"
+            left: "0.05"
+            width: "0.9"
+            height: "0.01"
+            backgroundColor: "0x707070"
+        - type: view
+          style:
+            marginTop: "0.03"
+            width: "0.9"
+            height: "auto"
+            left: "0.05"
+          children:
+            - type: label
+              text: "FORMA DE CONSENTIMIENTO PARA VACUNARSE CONTRA LA GRIPA"
+              style:
+                width: "0.8"
+                left: "0.05"
+                height: "auto"
+                fontSize: .Nfont.nf2
+                fontFamily: Roboto
+                fontStyle: bold
+                color: "0x0f0f0f"
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style:
+                left: "0"
+                width: "0.9"
+                marginTop: "0.02"
+              children:
+                - type: view
+                  style:
+                    left: "0"
+                    width: "0.6"
+                  children:
+                    - type: label
+                      text: "HAS TENDO ALGUNO DE LO SIGUIENTE?"
+                      style:
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        fontWeight: "550"
+                        color: "0x0f0f0f"
+                - type: view
+                  style:
+                    left: "0"
+                    width: "0.9"
+                    marginTop: "0.02"
+                  children:
+                    - type: label
+                      text: "1) REACCION ALERGICA A HUEVOS DE GALLINA?"
+                      style:
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.VaccinationConsentOne
+                      iteratorVar: itemObject
+                      viewTag: isRequiredTag
+                      style:
+                        left: "0.045"
+                        width: "0.35"
+                        height: "0.04"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: "0.175"
+                            height: "0.06"
+                            left: "0"
+                            marginTop: "0"
+                          children:
+                            - type: image
+                              style:
+                                top: "0.02"
+                                left: "0"
+                                height: "0.025"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =.Global.formData.medicalRecords.name.data.fluVaccinationInfo.VaccinationConsentOne.isRequired
+                                              string2: $var.value
+                                        - selectBlue.svg
+                                        - selectGray.svg
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.035"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "0.06"
+                                width: "0.1"
+                                textAlign:
+                                  y: center
+
+                - type: view
+                  style:
+                    left: "0"
+                    width: "0.9"
+                    marginTop: "0"
+                  children:
+
+                    - type: label
+                      text: "2) REACCION ALERGICA A LA VACUNA DE LA GRIPA O CUALQUIER OTRO TIPO DE
+                        INMUNIZACION?"
+                      style:
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        color: "0x0f0f0f"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.VaccinationConsentTwo
+                      iteratorVar: itemObject
+                      viewTag: isRequiredTag
+                      style:
+                        # top: "0.01"
+                        left: "0.045"
+                        width: "0.35"
+                        height: "0.04"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: "0.175"
+                            height: "0.06"
+                            left: "0"
+                            marginTop: "0"
+                          children:
+                            - type: image
+                              style:
+                                top: "0.02"
+                                left: "0"
+                                height: "0.025"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =.Global.formData.medicalRecords.name.data.fluVaccinationInfo.VaccinationConsentTwo.isRequired
+                                              string2: $var.value
+                                        - selectBlue.svg
+                                        - selectGray.svg
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.035"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "0.06"
+                                width: "0.1"
+                                textAlign:
+                                  y: center
+
+                - type: view
+                  style:
+                    left: "0"
+                    width: "0.9"
+                    marginTop: "0"
+                  children:
+
+                    - type: label
+                      text: "3) REACCION ALERGICA A CUALQUER MEDICAMIENTOO DROGA?"
+                      style:
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        wordBreak: break-all
+                        # width: "0.9"
+                        color: "0x0f0f0f"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.VaccinationConsentThree
+                      iteratorVar: itemObject
+                      viewTag: isRequiredTag
+                      style:
+                        # top: "0.01"
+                        left: "0.045"
+                        width: "0.35"
+                        height: "0.04"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: "0.175"
+                            height: "0.06"
+                            left: "0"
+                            marginTop: "0"
+                          children:
+                            - type: image
+                              style:
+                                top: "0.02"
+                                left: "0"
+                                height: "0.025"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =.Global.formData.medicalRecords.name.data.fluVaccinationInfo.VaccinationConsentThree.isRequired
+                                              string2: $var.value
+                                        - selectBlue.svg
+                                        - selectGray.svg
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.035"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "0.06"
+                                width: "0.1"
+                                textAlign:
+                                  y: center
+
+                - type: view
+                  style:
+                    left: "0"
+                    width: "0.9"
+                    marginTop: "0"
+                  children:
+
+                    - type: label
+                      text: "4) ESTAS O PUEDES ESTAR EMBARAZADA?"
+                      style:
+                        fontSize: .Nfont.nf2
+                        fontFamily: Roboto
+                        wordBreak: break-all
+                        # width: "0.9"
+                        color: "0x0f0f0f"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.VaccinationConsentFour
+                      iteratorVar: itemObject
+                      viewTag: isRequiredTag
+                      style:
+                        # top: "0.01"
+                        left: "0.045"
+                        width: "0.35"
+                        height: "0.04"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: "0.175"
+                            height: "0.06"
+                            left: "0"
+                            marginTop: "0"
+                          children:
+                            - type: image
+                              style:
+                                top: "0.02"
+                                left: "0"
+                                height: "0.025"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =.Global.formData.medicalRecords.name.data.fluVaccinationInfo.VaccinationConsentFour.isRequired
+                                              string2: $var.value
+                                        - selectBlue.svg
+                                        - selectGray.svg
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.035"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "0.06"
+                                width: "0.1"
+                                textAlign:
+                                  y: center
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                left: "0"
+                marginTop: "0.05"
+              children:
+                - type: image
+                  viewTag: claimsAdstatusSelectTag
+                  style:
+                    top: "0.01"
+                    height: "0.03"
+                  path:
+                    emit:
+                      actions:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.formData.medicalRecords.name.data.fluVaccinationInfo.certifyCheck
+                                  string2: true
+                            - selectBlue.svg
+                            - selectGray.svg
+                - type: label
+                  text: "Certifico que todas las repuestas son verdadera y correctas en mi mejor
+                    conocimiento. Voluntariamente pido una vacuna contra la
+                    gripa de Golden West Medical Center. Comprendo que hay
+                    posibilidades remotas de una reaccion adversa o cualquier
+                    otras complicaciones de la vacuna de la gripa.
+                    Voluntariamente estoy de acuerdo de asumir cualquier riesgo
+                    asociado con la administacion de la inyeccion contra la
+                    gripa. No hago responsable a Golden West Medical Center de
+                    cualquier responsabilidad, por culaquier dano que pudiera
+                    pasarme mientras participo en el programa de vacunacion
+                    contra la gripa."
+                  style:
+                    width: "0.8"
+                    height: "auto"
+                    fontFamily: Poppins
+                    fontSize: .Nfont.nf6
+                    left: "0.045"
+
+            - type: view
+              style:
+                left: "0"
+                width: "0.9"
+                marginTop: "0.035"
+
+              children:
+                - type: label
+                  text: "Signature / Firma"
+                  style:
+                    height: "auto"
+                    width: "0.4"
+                    fontSize: .Nfont.nf2
+                    fontStyle: "bold"
+                    fontFamily: Roboto
+                - type: view
+                  style:
+                    marginTop: "0.015"
+                    width: "0.8"
+                    left: "0.02"
+                    height: "0.22"
+                    border:
+                      style: 4
+                    borderColor: "0xababab"
+                    borderWidth: "2"
+                  children:
+                    # 签名区域
+                    - type: image
+                      dataKey: Global.formData.medicalRecords.name.data.signatureId
+                      path=func: .builtIn.utils.prepareDocToPath
+                      viewTag: signatureTag
+                      style:
+                        top: "0"
+                        left: "0.16"
+                        width: "50vw"
+                        zIndex: "100"
+                        height: "0.2"
+                    - type: label
+                      text: X
+                      style:
+                        top: "0.15"
+                        height: "0.03"
+                        .SignLabelStyle:
+                        width: "0.65"
+                        left: "0.055"
+
+                - type: view
+                  style:
+                    width: "0.9"
+                    left: "0"
+                    marginTop: "0.03"
+                  children:
+                    - type: label
+                      text: "PT: "
+                      style:
+                        display: inline-block
+
+                    - type: label
+                      text: "Mellissa West"
+                      dataKey: Global.formData.medicalRecords.name.data.providerInfo.providerFullName
+                      style:
+                        left: "0.01"
+                        display: inline-block
+                - type: view
+                  style:
+                    width: "0.9"
+                    left: "0"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Date: "
+                      style:
+                        display: inline-block
+                    - type: label
+                      # text: "09/30/2021"
+                      dataKey: Global.formData.medicalRecords.name.data.providerInfo.signDate
+                      style:
+                        left: "0.01"
+                        display: inline-block
+
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.9"
+                height: "0.01"
+                backgroundColor: "0x707070"
+
+            - type: view
+              style:
+                width: "0.9"
+                left: "0"
+                marginTop: "0.03"
+              children:
+                - type: label
+                  text: "Office use only"
+                  style:
+                    height: "auto"
+                    width: "0.9"
+                    color: "0x0f0f0f"
+                    fontSize: .Nfont.nf2
+                    fontStyle: bold
+                    fontFamily: "Roboto"
+
+                - type: view
+                  style:
+                    marginTop: "0.02"
+                    height: "0.12"
+                    width: "0.9"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0"
+                        width: "0.6"
+                        # display: "inline-block"
+                        height: "auto"
+                      children:
+                        - type: label
+                          text: "LOT #"
+                          dataKey:
+                          style:
+                            height: "auto"
+                            width: "0.3"
+                            color: "0x9e9e9e"
+                            fontSize: .Nfont.nf2
+                            # fontStyle: bold
+                            fontFamily: "Roboto"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.25"
+                            height: "0.06"
+                          children:
+                            - .BaseTextField:
+                              isEditable: false
+                              placeholder: "Enter here"
+                              style:
+                                top: "0"
+                                left: "0"
+                                width: "0.2"
+                                height: "0.055"
+                                fontSize: .Nfont.nf2
+                                fontFamily: Roboto
+                                color: "0x0f0f0f"
+                                borderRadius: "3"
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.3"
+                        width: "0.3"
+                        height: "auto"
+                      children:
+                        - type: label
+                          text: "EXP"
+                          dataKey:
+                          style:
+                            height: "auto"
+                            width: "0.3"
+                            color: "0x9e9e9e"
+                            fontSize: .Nfont.nf2
+                            fontFamily: "Roboto"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.25"
+                            height: "0.06"
+                          children:
+                            - .BaseTextField:
+                              isEditable: false
+                              placeholder: "Enter here"
+                              style:
+                                top: "0"
+                                left: "0"
+                                width: "0.25"
+                                height: "0.055"
+                                fontSize: .Nfont.nf2
+                                fontFamily: Roboto
+                                color: "0x0f0f0f"
+                                borderRadius: "3"
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.6"
+                        width: "0.3"
+                        height: "auto"
+                      children:
+                        - type: label
+                          text: "Nurse"
+                          dataKey:
+                          style:
+                            height: "auto"
+                            width: "0.3"
+                            color: "0x9e9e9e"
+                            fontSize: .Nfont.nf2
+                            fontFamily: "Roboto"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.25"
+                            height: "0.06"
+                          children:
+                            - .BaseTextField:
+                              isEditable: false
+                              placeholder: "Enter here"
+                              style:
+                                top: "0"
+                                left: "0"
+                                width: "0.25"
+                                height: "0.055"
+                                fontSize: .Nfont.nf2
+                                fontFamily: Roboto
+                                color: "0x0f0f0f"
+                                borderRadius: "3"
+                - type: view
+                  style:
+                    width: "0.9"
+                    left: "0"
+                    height: "0.2"
+                    opacity: "0.7"
+                  children:
+                    - type: label
+                      text: "Location of injection"
+                      style:
+                        color: "0x9e9e9e"
+                        fontSize: .Nfont.nf2
+                        fontFamily: "Roboto"
+                    - type: view
+                      viewTag: isRequiredTagFive
+                      style:
+                        left: "0"
+                        width: "0.9"
+                        height: "0.04"
+                        axis: horizontal
+                      children:
+                        - type: view
+                          style:
+                            width: "0.3"
+                            height: "0.1"
+                            left: "0"
+                            marginTop: "0"
+                          children:
+                            - type: image
+                              style:
+                                top: "0.022"
+                                left: "0"
+                                height: "0.025"
+                              path:
+                                emit:
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.selectStatusInjection.isRequired
+                                              string2: true
+                                        - selectBlue.svg
+                                        - selectGray.svg
+
+                            - type: label
+                              text: "Right Deltoid"
+                              style:
+                                top: "0.014"
+                                left: "0.035"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "0.06"
+                                width: "0.3"
+                                color: "0x9e9e9e"
+
+                        - type: view
+                          style:
+                            width: "0.3"
+                            height: "0.06"
+                            left: "0.004"
+                            marginTop: "0"
+                          children:
+                            - type: image
+                              style:
+                                top: "0.022"
+                                left: "0"
+                                height: "0.025"
+                              path:
+                                emit:
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.selectStatusInjection.isRequired
+                                              string2: false
+                                        - selectBlue.svg
+                                        - selectGray.svg
+
+                            - type: label
+                              text: "left Deltoid"
+                              style:
+                                top: "0.014"
+                                left: "0.040"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "0.06"
+                                width: "0.3"
+                                color: "0x9e9e9e"
+    # - .NextButtonView:
+    #   children:
+    #     - type: button
+    #       text: "Complete"
+    #       style: 
+    #         width: "0.9"
+    #         height: "0.045"
+    #         backgroundColor: "0x2988e6"
+    #         fontSize: .Nfont.nf4
+    #         top: "0.0275"
+    #         border:
+    #           style: "3"
+    #         borderColor: "0x2fb355"
+    #         color: "0xffffff"
+    #         borderRadius: "3"     
+    #         left: "0.05"
+    #         textAlign:
+    #           x: center
+    #           y: center

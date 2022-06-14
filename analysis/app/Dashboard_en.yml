@@ -5,7 +5,7 @@ Dashboard:
         dataIn:
           config: ..config
         dataOut: Dashboard.diagnostics
-  config: admind3-chris
+  config: testpage
   diagnostics: null
   components:
     - .BaseHeader: null

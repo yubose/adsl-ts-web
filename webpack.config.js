@@ -32,6 +32,7 @@ const paths = {
     base: getFilePath('./analysis'),
     app: getFilePath('./analysis/app'),
   },
+  debug: getFilePath('./debug'),
   build: getFilePath('build'),
   public: getFilePath('public'),
   pkg: {
@@ -42,6 +43,8 @@ const paths = {
   },
   generated: getFilePath('./generated'),
 }
+
+console.log(paths)
 
 /**
  * @type { Record<'name' | 'title' | 'description' | 'favicon' | 'keywords' | 'injectScripts', any> }
@@ -93,7 +96,57 @@ function getWebpackConfig(env) {
     'noodl-utils': pkgJson['noodl-utils'].version,
   }
 
-  const analysisApp = env.APP || env.CONFIG || 'testpage'
+  const staticPaths = [paths.public]
+  const devServerOptions = { onAfterSetupMiddleware: [], static: staticPaths }
+  const environmentPluginOptions = {}
+
+  if (env.APP || env.DEBUG) {
+    if (env.APP) {
+      environmentPluginOptions.ANALYSIS_APP = env.APP
+      devServerOptions.static.push(paths.analysis.base)
+      devServerOptions.static.push(paths.analysis.app)
+      devServerOptions.onAfterSetupMiddleware.push(
+        /**
+         * @param { import('webpack-dev-server/types/lib/Server') } devServer
+         */
+        function onAfterSetupMiddleware(devServer) {
+          require('./analysis/server')
+            .createAnalysisModule(paths.analysis.base, devServer, {
+              env,
+              webpackConfig: webpackOptions,
+            })
+            .registerRoutes()
+            .watch()
+            .listen()
+        },
+      )
+    } else {
+      const basedir = path.join(paths.debug, env.DEBUG)
+      environmentPluginOptions.DEBUG_APP = env.DEBUG
+      devServerOptions.static.push(basedir)
+      devServerOptions.onAfterSetupMiddleware.push(
+        /**
+         * @param { import('webpack-dev-server/types/lib/Server') } devServer
+         */
+        function onAfterSetupMiddleware(devServer) {
+          const createAppDebugger = require('./scripts/createAppDebugger')
+          const appDebugger = createAppDebugger({
+            app: env.DEBUG,
+            basedir,
+            devServer,
+            env,
+            watcherOptions: {
+              glob: path.join(basedir, '**/*'),
+            },
+            wssOptions: {
+              port: 3020,
+            },
+          })
+          appDebugger.start()
+        },
+      )
+    }
+  }
 
   /**
    * @type { import('webpack').Configuration } webpackOptions
@@ -117,31 +170,6 @@ function getWebpackConfig(env) {
         'aitmed.com',
         'aitmed.io',
       ],
-      /**
-       * @param { import('webpack-dev-server/types/lib/Server') } devServer
-       */
-      onAfterSetupMiddleware: function (devServer) {
-        if (devServer) {
-          devServer.app.get('/routes', (req, res) => {
-            res.status(200).json({ ...devServer.app._router })
-          })
-
-          const { createAnalysisModule } = require('./analysis/server')
-
-          const analysis = createAnalysisModule(
-            paths.analysis.base,
-            devServer,
-            {
-              env,
-              webpackConfig: webpackOptions,
-            },
-          )
-
-          analysis.registerRoutes()
-          analysis.watch()
-          analysis.listen()
-        }
-      },
       compress: false,
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
@@ -153,14 +181,27 @@ function getWebpackConfig(env) {
           'Origin, X-Requested-With, Content-Type, Accept, Authorization',
       },
       port: 3000,
-      proxy: {
-        [`/${analysisApp}`]: `http://127.0.0.1:3000/analysis/${analysisApp}`,
-        '/analysis/console': `http://127.0.0.1:3000/index.html?analysis`,
-        //   '/analysis': 'http://127.0.0.1:3000/analysis/app',
-        //   '/analysis/app': 'http://127.0.0.1:3000/analysis/app',
-        //   '/analysis/testpage': 'http://127.0.0.1:3000/analysis/testpage',
+      ...devServerOptions,
+      /**
+       * @param { import('webpack-dev-server/types/lib/Server') } devServer
+       */
+      onAfterSetupMiddleware: async function (devServer) {
+        if (devServer) {
+          devServer.app.get('/routes', (req, res) => {
+            res.status(200).json({ ...devServer.app._router })
+          })
+          await Promise.all(
+            devServerOptions.onAfterSetupMiddleware.map((fn) => {
+              return new Promise(async (resolve) => {
+                if (!fn) resolve()
+                const promise = fn(devServer)
+                if (u.isPromise(promise)) await promise
+                resolve(promise)
+              })
+            }),
+          )
+        }
       },
-      static: [paths.public, paths.analysis.base, paths.analysis.app],
     },
     devtool: false,
     externals: [],
@@ -261,8 +302,7 @@ function getWebpackConfig(env) {
                   : false,
             }
           : undefined),
-        LOCAL_CONFIG_URL: env.APP ? `${env.APP}/${env.APP}.yml` : '',
-        ANALYSIS_APP: analysisApp,
+        ...environmentPluginOptions,
       }),
       new HtmlWebpackPlugin({
         alwaysWriteToDisk: true,
@@ -298,7 +338,7 @@ function getWebpackConfig(env) {
         ],
       }),
       new webpack.ProgressPlugin({
-        // handler: webpackProgress,
+        handler: webpackProgress,
       }),
       ...((settings.injectScripts && [
         new InjectScriptsPlugin({ path: settings.injectScripts }),

@@ -1,0 +1,1136 @@
+NewMessage:
+  title:
+  pageNumber:
+  init:
+    #Page initialization
+    - .SignInCheck
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.reply.eid
+              string2: =.Global.fac_rootNotebook
+        - continue
+        - actionType: evalObject
+          object:
+            - ..apiRequest.email.docReq.eid@: =.Global.formData.reply.eid
+            - ..apiRequest.email.docReq.name.title@: =.Global.formData.reply.name.title
+            - ..apiRequest.email.docReq.name.data.receiverAvatarId@: =.Global.formData.reply.name.data.receiverAvatarId
+            - ..apiRequest.email.docReq.name.data.receiverName@: =.Global.formData.reply.name.data.receiverName
+            - ..formData.toPhotoFlag@: true
+    - if:
+        - =.Global.formData.email.name
+        - ..apiRequest.email.docReq@: =.Global.formData.email
+        - continue
+    - ..formData.attachments@: =.Global.formData.attachments
+
+    - if:
+        - =.Global.patientAll
+        - =.builtIn.array.formatProfile:
+            dataIn:
+              objArr: =.Global.patientAll
+            dataOut: NewMessage.formData.parseProfile
+        - continue
+    - if:
+        # 如果patient的list为空，就让显示的联系人列表为provider的list
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..formData.parseProfile
+              string2: ""
+        - ..formData.contactList@: =.Global.providerAll
+        - continue
+    - if:
+        # 如果provider的list为空，就让显示的联系人列表为patient的list
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.providerAll
+              string2: ""
+        - ..formData.contactList@: =..formData.parseProfile
+        - continue
+    - if:
+        # 如果两个array都不为空，就拼接成一个
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..formData.parseProfile
+              string2: =.Global.providerAll
+        - continue
+        - =.builtIn.array.concatArray:
+            dataIn:
+              array1: =..formData.parseProfile
+              array2: =.Global.providerAll
+              sortby: mtime
+              orders: "desc"
+            dataOut: NewMessage.formData.contactList
+    - ..apiRequest.relation.edgeReq.id.0@: =.Global.currentFacility.id # 获取10002这条边，赋值其中一个id
+
+  formData:
+    parseProfile: []
+    contactList: []       
+    attachments: []       
+    toPhotoFlag: false
+    patOrProList: []
+    controlPatientList: "block"
+    controlProviderList: "none"
+    patOrProName: ""
+    tabList:
+      - name: "Patient"
+        color: "0x005795"
+        fontWeight: "700"
+        borderColor: "0x005795"
+      - name: "Provider"
+        color: "0x000000"
+        fontWeight: ""
+        borderColor: "#ececec"
+  formDataTemp:
+    main: "Permanently delete the message ?"
+  apiRequest:
+    email:
+      docModel:
+        # 模板
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(10002) 如果为drafts就默认挂在rootnotebook
+        eid: .Global.fac_rootNotebook
+        name:
+          data:
+            #邮件内容
+            content: ""
+            #收件人姓名 
+            receiverName: ""
+            #发送人姓名 
+            senderName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+            #收件人头像的id
+            receiverAvatarId: ""
+            #是否带附件
+            haveAttachment: false
+          #邮件标题
+          title: ""
+          #发件人头像的id 
+          user: .Global.facilityAvatarID
+          type: "application/json"
+      docResp: ""
+      docReq:
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(10002) 如果为drafts就默认挂在rootnotebook
+        eid: .Global.fac_rootNotebook
+        name:
+          data:
+            #邮件内容
+            content: ""
+            #收件人姓名 
+            receiverName: ""
+            #发送人姓名 
+            senderName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+            #收件人头像的id
+            receiverAvatarId: ""
+            #是否带附件
+            haveAttachment: false
+          #邮件标题
+          title: ""
+          #发件人头像的id 
+          user: .Global.facilityAvatarID
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: NewMessage.apiRequest.email.docReq
+          dataOut: NewMessage.apiRequest.email.docResp
+    #邮件挂载的edge(10002)
+    relation:
+      edgeReq:
+        type: .EdgeType.Email
+        id: ""
+        xfname: Bvid,Evid
+        maxcount: "1"
+        obfname: ctime
+      edgeResp: ""
+      # 通过ID来get
+      edgeIDReq:
+        type: .EdgeType.Email
+        id: ""
+        xfname: id
+        maxcount: "1"
+        obfname: ctime
+      edgeIDResp: ""
+      edgeAPI:
+        idGet:
+          api: re
+          dataIn: NewMessage.apiRequest.relation.edgeIDReq
+          dataOut: NewMessage.apiRequest.relation.edgeIDResp
+        get:
+          api: re
+          dataIn: NewMessage.apiRequest.relation.edgeReq
+          dataOut: NewMessage.apiRequest.relation.edgeResp
+    # 附件
+    attachment:
+      deleteDocReq:
+        id: ""
+      docAPI:
+        delete:
+          api: dx
+          dataIn: NewMessage.apiRequest.attachment.deleteDocReq
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - type: view
+              style:
+                width: "0.824"
+                height: "0.9"
+                top: "0.015"
+                left: "0.008"
+                backgroundColor: "0xffffff"
+                borderRadius: "5"
+                display: flex
+                flexDirection: column
+                justifyContent: center
+                alignItems: center
+              children:
+                - type: view
+                  style:
+                    width: "0.78"
+                    height: "0.05"
+                  children:
+                    - type: label
+                      text: < Back
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.judgeIsAllEmpty:
+                                    dataIn:
+                                      - =..apiRequest.email.docReq.name.data.receiverName
+                                      - =..apiRequest.email.docReq.name.title
+                                      - =..apiRequest.email.docReq.name.data.content
+                                - actionType: builtIn
+                                  funcName: goBack
+                                  reload: true
+                                - actionType: popUp
+                                  popUpView: backView
+
+                      style:
+                        left: '0'
+                        width: '0.04'
+                        top: "0.02"
+                        height: '0.03'
+                        fontSize: .Nfont.nf4
+                        fontWeight: "600"
+                        color: '0x005795'
+                        # backgroundColor: ''
+                        textAlign:
+                          x: left
+                          y: center
+
+                - type: scrollView
+                  viewTag: newMessageView
+                  style:
+                    height: "0.85"
+                    width: "0.6"
+                  children:
+
+                    # To:
+                    - type: view
+                      style:
+                        width: "0.57"
+                        height: "0.06"
+                        display: flex
+                        justifyContent: flex-start
+                        alignItems: center
+                        marginTop: "0.02"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.05"
+                            height: "0.06"
+                            display: flex
+                            justifyContent: flex-start
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "To :"
+                              dataKey:
+                              style:
+                                fontSize: .Nfont.nf4
+                        - type: textField
+                          placeholder: Add Connection
+                          dataKey: apiRequest.email.docReq.name.data.receiverName
+                          viewTag: toNameView
+                          isEditable: false
+                          style:
+                            width: "0.52"
+                            height: "0.038"
+                            border:
+                              style: "3"
+                            fontFamily: Poppins
+                            borderColor: "0xe6e6e6"
+                            borderRadius: "3"
+                            backgroundColor: "0xffffff"
+                            flex-grow: "0"
+                            textIndent: "1em"
+                        - type: image
+                          path: toPhoto.svg
+                          onClick:
+                            - actionType: popUp
+                              popUpView: contactView
+                          style:
+                            isHidden: ..formData.toPhotoFlag
+                            top: "0.02"
+                            left: "0.54"
+                    # Subject: 
+                    - type: view
+                      style:
+                        width: "0.57"
+                        height: "0.06"
+                        display: flex
+                        justifyContent: flex-start
+                        alignItems: center
+                      children:
+                        - type: view
+                          style:
+                            width: "0.05"
+                            height: "0.06"
+                            display: flex
+                            justifyContent: flex-start
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "Subject :"
+                              dataKey:
+                              style:
+                                fontSize: .Nfont.nf4
+                        - type: textField
+                          placeholder: Enter Subject here
+                          dataKey: apiRequest.email.docReq.name.title
+                          style:
+                            width: "0.52"
+                            height: "0.038"
+                            border:
+                              style: "3"
+                            borderColor: "0xe6e6e6"
+                            fontFamily: Poppins
+                            borderRadius: "3"
+                            flex-grow: "0"
+                            textIndent: "1em"
+                        - type: image
+                          path: subjectPhoto.svg
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - .Global.formData.attachments@: =..formData.attachments
+                                - .Global.formData.email@: =..apiRequest.email.docReq
+                            - goto: AddDocument
+
+                          style:
+                            top: "0.02"
+                            left: "0.54"
+                    - type: view
+                      viewTag: attachmentList
+                      style:
+                        width: "0.57"
+                        height: auto
+                        # marginTop: "0.04"
+                        display: flex
+                        justifyContent: flex-end
+                        alignItems: center
+                      children:
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.attachments
+                          iteratorVar: itemObject
+                          style:
+                            width: "0.52"
+                            margin: "0"
+                            height: auto
+                          children:
+                            - type: listItem
+                              itemObject:
+                              style:
+                                width: "0.16"
+                                height: "0.04"
+                                left: "0"
+                                marginTop: "0.01"
+                                backgroundColor: "0xF4F5F7"
+                                borderRadius: "10"
+                                boxSizing: border-box
+                                display: flex
+                                flexWrap: nowrap
+                                justifyContent: space-between
+                                float: left
+                                marginRight: "0.01"
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.11"
+                                    height: "0.04"
+                                  children:
+                                    - type: image
+                                      path: subjectPhoto.svg
+                                      style:
+                                        width: "0.01"
+                                        left: "0.01"
+                                        top: "0.01"
+                                    - type: label
+                                      dataKey: itemObject.name.title
+                                      style:
+                                        # width: "0.12"
+                                        top: "0.01"
+                                        left: "0.03"
+                                        color: "0x666666"
+                                        fontSize: .Nfont.nf2
+                                - type: button
+                                  text: Delete
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - ..apiRequest.attachment.deleteDocReq.id@: $var.id
+                                          - =..apiRequest.attachment.docAPI.delete: ""
+                                          - =.builtIn.array.removeById:
+                                              dataIn:
+                                                object: =..formData.attachments
+                                                id: $var.id
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: attachmentList
+                                  style:
+                                    width: "0.05"
+                                    backgroundColor: "0xF4F5F700"
+                                    fontSize: .Nfont.nf2
+                                    fontFamily: Poppins
+                                    color: "0x0b4a7e"
+                                    border:
+                                      style: "1"
+                                    textAlign:
+                                      x: center
+                                      y: center
+
+                    # Text
+                    - type: view
+                      style:
+                        width: "0.57"
+                        height: "0.55"
+                        marginTop: "0.02"
+                        display: flex
+                        justifyContent: flex-start
+                        alignItems: center
+                      children:
+                        - type: label
+                          text: "Text :"
+                          dataKey:
+                          style:
+                            width: "0.05"
+                            height: "0.55"
+                            fontSize: .Nfont.nf4
+                        - type: textView
+                          placeholder: Enter text here
+                          dataKey: apiRequest.email.docReq.name.data.content
+                          style:
+                            width: "0.52"
+                            textIndent: "1em"
+                            height: "0.55"
+                            fontFamily: Poppins
+                            border:
+                              style: "3"
+                            borderColor: "0xe6e6e6"
+                            borderRadius: "3"
+                            flex-grow: "0"
+                    - type: view
+                      style:
+                        width: "0.57"
+                        height: "0.1"
+                        marginTop: "0.02"
+                        display: flex
+                        justifyContent: flex-end
+                        alignItems: center
+                      children:
+                        - type: button
+                          text: "Send"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =..apiRequest.email.docReq.name.data.receiverName
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: noContactView
+                                      wait: true
+                                - if:
+                                    - =.builtIn.string.judgeFillinAll:
+                                        dataIn:
+                                          - =..apiRequest.email.docReq.name.title
+                                          - =..apiRequest.email.docReq.name.data.content
+                                    - actionType: popUp
+                                      popUpView: sendMailView
+                                      wait: true
+                                    - continue
+                                # 如果是reply过来的就跳过, 如果不是就get一下10002，再挂到10002上
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..apiRequest.email.docReq.eid
+                                          string2: =.Global.fac_rootNotebook
+                                    - actionType: evalObject
+                                      object:
+                                        - ..apiRequest.relation.edgeReq.id.1@: =.Global.formData.relationID
+                                        - =..apiRequest.relation.edgeAPI.get: ""
+                                        - ..apiRequest.email.docReq.eid@: =..apiRequest.relation.edgeResp.edge.0.id #id 是Data类型，传入到eid还是eid
+                                        # - .Global.jwt.edge.bvid@: =..apiRequest.relation.edgeResp.edge.0.bvid
+                                    - actionType: evalObject
+                                      object:
+                                        - ..apiRequest.relation.edgeIDReq.id@: =..apiRequest.email.docReq.eid
+                                        - =..apiRequest.relation.edgeAPI.idGet: ""
+                                        # - .Global.jwt.edge.bvid@: =..apiRequest.relation.edgeIDResp.edge.0.bvid
+                                - if:
+                                    - =..formData.attachments.0
+                                    - ..apiRequest.email.docReq.name.data.haveAttachment@: true
+                                    - continue
+
+                                # - =.Global.jwt.edgeAPI.store: ""                                  
+                                - =..apiRequest.email.docAPI.store: ""
+                                - if:
+                                    - =..formData.attachments.0
+                                    - =.builtIn.ecos.updateDocListReid:
+                                        dataIn:
+                                          sourceDocList: =..formData.attachments
+                                          reid: =..apiRequest.email.docResp.doc.id
+                                    - continue
+                            - actionType: updateObject
+                              dataKey: NewMessage.apiRequest.email.docReq
+                              dataObject: {}
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.email.docReq@: =..apiRequest.email.docModel
+                                - ..formData.attachments@: []
+                                - .Global.formData.attachments@: []
+                            - actionType: updateObject
+                              dataKey: Global.formData.email
+                              dataObject: {}
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: newMessageView
+                            - actionType: popUp
+                              popUpView: successTag
+                          style:
+                            width: "0.08"
+                            height: "0.05"
+                            color: "0xffffff"
+                            fontSize: .Nfont.nf2
+                            backgroundColor: "0x005795"
+                            border:
+                              style: "1"
+                            borderRadius: "3"
+                            textAlign:
+                              x: center
+                              y: center
+        - .BasePopUp:
+          viewTag: contactView
+          style:
+            zIndex: "1000"
+          children:
+            - .PopUphead:
+              style:
+                left: "0.6"
+              children:
+                - .CreateLabel:
+                  text: "Contacts"
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: contactView
+            - type: view
+              style:
+                height: "0.92"
+                width: "0.4"
+                left: "0.6"
+                top: "0.08"
+                backgroundColor: "0xffffff"
+              viewTag: ContactsTag
+              children:
+                - type: view
+                  style:
+                    left: "0.03"
+                    width: "0.34"
+                    marginTop: "0.02"
+                    height: "0.04"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xbbbbbb"
+                    borderRadius: "10"
+                  children:
+                    - type: textField
+                      placeholder: Search
+                      style:
+                        left: "0.007"
+                        width: "0.2"
+                        top: "0"
+                        height: "0.038"
+                        fontSize: .Nfont.nf2
+                        border:
+                          style: "1"
+                    - type: button
+                      text: Search
+                      style:
+                        left: "0.28"
+                        width: "0.06"
+                        height: "0.04"
+                        fontSize: .Nfont.nf2
+                        color: "0xffffff"
+                        backgroundColor: "0x2988e6"
+                        border:
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0x2988e6"
+                        borderRadius: "10"
+                - type: view
+                  style:
+                    left: "0.028"
+                    width: "0.34"
+                    border:
+                      style: "2"
+                    borderColor: "0xececec"
+                    display: flex
+                    boxSizing: border-box
+                    marginTop: "0.02"
+                  children:
+                    - type: list
+                      viewTag: settingFormsTag
+                      contentType: listObject
+                      listObject: ..formData.tabList
+                      iteratorVar: itemObject
+                      style:
+                        width: "0.2"
+                        margin: '0'
+                        height: auto
+                        left: "0.08"
+                        display: flex
+                        justifyContent: space-between
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            height: "0.05"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name
+                              style:
+                                height: "0.05"
+                                width: "0.05"
+                                display: flex
+                                fontSize: .Nfont.n6
+                                fontWeight: itemObject.fontWeight
+                                color: itemObject.color
+                                alignItems: center
+                                justifyContent: center
+                                marginRight: "0.02"
+                                border:
+                                  style: "2"
+                                borderWidth: "2"
+                                borderColor: itemObject.borderColor
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - =.builtIn.object.setProperty:
+                                          dataIn:
+                                            obj: =..formData.tabList
+                                            label: "name"
+                                            text: $var.name
+                                            arr: [ "color", "fontWeight", "borderColor" ]
+                                            valueArr: [ "0x005795", "700", "0x005795" ]
+                                            errorArr: [ "0x000000", "", "#ececec" ]
+                                      - ..formData.patOrProName@: $var.name
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.patOrProName
+                                              string2: "Patient"
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formData.controlPatientList@: "block"
+                                            - ..formData.controlProviderList@: "none"
+                                        - continue
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.patOrProName
+                                              string2: "Provider"
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formData.controlPatientList@: "none"
+                                            - ..formData.controlProviderList@: "block"
+                                        - continue
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: patTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: settingFormsTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: proTag
+                - type: scrollView
+                  style:
+                    width: "0.36"
+                    height: "0.7"
+                    top: "0.12"
+                    left: "0.03"
+                    overflow: scroll
+                    marginTop: "0.02"
+                    display: ..formData.controlPatientList
+                  viewTag: patTag
+                  children:
+                    - .BaseList:
+                      listObject: .Global.patientAll
+                      style:
+                        width: "0.36"
+                        height: "0.7"
+                        top: "0"
+                        left: "0.03"
+                        display: flex
+                        margin: "0"
+                        # overflow: scroll
+                      children:
+                        - .BaseListItem:
+                          style:
+                            height: "0.075"
+                            width: "0.3"
+                            display: flex
+                            justifyContent: flex-start
+                            border:
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0xececec"
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..apiRequest.email.docReq.name.data.receiverName@: $var.name.data.basicInfo.fullName
+                                  - ..apiRequest.email.docReq.name.data.receiverAvatarId@: $var.name.data.basicInfo.avatar
+                                  - .Global.formData.relationID@: $var.bsig
+
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: toNameView
+                            - actionType: popUpDismiss
+                              popUpView: contactView
+                          children:
+                            - type: image
+                              path=func: .builtIn.utils.prepareDocToPath
+                              path: patientDefault.svg
+                              dataKey: itemObject.name.data.basicInfo.avatar
+                              style:
+                                width: "0.03"
+                                height: "0.05"
+                                display: inline-block
+                                marginTop: "0.01"
+                            - .Label1:
+                              dataKey: itemObject.name.data.basicInfo.fullName
+                              style:
+                                height: "0.075"
+                                width: "0.15"
+                                textAlign:
+                                  y: center
+                                left: "0.04"
+                                display: inline-block
+                                lineHeight: 7.5vh
+                                fontSize: .Nfont.nf2
+                - type: scrollView
+                  style:
+                    width: "0.36"
+                    height: "0.7"
+                    top: "0.12"
+                    left: "0.03"
+                    overflow: scroll
+                    marginTop: "0.02"
+                    display: ..formData.controlProviderList
+                  viewTag: proTag
+                  children:
+                    - .BaseList:
+                      listObject: .Global.providerAll
+                      style:
+                        width: "0.36"
+                        height: "0.7"
+                        top: "0"
+                        left: "0.03"
+                        display: flex
+                        margin: "0"
+                        # overflow: scroll
+                      children:
+                        - .BaseListItem:
+                          style:
+                            height: "0.075"
+                            width: "0.25"
+                            display: flex
+                            justifyContent: flex-start
+                            border:
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0xececec"
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..apiRequest.email.docReq.name.data.receiverName@: $var.name.data.fullName
+                                  - ..apiRequest.email.docReq.name.data.receiverAvatarId@: $var.name.data.avatar
+                                  - .Global.formData.relationID@: $var.bsig
+
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: toNameView
+                            - actionType: popUpDismiss
+                              popUpView: contactView
+                          children:
+                            - type: image
+                              path=func: .builtIn.utils.prepareDocToPath
+                              path: patientDefault.svg
+                              dataKey: itemObject.name.data.avatar
+                              style:
+                                width: "0.03"
+                                height: "0.05"
+                                display: inline-block
+                                marginTop: "0.01"
+                            - .Label1:
+                              dataKey: itemObject.name.data.fullName
+                              style:
+                                height: "0.075"
+                                width: "0.15"
+                                textAlign:
+                                  y: center
+                                left: "0.04"
+                                display: inline-block
+                                lineHeight: 7.5vh
+                                fontSize: .Nfont.nf2
+
+        # 发送成功
+        - .SuccessDeletedPopUpView: ""
+          viewTag: successTag
+          msg: "Sent Successfully!"
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+        # no contact
+        - .SuccessDeletedPopUpView: ""
+          viewTag: noContactView
+          img: alertRed.svg
+          msg: "Please add connection"
+        # no subject or content         
+        - type: popUp
+          viewTag: sendMailView
+          style:
+            left: "0"
+            width: "1"
+            height: "1"
+            top: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: "0.32"
+                height: "0.34"
+                backgroundColor: "0xffffff"
+                left: "0.4"
+                top: "0.27"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.13"
+                    display: flex
+                    justifyContent: center
+                    alignItems: flex-end
+                  children:
+                    - type: label
+                      text: "No subject or content, still send the message?"
+                      dataKey:
+                      style:
+                        fontSize: .Nfont.nf5
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.18"
+                    display: flex
+                    justifyContent: space-evenly
+                    alignItems: center
+                  children:
+                    - type: button
+                      text: "No"
+                      style:
+                        width: "0.065"
+                        height: "0.045"
+                        backgroundColor: "0xbebebe"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+                      onClick:
+                        # - actionType: updateObject
+                        #   dataKey: NewMessage.apiRequest.email.docReq 
+                        #   dataObject: {}
+                        # - actionType: evalObject
+                        #   object:
+                        #     - ..apiRequest.email.docReq@: =..apiRequest.email.docModel
+                        #     - ..formData.attachments@: []
+                        #     - .Global.formData.attachments@: []
+                        # - actionType: updateObject
+                        #   dataKey: Global.formData.email 
+                        #   dataObject: {}            
+                        # - actionType: builtIn
+                        #   funcName: redraw
+                        #   viewTag: newMessageView
+                        - actionType: popUpDismiss
+                          popUpView: sendMailView
+                    - type: button
+                      text: "Yes"
+                      style:
+                        width: "0.065"
+                        height: "0.045"
+                        backgroundColor: "0x005795"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            # 如果是reply过来的就跳过, 如果不是就get一下10002，再挂到10002上
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..apiRequest.email.docReq.eid
+                                      string2: =.Global.fac_rootNotebook
+                                - actionType: evalObject
+                                  object:
+                                    - ..apiRequest.relation.edgeReq.id.1@: =.Global.formData.relationID
+                                    - =..apiRequest.relation.edgeAPI.get: ""
+                                    - ..apiRequest.email.docReq.eid@: =..apiRequest.relation.edgeResp.edge.0.id #id 是Data类型，传入到eid还是eid
+                                - continue
+                            - if:
+                                - =..formData.attachments.0
+                                - ..apiRequest.email.docReq.name.data.haveAttachment@: true
+                                - continue
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =..apiRequest.email.docAPI.store: ""
+                            - if:
+                                - =..formData.attachments.0
+                                - =.builtIn.ecos.updateDocListReid:
+                                    dataIn:
+                                      sourceDocList: =..formData.attachments
+                                      reid: =..apiRequest.email.docResp.doc.id
+                                - continue
+                        - actionType: updateObject
+                          dataKey: NewMessage.apiRequest.email.docReq
+                          dataObject: {}
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.email.docReq@: =..apiRequest.email.docModel
+                            - ..formData.attachments@: []
+                            - .Global.formData.attachments@: []
+                        - actionType: updateObject
+                          dataKey: Global.formData.email
+                          dataObject: {}
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: newMessageView
+                        - actionType: popUpDismiss
+                          popUpView: sendMailView
+                        - actionType: popUp
+                          popUpView: successTag
+        # 返回按钮   
+        - type: popUp
+          viewTag: backView
+          style:
+            left: "0"
+            width: "1"
+            height: "1"
+            top: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: "0.32"
+                height: "0.34"
+                backgroundColor: "0xffffff"
+                left: "0.4"
+                top: "0.27"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.13"
+                    display: flex
+                    justifyContent: center
+                    alignItems: flex-end
+                  children:
+                    - type: label
+                      text: "Save the message?"
+                      dataKey:
+                      style:
+                        fontSize: .Nfont.nf5
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.18"
+                    display: flex
+                    justifyContent: space-evenly
+                    alignItems: center
+                  children:
+                    - type: button
+                      text: "No"
+                      style:
+                        width: "0.065"
+                        height: "0.045"
+                        backgroundColor: "0xbebebe"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - .Global.formData.attachments@: []
+                            - .Global.formData.relationID@: ""
+                            - .Global.formData.reply.eid@: =.Global.fac_rootNotebook
+                        - actionType: updateObject
+                          dataKey: Global.formData.email
+                          dataObject: {}
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                    - type: button
+                      text: "Yes"
+                      style:
+                        width: "0.065"
+                        height: "0.045"
+                        backgroundColor: "0x005795"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        # receiverName(huawei fd yao)为空, 弹窗消失
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =..apiRequest.email.docReq.name.data.receiverName
+                                - continue
+                                # - actionType: evalObject
+                                #   object:
+                                - actionType: popUpDismiss
+                                  popUpView: backView
+                        - actionType: evalObject
+                          object:
+                            # receiverName(huawei fd yao)为空, noContactView弹窗弹出, 并且不再向下执行
+                            - if:
+                                - =..apiRequest.email.docReq.name.data.receiverName
+                                - continue
+                                - actionType: popUp
+                                  popUpView: noContactView
+                                  wait: true
+                            - if:
+                                - =.builtIn.string.judgeFillinAll:
+                                    dataIn:
+                                      - =..apiRequest.email.docReq.name.title
+                                      - =..apiRequest.email.docReq.name.data.content
+                                - actionType: popUpDismiss
+                                  popUpView: backView
+                                - continue
+                        - actionType: evalObject
+                          object:
+                            # - if: 
+                            #   - =.builtIn.string.judgeFillinAll: 
+                            #       dataIn: 
+                            #         - =..apiRequest.email.docReq.name.title
+                            #         - =..apiRequest.email.docReq.name.data.content                                      
+                            #   - actionType: popUp
+                            #     popUpView: sendMailView
+                            #     wait: true
+                            #   - continue                   
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            # fac_rootNotebook是facility自己身上挂的10000的边的id, 草稿箱就是把email挂在自己10000的边上
+                            - ..apiRequest.email.docReq.eid@: =.Global.fac_rootNotebook
+                            - =..apiRequest.email.docAPI.store: ""
+                            # - ..apiRequest.attachment.docReq.reid@: =..apiRequest.email.docResp.doc.id
+                            # - =..apiRequest.attachment.docAPI.store: ""
+                            - if:
+                                - =..formData.attachments.0
+                                - =.builtIn.ecos.updateDocListReid:
+                                    dataIn:
+                                      sourceDocList: =..formData.attachments
+                                      reid: =..apiRequest.email.docResp.doc.id
+                                - continue
+                        - actionType: updateObject
+                          dataKey: NewMessage.apiRequest.email.docReq
+                          dataObject: {}
+                        - actionType: evalObject
+                          object:
+                            # email.docReq恢复初始值
+                            - ..apiRequest.email.docReq@: =..apiRequest.email.docModel
+                            - ..formData.attachments@: []
+                            - .Global.formData.relationID@: ""
+                            - .Global.formData.attachments@: []
+                        - actionType: updateObject
+                          dataKey: Global.formData.email
+                          dataObject: {}
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                        # - actionType: builtIn
+                        #   funcName: redraw
+                        #   viewTag: newMessageView                                                                              
+                        # - actionType: popUpDismiss
+                        #   popUpView: backView          

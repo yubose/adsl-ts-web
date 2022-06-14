@@ -1,0 +1,1659 @@
+StaffManagement:
+  #xd page number: 86
+  pageNumber: "540"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =..invite.edgeAPI.get: ""
+    - =..staff.edgeAPI.get: ""
+    - ..authorization@: []
+    # 提取staff 数组中所有staff phoneNumber
+    - =.builtIn.object.extractArray:
+        dataIn:
+          obj: =..staff.list.edge
+          arr:
+            - name.inviteePhoneNumber
+        dataOut: StaffManagement.formData.allStaffPhone
+    # 将该对象中所有号码抽取出来
+    - =.builtIn.array.selectOneToArr:
+        dataIn:
+          arr: =..formData.allStaffPhone
+          key: "inviteePhoneNumber"
+        dataOut: StaffManagement.formData.allStaffPhone
+    - ..formData.staffList@: =..staff.list.edge
+    # 分页操作 
+    - =.builtIn.array.splitTableList:
+        dataIn:
+          arrObj: =..formData.staffList
+          numX: "12"
+          numY: "1"
+        dataOut: StaffManagement.formData.tableData
+    - ..formData.tableList@: =..formData.tableData.0
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.tablePageNum # page num
+          - " / "
+          - =..formData.tableData.1 # total page
+        dataOut: StaffManagement.formData.tableCurrentPage # current page                           
+    - =.builtIn.number.addition:
+        # get totalPage+1 to verify legitimacy of gotoPageNum
+        dataIn:
+          num: =..formData.tableData.1
+          step: "1"
+        dataOut: StaffManagement.formData.totalPageMore # update page num 
+
+  viewPort: top
+  title: "Staff Management"
+  test: ""
+  Level:
+    - key: "Active"
+    - key: "Schedule"
+    - key: "Staff Management"
+    - key: "Patient Management"
+    - key: "Provider Management"
+  gender:
+    - key: gender
+      value: "Male"
+    - key: gender
+      value: "Female"
+    - key: gender
+      value: "Other"
+  invite1:
+    info: ""
+    edge:
+      id: ""
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: StaffManagement.invite1.edge
+        dataOut: StaffManagement.invite1.info
+  invite:
+    authList:
+      edge: ""
+    ceResp: ""
+    deleteList:
+      .Edge: ""
+      id: HXV/DVWJRKGgK9fscgAGUw==
+    edge:
+      .Edge: ""
+      type: .EdgeType.Invite
+      bvid: .Global.currentUser.vertex.id
+      refid: .Global.currentFacility.id
+      name:
+        firstName: ""
+        middleName: ""
+        lastName: ""
+        inviteeName: "" # fullName
+        inviteePhoneNumber: ""
+        inviterPhoneNumber: .Global.currentUser.vertex.uid
+        inviterName: .Global.currentUser.vertex.name.userName
+        inviterPk: .Global.currentUser.vertex.pk
+        status: ""
+        statusMark: false
+        inviterCategory: Facility
+        inviteeCategory: staff
+        auth: ""
+        gender: ""
+        email: ""
+        authShow: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: invite.edge
+        dataOut: invite.ceResp
+      get:
+        api: re
+        dataKey: invite.authList
+        xfname: evid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        type: .EdgeType.Invite
+        sCondition: subtype!=0 AND subtype!=1 AND subtype!=2
+        _nonce: =.Global._nonce
+      delete:
+        api: dx
+        dataIn: invite.deleteList
+  accept:
+    edge:
+      .Edge: ""
+      type: .EdgeType.Accept
+      evid: .Global.currentUser.vertex.id
+      bvid: =..invite.ceResp.edge.evid
+      refid: =..invite.ceResp.edge.id
+      name: =..invite.ceResp.edge.name
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: accept.edge
+  # auth 设置staff权限
+  auth:
+    document: ""
+    response: ""
+    documentReq:
+      id: ""
+      xfname: eid
+      type: .DocType.Auth
+      _nonce: =.Global._nonce
+    docAPI:
+      store:
+        api: cd
+        dataIn: StaffManagement.auth.document
+      get:
+        api: rd
+        dataIn: StaffManagement.auth.documentReq
+        dataOut: StaffManagement.auth.response
+  relation:
+    edgeStore: ""
+    edge: ""
+    edgeReq:
+      type: .EdgeType.StaffToFacility
+      id: []
+      xfname: evid & bvid
+      obfname: ctime
+      _nonce: =.Global._nonce
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: StaffManagement.relation.edgeStore
+      get:
+        api: re
+        dataIn: StaffManagement.relation.edgeReq
+        dataOut: StaffManagement.relation.edge
+  staff:
+    list:
+      edge: []
+    edge:
+      id:
+        - .Global.currentFacility.id
+      type: "1051"
+      maxcount: "100"
+      xfname: refid
+      obfname: ctime
+      _nonce: =.Global._nonce
+    deleteReq:
+      id: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: StaffManagement.staff.edge
+        dataOut: StaffManagement.staff.list
+      store:
+        api: ce
+        dataIn: StaffManagement.formData.staffInfo
+      delete:
+        api: dx
+        dataIn: StaffManagement.staff.deleteReq
+
+  formData:
+    isAddBtnDis: "none" # 点击搜索之后 add 按钮才会出现
+    noStaffDis: "block" # 控制显示当前没有staff信息
+    hasStaffDis: "none" # 控制显示有staff信息
+    allStaffPhone: []       
+    tableData: []       
+    tableList: []       
+    tablePageNum: "1" # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: "" # goto 后面的文本显示
+    totalPageMore: "" # totalPage(tableData.1) + 1 
+    id: []
+    authLi: []
+    dataStruc:
+      - id
+      - name.inviteeName
+      - name.gender
+      - name.status
+      - name.inviteePhoneNumber
+      - name.email
+    respData: ""
+    countryCode: "+1"
+    number: ""
+    currentStaffList: []
+    staffList: []
+    staffInfo:
+      name:
+        gender: "Male"
+    idList: []
+    subtypeList: []
+    firstName: ""
+    middleName: ""
+    lastName: ""
+    authList:
+      MFI: "1"
+      TDT: "2"
+      staff: "3"
+      patient: "4"
+      provider: "5"
+      scheduleInfo: "6"
+      PAT: "7"
+    auth:
+      MFI:
+        create: false
+        edit: false
+        review: false
+      TDT:
+        create: false
+        edit: false
+        review: false
+      staff:
+        create: false
+        edit: false
+        review: false
+      patient:
+        create: false
+        edit: false
+        review: false
+      provider:
+        create: false
+        edit: false
+        review: false
+      scheduleInfo:
+        create: false
+        edit: false
+        review: false
+      PAT:
+        create: false
+        edit: false
+        review: false
+    authTemp:
+      MFI:
+        - key: create
+        - key: edit
+        - key: review
+      TDT:
+        - key: create
+        - key: edit
+        - key: review
+      staff:
+        - key: create
+        - key: edit
+        - key: review
+      patient:
+        - key: create
+        - key: edit
+        - key: review
+      provider:
+        - key: create
+        - key: edit
+        - key: review
+      scheduleInfo:
+        - key: create
+        - key: edit
+        - key: review
+      PAT:
+        - key: create
+        - key: edit
+        - key: review
+  authorization: []
+  mess: ""
+
+  apiRequest:
+    # staff profile 
+    staffData:
+      vertexResp: ""
+      vertexIn:
+        xfname: "none"
+        type: "1"
+        sCondition: ""
+      vertexAPI:
+        get:
+          api: rv
+          dataIn: apiRequest.staffData.vertexIn
+          dataOut: StaffManagement.apiRequest.staffData.vertexResp
+    # 删除 staff——>facility 的edge 1200
+    staffDelete:
+      deleteReq:
+        id: ""
+      edgeResp: ""
+      edge:
+        id: []
+        type: 1200
+        maxcount: "100"
+        xfname: bvid,evid
+        obfname: ctime
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: StaffManagement.apiRequest.staffDelete.edge
+          dataOut: StaffManagement.apiRequest.staffDelete.edgeResp
+        delete:
+          api: dx
+          dataIn: StaffManagement.apiRequest.staffDelete.deleteReq
+  staffDisplay:
+    vertexResp:
+    vertexIn:
+      id:
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: staffDisplay.vertexIn
+        dataOut: StaffManagement.staffDisplay.vertexResp
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+          style:
+            left: "0.16"
+            marginTop: "0"
+            height: "0.063"
+            width: "0.84"
+        - type: view
+          style:
+            backgroundColor: "0xf4f8fa"
+            width: "0.84"
+            height: "0.937"
+            left: "0.16"
+            top: "0.063"
+          children:
+            - type: label
+              text: ..title
+              style:
+                fontSize: .Nfont.nf6
+                fontFamily: "Arial"
+                fontWeight: "600"
+                left: "0.03328"
+                height: "0.09"
+                textAlign:
+                  y: center
+            - type: view
+              style:
+                marginTop: "0"
+                backgroundColor: "0xffffff"
+                width: "0.82"
+                height: "0.8285"
+                marginLeft: "0.01"
+                borderRadius: "6"
+                border:
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
+              children:
+                - type: view
+                  style:
+                    height: "0.12236"
+                    width: "0.77424"
+                    marginTop: "0"
+                    left: "0.02288"
+                    display: flex
+                    align-items: center
+                    justify-content: space-evenly
+                  children:
+                    # 搜索框
+                    - type: view
+                      style:
+                        width: "0.658"
+                        height: "0.0368"
+                        border:
+                          style: "3"
+                        borderRadius: "4"
+                        borderColor: "0xdedede"
+                        boxSizing: border-box
+                      children:
+                        - type: image
+                          path: searchGray.svg
+                          style:
+                            marginLeft: "0.008"
+                            width: "0.01144"
+                            height: "0.02024"
+                            marginTop: "0.007"
+                            display: inline-block
+                        - type: textField
+                          placeholder: Search
+                          dataKey:
+                          style:
+                            backgroundColor: "0xffffff00"
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            fontFamily: "Arial"
+                            borderRadius: "4"
+                            boxSizing: border-box
+                            width: "0.62"
+                            height: "0.034"
+                            marginLeft: "0.005"
+                            display: inline-block
+                            border: none
+                    # 按钮 
+                    - type: view
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: popUp
+                          popUpView: addStaffTag
+                      style:
+                        width: "0.101"
+                        height: "0.0368"
+                        backgroundColor: "0x005795"
+                        borderRadius: "4"
+                        marginLeft: "0.014"
+                        display: flex
+                        align-items: center
+                        justify-content: center
+                      children:
+                        - type: image
+                          path: addCircle.svg
+                          style:
+                            width: "0.01092"
+                            height: "0.01932"
+                        - type: label
+                          text: Add New Staff
+                          style:
+                            marginLeft: "0.004"
+                            fontFamily: "Arial"
+                            fontSize: .Nfont.nf2
+                            color: "0xffffff"
+                # Table
+                - type: view
+                  viewTag: tableView
+                  style:
+                    left: "0.02288"
+                    marginTop: "0"
+                    width: "0.77424"
+                    height: "auto"
+                    border-top-left-radius: "5px"
+                    border-top-right-radius: "5px"
+                    boxSizing: border-box
+                    border:
+                      style: "3"
+                    borderColor: "0x7070704f"
+                    borderBottom: "0xffffff"
+                  children:
+                    # TableHeader
+                    - type: view
+                      viewTag: tableHeader
+                      style:
+                        marginTop: "0.02"
+                        width: "0.77424"
+                        margin: "0"
+                        left: "0"
+                        height: "0.04"
+                      children:
+                        - type: label
+                          text: "Name"
+                          style:
+                            width: "0.185"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            boxSizing: border-box
+                            lineHeight: "4vh"
+                            textIndent: "1.5em"
+                            display: inline-block
+                            textAlign:
+                              y: center
+                        - type: label
+                          text: "Gender"
+                          style:
+                            width: "0.155"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                            display: inline-block
+                            textAlign:
+                              y: center
+
+                        - type: label
+                          text: "Phone #"
+                          style:
+                            width: "0.16"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                            display: inline-block
+                            textAlign:
+                              y: center
+                        - type: label
+                          text: "Email"
+                          style:
+                            width: "0.18"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                            display: inline-block
+                            textAlign:
+                              y: center
+                        - type: label
+                          text: "View Profile"
+                          style:
+                            width: "0.06"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                            display: inline-block
+                            textAlign:
+                              y: center
+                    # TableBody
+                    - type: list
+                      viewTag: tableBody
+                      contentType: listObject
+                      listObject: ..formData.tableList #..staff.list.edge #formData.tableList
+                      iteratorVar: itemObject
+                      style:
+                        width: "0.7734"
+                        margin: "0"
+                        left: "0"
+                        height: auto
+                        borderTop: "solid 1px  #7070704f"
+                        fontSize: .Nfont.nf2
+                        boxSizing: border-box
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            borderBottom: "solid 1px  #7070704f"
+                            height: "auto"
+                            boxSizing: border-box
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.inviteeName
+                              style:
+                                width: "0.185"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                color: "0x005795"
+                                textDecoration: underline
+                                lineHeight: "4vh"
+                                textIndent: 1.5em
+                                textAlign:
+                                  y: center"
+                            - type: label
+                              dataKey: itemObject.name.gender
+                              style:
+                                width: "0.155"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: center
+
+                            - type: label
+                              dataKey: itemObject.name.inviteePhoneNumber
+                              style:
+                                width: "0.16"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: center
+                            - type: label
+                              dataKey: itemObject.name.email
+                              style:
+                                width: "0.18"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: center
+                            - type: label
+                              text: view
+                              style:
+                                width: "0.06"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: center
+                                color: "0x005795"
+                                fontWeight: "600"
+                                textDecoration: underline
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..formData.staffInfo@: $var
+                                - actionType: popUp
+                                  popUpView: staffProfileTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: infoView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: tableView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: tableFooter
+                # TableFooter
+                - type: view
+                  viewTag: tableFooter
+                  style:
+                    .TableFooterView:
+                    left: "0.588"
+                    top: "0.78"
+                  children:
+                    - type: view
+                      style:
+                        top: "0.005"
+                        width: "0.08"
+                        height: "0.0155"
+                      children:
+                        - type: label
+                          text: "Current page:"
+                          style:
+                            display: inline-block
+                            fontSize: .Nfont.nf0
+                            color: "0x333333"
+                            textAlign:
+                              x: "center"
+                              y: "center"
+                        - type: label
+                          dataKey: formData.tableCurrentPage
+                          style:
+                            marginLeft: "0.005"
+                            display: inline-block
+                            fontSize: .Nfont.nf0
+                            color: "0x333333"
+                            textAlign:
+                              x: "center"
+                              y: "center"
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.076"
+                        width: "0.05168"
+                        height: "0.02576"
+                      children:
+                        - type: image
+                          path: tableLeft.svg
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.less:
+                                        dataIn:
+                                          num1: =..formData.tablePageNum
+                                          num2: 2
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.number.Subtraction:
+                                            dataIn:
+                                              num: =..formData.tablePageNum
+                                              step: "1"
+                                            dataOut: StaffManagement.formData.tablePageNum
+                                        - =.builtIn.array.splitTableList:
+                                            dataIn:
+                                              arrObj: =..staff.list.edge
+                                              numX: "12"
+                                              numY: =..formData.tablePageNum
+                                            dataOut: StaffManagement.formData.tableData
+                                        - ..formData.tableList@: =..formData.tableData.0
+                                        - =.builtIn.string.concat:
+                                            dataIn:
+                                              - =..formData.tablePageNum
+                                              - " / "
+                                              - =..formData.tableData.1
+                                            dataOut: StaffManagement.formData.tableCurrentPage
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableFooter
+                          style:
+                            top: "0"
+                            width: "0.01456"
+                            height: "0.02576"
+                        - type: label
+                          dataKey: formData.tablePageNum
+                          style:
+                            top: "0"
+                            left: "0.01856"
+                            width: "0.01446"
+                            height: "0.02576"
+                            fontSize: .Nfont.nf0
+                            fontWeight: "500"
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            borderRadius: "3"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: image
+                          path: tableRight.svg
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.less:
+                                        dataIn:
+                                          num1: =..formData.tablePageNum
+                                          num2: =..formData.tableData.1
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.number.addition:
+                                            dataIn:
+                                              num: =..formData.tablePageNum
+                                              step: "1"
+                                            dataOut: StaffManagement.formData.tablePageNum
+                                        - =.builtIn.array.splitTableList:
+                                            dataIn:
+                                              arrObj: =..staff.list.edge
+                                              numX: "12"
+                                              numY: =..formData.tablePageNum
+                                            dataOut: StaffManagement.formData.tableData
+                                        - ..formData.tableList@: =..formData.tableData.0
+                                        - =.builtIn.string.concat:
+                                            dataIn:
+                                              - =..formData.tablePageNum
+                                              - " / "
+                                              - =..formData.tableData.1
+                                            dataOut: StaffManagement.formData.tableCurrentPage
+                                    - continue
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableFooter
+                          style:
+                            top: "0"
+                            left: "0.03712"
+                            height: "0.02576"
+                            width: "0.01456"
+                    # Goto
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.14"
+                        width: "0.05"
+                        height: "0.02496"
+                      children:
+                        - type: textField
+                          viewTag: gotoView
+                          dataKey: formData.gotoPageNum
+                          style:
+                            width: "0.02496"
+                            top: "0"
+                            height: "0.02576"
+                            borderRadius: "3"
+                            borderWidth: "1"
+                            border:
+                              style: "3"
+                            boxSizing: border-box
+                            borderColor: "0xd8d8d8"
+                            fontSize: .Nfont.nf0
+                            fontWeight: "500"
+                            color: "0x333333"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: button
+                          text: "Go to"
+                          style:
+                            textDecoration: underline
+                            left: "0.029"
+                            top: "0"
+                            height: "0.02576"
+                            border:
+                              style: "1"
+                            fontSize: .Nfont.nf0
+                            color: "0x333333"
+                            backgroundColor: "0xffffff00"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.less:
+                                        dataIn:
+                                          num1: =..formData.gotoPageNum
+                                          num2: 1
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.number.less:
+                                                dataIn:
+                                                  num1: =..formData.gotoPageNum
+                                                  num2: =..formData.totalPageMore
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.array.splitTableList:
+                                                    dataIn:
+                                                      arrObj: =..staff.list.edge
+                                                      numX: "12"
+                                                      numY: =..formData.gotoPageNum
+                                                    dataOut: StaffManagement.formData.tableData
+                                                - ..formData.tableList@: =..formData.tableData.0
+                                                - =.builtIn.string.concat:
+                                                    dataIn:
+                                                      - =..formData.gotoPageNum
+                                                      - " / "
+                                                      - =..formData.tableData.1
+                                                    dataOut: StaffManagement.formData.tableCurrentPage
+                                                - ..formData.tablePageNum@: =..formData.gotoPageNum
+                                                - ..formData.gotoPageNum@: ""
+                                            - continue
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableFooter
+        # Add New Staff popUp
+        - .BasePopUp:
+          viewTag: addStaffTag
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                top: "0"
+                zIndex: "10"
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Add New Staff'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: addStaffTag
+                        - actionType: evalObject
+                          object:
+                            - ..formData.phoneNumber@: ""
+                            - ..formData.countryCode@: ""
+                            - ..formData.number@: ""
+                            - ..invite.edge.name.firstName@: ""
+                            - ..invite.edge.name.lastName@: ""
+                            - ..invite.edge.name.middleName@: ""
+                            - ..invite.edge.name.lastName@: ""
+                            - ..invite.edge.name.gender@: ""
+                            - ..invite.edge.name.email@: ""
+                            - ..invite.edge.name.statusMark@: false
+                            - ..formData.auth.MFI.create@: false
+                            - ..formData.auth.MFI.edit@: false
+                            - ..formData.auth.MFI.review@: false
+                            - ..formData.auth.TDT.create@: false
+                            - ..formData.auth.TDT.edit@: false
+                            - ..formData.auth.TDT.review@: false
+                            - ..formData.auth.staff.create@: false
+                            - ..formData.auth.staff.edit@: false
+                            - ..formData.auth.staff.review@: false
+                            - ..formData.auth.patient.create@: false
+                            - ..formData.auth.patient.edit@: false
+                            - ..formData.auth.patient.review@: false
+                            - ..formData.auth.provider.create@: false
+                            - ..formData.auth.provider.edit@: false
+                            - ..formData.auth.provider.review@: false
+                            - ..formData.auth.scheduleInfo.create@: false
+                            - ..formData.auth.scheduleInfo.edit@: false
+                            - ..formData.auth.scheduleInfo.review@: false
+                            - ..formData.auth.PAT.create@: false
+                            - ..formData.auth.PAT.edit@: false
+                            - ..formData.auth.PAT.review@: false
+                            - ..formData.hasStaffDis@: "none"
+                            - ..formData.noStaffDis@: "block"
+                            - ..formData.isAddBtnDis@: "none"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: addStaffTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: noStaffView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: profileView
+
+                - type: view
+                  viewTag: searchStaffTag
+                  style:
+                    height: "0.82"
+                    width: "0.4"
+                    top: "0.08"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        width: "0.4"
+                        height: "0.09"
+                        left: "0"
+                        backgroundColor: "0xeff3f7"
+                      children:
+                        - type: label
+                          text: Search
+                          dataKey:
+                          style:
+                            left: "0.05"
+                            width: "0.3"
+                            marginTop: "0.015"
+                            color: "0x004779"
+                            fontWeight: "600"
+                            fontSize: .Nfont.nf3
+                            fontFamily: "Arial"
+                        - type: view
+                          style:
+                            width: "0.3"
+                            left: "0.05"
+                            marginTop: "0.01"
+                            textAlign:
+                              y: center
+                          children:
+                            - type: label
+                              textBoard:
+                                - text: Phone Number
+                                - text: "*"
+                                  color: "0xff0000"
+                              dataKey:
+                              style:
+                                fontSize: .Nfont.nf1
+                                fontFamily: "Arial"
+                            - type: select
+                              contentType: countryCode
+                              # placeholder: ..formData.countryCode
+                              dataKey: formData.countryCode # formData.countryCode : inputValue
+                              options: .CountryCode
+                              required: "true"
+                              style:
+                                marginLeft: "0.02"
+                                width: "0.0318"
+                                display: inline-block
+                                height: "0.03"
+                                borderWidth: "1"
+                                boxSizing: border-box
+                                fontSize: .Nfont.nf3
+                                fontFamily: "Arial"
+                                border:
+                                  style: "3"
+                                borderColor: "0xdededf"
+                                borderRadius: "3"
+                            - type: textField
+                              placeholder: "Enter Here"
+                              dataKey: formData.number
+                              viewTag: numberView
+                              style:
+                                marginLeft: "0.005"
+                                width: "0.11"
+                                height: "0.03"
+                                textIndent: 1em
+                                display: inline-block
+                                boxSizing: border-box
+                                fontSize: .Nfont.nf3
+                                fontFamily: "Arial"
+                                border:
+                                  style: "3"
+                                borderColor: "#DCDCDC"
+                                borderRadius: "3"
+                            - type: button
+                              text: Search
+                              style:
+                                marginLeft: "0.01"
+                                height: "0.03"
+                                width: "0.05"
+                                boxSizing: border-box
+                                backgroundColor: "0x005795"
+                                color: "0xffffff"
+                                border:
+                                  style: "3"
+                                borderColor: "0x005795"
+                                borderRadius: "3"
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - actionType: evalObject
+                                  object:
+                                    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                    - =.Global.jwt.edgeAPI.store: ""
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - =..formData.countryCode
+                                          - " "
+                                          - =..formData.number
+                                        dataOut: StaffManagement.formData.phoneNumber
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - "uid like '%"
+                                          - ""
+                                          - =..formData.phoneNumber
+                                          - "'"
+                                        dataOut: StaffManagement.apiRequest.staffData.vertexIn.sCondition
+                                    - =..apiRequest.staffData.vertexAPI.get: ""
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =..apiRequest.staffData.vertexResp.vertex.0
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formData.noStaffDis@: "none"
+                                            - ..formData.hasStaffDis@: "block"
+                                        - actionType: popUp
+                                          popUpView: phoneNotExit
+                                          wait: true
+
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =..apiRequest.staffData.vertexResp.vertex.0
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formData.isAddBtnDis@: "block"
+                                            - ..formData.noStaffDis@: "none"
+                                            - ..formData.hasStaffDis@: "block"
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formData.isAddBtnDis@: "none"
+                                            - ..formData.noStaffDis@: "block"
+                                            - ..formData.hasStaffDis@: "none"
+                                    - ..invite.edge.name.userName@: =..apiRequest.staffData.vertexResp.vertex.0.name.userName
+                                    - ..invite.edge.name.firstName@: =..apiRequest.staffData.vertexResp.vertex.0.name.firstName
+                                    - ..invite.edge.name.lastName@: =..apiRequest.staffData.vertexResp.vertex.0.name.lastName
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: searchStaffTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: profileView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: noStaffView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: addBtnTag
+
+                    # no staff profile display
+                    - type: view
+                      viewTag: noStaffView
+                      style:
+                        top: "0.09"
+                        width: "0.4"
+                        height: "0.83"
+                        textAlign:
+                          x: center
+                        display: ..formData.noStaffDis
+                      children:
+                        - type: image
+                          path: noProvider.svg
+                          style:
+                            width: "0.12"
+                            marginTop: "0.15"
+                        - type: label
+                          text: Please enter phone number to search a staff
+                          dataKey:
+                          style:
+                            marginTop: "0.05"
+                            color: "0x666666"
+                            fontSize: .Nfont.nf4
+                            fontFamily: "Arial"
+                    # staff profile display
+                    - type: view
+                      viewTag: profileView
+                      style:
+                        top: "0.09"
+                        left: "0.055"
+                        width: "0.31"
+                        height: "0.83"
+                        backgroundColor: "0xffffff00"
+                        # isHidden: true
+                        display: ..formData.hasStaffDis
+                      children:
+                        - type: view
+                          style:
+                            width: "0.295"
+                            height: "0.09"
+                            left: "0"
+                            marginTop: "0.03"
+                            backgroundColor: "0xffffff"
+                          children:
+                            - type: image
+                              path: providerDefault.svg
+                              dataKey:
+                              path=func: .builtIn.utils.prepareDocToPath
+                              style:
+                                width: "0.05"
+                                height: "0.082"
+                                left: "0"
+                                top: "0"
+                            - type: label
+                              # dataKey: invite.edge.name.fullName
+                              style:
+                                left: "0.062"
+                                width: "0.14"
+                                marginTop: "0"
+                                height: "0.008"
+                                fontSize: .Nfont.nf5
+                                fontFamily: "Arial"
+                                fontWeight: "600"
+                            - type: view
+                              style:
+                                left: "0.062"
+                                width: "0.14"
+                                height: "auto"
+                                marginTop: "0.01"
+                                fontSize: .Nfont.nf0
+                                fontFamily: "Arial"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "User Name:"
+                                  dataKey:
+                                  style:
+                                    marginLeft: "0"
+                                - type: label
+                                  dataKey: invite.edge.name.userName
+                                  style:
+                                    marginLeft: "0.01"
+                            - type: view
+                              style:
+                                left: "0.062"
+                                width: "0.14"
+                                height: "auto"
+                                marginTop: "0.01"
+                                fontSize: .Nfont.nf0
+                                fontFamily: "Arial"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "Phone #:"
+                                  style:
+                                    marginLeft: "0"
+                                - type: label
+                                  dataKey: apiRequest.staffData.vertexResp.vertex.0.name.phoneNumber
+                                  style:
+                                    marginLeft: "0.01"
+                        - type: scrollView
+                          style:
+                            width: "0.295"
+                            height: "0.58"
+                            left: "0"
+                            marginTop: "0.01"
+                            overflow: scroll
+                          children:
+                            # Basic Info Start
+                            - .ProfileInfoTitle:
+                              text: "Basic Info"
+                              style:
+                                marginTop: "0.02"
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "First Name"
+                                - .ProfileInfoRightText:
+                                  dataKey: invite.edge.name.firstName
+                            # - .ProfileInfoTextView:
+                            #   children:
+                            #     - .ProfileInfoLeftText:
+                            #       text: "Middle Name"
+                            #     - .ProfileInfoRightText:
+                            #       dataKey: invite.edge.name.middleName
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Last Name"
+                                - .ProfileInfoRightText:
+                                  dataKey: invite.edge.name.lastName
+                # add staff button
+                - .BottomButton:
+                  text: 'Add'
+                  viewTag: addBtnTag
+                  style:
+                    left: '0.28'
+                    top: '0.92'
+                    backgroundColor: '0x235690ff'
+                    color: '0xffffff'
+                    display: ..formData.isAddBtnDis
+                  onClick:
+                    # - actionType: evalObject
+                    #   object:
+                    #     .Global._nonce@:
+                    #       =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..invite.edge.name.firstName
+                              - " "
+                              - =..invite.edge.name.middleName
+                              - " "
+                              - =..invite.edge.name.lastName
+                            dataOut: StaffManagement.invite.edge.name.inviteeName
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..formData.countryCode
+                              - " "
+                              - =..formData.number
+                            dataOut: StaffManagement.invite.edge.name.inviteePhoneNumber
+                        - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..invite.edgeAPI.store: ""
+                        # 判断当前邀请的号码是否已经存在列表中
+                        - if:
+                            - =.builtIn.array.has:
+                                dataIn:
+                                  object: =..formData.allStaffPhone
+                                  value: =..invite.edge.name.inviteePhoneNumber
+                            - actionType: popUp
+                              popUpView: phoneRepeat
+                              wait: true
+                            - continue
+                    - actionType: evalObject
+                      object:
+                        - .Global.jwt.edge.bvid@: =..invite.ceResp.edge.evid
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..accept.edgeAPI.store: ""
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..relation.edgeReq.id
+                              value: =.Global.currentFacility.id
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..relation.edgeReq.id
+                              value: =..invite.ceResp.edge.evid
+                        - =..relation.edgeAPI.get: ""
+                        - ..relation.edgeStore@: =..relation.edge.edge.0
+                        - =..relation.edgeAPI.store: ""
+                        # 将当前邀请的staff push进数据
+                        - =.builtIn.array.push:
+                            dataIn:
+                              messages: =..staff.list.edge
+                              newMessage: =..invite.ceResp.edge
+                            dataOut: StaffManagement.staff.list.edge
+                        # 重新更新原来table中的值
+                        - ..formData.staffList@: =..staff.list.edge
+                        - =.builtIn.array.splitTableList:
+                            dataIn:
+                              arrObj: =..formData.staffList
+                              numX: "12"
+                              numY: "1"
+                            dataOut: StaffManagement.formData.tableData
+                        - ..formData.tableList@: =..formData.tableData.0
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..formData.tablePageNum # page num
+                              - " / "
+                              - =..formData.tableData.1 # total page
+                            dataOut: StaffManagement.formData.tableCurrentPage # current page                           
+                        - =.builtIn.number.addition:
+                            # get totalPage+1 to verify legitimacy of gotoPageNum
+                            dataIn:
+                              num: =..formData.tableData.1
+                              step: "1"
+                            dataOut: StaffManagement.formData.totalPageMore
+
+                    - actionType: evalObject
+                      object:
+                        - ..formData.phoneNumber@: ""
+                        # - ..formData.countryCode@: ""
+                        - ..formData.number@: ""
+                        - ..invite.edge.name.firstName@: ""
+                        - ..invite.edge.name.lastName@: ""
+                        - ..invite.edge.name.middleName@: ""
+                        - ..invite.edge.name.lastName@: ""
+                        - ..invite.edge.name.gender@: ""
+                        - ..invite.edge.name.email@: ""
+                        - ..invite.edge.name.statusMark@: false
+                        - ..formData.hasStaffDis@: "none"
+                        - ..formData.noStaffDis@: "block"
+                        - ..formData.isAddBtnDis@: "none"
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: addStaffTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: noStaffView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: profileView
+                    - actionType: popUpDismiss
+                      popUpView: addStaffTag
+                    - actionType: popUp
+                      popUpView: success
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableBody
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableView
+
+        # staff profile popUp
+        - .BasePopUp:
+          viewTag: staffProfileTag
+          style:
+            height: "1.0"
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                backgroundColor: "0xFFFFFF"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Staff Profile'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: staffProfileTag
+                - type: scrollView
+                  viewTag: infoView
+                  style:
+                    top: "0.09"
+                    left: "0.055"
+                    width: "0.31"
+                    height: "0.83"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.295"
+                        height: "0.09"
+                        left: "0"
+                        marginTop: "0.03"
+                        backgroundColor: "0xffffff"
+                      children:
+                        - type: image
+                          path: providerDefault.svg
+                          dataKey:
+                          path=func: .builtIn.utils.prepareDocToPath
+                          style:
+                            width: "0.05"
+                            height: "0.082"
+                            display: "inline-block"
+                        - type: view
+                          style:
+                            marginTop: "0.015"
+                            marginLeft: "0.01"
+                            width: "0.14"
+                            display: "inline-block"
+                          children:
+                            - type: view
+                              style:
+                                fontSize: .Nfont.nf0
+                                fontFamily: "Arial"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "User Name:"
+                                  dataKey:
+                                  style:
+                                    marginLeft: "0"
+                                - type: label
+                                  dataKey: formData.staffInfo.name.inviteeName
+                                  style:
+                                    marginLeft: "0.01"
+                            - type: view
+                              style:
+                                height: "auto"
+                                marginTop: "0.01"
+                                fontSize: .Nfont.nf0
+                                fontFamily: "Arial"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "Phone #:"
+                                  style:
+                                    marginLeft: "0"
+                                - type: label
+                                  dataKey: formData.staffInfo.name.inviteePhoneNumber
+                                  style:
+                                    marginLeft: "0.01"
+                        - type: view
+                          style:
+                            width: '0.3'
+                            marginTop: "0.02"
+                          children:
+                            - type: label
+                              text: Basic Info
+                              style:
+                                border:
+                                  style: "2"
+                                borderWeight: "1"
+                                height: "0.04"
+                                borderColor: "0xf0f0f0"
+                                color: "0x333333"
+                                fontSize: .Nfont.nf4
+                                fontWeight: "600"
+                                textAlign:
+                                  y: center
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                              children:
+                                - type: label
+                                  text: First Name
+                                  style:
+                                    display: "inline-block"
+                                    fontWeight: "600"
+                                    fontSize: .Nfont.nf1
+                                    color: "0x333333"
+                                    fontFamily: "Arial"
+                                - type: label
+                                  dataKey: formData.staffInfo.name.firstName
+                                  style:
+                                    display: inline-block
+                                    marginLeft: "0.12"
+                                    fontSize: .Nfont.nf1
+                                    color: "0x333333"
+                                    fontFamily: "Arial"
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                              children:
+                                - type: label
+                                  text: Last Name
+                                  style:
+                                    display: "inline-block"
+                                    fontWeight: "600"
+                                    fontSize: .Nfont.nf1
+                                    color: "0x333333"
+                                    fontFamily: "Arial"
+                                - type: label
+                                  dataKey: formData.staffInfo.name.lastName
+                                  style:
+                                    display: inline-block
+                                    marginLeft: "0.12"
+                                    fontSize: .Nfont.nf1
+                                    color: "0x333333"
+                                    fontFamily: "Arial"
+
+                - .BottomButton:
+                  text: 'Delete'
+                  style:
+                    left: '0.28'
+                    top: '0.92'
+                    width: "0.0754"
+                    height: "0.04048"
+                    backgroundColor: '0xe24445'
+                    color: '0xffffff'
+                  onClick:
+                    - actionType: popUp
+                      popUpView: deleteStaffTag
+        # add staff success popUp
+        - .BaseSuccessfulView: ""
+          msg: "Add Successful!"
+          viewTag: success
+          onClick:
+            - actionType: evalObject
+              object:
+                - ..formData.isAddBtnDis: "none"
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: tableBody
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: addBtnTag
+            - actionType: popUpDismiss
+              popUpView: success
+
+        # delete staff popup   
+        - .DeleteWarningPopUp:
+          msg: "Are you sure you want to delete the staff?"
+          viewTag: deleteStaffTag
+          .BackgroundPopUp:
+          children:
+            - .BackgroundWhite:
+              children:
+                - .WarningRedLine:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.28"
+                    left: "0"
+                    height: "0.267"
+                  children:
+                    - .DeleteWarningImg:
+                    - .WarningLabel:
+                    - .DeleteWarningLabel:
+                - .CancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: deleteStaffTag
+                    - actionType: popUpDismiss
+                      popUpView: staffProfileTag
+                - .DeleteButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        # 删除staff->facility 1200edge
+                        - ..apiRequest.staffDelete.edge.id.0@: =..formData.staffInfo.evid
+                        - ..apiRequest.staffDelete.edge.id.1@: =.Global.currentFacility.id
+                        - =..apiRequest.staffDelete.edgeAPI.get: ""
+                        - ..apiRequest.staffDelete.deleteReq.id@: =..apiRequest.staffDelete.edgeResp.edge.0.id
+                        - =..apiRequest.staffDelete.edgeAPI.delete: ""
+                        # 删除currentUser -> staff 1051edge
+                        - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - ..staff.deleteReq.id@: =..formData.staffInfo.id
+                        - =..staff.edgeAPI.delete: ""
+                        # 删除本地
+                        - =.builtIn.array.removeObjectByValue:
+                            dataIn:
+                              object: =..staff.list.edge
+                              values: id
+                              value: =..formData.staffInfo.id
+                            dataOut: staffManagement.staff.list.edge
+                        # 重新赋值
+                        - ..formData.staffList@: =..staff.list.edge
+                        - =.builtIn.array.splitTableList:
+                            dataIn:
+                              arrObj: =..formData.staffList
+                              numX: "12"
+                              numY: "1"
+                            dataOut: StaffManagement.formData.tableData
+                        - ..formData.tableList@: =..formData.tableData.0
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..formData.tablePageNum # page num
+                              - " / "
+                              - =..formData.tableData.1 # total page
+                            dataOut: StaffManagement.formData.tableCurrentPage # current page                           
+                        - =.builtIn.number.addition:
+                            # get totalPage+1 to verify legitimacy of gotoPageNum
+                            dataIn:
+                              num: =..formData.tableData.1
+                              step: "1"
+                            dataOut: StaffManagement.formData.totalPageMore
+                        # 提取staff 数组中所有staff phoneNumber
+                        - =.builtIn.object.extractArray:
+                            dataIn:
+                              obj: =..staff.list.edge
+                              arr:
+                                - name.inviteePhoneNumber
+                            dataOut: StaffManagement.formData.allStaffPhone
+                        # 将该对象中所有号码抽取出来
+                        - =.builtIn.array.selectOneToArr:
+                            dataIn:
+                              arr: =..formData.allStaffPhone
+                              key: "inviteePhoneNumber"
+                            dataOut: StaffManagement.formData.allStaffPhone
+                        # 将jwt切回当前facility
+                        - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                        - =.Global.jwt.edgeAPI.store: ""
+                    - actionType: popUpDismiss
+                      popUpView: deleteStaffTag
+                    - actionType: popUpDismiss
+                      popUpView: staffProfileTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableBody
+
+        # delete staff success popUp
+        - .BaseSuccessfulView: ""
+          msg: "Delete Successfully!"
+          viewTag: deleteSuccess
+
+        #   need dismiss addPopUp and clear data     
+        - .BaseWarningView: ""
+          msg2: "The phone number doesn't exist"
+          viewTag: phoneNotExit
+          style:
+            zIndex: "20" #   need dismiss addPopUp and clear data  
+        - .BaseWarningView: ""
+          msg2: "The phone number is already added"
+          viewTag: phoneRepeat
+          style:
+            zIndex: "20"
+        - .BaseCheckView: ""
+          message: "Required information: First name, Last name, Phone number. This is the
+            minimum information needed to create a new staff. The other
+            information can be updated whenever you want."
+          viewTag: errorFillinView
+          style:
+            zIndex: "100"
+        - .LoadingView: ""
+          message: "In searching..."
+          viewTag: searchingView
+        - .BaseCheckView: ""
+          message: "You don't have the authority to add a new staff"
+          viewTag: staffAuthCreate
+          style:
+            zIndex: "100"
+        - .BaseCheckView: ""
+          message: "You don't have the authority to edit"
+          viewTag: staffAuthEdit
+          style:
+            zIndex: "100"

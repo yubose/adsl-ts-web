@@ -5,9 +5,10 @@ languageSuffix:
   es_ES: _es
   unknown: _en
 fileSuffix: .yml
-startPage: Dashboard
+startPage: TestSupport
 preload:
   - BaseCSS
   - BasePage
 page:
   - Dashboard
+  - TestSupport

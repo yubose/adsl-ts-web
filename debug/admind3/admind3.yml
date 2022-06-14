@@ -1,0 +1,31 @@
+apiHost: albh2.aitmed.io
+apiPort: '443'
+webApiHost: apiHost
+appApiHost: apiHost
+connectiontimeout: '5'
+loadingLevel: 1
+debug: console_log_api
+isGetPosition: false
+syncHost: https://syncd.aitmed.io:443
+elasticClient: https://elasticd.aitmed.io
+searchLink: https://searchd2.aitmed.io
+platform: admin
+aitmedPaymentID: 'XV6uKAAAAAAIhwJCrBIABQ=='
+viewWidthHeightRatio:
+  min: 1.78
+  max: 1.78
+web:
+  cadlVersion:
+    stable: 7.32
+    test: 7.32
+ios:
+  cadlVersion:
+    stable: 7.32
+    test: 7.32
+android:
+  cadlVersion:
+    stable: 7.32
+    test: 7.32
+cadlBaseUrl: http://127.0.0.1:3000/
+cadlMain: cadlEndpoint.yml
+timestamp: 02222021.1PDT

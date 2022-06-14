@@ -1,0 +1,1126 @@
+Prescription3:
+  pageNumber: "181"
+  title: "Prescription"
+  appointmentInfo: .Global.formData.appointment
+  init:
+    - .SignInCheck
+    - if:
+        - =.Global.Note.id
+        - actionType: evalObject
+          object:
+            ..prescription.document.name@: =.Global.Note.name
+        - continue
+    # 判断是否签名
+    - actionType: evalObject
+      object:
+        - if:
+            - =.Prescription3.prescription.document.name.data.whetherSign
+            - continue
+            # 非空修改显示的标识,刷新签名区域
+            - actionType: evalObject
+              object:
+                - ..formData.temporarySignature@: =.Prescription3.prescription.document.name.data.signatureId
+                - ..formData.flag@: "block"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: signatureShowTag
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..prescription.document.name.data.authority
+                  string2: "Private"
+            - ..formData.signIsHidden@: false
+            - continue
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: signTag
+
+  suggestDrug:
+    - name: "Please enter 3 or more characters"
+  suggestRoute: []
+  suggestStrength: []
+  routeName: []
+  strengthName: []
+  delete:
+    - =.Prescription3.prescription.docAPI.delete: ""
+  newSign:
+    docRes: ""
+    document:
+      #DOC
+      .Document: ""
+      type: .DocType.DocumentSignature
+      name:
+        title: ""
+        type: ..newSign.document.subtype.mediaType
+        data: ""
+      eid: .Global.rootNotebookID
+      fid: ""
+      subtype:
+        mediaType: "" # mediaType : "image/jpeg"
+    docAPI:
+      # DOCAPI
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: newSign.document
+        dataOut: Prescription3.newSign.docRes
+  prescription:
+    response: ""
+    document:
+      .Global.Note: ""
+      type: .DocType.Prescription # "6" # meeting notes for all participants
+      subtype:
+        mediaType: "text/plain" # mediaType : 
+      name:
+        data:
+          signatureId: ""
+          whetherSign: ""
+          prescriptionArray: []
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: prescription.document
+        dataOut: prescription.response
+        subtype:
+          mediaType: "text/plain"
+      get:
+        api: rd
+        dataKey: prescription.response
+        id: .Global.Note.id
+        xfname: eid
+        type: .DocType.Prescription
+        maxcount: "1"
+      delete:
+        api: dx
+        dataIn: prescription.document
+  prescriptionTemp:
+    title: ""
+    strength: ""
+    amount: ""
+    route: ""
+    frequency: ""
+    disp: ""
+    refills: ""
+  list: []
+  # 签名显示,默认为none
+  formData:
+    flag: "none"
+    temporarySignature: ""
+    whetherSign: ""
+    signIsHidden: true
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+        # - type: button
+        #   text: Visit Detail
+        #   onClick:
+        #     - goto: VisitDetial
+        #   style:
+        #     position: "fixed"
+        #     left: "0.76"
+        #     top: "0"
+        #     width: "0.24"
+        #     height: "0.1"
+        #     color: "0xffffff"
+        #     backgroundColor: "0x2988e6ff"
+        #     fonteize: "16"
+        #     textAlign:
+        #       x: center
+        #     border:
+        #       style: "1"
+        #     borderRadius: "2"
+        #     zIndex: "1000"
+        #     textDecoration: underline
+    - type: scrollView
+      style:
+        width: "0.9"
+        height: "0.85"
+        top: "0.1"
+        left: "0"
+        # overflow: scroll
+      children:
+        - type: view
+          style:
+            marginTop: "0.02"
+            left: "0.05"
+            width: "0.85"
+            height: "0.12"
+          children:
+            - type: image
+              path: rx0.svg
+              style:
+                width: "0.06"
+                top: "0"
+            - type: label
+              text=func: .builtIn.string.formatUnixtime_en
+              dataKey: appointmentInfo.stime
+              style:
+                top: "0.04"
+                width: "0.45"
+                height: "0.03"
+                left: "0.45"
+                textAlign:
+                  x: right
+        - type: view
+          style:
+            marginTop: "0.04"
+            left: "0.05"
+            width: "0.85"
+            height: "0.14"
+          children:
+            - .PrescriptionListBox:
+              children:
+                - .PrescriptionLabel:
+                - .PrescriptionDatakey:
+                  dataKey: Global.formData.medicalRecords.name.data.patientInfo.name
+            - .PrescriptionListBox:
+              style:
+                top: "0.042"
+              children:
+                - .PrescriptionLabel:
+                  text: Date of Birth
+                - .PrescriptionDatakey:
+                  dataKey: Global.formData.medicalRecords.name.data.patientInfo.dob
+            - .PrescriptionListBox:
+              style:
+                top: "0.077"
+              children:
+                - .PrescriptionLabel:
+                  text: Phone
+                - .PrescriptionDatakey:
+                  dataKey: Global.formData.medicalRecords.name.data.patientInfo.phoneNumber
+            - .PrescriptionListBox:
+              style:
+                top: "0.112"
+              children:
+                - .PrescriptionLabel:
+                  text: Email
+                - .PrescriptionDatakey:
+                  dataKey: Global.formData.medicalRecords.name.data.patientInfo.email
+
+        - type: view
+          viewTag: drugShowTag
+          style:
+            height: "0.43"
+            width: "0.85"
+            marginTop: "0.02"
+            left: "0"
+          children:
+            - type: view
+              # itemObject: ""
+              style:
+                width: "0.9"
+                height: "0.43"
+                left: "0.05"
+                marginTop: "0"
+                border:
+                  style: "3"
+                borderWidth: "2"
+                borderColor: "#eee"
+              children:
+                - type: label
+                  text: "1)  Drug"
+                  style:
+                    top: "0.005"
+                    left: "0.024"
+                    fontSize: .Nfont.nf6
+                    fontWeight: "700"
+                - type: image
+                  path: searchBlue.svg
+                  style:
+                    width: "0.018"
+                    top: "0.063"
+                    left: "0.057"
+                    zIndex: "100"
+                - type: textField
+                  placeholder: "Search"
+                  dataKey: Global.formData.medicalRecords.name.data.prescriptionArray.0.title
+                  isEditable: "false"
+                  # onClick:
+                  #   - actionType: popUp
+                  #     popUpView: drugTag
+                  # onInput:
+                  #   - actionType: evalObject
+                  #     object:
+                  #       - =.builtIn.apiRequest.drugBank:
+                  #           dataIn:
+                  #             query: =..prescriptionTemp.title
+                  #             type: "Drug"
+                  #           dataOut: Prescription3.suggestDrug
+                  # - actionType: builtIn
+                  #   funcName: redraw
+                  #   viewTag: drugsData
+                  style:
+                    left: "0.048"
+                    top: "0.055"
+                    width: "0.775"
+                    height: "0.045"
+                    textIndent: "4vh"
+                    textAlign:
+                      x: left
+                    fontSize: "0.5vh"
+                    border:
+                      style: "3"
+                    color: "#C7C7C7"
+                    borderWidth: "1"
+                    borderColor: "#C7C7C7"
+                - type: view
+                  text: Route
+                  style:
+                    top: "0.12"
+                    left: "0.045"
+                    fontSize: "1.7vw"
+                    fontWeight: "700"
+                  children:
+                    - .calendarMonth:
+                      dataKey: Global.formData.medicalRecords.name.data.prescriptionArray.0.route
+                      options: ..routeName
+                      style:
+                        left: "0.005"
+                        # top: "0.04"
+                        border:
+                          style: "3"
+                        color: "#C7C7C7"
+                        borderWidth: "1"
+                        borderColor: "#C7C7C7"
+                        width: "0.775"
+                        height: "0.043"
+                        textIndent: "2vh"
+                - type: view
+                  text: Strength
+                  # dataKey: prescriptionTemp.strength
+                  # isEditable: false
+                  # onClick:
+                  #   - actionType: popUp
+                  #     popUpView: strengthTag
+                  style:
+                    top: "0.15"
+                    left: "0.045"
+                    fontSize: .Nfont.nf6
+                    fontWeight: "700"
+                    marginTop: "0.07"
+                  children:
+                    - .calendarMonth:
+                      dataKey: Global.formData.medicalRecords.name.data.prescriptionArray.0.strength
+                      options: ..strengthName
+
+                      style:
+                        left: "0.005"
+                        top: "0.035"
+                        border:
+                          style: "3"
+                        color: "#C7C7C7"
+                        borderWidth: "1"
+                        borderColor: "#C7C7C7"
+                        width: "0.775"
+                        height: "0.043"
+                        textIndent: "2vh"
+                - .PrescriptionInputText:
+                  text: Quantity
+                  style:
+                    top: "0.32"
+                    left: "0.05"
+                    fontSize: .Nfont.nf2
+                    fontWeight: "700"
+                - .PrescriptionInputTextField:
+                  dataKey: Global.formData.medicalRecords.name.data.prescriptionArray.0.frequency
+                  isEditable: false
+                  style:
+                    top: "0.35"
+                    left: "0.05"
+                    height: "0.05"
+                    width: "0.12"
+                    borderColor: "#C7C7C7"
+                - .PrescriptionInputText:
+                  text: Directions
+                  style:
+                    top: "0.32"
+                    left: "0.26"
+                    fontSize: .Nfont.nf2
+                    fontWeight: "700"
+                - .PrescriptionInputTextField:
+                  isEditable: false
+                  dataKey: Global.formData.medicalRecords.name.data.prescriptionArray.0.disp
+                  style:
+                    top: "0.35"
+                    height: "0.05"
+                    left: "0.26"
+                    width: "0.32"
+                    borderColor: "#C7C7C7"
+                - .PrescriptionInputText:
+                  text: Refills
+                  style:
+                    top: "0.32"
+                    left: "0.65"
+                    fontSize: .Nfont.nf2
+                    fontWeight: "700"
+                - .PrescriptionInputTextField:
+                  isEditable: false
+                  dataKey: Global.formData.medicalRecords.name.data.prescriptionArray.0.refills
+                  style:
+                    top: "0.35"
+                    height: "0.05"
+                    left: "0.65"
+                    borderColor: "#C7C7C7"
+        - type: view
+          style:
+            height: "0.06"
+            width: "0.85"
+            marginTop: "0.035"
+            left: "0"
+          children:
+            - type: button
+              text: "Pharmacy Location"
+              style:
+                top: 0
+                width: "0.25"
+                height: "0.08"
+                left: "0.25"
+                fontSize: .Nfont.nf3
+                backgroundColor: "0xb5b5b5"
+                color: "0xffffff"
+                border: "none"
+                borderRadius: "5"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: "Add Prescription"
+              # onClick:
+              #   - actionType: evalObject
+              #     object:
+              #       - =.builtIn.array.add:
+              #           dataIn:
+              #             object: =..prescription.document.name.data.prescriptionArray
+              #             value: =..prescriptionTemp
+              #   - actionType: builtIn
+              #     funcName: redraw
+              #     viewTag: prescriptionTag
+              style:
+                width: "0.25"
+                height: "0.08"
+                top: "0"
+                left: "0.52"
+                fontSize: .Nfont.nf3
+                backgroundColor: "0x2fb355"
+                color: "0xffffff"
+                border: "none"
+                borderRadius: "5"
+                textAlign:
+                  x: center
+                  y: center
+            - type: image
+              path: addWhite.svg
+              style:
+                top: "0.02"
+                width: "0.04"
+                height: "0.04"
+                left: "0.54"
+        - type: view
+          viewTag: prescriptionTag
+          style:
+            height: "auto"
+            width: "0.85"
+            marginTop: "0.06"
+            left: "0"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: .Global.formData.medicalRecords.name.data.prescriptionArray # ..prescription.document.name.data.prescriptionArray
+              iteratorVar: itemObject
+              style:
+                width: "0.9"
+                left: "0"
+                height: "auto"
+                margin: "0"
+              children:
+                - type: listItem
+                  # itemObject: ""
+                  style:
+                    width: "0.9"
+                    height: "0.2"
+                    left: "0.05"
+                    marginTop: "0.02"
+                    border:
+                      style: "1"
+                    borderWidth: "1"
+                    borderColor: "0x000000ad"
+                  children:
+                    - type: label
+                      text: Drug
+                      style:
+                        fontSize: "1vh"
+                        fontWeight: "600"
+                        color: "#797979"
+                        top: "0.01"
+                        left: "0.05"
+                    - type: textField
+                      placeholder: Prescription Name
+                      dataKey: itemObject.title
+                      # isEditable: "true"
+                      style:
+                        left: "0.05"
+                        top: "0.05"
+                        width: "0.25"
+                        height: "0.03"
+                        # textIndent: "2vh"
+                        textAlign:
+                          x: left
+                        fontSize: .Nfont.nf2
+                        fontWeight: "700"
+                        border:
+                          style: "1"
+                        borderWidth: "1"
+                        borderColor: "0x000000"
+                    - .PrescriptionInputText:
+                      style:
+                        fontSize: "1vh"
+                        top: "0.08"
+                        fontWeight: "600"
+                        color: "#797979"
+                    - .PrescriptionInputTextField: # isEditable: false
+
+                      dataKey: itemObject.strength
+                      style:
+                        left: "0.055"
+                        top: "0.11"
+                        width: "0.775"
+                        height: "0.03"
+                        border:
+                          style: "1"
+                        fontSize: .Nfont.nf2
+                        fontWeight: "700"
+                    - .PrescriptionInputText:
+                      text: Route
+                      style:
+                        top: "0.01"
+                        left: "0.7"
+                        fontSize: "1vh"
+                        fontWeight: "600"
+                        color: "#797979"
+                    - .PrescriptionInputTextField: # isEditable: false
+
+                      dataKey: itemObject.route
+                      style:
+                        top: "0.05"
+                        left: "0.7"
+                        width: "0.13"
+                        height: "0.03"
+                        border:
+                          style: "1"
+                    - .PrescriptionInputText:
+                      text: Quantity
+                      style:
+                        top: "0.14"
+                        left: "0.05"
+                        fontSize: "1vh"
+                        fontWeight: "600"
+                        color: "#797979"
+                    - .PrescriptionInputTextField: # isEditable: false
+
+                      dataKey: itemObject.frequency
+                      style:
+                        top: "0.175"
+                        left: "0.05"
+                        width: "0.3"
+                        height: "0.03"
+                        border:
+                          style: "1"
+                        fontSize: .Nfont.nf2
+                        fontWeight: "700"
+                    - .PrescriptionInputText:
+                      text: Sig
+                      style:
+                        top: "0.132"
+                        left: "0.4"
+                        fontSize: "1vh"
+                        fontWeight: "600"
+                        color: "#797979"
+                    - .PrescriptionInputTextField: # isEditable: false
+
+                      dataKey: itemObject.disp
+                      style:
+                        top: "0.17"
+                        left: "0.4"
+                        width: "0.25"
+                        height: "0.03"
+                        border:
+                          style: "1"
+                        fontSize: .Nfont.nf2
+                        fontWeight: "700"
+                    - .PrescriptionInputText:
+                      text: Refills
+                      style:
+                        top: "0.132"
+                        left: "0.7"
+                        fontSize: "1vh"
+                        fontWeight: "600"
+                        color: "#797979"
+                    - .PrescriptionInputTextField: # isEditable: false
+
+                      dataKey: itemObject.refills
+                      style:
+                        top: "0.17"
+                        left: "0.7"
+                        width: "0.13"
+                        height: "0.03"
+                        border:
+                          style: "1"
+                        fontSize: .Nfont.nf2
+                        fontWeight: "700"
+        - type: view
+          style:
+            height: "0.06"
+            width: "0.85"
+            marginTop: "0.04"
+            left: "0"
+          children:
+            - type: label
+              text: "Prescription is VOID if the number of drugs prescribed is not noted."
+              style:
+                left: "0.05"
+                width: "0.8"
+                height: "0.05"
+                top: "0"
+            - type: view
+              style:
+                left: "0.86"
+                top: "0.005"
+                height: "0.04"
+                width: "0.085"
+              children:
+                - type: textField
+                  dataKey: Global.formData.medicalRecords.name.data.prescriptionCount
+                  isEditable: "false"
+                  style:
+                    top: "0"
+                    width: "0.06"
+                    height: "0.040"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+        - type: view
+          style:
+            marginTop: "0"
+            left: "0"
+            width: "0.85"
+            height: "0.2"
+          children:
+            - type: label
+              text: "Signature:"
+              style:
+                left: "0.1"
+                top: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                height: auto
+                color: "0x000000"
+                textAlign:
+                  y: center
+            # - type: label
+            #   text: "Clear"
+            #   style:
+            #     left: "0.8"
+            #     top: "0.01"
+            #     width: "0.12"
+            #     fontSize: "14"
+            #     height: "0.03"
+            #     color: "0xffffff"
+            #     border: "none"
+            #     borderRadius: "2"
+            #     backgroundColor: "0xD53C42"
+            #     zIndex: "50"
+            #     textAlign:
+            #       y: center
+            #       x: center
+            #   onClick:
+            #     - actionType: removeSignature
+            #       dataObject: BLOB
+            #       dataKey: Prescription3.newSign.document.name.data
+            #       viewTag: signatureTag
+            #     - actionType: evalObject
+            #       object:
+            #         - ..formData.temporarySignature@: ""
+            #     # 显示签名区域隐藏
+            #     - actionType: builtIn
+            #       funcName: hide
+            #       viewTag: signatureShowTag
+            #     - actionType: builtIn
+            #       funcName: show
+            #       viewTag: signatureTag     
+            - type: view
+              style:
+                top: "0.065"
+                left: "0.1"
+                width: "0.8"
+                height: "0.15"
+                border:
+                  style: "4"
+                  width: "1.5"
+                  color: "0xacacac"
+              children:
+                - type: canvas
+                  dataKey: Prescription3.newSign.document.name.data
+                  viewTag: signatureTag
+                  style:
+                    left: "0"
+                    width: "1"
+                    top: "0"
+                    height: "0.19"
+                    overflow: scroll
+                    zIndex: "1000"
+                # 显示暂存的签名
+                - type: image
+                  viewTag: signatureShowTag
+                  path=func: .builtIn.utils.prepareDocToPath
+                  # 传入签名文档的id
+                  dataKey: Global.formData.medicalRecords.name.data.signatureId
+                  style:
+                    # 控制显示
+                    display: ..formData.flag
+                    left: "0"
+                    width: "0.8"
+                    top: "0"
+                    height: "0.15"
+                    overflow: scroll
+                    zIndex: "1000"
+        - type: view
+          style:
+            marginTop: "0.04"
+            left: "0.085"
+            width: "0.8"
+            height: "auto"
+          children:
+            - type: label
+              text: This prescription is void 14 days ofter prescribed date
+              dataKey:
+              style:
+                left: "0.02"
+                width: '0.78'
+                height: "auto"
+                fontSize: .Nfont.nf6
+                color: "0xb7b7b7"
+        - type: view
+          style:
+            marginTop: "0.02"
+            left: "0.085"
+            width: "0.8"
+            height: "auto"
+          children:
+            - type: label
+              text: Thomas Mueller, MD
+              dataKey: Global.formData.medicalRecords.name.data.providerInfo.providerFullName
+              style:
+                height: "auto"
+                width: "0.2"
+                fontSize: .Nfont.nf6
+            - type: label
+              text: Family Medicine
+              dataKey:
+              style:
+                height: "auto"
+                marginTop: "0.01"
+                width: "0.75"
+                fontSize: .Nfont.nf5
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.8"
+                height: "auto"
+              children:
+                - type: label
+                  text: LIC#
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.1"
+                    fontSize: .Nfont.nf4
+                - type: label
+                  text: CA 311231231
+                  dataKey: Global.formData.medicalRecords.name.data.providerInfo.LIC
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+            - type: view
+              style:
+                marginTop: "0.01"
+                left: "0"
+                width: "0.8"
+                height: "auto"
+              children:
+                - type: label
+                  text: NPI#
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.1"
+                    fontSize: .Nfont.nf4
+                - type: label
+                  text: "123123"
+                  dataKey: Global.formData.medicalRecords.name.data.providerInfo.NPI
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+            - type: view
+              style:
+                marginTop: "0.01"
+                left: "0"
+                width: "0.8"
+                height: "auto"
+              children:
+                - type: label
+                  text: "DEA #"
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.12"
+                    fontSize: .Nfont.nf4
+                - type: label
+                  text: OT14KLvVw
+                  dataKey: Global.formData.medicalRecords.name.data.providerInfo.DEA
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+            - type: view
+              style:
+                marginTop: "0.01"
+                left: "0"
+                width: "0.8"
+                height: "auto"
+              children:
+                - type: label
+                  dataKey: Global.formData.medicalRecords.name.data.providerInfo.aitmedId
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+                - type: label
+                  text: "AiTmed ID:"
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.22"
+                    fontSize: .Nfont.nf4
+            - type: view
+              style:
+                marginTop: "0.01"
+                left: "0"
+                width: "0.8"
+                height: "auto"
+              children:
+                - type: label
+                  text: "Email"
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.12"
+                    fontSize: .Nfont.nf4
+                - type: label
+                  text: CA 311231231
+                  dataKey: Global.formData.medicalRecords.name.data.providerInfo.email
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+            - type: view
+              style:
+                marginTop: "0.01"
+                left: "0"
+                width: "0.8"
+                height: "auto"
+              children:
+                - type: label
+                  text: "Phone:"
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.14"
+                    fontSize: .Nfont.nf4
+                - type: label
+                  text: +1 (657) 220-120
+                  dataKey: Global.formData.medicalRecords.name.data.providerInfo.phone
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+            - type: view
+              style:
+                marginTop: "0.01"
+                left: "0"
+                width: "0.8"
+                height: "0.03"
+              children:
+                - type: label
+                  text: "Fax:"
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.1"
+                    fontSize: .Nfont.nf4
+                - type: label
+                  text: ""
+                  dataKey: Global.formData.medicalRecords.name.data.providerInfo.fax
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+            - type: view
+              style:
+                marginTop: "0.01"
+                left: "0"
+                width: "0.8"
+                height: "auto"
+              children:
+                - type: label
+                  dataKey: Global.formData.medicalRecords.name.data.adminInfo.address
+                  style:
+                    left: "0.3"
+                    width: "0.2"
+                    fontSize: .Nfont.nf4
+                    wordBreak: break-all
+                - type: label
+                  text: "Admin Address:"
+                  dataKey:
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "auto"
+                    width: "0.35"
+                    fontSize: .Nfont.nf4
+            - type: view
+              style:
+                marginTop: "0.02"
+                height: "0.004"
+                width: "0.8"
+                backgroundColor: "0xbababa"
+            - type: view
+              style:
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.8"
+              children:
+                - type: label
+                  text: www.Aitmed.com
+                  dataKey:
+                  style:
+                    left: "0.2"
+                    height: "auto"
+                    width: "0.4"
+                    color: "0xbababa"
+                    fontSize: .Nfont.nf2
+                    textAlign:
+                      x: center
+                      y: center
+        - type: view
+          style:
+            height: "0.1"
+            width: "0.85"
+            marginTop: "0.02"
+            left: "0.05"
+            backgroundColor: "0xffffff"
+          children:
+            - type: button
+              viewTag: signTag
+              text: "Sign"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.array.getListLength:
+                        dataIn:
+                          object: =..prescription.document.name.data.prescriptionArray
+                        dataOut: Prescription3.formData.prescriptionCount
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.prescriptionCount
+                              string2: =..prescription.document.name.data.prescriptionCount
+                        - continue
+                        - actionType: popUp
+                          popUpView: checkView
+                          wait: true
+                # 签名处理
+                - actionType: saveSignature
+                  dataObject: BLOB
+                  dataKey: Prescription3.newSign.document.name.data
+                  isEmpty: Prescription3.formData.whetherSign
+                - actionType: evalObject
+                  object: ..delete
+                # 签名保存
+                - actionType: evalObject
+                  object:
+                    - =..newSign.docAPI.store: ""
+                - actionType: evalObject
+                  object:
+                    - ..prescription.document.eid@: =.Global.formData.appointment.id
+                    # - ..prescription.document.name.data.patient@: =..fromData.patient
+                    # - ..prescription.document.name.data.provider@: =..fromData.provider
+                    - ..prescription.document.id@: ""
+                    - ..prescription.document.name.data.authority@: "Shared"
+                    - ..prescription.document.name.data.fontcolor@: "0x2FB355"
+                    # - ..prescription.document.eid@: =.Global.formData.appointment.id
+                    # 存放签名的id到prescription
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.temporarySignature
+                        - actionType: evalObject
+                          object:
+                            # 存放签名的id到newNote
+                            - ..prescription.document.name.data.signatureId@: =..formData.temporarySignature
+                            - ..prescription.document.name.data.whetherSign@: false
+                            - ..formData.whetherSign@: false
+                        - actionType: evalObject
+                          object:
+                            - ..prescription.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                            - ..prescription.document.name.data.whetherSign@: =..formData.whetherSign
+                # 保存prescription
+                - actionType: evalObject
+                  object:
+                    - =.Prescription3.prescription.docAPI.store: ""
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.Prescription3.formData.whetherSign
+                        - actionType: popUp
+                          message: "You haven't signed the form"
+                          popUpView: BaseWarningView
+                          wait: true
+                        - continue
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - goto: ProviderNotes
+              style:
+                isHidden: =..formData.signIsHidden
+                left: "0.45"
+                top: "0"
+                width: "0.44"
+                height: "0.06"
+                backgroundColor: "0x2fb355"
+                border:
+                  style: "5"
+                borderRadius: "5"
+                fontSize: .Nfont.nf4
+                color: "0xffffff"
+                textAlign:
+                  x: center
+    - type: popUp
+      viewTag: drugTag
+      style:
+        left: "0"
+        width: "0.9"
+        height: "1"
+        top: "0"
+        backgroundColor: "0x00000033"
+        zIndex: "10"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: drugTag
+      children:
+        - type: scrollView
+          style:
+            width: "0.94"
+            height: "0.3"
+            top: "0.48"
+            left: "0.03"
+            zIndex: "100"
+            backgroundColor: "0xe9e9e9"
+            borderRadius: "7"
+          viewTag: drugsData
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..suggestDrug
+              iteratorVar: itemObject
+              # viewTag: documentView
+              style:
+                width: "0.9"
+                height: "auto"
+                backgroundColor: "0xffffff"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - =.builtIn.apiRequest.drugBank:
+                              dataIn:
+                                id: $var.drugbank_pcid
+                                type: "Route"
+                              dataOut: Prescription3.suggestRoute
+                          - =.builtIn.array.selectOneToArr:
+                              dataIn:
+                                arr: =.Prescription3.suggestRoute
+                                key: "name"
+                              dataOut: Prescription3.routeName
+                          - =.builtIn.array.addSelect:
+                              dataIn:
+                                array: =.Prescription3.routeName
+                              dataOut: Prescription3.routeName
+                          - ..prescriptionTemp.title@: $var.name
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: drugShowTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: routesData
+                    - actionType: popUpDismiss
+                      popUpView: drugTag
+                  style:
+                    left: "0"
+                    # display: block
+                    # position: static
+                    width: "0.94"
+                    height: "0.06"
+                    backgroundColor: "0xffffffff"
+                    borderWidth: "1"
+                    borderRight: "solid 1px  #7070704f"
+                    borderBottom: "solid 1px  #7070704f"
+                    boxSizing: "border-box"
+                  children:
+                    - type: label
+                      text: "123"
+                      dataKey: itemObject.name
+                      style:
+                        left: "0.01"
+                        width: "0.92"
+                        height: "0.06"
+                        textAlign:
+                          y: center
+    - .BaseWarningView:
+    - .BaseWarningView:
+      viewTag: checkView
+      message: "The count of prescriptions is inconformity"

@@ -1,0 +1,837 @@
+ProgressReportReview:
+  title: Progress Report
+
+  init:
+    #Page initialization
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.ProgressReport.storeIn@: =.Global.formData.medicalRecords
+        - continue
+
+    - if:
+        - ..apiRequest.ProgressReport.storeIn.name.data.reportInfo.socialHistory
+        - continue
+        - ..apiRequest.ProgressReport.storeIn.name.data.reportInfo.socialHistory@: "No content"
+
+    # 判断provider 在private状态下是否签名
+    - if:
+        - =..apiRequest.ProgressReport.storeIn.name.data.whetherSignature
+        - ..formData.signShow@: "none"
+        - ..formData.signShow@: "block"
+    # 判断Diagnoses
+    - if:
+        - =..apiRequest.ProgressReport.storeIn.name.data.reportInfo.diagnosis.descriptiveList.0
+        - actionType: evalObject
+          object:
+            - ..formData.listDataFlag@: "block"
+            - ..formData.isNoContentDiag@: "none"
+        - continue
+
+  formData:
+    signShow: "none"
+    listDataFlag: "none"
+    isNoContentDiag: "block"
+  formDataTemp:
+    vitalTempOne:
+      - key: bloodPressure
+        value: Blood Pressure
+      - key: heartRate
+        value: Heart Rate
+      - key: resRate
+        value: Respiratory Rate
+    vitalTempTwo:
+      - key: pulseOx
+        value: Pulse Oximetry
+      - key: temperature
+        value: Temperature
+      - key: height
+        value: Height
+    vitalTempThree:
+      - key: weight
+        value: Weight
+      - key: BMI
+        value: BMI
+    selectYesOrNo:
+      isInvolved:
+        - key: isInvolved
+          value: "Yes"
+        - key: isInvolved
+          value: "No"
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .DownLoadBtn:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    top: "0"
+                    left: "0.117"
+                    height: "0.74"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - .FormsTypeTitle:
+                        - type: scrollView
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.614"
+                            overflow: scroll
+                          children:
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                height: "0.1"
+                              children:
+                                - .ProFormsBaseView:
+                                  style:
+                                    width: "0.135"
+                                    display: inline-block
+                                  children:
+                                    - type: image
+                                      path: "office-building.svg"
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.facilityAvatarID
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.025"
+                                        height: "0.04416"
+                                        display: inline-block
+                                    - type: view
+                                      style:
+                                        marginTop: "0"
+                                        marginLeft: "0.01"
+                                        width: "0.1"
+                                        display: inline-block
+                                      children:
+                                        - .ProFormsLabel:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.facilityName
+                                          style:
+                                            marginTop: "0"
+                                            fontSize: .Nfont.nf4
+                                        - .ProFormsLabel:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.location
+                                          style:
+                                            marginTop: "0.01"
+                                            fontSize: .Nfont.nf1
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0.035"
+                                    width: "0.12"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Email
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.email
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Website"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.website
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Main #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.phone
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Fax #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.fax
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Exam Date
+                                    - .ProFormsLabelRight:
+                                      text=func: .builtIn.string.formatUnixtime_en
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.patientInfo.examDate
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Name
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.patientInfo.patientName
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date of Birth
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.patientInfo.dob
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Phone #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.patientInfo.phone
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.patientInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Address
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.patientInfo.address
+                            - .ProFormsDivider: # History of Present Illness 
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: History of Present Illness / Subject Complaints
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "No content"
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.reportInfo.historyOfIllness
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Allergies
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "No content"
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.reportInfo.allergies
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Social History
+                                - .ProFormsGrayView:
+                                  autoCompression: true
+                                  children:
+                                    - .ProFormsTextView:
+                                      isEditable: false
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.reportInfo.socialHistory
+                                      style:
+                                        width: "0.385"
+                                        height: "0.128"
+                                        textIndent: "0"
+                                        marginLeft: "0.0046"
+                                        border:
+                                          style: "5"
+                                        color: "0x333333"
+                                        lineHeight: "1.5em"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Medications
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "No content"
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.reportInfo.medications
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Objective Findings
+                                  style:
+                                    fontSize: .Nfont.nf2
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "auto"
+                                width: "0.39"
+                                left: "0"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Vital Signs
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Blood Pressure
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.BP
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "mmHg"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Heart Rate
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.HR
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "bpm"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Respiratory Rate
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.RR
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "breaths/min"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Pulse Oximetry
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: "--"
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.PO
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "O₂ %"
+                                              style:
+                                                fontWeight: "600"
+
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Temperature
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.temperature
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "°F/°C"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Height
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.height
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+
+                                            - .ProFormsUnitLabel:
+                                              text: "ft/in"
+                                              style:
+                                                fontWeight: "600"
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Weight
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.weight
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "lb"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: BMI
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.ProgressReport.storeIn.name.data.vitalSigns.BMI
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "kg/m²"
+                                              style:
+                                                fontWeight: "600"
+                                - .ProFormsLabel:
+                                  text: Physical Examination
+                                  style:
+                                    marginTop: "0.02"
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.objectiveFindings
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Labs
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.01"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Blood Glucose
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.reportInfo.bloodGlucose
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Imaging Studies
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.imagingStudies
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+
+                            # diagnose
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Diagnoses
+                                - .ProFormsGrayView:
+                                  style:
+                                    display: ..formData.isNoContentDiag
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      style:
+                                        color: "0x333333"
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                - type: view
+                                  viewTag: listData
+                                  style:
+                                    width: "0.39"
+                                    height: "auto"
+                                    marginTop: "0.01"
+                                    display: ..formData.listDataFlag
+                                    backgroundColor: "0xf4f4f4"
+                                    borderRadius: "4"
+                                  children:
+                                    - type: view
+                                      style:
+                                        paddingTop: "0.004"
+                                        paddingBottom: "0.015"
+                                        paddingLeft: "0.00624"
+                                      children:
+                                        - type: list
+                                          contentType: listObject
+                                          listObject: ..apiRequest.ProgressReport.storeIn.name.data.reportInfo.diagnosis.descriptiveList
+                                          iteratorVar: itemObject
+                                          style:
+                                            width: "0.38"
+                                            height: "auto"
+                                            border:
+                                              style: "5"
+                                            boxSizing: border-box
+                                          children:
+                                            - type: listItem
+                                              itemObject: ""
+                                              style:
+                                                marginTop: "0.006"
+                                                width: "0.38"
+                                                height: "auto"
+                                                left: "0"
+                                                overflow: hidden
+                                              children:
+                                                - type: view
+                                                  style:
+                                                    width: "0.37752"
+                                                    height: "auto"
+                                                  children:
+                                                    - type: view
+                                                      style:
+                                                        # marginLeft: "0.012"
+                                                        wordBreak: break-all
+                                                        display: "inline-block"
+                                                        width: "0.355"
+                                                      children:
+                                                        - .ProFormsLabel:
+                                                          dataKey: itemObject.code
+                                                          style:
+                                                            display: "inline"
+                                                            verticalAlign: middle
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                        - .ProFormsLabel:
+                                                          text: "-"
+                                                          style:
+                                                            marginLeft: "0.002"
+                                                            verticalAlign: middle
+                                                            display: "inline"
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                        - .ProFormsLabel:
+                                                          dataKey: itemObject.description
+                                                          style:
+                                                            verticalAlign: middle
+                                                            marginLeft: "0.002"
+                                                            display: "inline"
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                - type: label
+                                                  dataKey: itemObject.comment
+                                                  style:
+                                                    marginTop: "0.003"
+                                                    width: "0.355"
+                                                    height: "auto"
+                                                    color: "0x666666"
+                                                    wordBreak: break-all
+                                                    fontSize: .Nfont.nf1
+                                                    # diagnoses end
+                                                    # Plan and Recommendations   
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Plan and Recommendations
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.reportInfo.planAndRecommendations
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+
+                            # signature
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                width: "0.275"
+                                display: flex
+                                justifyContent: space-between
+                              children:
+                                - .ProFormsLabel:
+                                  text: Signature
+                                  style:
+                                    display: inline-block
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                # 签名区域
+                                - type: image
+                                  path=func: =.builtIn.utils.prepareDocToPath
+                                  dataKey: apiRequest.ProgressReport.storeIn.name.data.signatureId
+                                  viewTag: signatureTag
+                                  style:
+                                    left: "0"
+                                    width: "0.275"
+                                    top: "0"
+                                    height: "0.165"
+                                    display: ..formData.signShow
+                            #签名时间
+                            - .ProFormsBaseView:
+                              style:
+                                display: ..formData.signShow
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text=func: .builtIn.string.formatUnixtime_en
+                                  dataKey: apiRequest.ProgressReport.storeIn.name.data.signatureTime
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelLeft:
+                                  text: " Digitally Signed"
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Date"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtimeL_en
+                                  dataKey: apiRequest.ProgressReport.storeIn.ctime
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            # 签名下面
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabel:
+                                      dataKey: apiRequest.ProgressReport.storeIn.name.data.providerInfo.providerFullName
+                                      style:
+                                        fontSize: .Nfont.nf4
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.providerInfo.specialty
+                                          style:
+                                            lineHeight: "2vh"
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "LIC #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.providerInfo.lic
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "NPI #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.providerInfo.npi
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "DEA #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.providerInfo.dea
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Email"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.providerInfo.email
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Fax #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.fax
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Main #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.phone
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Address"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.ProgressReport.storeIn.name.data.facilityInfo.location
+                            - .ProFormsDivider:
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true

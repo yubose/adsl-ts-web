@@ -1,0 +1,1583 @@
+ProgressReportEdit:
+  title: Progress Report
+
+  init:
+    #Page initialization
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    # macro 复写
+    - if:
+        - =.Global.formData.providerNotesForm.id
+        - ..apiRequest.progressReport.storeIn@: =.Global.formData.providerNotesForm
+        - actionType: evalObject
+          object:
+            - =..apiRequest.progressReport.docAPI.store: ""
+            - ..apiRequest.progressReport.storeIn@: =..apiRequest.progressReport.storeResp.doc
+            # 判断visit Questionnaire
+            - if:
+                - =.Global.formData.visitQuestionnaire.id
+                - ..apiRequest.progressReport.storeIn.name.data.reportInfo.historyOfIllness@:
+                    =.Global.formData.visitQuestionnaire.name.data.descriptionOfIllness
+                - continue
+            # 获取patientChart
+            - if:
+                - =.Global.formData.patientChart.id
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.array.formatStringFill:
+                        dataIn:
+                          strArr: =.Global.formData.patientChart.name.data.allergiesList
+                          sfill: "."
+                        dataOut: ProgressReportEdit.apiRequest.progressReport.storeIn.name.data.reportInfo.allergies
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - =.Global.formData.patientChart.name.data.socialHistory.alcohol.display
+                          - "\n"
+                          - =.Global.formData.patientChart.name.data.socialHistory.tobacco.display
+                          - "\n"
+                          - =.Global.formData.patientChart.name.data.socialHistory.caffeine.display
+                          - "\n"
+                          - =.Global.formData.patientChart.name.data.socialHistory.recreationalDrug.display
+                          - "\n"
+                          - =.Global.formData.patientChart.name.data.socialHistory.exercise.display
+                          - "\n"
+                          - =.Global.formData.patientChart.name.data.socialHistory.nutrition.display
+                        dataOut: ProgressReportEdit.apiRequest.progressReport.storeIn.name.data.reportInfo.socialHistory
+                    - =.builtIn.array.formatStringFill:
+                        dataIn:
+                          strArr: =.Global.formData.patientChart.name.data.medicationsList
+                          sfill: "."
+                        dataOut: ProgressReportEdit.apiRequest.progressReport.storeIn.name.data.reportInfo.medications
+                - continue
+    # 判断是否签名
+    - if:
+        - =..apiRequest.progressReport.storeIn.name.data.whetherSignature
+        - continue
+        - actionType: evalObject
+          object:
+            # 签名复现
+            - ..formData.temporarySignature@: =..apiRequest.progressReport.storeIn.name.data.signatureId
+            - ..formData.canvasShow@: "none"
+            - ..formData.signShow@: "block"
+    # 自动填写部分
+    # medical license
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =.Global.formData.providerInfo.name.data.MedicalLicense
+        dataOut: ProgressReportEdit.formData.medicalLicenseLength
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..formData.medicalLicenseLength
+              string2: "0"
+        - ..apiRequest.progressReport.storeIn.name.data.providerInfo.lic@: ""
+        - =.builtIn.string.concat:
+            dataIn:
+              - =.Global.formData.providerInfo.name.data.MedicalLicense.0.state
+              - " "
+              - =.Global.formData.providerInfo.name.data.MedicalLicense.0.medicalLicense
+            dataOut: ProgressReportEdit.apiRequest.progressReport.storeIn.name.data.providerInfo.lic
+    # provider fullName+title
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.Global.formData.providerInfo.name.data.fullName
+          - ","
+          - =.Global.formData.providerInfo.name.data.title
+        dataOut: ProgressReportEdit.apiRequest.progressReport.storeIn.name.data.providerInfo.providerFullName
+    # specialty
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =.Global.formData.providerInfo.name.data.selectedSpecialty
+            dataOut: ProgressReportEdit.formData.specialtyLength
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.specialtyLength
+                  string2: "0"
+            - .ProgressReportEdit.apiRequest.progressReport.storeIn.name.data.providerInfo.specialty@: ""
+            - =.builtIn.array.selectOneToArr:
+                dataIn:
+                  arr: =.Global.formData.providerInfo.name.data.specialty
+                  key: "specialty"
+                dataOut: ProgressReportEdit.apiRequest.progressReport.storeIn.name.data.providerInfo.specialty
+
+    # 判断Diagnoses
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..apiRequest.progressReport.storeIn.name.data.reportInfo.diagnosis.descriptiveList
+            dataOut: ProgressReportEdit.formData.listDatalength
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.listDatalength
+                  string2: "0"
+            - continue
+            - ..formData.listDataflag@: "block"
+
+  formData:
+    #Input data here
+    searchShow: ""
+    listDataflag: "none"
+    listDatalength: ""
+    specialtyLength: ""
+    diagnosesLength: ""
+    diagnosis:
+      # 存储搜到的结果
+      descriptiveList:
+        code: ""
+        description: ""
+        comment: ""
+    selectedDiagnosis: ""
+    signShow: "none"
+    canvasShow: "block"
+    flag: "none"
+    whetherSignature: "" # 是否签名
+    temporarySignature: "" # 签名暂存
+    medicalLicenseLength: ""
+  formDataTemp:
+    #Input data temp here, datatemp should not mix with formData
+    vitalTempOne:
+      - key: bloodPressure
+        value: Blood Pressure
+      - key: heartRate
+        value: Heart Rate
+      - key: resRate
+        value: Respiratory Rate
+    vitalTempTwo:
+      - key: pulseOx
+        value: Pulse Oximetry
+      - key: temperature
+        value: Temperature
+      - key: height
+        value: Height
+    vitalTempThree:
+      - key: weight
+        value: Weight
+      - key: BMI
+        value: BMI
+    allListInfo: []
+    privateTag:
+      display: "block"
+      backgroundColor: "0xececee"
+      fontColor: "0x4c5264"
+      name: "Private"
+    publicTag:
+      display: "block"
+      backgroundColor: "0xdfedfc"
+      fontColor: "0x2988e6"
+      name: "Released"
+    selectYesOrNo:
+      isInvolved:
+        - key: isInvolved
+          value: "Yes"
+        - key: isInvolved
+          value: "No"
+  apiRequest:
+    #Input data request here
+    progressReport:
+      storeResp: ""
+      storeIn:
+        id: ""
+        type: .DocType.ProgressReport
+        eid: .Global.formData.meetingDocEid
+        reid: "" # .Global.formData.meetingDocReid
+        subtype:
+          mediaType: ""
+        name:
+          title: Progress Report
+          user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          type: "application/json"
+          data:
+            classTag:
+              name: Admin
+              fontColor: "0x005795"
+              backgroundColor: "0xe9f2fc"
+              display: block
+            statusTag: ""
+            facilityInfo:
+              facilityAvatarID: .Global.facilityAvatarID
+              facilityName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+              location: .Global.currentFacility.name.basicInfo.location
+              email: .Global.currentFacility.name.basicInfo.email
+              aiTmedID: .Global.currentFacility.name.basicInfo.locationID
+              phone: .Global.currentFacility.name.basicInfo.phoneNumber
+              fax: .Global.currentFacility.name.basicInfo.fax
+              website: .Global.currentFacility.name.basicInfo.website
+            providerInfo:
+              providerFullName: ""
+              lic: ""
+              specialty: ""
+              npi: .Global.formData.providerInfo.name.data.NPI
+              dea: .Global.formData.providerInfo.name.data.DEA
+              email: .Global.formData.providerInfo.name.data.email
+            patientInfo:
+              examDate: .Global.formData.appointment.stime
+              patientName: .Global.formData.patientInfo.name.data.basicInfo.fullName
+              dob: .Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+              aiTmedID: .Global.formData.patientInfo.name.data.basicInfo.userName
+              phone: .Global.formData.patientInfo.name.data.basicInfo.phone
+              email: .Global.formData.patientInfo.name.data.contactInfo.email
+              address: .Global.formData.patientInfo.name.data.contactInfo.address.fullAddress
+            signatureId: ""
+            signatureTime: ""
+            whetherSignature: true
+            reportInfo:
+              historyOfIllness: ""
+              allergies: ""
+              socialHistory: ""
+              medications: ""
+              diagnosis:
+                descriptiveList: []
+              planAndRecommendations: ""
+              bloodGlucose: ""
+            objectiveFindings: ""
+            imagingStudies: ""
+            vitalSigns:
+              BP: ""
+              HR: ""
+              RR: ""
+              PO: ""
+              temperature: ""
+              height: ""
+              weight: ""
+              BMI: ""
+            isInvolved: ""
+      deleteId:
+        id: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: ProgressReportEdit.apiRequest.progressReport.storeIn
+          dataOut: ProgressReportEdit.apiRequest.progressReport.storeResp
+        delete:
+          api: dx
+          dataIn: ProgressReportEdit.apiRequest.progressReport.deleteId
+    newSign:
+      docStoreResp: ""
+      docStoreReq:
+        type: .DocType.DocumentSignature
+        eid: .Global.formData.meetingDocEid
+        refid: ""
+        name:
+          title: ""
+          type: ..apiRequest.newSign.docStoreReq.subtype.mediaType
+          data: ""
+        subtype:
+          mediaType: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: ProgressReportEdit.apiRequest.newSign.docStoreReq
+          dataOut: ProgressReportEdit.apiRequest.newSign.docStoreResp
+
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.progressReport.deleteId.id@: =..apiRequest.progressReport.storeIn.id
+                    - =..apiRequest.progressReport.docAPI.delete: ""
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                  children:
+                    - .FormsTypeTitle:
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.614"
+                        overflow: scroll
+                      children:
+                        # facility info start
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                            height: "0.1"
+                          children:
+                            - .ProFormsBaseView:
+                              style:
+                                width: "0.135"
+                                display: inline-block
+                              children:
+                                - type: image
+                                  path: "office-building.svg"
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.facilityAvatarID
+                                  style:
+                                    marginTop: "0.005"
+                                    width: "0.025"
+                                    height: "0.04416"
+                                    display: inline-block
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    marginLeft: "0.01"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsLabel:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.facilityName
+                                      style:
+                                        marginTop: "0"
+                                        fontSize: .Nfont.nf4
+                                    - .ProFormsLabel:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.location
+                                      style:
+                                        marginTop: "0.01"
+                                        fontSize: .Nfont.nf1
+                            - .ProFormsBaseView:
+                              style:
+                                marginLeft: "0.035"
+                                width: "0.12"
+                                display: inline-block
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Email
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Website"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.website
+                            - .ProFormsBaseView:
+                              style:
+                                marginLeft: "0"
+                                width: "0.1"
+                                display: inline-block
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.phone
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.fax
+                        # patient info start
+                        - .ProFormsBaseView:
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Exam Date
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtime_en
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.patientInfo.examDate
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Patient Name
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.patientInfo.patientName
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Date of Birth
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.patientInfo.dob
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Phone #"
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.patientInfo.phone
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Email"
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.patientInfo.email
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Patient Address
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.patientInfo.address
+                                  # patient info end
+                        - .ProFormsDivider: # History of Present Illness 
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: History of Present Illness / Subject Complaints
+                            - .ProFormsTextView:
+                              placeholder: Enter here
+                              dataKey: apiRequest.progressReport.storeIn.name.data.reportInfo.historyOfIllness
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Allergies
+                            - .ProFormsTextField:
+                              dataKey: apiRequest.progressReport.storeIn.name.data.reportInfo.allergies
+                              style:
+                                width: "0.39"
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Social History
+                            - .ProFormsTextView:
+                              autoCompression: true
+                              dataKey: apiRequest.progressReport.storeIn.name.data.reportInfo.socialHistory
+                              style:
+                                height: "0.128"
+                                marginTop: "0.0046"
+                                fontSize: .Nfont.nf1
+                                fontFamily: "Arial"
+                                color: "0x333333"
+                                width: "0.39"
+                                boxSizing: border-box
+                                paddingTop: "0.008"
+                                paddingBottom: "0.008"
+                                paddingLeft: "0.008"
+                                textIndent: "0"
+                                lineHeight: "1.5em"
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Medications
+                            - .ProFormsTextView:
+                              dataKey: apiRequest.progressReport.storeIn.name.data.reportInfo.medications
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Objective Findings
+                              style:
+                                fontSize: .Nfont.nf2
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - .ProFormsLabel:
+                              text: Vital Signs
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: Blood Pressure
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.BP
+                                          style:
+                                            width: "0.025"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "mmHg"
+
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: Heart Rate
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.HR
+                                          style:
+                                            width: "0.025"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "bpm"
+
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: Respiratory Rate
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.RR
+                                          style:
+                                            width: "0.025"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "breaths/min"
+
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: Pulse Oximetry
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.PO
+                                          style:
+                                            width: "0.02"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "O₂ %"
+
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: Temperature
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.temperature
+                                          style:
+                                            width: "0.025"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "°F/°C"
+
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: Height
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.height
+                                          style:
+                                            width: "0.025"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "ft/in"
+
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: Weight
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.weight
+                                          style:
+                                            width: "0.025"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "lb"
+
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: BMI
+                                      style:
+                                        fontWeight: ""
+                                    - .InitEvalReportView:
+                                      children:
+                                        - type: textField
+                                          dataKey: apiRequest.progressReport.storeIn.name.data.vitalSigns.BMI
+                                          style:
+                                            width: "0.025"
+                                            display: "inline-block"
+                                            border:
+                                              style: "1"
+
+                                        - .ProFormsUnitLabel:
+                                          text: "kg/m²"
+
+                        - .ProFormsLabel:
+                          text: Physical Examination
+                          style:
+                            marginTop: "0.02"
+                        - .ProFormsTextView:
+                          dataKey: apiRequest.progressReport.storeIn.name.data.objectiveFindings
+                          style:
+                            marginTop: "0.01"
+
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Labs
+                              style:
+                                fontSize: .Nfont.nf2
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                width: "0.39"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Blood Glucose
+                                - .ProFormsTextField:
+                                  style:
+                                    width: "0.39"
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.reportInfo.bloodGlucose
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Imaging Studies
+                            - .ProFormsTextView:
+                              dataKey: apiRequest.progressReport.storeIn.name.data.imagingStudies
+
+                        # Diagnoses
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Diagnoses
+                            # - .ProFormsLabel:
+                            #   text: If occupational illness specify etiologic agent and duration of exposure. Chemical or toxic compounds involved?
+                            #   style:
+                            #     marginTop: "0.01"
+                            #     fontWeight: "500"
+                            # - type: list
+                            #   viewTag: isInvolvedTag
+                            #   contentType: listObject
+                            #   listObject: ..formDataTemp.selectYesOrNo.isInvolved
+                            #   iteratorVar: itemObject
+                            #   style:
+                            #     width: '0.39'
+                            #     marginTop: "0.015"
+                            #     left: '0'
+                            #     height: auto
+                            #     axis: horizontal
+                            #   children:
+                            #     - type: listItem
+                            #       itemObject: 
+                            #       style:
+                            #         height: '0.017'
+                            #         left: '0'
+                            #         marginTop: '0'
+                            #       children:
+                            #         - type: image
+                            #           path: 
+                            #             emit:
+                            #               dataKey:
+                            #                 var: itemObject
+                            #               actions:        
+                            #                 - if:
+                            #                   - =.builtIn.string.equal:
+                            #                       dataIn:
+                            #                         string1: =..apiRequest.progressReport.storeIn.name.data.isInvolved
+                            #                         string2: $var.value
+                            #                   - yes.png
+                            #                   - no.png
+                            #           onClick:
+                            #             - emit:
+                            #                 dataKey:
+                            #                   var: itemObject
+                            #                 actions:
+                            #                   - if:
+                            #                     - =.builtIn.string.equal:
+                            #                         dataIn:
+                            #                           string1: =..apiRequest.progressReport.storeIn.name.data.isInvolved
+                            #                           string2: $var.value
+                            #                     - =.builtIn.object.set:
+                            #                         dataIn:
+                            #                           object: =..apiRequest.progressReport.storeIn.name.data
+                            #                           key: $var.key
+                            #                           value: ""
+                            #                     - =.builtIn.object.set:
+                            #                         dataIn:
+                            #                           object: =..apiRequest.progressReport.storeIn.name.data
+                            #                           key: $var.key
+                            #                           value: $var.value
+                            #             - actionType: evalObject
+                            #               object:
+                            #                 - if:
+                            #                   - =.builtIn.string.equal:
+                            #                       dataIn:
+                            #                         string1: =..apiRequest.progressReport.storeIn.name.data.isInvolved
+                            #                         string2: "Yes"
+                            #                   - actionType: builtIn
+                            #                     funcName: show
+                            #                     viewTag: diagnosesTag 
+                            #                   - actionType: builtIn
+                            #                     funcName: hide
+                            #                     viewTag: diagnosesTag                                               
+                            #             - actionType: builtIn
+                            #               funcName: redraw
+                            #               viewTag: isInvolvedTag
+                            #           style:
+                            #             width: "0.008"
+                            #             display: inline-block
+                            #         - type: label
+                            #           dataKey: itemObject.value
+                            #           style:
+                            #             marginLeft: "0.004"
+                            #             width: "0.036"
+                            #             fontSize: .Nfont.nf0
+                            #             display: inline-block  
+                        - type: view
+                          viewTag: diagnosesTag
+                          children:
+                            - type: view
+                              viewTag: searchBox
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0.008"
+                                    width: "0.39"
+                                    height: "auto"
+                                    boxSizing: border-box
+                                  children:
+                                    - type: view
+                                      viewTag: selectDateTag
+                                      style:
+                                        top: "0"
+                                        height: "0.0405"
+                                        width: "0.19"
+                                        boxSizing: border-box
+                                        border:
+                                          style: "3"
+                                        borderRadius: "4"
+                                        borderColor: "0xdedede"
+                                        overflow: hidden
+                                        textAlign:
+                                          y: center
+                                      children:
+                                        - type: image
+                                          path: searchGray.svg
+                                          style:
+                                            marginLeft: "0.0067"
+                                            width: "0.01"
+                                            display: inline-block
+                                        - type: textField
+                                          viewTag: CodeListTag
+                                          placeholder: Search
+                                          dataKey: formData.diagnosis.descriptiveList.code
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0067"
+                                            height: "0.04"
+                                            width: "0.1667"
+                                            boxSizing: border-box
+                                            fontSize: .Nfont.nf1
+                                            color: "0x333333"
+                                            border:
+                                              style: "5"
+                                          onInput:
+                                            - actionType: evalObject
+                                              object:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.diagnosis.descriptiveList.code
+                                                          string2: ""
+                                                    - actionType: evalObject
+                                                      object:
+                                                        - ..formData.listDataflag@: "block"
+                                                        - ..formData.searchShow@: "none"
+                                                    - actionType: evalObject
+                                                      object:
+                                                        - ..formData.listDataflag@: "none"
+                                                        - ..formData.searchShow@: "block"
+                                            - actionType: evalObject
+                                              object:
+                                                - ..formDataTemp.allListInfo@: []
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.search.queryCode:
+                                                    dataIn:
+                                                      query: =..formData.diagnosis.descriptiveList.code
+                                                    dataOut: ProgressReportEdit.formDataTemp.allListInfo
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: CodeTag
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: CodeTags
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: CodeTag
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: listData
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: ShowTag
+                                            - actionType: popUp
+                                              popUpView: CodeTag
+                                              dismissOnTouchOutside: true
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: searchShowTag
+                                    - type: textField
+                                      viewTag: descriptionTag
+                                      placeholder: Description
+                                      dataKey: formData.diagnosis.descriptiveList.description
+                                      style:
+                                        textIndent: "0.8em"
+                                        left: "0.2"
+                                        display: "inline-block"
+                                        height: "0.0405"
+                                        width: "0.19"
+                                        boxSizing: border-box
+                                        fontSize: .Nfont.nf1
+                                        color: "0x333333"
+                                        border:
+                                          style: "3"
+                                        borderRadius: "4"
+                                        borderWidth: "1"
+                                        borderColor: "0xdedede"
+                                - .ProFormsTextView:
+                                  viewTag: CommentsTag
+                                  placeholder: Comments
+                                  dataKey: formData.diagnosis.descriptiveList.comment
+                                  style:
+                                    marginTop: "0.0184"
+                            # + add more
+                            - .MedBtnOutlineWithImgSlim:
+                              btnImg: addCircleDeepBlue.svg
+                              btnText: Add More
+                              style:
+                                marginTop: "0.0145"
+                              children:
+                                - type: image
+                                  path: __.btnImg
+                                  style:
+                                    height: "0.01932"
+                                - type: label
+                                  text: __.btnText
+                                  style:
+                                    marginLeft: "0.004"
+                                    color: "0x005795"
+                                    fontFamily: "Arial"
+                                    fontWeight: "400"
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.diagnosis.descriptiveList.code
+                                              string2: ""
+                                        - actionType: popUp
+                                          popUpView: noDescriptionTag
+                                          wait: true
+                                        - continue
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.diagnosis.descriptiveList.description
+                                              string2: ""
+                                        - actionType: popUp
+                                          popUpView: noDescriptionTag
+                                          wait: true
+                                        - continue
+                                - emit:
+                                    actions:
+                                      - =.builtIn.array.add:
+                                          dataIn:
+                                            object: =..apiRequest.progressReport.storeIn.name.data.reportInfo.diagnosis.descriptiveList
+                                            value: =..formData.diagnosis.descriptiveList # create copy .create by value ,not reference
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.diagnosis.descriptiveList.code@: ""
+                                    - ..formData.diagnosis.descriptiveList.description@: ""
+                                    - ..formData.diagnosis.descriptiveList.comment@: ""
+
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: listData
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: CodeListTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: descriptionTag
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: ShowTag
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: listData
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: CommentsTag
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: CodeTag
+                            # 查询结果弹窗
+                            - type: view
+                              viewTag: searchShowTag
+                              style:
+                                marginTop: "0.0184"
+                                height: "auto"
+                                width: "0.39"
+                                display: ..formData.searchShow
+                              children:
+                                - type: view
+                                  viewTag: CodeTag
+                                  style:
+                                    display: "none"
+                                    width: "0.39"
+                                    height: "auto"
+                                    border:
+                                      style: 3
+                                    borderColor: "0xdedede"
+                                    borderWidth: "1"
+                                    borderRadius: "4"
+                                    boxSizing: border-box
+                                    zIndex: 10
+                                  children:
+                                    - type: scrollView
+                                      viewTag: ShowTag
+                                      style:
+                                        marginTop: "0.00368"
+                                        width: "0.38"
+                                        height: "0.3"
+                                        left: "0.00624"
+                                        overflow: scroll
+                                      children:
+                                        - type: list
+                                          contentType: listObject
+                                          listObject: ..formDataTemp.allListInfo
+                                          iteratorVar: itemObject
+                                          viewTag: CodeTags
+                                          style:
+                                            width: "0.38376"
+                                            height: "auto"
+                                            margin: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - type: listItem
+                                              itemObject: ""
+                                              style:
+                                                width: "0.38376"
+                                                marginTop: "0.00736"
+                                                height: "auto"
+                                              children:
+                                                - type: label
+                                                  dataKey: itemObject.0.2
+                                                  style:
+                                                    width: "0.36"
+                                                    left: "0"
+                                                    marginTop: "0"
+                                                    textAlign:
+                                                      x: left
+                                                      y: center
+                                                    height: "auto"
+                                                    fontSize: .Nfont.nf1
+                                                    color: "0x333333"
+                                                  onClick:
+                                                    - emit:
+                                                        dataKey:
+                                                          var: itemObject
+                                                        actions:
+                                                          - ..formData.diagnosis.descriptiveList.code@: $var.0.0
+                                                          - ..formData.diagnosis.descriptiveList.description@: $var.0.1
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: CodeListTag
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: descriptionTag
+                                                    - actionType: builtIn
+                                                      funcName: hide
+                                                      viewTag: ShowTag
+                                                    - actionType: builtIn
+                                                      funcName: show
+                                                      viewTag: listData
+                                                    - actionType: builtIn
+                                                      funcName: hide
+                                                      viewTag: CodeTag
+                            - type: view
+                              viewTag: listData
+                              style:
+                                width: "0.39"
+                                left: "0"
+                                height: "auto"
+                                marginTop: "0.01"
+                                backgroundColor: "0xf4f4f4"
+                                borderRadius: "4"
+                                display: ..formData.listDataflag
+                              children:
+                                - type: view
+                                  style:
+                                    paddingTop: "0.004"
+                                    paddingBottom: "0.015"
+                                    paddingLeft: "0.00624"
+                                  children:
+                                    - type: list
+                                      viewTag: listData
+                                      contentType: listObject
+                                      listObject: ..apiRequest.progressReport.storeIn.name.data.reportInfo.diagnosis.descriptiveList # to dataObject to enumerate the list
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: "0.38"
+                                        height: "auto"
+                                        border:
+                                          style: "5"
+                                        boxSizing: border-box
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          style:
+                                            marginTop: "0.006"
+                                            width: "0.38"
+                                            height: "auto"
+                                            left: "0"
+                                            overflow: hidden
+                                          children:
+                                            - type: view
+                                              style:
+                                                width: "0.37752"
+                                                height: "auto"
+                                              children:
+                                                - type: image
+                                                  path: deletePhoto.svg
+                                                  style:
+                                                    display: "inline-block"
+                                                    width: "0.009"
+                                                    height: "0.01656"
+                                                    zIndex: 10
+                                                    verticalAlign: middle
+                                                  onClick:
+                                                    - actionType: popUp
+                                                      popUpView: BaseDelWarningView
+                                                    - actionType: updateObject
+                                                      dataKey: formData.selectedDiagnosis
+                                                      dataObject: itemObject
+                                                - type: view
+                                                  style:
+                                                    marginLeft: "0.003"
+                                                    wordBreak: break-all
+                                                    display: "inline-block"
+                                                    width: "0.355"
+                                                  children:
+                                                    - .ProFormsLabel:
+                                                      dataKey: itemObject.code
+                                                      style:
+                                                        display: "inline"
+                                                        verticalAlign: middle
+                                                        color: "0x333333"
+                                                        fontSize: .Nfont.nf1
+                                                    - .ProFormsLabel:
+                                                      text: "-"
+                                                      style:
+                                                        marginLeft: "0.002"
+                                                        verticalAlign: middle
+                                                        display: "inline"
+                                                        color: "0x333333"
+                                                        fontSize: .Nfont.nf1
+                                                    - .ProFormsLabel:
+                                                      dataKey: itemObject.description
+                                                      style:
+                                                        verticalAlign: middle
+                                                        marginLeft: "0.002"
+                                                        display: "inline"
+                                                        color: "0x333333"
+                                                        fontSize: .Nfont.nf1
+                                            - type: label
+                                              dataKey: itemObject.comment
+                                              style:
+                                                marginTop: "0.003"
+                                                marginLeft: "0.012"
+                                                width: "0.355"
+                                                height: "auto"
+                                                color: "0x666666"
+                                                wordBreak: break-all
+                                                fontSize: .Nfont.nf1
+                        # Plan and Recommendations
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Plan and Recommendations
+                            - .ProFormsTextView:
+                              dataKey: apiRequest.progressReport.storeIn.name.data.reportInfo.planAndRecommendations
+                        # signature
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                            width: "0.275"
+                            display: flex
+                            justifyContent: space-between
+                          children:
+                            - .ProFormsLabel:
+                              text: Signature
+                              style:
+                                display: inline-block
+                            - .ProFormsLabel:
+                              text: "Clear"
+                              style:
+                                color: "0xe24445"
+                                display: inline-block
+                              onClick:
+                                - actionType: removeSignature
+                                  dataObject: BLOB
+                                  dataKey: apiRequest.newSign.docStoreReq.name.data
+                                  viewTag: signatureTag
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.temporarySignature@: ""
+                                    - ..formData.signShow@: "none"
+                                    - ..formData.canvasShow@: "block"
+                                    - ..apiRequest.progressReport.storeIn.name.data.signatureId@: ""
+                                    - ..apiRequest.progressReport.storeIn.name.data.signatureTime@: ""
+                                    - ..apiRequest.progressReport.storeIn.name.data.whetherSign@: true
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: signatureShowTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: signatureTag
+                        - .SignAreaView:
+                          style:
+                            marginTop: "0.008"
+                          children:
+                            - type: canvas
+                              dataKey: apiRequest.newSign.docStoreReq.name.data
+                              viewTag: signatureTag
+                              style:
+                                display: ..formData.canvasShow
+                                .SignCanvasStyle:
+                            - type: image
+                              path: null.png
+                              viewTag: signatureShowTag
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: formData.temporarySignature
+                              style:
+                                display: ..formData.signShow
+                                .SignCanvasStyle:
+                            - type: label
+                              text: "X"
+                              style:
+                                .SignLabelStyle:
+                        - .ProFormsBaseView:
+                          viewTag: signatureShowTag
+                          style:
+                            display: ..formData.signShow
+                          children:
+                            - .ProFormsLabelLeft:
+                              text=func: .builtIn.string.formatUnixtime_en
+                              dataKey: apiRequest.progressReport.storeIn.name.data.signatureTime
+                              style:
+                                display: inline
+                            - .ProFormsLabelLeft:
+                              text: " Digitally Signed"
+                              style:
+                                marginLeft: "0.0046"
+                                display: inline
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabelLeft:
+                              text: "Date"
+                              style:
+                                display: inline
+                            - .ProFormsLabelRight:
+                              text=func: .builtIn.string.formatUnixtimeL_en
+                              dataKey: apiRequest.progressReport.storeIn.ctime
+                              style:
+                                marginLeft: "0.0046"
+                                display: inline
+                        # 签名下面
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabel:
+                                  dataKey: apiRequest.progressReport.storeIn.name.data.providerInfo.providerFullName
+                                  style:
+                                    fontSize: .Nfont.nf4
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.providerInfo.specialty
+                                      style:
+                                        lineHeight: "2vh"
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "LIC #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.providerInfo.lic
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "NPI #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.providerInfo.npi
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "DEA #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.providerInfo.dea
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.providerInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.fax
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.phone
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Address"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.progressReport.storeIn.name.data.facilityInfo.location
+                        - .ProFormsDivider:
+
+
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick:
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: apiRequest.newSign.docStoreReq.name.data
+                          isEmpty: formData.whetherSignature
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                # 是否是上次签名
+                                - =..formData.temporarySignature
+                                - continue # 旧签名
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.whetherSignature
+                                              string2: true
+                                        - continue
+                                        - actionType: evalObject
+                                          object:
+                                            - ..apiRequest.newSign.docStoreReq.reid@: =..apiRequest.progressReport.storeIn.id
+                                            - =..apiRequest.newSign.docAPI.store: ""
+                                            - ..apiRequest.progressReport.storeIn.name.data.signatureId@: =..apiRequest.newSign.docStoreResp.doc.id
+                                            - ..apiRequest.progressReport.storeIn.name.data.signatureTime@:
+                                                =..apiRequest.newSign.docStoreResp.doc.ctime
+                                            - ..apiRequest.progressReport.storeIn.name.data.whetherSignature@: false
+                            - ..apiRequest.progressReport.storeIn.reid@: =.Global.formData.meetingDocReid
+                            # 修改类型
+                            - ..apiRequest.progressReport.storeIn.type@: 140800
+                            - ..apiRequest.progressReport.storeIn.name.data.statusTag@: =..formDataTemp.privateTag
+                            - =..apiRequest.progressReport.docAPI.store: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                    # release button
+                    - .FormsBottomRightButton:
+                      onClick:
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: apiRequest.newSign.docStoreReq.name.data
+                          isEmpty: formData.whetherSignature
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..apiRequest.progressReport.storeIn.name.data.isInvolved
+                                      string2: "Yes"
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =..apiRequest.progressReport.storeIn.name.data.reportInfo.diagnosis.descriptiveList.0
+                                        - continue
+                                        - actionType: popUp
+                                          popUpView: noDiagnosesTag
+                                          wait: true
+                                - continue
+                            - if:
+                                # 是否是上次签名
+                                - =..formData.temporarySignature
+                                - continue # 旧签名
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formData.whetherSignature
+                                              string2: true
+                                        - actionType: popUp
+                                          popUpView: noSignatureTag
+                                          wait: true
+                                        - actionType: evalObject
+                                          object:
+                                            - ..apiRequest.newSign.docStoreReq.reid@: =..apiRequest.progressReport.storeIn.id
+                                            - =..apiRequest.newSign.docAPI.store: ""
+                                            - ..apiRequest.progressReport.storeIn.name.data.signatureId@: =..apiRequest.newSign.docStoreResp.doc.id
+                                            - ..apiRequest.progressReport.storeIn.name.data.signatureTime@:
+                                                =..apiRequest.newSign.docStoreResp.doc.ctime
+                                            - ..apiRequest.progressReport.storeIn.name.data.whetherSignature@: false
+                            - ..apiRequest.progressReport.storeIn.reid@: =.Global.formData.meetingDocReid
+                            # 修改类型
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.progressReport.storeIn.type
+                                  index: 1
+                                  hex: 1
+                                dataOut: ProgressReportEdit.apiRequest.progressReport.storeIn.type
+                            - ..apiRequest.progressReport.storeIn.name.data.statusTag@: =..formDataTemp.publicTag
+                            - =..apiRequest.progressReport.docAPI.store: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+            - .FormsRightButtonsView:
+              style:
+                top: "0.1"
+              children:
+                - .FormsRightButton:
+                  img: keyboard.svg
+                  msg: "Macro"
+                  onClick:
+                    # 提前保存页面数据用于复现
+                    - actionType: saveSignature
+                      dataObject: BLOB
+                      dataKey: apiRequest.newSign.docStoreReq.name.data
+                      isEmpty: formData.whetherSignature
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            # 是否是上次签名
+                            - =..formData.temporarySignature
+                            - continue # 旧签名
+                            - actionType: evalObject
+                              object:
+                                # 新签名
+                                - if:
+                                    # 是否签名
+                                    - =..formData.whetherSignature
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        # 签名->复制签名信息再创建文档
+                                        - ..apiRequest.newSign.docStoreReq.reid@: =..apiRequest.progressReport.storeIn.id
+                                        - =..apiRequest.newSign.docAPI.store: ""
+                                        - ..apiRequest.progressReport.storeIn.name.data.signatureId@: =..apiRequest.newSign.docStoreResp.doc.id
+                                        - ..apiRequest.progressReport.storeIn.name.data.signatureTime@:
+                                            =..apiRequest.newSign.docStoreResp.doc.ctime
+                                        - ..apiRequest.progressReport.storeIn.name.data.whetherSignature@: false
+                    # 弹窗
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: macroTag
+                    - actionType: popUp
+                      popUpView: macroTag
+                    - actionType: updateObject
+                      dataKey: Global.formData.providerNotesForm
+                      dataObject: {}
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.providerNotesForm@: =..apiRequest.progressReport.storeIn
+                        - if:
+                            - =.Global.macro.resp.doc.0.id
+                            - actionType: evalObject
+                              object:
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: macroDataTag
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: noMacroDataTag
+                            - actionType: evalObject
+                              object:
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: macroDataTag
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: noMacroDataTag
+                  style:
+                    marginTop: "0.002"
+                    backgroundColor: "0x1263a8"
+        - .MacroPopUp:
+        - .CopyMacroSucPromptRight:
+
+
+        - .BaseWarningView:
+          msg1: Warning
+          msg2: You haven't added the Diagnoses.
+          viewTag: noDiagnosesTag
+        - .BaseWarningView:
+          msg1: Warning
+          msg2: "Please complete required fields: Search & Description"
+          viewTag: noDescriptionTag
+
+        - .BaseWarningView:
+          msg1: Warning
+          msg2: You haven't signed the form.
+          viewTag: noSignatureTag
+
+        - .DeleteWarningPopUp:
+          msg: Are you sure you want to delete it ?
+          viewTag: BaseDelWarningView
+          .BackgroundPopUp:
+          children:
+            - .BackgroundWhite:
+              children:
+                - .WarningRedLine:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.28"
+                    left: "0"
+                    height: "0.267"
+                  children:
+                    - .DeleteWarningImg:
+                    - .WarningLabel:
+                    - .DeleteWarningLabel:
+                - .CancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: BaseDelWarningView
+                - .DeleteButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.removeByName:
+                            dataIn:
+                              object: =..apiRequest.progressReport.storeIn.name.data.reportInfo.diagnosis.descriptiveList
+                              key: code
+                              name: =..formData.selectedDiagnosis.code
+                        - ..formData.listDataflag@: "block"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: listData
+                    - actionType: popUpDismiss
+                      popUpView: BaseDelWarningView
+        - .BaseWarningView:
+          msg2: You haven't added the Diagnoses.
+          viewTag: noDiagnosesTag

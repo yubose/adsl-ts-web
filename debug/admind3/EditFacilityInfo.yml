@@ -1,0 +1,3409 @@
+EditFacilityInfo:
+  #xd page number: 59
+  pageNumber: "350"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+
+    - ..formData.currentLocEdgeId@: =.Global.formData.currentLocationDoc.eid
+    - if:
+        - =.Global.formData.currentLocationDoc
+        - ..facility.document@: =.Global.formData.currentLocationDoc
+        - ..facility.document.name.data.basicInfo@: =.Global.currentFacility.name.basicInfo
+
+    - =.builtIn.string.phoneNumberSplit:
+        dataIn:
+          phoneNumber: =..facility.document.name.data.basicInfo.phoneNumber
+          sign: " "
+        dataOut: EditFacilityInfo.formData.phoneArray
+    - =.builtIn.string.phoneNumberSplit:
+        dataIn:
+          phoneNumber: =..facility.document.name.data.basicInfo.website
+          sign: "://"
+        dataOut: EditFacilityInfo.formData.websiteArray
+    - if:
+        - =..formData.websiteArray.0
+        - =.builtIn.string.concat:
+            dataIn:
+              - =..formData.websiteArray.0
+              - '://'
+            dataOut: EditFacilityInfo.formData.websiteArray.0
+        - ..formData.websiteArray.0@: "https://"
+    - if:
+        - =.builtIn.array.has:
+            dataIn:
+              object: =..formData.phoneHeader
+              value: =..formData.phoneArray.0
+        - continue
+        - actionType: evalObject
+          object:
+            - ..formData.phoneArray.0@: "+1"
+            - ..formData.phoneArray.1@: =..facility.document.name.data.basicInfo.phoneNumber
+    # - if: 
+    #   - =.builtIn.array.has: 
+    #       dataIn: 
+    #         object: =..formData.websiteHeaderArray
+    #         value: =..formData.websiteArray.0
+    #   - continue
+    #   - actionType: evalObject
+    #     object: 
+    #       - ..formData.websiteArray.0@: "https://"
+    #       - ..formData.websiteArray.1@: =..facility.document.name.data.basicInfo.website
+
+    - ..facility.document.eid@: =..formData.currentLocEdgeId
+
+    - ..businessLogo.docIn.id@: =..formData.currentLocEdgeId
+    - ..DEA.docIn.id@: =..formData.currentLocEdgeId
+    - ..medicalLicense.docIn.id@: =..formData.currentLocEdgeId
+    - ..businessLogo.document.eid@: =..formData.currentLocEdgeId
+    - ..DEA.document.eid@: =..formData.currentLocEdgeId
+    - ..medicalLicense.document.eid@: =..formData.currentLocEdgeId
+
+    - ..location.vertex@: =.Global.formData.currentLocation
+
+    - =.builtIn.array.splitArrString:
+        dataIn:
+          arr: =..facility.document.name.data.basicInfo.businessHours
+        dataOut: EditFacilityInfo.formData.businessHours
+
+    - =..businessLogo.docAPI.get: ""
+    - =..DEA.docAPI.get: ""
+    - =..medicalLicense.docAPI.get: ""
+
+    - if:
+        - =..businessLogo.resp.doc.0
+        - ..businessLogo.document@: =..businessLogo.resp.doc.0
+        - continue
+    - if:
+        - =..DEA.resp.doc.0
+        - ..DEA.document@: =..DEA.resp.doc.0
+        - continue
+    - if:
+        - =..medicalLicense.resp.doc.0
+        - ..medicalLicense.document@: =..medicalLicense.resp.doc.0
+        - continue
+
+    - =.builtIn.array.getListByKey:
+        dataIn:
+          array: =.SelectData.businessCat
+          keyId: name
+        dataOut: EditFacilityInfo.businessCatName
+    - =..apiRequest.medicalFacility.docAPI.get: ""
+
+    - if:
+        - =.builtIn.array.has:
+            dataIn:
+              object: =..formData.allMedicalType
+              value: =..facility.document.name.data.basicInfo.businessType
+        - actionType: evalObject
+          object:
+            - ..facility.document.name.data.basicInfo.largeType@: "M"
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =..facility.document.name.data.basicInfo.businessType
+                  - " "
+                  - "(M)"
+                dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.businessType
+        - continue
+
+    - if:
+        - =.builtIn.array.has:
+            dataIn:
+              object: =..formData.allBusinessType
+              value: =..facility.document.name.data.basicInfo.businessType
+        - actionType: evalObject
+          object:
+            - ..facility.document.name.data.basicInfo.largeType@: "B"
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =..facility.document.name.data.basicInfo.businessType
+                  - " "
+                  - "(B)"
+                dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.businessType
+        - continue
+
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..facility.document.name.data.basicInfo.largeType
+              string2: "M"
+        - actionType: evalObject
+          object:
+            - ..formData.controlMedical@: "block"
+            - ..formData.controlBusiness@: "none"
+            - ..formData.controlFacilityName@: "block"
+            - ..formData.controlBusinessName@: "none"
+            - ..formData.controlFacilityId@: "block"
+            - ..formData.controlBusinessId@: "none"
+            - ..formData.controlDeaPhoto@: "block"
+        - actionType: evalObject
+          object:
+            - ..formData.controlMedical@: "none"
+            - ..formData.controlBusiness@: "block"
+            - ..formData.controlFacilityName@: "none"
+            - ..formData.controlBusinessName@: "block"
+            - ..formData.controlFacilityId@: "none"
+            - ..formData.controlBusinessId@: "block"
+            - ..formData.controlDeaPhoto@: "none"
+
+    - if:
+        - =..medicalLicense.resp.doc.0.id
+        - ..formData.businessLicenseId@: =..medicalLicense.resp.doc.0.id
+        - continue
+
+  locationIDFlag: "0"
+  viewPort: top
+  title: "EditFacilityInfo"
+  businessCatName: []
+  formData:
+    allMedicalType:
+      [
+        "Medical Facility",
+        "Pharmacy",
+        "Medical Supplier",
+        "Image Center",
+        "Lab"
+      ]
+    allBusinessType:
+      [
+        "Employer",
+        "Law Office",
+        "Insurance",
+        "Business General"
+      ]
+    controlDeaPhoto: ""
+    businessLicenseId: ""
+    controlBusinessPopUp: "0"
+    controlMedical: "block"
+    controlBusiness: "none"
+    controlFacilityName: ""
+    controlBusinessName: ""
+    controlFacilityId: ""
+    controlBusinessId: ""
+    medical:
+      - name: Medical Facility
+      - name: Pharmacy
+      - name: Medical Supplier
+      - name: Image Center
+      - name: Lab
+    business:
+      - name: Employer
+      - name: Law Office
+      - name: Insurance
+      - name: Business General
+    local: ""
+    currentLocEdgeId: ""
+    state: ""
+    fileSize: ""
+    flag: false
+    addressDetail: ""
+    bussinessHoursResult: []
+    Date:
+      FromDay: ""
+      ToDay: ""
+      FromHour: ""
+      ToHour: ""
+      dayConcat: ""
+      HourConcat: ""
+      concat: ""
+    isCheckoutColor: false
+    specBtnColor: "0xc1c1c1"
+    businessHours: []
+    countryCode: "+1"
+    phoneNumber: ""
+    webReqHeader: "https://"
+    website: ""
+    websiteArray: [ "https://", "" ]
+    websiteHeader:
+      - https://
+      - http://
+    phoneArray: [ "+1", "" ]
+    phoneHeader: [ "+1", "+52", "+86", "+965" ]
+    errorArr: []
+  suggestAddress: []
+
+  getJWT:
+    edge:
+      type: .EdgeType.JWT
+      bvid: .Global.currentFacility.id
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: EditFacilityInfo.getJWT.edge
+
+  # location边上的文档
+  facility:
+    response: ""
+    docStoreResp: ""
+    documentReq:
+      ObjType: 8
+      id: ""
+      xfname: E.bvid
+      sCondition: E.type=10000 AND D.type=271361
+      _nonce: =.Global._nonce
+    document:
+      eid: ""
+      subtype:
+        isEditable: true
+      # fid: .Global.currentFacility.id
+      type: .DocType.FacilityProfile
+      name:
+        data:
+          basicInfo:
+            businessType: ""
+            largeType: ""
+            website: ""
+            addressSecondLine: ""
+            fax: ""
+            businessHours: []
+            medicalFacilityName: ""
+            locationID: ""
+            phoneNumber: ""
+            email: ""
+            location: ""
+            addressFirstLine: ""
+            city: ""
+            county: ""
+            state: "AK"
+            zipCode: ""
+            businessLicense: ""
+            businessLicenseCity: ""
+            businessLicenseState: "AK"
+            licenseExpirationDate: ""
+            NPI: ""
+            DEANumber: ""
+            introduction: ""
+            specialty: ""
+            fullAddress: ""
+            geoCode: ""
+            fullInfo: ""
+            tin: ""
+    docAPI:
+      store:
+        api: cd
+        dataIn: EditFacilityInfo.facility.document
+        dataOut: EditFacilityInfo.facility.docStoreResp
+      get:
+        api: rd
+        dataIn: EditFacilityInfo.facility.documentReq
+        dataOut: EditFacilityInfo.facility.response
+
+  location:
+    # 更新location的profile的同时，把最新的信息都更新到location的vertex上，保持最新
+    resp: ""
+    storeResp: ""
+    vertexIn:
+      id: .Global.formData.locationId
+      xfname: "id"
+      # sCondition: "E.type=1100 AND V.type!=1"
+      obfname: "mtime"
+      asc: true
+      _nonce: =.Global._nonce
+    vertex:
+      .Vertex: ""
+      type: ""
+      name:
+        basicInfo:
+          medicalFacilityName: ""
+          locationID: ""
+          businessType: "Medical Facility"
+          phoneNumber: ""
+          email: ""
+          website: ""
+          location: ""
+          addressFirstLine: ""
+          addressSecondLine: ""
+          city: ""
+          county: ""
+          state: "AK"
+          zipCode: ""
+          businessLicense: ""
+          businessLicenseCity: ""
+          businessLicenseState: "AK"
+          licenseExpirationDate: ""
+          NPI: ""
+          DEANumber: ""
+          fax: ""
+          businessHours: []
+          introduction: ""
+          specialty: ""
+          address: ""
+          fullInfo: ""
+      uid: ""
+      jwt: ""
+      # pk: "VW/ceBN733d2oAki+muUeSAaKZBaE9SIbRJu5gBz40c="
+      # esk: "2f8J1+aRIftJkKL+VxLb00qYjW3hWfQwLIBGumdwum/NHXlv6VChfmPIhj0bTOaUK4VscRwwa4soTqJ8x0a1jsOBoDDZz5aR"
+    vertexAPI:
+      .VertexAPI: ""
+      get:
+        api: rv
+        dataIn: EditFacilityInfo.location.vertexIn
+        dataOut: EditFacilityInfo.location.resp
+      store:
+        api: cv
+        dataIn: EditFacilityInfo.location.vertex
+        dataOut: EditFacilityInfo.location.storeResp
+
+  businessLogo:
+    # url: BusinessLogo.svg
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "0"
+        isOnServer: "0"
+      type: .DocType.BusinessLogoPicture
+      name:
+        title: ""
+        type: ..businessLogo.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""
+      eid: ""
+    resp: ""
+    storeResp: ""
+    docIn:
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.BusinessLogoPicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI:
+      store:
+        api: cd
+        dataIn: businessLogo.document
+        dataOut: EditFacilityInfo.businessLogo.storeResp
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: ""
+        dataIn: businessLogo.docIn
+        dataOut: EditFacilityInfo.businessLogo.resp
+
+  DEA:
+    storeResp: ""
+    # url: DEA.svg
+    documentIn:
+      .Document: ""
+      subtype:
+        isEncrypted: "0"
+        isOnServer: "0"
+      type: .DocType.DEAPicture
+      name:
+        title: ""
+        type: ..DEA.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""
+      # 这里在初始化的时候 挂边 文档挂到 fac_rootNotebookID这条边上 
+      eid: ""
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "0"
+        isOnServer: "0"
+      type: .DocType.DEAPicture
+      name:
+        title: ""
+        type: ..DEA.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""
+      # 这里在初始化的时候 挂边 文档挂到 fac_rootNotebookID这条边上 
+      eid: ""
+    resp: ""
+    docIn:
+      # rootNotebookID是用户admin, fac_rootNotebookID是facility
+      # 这里的id在 init时重新赋值为 fac_rootNotebookID的边的id
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.DEAPicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    deleteId:
+      id: ""
+    docAPI:
+      store:
+        api: cd
+        dataIn: DEA.document
+        dataOut: EditFacilityInfo.DEA.storeResp
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: ""
+        dataIn: DEA.docIn
+        dataOut: EditFacilityInfo.DEA.resp
+      delete:
+        api: dx
+        dataIn: EditFacilityInfo.DEA.deleteId
+
+  medicalLicense:
+    resp: ""
+    storeResp: ""
+    # url: MedicalLicensePicture.svg
+    documentIn:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.MedicalLicensePicture
+      name:
+        title: ""
+        type: ..medicalLicense.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""
+      eid: .Global.rootNotebookID
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.MedicalLicensePicture
+      name:
+        title: ""
+        type: ..medicalLicense.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""
+      eid: .Global.rootNotebookID
+    deleteId:
+      id: ""
+    docIn:
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.MedicalLicensePicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI:
+      store:
+        api: cd
+        dataIn: EditFacilityInfo.medicalLicense.document
+        dataOut: EditFacilityInfo.medicalLicense.storeResp
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: ""
+        dataIn: EditFacilityInfo.medicalLicense.docIn
+        dataOut: EditFacilityInfo.medicalLicense.resp
+      delete:
+        api: dx
+        dataIn: EditFacilityInfo.medicalLicense.deleteId
+
+  apiRequest:
+    # facility边上的文档
+    medicalFacility:
+      docGetResp: ""
+      docGetIn:
+        id: .Global.fac_rootNotebook
+        xfname: eid
+        type: .DocType.FacilityProfile
+        _nonce: .Global._nonce
+        obfname: ctime
+        maxcount: "1"
+      docStoreResp: ""
+      docStoreIn:
+        eid: .Global.fac_rootNotebook
+        name:
+          data:
+            basicInfo:
+              businessType: "Medical Facility"
+              website: ""
+              addressSecondLine: ""
+              fax: ""
+              businessHours: []
+              medicalFacilityName: ""
+              locationID: ""
+              phoneNumber: ""
+              email: ""
+              location: ""
+              addressFirstLine: ""
+              city: ""
+              county: ""
+              state: "AK"
+              zipCode: ""
+              businessLicense: ""
+              businessLicenseCity: ""
+              businessLicenseState: "AK"
+              licenseExpirationDate: ""
+              NPI: ""
+              DEANumber: ""
+              introduction: ""
+              specialty: ""
+              fullAddress: ""
+              geoCode: ""
+              fullInfo: ""
+        type: .DocType.FacilityProfile
+      docAPI:
+        get:
+          api: rd
+          dataIn: EditFacilityInfo.apiRequest.medicalFacility.docGetIn
+          dataOut: EditFacilityInfo.apiRequest.medicalFacility.docGetResp
+        store:
+          api: cd
+          dataIn: EditFacilityInfo.apiRequest.medicalFacility.docStoreIn
+          dataOut: EditFacilityInfo.apiRequest.medicalFacility.docStoreResp
+    # 更新Vertex
+    currentFacility:
+      vertexResp: ""
+      vertexIn:
+        id: .Global.currentFacility.id
+        name:
+          basicInfo:
+      vertexAPI:
+        store:
+          api: cv
+          dataIn: apiRequest.currentFacility.vertexIn
+          dataOut: EditFacilityInfo.apiRequest.currentFacility.vertexResp
+
+    locationAll:
+      document:
+        # for store some info of location 
+        type: .DocType.LocationOfFacility
+        eid: .Global.fac_rootNotebook
+        name:
+          data:
+            allLocation: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: apiRequest.locationAll.document
+          subtype:
+            mediaType: "application/json"
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+          style:
+            left: "0.16"
+            marginTop: "0"
+            height: "0.063"
+            width: "0.84"
+        - type: view
+          style:
+            backgroundColor: "0xf4f8fa"
+            width: "0.84"
+            height: "0.937"
+            left: "0.16"
+            top: "0.063"
+          children:
+            - .GotoBack:
+              style:
+                top: "0.02"
+              onClick:
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+            - type: label
+              dataKey: facility.document.name.data.basicInfo.medicalFacilityName
+              style:
+                left: "0.021"
+                top: "0.023"
+                backgroundColor: "0x005795"
+                border:
+                  style: "5"
+                borderTopLeftRadius: "7px"
+                borderTopRightRadius: "7px"
+                paddingLeft: "29px"
+                paddingRight: "29px"
+                # width: "0.09"
+                width: "auto"
+                height: "0.04413"
+                # fontFamily: "Roboto"
+                fontWeight: "600"
+                fontSize: .Nfont.nf3
+                color: "0xffffff"
+                textDecoration: underline
+                textAlign:
+                  x: center
+                  y: center
+            - .ContentBar:
+              style:
+                marginTop: "0.06256"
+                backgroundColor: "0xffffff"
+                width: "0.82"
+                height: "0.85594"
+                # marginLeft: "0.01"
+                borderRadius: "6"
+                border:
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
+                zIndex: "2"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.016"
+                    left: "0.056"
+                    width: "0.70252"
+                    height: "0.81512"
+                    border:
+                      style: "5"
+                    borderColor: "0x333333"
+                    # backgroundColor: "0xff000033"
+                  children:
+                    - .MedBtnWithImg:
+                      btnText: "Save"
+                      btnImg: save.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..facility.document.name.data.basicInfo.largeType
+                                      string2: "M"
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.string.judgeFillinAll:
+                                            dataIn:
+                                              - =..facility.document.name.data.basicInfo.businessType
+                                              - =..facility.document.name.data.basicInfo.medicalFacilityName
+                                              - =..facility.document.name.data.basicInfo.locationID
+                                              - =..formData.phoneArray.1
+                                              - =..facility.document.name.data.basicInfo.addressFirstLine
+                                              - =..facility.document.name.data.basicInfo.city
+                                              - =..facility.document.name.data.basicInfo.state
+                                              - =..facility.document.name.data.basicInfo.zipCode
+                                              - =..facility.document.name.data.basicInfo.businessLicense
+                                              - =..facility.document.name.data.basicInfo.businessLicenseCity
+                                              - =..facility.document.name.data.basicInfo.businessLicenseState
+                                              - =..facility.document.name.data.basicInfo.licenseExpirationDate
+                                              - =..facility.document.name.data.basicInfo.NPI
+                                              - =..facility.document.name.data.basicInfo.tin
+                                              - =..formData.businessLicenseId
+                                        - =.builtIn.array.judgeKeyAndReturnValue:
+                                            dataIn:
+                                              objArr:
+                                                - key: "Business Category"
+                                                  value: =..facility.document.name.data.basicInfo.businessType
+                                                - key: "Medical Facility Name"
+                                                  value: =..facility.document.name.data.basicInfo.medicalFacilityName
+                                                - key: "Facility ID"
+                                                  value: =..facility.document.name.data.basicInfo.locationID
+                                                - key: "Main Phone"
+                                                  value: =..formData.phoneArray.1
+                                                - key: "Address Line"
+                                                  value: =..facility.document.name.data.basicInfo.addressFirstLine
+                                                - key: "City"
+                                                  value: =..facility.document.name.data.basicInfo.city
+                                                - key: "State"
+                                                  value: =..facility.document.name.data.basicInfo.state
+                                                - key: "Zip Code"
+                                                  value: =..facility.document.name.data.basicInfo.zipCode
+                                                - key: "Business License #"
+                                                  value: =..facility.document.name.data.basicInfo.businessLicense
+                                                - key: "Business License City"
+                                                  value: =..facility.document.name.data.basicInfo.businessLicenseCity
+                                                - key: "Business License State"
+                                                  value: =..facility.document.name.data.basicInfo.businessLicenseState
+                                                - key: "License Expiration Date"
+                                                  value: =..facility.document.name.data.basicInfo.licenseExpirationDate
+                                                - key: "NPI #"
+                                                  value: =..facility.document.name.data.basicInfo.NPI
+                                                - key: "TIN(EIN)"
+                                                  value: =..facility.document.name.data.basicInfo.tin
+                                                - key: "Business License Image"
+                                                  value: =..formData.businessLicenseId
+                                              pathKey: "key"
+                                              pathValue: "value"
+                                              valueArr: [ "", "Select" ]
+                                            dataOut: EditFacilityInfo.formData.errorArr
+                                        - continue
+                                - actionType: evalObject
+                                  object:
+                                    - ..facility.document.name.data.basicInfo.NPI@: ""
+                                    - ..facility.document.name.data.basicInfo.DEANumber@: ""
+
+                                    - if:
+                                        - =.builtIn.string.judgeFillinAll:
+                                            dataIn:
+                                              - =..facility.document.name.data.basicInfo.businessType
+                                              - =..facility.document.name.data.basicInfo.medicalFacilityName
+                                              - =..facility.document.name.data.basicInfo.locationID
+                                              - =..formData.phoneArray.1
+                                              - =..facility.document.name.data.basicInfo.addressFirstLine
+                                              - =..facility.document.name.data.basicInfo.city
+                                              - =..facility.document.name.data.basicInfo.state
+                                              - =..facility.document.name.data.basicInfo.zipCode
+                                              - =..facility.document.name.data.basicInfo.businessLicense
+                                              - =..facility.document.name.data.basicInfo.businessLicenseCity
+                                              - =..facility.document.name.data.basicInfo.businessLicenseState
+                                              - =..facility.document.name.data.basicInfo.licenseExpirationDate
+                                              - =..facility.document.name.data.basicInfo.tin
+                                              - =..formData.businessLicenseId
+                                        - =.builtIn.array.judgeKeyAndReturnValue:
+                                            dataIn:
+                                              objArr:
+                                                - key: "Business Category"
+                                                  value: =..facility.document.name.data.basicInfo.businessType
+                                                - key: "Business Name"
+                                                  value: =..facility.document.name.data.basicInfo.medicalFacilityName
+                                                - key: "Facility ID"
+                                                  value: =..facility.document.name.data.basicInfo.locationID
+                                                - key: "Main Phone"
+                                                  value: =..formData.phoneArray.1
+                                                - key: "Address Line"
+                                                  value: =..facility.document.name.data.basicInfo.addressFirstLine
+                                                - key: "City"
+                                                  value: =..facility.document.name.data.basicInfo.city
+                                                - key: "State"
+                                                  value: =..facility.document.name.data.basicInfo.state
+                                                - key: "Zip Code"
+                                                  value: =..facility.document.name.data.basicInfo.zipCode
+                                                - key: "Business License #"
+                                                  value: =..facility.document.name.data.basicInfo.businessLicense
+                                                - key: "Business License City"
+                                                  value: =..facility.document.name.data.basicInfo.businessLicenseCity
+                                                - key: "Business License State"
+                                                  value: =..facility.document.name.data.basicInfo.businessLicenseState
+                                                - key: "License Expiration Date"
+                                                  value: =..facility.document.name.data.basicInfo.licenseExpirationDate
+                                                - key: "TIN(EIN)"
+                                                  value: =..facility.document.name.data.basicInfo.tin
+                                                - key: "Business License Image"
+                                                  value: =..formData.businessLicenseId
+                                              pathKey: "key"
+                                              pathValue: "value"
+                                              valueArr: [ "", "Select" ]
+                                            dataOut: EditFacilityInfo.formData.errorArr
+                                        - continue
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: errorView
+                        - actionType: evalObject
+                          object:
+
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..facility.document.name.data.basicInfo.largeType
+                                      string2: "M"
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.string.judgeFillinAll:
+                                            dataIn:
+                                              - =..facility.document.name.data.basicInfo.businessType
+                                              - =..facility.document.name.data.basicInfo.medicalFacilityName
+                                              - =..facility.document.name.data.basicInfo.locationID
+                                              - =..formData.phoneArray.1
+                                              - =..facility.document.name.data.basicInfo.addressFirstLine
+                                              - =..facility.document.name.data.basicInfo.city
+                                              - =..facility.document.name.data.basicInfo.state
+                                              - =..facility.document.name.data.basicInfo.zipCode
+                                              - =..facility.document.name.data.basicInfo.businessLicense
+                                              - =..facility.document.name.data.basicInfo.businessLicenseCity
+                                              - =..facility.document.name.data.basicInfo.businessLicenseState
+                                              - =..facility.document.name.data.basicInfo.licenseExpirationDate
+                                              - =..facility.document.name.data.basicInfo.NPI
+                                              - =..facility.document.name.data.basicInfo.tin
+                                              - =..formData.businessLicenseId
+                                        - actionType: popUp
+                                          popUpView: errorView
+                                          wait: true
+                                        - continue
+                                - actionType: evalObject
+                                  object:
+                                    - ..facility.document.name.data.basicInfo.NPI@: ""
+                                    - ..facility.document.name.data.basicInfo.DEANumber@: ""
+
+                                    - if:
+                                        - =.builtIn.string.judgeFillinAll:
+                                            dataIn:
+                                              - =..facility.document.name.data.basicInfo.businessType
+                                              - =..facility.document.name.data.basicInfo.medicalFacilityName
+                                              - =..facility.document.name.data.basicInfo.locationID
+                                              - =..formData.phoneArray.1
+                                              - =..facility.document.name.data.basicInfo.addressFirstLine
+                                              - =..facility.document.name.data.basicInfo.city
+                                              - =..facility.document.name.data.basicInfo.state
+                                              - =..facility.document.name.data.basicInfo.zipCode
+                                              - =..facility.document.name.data.basicInfo.businessLicense
+                                              - =..facility.document.name.data.basicInfo.businessLicenseCity
+                                              - =..facility.document.name.data.basicInfo.businessLicenseState
+                                              - =..facility.document.name.data.basicInfo.licenseExpirationDate
+                                              - =..facility.document.name.data.basicInfo.tin
+                                              - =..formData.businessLicenseId
+                                        - actionType: popUp
+                                          popUpView: errorView
+                                          wait: true
+                                        - continue
+
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.phoneArray.0
+                                  - " "
+                                  - =..formData.phoneArray.1
+                                dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.phoneNumber
+                            - if:
+                                - =..formData.websiteArray.1
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - =..formData.websiteArray.0
+                                      - =..formData.websiteArray.1
+                                    dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.website
+                                - ..facility.document.name.data.basicInfo.website@: ""
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..facility.document.name.data.basicInfo.addressFirstLine
+                                  - ", "
+                                  - =..facility.document.name.data.basicInfo.city
+                                  - ", "
+                                  - =..facility.document.name.data.basicInfo.state
+                                  - " "
+                                  - =..facility.document.name.data.basicInfo.zipCode
+                                dataOut: EditFacilityInfo.formData.location
+
+                            - if:
+                                - =.builtIn.object.has:
+                                    dataIn:
+                                      object: =..facility.document.name.data.basicInfo
+                                      key: addressSecondLine
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - =..facility.document.name.data.basicInfo.addressFirstLine
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.addressSecondLine
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.city
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.state
+                                      - " "
+                                      - =..facility.document.name.data.basicInfo.zipCode
+                                    dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.location
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - =..facility.document.name.data.basicInfo.addressFirstLine
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.city
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.state
+                                      - " "
+                                      - =..facility.document.name.data.basicInfo.zipCode
+                                    dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.location
+
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..facility.document.name.data.basicInfo.addressSecondLine
+                                      string2: ""
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - =..facility.document.name.data.basicInfo.addressFirstLine
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.city
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.state
+                                      - " "
+                                      - =..facility.document.name.data.basicInfo.zipCode
+                                    dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.location
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - =..facility.document.name.data.basicInfo.addressFirstLine
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.addressSecondLine
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.city
+                                      - ", "
+                                      - =..facility.document.name.data.basicInfo.state
+                                      - " "
+                                      - =..facility.document.name.data.basicInfo.zipCode
+                                    dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.location
+
+                            - =.builtIn.search.transformGeo:
+                                dataIn:
+                                  query: =..facility.document.name.data.basicInfo.location
+                                dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.geoCode
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..facility.document.name.data.basicInfo.medicalFacilityName
+                                  - "-"
+                                  - =..facility.document.name.data.basicInfo.location
+                                dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.fullInfo
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..facility.document.name.data.basicInfo.addressFirstLine
+                                  - ","
+                                  - =..facility.document.name.data.basicInfo.city
+                                  - " "
+                                  - =..facility.document.name.data.basicInfo.state
+                                  - " "
+                                  - =..facility.document.name.data.basicInfo.zipCode
+                                dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.fullAddress
+
+                        - actionType: evalObject
+                          object:
+                            - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..facility.document.name.data.basicInfo.largeType
+                                      string2: "B"
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =..DEA.resp.doc.0.id
+                                        - ..DEA.deleteId.id@: =..DEA.resp.doc.0.id
+                                        - continue
+                                    - =..DEA.docAPI.delete: ""
+                                - continue
+                            - ..facility.document.name.data.basicInfo.businessLogo@: =..businessLogo.resp.doc.0.id # 没有get到这个赋的是字符串
+                            # store的是location边上的doc
+                            - =..facility.docAPI.store: ""
+                            # location边上的文档信息 赋值给 点上面
+                            - ..location.vertex.name.basicInfo@: =..facility.document.name.data.basicInfo
+                            # - ..location.vertex.uid@: =..facility.document.name.data.basicInfo.locationID
+
+                            # 缓存location
+                            - =..location.vertexAPI.store: ""
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =.Global.formData.currentLocation.id # location 边上的文档
+                                      string2: =.Global.formData.firstLocation.id # facilityInfo1页面初始化的第一个location
+                                - actionType: evalObject
+                                  object:
+                                    - ..apiRequest.medicalFacility.docStoreIn@: =..apiRequest.medicalFacility.docGetResp.doc.0
+                                    - ..apiRequest.medicalFacility.docStoreIn.name.data.basicInfo@: =..facility.document.name.data.basicInfo
+                                    # 只更新了basicInfo
+                                    - ..apiRequest.currentFacility.vertexIn.name.basicInfo@: =..facility.document.name.data.basicInfo
+                                    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                    - =.Global.jwt.edgeAPI.store: ""
+                                    - =..apiRequest.medicalFacility.docAPI.store: ""
+                                    - =..apiRequest.currentFacility.vertexAPI.store: ""
+                                    - .Global.currentFacility@: =..apiRequest.currentFacility.vertexResp.vertex
+                                - continue
+
+                            - ..formData.local.id@: =..location.storeResp.vertex.id
+                            - ..formData.local.medicalFacilityName@: =..location.storeResp.vertex.name.basicInfo.medicalFacilityName
+                            - ..formData.local.phoneNumber@: =..location.storeResp.vertex.name.basicInfo.phoneNumber
+                            - ..formData.local.location@: =..location.storeResp.vertex.name.basicInfo.location
+                            - ..formData.local.locationID@: =..location.storeResp.vertex.name.basicInfo.locationID
+                            - =.builtIn.array.ChangeAnItemInArray:
+                                dataIn:
+                                  array: =.Global.locationAll
+                                  path: "id"
+                                  obj: =..formData.local
+                            - ..apiRequest.locationAll.document.name.data.allLocation@: =.Global.locationAll
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =..apiRequest.locationAll.docAPI.store: ""
+                        - actionType: popUpDismiss
+                          popUpView: uploading
+                        - actionType: popUp
+                          popUpView: saveSuccessfulTag
+                      style:
+                        left: "0.6344"
+                        top: "0"
+                        width: "0.06812"
+                    - type: label
+                      text: "Basic Info"
+                      style:
+                        fontSize: .Nfont.nf5
+                        fontFamily: "Roboto"
+                        color: "0x333333"
+                        fontWeight: "600"
+                        width: "0.1"
+                    - type: view
+                      style:
+                        height: auto
+                        fontWeight: '500'
+                        width: "0.3"
+                        marginTop: "0.02"
+                      children:
+                        - .AddFacilityLabelNewUI:
+                          textBoard:
+                            - text: "Business Category"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            display: inline-block
+                            fontSize: .Nfont.nf4
+                            fontWeight: "500"
+                            marginTop: "0.006"
+                            marginRight: "0.015"
+                        - type: view
+                          style:
+                            display: inline-block
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.controlBusinessPopUp
+                                          string2: "0"
+                                    - ..formData.controlBusinessPopUp@: "1"
+                                    - ..formData.controlBusinessPopUp@: "0"
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.controlBusinessPopUp
+                                          string2: "0"
+                                    - actionType: popUpDismiss
+                                      popUpView: businessPopUp
+                                    - actionType: popUp
+                                      popUpView: businessPopUp
+                          children:
+                            - type: image
+                              path: downArrowDeepGray.svg
+                              style:
+                                width: "0.012"
+                                top: "0.008"
+                                zIndex: "5"
+                                left: "0.132"
+                            - type: label
+                              viewTag: businessTag
+                              dataKey: facility.document.name.data.basicInfo.businessType
+                              required: "true"
+                              style:
+                                width: "0.15"
+                                height: "0.034"
+                                backgroundColor: "0xffffff"
+                                borderWidth: "1"
+                                lineHeight: "3.4vh"
+                                fontSize: .Nfont.nf3
+                                textIndent: 0.5em
+                                border:
+                                  style: "3"
+                                borderColor: "0xdededf"
+                                borderRadius: "3"
+
+                    - type: label
+                      text: "Profile Photo"
+                      style:
+                        marginTop: "0.015"
+                        color: "0x333333"
+                        fontSize: .Nfont.nf2
+                        fontWeight: "600"
+                    - type: view
+                      style:
+                        marginTop: "0.015"
+                        width: "0.70252"
+                        height: "0.6578"
+                        # backgroundColor: "0x0000ff33"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            height: "0.10"
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                            margin: auto
+                          children:
+                            - type: view
+                              style:
+                                width: "0.70252"
+                                height: "0.1"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                              children:
+                                - type: view
+                                  viewTag: businessLogoView
+                                  style:
+                                    height: "0.10"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: image
+                                      contentType: file
+                                      path: squareDefaultPicture.svg
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: businessLogo.document.id
+                                      viewTag: businessPhotoView
+                                      onClick:
+                                        - actionType: openPhotoLibrary
+                                          dataObject: BLOB
+                                          dataKey: EditFacilityInfo.businessLogo.document.name.data
+                                        - actionType: evalObject
+                                          object:
+                                            - if:
+                                                - =.builtIn.math.lessthanSize:
+                                                    dataIn:
+                                                      object: =..businessLogo.document.name.data # object
+                                                      key: 2 #mb
+                                                - ..formData.flag@: false
+                                                - actionType: evalObject
+                                                  object:
+                                                    - =.builtIn.utils.getFileSize:
+                                                        dataIn:
+                                                          object: =..businessLogo.document.name.data
+                                                          units: mb
+                                                        dataOut: EditFacilityInfo.formData.fileSize
+                                                    - =.builtIn.string.concat:
+                                                        dataIn:
+                                                          - "Your file size:"
+                                                          - =..formData.fileSize
+                                                          - "Mb"
+                                                        dataOut: Global.formData.fileSize
+                                                    - ..formData.flag@: true
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: overSize
+                                        - actionType: evalObject
+                                          object:
+                                            - if:
+                                                - =..formData.flag
+                                                - actionType: popUp
+                                                  popUpView: overSize
+                                                  wait: true
+                                                - continue
+                                        - actionType: popUp
+                                          popUpView: uploading
+                                        - actionType: evalObject
+                                          object:
+                                            - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+                                            - =.Global.jwt.edgeAPI.store: ""
+                                            - =..businessLogo.docAPI.store: ""
+                                            - ..businessLogo.document.id@: =..businessLogo.storeResp.doc.id
+                                        - actionType: evalObject
+                                          object:
+                                            .Global._nonce@:
+                                              =.builtIn.math.random: ""
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: businessPhotoView
+                                        - actionType: popUpDismiss
+                                          popUpView: uploading
+                                      style:
+                                        width: "0.0546"
+                                        height: "0.0966"
+                                        border:
+                                          style: "5"
+                                        borderRadius: "6"
+                                        backgroundColor: "0xf0f2f4"
+                                - type: view
+                                  style:
+                                    marginLeft: "0.004"
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      viewTag: facilityNameTag
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: Medical Facility Name
+                                          style:
+                                            display: ..formData.controlFacilityName
+                                        - .EditTableText:
+                                          text: Business Name
+                                          style:
+                                            display: ..formData.controlBusinessName
+                                        - .EditTableStar:
+
+
+                                    - .EditTableLabel:
+                                      style:
+                                        width: "0.1"
+                                      dataKey: facility.document.name.data.basicInfo.medicalFacilityName
+                                      # onTextChange:
+                                      #   - actionType: evalObject
+                                      #     object:  
+                                      #       - =.builtIn.string.generateID:
+                                      #           dataIn: 
+                                      #             facilityID: =.Global.currentFacility.name.basicInfo.locationID
+                                      #             locationID: =..facility.document.name.data.basicInfo.medicalFacilityName
+                                      #             roomID: ""
+                                      #           dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.locationID
+                                      #   - actionType: builtIn
+                                      #     funcName: redraw
+                                      #     viewTag: facilityIDView
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      viewTag: facilityIDTag
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: Facility ID
+                                          style:
+                                            display: ..formData.controlFacilityId
+                                        - .EditTableText:
+                                          text: Business ID
+                                          style:
+                                            display: ..formData.controlBusinessId
+                                        - .EditTableStar:
+                                    - .EditTableLabel:
+                                      viewTag: facilityIDView
+                                      style:
+                                        width: "0.075"
+                                        backgroundColor: "0xffffff"
+                                      dataKey: facility.document.name.data.basicInfo.locationID
+                                      isEditable: false
+                                      onClick:
+                                        - actionType: evalObject
+                                          object:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..locationIDFlag
+                                                      string2: "0"
+                                                - actionType: popUp
+                                                  popUpView: locationIDTag
+                                                - continue
+                                        - actionType: evalObject
+                                          object:
+                                            - ..locationIDFlag@: "1"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: flex-start
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                        justifyContent: flex-start
+                                      children:
+                                        - .EditTableText:
+                                          text: "Main Phone #"
+                                        - .EditTableStar:
+                                    - type: view
+                                      style:
+                                        height: auto
+                                        display: flex
+                                        justifyContent: center
+                                      children:
+                                        - type: select
+                                          contentType: countryCode
+                                          dataKey: formData.phoneArray.0
+                                          options: .CountryCode
+                                          required: "true"
+                                          style:
+                                            width: "0.035"
+                                            height: "0.0405"
+                                            backgroundColor: "0xffffff"
+                                            borderWidth: "1"
+                                            marginRight: "0.008"
+                                            border:
+                                              style: "3"
+                                              color: "0xdededf"
+                                            borderRadius: "3"
+                                        - .EditTableLabel:
+                                          dataKey: formData.phoneArray.1 # facility.document.name.data.basicInfo.phoneNumber
+                                          style:
+                                            width: "0.1"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: flex-start
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                        justifyContent: flex-start
+                                      children:
+                                        - .EditTableText:
+                                          text: "Email"
+                                        # - .EditTableStar:
+                                    - .EditTableLabel:
+                                      dataKey: facility.document.name.data.basicInfo.email
+                                      style:
+                                        width: "0.107"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: flex-start
+                                    flexDirection: column
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                        justifyContent: flex-start
+                                      children:
+                                        - .EditTableText:
+                                          text: "Website"
+                                    - type: view
+                                      style:
+                                        height: auto
+                                        display: flex
+                                        justifyContent: center
+                                      children:
+                                        - type: select
+                                          dataKey: formData.websiteArray.0
+                                          options: ..formData.websiteHeader
+                                          required: "true"
+                                          style:
+                                            width: "0.041"
+                                            height: "0.0405"
+                                            placeholder: "US +1"
+                                            backgroundColor: "0xffffff"
+                                            marginRight: "0.008"
+                                            borderWidth: "1"
+                                            border:
+                                              style: "3"
+                                              color: "0xdededf"
+                                            borderRadius: "3"
+                                        - .EditTableLabel:
+                                          dataKey: formData.websiteArray.1 # facility.document.name.data.basicInfo.website
+                                          style:
+                                            width: "0.123"
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            marginTop: "0.002"
+                            display: flex
+                            alignItems: center
+                            justifyContent: start
+                            flexDirection: column
+                          children:
+                            - type: view
+                              viewTag: ContentTag
+                              style:
+                                width: "0.70252"
+                                height: "0.066"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                                margin: auto
+                                marginTop: "0.02"
+                              children:
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "Address Line"
+                                        - .EditTableStar:
+                                    - .EditTableLabel:
+                                      dataKey: facility.document.name.data.basicInfo.addressFirstLine
+                                      style:
+                                        width: "0.168"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "Address Second Line"
+                                    - .EditTableLabel:
+                                      dataKey: facility.document.name.data.basicInfo.addressSecondLine
+                                      style:
+                                        width: "0.168"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "City"
+                                        - .EditTableStar:
+                                    - .EditTableLabel:
+                                      dataKey: facility.document.name.data.basicInfo.city
+                                      style:
+                                        width: "0.07852"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    marginRight: "0.01"
+                                    flexDirection: column
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "County"
+                                    - .EditTableLabel:
+                                      dataKey: facility.document.name.data.basicInfo.county
+                                      style:
+                                        width: "0.07852"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                    alignItems: flex-start
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                        justifyContent: flex-start
+                                      children:
+                                        - .EditTableText:
+                                          text: "State"
+                                        - .EditTableStar:
+                                    - type: select
+                                      dataKey: facility.document.name.data.basicInfo.state
+                                      options: .SelectData.state
+                                      required: "true"
+                                      style:
+                                        width: "0.07852"
+                                        height: "0.0405"
+                                        textIndent: "0.5em"
+                                        border:
+                                          style: "3"
+                                        borderColor: "0xdedede"
+                                        fontSize: .Nfont.nf1
+                                        boxSizing: border-box
+                                        borderRadius: "4"
+                                        color: "0x333333"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: flex-start
+                                    flexDirection: column
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "Zip Code"
+                                        - .EditTableStar:
+                                    - .EditTableLabel:
+                                      style:
+                                        width: "0.083"
+                                      dataKey: facility.document.name.data.basicInfo.zipCode
+                            - type: view
+                              style:
+                                marginTop: "0.022"
+                                width: "0.70252"
+                                height: "0.066"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                              children:
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "Business License #"
+                                        - .EditTableStar:
+                                    - .EditTableLabel:
+                                      dataKey: facility.document.name.data.basicInfo.businessLicense
+                                      style:
+                                        width: "0.168"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "City"
+                                        - .EditTableStar:
+                                    - .EditTableLabel:
+                                      dataKey: facility.document.name.data.basicInfo.businessLicenseCity
+                                      style:
+                                        width: "0.168"
+                                - type: view
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                    marginRight: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "State"
+                                        - .EditTableStar:
+                                    - type: select
+                                      dataKey: facility.document.name.data.basicInfo.businessLicenseState
+                                      options: .SelectData.state
+                                      required: "true"
+                                      style:
+                                        width: "0.168"
+                                        height: "0.0405"
+                                        textIndent: "0.5em"
+                                        border:
+                                          style: "3"
+                                        borderColor: "0xdedede"
+                                        fontSize: .Nfont.nf1
+                                        boxSizing: border-box
+                                        borderRadius: "4"
+                                        color: "0x333333"
+                                - type: view
+                                  viewTag: selectStartAndEndTag
+                                  style:
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: flex-start
+                                    flexDirection: column
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "License Expiration Date"
+                                        - .EditTableStar:
+                                    - type: view
+                                      onClick:
+                                        - actionType: popUp
+                                          popUpView: startDateTag
+                                      style:
+                                        height: "0.0405"
+                                        border:
+                                          style: "3"
+                                        borderColor: "0xdedede"
+                                        fontSize: .Nfont.nf1
+                                        boxSizing: border-box
+                                        borderRadius: "4"
+                                        color: "0x333333"
+                                        display: flex
+                                        alignItems: center
+                                        justifyContent: center
+                                        alignContent: flex-start
+                                        flexWrap: wrap
+                                        flexDirection: column
+                                      children:
+                                        - .EditTableLabel:
+                                          placeholder: "Select"
+                                          isEditable: false
+                                          dataKey: facility.document.name.data.basicInfo.licenseExpirationDate
+                                          style:
+                                            backgroundColor: "0xffffff"
+                                            width: "0.17"
+                                            border:
+                                              style: "5"
+                                        - type: image
+                                          path: calendarBlue.svg
+                                          style:
+                                            width: "0.008"
+                                            top: "0.01"
+                                            left: "0.15"
+                            - type: view
+                              viewTag: medicalTag
+                              style:
+                                display: ..formData.controlMedical
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    width: "0.70252"
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        flexDirection: column
+                                        marginRight: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "NPI #"
+                                            - .EditTableStar:
+                                        - .EditTableLabel:
+                                          dataKey: facility.document.name.data.basicInfo.NPI
+                                          style:
+                                            width: "0.078"
+                                    - type: view
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        alignItems: flex-start
+                                        flexDirection: column
+                                        marginRight: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "DEA #"
+                                        - .EditTableLabel:
+                                          dataKey: facility.document.name.data.basicInfo.DEANumber
+                                          style:
+                                            width: "0.08"
+                                    - type: view
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        flexDirection: column
+                                        marginRight: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "TIN(EIN) #"
+                                            - .EditTableStar:
+                                        - .EditTableLabel:
+                                          dataKey: facility.document.name.data.basicInfo.tin
+                                          style:
+                                            width: "0.078"
+                                    - type: view
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        flexDirection: column
+                                        marginRight: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "Fax #"
+                                        - .EditTableLabel:
+                                          dataKey: facility.document.name.data.basicInfo.fax
+                                          style:
+                                            width: "0.08"
+                                    - type: view
+                                      viewTag: businessHoursTag
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        flexDirection: column
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "Business Hours"
+                                        - type: view
+                                          onClick:
+                                            - actionType: popUp
+                                              popUpView: businessHourTag
+                                          style:
+                                            height: "0.0405"
+                                            border:
+                                              style: "3"
+                                            borderColor: "0xdedede"
+                                            fontSize: .Nfont.nf1
+                                            borderRadius: "4"
+                                            color: "0x333333"
+                                            display: flex
+                                            alignItems: center
+                                            justifyContent: center
+                                            alignContent: flex-start
+                                            flexWrap: wrap
+                                            flexDirection: column
+                                          children:
+                                            - .EditTableLabel:
+                                              placeholder: "Select"
+                                              isEditable: false
+                                              dataKey: facility.document.name.data.basicInfo.businessHours
+                                              style:
+                                                backgroundColor: "0xffffff"
+                                                width: "0.348"
+                                                boxSizing: border-box
+                                                border:
+                                                  style: "5"
+                                            - type: image
+                                              path: circleClock.svg
+                                              style:
+                                                width: "0.0098"
+                                                top: "0.01"
+                                                left: "0.325"
+                            - type: view
+                              viewTag: businessViewTag
+                              style:
+                                display: ..formData.controlBusiness
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    width: "0.70252"
+                                    height: "0.066"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        flexDirection: column
+                                        marginRight: "0.0113"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "TIN(EIN)"
+                                            - .EditTableStar:
+                                        - .EditTableLabel:
+                                          dataKey: facility.document.name.data.basicInfo.tin
+                                          style:
+                                            width: "0.168"
+                                    - type: view
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        flexDirection: column
+                                        marginRight: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "Fax #"
+                                            # - .EditTableStar:
+                                        - .EditTableLabel:
+                                          dataKey: facility.document.name.data.basicInfo.fax
+                                          style:
+                                            width: "0.1665"
+                                    - type: view
+                                      viewTag: businessHoursTag
+                                      style:
+                                        height: "0.066"
+                                        display: flex
+                                        justifyContent: center
+                                        flexDirection: column
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.02533"
+                                            display: flex
+                                            alignItems: center
+                                          children:
+                                            - .EditTableText:
+                                              text: "Business Hours"
+                                        - type: view
+                                          onClick:
+                                            - actionType: popUp
+                                              popUpView: businessHourTag
+                                          style:
+                                            height: "0.0405"
+                                            border:
+                                              style: "3"
+                                            borderColor: "0xdedede"
+                                            fontSize: .Nfont.nf1
+                                            # boxSizing: border-box
+                                            borderRadius: "4"
+                                            color: "0x333333"
+                                            display: flex
+                                            alignItems: center
+                                            justifyContent: center
+                                            alignContent: flex-start
+                                            flexWrap: wrap
+                                            flexDirection: column
+                                          children:
+                                            - .EditTableLabel:
+                                              placeholder: "Select"
+                                              isEditable: false
+                                              dataKey: facility.document.name.data.basicInfo.businessHours
+                                              style:
+                                                backgroundColor: "0xffffff"
+                                                width: "0.348"
+                                                boxSizing: border-box
+                                                border:
+                                                  style: "5"
+                                            - type: image
+                                              path: circleClock.svg
+                                              style:
+                                                width: "0.0098"
+                                                top: "0.008"
+                                                left: "0.325"
+
+                            - type: view
+                              style:
+                                marginTop: "0.022"
+                                width: "0.70252"
+                                height: "0.11"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - type: view
+                                  style:
+                                    height: "0.11"
+                                    display: flex
+                                    justifyContent: center
+                                    flexDirection: column
+                                  children:
+                                    - type: view
+                                      style:
+                                        height: "0.02533"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - .EditTableText:
+                                          text: "Introduction"
+                                    - type: textView
+                                      placeholder: "Enter here"
+                                      dataKey: facility.document.name.data.basicInfo.introduction
+                                      style:
+                                        fontFamily: "Roboto"
+                                        width: "0.705"
+                                        height: "0.083"
+                                        textIndent: "0.5em"
+                                        border:
+                                          style: "3"
+                                        borderColor: "0xdedede"
+                                        fontSize: .Nfont.nf1
+                                        boxSizing: border-box
+                                        borderRadius: "4"
+                                        color: "0x333333"
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                width: "0.70252"
+                                height: "0.146"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                                alignItems: flex-start
+                              children:
+                                - .EditTableText:
+                                  text: "Uploads"
+                                  style:
+                                    height: "0.022"
+                                - type: view
+                                  viewTag: uploadsTag
+                                  style:
+                                    width: "0.70252"
+                                    height: "0.124"
+                                  children:
+                                    - type: view
+                                      viewTag: businessPhotoTag
+                                      style:
+                                        height: auto
+                                      children:
+                                        - type: image
+                                          viewTag: medicalLicenseDeleteTag
+                                          path:
+                                            #deletePhoto.svg
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - ..medicalLicense.resp.doc.0.id
+                                                    - deletePhoto.svg
+                                                    - null.png
+                                          style:
+                                            top: "0"
+                                            left: "0.085"
+                                            zIndex: "1"
+                                            width: "0.009"
+                                          onClick:
+                                            - actionType: popUp
+                                              popUpView: deletePhotoTagBussiness
+                                        - type: view
+                                          style:
+                                            top: "0.003"
+                                            width: "0.091"
+                                            height: "0.12144"
+                                            display: flex
+                                            flexDirection: column
+                                            alignItems: center
+                                            justifyContent: space-around
+                                          children:
+                                            - type: image
+                                              contentType: file
+                                              path: defaultPicture.svg
+                                              path=func: .builtIn.utils.prepareDocToPath
+                                              dataKey: medicalLicense.document.id
+                                              style:
+                                                width: "0.091"
+                                                height: "0.1012"
+                                                backgroundColor: "0xf0f2f4"
+                                                border:
+                                                  style: "5"
+                                                borderRadius: "6"
+                                              onClick:
+                                                - actionType: openPhotoLibrary
+                                                  dataObject: BLOB
+                                                  dataKey: EditFacilityInfo.medicalLicense.document.name.data
+                                                - actionType: evalObject
+                                                  object:
+                                                    - if:
+                                                        - =.builtIn.math.lessthanSize:
+                                                            dataIn:
+                                                              object: =..medicalLicense.document.name.data # object
+                                                              key: 2 #mb
+                                                        - ..formData.flag@: false
+                                                        - actionType: evalObject
+                                                          object:
+                                                            - =.builtIn.utils.getFileSize:
+                                                                dataIn:
+                                                                  object: =..medicalLicense.document.name.data
+                                                                  units: mb
+                                                                dataOut: EditFacilityInfo.formData.fileSize
+                                                            - =.builtIn.string.concat:
+                                                                dataIn:
+                                                                  - "Your file size:"
+                                                                  - =..formData.fileSize
+                                                                  - "Mb"
+                                                                dataOut: Global.formData.fileSize
+                                                            - ..formData.flag@: true
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: overSize
+                                                - actionType: evalObject
+                                                  object:
+                                                    - if:
+                                                        - =..formData.flag
+                                                        - actionType: popUp
+                                                          popUpView: overSize
+                                                          wait: true
+                                                        - continue
+                                                - actionType: popUp
+                                                  popUpView: uploading
+                                                - actionType: evalObject
+                                                  object:
+                                                    - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+                                                    - =.Global.jwt.edgeAPI.store: ""
+                                                    - ..medicalLicense.docIn.id@: =..formData.currentLocEdgeId
+                                                    - ..medicalLicense.document.eid@: =..formData.currentLocEdgeId
+                                                    - =..medicalLicense.docAPI.store: ""
+                                                    # - =..medicalLicense.docAPI.get: ""
+                                                    - ..medicalLicense.document.id@: =..medicalLicense.storeResp.doc.id
+
+                                                    - ..medicalLicense.resp.doc.0.id@: =..medicalLicense.storeResp.doc.id
+                                                    - ..formData.businessLicenseId@: =..medicalLicense.storeResp.doc.id
+                                                - actionType: evalObject
+                                                  object:
+                                                    .Global._nonce@:
+                                                      =.builtIn.math.random: ""
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: uploadsTag
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: medicalLicenseDeleteTag
+                                                - actionType: popUpDismiss
+                                                  popUpView: uploading
+
+                                        - type: view
+                                          style:
+                                            height: "0.035"
+                                            width: auto
+                                            display: flex
+                                            alignItems: center
+                                            marginLeft: "0.015"
+                                            top: "0.12"
+                                          children:
+                                            - .EditTableText:
+                                              text: "Business License"
+                                              style:
+                                                display: inline-block
+                                                marginLeft: "0.0018"
+                                                textAlign:
+                                                  x: center
+                                            - .RedStar: ""
+                                              style:
+                                                display: inline-block
+                                    - type: view
+                                      viewTag: deaPhotoViewTag
+                                      style:
+                                        height: auto
+                                        display: ..formData.controlDeaPhoto
+                                      children:
+                                        - type: image
+                                          viewTag: deaDeleteTag
+                                          path:
+                                            # deletePhoto.svg
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - ..DEA.resp.doc.0.id
+                                                    - deletePhoto.svg
+                                                    - null.png
+                                          style:
+                                            zIndex: "1"
+                                            top: "0"
+                                            left: "0.205"
+                                            width: "0.009"
+                                          onClick:
+                                            - actionType: popUp
+                                              popUpView: deletePhotoTag
+                                        - type: view
+                                          style:
+                                            width: "0.091"
+                                            top: "0.003"
+                                            marginLeft: "0.12"
+                                            height: "0.12144"
+                                            display: flex
+                                            flexDirection: column
+                                            alignItems: center
+                                            justifyContent: space-around
+                                          children:
+                                            - type: image
+                                              contentType: file
+                                              path: defaultPicture.svg
+                                              path=func: .builtIn.utils.prepareDocToPath
+                                              dataKey: DEA.document.id
+                                              style:
+                                                width: "0.091"
+                                                height: "0.1012"
+                                                backgroundColor: "0xf0f2f4"
+                                                border:
+                                                  style: "5"
+                                                borderRadius: "6"
+                                              onClick:
+                                                - actionType: openPhotoLibrary
+                                                  dataObject: BLOB
+                                                  dataKey: EditFacilityInfo.DEA.document.name.data
+                                                - actionType: evalObject
+                                                  object:
+                                                    - if:
+                                                        - =.builtIn.math.lessthanSize:
+                                                            dataIn:
+                                                              object: =..DEA.document.name.data # object
+                                                              key: 2 #mb
+                                                        - ..formData.flag@: false
+                                                        - actionType: evalObject
+                                                          object:
+                                                            - =.builtIn.utils.getFileSize:
+                                                                dataIn:
+                                                                  object: =..DEA.document.name.data
+                                                                  units: mb
+                                                                dataOut: EditFacilityInfo.formData.fileSize
+                                                            - =.builtIn.string.concat:
+                                                                dataIn:
+                                                                  - "Your file size:"
+                                                                  - =..formData.fileSize
+                                                                  - "Mb"
+                                                                dataOut: Global.formData.fileSize
+                                                            - ..formData.flag@: true
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: overSize
+                                                - actionType: evalObject
+                                                  object:
+                                                    - if:
+                                                        - =..formData.flag
+                                                        - actionType: popUp
+                                                          popUpView: overSize
+                                                          wait: true
+                                                        - continue
+                                                - actionType: popUp
+                                                  popUpView: uploading
+                                                - actionType: evalObject
+                                                  object:
+                                                    - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+                                                    - =.Global.jwt.edgeAPI.store: ""
+                                                    - ..DEA.document.eid@: =..formData.currentLocEdgeId
+                                                    - ..DEA.docIn.id@: =..formData.currentLocEdgeId
+                                                    - =..DEA.docAPI.store: ""
+                                                    # - =..DEA.docAPI.get: ""
+                                                    # 用来复现
+                                                    - ..DEA.document.id@: =..DEA.storeResp.doc.id
+                                                    - ..DEA.resp.doc.0.id@: =..DEA.storeResp.doc.id
+                                                - actionType: evalObject
+                                                  object:
+                                                    .Global._nonce@:
+                                                      =.builtIn.math.random: ""
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: uploadsTag
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: deaDeleteTag
+                                                - actionType: popUpDismiss
+                                                  popUpView: uploading
+
+                                        - type: view
+                                          style:
+                                            height: "0.035"
+                                            width: auto
+                                            display: flex
+                                            alignItems: center
+                                            marginLeft: "0.12"
+                                            top: "0.12"
+                                          children:
+                                            - .EditTableText:
+                                              text: "DEA"
+                                              style:
+                                                width: "0.091"
+                                                textAlign:
+                                                  x: center
+
+        - .LoadingView: ""
+          message: "loading ..."
+          viewTag: uploading
+        - type: popUp
+          viewTag: locationTag
+          style:
+            width: '0.73'
+            top: "0.384"
+            height: "0.18"
+            left: '0.218'
+            fontFamily: 'Poppins'
+            border: "1px solid #eeeeee"
+            borderWidth: "1px"
+            zIndex: 100
+            backgroundColor: 'white'
+            isHidden: "false"
+          children:
+            - type: scrollView
+              style:
+                width: '0.4'
+                top: "0"
+                height: "0.15"
+                left: '0'
+              children:
+                - .SearchProviderView:
+                  viewTag: adressListTag
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: =..suggestAddress
+                      iteratorVar: itemObject
+                      style:
+                        width: '0.4'
+                        left: '0'
+                        height: "auto"
+                        margin: "0"
+                        marginTop: "0"
+                      children:
+                        - type: listItem
+                          itemObject: ''
+                          hover:
+                            backgroundColor: "0xffecf1cd"
+                          onMouseEnter:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..formData.addressDetail@: $var.place_name
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: ContentTag
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..location.vertex.name.basicInfo.location@: ..formData.addressDetail
+                          style:
+                            backgroundColor: "0xffffff"
+                            width: '0.4'
+                            height: '0.022'
+                          children:
+                            - .Alllabel:
+                              children:
+                                - type: label
+                                  dataKey: itemObject.place_name
+                                  style:
+                                    height: '0.02'
+                                    fontFamily: 'Poppins'
+                                    color: "0x143459"
+                              onClick:
+                                - actionType: updateObject
+                                  dataKey: cacheData.place
+                                  dataObject: itemObject
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - =.builtIn.string.getAddress:
+                                          dataIn:
+                                            object: $var
+                                          dataOut: EditFacilityInfo.formData.address
+                                      - ..facility.document.name.data.basicInfo.state@: =..formData.address.state
+                                      - ..facility.document.name.data.basicInfo.zipCode@: =..formData.address.zipCode
+                                      - ..facility.document.name.data.basicInfo.city@: =..formData.address.city
+                                      - ..facility.document.name.data.basicInfo.location@: =..formData.address.location
+                                      - ..facility.document.name.data.basicInfo.geoCode@: =..formData.address.geoCode
+                                      - ..facility.document.name.data.basicInfo.addressFirstLine@: =..formData.address.firsLine
+                                      - ..facility.document.name.data.basicInfo.addressSecondLine@: =..formData.address.SecondLine
+                                      - ..facility.document.name.data.basicInfo.county@: =..formData.address.county
+                                      - ..facility.document.name.data.basicInfo.location@: ""
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: ContentTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: locationGrayTag
+                              style:
+                                width: '0.4'
+                                textIndent: 20px
+                                textAlign:
+                                  x: left
+                                  y: center
+                                height: '0.02'
+                                fontSize: "1.7vh"
+                                color: '0x143459'
+
+        - .BaseCheckView: ""
+          message: "locationID cannot be repeated!"
+          viewTag: locationIDTag
+        - .BaseOverSizeView: ""
+
+        - .BaseJudgeView:
+          viewTag: deletePhotoTag
+          children:
+            - .BaseJudgeInnerView:
+              style:
+                top: "0.39144"
+                width: "0.31512"
+                height: "0.21712"
+              children:
+                - .BaseJudgeCancelImg:
+                - .BaseJudgeTxt:
+                  style:
+                    marginTop: "0.018"
+                    fontSize: .Nfont.nf4
+                    fontWeight: "500"
+                    fontFamily: ""
+                - .BaseJudgeButtonView:
+                  style:
+                    marginTop: "0.065"
+                    width: "0.31512"
+                    height: "0.06624"
+                  children:
+                    - .BaseJudgeButtonNo: # 可以重写
+                      text: "Cancel"
+                      style:
+                        height: "0.0368"
+                        fontSize: .Nfont.nf3
+                        fontWeight: "700"
+                        textDecoration: underline
+                    - .BaseJudgeButtonYes: # 可以重写
+                      text: "Confirm"
+                      style:
+                        fontSize: .Nfont.nf2
+                        height: "0.0368"
+                        borderRadius: "4"
+                        fontWeight: "600"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - if:
+                                - ..DEA.resp.doc.0.id
+                                - ..DEA.deleteId.id@: =..DEA.resp.doc.0.id
+                                - continue
+                            - =..DEA.docAPI.delete: ""
+                        - actionType: updateObject
+                          dataKey: EditFacilityInfo.DEA.document
+                          dataObject: {}
+                        - actionType: evalObject
+                          object:
+                            - ..DEA.document@: =..DEA.documentIn
+                            - ..DEA.document.id@: ""
+                            - ..DEA.docIn.id@: =..formData.currentLocEdgeId
+                            - ..DEA.document.eid@: =..formData.currentLocEdgeId
+                            - ..DEA.resp.doc@: []
+                        - actionType: updateObject
+                          dataKey: EditFacilityInfo.DEA.storeResp
+                          dataObject: {}
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: uploadsTag
+                        - actionType: popUpDismiss
+                          popUpView: deletePhotoTag
+
+        - .BaseJudgeView:
+          viewTag: deletePhotoTagBussiness
+          children:
+            - .BaseJudgeInnerView:
+              style:
+                top: "0.39144"
+                width: "0.31512"
+                height: "0.21712"
+              children:
+                - .BaseJudgeCancelImg:
+                - .BaseJudgeTxt:
+                  style:
+                    marginTop: "0.018"
+                    fontSize: .Nfont.nf4
+                    fontWeight: "500"
+                    fontFamily: ""
+                - .BaseJudgeButtonView:
+                  style:
+                    marginTop: "0.065"
+                    width: "0.31512"
+                    height: "0.06624"
+                  children:
+                    - .BaseJudgeButtonNo: # 可以重写
+                      text: "Cancel"
+                      style:
+                        height: "0.0368"
+                        fontSize: .Nfont.nf3
+                        fontWeight: "700"
+                        textDecoration: underline
+                    - .BaseJudgeButtonYes: # 可以重写
+                      text: "Confirm"
+                      style:
+                        fontSize: .Nfont.nf2
+                        height: "0.0368"
+                        borderRadius: "4"
+                        fontWeight: "600"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - if:
+                                - ..medicalLicense.resp.doc.0.id
+                                - ..medicalLicense.deleteId.id@: =..medicalLicense.resp.doc.0.id
+                                - continue
+                            - =..medicalLicense.docAPI.delete: ""
+                        - actionType: updateObject
+                          dataKey: EditFacilityInfo.medicalLicense.document
+                          dataObject: {}
+                        - actionType: evalObject
+                          object:
+                            - ..medicalLicense.document@: =..medicalLicense.documentIn
+                            - ..medicalLicense.document.id@: ""
+                            - ..medicalLicense.docIn.id@: =..formData.currentLocEdgeId
+                            - ..medicalLicense.document.eid@: =..formData.currentLocEdgeId
+                            - ..medicalLicense.resp.doc@: []
+                            - ..formData.businessLicenseId@: ""
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: uploadsTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: deaDeleteTag
+                        - actionType: popUpDismiss
+                          popUpView: deletePhotoTagBussiness
+
+        - type: popUp
+          viewTag: startDateTag
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000033"
+            zIndex: "1000000"
+          children:
+            - .BaseDate.calendar:
+              children:
+                - .BaseDate.calendarTitle:
+                - .BaseDate.calendarCancel:
+                - .BaseDate.calendarHeader:
+                  children:
+                    - .BaseDate.newMonthView:
+                    - .BaseDate.newYearView:
+                - .BaseDate.weekView:
+                - .BaseDate.dayView:
+                - .BaseDate.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..facility.document.name.data.basicInfo.licenseExpirationDate@: =.BaseDate.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: selectStartAndEndTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: medicalLicenseDeleteTag
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+                - .BaseDate.cancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+        - .BasePopUp:
+          style:
+            top: "0"
+            left: "0"
+            height: "1"
+            width: "1"
+            zIndex: "1000"
+          viewTag: businessHourTag
+          children:
+            - .PopUphead:
+              style:
+                left: '0.6'
+              children:
+                - .CreateLabel:
+                  text: "Business Hours"
+                - .Closebutton:
+                  onClick:
+                    - .BaseDate.calendarDate.minidayLable@: []
+                    - actionType: popUpDismiss
+                      popUpView: businessHourTag
+            - type: view
+              style:
+                height: '0.92'
+                width: '0.4'
+                top: '0.08'
+                left: '0.6'
+                backgroundColor: "0xffffff"
+              viewTag: DataTag
+              children:
+                - type: view
+                  style:
+                    width: "0.28"
+                    height: "0.79"
+                    left: "0.06"
+                  children:
+                    - type: label
+                      text: Day
+                      style:
+                        width: "0.28"
+                        left: '0'
+                        marginTop: '0.03'
+                        fontSize: .Nfont.nf2
+                        fontWeight: "600"
+                        color: "0x333333"
+                    - type: view
+                      style:
+                        marginTop: "0.005"
+                        width: "0.28"
+                        height: "0.046"
+                        left: "0"
+                      children:
+                        - type: select
+                          options: .SelectData.Day
+                          dataKey: formData.Date.FromDay
+                          style:
+                            left: '0'
+                            top: '0'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede"
+                            width: '0.125'
+                            borderRadius: "4"
+                            border:
+                              style: "3"
+                            height: '0.0405'
+                            textIndent: '0.5em'
+                          onChange:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn:
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: EditFacilityInfo.formData.isCheckoutColor
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.isCheckoutColor
+                                          string2: true
+                                    - ..formData.specBtnColor@: "0x235591"
+                                    - ..formData.specBtnColor@: "0xc1c1c1"
+
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                        - type: label
+                          text: "to"
+                          dataKey:
+                          style:
+                            top: '0'
+                            marginLeft: '0.125'
+                            width: "0.03"
+                            height: '0.0405'
+                            fontSize: .Nfont.nf2
+                            fontWeight: "600"
+                            color: "0x333333"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: select
+                          viewTag: typeView
+                          options: .SelectData.Day
+                          dataKey: formData.Date.ToDay
+                          onChange:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn:
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: EditFacilityInfo.formData.isCheckoutColor
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.isCheckoutColor
+                                          string2: true
+                                    - ..formData.specBtnColor@: "0x235591"
+                                    - ..formData.specBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                          style:
+                            top: '0'
+                            marginLeft: '0.155'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede"
+                            width: '0.125'
+                            height: '0.0405'
+                            borderRadius: "5"
+                            border:
+                              style: "3"
+                            textIndent: '0.5em'
+                    - type: label
+                      text: "Hour"
+                      style:
+                        width: "0.28"
+                        left: '0'
+                        marginTop: '0.01'
+                        fontSize: .Nfont.nf2
+                        fontWeight: "600"
+                        color: "0x333333"
+                    - type: view
+                      style:
+                        marginTop: "0.005"
+                        width: "0.28"
+                        height: "auto"
+                        left: "0"
+                      children:
+                        - type: select
+                          viewTag: reasonView
+                          dataKey: formData.Date.FromHour
+                          options: .SelectData.TimeSpan
+                          onChange:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn:
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: EditFacilityInfo.formData.isCheckoutColor
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.isCheckoutColor
+                                          string2: true
+                                    - ..formData.specBtnColor@: "0x235591"
+                                    - ..formData.specBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                          style:
+                            left: '0'
+                            top: '0'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede"
+                            width: '0.125'
+                            borderRadius: "5"
+                            border:
+                              style: "3"
+                            height: '0.0405'
+                            textIndent: '0.5em'
+                        - type: label
+                          text: "to"
+                          dataKey:
+                          style:
+                            top: '0'
+                            marginLeft: '0.125'
+                            width: "0.03"
+                            height: '0.0405'
+                            fontSize: .Nfont.nf2
+                            fontWeight: "600"
+                            color: "0x333333"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: select
+                          dataKey: formData.Date.ToHour
+                          options: .SelectData.TimeSpan
+                          onChange:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn:
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: EditFacilityInfo.formData.isCheckoutColor
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.isCheckoutColor
+                                          string2: true
+                                    - ..formData.specBtnColor@: "0x235591"
+                                    - ..formData.specBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                          style:
+                            top: '0'
+                            marginLeft: '0.155'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede"
+                            width: '0.125'
+                            height: '0.0405'
+                            borderRadius: "5"
+                            border:
+                              style: "3"
+                            textIndent: '0.5em'
+                    - .StandBtnWithImg:
+                      viewTag: btnView
+                      btnImg: addCircle.svg
+                      btnText: "Add Business Hours"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.Date.FromDay
+                                  - " - "
+                                  - =..formData.Date.ToDay
+                                dataOut: EditFacilityInfo.formData.Date.dayConcat
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.Date.FromHour
+                                  - " - "
+                                  - =..formData.Date.ToHour
+                                dataOut: EditFacilityInfo.formData.Date.HourConcat
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.Date.dayConcat
+                                  - ", "
+                                  - =..formData.Date.HourConcat
+                                dataOut: EditFacilityInfo.formData.Date.concat
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.specBtnColor
+                                      string2: "0x235591"
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..formData.businessHours
+                                      value: =..formData.Date
+                                - continue
+
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessHoursTag
+                      style:
+                        marginTop: "0.065"
+                        width: "0.12"
+                        fontSize: .Nfont.nf1
+                        backgroundColor: ..formData.specBtnColor
+                      children:
+                        - type: image
+                          path: __.btnImg
+                          style:
+                            height: "0.01656"
+                            width: "0.00936"
+                        - type: label
+                          text: __.btnText
+                          style:
+                            marginLeft: "0.004"
+                            color: "0xffffff"
+                            # fontFamily: "Proxima Nova"
+                            fontWeight: "600"
+                    - type: view
+                      style:
+                        width: "0.28"
+                        height: "0.004"
+                        backgroundColor: "0xeaeaea"
+                        marginTop: "0.028"
+                    - type: view
+                      style:
+                        width: "0.28"
+                        height: "auto"
+                        marginTop: "0.018"
+                      children:
+                        - type: label
+                          text: "Day"
+                          dataKey:
+                          style:
+                            top: "0"
+                            left: "0.017"
+                            fontSize: .Nfont.nf2
+                            color: "0x333333"
+                            fontWeight: "600"
+                        - type: label
+                          text: "Hour"
+                          dataKey:
+                          style:
+                            left: "0.155"
+                            top: "0"
+                            fontSize: .Nfont.nf2
+                            color: "0x333333"
+                            fontWeight: "600"
+                        - type: scrollView
+                          style:
+                            top: "0.035"
+                            height: "0.5"
+                            width: "0.28"
+                          children:
+                            - type: list
+                              viewTag: businessHoursTag
+                              contentType: listObject
+                              listObject: ..formData.businessHours
+                              iteratorVar: itemObject
+                              style:
+                                margin: "0"
+                                width: '0.28'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: '0.28'
+                                    left: '0'
+                                    height: "0.03"
+                                  children:
+                                    - type: image
+                                      path: deletePhoto.svg
+                                      style:
+                                        width: "0.009"
+                                        top: "0.001"
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - =.builtIn.array.removeByName:
+                                                  dataIn:
+                                                    object: =..formData.businessHours
+                                                    key: "dayConcat"
+                                                    name: $var.dayConcat
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: businessHoursTag
+                                    - type: label
+                                      dataKey: itemObject.dayConcat
+                                      style:
+                                        fontSize: .Nfont.nf1
+                                        color: "0x333333"
+                                        left: "0.017"
+                                        top: "0"
+                                    - type: label
+                                      dataKey: itemObject.HourConcat
+                                      style:
+                                        width: "0.1"
+                                        fontSize: .Nfont.nf1
+                                        color: "0x333333"
+                                        left: "0.155"
+                - type: view
+                  style:
+                    top: "0.82"
+                    width: "0.4"
+                    boxShadow: "0px -2px 8px -8px #707070"
+                    height: "0.1"
+                  children:
+                    - .StandBtn:
+                      btnText: "Confirm"
+                      style:
+                        left: "0.265"
+                        marginTop: "0.02975"
+                        width: "0.0754"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.selectOneToArr:
+                                dataIn:
+                                  arr: =..formData.businessHours
+                                  key: "concat"
+                                dataOut: EditFacilityInfo.formData.bussinessHoursResult
+
+                            - ..facility.document.name.data.basicInfo.businessHours@: =..formData.bussinessHoursResult
+                            - .Global.formData.facilityInfo.tempDate@: =..formData.businessHours
+
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.Date.FromDay
+                                      string2: ""
+                                - actionType: popUp
+                                  popUpView: timeErrorViewDay
+                                  wait: true
+                                - continue
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.Date.FromDay
+                                      string2: "select"
+                                - actionType: popUp
+                                  popUpView: timeErrorViewDay
+                                  wait: true
+                                - continue
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.Date.ToDay
+                                      string2: ""
+                                - actionType: popUp
+                                  popUpView: timeErrorViewDay
+                                  wait: true
+                                - continue
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.Date.ToDay
+                                      string2: "select"
+                                - actionType: popUp
+                                  popUpView: timeErrorViewDay
+                                  wait: true
+                                - continue
+                            - if:
+                                - =.builtIn.date.DateCompare:
+                                    dataIn:
+                                      startTime: =..formData.Date.FromHour
+                                      endTime: =..formData.Date.ToHour
+                                - continue
+                                - actionType: popUp
+                                  popUpView: timeErrorView
+                                  wait: true
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.Date.FromDay
+                                  - " - "
+                                  - =..formData.Date.ToDay
+                                  - ", "
+                                  - =..formData.Date.FromHour
+                                  - " - "
+                                  - =..formData.Date.ToHour
+                                dataOut: EditFacilityInfo.formData.Date.resultTime
+                            # - ..facility.document.name.data.basicInfo.businessHours@: =..formData.Date.resultTime
+
+                        - actionType: popUpDismiss
+                          popUpView: businessHourTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessHoursTag
+
+        - .BaseCheckView:
+          message: "Please select or change appropriate start & end Hour"
+          viewTag: timeErrorView
+        - .BaseCheckView:
+          message: "Please select Day"
+          viewTag: timeErrorViewDay
+
+        # - .BaseJudgeView: 
+        #   viewTag: saveBasicInfoTag
+        #   msg: "Do you want to save your changes？"
+        #   children: 
+        #     - .BaseJudgeInnerView: 
+        #       children: 
+        #         - .BaseJudgeCancelImg: 
+        #         - .BaseJudgeTxt: 
+        #         - .BaseJudgeButtonView: 
+        #           children: 
+        #             - .BaseJudgeButtonNo:   # 可以重写
+        #             - .BaseJudgeButtonYes:  # 可以重写
+        #               onClick:
+        #                 - actionType: popUpDismiss
+        #                   popUpView: saveBasicInfoTag
+        #                 - actionType: popUp
+        #                   popUpView: uploading 
+        #                 - actionType: evalObject
+        #                   object:
+        #                     - =.builtIn.string.concat:
+        #                         dataIn:
+        #                           - =..facility.document.name.data.basicInfo.addressFirstLine
+        #                           - ", "
+        #                           - =..facility.document.name.data.basicInfo.city
+        #                           - ", "
+        #                           - =..facility.document.name.data.basicInfo.state
+        #                           - " "
+        #                           - =..facility.document.name.data.basicInfo.zipCode
+        #                         dataOut: EditFacilityInfo.formData.location
+        #                     - if:
+        #                       - =.builtIn.string.equal:
+        #                           dataIn:
+        #                             string1: =..facility.document.name.data.basicInfo.addressSecondLine
+        #                             string2: ""
+        #                       - =.builtIn.string.concat:
+        #                           dataIn:
+        #                             - =..facility.document.name.data.basicInfo.addressFirstLine
+        #                             - ", "
+        #                             - =..facility.document.name.data.basicInfo.city
+        #                             - ", "
+        #                             - =..facility.document.name.data.basicInfo.state
+        #                             - " "
+        #                             - =..facility.document.name.data.basicInfo.zipCode
+        #                           dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.location
+        #                       - =.builtIn.string.concat:
+        #                           dataIn:
+        #                             - =..facility.document.name.data.basicInfo.addressFirstLine
+        #                             - ", "
+        #                             - =..facility.document.name.data.basicInfo.addressSecondLine
+        #                             - ", "
+        #                             - =..facility.document.name.data.basicInfo.city
+        #                             - ", "
+        #                             - =..facility.document.name.data.basicInfo.state
+        #                             - " "
+        #                             - =..facility.document.name.data.basicInfo.zipCode
+        #                           dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.location
+        #                     - =.builtIn.search.transformGeo:
+        #                         dataIn:
+        #                           query: =..facility.document.name.data.basicInfo.location
+        #                         dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.geoCode
+        #                     - =.builtIn.string.concat:
+        #                         dataIn:
+        #                           - =..facility.document.name.data.basicInfo.medicalFacilityName
+        #                           - "-"
+        #                           - =..facility.document.name.data.basicInfo.location
+        #                         dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.fullInfo
+        #                     - =.builtIn.string.concat:
+        #                         dataIn:
+        #                           - =..facility.document.name.data.basicInfo.addressFirstLine
+        #                           - ","
+        #                           - =..facility.document.name.data.basicInfo.city
+        #                           - " "
+        #                           - =..facility.document.name.data.basicInfo.state
+        #                           - " "
+        #                           - =..facility.document.name.data.basicInfo.zipCode
+        #                         dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.fullAddress
+        #                     - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+        #                     - =.Global.jwt.edgeAPI.store: ""
+        #                     - ..facility.document.name.data.basicInfo.businessLogo@: =..businessLogo.resp.doc.0.id
+        #                     # 查询的是location边上的doc
+        #                     - =..facility.docAPI.store: ""
+        #                     - if:
+        #                         - =.builtIn.string.equal:
+        #                             dataIn:
+        #                               string1: =..formData.currentLocEdgeId
+        #                               string2: =.Global.fac_rootNotebook
+        #                         - .Global.currentFacility.name.basicInfo@: =..facility.document.name.data.basicInfo
+        #                         - continue
+        #                     - ..location.vertex.name.basicInfo@: =..facility.document.name.data.basicInfo
+        #                     - ..location.vertex.uid@: =..facility.document.name.data.basicInfo.locationID
+        #                     - .Global.jwt.edge.bvid@: =.Global.formData.locationId
+        #                     - =.Global.jwt.edgeAPI.store: ""    
+        #                     # 缓存location
+        #                     - =..location.vertexAPI.store: ""
+        #                 - actionType: popUpDismiss
+        #                   popUpView: uploading 
+        #                 - actionType: popUp
+        #                   popUpView: saveSuccessfulTag 
+        #                 - goto: FacilityInfo1
+
+        - .BaseSuccessfulView: ""
+          viewTag: saveSuccessfulTag
+          onClick:
+            - goto: FacilityInfo1
+
+        - type: popUp
+          msg1: Warning
+          msg2: Please complete the required items.
+          viewTag: errorView
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: __.viewTag
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                left: "0.44"
+                width: "0.28"
+                top: "0.3"
+                height: "auto"
+                boxShadow: "0px 2px 2px 1px #b7b7b7"
+                borderRadius: "5"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    left: "0"
+                    width: "0.28"
+                    height: "0.013"
+                    backgroundColor: "0xe24445"
+                    border-top-left-radius: "5px"
+                    border-top-right-radius: "5px"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.28"
+                    left: "0"
+                    height: "auto"
+                  children:
+                    - type: image
+                      path: warningRed.svg
+                      style:
+                        left: "0.12"
+                        width: "0.04"
+                        marginTop: "0.04"
+                    - type: label
+                      text: ____.msg1
+                      style:
+                        left: "0.05"
+                        width: "0.18"
+                        fontSize: .Nfont.nf5
+                        color: "0x171725"
+                        fontWeight: "500"
+                        fontFamily: "Robot"
+                        marginTop: "0.02"
+                        textAlign:
+                          x: center
+                    - type: label
+                      text: ____.msg2
+                      style:
+                        left: "0.02"
+                        width: "0.24"
+                        marginTop: "0.02"
+                        fontSize: .Nfont.nf4
+                        fontFamily: "Roboto"
+                        color: "0x333333"
+                        textAlign:
+                          x: center
+                    - type: label
+                      text: =..formData.errorArr
+                      style:
+                        left: "0.02"
+                        width: "0.24"
+                        marginTop: "0.02"
+                        marginBottom: "0.03"
+                        fontSize: .Nfont.nf2
+                        fontFamily: "Roboto"
+                        color: "0x999999"
+                        textAlign:
+                          x: center
+
+        # business 弹窗            
+        - type: popUp
+          viewTag: businessPopUp
+          style:
+            width: "0.148"
+            height: "auto"
+            top: "0.23"
+            left: "0.335"
+            zIndex: "101"
+            borderRadius: "8"
+            backgroundColor: "0xffffff"
+            boxShadow: "1px 1px 4px 2px #cccccc"
+          children:
+            - type: view
+              style:
+                width: "auto"
+                height: "auto"
+              children:
+                - type: label
+                  text: "Medical(M)"
+                  dataKey:
+                  style:
+                    fontWeight: "600"
+                    fontSize: .Nfont.nf3
+                    left: "0.015"
+                    width: '0.12'
+                    marginTop: "0.01"
+                - type: list
+                  viewTag: payeeListTag
+                  contentType: listObject
+                  listObject: ..formData.medical
+                  iteratorVar: itemObject
+                  style:
+                    width: '0.148'
+                    margin: '0'
+                    height: auto
+                    marginTop: "0.005"
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: '0.148'
+                        height: '0.04'
+                        left: '0'
+                        marginTop: ''
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - =.builtIn.array.getByKey:
+                                  dataIn:
+                                    array: =.SelectData.businessCat
+                                    key1: "name"
+                                    value: $var.name
+                                    key2: "value"
+                                  dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.businessType
+
+                              - ..formData.controlBusinessPopUp@: "0"
+                              - ..formData.controlMedical@: "block"
+                              - ..formData.controlBusiness@: "none"
+                              - ..facility.document.name.data.basicInfo.largeType@: "M"
+                              - ..formData.controlFacilityName@: "block"
+                              - ..formData.controlBusinessName@: "none"
+                              - ..formData.controlFacilityId@: "block"
+                              - ..formData.controlBusinessId@: "none"
+                              - ..formData.controlDeaPhoto@: "block"
+                        - actionType: popUpDismiss
+                          popUpView: businessPopUp
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: medicalTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: facilityNameTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: facilityIDTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: deaPhotoViewTag
+                      children:
+                        - type: label
+                          dataKey: itemObject.name
+                          style:
+                            display: inline-block
+                            left: "0.015"
+                            marginTop: "0.011"
+                            fontSize: .Nfont.n6_1_2
+            - type: view
+              style:
+                width: "auto"
+                height: "auto"
+              children:
+                - type: label
+                  text: "Business(B)"
+                  dataKey:
+                  style:
+                    fontWeight: "600"
+                    fontSize: .Nfont.nf3
+                    left: "0.015"
+                    width: '0.12'
+                    marginTop: "0.01"
+                - type: list
+                  viewTag: payeeListTag
+                  contentType: listObject
+                  listObject: ..formData.business
+                  iteratorVar: itemObject
+                  style:
+                    width: '0.148'
+                    margin: '0'
+                    height: auto
+                    marginTop: "0.005"
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: '0.148'
+                        height: '0.04'
+                        left: '0'
+                        marginTop: ''
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - =.builtIn.array.getByKey:
+                                  dataIn:
+                                    array: =.SelectData.businessCat
+                                    key1: "name"
+                                    value: $var.name
+                                    key2: "value"
+                                  dataOut: EditFacilityInfo.facility.document.name.data.basicInfo.businessType
+                              - ..formData.controlBusinessPopUp@: "0"
+                              - ..formData.controlMedical@: "none"
+                              - ..formData.controlBusiness@: "block"
+                              - ..facility.document.name.data.basicInfo.largeType@: "B"
+                              - ..formData.controlFacilityName@: "none"
+                              - ..formData.controlBusinessName@: "block"
+                              - ..formData.controlFacilityId@: "none"
+                              - ..formData.controlBusinessId@: "block"
+                              - ..formData.controlDeaPhoto@: "none"
+                        - actionType: popUpDismiss
+                          popUpView: businessPopUp
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: medicalTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: facilityNameTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: facilityIDTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: deaPhotoViewTag
+                      children:
+                        - type: label
+                          dataKey: itemObject.name
+                          style:
+                            display: inline-block
+                            left: "0.015"
+                            marginTop: "0.011"
+                            fontSize: .Nfont.n6_1_2

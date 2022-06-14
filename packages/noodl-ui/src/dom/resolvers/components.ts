@@ -135,10 +135,10 @@ const componentsResolver: t.Resolve.Config = {
           ): HTMLIFrameElement
           function loadAttribs<
             N extends
+              | HTMLIFrameElement
               | HTMLLinkElement
               | HTMLScriptElement
-              | HTMLStyleElement
-              | HTMLIFrameElement,
+              | HTMLStyleElement,
           >(component: t.NuiComponent.Instance, elem: N | null, data: any) {
             if (!elem) return elem
             elem.id = component.id
@@ -237,7 +237,6 @@ const componentsResolver: t.Resolve.Config = {
           poster,
           text,
           videoType,
-
         } = original
 
         // BUTTON
@@ -682,19 +681,31 @@ const componentsResolver: t.Resolve.Config = {
 
                     // const cs = []
                     await Promise.all(
-                      componentPage.components?.map((obj: ComponentObject) => {
-                        return new Promise(async (resolve) => {
-                          let child = await nui.resolveComponents({
-                            components: obj,
-                            page: nuiPage,
-                            on: args.on,
-                          })
+                      componentPage.components?.map(
+                        async (obj: ComponentObject) => {
+                          return new Promise(async (resolve) => {
+                            let child = await nui.resolveComponents({
+                              components: obj,
+                              page: nuiPage,
+                              on: args.on,
+                            })
 
-                          // TODO - We might not need this line
-                          args.component.createChild(child)
+                            // TODO - We might not need this line
+                            args.component.createChild(child)
 
-                          if (componentPage.body == null) {
-                            componentPage.on('ON_LOAD', async () => {
+                            if (componentPage.body == null) {
+                              componentPage.on('ON_LOAD', async () => {
+                                let childNode = await args.draw(
+                                  child,
+                                  componentPage.body,
+                                  componentPage,
+                                  { on: args.on },
+                                )
+                                childNode &&
+                                  componentPage.appendChild(childNode)
+                                resolve(child)
+                              })
+                            } else {
                               let childNode = await args.draw(
                                 child,
                                 componentPage.body,
@@ -703,19 +714,10 @@ const componentsResolver: t.Resolve.Config = {
                               )
                               childNode && componentPage.appendChild(childNode)
                               resolve(child)
-                            })
-                          } else {
-                            let childNode = await args.draw(
-                              child,
-                              componentPage.body,
-                              componentPage,
-                              { on: args.on },
-                            )
-                            childNode && componentPage.appendChild(childNode)
-                            resolve(child)
-                          }
-                        })
-                      }) || [],
+                            }
+                          })
+                        },
+                      ) || [],
                     )
                   } catch (error) {
                     console.error(error)
@@ -909,7 +911,7 @@ const componentsResolver: t.Resolve.Config = {
         // textField
         else if (Identify.component.textField(args.component)) {
           if (args.component.has('isEditable')) {
-            const isEditable = args.component.get('isEditable');
+            const isEditable = args.component.get('isEditable')
             // console.log(maxLen,"nnnnn")
             const isDisabled = Identify.isBooleanFalse(isEditable)
             if (isDisabled) {
@@ -937,8 +939,8 @@ const componentsResolver: t.Resolve.Config = {
           const videoEl = args.node as HTMLVideoElement
           let sourceEl: HTMLSourceElement
           let notSupportedEl: HTMLParagraphElement
-          videoEl.controls = Identify.isBooleanTrue(controls);
-          videoEl.autoplay = Identify.isBooleanTrue(autoplay);
+          videoEl.controls = Identify.isBooleanTrue(controls)
+          videoEl.autoplay = Identify.isBooleanTrue(autoplay)
 
           const attrs = ['poster', ['src', 'path']]
           attrs.forEach((attr) => {
@@ -963,18 +965,16 @@ const componentsResolver: t.Resolve.Config = {
               const value = args.component.props[attr]
               !u.isNil(value) && setAttr(attr, value)
             }
-
           })
-          if(args.component.blueprint?.['path=func']){
-            // console.log("pppp",args.component
-            // ?.get?.(c.DATA_VALUE))
-              args.component
-              ?.get?.(c.DATA_VALUE)
-              ?.then?.((path: any) => {
-                // console.log("fff",path)
-                setAttr('src', path?.url)
-              })
-            }
+          console.log(args)
+
+          if (args.component.blueprint?.['path=func']) {
+            console.log('pppp', await args.component?.get?.(c.DATA_VALUE))
+            args.component?.get?.(c.DATA_VALUE)?.then?.((path: any) => {
+              console.log('fff', path)
+              setAttr('src', path?.url)
+            })
+          }
 
           videoEl.style.objectFit = 'contain'
         }
