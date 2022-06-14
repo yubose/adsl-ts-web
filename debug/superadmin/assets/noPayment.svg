@@ -1,0 +1,9 @@
+<svg id="on" xmlns="http://www.w3.org/2000/svg" width="48" height="22" viewBox="0 0 48 22">
+  <g id="组_9973" data-name="组 9973" transform="translate(-648 -140)">
+    <g id="组_9972" data-name="组 9972">
+      <rect id="矩形_19693" data-name="矩形 19693" width="48" height="22" rx="11" transform="translate(648 140)" fill="#005795"/>
+    </g>
+    <circle id="椭圆_711" data-name="椭圆 711" cx="9" cy="9" r="9" transform="translate(676 142)" fill="#fff"/>
+  </g>
+  <text id="On-2" data-name="On" transform="translate(6 15)" fill="#fff" font-size="12" font-family="ProximaNova-Regular, Proxima Nova"><tspan x="0" y="0">ON</tspan></text>
+</svg>

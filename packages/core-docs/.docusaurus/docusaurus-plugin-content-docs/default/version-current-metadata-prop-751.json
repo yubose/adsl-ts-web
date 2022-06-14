@@ -1,0 +1,51 @@
+{
+  "pluginId": "default",
+  "version": "current",
+  "label": "Next",
+  "banner": null,
+  "badge": false,
+  "className": "docs-version-current",
+  "isLast": true,
+  "docsSidebars": {
+    "tutorialSidebar": [
+      {
+        "type": "link",
+        "label": "Installation",
+        "href": "/docs/installation",
+        "docId": "installation"
+      },
+      {
+        "type": "link",
+        "label": "Usage",
+        "href": "/docs/usage",
+        "docId": "usage"
+      },
+      {
+        "type": "link",
+        "label": "API Reference",
+        "href": "/docs/api-reference",
+        "docId": "api-reference"
+      }
+    ]
+  },
+  "docs": {
+    "api-reference": {
+      "id": "api-reference",
+      "title": "API Reference",
+      "description": "",
+      "sidebar": "tutorialSidebar"
+    },
+    "installation": {
+      "id": "installation",
+      "title": "Installation",
+      "description": "",
+      "sidebar": "tutorialSidebar"
+    },
+    "usage": {
+      "id": "usage",
+      "title": "Usage",
+      "description": "",
+      "sidebar": "tutorialSidebar"
+    }
+  }
+}
