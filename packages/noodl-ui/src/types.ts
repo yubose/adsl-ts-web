@@ -71,9 +71,9 @@ export type NUIActionChain = ActionChain<NUIActionObject, NUITrigger>
 
 // Raw / non-ensured actionType
 export type NUIActionObjectInput =
-  | NUIActionObject
   | EmitObjectFold
   | GotoObject
+  | NUIActionObject
   | ToastObject
 
 export interface ComponentCacheObject {
@@ -102,6 +102,7 @@ export type NUIActionObject =
   | BuiltInActionObject
   | EmitActionObject
   | EvalActionObject
+  | GetLocationAddressActionObject
   | GotoActionObject
   | PageJumpActionObject
   | PopupActionObject
@@ -110,7 +111,6 @@ export type NUIActionObject =
   | SaveActionObject
   | ToastActionObject
   | UpdateActionObject
-  | GetLocationAddressActionObject
 
 export type NUIAction = Action | EmitAction
 
@@ -135,7 +135,7 @@ export interface ToastActionObject extends ActionObject, ToastObject {
 }
 
 export interface GotoFn {
-  (goto: string | GotoObject): any
+  (goto: GotoObject | string): any
 }
 
 export interface ICache {
@@ -144,23 +144,23 @@ export interface ICache {
 }
 
 export interface IPage {
-  id: 'root' | string | number
+  id: number | string | 'root'
   page: string
   viewport: Viewport
 }
 
-export type NormalizePropsContext = {
+export type NormalizePropsContext = Record<string, any> & {
   dataObject?: Record<string, any>
   iteratorVar?: string
   index?: number
-  listObject?: string | any[]
-} & Record<string, any>
+  listObject?: any[] | string
+}
 
 export namespace NuiComponent {
   export type CreateType = ComponentObject | NuiComponent.Instance
 
   export interface EditResolutionOptions {
-    remove?: string | string[] | Record<string, () => boolean>
+    remove?: Record<string, () => boolean> | string[] | string
   }
 
   export type HookEvent = keyof Hook
@@ -184,15 +184,15 @@ export namespace NuiComponent {
     path(src: string): void
     placeholder(src: string): void
   } & Partial<
-    Record<TimerHook<'init'>, (initialValue?: Date) => void> &
-      Record<
-        TimerHook<'interval'>,
-        (args: {
-          value: Date | undefined
-          component: NuiComponent.Instance
-          node: HTMLElement
-        }) => void
-      > &
+    Record<
+      TimerHook<'interval'>,
+      (args: {
+        value: Date | undefined
+        component: NuiComponent.Instance
+        node: HTMLElement
+      }) => void
+    > &
+      Record<TimerHook<'init'>, (initialValue?: Date) => void> &
       Record<TimerHook<'ref'>, (ref: Timer) => void>
   >
 
@@ -221,12 +221,12 @@ export namespace NuiComponent {
 
 export namespace Plugin {
   export type ComponentObject =
+    | PluginBodyTailComponentObject
+    | PluginBodyTopComponentObject
     | PluginComponentObject
     | PluginHeadComponentObject
-    | PluginBodyTopComponentObject
-    | PluginBodyTailComponentObject
 
-  export type Location = 'head' | 'body-top' | 'body-bottom'
+  export type Location = 'body-bottom' | 'body-top' | 'head'
 
   export interface Object {
     initiated?: boolean
@@ -240,19 +240,20 @@ export namespace Plugin {
 export type ConsumerOptions<Trig extends string = string> = Omit<
   ReturnType<typeof NUI.getConsumerOptions>,
   'createActionChain' | 'getBaseStyles'
-> & {
-  createActionChain(
-    trigger: LiteralUnion<NUITrigger | Trig, string>,
-    actions: OrArray<NUIActionObject>,
-    opts?: { loadQueue?: boolean },
-  ): NUIActionChain
-  event?: Event
-  getBaseStyles(
-    component: NuiComponent.Instance,
-  ): StyleObject & { [key: string]: any }
-  ref?: NUIActionChain
-} & Partial<ConsumerOptionsHelpers> &
-  Pick<ResolveComponentOptions<any, any>, 'keepVpUnit'>
+> &
+  Partial<ConsumerOptionsHelpers> &
+  Pick<ResolveComponentOptions<any, any>, 'keepVpUnit'> & {
+    createActionChain(
+      trigger: LiteralUnion<NUITrigger | Trig, string>,
+      actions: OrArray<NUIActionObject>,
+      opts?: { loadQueue?: boolean },
+    ): NUIActionChain
+    event?: Event
+    getBaseStyles(
+      component: NuiComponent.Instance,
+    ): StyleObject & { [key: string]: any }
+    ref?: NUIActionChain
+  }
 
 export interface ConsumerOptionsHelpers {
   resolveReference: (keyOrValue: any, value?: any) => any
@@ -270,7 +271,7 @@ export interface On {
   createComponent?(
     component: NuiComponent.Instance,
     args: {
-      path?: (string | number)[]
+      path?: (number | string)[]
       page?: NuiPage
       parent: NuiComponent.Instance | null
       index?: number
@@ -306,8 +307,8 @@ export interface On {
 export namespace Register {
   export interface Object<N extends string = string> {
     name: N
-    callbacks: (Register.Object['fn'] | NUIActionChain)[]
-    page: LiteralUnion<'_global' | Register.Page, string>
+    callbacks: (NUIActionChain | Register.Object['fn'])[]
+    page: LiteralUnion<Register.Page | '_global', string>
     params?: Register.ParamsObject
     handler?: {
       fn?: Register.Object['fn']
@@ -321,7 +322,7 @@ export namespace Register {
 
   export type Params<RT = any> =
     | ParamsObject
-    | ((obj: Register.Object) => RT | Promise<RT>)
+    | ((obj: Register.Object) => Promise<RT> | RT)
 
   export type ParamsObject<K extends string = string> = Record<
     LiteralUnion<K, string>,
@@ -356,7 +357,7 @@ export namespace Store {
       action: AType extends 'emit' ? EmitAction : Action<AType, ATrigger>,
       options: ConsumerOptions,
     ): Promise<any[] | void>
-    trigger?: LiteralUnion<NUITrigger | ATrigger, string>
+    trigger?: LiteralUnion<ATrigger | NUITrigger, string>
   }
 
   export interface BuiltInObject<
@@ -407,10 +408,10 @@ export interface UseArg<
   on?: On
   plugin?: OrArray<ComponentObject>
   register?:
-    | Record<string, Register.Object['fn']>
     | OrArray<
         RegisterComponentObject & { handler?: Register.Object['handler'] }
       >
+    | Record<string, Register.Object['fn']>
   transaction?: Partial<
     Record<LiteralUnion<TName, string>, TObj[TName] | TObj[TName]['fn']>
   >
@@ -435,7 +436,7 @@ export interface GlobalMap {
       children: { componentId: string; pageId: string }[]
     }[]
   >
-  pages: Record<string, NDOMPage | ComponentPage>
+  pages: Record<string, ComponentPage | NDOMPage>
   timers: GlobalTimers
 }
 
@@ -452,11 +453,11 @@ export interface Hooks {
 }
 
 export type DOMNodeInput =
-  | NodeListOf<any>
-  | NodeList
   | HTMLCollection
   | HTMLElement
   | HTMLElement[]
+  | NodeList
+  | NodeListOf<any>
   | null
 
 export type NDOMElement<T extends string = string> = T extends 'button'
@@ -481,8 +482,8 @@ export type NDOMElement<T extends string = string> = T extends 'button'
   ? HTMLDivElement
   : T extends 'iframe' | 'page'
   ? HTMLIFrameElement
-  : T extends 'plugin' | 'pluginHead' | 'pluginBodyTop' | 'pluginBodyTail'
-  ? HTMLDivElement | HTMLScriptElement | HTMLLinkElement | HTMLStyleElement
+  : T extends 'plugin' | 'pluginBodyTail' | 'pluginBodyTop' | 'pluginHead'
+  ? HTMLDivElement | HTMLLinkElement | HTMLScriptElement | HTMLStyleElement
   : T extends 'popUp'
   ? HTMLDivElement
   : T extends 'image'
@@ -544,8 +545,8 @@ export namespace Resolve {
     RT = void,
   > {
     (
-      options: ReturnType<NDOMResolver['getOptions']> &
-        Resolve.BaseOptions<T, N>,
+      options: Resolve.BaseOptions<T, N> &
+        ReturnType<NDOMResolver['getOptions']>,
     ): RT
   }
 
@@ -555,7 +556,7 @@ export namespace Resolve {
     after: Resolve.Config[]
   }
 
-  export type LifeCycleEvent = 'before' | 'resolve' | 'after'
+  export type LifeCycleEvent = 'after' | 'before' | 'resolve'
 }
 
 export namespace Render {
@@ -623,9 +624,9 @@ export namespace Page {
     previous: string
     requesting: string
     modifiers: {
-      [pageName: string]: { reload?: boolean } & {
+      [pageName: string]: {
         [key: string]: any
-      }
+      } & { reload?: boolean }
     }
     status: Status
     node: boolean

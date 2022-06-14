@@ -1,0 +1,400 @@
+AddDocument:
+  init:
+    - .SignInCheck
+    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+    - =.Global.jwt.edgeAPI.store: ""
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..medicalRecord.docAPI.get
+  medicalRecord:
+    url: uploaddocument.svg
+    showDoc: ""
+    deleteDoc:
+      id: ""
+    resp: ""
+    document:
+      type: .DocType.UploadFile
+      name:
+        title: ""
+        type: ..medicalRecord.docAPI.store.subtype.mediaType
+        data: binFile
+      eid: .Global.fac_rootNotebook
+    documentReq:
+      type: .DocType.UploadFile
+      id: .Global.fac_rootNotebook
+      xfname: eid
+      obfname: ctime
+      _nonce: =.Global._nonce
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: medicalRecord.document
+        dataOut: AddDocument.medicalRecord.showDoc
+        subtype:
+          mediaType: ""
+      get:
+        api: rd
+        dataIn: medicalRecord.documentReq
+        dataOut: medicalRecord.resp
+      delete:
+        api: dx
+        dataIn: AddDocument.medicalRecord.deleteDoc
+  selectedDoc:
+    isSelected: false
+  sharedDoc: []
+  generalInfo:
+    value: true
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          children:
+            - type: view
+              style:
+                left: "0.03"
+                top: "0.01"
+                width: "0.2"
+                height: "0.06"
+              children:
+                - .BackLabel:
+            - .ContentView:
+              style:
+                height: "0.8"
+              children:
+                - type: scrollView
+                  viewTag: documentList
+                  style:
+                    top: "0"
+                    left: "0.04"
+                    width: "0.35"
+                    backgroundColor: "0xffffff"
+                    height: "0.70"
+                    boxSizing: "border-box"
+                    boxShadow: "1px 0px 1px #333333"
+                  children:
+                    - type: label
+                      text: "My Documents"
+                      style:
+                        fontSize: .Nfont.nf5
+                        fontWeight: "500"
+                        top: "0.02"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..medicalRecord.resp.doc
+                      iteratorVar: itemObject
+                      style:
+                        top: "0.05"
+                        left: "0.02"
+                        width: "0.31"
+                        height: "auto"
+                        backgroundColor: "0xffffff"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          viewTag: select
+                          style:
+                            left: "0"
+                            width: "0.31"
+                            height: "0.08"
+                            backgroundColor: "0xffffffff"
+                            borderWidth: "1"
+                            borderRight: "solid 1px  #7070704f"
+                            borderBottom: "solid 1px  #7070704f"
+                            boxSizing: "border-box"
+                          children:
+                            - type: image
+                              # path: selectBlue.svg
+                              # ？？？？？？？？？？？？？
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..generalInfo.value
+                                              string2: $var.isSelected
+                                        - selectBlue.svg
+                                        - selectGray.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..generalInfo.value
+                                                string2: $var.isSelected
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: $var
+                                                key: isSelected
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: $var
+                                                key: isSelected
+                                                value: true
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..generalInfo.value
+                                                string2: $var.isSelected
+                                          - =.builtIn.array.add:
+                                              dataIn:
+                                                object: =..sharedDoc
+                                                value: $var
+                                          - =.builtIn.array.removeById:
+                                              dataIn:
+                                                object: =..sharedDoc
+                                                id: $var.id
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: select
+                              # ？？？？？？？？？？？？？
+                              style:
+                                top: "0.03"
+                                height: "0.02"
+                            - type: label
+                              dataKey: itemObject.name.title
+                              style:
+                                left: "0.03"
+                                width: "0.2"
+                                top: "0.03"
+                                textAlign:
+                                  x: left
+                            - type: button
+                              text: delete
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..medicalRecord.deleteDoc.id@: $var.id
+                                      - =..medicalRecord.docAPI.delete: ""
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - actionType: evalObject
+                                  object:
+                                    - =..medicalRecord.docAPI.get: ""
+                                    - =.builtIn.goto:
+                                        dataIn:
+                                          destination: AddDocument
+                                          pageReload: true
+                              style:
+                                left: "0.27"
+                                top: "0.05"
+                                height: "0.02"
+                                width: "0.03"
+                                border:
+                                  style: "3"
+                                borderRadius: "5"
+                                borderColor: "#e80000"
+                                fontSize: .Nfont.nf0
+                                color: "#ffffff"
+                                backgroundColor: "#e80000"
+                                textAlign:
+                                  x: center
+                                  y: center
+                # ？？？？？？？？？？？？？
+                - type: button
+                  text: Attach to email
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.ecos.copyDocToAttachment:
+                            dataIn:
+                              sourceDocList: =..sharedDoc
+                              newType: =.DocType.Attachment
+                            dataOut: AddDocument.formData.attachments
+                        - =.builtIn.object.extract:
+                            dataIn:
+                              array: =..formData.attachments
+                              field: doc
+                            dataOut: AddDocument.formData.attachments
+                        - =.builtIn.array.concat:
+                            dataIn:
+                              array1: =..formData.attachments
+                              array2: =.Global.formData.attachments
+                            dataOut: Global.formData.attachments
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                  style:
+                    left: "0.15"
+                    width: "0.1"
+                    height: "0.04"
+                    top: "0.71"
+                    color: "0xffffff"
+                    backgroundColor: "0x005795"
+                    fontSize: "14"
+                    fontFamily: "sans-serif"
+                    border:
+                      style: "3"
+                    borderColor: "0x005795"
+                    borderRadius: "3"
+                    textAlign:
+                      x: center
+                      y: center # ？？？？？？？？？？？？？ 
+                - type: view
+                  viewTag: documentView
+                  style:
+                    top: "0"
+                    left: "0.4"
+                    width: "0.35"
+                    backgroundColor: "0xffffff"
+                    height: "0.8"
+                    boxSizing: "border-box"
+                  children:
+                    - type: label
+                      text: "Add new document"
+                      style:
+                        fontSize: .Nfont.nf5
+                        fontWeight: "500"
+                        top: "0.02"
+                        left: "0.03"
+                    - type: label
+                      text: "Fill out required fields*"
+                      style:
+                        fontSize: "14"
+                        fontWeight: "400"
+                        top: "0.08"
+                        width: "0.35"
+                        color: "0xD53C42"
+                        textAlign:
+                          x: center
+                    - type: label
+                      textBoard:
+                        - text: "Create Document Name"
+                          color: "0x517086"
+                        - text: "*"
+                          color: "0xD53C42"
+                      style:
+                        fontSize: "14"
+                        fontWeight: "400"
+                        top: "0.13"
+                        left: "0.03"
+                        width: "0.35"
+                    - type: textField
+                      placeholder: "A&C UrgentCare Logo"
+                      dataKey: medicalRecord.document.name.title
+                      style:
+                        top: "0.16"
+                        left: "0.03"
+                        width: "0.32"
+                        height: "0.03"
+                    - type: label
+                      textBoard:
+                        - text: "This file type is not supported"
+                          fontWeight: "600"
+                        - br:
+                        - br:
+                        - text: "Only the following file types are supported: "
+                        - br:
+                        - text: ".jpeg, .png, .pdf, .xlsx, .xls, .pptx, .ppt, .docx, .doc, .numbers"
+                        - br:
+                        - br:
+                        - br:
+                        - text: "File size must be no larger than BLANK"
+                      style:
+                        fontSize: "14"
+                        fontWeight: "350"
+                        top: "0.3"
+                        width: "0.36"
+                        color: "0x707070"
+                        textAlign:
+                          x: center
+                    - view:
+                      children:
+                        - type: image
+                          viewTag: imageTag
+                          path:
+                            emit:
+                              actions:
+                                - if:
+                                    - ..medicalRecord.showDoc.doc
+                                    - =..medicalRecord.url
+                                    - uploaddocument.svg
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =..medicalRecord.document.name.title
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: checkName
+                                      wait: true
+                            - actionType: updateObject
+                              dataKey: AddDocument.medicalRecord.document.name.data
+                              dataObject: BLOB
+                            - actionType: evalObject
+                              object:
+                                - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                - =.Global.jwt.edgeAPI.store: ""
+                            - actionType: evalObject
+                              object:
+                                - =.AddDocument.medicalRecord.docAPI.store: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.utils.prepareDoc:
+                                    dataIn:
+                                      doc: =..medicalRecord.showDoc.doc
+                                    dataOut: AddDocument.medicalRecord.showDoc
+                            - actionType: evalObject
+                              object:
+                                - ..medicalRecord.url@: =..medicalRecord.showDoc.name.data
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - =..medicalRecord.docAPI.get: ""
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: imageTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: documentList
+                            - actionType: evalObject
+                              object:
+                                - ..medicalRecord.url@: uploaddocument.svg
+                                - ..medicalRecord.document.name.title@: ""
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - =..medicalRecord.docAPI.get: ""
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: documentView
+                          style:
+                            height: "0.2"
+                      style:
+                        top: "0.5"
+                        width: "0.4"
+                        height: "0.25"
+                        textAlign: center
+
+        - .BaseCheckView: ""
+          message: "Uploading in progress ..."
+          viewTag: uploading
+        - .BaseCheckView: ""
+          message: " successful"
+          viewTag: uploading
+        - .BaseCheckView: ""
+          message: "Document name is required"
+          viewTag: checkName

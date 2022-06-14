@@ -1,0 +1,2619 @@
+PatientManagement:
+  #xd page number: 1380
+  pageNumber: "650"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - .SignInCheck
+    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+    - =.Global.jwt.edgeAPI.store: ""
+    - ..patient.docAPI.get
+    - ..invite.edgeAPI.get
+    - actionType: evalObject
+      object:
+        - .Global.formData.patientHistoryId@: ""
+        - .Global.formData.patientHistoryInfo@: ""
+    - if:
+        - =..patient.list.doc
+        - =.builtIn.array.formatProfile:
+            dataIn:
+              objArr: =..patient.list.doc
+            dataOut: PatientManagement.formData.parseProfile
+        - continue
+    - =.builtIn.array.keepLatestDoc:
+        dataIn:
+          docList: =..formData.parseProfile
+          path: bsig
+        dataOut: PatientManagement.formData.patientList
+    - ..formData.patientListReview@: =..formData.patientList
+    - =.builtIn.array.splitTableList:
+        dataIn:
+          arrObj: =..formData.patientList
+          numX: "12"
+          numY: "1"
+        dataOut: PatientManagement.formData.tableData
+    - ..formData.tableList@: =..formData.tableData.0
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.tablePageNum # page num
+          - " / "
+          - =..formData.tableData.1 # total page
+        dataOut: PatientManagement.formData.tableCurrentPage # current page                           
+    - =.builtIn.number.addition:
+        # get totalPage+1 to verify legitimacy of gotoPageNum
+        dataIn:
+          num: =..formData.tableData.1
+          step: "1"
+        dataOut: PatientManagement.formData.totalPageMore # update page num    
+    - =.builtIn.array.setPropertyInterlacedChange:
+        dataIn:
+          arrIn: =..formData.tableList
+          arr: [ "backgroundColor" ]
+          valueArr: [ "0xf5f5f5" ]
+          errorArr: [ "0xffffff" ]
+  data: ""
+  gender:
+    - key: gender
+      value: "Male"
+    - key: gender
+      value: "Female"
+  hid: "true"
+  history: Review
+  viewPort: top
+  title: Patient Management
+  baseInfo:
+    - key: First Name
+    - key: Last Name
+    - key: Phone Number
+  baseInfo2:
+    - key: Middle Name
+    - key: Gender
+    - key: Email
+  formDataTemp:
+    selectPatient:
+      - patientName: New Patient Forms
+        userName: "Lisa12345"
+      - patientName: Emily Lee
+        userName: Emily12345
+  formData:
+    patientListReview: []       
+    searchPatientPhone: "" # 列表头部的号码，用于搜索
+    patientInviteList: []       
+    parseProfile: []
+    tableData: []       
+    tableList: []       
+    tablePageNum: "1" # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: "" # goto 后面的文本显示
+    totalPageMore: "" # totalPage(tableData.1) + 1 
+    patientInfo: ""
+    currentProviderList: []
+    patientList: []
+    countryCode: "+1"
+    number: ""
+    phoneNumber: ""
+    isShowDownArrowGray: block
+    isShowUpArrowGray: none
+    isShowMedicalInsuranceInfo: none
+    patdInfo: "" # for displaying patdInfo in popUp
+    patdInfoInsuranceId: ""
+    patInfoEmerContactFullName: ""
+    patdInfoEmploymentAddress: ""
+    patdInfoMedicalInsurance: []
+    selectPatientArr: []
+  star:
+    - key: "Icon awesome-asterisk.png"
+    - key: "Icon awesome-asterisk.png"
+  sendNotification:
+    document:
+      .Document: ""
+      subtype:
+        isOnServer: 1
+        isZipped: 0
+        isBinary: 0
+        isEncrypted: 0
+        isExtraKeyNeeded: 0
+        isEditable: 0
+        applicationDataType: 0
+        # 7 th bit
+        notification: 1
+        ringToneNotify: 0
+        sendtoSelf: 0
+        # 10 bit
+        textMessage: 0
+        mediaType: 8
+      type: .DocType.Notification
+      tage: 5
+      eid: ""
+      name:
+        data: ""
+        notification:
+          title: new request from admin
+          context: Click to check your request
+          body: Click to check your request
+          onClickLandingPage: NewConnections
+          # targetApp: =.FirebaseToken.response.edge.evid
+    docAPI:
+      store:
+        api: cd
+        dataIn: sendNotification.document
+  invite:
+    response: ""
+    edge:
+      .Edge: ""
+      type: .EdgeType.InviteInfo
+      bvid: .Global.currentFacility.id
+      subtype: .EInboxSubtype.PatientFacility
+      name:
+        facilityAvatarID: .Global.facilityAvatarID
+        businessType: .Global.currentFacility.name.basicInfo.businessType
+        phoneNumber: ""
+        inviterName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: invite.edge
+        dataOut: PatientManagement.invite.response
+      get:
+        api: re
+        id: .Global.currentFacility.id
+        xfname: bvid
+        maxcount: "100"
+        type: 1053
+        obfname: "ctime"
+        asc: true
+        _nonce: =.Global._nonce
+        sCondition: subtype in (131072,131088)
+        dataKey: data
+  patient:
+    list: ""
+    docAPI:
+      get:
+        api: rd
+        dataKey: patient.list
+        ObjType: 8
+        type: .DocType.PatientProfile
+        id: .Global.currentFacility.id
+        xfname: E.bvid|E.evid
+        sCondition: "E.type=10002 AND E.tage>0 AND E.subtype=131072"
+        maxcount: "12"
+        _nonce: =.Global._nonce
+        obfname: "mtime"
+  patientData:
+    # vertex
+    vertexResp: ""
+    vertexIn:
+      id: ""
+      xfname: none
+      sCondition: ""
+      _nonce: =.Global._nonce
+      obfname: ctime
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: PatientManagement.patientData.vertexIn
+        dataOut: PatientManagement.patientData.vertexResp
+  isConnected:
+    # use phoneNumber query out v.id and use vid to query if there is a 10002 edge 
+    edgeResp: ""
+    edgeIn:
+      id: ""
+      sfname: "{\"result\":\"E.*\", \"join\": \"INNER JOIN Vertex V on V.id = E.evid
+        OR V.id = E.bvid\"}"
+      xfname: "E.bvid|E.evid"
+      sCondition: ""
+      type: 10002
+      subtype: .EInboxSubtype.PatientFacility
+      ObjType: 28
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: PatientManagement.isConnected.edgeIn
+        dataOut: PatientManagement.isConnected.edgeResp
+  apiRequest:
+    # 根据号码获取Patient
+    getPatientByPhone:
+      docIn:
+        ObjType: 28
+        sfname: "{\"result\":\"D.*\", \"join\": \"INNER JOIN Vertex V on V.id = D.ovid
+          INNER JOIN Edge E ON E.id=D.eid\"}"
+        sCondition: ""
+        id: .Global.currentFacility.id
+        xfname: 'bvid|evid'
+        type: 102401
+        obfname: mtime
+        # maxcount: "12"
+        _nonce: .Global._nonce
+      docResp: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: apiRequest.getPatientByPhone.docIn
+          dataOut: PatientManagement.apiRequest.getPatientByPhone.docResp
+    #保险卡信息
+    insuranceCard:
+      docQueryResp: ""
+      docQueryReq:
+        xfname: reid
+        id: ""
+        type: .DocType.InsuranceCard
+        name:
+          data:
+            #是否未默认保险卡 
+            default: false
+            #保险公司名称
+            companyName: ""
+            #保险计划或者医疗组织
+            planOrMedicalGroup: ""
+            #成员名称
+            memberName: ""
+            #成员id
+            memberId: ""
+            #组织号码
+            groupNumber: ""
+            #政策号码
+            policyNumber: ""
+            #政策持有者名字
+            policyHolderName: ""
+            #与患者的关系
+            relation: ""
+            #保险卡正面照片docId
+            front_InsuranceCardId: ""
+            #保险卡反面照片docId
+            back_InsuranceCardId: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: PatientManagement.apiRequest.insuranceCard.docQueryReq
+          dataOut: PatientManagement.apiRequest.insuranceCard.docQueryResp
+
+  userData:
+    userVertex:
+      vertex:
+        isSelected: false
+    request:
+      id: ""
+      xfname: "E.bvid"
+      sCondition: "E.type in (1100,10000) AND V.type in (1,10)"
+      _nonce: =.Global._nonce
+      obfname: ctime
+      ObjType: "4"
+    get:
+      api: rv
+      dataIn: userData.request
+      dataOut: userData.userVertex
+
+  generalInfo:
+    vertex: ""
+    value: true
+
+  components:
+    - .TotalView:
+      children:
+        - .BaseCheckView: ""
+          message: "Uploading in progress ..."
+          viewTag: uploading
+        - .BaseCheckView: ""
+          message: "You don't have the authority to add a new patient"
+          viewTag: patientAuthCreate
+          style:
+            zIndex: "100000"
+        - .BaseCheckView: ""
+          message: "You don't have the authority to edit"
+          viewTag: patientAuthEdit
+          style:
+            zIndex: "100000"
+        - .BaseCheckView: ""
+          message: "You don't have the authority to review"
+          viewTag: patientAuthReview
+          style:
+            zIndex: "100000"
+        - type: popUp
+          viewTag: invitePatientView
+          style:
+            top: "0.33"
+            left: "0.43"
+            width: "0.286"
+            height: "0.3"
+            backgroundColor: "0xffffff"
+            border:
+              style: "3"
+            borderRadius: "8px"
+            borderColor: "0x7070704f"
+            zIndex: "100000"
+          children:
+            - type: label
+              text: "Invite Patient"
+              style:
+                left: "0.026"
+                top: "0.028"
+                width: "0.08"
+                height: "0.04"
+                color: "0x000000"
+                fontSize: .Nfont.nf4
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style:
+                width: "0.26"
+                left: "0.033"
+                height: "0.15"
+                top: "0.1"
+                isHidden: false
+              children:
+                - type: label
+                  text: "Country"
+                  style:
+                    top: "0"
+                    left: "0"
+                    width: "0.04"
+                    height: "0.025"
+                    fontSize: 1.2vh
+                    color: "0x717172"
+                - type: label
+                  text: "Phone Number"
+                  style:
+                    top: "0"
+                    left: "0.04"
+                    width: "0.08"
+                    height: "0.025"
+                    fontSize: 1.2vh
+                    color: "0x717172"
+                - type: select
+                  contentType: countryCode
+                  placeholder: ..formData.countryCode
+                  dataKey: formData.countryCode
+                  options: .CountryCode
+                  required: "true"
+                  style:
+                    left: "0"
+                    width: "0.03"
+                    top: '0.03'
+                    height: "0.045"
+                    fontSize: 1.5vh
+                    fontWeight: "500"
+                    border:
+                      style: "3"
+                    borderColor: "0x7070704f"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    boxSizing: "border-box"
+                - type: textField
+                  contentType: phoneNumber
+                  placeholder: "Enter here"
+                  dataKey: formData.number
+                  required: "true"
+                  style:
+                    top: "0.03"
+                    left: "0.04"
+                    width: "0.182"
+                    height: "0.045"
+                    fontSize: 1.5vh
+                    border:
+                      style: "3"
+                    borderColor: "0x7070704f"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    boxSizing: "border-box"
+                    textIndent: "1em"
+            - type: view
+              style:
+                left: "0"
+                top: "0.238"
+                width: "0.286"
+                height: "0.0001"
+                backgroundColor: "0x7070704f"
+            - type: view
+              style:
+                left: "0.143"
+                top: "0.239"
+                width: "0.0001"
+                height: "0.06"
+                backgroundColor: "0x7070704f"
+            - type: button
+              text: Cancel
+              style:
+                left: "0"
+                top: "0.24"
+                width: "0.142"
+                height: "0.06"
+                fontSize: 1.6vh
+                color: '0x000000'
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                display: inline
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: invitePatientView
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientView
+            - type: button
+              text: Invite
+              style:
+                left: "0.144"
+                top: "0.24"
+                width: "0.142"
+                height: "0.06"
+                color: "0x014c82"
+                fontSize: 1.6vh
+                display: inline
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                    - =.Global.jwt.edgeAPI.store: ""
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - =..formData.countryCode
+                          - " "
+                          - =..formData.number
+                        dataOut: PatientManagement.formData.phoneNumber
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "uid like"
+                          - " '%"
+                          - =..formData.phoneNumber
+                          - "'"
+                        dataOut: PatientManagement.patientData.vertexIn.sCondition
+                    - =..patientData.vertexAPI.get: ""
+                - actionType: popUpDismiss
+                  popUpView: invitePatientView
+                - actionType: evalObject
+                  object:
+                    # isExist
+                    - if:
+                        - =..patientData.vertexResp.vertex.0
+                        - continue
+                        - actionType: popUp
+                          popUpView: phoneNotExist
+                          wait: true
+                    - ..userData.request.id@: =..patientData.vertexResp.vertex.0.id
+                    - =..userData.get: ""
+                    - =.builtIn.object.set:
+                        dataIn:
+                          object: =..userData.userVertex.vertex.0
+                          key: isSelected
+                          value: true
+                    - ..formData.patientInviteList@: =..userData.userVertex.vertex
+                    - ..generalInfo.vertex@: =..userData.userVertex.vertex.0
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientMultipleTag
+                - actionType: popUp
+                  popUpView: invitePatientMultipleTag
+                  wait: true
+        - type: popUp
+          viewTag: invitePatientMultipleTag
+          style:
+            top: "0.33"
+            left: "0.43"
+            width: "0.286"
+            height: "0.3"
+            backgroundColor: "0xffffff"
+            border:
+              style: "3"
+            borderRadius: "8px"
+            borderColor: "0x7070704f"
+            zIndex: "100000"
+          children:
+            - type: label
+              text: "Invite Patient"
+              style:
+                left: "0.026"
+                marginTop: "0.028"
+                width: "0.12"
+                height: "0.04"
+                color: "0x000000"
+                fontSize: .Nfont.nf6
+                fontWeight: "600"
+                textAlign:
+                  x: left
+                  y: center
+            - type: label
+              text: "Please select the patient(s) you would like to invite."
+              dataKey:
+              style:
+                color: "0x858585"
+                fontSize: .Nfont.nf2
+                left: "0.026"
+                width: "0.25"
+                marginTop: "0.006"
+            - type: view
+              style:
+                width: "0.20"
+                left: "0.033"
+                height: "0.025"
+                marginTop: "0.01"
+                isHidden: false
+              children:
+                - type: label
+                  text: "Patient Name"
+                  style:
+                    width: "0.05"
+                    height: "0.025"
+                    left: "0.023"
+                    fontSize: 1.2vh
+                    color: "0x717172"
+                    display: inline-block
+                    textAlign:
+                      y: center
+                - type: label
+                  text: "User Name"
+                  style:
+                    width: "0.08"
+                    height: "0.025"
+                    fontSize: 1.2vh
+                    left: "0.1"
+                    color: "0x717172"
+                    display: inline-block
+                    textAlign:
+                      y: center
+            - type: scrollView
+              # viewTag: editView
+              style:
+                width: '0.24'
+                margin: '0'
+                left: "0.038"
+                height: "0.1"
+                backgroundColor: '0xffffff'
+                overflow: scroll
+              children:
+                - type: list
+                  viewTag: patientListTag
+                  contentType: listObject
+                  listObject: ..formData.patientInviteList #..formDataTemp.selectPatient
+                  iteratorVar: itemObject
+                  style:
+                    width: '0.24'
+                    margin: '0'
+                    left: "0"
+                    height: "0.1"
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: '0.2'
+                        height: auto
+                        left: '0'
+                        display: flex
+                        justifyContent: flex-start
+                        alignItems: center
+                        marginTop: "0.01"
+                      children:
+                        - type: image
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..generalInfo.value
+                                          string2: $var.isSelected
+                                    - selectBlue.svg
+                                    - selectGray.svg
+                          onClick:
+                            - actionType: updateObject
+                              dataKey: PatientManagement.generalInfo.vertex
+                              dataObject: itemObject
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..generalInfo.value
+                                            string2: $var.isSelected
+                                      - =.builtIn.object.set:
+                                          dataIn:
+                                            object: $var
+                                            key: isSelected
+                                            value: true
+                                      - =.builtIn.object.clearAndSetKey:
+                                          dataIn:
+                                            object: =..formData.patientInviteList
+                                            item: $var
+                                            key: isSelected
+                                            value: true
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: patientListTag
+                          style:
+                            width: "0.011"
+                        - type: label
+                          text:
+                          dataKey: itemObject.name.fullName #patientName
+                          style:
+                            fontSize: .Nfont.nf2
+                            fontWeight: "600"
+                            marginLeft: "0.008"
+                            width: "0.08"
+                        - type: label
+                          text:
+                          dataKey: itemObject.name.userName
+                          style:
+                            fontSize: .Nfont.nf2
+                            fontWeight: "600"
+                            marginLeft: "0.045"
+
+            - type: view
+              style:
+                left: "0"
+                top: "0.238"
+                width: "0.286"
+                height: "0.0001"
+                backgroundColor: "0x7070704f"
+            - type: view
+              style:
+                left: "0.143"
+                top: "0.239"
+                width: "0.0001"
+                height: "0.06"
+                backgroundColor: "0x7070704f"
+            - type: button
+              text: Cancel
+              style:
+                left: "0"
+                top: "0.24"
+                width: "0.142"
+                height: "0.06"
+                fontSize: 1.6vh
+                color: '0x000000'
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                display: inline
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: invitePatientMultipleTag
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                    - ..userData.userVertex.vertex@: []
+            - type: button
+              text: Invite
+              style:
+                left: "0.144"
+                top: "0.24"
+                width: "0.142"
+                height: "0.06"
+                color: "0x014c82"
+                fontSize: 1.6vh
+                display: inline
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: invitePatientMultipleTag
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    # get 10002
+                    - ..isConnected.edgeResp.edge@: []
+                    - ..isConnected.edgeIn.id@: =.Global.currentFacility.id
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "V.uid like"
+                          - " '%"
+                          - =..generalInfo.vertex.name.phoneNumber
+                          - "' AND E.tage>=0"
+                        dataOut: PatientManagement.isConnected.edgeIn.sCondition
+                    - =..isConnected.edgeAPI.get: ""
+                - actionType: evalObject
+                  object:
+                    # isAdded or isInvited
+                    - if:
+                        - =..isConnected.edgeResp.edge.0
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.number.less:
+                                    dataIn:
+                                      num1: =..isConnected.edgeResp.edge.0.tage
+                                      num2: 1
+                                - actionType: popUp
+                                  popUpView: phoneInvited # <1 already invited but not be approved
+                                  wait: true
+                                - actionType: popUp
+                                  popUpView: phoneRepeat
+                                  wait: true
+                        - continue
+                - actionType: evalObject
+                  object:
+                    # create 1053                    
+                    - ..invite.edge.name.data.phone@: =..formData.phoneNumber
+                    - ..invite.edge.name.phoneNumber@: =..formData.phoneNumber
+                    - ..invite.edge.evid@: =.PatientManagement.generalInfo.vertex.id
+                    - =..invite.edgeAPI.store: ""
+                    - ..sendNotification.document.fid@: =.Global.patdAPPID
+                    - ..sendNotification.document.eid@: =..invite.response.edge.id
+                    - =..sendNotification.docAPI.store: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientMultipleTag
+                - actionType: popUp
+                  popUpView: popUpSuccess
+                  wait: 2000
+        # phoneNotExist
+        - type: popUp
+          viewTag: phoneNotExist
+          style:
+            top: "0.33"
+            left: "0.46"
+            width: "0.21"
+            height: "0.3"
+            backgroundColor: "0xffffff"
+            border:
+              style: "3"
+            borderRadius: "8px"
+            borderColor: "0x7070704f"
+            zIndex: "100000"
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                width: "0.1"
+                height: "0.1"
+                left: "0.055"
+                top: "0.035"
+            - type: label
+              text: "The user does not existed,please check the number"
+              style:
+                left: "0.026"
+                top: "0.15"
+                width: "0.17"
+                height: "0.05"
+                color: "0x000000"
+                fontSize: .Nfont.nf3
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style:
+                left: "0"
+                top: "0.238"
+                width: "0.21"
+                height: "0.0001"
+                backgroundColor: "0x7070704f"
+            - type: view
+              style:
+                left: "0.105"
+                top: "0.239"
+                width: "0.0001"
+                height: "0.06"
+                backgroundColor: "0x7070704f"
+            - type: button
+              text: Cancel
+              style:
+                left: "0"
+                top: "0.24"
+                width: "0.105"
+                height: "0.06"
+                fontSize: 1.6vh
+                color: '0x000000'
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                display: inline
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: phoneNotExist
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientView
+            - type: button
+              text: Change Number
+              style:
+                left: "0.106"
+                top: "0.24"
+                width: "0.103"
+                height: "0.06"
+                color: "0x014c82"
+                fontSize: 1.6vh
+                display: inline
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                - actionType: popUpDismiss
+                  popUpView: phoneNotExist
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientView
+                - actionType: popUp
+                  popUpView: invitePatientView
+        # phoneRepeat                  
+        - type: popUp
+          viewTag: phoneRepeat
+          style:
+            top: "0.33"
+            left: "0.46"
+            width: "0.21"
+            height: "0.3"
+            backgroundColor: "0xffffff"
+            border:
+              style: "3"
+            borderRadius: "8px"
+            borderColor: "0x7070704f"
+            zIndex: "100000"
+          children:
+            - type: image
+              path: aboutBlue.svg
+              style:
+                width: "0.1"
+                height: "0.1"
+                left: "0.055"
+                top: "0.035"
+            - type: label
+              text: "The phone number is already added,please check the number"
+              style:
+                left: "0.026"
+                top: "0.15"
+                width: "0.17"
+                height: "0.05"
+                color: "0x000000"
+                fontSize: .Nfont.nf3
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style:
+                left: "0"
+                top: "0.238"
+                width: "0.21"
+                height: "0.0001"
+                backgroundColor: "0x7070704f"
+            - type: view
+              style:
+                left: "0.105"
+                top: "0.239"
+                width: "0.0001"
+                height: "0.06"
+                backgroundColor: "0x7070704f"
+            - type: button
+              text: Cancel
+              style:
+                left: "0"
+                top: "0.24"
+                width: "0.105"
+                height: "0.06"
+                fontSize: 1.6vh
+                color: '0x000000'
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                display: inline
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: phoneRepeat
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientView
+            - type: button
+              text: Change Number
+              style:
+                left: "0.106"
+                top: "0.24"
+                width: "0.103"
+                height: "0.06"
+                color: "0x014c82"
+                fontSize: 1.6vh
+                display: inline
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                - actionType: popUpDismiss
+                  popUpView: phoneRepeat
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientView
+                - actionType: popUp
+                  popUpView: invitePatientView
+        # phoneInvited
+        - type: popUp
+          viewTag: phoneInvited
+          style:
+            top: "0.33"
+            left: "0.46"
+            width: "0.21"
+            height: "0.3"
+            backgroundColor: "0xffffff"
+            border:
+              style: "3"
+            borderRadius: "8px"
+            borderColor: "0x7070704f"
+            zIndex: "100000"
+          children:
+            - type: image
+              path: aboutBlue.svg
+              style:
+                width: "0.1"
+                height: "0.1"
+                left: "0.055"
+                top: "0.035"
+            - type: label
+              text: "The user is already invited,please check the number"
+              style:
+                left: "0.026"
+                top: "0.15"
+                width: "0.17"
+                height: "0.05"
+                color: "0x000000"
+                fontSize: .Nfont.nf3
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style:
+                left: "0"
+                top: "0.238"
+                width: "0.21"
+                height: "0.0001"
+                backgroundColor: "0x7070704f"
+            - type: view
+              style:
+                left: "0.105"
+                top: "0.239"
+                width: "0.0001"
+                height: "0.06"
+                backgroundColor: "0x7070704f"
+            - type: button
+              text: Cancel
+              style:
+                left: "0"
+                top: "0.24"
+                width: "0.105"
+                height: "0.06"
+                fontSize: 1.6vh
+                color: '0x000000'
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                display: inline
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: phoneInvited
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                    - ..userData.userVertex.vertex@: []
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientView
+            - type: button
+              text: Change Number
+              style:
+                left: "0.106"
+                top: "0.24"
+                width: "0.103"
+                height: "0.06"
+                color: "0x014c82"
+                fontSize: 1.6vh
+                display: inline
+                backgroundColor: "0xffffff"
+                borderRadius: "8px"
+                border:
+                  style: "1"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                    - ..formData.phoneNumber@: ""
+                    - ..userData.userVertex.vertex@: []
+                - actionType: popUpDismiss
+                  popUpView: phoneInvited
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: invitePatientView
+                - actionType: popUp
+                  popUpView: invitePatientView
+        # popUpSuccess
+        - .BaseSuccessfulView: ""
+          msg: "successful!"
+          viewTag: popUpSuccess
+          onClick:
+            - actionType: evalObject
+              object:
+                - ..formData.number@: ""
+                - ..formData.phoneNumber@: ""
+                - ..userData.userVertex.vertex@: []
+            - actionType: popUpDismiss
+              popUpView: popUpSuccess
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: invitePatientView
+        # patient profile 
+        - type: popUp
+          style:
+            width: '1'
+            height: '1'
+            top: '0'
+            left: '0'
+            backgroundColor: '0x00000033'
+            zIndex: "10"
+          viewTag: viewPatientInfo
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                backgroundColor: "0xFFFFFF"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Patient Profile"
+                    - .Closebutton:
+                      onClick:
+                        # Clear current patient information
+                        - actionType: updateObject
+                          dataKey: PatientManagement.formData.patdInfo
+                          dataObject: []
+                        - actionType: evalObject
+                          object:
+                            - ..formData.patInfoEmerContactFullName@: ""
+                            - ..formData.patdInfoEmploymentAddress@: ""
+                        - actionType: popUpDismiss
+                          popUpView: viewPatientInfo
+                - type: view
+                  viewTag: infoView
+                  style:
+                    height: '0.92'
+                    width: '0.31'
+                    top: '0.08'
+                    left: "0.055"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.295"
+                        height: "auto"
+                        left: "0"
+                        marginTop: "0.03"
+                      children:
+                        - type: image
+                          path: patientDefault.svg
+                          dataKey: formData.patdInfo.basicInfo.avatar
+                          path=func: .builtIn.utils.prepareDocToPath
+                          style:
+                            width: "0.05"
+                            height: "0.082"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          dataKey: formData.patdInfo.basicInfo.fullName
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            marginTop: "0"
+                            fontSize: .Nfont.nf5
+                            fontFamily: "Roboto"
+                            fontWeight: "600"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "User Name:"
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              dataKey: formData.patdInfo.basicInfo.userName
+                              style:
+                                marginLeft: "0.01"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "Phone #:"
+                              dataKey:
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              dataKey: formData.patdInfo.basicInfo.phone
+                              style:
+                                marginLeft: "0.01"
+                    - type: view
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - .Global.formData.reply.name.data.receiverAvatarId@: =..formData.patdInfo.basicInfo.avatar
+                            - .Global.formData.reply.name.data.receiverName@: =..formData.patdInfo.basicInfo.fullName
+                        - goto: NewMessage
+                      style:
+                        top: "0.04"
+                        left: "0.295"
+                        height: "auto"
+                      children:
+                        - type: image
+                          path: Inbox.svg
+                          style:
+                            height: "0.016"
+                            marginTop: "0"
+                        - type: label
+                          text: Mail
+                          style:
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                    - type: scrollView
+                      style:
+                        width: "0.295"
+                        height: "0.78"
+                        left: "0"
+                        marginTop: "0.02"
+                        overflow: hidden
+                      children:
+                        # Basic Info Start
+                        - .ProfileInfoTitle:
+                          text: "Basic Info"
+                          style:
+                            marginTop: "0"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "User Name"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.basicInfo.userName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Date of Birth"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.basicInfo.dateOfBirth
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Gender"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.basicInfo.gender
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Social Security #"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.basicInfo.socialSecurity
+                        # Basic Info End
+
+                        # Contact Start
+                        - .ProfileInfoTitle:
+                          text: "Contact"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Alternate Phone #"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.contactInfo.alternatePhone.fullPhone
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Email"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.contactInfo.email
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Address"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.contactInfo.address.fullAddress
+                        # Contact End
+
+
+                        # Emergency Contact Start
+                        - .ProfileInfoTitle:
+                          text: "Emergency Contact"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Name"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patInfoEmerContactFullName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Relation"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.emergencyContact.relation
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Phone #"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.emergencyContact.phone.fullPhone
+                        # Emergency Contact End
+
+                        # Employment Information Start
+                        - .ProfileInfoTitle:
+                          text: "Employment Information"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Employer Name"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.employment.employerName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Dept."
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.employment.dept
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Nature of business"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.employment.NatureBusiness
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Occupation"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.employment.Occupation
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Telephone #"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.employment.Telephone
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Fax #"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.employment.fax
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Email"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.employment.email
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Address"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfoEmploymentAddress
+                        # Employment Information End  
+
+                        # Medical Insurance Start
+                        - .ProfileInfoTitle:
+                          text: "Medical Insurance"
+
+                        - type: view
+                          viewTag: medicalInsuranceTag
+                          style:
+                            marginTop: "0"
+                            width: "0.28"
+                            height: "auto"
+                            # backgroundColor: "0xff000033"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.patdInfoMedicalInsurance
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.28"
+                                margin: "0"
+                                left: "0"
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: "0.28"
+                                    left: "0"
+                                    marginTop: "0.01"
+                                    backgroundColor: "0xf0f2f4"
+                                  children:
+                                    - type: view
+                                      style:
+                                        marginTop: "0.015"
+                                        width: "0.26"
+                                        left: "0.01"
+                                        height: "0.09"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.name.data.memberName
+                                          style:
+                                            top: "0.01"
+                                            width: "0.13"
+                                            fonSize: .Nfont.h1
+                                        - type: label
+                                          text: "1630163102673210104701"
+                                          dataKey: itemObject.name.data.memberId
+                                          style:
+                                            top: "0.01"
+                                            marginLeft: "0.13"
+                                            width: "0.13"
+                                            fonSize: .Nfont.n6_3
+                                            textAlign:
+                                              x: right
+                                        - .MedicInsuranceLeftText:
+                                          text: "UnitedHealth Group Inc."
+                                          dataKey: itemObject.name.data.companyName
+                                          style:
+                                            top: "0.05"
+                                        - .MedicInsuranceLeftText:
+                                          text: "Stomatology Department Plan"
+                                          dataKey: itemObject.name.data.planOrMedicalGroup
+                                          style:
+                                            top: "0.07"
+                                    - type: view
+                                      style:
+                                        height: "0.01"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                      children:
+                                        - type: image
+                                          path: downArrowGray.svg
+                                          style:
+                                            height: "0.008"
+                                            width: "0.012"
+                                            display: itemObject.isShowDownArrowGray
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - =.builtIn.object.setProperty:
+                                                      dataIn:
+                                                        obj: =..formData.patdInfoMedicalInsurance
+                                                        label: "id"
+                                                        text: $var.id
+                                                        arr:
+                                                          [
+                                                            "isShowDownArrowGray",
+                                                            "isShowMedicalIns\
+                                                              uranceInfo",
+                                                            "isShowUpArrowGray"
+                                                          ]
+                                                        valueArr: [ "none", "block", "block" ]
+                                                        errorArr: [ "block", "none", "none" ]
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: medicalInsuranceTag
+                                    - type: view
+                                      dataKey:
+                                      style:
+                                        width: "0.24"
+                                        height: "auto"
+                                        left: "0.01"
+                                        # backgroundColor: "0xff000033"
+                                        marginTop: "0"
+                                        fontSize: .Nfont.nf0
+                                        fontFamily: "Roboto"
+                                        display: itemObject.isShowMedicalInsuranceInfo
+                                      children:
+                                        # - type: view
+                                        #   style:
+                                        #     backgroundColor: "0xcdcdcd"
+                                        #     height: "0.002"
+                                        #     width: "0.26"
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Medical Insurance Company Name"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.companyName
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Insurance plan or medical group"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.planOrMedicalGroup
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Member Name"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.memberName
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Insurance Member ID"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.memberId
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Group number #"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.groupNumber
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Policy number #"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.policyNumber
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Relationship to Patient"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.relation
+                                        - .MedicInsuranceTextView:
+                                          style:
+                                            marginTop: "0.02"
+                                            width: "0.26"
+                                            height: "0.12"
+                                          children:
+                                            - type: view
+                                              style:
+                                                width: "0.13"
+                                              children:
+                                                - type: image
+                                                  path: driverLicense.svg
+                                                  dataKey: itemObject.name.data.front_InsuranceCardId
+                                                  path=func: .builtIn.utils.prepareDocToPath
+                                                  style:
+                                                    width: "0.09"
+                                                    borderRadius: "5"
+                                                    height: "0.1"
+                                                - type: label
+                                                  text: "Front of Insurance Card"
+                                                  style:
+                                                    color: "0x666666"
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf0
+                                                    fontFamily: "Roboto"
+                                            - type: view
+                                              style:
+                                                width: "0.13"
+                                              children:
+                                                - type: image
+                                                  path: driverLicense.svg
+                                                  dataKey: itemObject.name.data.back_InsuranceCardId
+                                                  path=func: .builtIn.utils.prepareDocToPath
+                                                  style:
+                                                    width: "0.09"
+                                                    borderRadius: "5"
+                                                    height: "0.1"
+                                                - type: label
+                                                  text: "Back of Insurance Card"
+                                                  style:
+                                                    color: "0x666666"
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf0
+                                                    fontFamily: "Roboto"
+                                    - type: view
+                                      style:
+                                        height: "0.02"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                      children:
+                                        - type: image
+                                          path: upArrowGray.svg
+                                          style:
+                                            height: "0.008"
+                                            width: "0.012"
+                                            display: itemObject.isShowUpArrowGray
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - =.builtIn.object.setProperty:
+                                                      dataIn:
+                                                        obj: =..formData.patdInfoMedicalInsurance
+                                                        label: "id"
+                                                        text: $var.id
+                                                        arr:
+                                                          [
+                                                            "isShowDownArrowGray",
+                                                            "isShowMedicalIns\
+                                                              uranceInfo",
+                                                            "isShowUpArrowGray"
+                                                          ]
+                                                        valueArr: [ "block", "none", "none" ]
+                                                        errorArr: [ "none", "block", "block" ]
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: medicalInsuranceTag
+                        # Medical Insurance End
+
+                        # Identification Start
+                        - .ProfileInfoTitle:
+                          text: "Identification"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "ID type"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.identification.type
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "ID #"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patdInfo.identification.id
+                        # - type: view
+                        #   style:
+                        #     marginTop: "0.02"
+                        #     width: "0.15"
+                        #     height: "0.17"
+                        #     backgroundColor: "0xe6e6e6"
+                        #     borderRadius: "3"
+                        #     textAlign:
+                        #       x: center
+                        #   children:
+                        - type: image
+                          # path: driverLicense.svg
+                          dataKey: formData.patdInfo.identification.imageId
+                          path=func: .builtIn.utils.prepareDocToPath
+                          style:
+                            marginTop: "0.01"
+                            width: "0.15"
+                            height: "0.17"
+                            borderRadius: "3"
+                          onClick:
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: idImgView
+                            - actionType: popUp
+                              popUpView: idImgView
+                        - type: label
+                          text: "ID Image Upload"
+                          style:
+                            marginTop: "0.01"
+                            width: "0.15"
+                            fontSize: .Nfont.nf1
+                            textAlign:
+                              x: center
+                        # Identification End 
+
+        - .BaseCheckView: ""
+          message: "successful!"
+          viewTag: success
+          style:
+            zIndex: "100000"
+            left: "0.4"
+
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+          style:
+            left: "0.16"
+            marginTop: "0"
+            height: "0.063"
+            width: "0.84"
+        # - .InnerBodyView:
+        - type: view
+          style:
+            backgroundColor: "0xf4f8fa"
+            width: "0.84"
+            height: "0.937"
+            left: "0.16"
+            top: "0.063"
+          children:
+            # - .PageTitleLabel: 
+            - type: view
+              style:
+                height: "0.09"
+                width: "0.82"
+                left: "0.01"
+                textAlign:
+                  y: center
+              children:
+                # - type: label
+                #   text: ..title
+                #   style:
+                #     fontSize: .Nfont.nf6
+                #     fontFamily: "Roboto"            
+                #     fontWeight: "600"
+                #     marginLeft: "0.02328"
+                #     display: inline-block
+                #     verticalAlign: middle
+                - type: view
+                  style:
+                    marginLeft: "0.02328"
+                    width: "auto"
+                    height: "0.08"
+                    display: flex
+                    boxSizing: border-box
+                    alignItems: center
+                    justifyContent: space-between
+                  children:
+                    - type: label
+                      text: ..title
+                      style:
+                        fontSize: .Nfont.n5
+                        fontWeight: "600"
+                        width: "0.15"
+                # 按钮 
+                - type: view
+                  onClick:
+                    # - actionType: evalObject
+                    #   object:
+                    # - if: 
+                    #   - =.builtIn.string.equal:
+                    #       dataIn: 
+                    #         string1: =.Global.auth.patient.create
+                    #         string2: true 
+                    #   - actionType: popUp
+                    #     popUpView: AddPatient
+                    #   - actionType: popUp
+                    #     popUpView: patientAuthCreate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: invitePatientView
+                    - actionType: popUp
+                      popUpView: invitePatientView
+                  style:
+                    marginLeft: "0.5"
+                    display: inline-block
+                    width: "0.101"
+                    height: "0.0368"
+                    backgroundColor: "0x005795"
+                    borderRadius: "4"
+                  children:
+                    - type: image
+                      path: addCircle.svg
+                      style:
+                        width: "0.01092"
+                        height: "0.01932"
+                        display: inline-block
+                        marginTop: "0.008"
+                        marginLeft: "0.011"
+                    - type: label
+                      text: Add New Patient
+                      style:
+                        marginLeft: "0.006"
+                        marginTop: "0.008"
+                        fontFamily: "Roboto"
+                        fontSize: .Nfont.nf2
+                        color: "0xffffff"
+                        display: inline-block
+            - .ContentBar:
+                marginTop: "0"
+                backgroundColor: "0xffffff"
+                width: "0.82"
+                height: "0.8285"
+                # marginLeft: "0.01"
+                borderRadius: "6"
+                border:
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
+              children:
+                - type: view
+                  style:
+                    height: "0.12236"
+                    width: "0.77424"
+                    marginTop: "0"
+                    left: "0.02288"
+                    textAlign:
+                      y: center
+                  children:
+                    # 搜索框
+                    - type: view
+                      viewTag: searchTag
+                      style:
+                        width: "0.664"
+                        height: "0.0368"
+                        border:
+                          style: "3"
+                        borderRadius: "4"
+                        borderColor: "0xdedede"
+                        boxSizing: border-box
+                        display: inline-block
+                      children:
+                        - type: image
+                          path: searchGray.svg
+                          style:
+                            marginLeft: "0.008"
+                            width: "0.01144"
+                            height: "0.02024"
+                            marginTop: "0.007"
+                            display: inline-block
+                        - type: textField
+                          placeholder: Search the phone number…
+                          dataKey: formData.searchPatientPhone
+                          style:
+                            backgroundColor: "0xffffff00"
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            fontFamily: "Roboto"
+                            borderRadius: "4"
+                            boxSizing: border-box
+                            width: "0.62"
+                            height: "0.034"
+                            marginLeft: "0.005"
+                            display: inline-block
+                            border: none
+                    - type: button
+                      text: Update
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - .Global._nonce@:
+                                =.builtIn.math.random: ""
+                            - ..formData.tableList@: []
+                            - ..formData.parseProfile@: []
+                            - ..formData.patientList@: []
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "V.uid like"
+                                  - " '%"
+                                  - =..formData.searchPatientPhone
+                                  - "%"
+                                  - "' AND E.type=10002 AND V.type=1"
+                                dataOut: PatientManagement.apiRequest.getPatientByPhone.docIn.sCondition
+                            - =..apiRequest.getPatientByPhone.docAPI.get: ""
+                            - =.builtIn.array.formatProfile:
+                                dataIn:
+                                  objArr: =..apiRequest.getPatientByPhone.docResp.doc
+                                dataOut: PatientManagement.formData.parseProfile
+                            - =.builtIn.array.keepLatestDoc:
+                                dataIn:
+                                  docList: =..formData.parseProfile
+                                  path: bsig
+                                dataOut: PatientManagement.formData.patientList
+                            - =.builtIn.array.splitTableList:
+                                dataIn:
+                                  arrObj: =..formData.patientList
+                                  numX: "12"
+                                  numY: "1"
+                                dataOut: PatientManagement.formData.tableData
+                            - ..formData.tableList@: =..formData.tableData.0
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.tablePageNum # page num
+                                  - " / "
+                                  - =..formData.tableData.1 # total page
+                                dataOut: PatientManagement.formData.tableCurrentPage # current page                           
+                            - =.builtIn.number.addition:
+                                # get totalPage+1 to verify legitimacy of gotoPageNum
+                                dataIn:
+                                  num: =..formData.tableData.1
+                                  step: "1"
+                                dataOut: PatientManagement.formData.totalPageMore # update page num    
+                            - =.builtIn.array.setPropertyInterlacedChange:
+                                dataIn:
+                                  arrIn: =..formData.tableList
+                                  arr: [ "backgroundColor" ]
+                                  valueArr: [ "0xf5f5f5" ]
+                                  errorArr: [ "0xffffff" ]
+                                dataOut: PatientManagement.formData.tableList
+                            # - ..formData.tableList@: =..apiRequest.getPatientByPhone.docResp.doc
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableFooter
+                      style:
+                        marginLeft: "0.009"
+                        color: "0xffffff"
+                        fontFamily: "Roboto"
+                        fontSize: .Nfont.nf2
+                        display: inline-block
+                        width: "0.064"
+                        height: "0.0368"
+                        backgroundColor: "0x005795"
+                        borderRadius: "4"
+                        textAlign:
+                          x: center
+                          y: center
+                    - type: label
+                      text: Revise
+                      dataKey:
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..formData.searchPatientPhone@: ""
+                            - ..formData.tableList@: []
+                            - ..formData.parseProfile@: []
+                            - =.builtIn.array.splitTableList:
+                                dataIn:
+                                  arrObj: =..formData.patientListReview
+                                  numX: "12"
+                                  numY: "1"
+                                dataOut: PatientManagement.formData.tableData
+                            - ..formData.tableList@: =..formData.tableData.0
+                            - ..formData.tablePageNum@: "1"
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.tablePageNum # page num
+                                  - " / "
+                                  - =..formData.tableData.1 # total page
+                                dataOut: PatientManagement.formData.tableCurrentPage # current page                           
+                            - =.builtIn.number.addition:
+                                # get totalPage+1 to verify legitimacy of gotoPageNum
+                                dataIn:
+                                  num: =..formData.tableData.1
+                                  step: "1"
+                                dataOut: PatientManagement.formData.totalPageMore # update page num   
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableFooter
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: searchTag
+                      style:
+                        marginLeft: "0.008"
+                        color: "0x005795"
+                        textDecoration: underline
+                        fontFamily: "Roboto"
+                        fontSize: .Nfont.nf2
+                        display: inline-block
+
+                # Table
+                - type: view
+                  viewTag: tableView
+                  style:
+                    left: "0.02288"
+                    marginTop: "0"
+                    width: "0.77424"
+                    height: "auto"
+                    border-top-left-radius: "5px"
+                    border-top-right-radius: "5px"
+                    boxSizing: border-box
+                    border:
+                      style: "3"
+                    borderColor: "0x7070704f"
+                    borderBottom: "0xffffff"
+                  children:
+                    #TableTitle
+                    # - type: label
+                    #   viewTag: tableTitle
+                    #   text: Patient List
+                    #   style: 
+                    #     textIndent: "2em" 
+                    #     width:  "0.72"
+                    #     margin: "0"
+                    #     left:  "0"
+                    #     height:  "0.055"
+                    #     backgroundColor: "0x014c82" 
+                    #     fontSize: .Nfont.nf3 
+                    #     fontWeight: "500" 
+                    #     fontFamily: "Poppins"
+                    #     boxSizing: "border-box" 
+                    #     color: "0xffffff" 
+                    #     borderTopLeftRadius: "8px" 
+                    #     borderTopRightRadius: "8px" 
+                    #     textAlign:
+                    #       y: "center" 
+                    #TableHeader
+                    - type: view
+                      viewTag: tableHeader
+                      style:
+                        marginTop: "0.02"
+                        width: "0.762"
+                        margin: "0"
+                        left: "0"
+                        height: "0.04"
+                      children:
+                        - type: label
+                          text: "Patient Name"
+                          style:
+                            width: "0.14"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            display: inline-block
+                            borderWidth: "1"
+                            textIndent: "1.5em"
+                            lineHeight: "4vh"
+                        - type: label
+                          text: "Phone Number"
+                          style:
+                            width: "0.15"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            display: inline-block
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                        - type: label
+                          text: "DateOfBirth"
+                          style:
+                            width: "0.15"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            display: inline-block
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                        - type: label
+                          text: "Gender"
+                          style:
+                            width: "0.085"
+                            height: "0.04"
+                            display: inline-block
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                        # - type: label
+                        #   text: "Recent Schedule"
+                        #   style: 
+                        #     width: "0.198"    
+                        #     height: "0.04"
+                        #     display: inline-block
+                        #     fontSize: .Nfont.nf2
+                        #     fontStyle: "bold"                     
+                        #     color: "0x333333"
+                        #     borderWidth: "1"
+                        #     lineHeight: "4vh"
+                        - type: label
+                          text: "History"
+                          style:
+                            width: "0.122"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            fontStyle: "bold"
+                            display: inline-block
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                        - type: label
+                          text: "View Profile"
+                          style:
+                            width: "0.11"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            display: inline-block
+                            fontStyle: "bold"
+                            color: "0x333333"
+                            borderWidth: "1"
+                            lineHeight: "4vh"
+                    #TableBody
+                    - type: list
+                      viewTag: tableBody
+                      contentType: listObject
+                      listObject: ..formData.tableList
+                      iteratorVar: itemObject
+                      style:
+                        width: "0.7734"
+                        margin: "0"
+                        left: "0"
+                        height: auto
+                        borderTop: "solid 1px  #7070704f"
+                        backgroundColor: "0xffffff"
+                        boxSizing: border-box
+                        fontSize: .Nfont.nf2
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            height: "0.04"
+                            borderBottom: "solid 1px  #7070704f"
+                            borderRight: "solid 1px  #7070704f"
+                            boxSizing: border-box
+                            backgroundColor: itemObject.backgroundColor
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.fullName
+                              style:
+                                width: "0.14"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                textIndent: "1.5em"
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: "center"
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.phone
+                              style:
+                                width: "0.15"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: "center"
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.dateOfBirth
+                              style:
+                                width: "0.15"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: "center"
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.gender
+                              style:
+                                width: "0.085"
+                                height: "0.04"
+                                borderWidth: "1"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                textAlign:
+                                  y: "center"
+                            # - type: label
+                            #   dataKey: 
+                            #   text: "01/18/21 2:00Pm - Gary Chen, MD"
+                            #   style: 
+                            #     width: "0.198"
+                            #     height: "0.04"  
+                            #     borderWidth: "1" 
+                            #     display: inline-block
+                            #     lineHeight: "4vh"
+                            #     textAlign:
+                            #       y: "center"     
+                            - type: label
+                              text: Review
+                              style:
+                                textDecoration: underline
+                                width: "0.122"
+                                height: "0.04"
+                                color: "0x2988e6"
+                                backgroundColor: "0xffffff00"
+                                fontSize: .Nfont.nf2
+                                display: inline-block
+                                lineHeight: "4vh"
+                                borderWidth: "1"
+                                textAlign:
+                                  y: "center"
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - .Global.formData.patientHistoryId@: $var.bsig
+                                - goto: PatientHistory
+                            - type: label
+                              text: View
+                              style:
+                                textDecoration: underline
+                                width: "0.11"
+                                height: "0.04"
+                                display: inline-block
+                                lineHeight: "4vh"
+                                color: "0x2988e6"
+                                backgroundColor: "0xffffff00"
+                                fontSize: .Nfont.nf2
+                                borderWidth: "1"
+                                textAlign:
+                                  y: "center"
+                              # - type: view
+                              #   style: 
+                              #     width: "0.08"
+                              #     top: "0" 
+                              #     left: "0.64" 
+                              #     height: "0.04" 
+                              #     borderWidth: "1" 
+                              #     textAlign:
+                              #       x: "center" 
+                              #       y: "center" 
+                              #   children: 
+                              #     - type: image
+                              #       path: editBlue.svg
+                              #       style: 
+                              #         top: "0.01"
+                              #         width: "0.03"
+                              #         height: "0.02"
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..formData.patdInfo@: $var.name.data
+                                      - .Global.formData.patientInfo@: $var
+                                      - ..formData.patdInfoInsuranceId@: =..formData.patdInfo.insuranceId
+                                      - ..apiRequest.insuranceCard.docQueryReq.id@: $var.id
+                                      - =..apiRequest.insuranceCard.docAPI.get: ""
+                                      - .Global.formData.reply.eid@: $var.eid
+
+                                      - =.builtIn.object.setObjectKey:
+                                          dataIn:
+                                            objectArr: =..apiRequest.insuranceCard.docQueryResp.doc
+                                            key: isShowDownArrowGray
+                                            value: block
+                                          dataOut: PatientManagement.formData.patdInfoMedicalInsurance
+                                      - =.builtIn.object.setObjectKey:
+                                          dataIn:
+                                            objectArr: =..apiRequest.insuranceCard.docQueryResp.doc
+                                            key: isShowUpArrowGray
+                                            value: none
+                                          dataOut: PatientManagement.formData.patdInfoMedicalInsurance
+                                      - =.builtIn.object.setObjectKey:
+                                          dataIn:
+                                            objectArr: =..apiRequest.insuranceCard.docQueryResp.doc
+                                            key: isShowMedicalInsuranceInfo
+                                            value: none
+                                          dataOut: PatientManagement.formData.patdInfoMedicalInsurance
+                                # 拼串操作
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - =..formData.patdInfo.emergencyContact.firstName
+                                          - =..formData.patdInfo.emergencyContact.middleName
+                                          - =..formData.patdInfo.emergencyContact.lastName
+                                        dataOut: PatientManagement.formData.patInfoEmerContactFullName
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - =..formData.patdInfo.employment.address.city
+                                          - =..formData.patdInfo.employment.address.county
+                                          - =..formData.patdInfo.employment.address.line
+                                          - =..formData.patdInfo.employment.address.secondLine
+                                          - =..formData.patdInfo.employment.address.state
+                                          - =..formData.patdInfo.employment.address.zipCode
+                                        dataOut: PatientManagement.formData.patdInfoEmploymentAddress
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - =..formData.patdInfo.contactInfo.address.line
+                                          - ","
+                                          - =..formData.patdInfo.contactInfo.address.city
+                                          - ","
+                                          - =..formData.patdInfo.contactInfo.address.county
+                                          - ","
+                                          - =..formData.patdInfo.contactInfo.address.secondLine
+                                          - ","
+                                          - =..formData.patdInfo.contactInfo.address.state
+                                          - ","
+                                          - =..formData.patdInfo.contactInfo.address.zipCode
+                                        dataOut: PatientManagement.formData.patdInfoBasicInfoAddress
+
+                                - goto: PatientProfile
+                                # - actionType: builtIn
+                                #   funcName: redraw
+                                #   viewTag: viewPatientInfo  
+                                # - actionType: builtIn
+                                #   funcName: redraw
+                                #   viewTag: medicalInsuranceTag                   
+                                # - actionType: popUp
+                                #   popUpView: viewPatientInfo
+                                # - actionType: builtIn
+                                #   funcName: redraw
+                                #   viewTag: infoView
+                                # - actionType: builtIn
+                                #   funcName: redraw
+                                #   viewTag: tableView
+                                # TableFooter
+                - type: view
+                  viewTag: tableFooter
+                  style:
+                    .TableFooterView:
+                  children:
+                    - type: view
+                      style:
+                        top: "0.005"
+                        width: "0.08"
+                        height: "0.0155"
+                      children:
+                        - type: label
+                          text: "Current page:"
+                          style:
+                            display: inline-block
+                            fontSize: .Nfont.nf0
+                            color: "0x333333"
+                            textAlign:
+                              x: "center"
+                              y: "center"
+                        - type: label
+                          dataKey: formData.tableCurrentPage
+                          style:
+                            marginLeft: "0.005"
+                            display: inline-block
+                            fontSize: .Nfont.nf0
+                            color: "0x333333"
+                            textAlign:
+                              x: "center"
+                              y: "center"
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.076"
+                        width: "0.05168"
+                        height: "0.02576"
+                      children:
+                        - type: image
+                          path: tableLeft.svg
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.less:
+                                        dataIn:
+                                          num1: =..formData.tablePageNum
+                                          num2: 2
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.number.Subtraction:
+                                            dataIn:
+                                              num: =..formData.tablePageNum
+                                              step: "1"
+                                            dataOut: PatientManagement.formData.tablePageNum
+                                        - =.builtIn.array.splitTableList:
+                                            dataIn:
+                                              arrObj: =..formData.patientList
+                                              numX: "12"
+                                              numY: =..formData.tablePageNum
+                                            dataOut: PatientManagement.formData.tableData
+                                        - ..formData.tableList@: =..formData.tableData.0
+                                        - =.builtIn.string.concat:
+                                            dataIn:
+                                              - =..formData.tablePageNum
+                                              - " / "
+                                              - =..formData.tableData.1
+                                            dataOut: PatientManagement.formData.tableCurrentPage
+                                        - =.builtIn.array.setPropertyInterlacedChange:
+                                            dataIn:
+                                              arrIn: =..formData.tableList
+                                              arr: [ "backgroundColor" ]
+                                              valueArr: [ "0xf5f5f5" ]
+                                              errorArr: [ "0xffffff" ]
+                                            dataOut: PatientManagement.formData.tableList
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableFooter
+                          style:
+                            top: "0"
+                            width: "0.01456"
+                            height: "0.02576"
+                        - type: label
+                          dataKey: formData.tablePageNum
+                          style:
+                            top: "0"
+                            left: "0.01856"
+                            width: "0.01446"
+                            height: "0.02576"
+                            fontSize: .Nfont.nf0
+                            fontWeight: "500"
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            borderRadius: "3"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: image
+                          path: tableRight.svg
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.less:
+                                        dataIn:
+                                          num1: =..formData.tablePageNum
+                                          num2: =..formData.tableData.1
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.number.addition:
+                                            dataIn:
+                                              num: =..formData.tablePageNum
+                                              step: "1"
+                                            dataOut: PatientManagement.formData.tablePageNum
+                                        - =.builtIn.array.splitTableList:
+                                            dataIn:
+                                              arrObj: =..formData.patientList
+                                              numX: "12"
+                                              numY: =..formData.tablePageNum
+                                            dataOut: PatientManagement.formData.tableData
+                                        - ..formData.tableList@: =..formData.tableData.0
+                                        - =.builtIn.string.concat:
+                                            dataIn:
+                                              - =..formData.tablePageNum
+                                              - " / "
+                                              - =..formData.tableData.1
+                                            dataOut: PatientManagement.formData.tableCurrentPage
+                                        - =.builtIn.array.setPropertyInterlacedChange:
+                                            dataIn:
+                                              arrIn: =..formData.tableList
+                                              arr: [ "backgroundColor" ]
+                                              valueArr: [ "0xf5f5f5" ]
+                                              errorArr: [ "0xffffff" ]
+                                            dataOut: PatientManagement.formData.tableList
+                                    - continue
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableFooter
+                          style:
+                            top: "0"
+                            left: "0.03712"
+                            height: "0.02576"
+                            width: "0.01456"
+                    # Goto
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.14"
+                        width: "0.05"
+                        height: "0.02496"
+                      children:
+                        - type: textField
+                          viewTag: gotoView
+                          dataKey: formData.gotoPageNum
+                          style:
+                            width: "0.02496"
+                            top: "0"
+                            height: "0.02576"
+                            borderRadius: "3"
+                            borderWidth: "1"
+                            border:
+                              style: "3"
+                            boxSizing: border-box
+                            borderColor: "0xd8d8d8"
+                            fontSize: .Nfont.nf0
+                            fontWeight: "500"
+                            color: "0x333333"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: button
+                          text: "Go to"
+                          style:
+                            textDecoration: underline
+                            left: "0.029"
+                            top: "0"
+                            height: "0.02576"
+                            border:
+                              style: "1"
+                            fontSize: .Nfont.nf0
+                            color: "0x333333"
+                            backgroundColor: "0xffffff00"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..formData.patdInfo@: $var.name.data
+                                  - ..formData.patdInfoInsuranceId@: =..formData.patdInfo.insuranceId
+                                  - ..apiRequest.insuranceCard.docQueryReq.id@: $var.id
+                                  - =..apiRequest.insuranceCard.docAPI.get: ""
+                                  - .Global.formData.reply.eid@: $var.eid
+
+                                  - =.builtIn.object.setObjectKey:
+                                      dataIn:
+                                        objectArr: =..apiRequest.insuranceCard.docQueryResp.doc
+                                        key: isShowDownArrowGray
+                                        value: block
+                                      dataOut: PatientManagement.formData.patdInfoMedicalInsurance
+                                  - =.builtIn.object.setObjectKey:
+                                      dataIn:
+                                        objectArr: =..apiRequest.insuranceCard.docQueryResp.doc
+                                        key: isShowUpArrowGray
+                                        value: none
+                                      dataOut: PatientManagement.formData.patdInfoMedicalInsurance
+                                  - =.builtIn.object.setObjectKey:
+                                      dataIn:
+                                        objectArr: =..apiRequest.insuranceCard.docQueryResp.doc
+                                        key: isShowMedicalInsuranceInfo
+                                        value: none
+                                      dataOut: PatientManagement.formData.patdInfoMedicalInsurance
+                            # 拼串操作
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.less:
+                                        dataIn:
+                                          num1: =..formData.gotoPageNum
+                                          num2: 1
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.number.less:
+                                                dataIn:
+                                                  num1: =..formData.gotoPageNum
+                                                  num2: =..formData.totalPageMore
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.array.splitTableList:
+                                                    dataIn:
+                                                      arrObj: =..formData.patientList
+                                                      numX: "12"
+                                                      numY: =..formData.gotoPageNum
+                                                    dataOut: PatientManagement.formData.tableData
+                                                - ..formData.tableList@: =..formData.tableData.0
+                                                - =.builtIn.string.concat:
+                                                    dataIn:
+                                                      - =..formData.gotoPageNum
+                                                      - " / "
+                                                      - =..formData.tableData.1
+                                                    dataOut: PatientManagement.formData.tableCurrentPage
+                                                - =.builtIn.array.setPropertyInterlacedChange:
+                                                    dataIn:
+                                                      arrIn: =..formData.tableList
+                                                      arr: [ "backgroundColor" ]
+                                                      valueArr: [ "0xf5f5f5" ]
+                                                      errorArr: [ "0xffffff" ]
+                                                    dataOut: PatientManagement.formData.tableList
+                                                - ..formData.tablePageNum@: =..formData.gotoPageNum
+
+                                            - continue
+                                - ..formData.gotoPageNum@: ""
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: tableFooter
+
+        # 看附件的文件
+        - type: popUp
+          viewTag: idImgView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: close.svg
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children:
+                    - type: image
+                      # path: driverLicense.svg
+                      dataKey: formData.patdInfo.identification.imageId
+                      path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+                    # - type: image
+                    #   path: null.png
+                    #   path=func: =.builtIn.utils.prepareDocToPath
+                    #   dataKey: formData.soloAttach.id
+                    #   viewTag: imgView
+                    #   style: 
+                    #     left: "0.05"
+                    #     width: "0.3" 
+                    #     top: "0"
+                    #     height: auto                       
+                    # - type: ecosDoc
+                    #   ecosObj: ..formData.soloAttach
+                    #   viewTag: pdfView
+                    #   style: 
+                    #     left: "0"
+                    #     width: "0.4" 
+                    #     top: "0"
+                    #     height: auto  
+                    #     isHidden: true

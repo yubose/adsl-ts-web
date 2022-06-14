@@ -1,0 +1,462 @@
+PifzerVaccineFirDoseReviewPage5:
+  title: "Pifzer-BioNTech Vaccine - First Dose"
+  pageNumber: null
+  init:
+    #Page initialization
+    - .SignInCheck
+
+  formData:
+    #Input data here
+    consent:
+      - key: medicalInsurance
+        value1: "Yes"
+        value2: "Yes"
+      - key: medicalInsurance
+        value1: "No"
+        value2: "No"
+    newPatFormText:
+      - key: membersID
+        value: Members ID
+      - key: companyName
+        value: Insurance Company Name
+      - key: insuredName
+        value: Insured Name
+      - key: relationship
+        value: Relationship to Patient
+    noTextField:
+      - key: securityNumber
+        value: Social Security Number
+    billingInfo: ""
+
+  formDataTemp:
+    #Input data temp here, datatemp should not mix with formData
+    single:
+      - consent: ""
+
+  apiRequest: null
+    #Input data request here
+
+  style: null
+    #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .SideMenuBar: null
+          children:
+            - .aitLogo: null
+            - .MenuBar: null
+        - .TopBar: null
+        - .BodyView: null
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby: null
+            - .GotoBack: null
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormLeft: null
+                  onClick:
+                    goto: PifzerVaccineFirDoseReviewPage4
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - type: image
+                      path: firDose5_5.svg
+                      style:
+                        marginTop: "0.025"
+                        width: "0.39"
+                    # TYPE TITLE
+                    - .FormsTypeTitle: null
+                        # text: "New Patient Form"
+                        ## CONTENT TITLE
+                    - .FormsContentTitle: null
+                      text: Do You Have Medical Insurance?
+                    - type: view
+                      style:
+                        width: "36vw"
+                        height: "0.06"
+                      children:
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.consent
+                          viewTag: consentView
+                          iteratorVar: itemObject
+                          style:
+                            width: '36vw'
+                            height: "0.04"
+                            margin: '0'
+                            display: flex
+                            axis: horizontal
+                            alignItems: center
+                          children:
+                            - type: listItem
+                              itemObject: null
+                              style:
+                                width: '0.1'
+                                marginTop: "0.01"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                              children:
+                                - type: image
+                                  style:
+                                    width: "0.013"
+                                    height: "0.023"
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =.Global.formData.pifzerVaccineFirDoseForm.name.data.billingInfo.medicalInsurance
+                                                  string2: $var.value1
+                                            - selectBlue.svg
+                                            - selectGray.svg
+                                - type: label
+                                  dataKey: itemObject.value2
+                                  style:
+                                    width: "6vw"
+                                    height: "2vw"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                    fontSize: .Nfont.nf4
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.526"
+                        overflow: scroll
+                        fontSize: .Nfont.nf2
+                        # backgroundColor: "red"
+                      children:
+                        # yes  
+                        - type: view
+                          viewTag: yesPage
+                          style:
+                            height: "auto"
+                            width: "0.39"
+                            # isHidden: true
+                          children:
+                            - type: view
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - .FormsContentTitle: null
+                                  text: IDENTIFICATION
+                                - .FormsBlockText: null
+                                  text: Please upload your Driver license (DL) or federal ID
+                                  style:
+                                    marginTop: "0.02"
+                                - type: label
+                                  text: Front of identification Card
+                                  style:
+                                    fontSize: .Nfont.nf4
+                                    color: "0x707070"
+                                    height: "0.03"
+                                    width: "0.39"
+                                    textAlign:
+                                      x: center
+                                    marginTop: "0.03"
+                                - type: view
+                                  style:
+                                    width: "0.39"
+                                    height: "14vw"
+                                    textAlign:
+                                      x: center
+                                    marginTop: "0.01"
+                                  children:
+                                    # 显示上传的图片
+                                    - type: image
+                                      path: defaultPicture.png
+                                      # 指定刷新组件名称
+                                      viewTag: front_IDCardTag
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.billingInfo.indentification.front_IDCard
+                                      # onClick:
+
+                                      #   # 上传图片处理
+
+                                      #   - actionType: openPhotoLibrary
+
+                                      #     dataKey: BillingInfo.front_IDCard.docReq.name.data
+
+                                      #     dataObject: BLOB
+
+                                      #   # 保存图片数据
+
+                                      #   - actionType: evalObject
+
+                                      #     object:
+
+                                      #       - =..front_IDCard.docAPI.store: ""
+
+                                      #       - ..front_IDCard.docRes@: =.Global.formData.front_IDCard
+
+                                      #   # 刷新image组件
+
+                                      #   - actionType: builtIn
+
+                                      #     funcName: redraw
+
+                                      #     viewTag: front_IDCardTag
+                                      style:
+                                        height: "10vw"
+                                        margin: auto
+                                        width: "0.39"
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - .FormsContentTitle: null
+                                  text: MEDICAL COVERAGE
+                                - .FormsBlockText: null
+                                  text: Please upload your medical insurance card
+                                  style:
+                                    marginTop: "0.02"
+                                - type: view
+                                  style:
+                                    width: "0.39"
+                                    height: "12vw"
+                                    display: flex
+                                    justifyContent: space-around
+                                    alignItems: center
+                                    marginTop: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        width: "0.39"
+                                        height: "12vw"
+                                        display: flex
+                                        flexDirection: column
+                                        justifyContent: center
+                                        alignItems: center
+                                      children:
+                                        - type: label
+                                          text: Front of Insurance Card
+                                          style:
+                                            fontSize: .Nfont.nf4
+                                            color: "0x707070"
+                                            height: "0.03"
+                                            width: "12vw"
+                                            textAlign:
+                                              x: center
+                                        - type: view
+                                          style:
+                                            width: "0.195"
+                                            height: "10vw"
+                                            textAlign:
+                                              x: center
+                                          children:
+                                            # 显示上传的图片
+                                            - type: image
+                                              path: defaultPicture.png
+                                              # 指定刷新组件名称
+                                              viewTag: front_InsuranceCardTag
+                                              path=func: .builtIn.utils.prepareDocToPath
+                                              dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.billingInfo.indentification.front_InsuranceCard
+                                              # onClick:
+
+                                              #   # 上传图片处理
+
+                                              #   - actionType: openPhotoLibrary
+
+                                              #     dataKey: BillingInfo.front_InsuranceCard.docReq.name.data
+
+                                              #     dataObject: BLOB
+
+                                              #   # 保存图片数据
+
+                                              #   - actionType: evalObject
+
+                                              #     object:
+
+                                              #       - =..front_InsuranceCard.docAPI.store: ""
+
+                                              #       - ..front_InsuranceCard.docRes@: =.Global.formData.front_InsuranceCard
+
+                                              #   # 刷新image组件
+
+                                              #   - actionType: builtIn
+
+                                              #     funcName: redraw
+
+                                              #     viewTag: front_InsuranceCardTag 
+                                              style:
+                                                margin: auto
+                                                height: "10vw"
+                                                # left: "0.01"
+
+                                    - type: view
+                                      style:
+                                        width: "0.195"
+                                        height: "12vw"
+                                        display: flex
+                                        flexDirection: column
+                                        justifyContent: center
+                                        alignItems: center
+                                      children:
+                                        - type: label
+                                          text: Back of Insurance Card
+                                          style:
+                                            fontSize: .Nfont.nf4
+                                            color: "0x707070"
+                                            height: "0.03"
+                                            width: "12vw"
+                                            textAlign:
+                                              x: center
+                                        - type: view
+                                          style:
+                                            width: "0.195"
+                                            height: "10vw"
+                                            textAlign:
+                                              x: center
+                                          children:
+                                            # 显示上传的图片
+                                            - type: image
+                                              path: defaultPicture.png
+                                              # 指定刷新组件名称
+                                              viewTag: back_InsuranceCardTag
+                                              path=func: .builtIn.utils.prepareDocToPath
+                                              dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.billingInfo.indentification.back_InsuranceCard
+                                              # onClick:
+
+                                              #   # 上传图片处理
+
+                                              #   - actionType: openPhotoLibrary
+
+                                              #     dataKey: BillingInfo.back_InsuranceCard.docReq.name.data
+
+                                              #     dataObject: BLOB
+
+                                              #   # 保存图片数据
+
+                                              #   - actionType: evalObject
+
+                                              #     object:
+
+                                              #       - =..back_InsuranceCard.docAPI.store: ""
+
+                                              #       - ..back_InsuranceCard.docRes@: =.Global.formData.back_InsuranceCard
+
+                                              #   # 刷新image组件
+
+                                              #   - actionType: builtIn
+
+                                              #     funcName: redraw
+
+                                              #     viewTag: back_InsuranceCardTag 
+                                              style:
+                                                margin: auto
+                                                height: "10vw"
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: auto
+                                width: "0.39"
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.newPatFormText
+                                  iteratorVar: itemObject
+                                  viewTag: identificationTag
+                                  style:
+                                    margin: "0"
+                                    marginTop: "0.04"
+                                    width: "0.39"
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.39"
+                                        height: "0.08"
+                                        display: flex
+                                        justifyContent: flex-start
+                                        alignItems: center
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style:
+                                            height: "0.03"
+                                            width: "0.1"
+                                            display: flex
+                                            alignItems: center
+                                            fontSize: .Nfont.nf2
+                                            color: "0x707070"
+                                        - type: textField
+                                          isEditable: "false"
+                                          placeholder:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - =.builtIn.object.get:
+                                                    dataIn:
+                                                      object: =.Global.formData.pifzerVaccineFirDoseForm.name.data.billingInfo.indentification
+                                                      key: $var.key
+                                          dataValue:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - =.builtIn.object.get:
+                                                    dataIn:
+                                                      object: =.Global.formData.pifzerVaccineFirDoseForm.name.data.billingInfo.indentification
+                                                      key: $var.key
+                                          dataKey: itemObject.dataValue
+                                          onChange:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject # itemObject.value to the input field 
+                                              actions:
+                                                - =.builtIn.object.set:
+                                                    dataIn:
+                                                      object: =.Global.formData.pifzerVaccineFirDoseForm.name.data.billingInfo.indentification
+                                                      key: $var.key
+                                                      value: $var.dataValue
+                                          style:
+                                            width: "0.2"
+                                            height: "0.04"
+                                            border:
+                                              style: "3"
+                                            borderColor: "0xdfe1e5"
+                                            borderRadius: "5px"
+                                            textIndent: "0.5em"
+                                            fontSize: .Nfont.nf2
+                                            boxSizing: border-box
+                                            backgroundColor: "0xffffff"
+                    # - .FormsCloseButton:                                    
+            - .FormsBottomView: null
+              children:
+                - .FormsBottomButtons: null
+                  children:
+                    - .FormsBottomMiddleButton: null
+                      text: Done
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.Global.formData.reviewFromProvider
+                                - goto: PatientSummary
+                                - goto: PatientSummaryRoom

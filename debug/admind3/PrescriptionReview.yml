@@ -1,0 +1,543 @@
+PrescriptionReview:
+  pageNumber: "181"
+  title: "Prescription（RX）"
+  appointmentInfo: .Global.formData.appointment
+  init:
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - actionType: evalObject
+          object:
+            - ..prescription.document@: =.Global.formData.medicalRecords
+        - continue
+    # 判断是否签名
+    - if:
+        - =..prescription.document.name.data.whetherSign
+        - ..formData.signShow@: "none"
+        - ..formData.signShow@: "block"
+    # 判断 prescription
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =..prescription.document.name.data.prescriptionArray
+        dataOut: PrescriptionReview.formDataTemp.listDatalength
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..formDataTemp.listDatalength
+              string2: "0"
+        - ..formDataTemp.flag@: "block"
+        - ..formDataTemp.flag@: "none"
+
+  formDataTemp:
+    listDatalength: ""
+    flag: "none"
+
+  formData:
+    signShow: "none"
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .DownLoadBtn:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    top: "0"
+                    left: "0.117"
+                    height: "0.74"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - .FormsTypeTitle:
+                        - type: scrollView
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.614"
+                            overflow: scroll
+                          children:
+                            # facility info
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.01"
+                                height: "0.1"
+                                overflow: hidden
+                              children:
+                                - .ProFormsBaseView:
+                                  style:
+                                    width: "0.135"
+                                    display: inline-block
+                                  children:
+                                    - type: image
+                                      path: "office-building.svg"
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: prescription.document.name.data.facilityInfo.facilityAvatarID
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.025"
+                                        height: "0.04416"
+                                        display: inline-block
+                                    - type: view
+                                      style:
+                                        marginTop: "0"
+                                        marginLeft: "0.01"
+                                        width: "0.1"
+                                        display: inline-block
+                                      children:
+                                        - .ProFormsLabel:
+                                          dataKey: prescription.document.name.data.facilityInfo.facilityName
+                                          style:
+                                            marginTop: "0"
+                                            fontSize: .Nfont.nf4
+                                        - .ProFormsLabel:
+                                          dataKey: prescription.document.name.data.facilityInfo.address
+                                          style:
+                                            marginTop: "0.01"
+                                            fontSize: .Nfont.nf1
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0.035"
+                                    width: "0.12"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Email
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.facilityInfo.email
+
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Website"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.facilityInfo.website
+
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Main #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.facilityInfo.phone
+
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Fax #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.facilityInfo.fax
+                                          # facility information end
+                                          # patient profile start
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Exam Date
+                                    - .ProFormsLabelRight:
+                                      text=func: .builtIn.string.formatUnixtime_en
+                                      dataKey: prescription.document.name.data.patientInfo.examDate
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Name
+                                    - .ProFormsLabelRight:
+                                      dataKey: prescription.document.name.data.patientInfo.fullName
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date of Birth
+                                    - .ProFormsLabelRight:
+                                      dataKey: prescription.document.name.data.patientInfo.dob
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Phone #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: prescription.document.name.data.patientInfo.phoneNumber
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: prescription.document.name.data.patientInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Address
+                                    - .ProFormsLabelRight:
+                                      dataKey: prescription.document.name.data.patientInfo.address # patient profile end
+                            - .ProFormsDivider: # Prescription
+                            - .ProFormsLabel:
+                              text: Prescription
+                              style:
+                                marginTop: "0.02"
+                            - type: view
+                              viewTag: prescriptionTag
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                marginTop: "0.015"
+                                boxSizing: border-box
+                                border:
+                                  style: "1"
+                                backgroundColor: "0xf4f4f4"
+                                borderRadius: "5"
+                                overflow: hidden
+
+                              children:
+                                - .ProFormsLabel:
+                                  text: No content
+                                  style:
+                                    height: "auto"
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                                    color: "0x333333"
+                                    fontWeight: "500"
+                                    display: ..formDataTemp.flag
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..prescription.document.name.data.prescriptionArray # ..prescription.document.name.data.prescriptionArray
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.39"
+                                    marginLeft: "0.01"
+                                    height: "auto"
+                                  children:
+                                    - type: listItem
+                                      style:
+                                        width: "0.37"
+                                        marginTop: "0.02"
+                                        border:
+                                          style: "1"
+                                        borderWidth: "1"
+                                        borderColor: "0x000000ad"
+                                        boxSizing: border-box
+
+                                      children:
+                                        # Drug
+                                        - type: view
+                                          children:
+                                            - type: label
+                                              text: "&#8226"
+                                              style:
+                                                display: "inline-block"
+                                                verticalAlign: middle
+                                            - .ProFormsLabel:
+                                              text: Drug
+                                              style:
+                                                display: "inline-block"
+                                                marginLeft: "0.005"
+                                                marginTop: "0.01"
+                                            - .ProFormsLabel:
+                                              dataKey: itemObject.drugName
+                                              style:
+                                                color: "0x666666"
+                                                display: "flex"
+                                                marginTop: "0.01"
+                                                marginLeft: "0.005"
+
+                                        - type: view
+                                          style:
+                                            marginTop: "0.015"
+                                            marginLeft: "0.005"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: Generic Name
+                                              style:
+                                                display: "flex"
+                                            - .ProFormsLabel:
+                                              dataKey: itemObject.genericName
+                                              style:
+                                                color: "0x666666"
+                                                display: "flex"
+                                                marginTop: "0.01"
+                                        - type: view
+                                          style:
+                                            marginTop: "0.015"
+                                            marginLeft: "0.005"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: Strength
+                                              style:
+                                                display: "flex"
+                                            - .ProFormsLabel:
+                                              dataKey: itemObject.strength
+                                              style:
+                                                color: "0x666666"
+                                                display: "flex"
+                                                marginTop: "0.01"
+                                        - type: view
+                                          style:
+                                            marginTop: "0.015"
+                                            marginLeft: "0.005"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: Dosage Form
+                                              style:
+                                                display: "flex"
+                                            - .ProFormsLabel:
+                                              dataKey: itemObject.dosage
+                                              style:
+                                                color: "0x666666"
+                                                display: "flex"
+                                                marginTop: "0.01"
+                                        - type: view
+                                          style:
+                                            marginTop: "0.015"
+                                            marginLeft: "0.005"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: Route
+                                              style:
+                                                display: "flex"
+                                            - .ProFormsLabel:
+                                              dataKey: itemObject.route
+                                              style:
+                                                color: "0x666666"
+                                                display: "flex"
+                                                marginTop: "0.01"
+                                        - type: view
+                                          style:
+                                            marginTop: "0.015"
+                                            width: "0.39"
+                                            marginLeft: "0.005"
+                                            paddingBottom: "0.0046"
+                                          children:
+                                            - type: view
+                                              style:
+                                                display: "inline-block"
+                                              children:
+                                                - .ProFormsLabel:
+                                                  text: Quantity
+                                                  style:
+                                                    display: "flex"
+                                                - .ProFormsLabel:
+                                                  dataKey: itemObject.frequency
+                                                  style:
+                                                    color: "0x666666"
+                                                    display: "flex"
+                                                    marginTop: "0.01"
+
+                                            - type: view
+                                              style:
+                                                display: "inline-block"
+                                                marginLeft: '0.08'
+                                              children:
+                                                - .ProFormsLabel:
+                                                  text: Directions
+                                                  style:
+                                                    display: "flex"
+                                                - .ProFormsLabel:
+                                                  dataKey: itemObject.disp
+                                                  style:
+                                                    color: "0x666666"
+                                                    display: "flex"
+                                                    marginTop: "0.01"
+                                            - type: view
+                                              style:
+                                                display: "inline-block"
+                                                marginLeft: '0.08'
+                                              children:
+                                                - .ProFormsLabel:
+                                                  text: Refills
+                                                  style:
+                                                    display: "flex"
+                                                - .ProFormsLabel:
+                                                  dataKey: itemObject.refills
+                                                  style:
+                                                    color: "0x666666"
+                                                    display: "flex"
+                                                    marginTop: "0.01"
+
+                            - type: view
+                              style:
+                                # height: "0.06"
+                                width: "0.39"
+                                marginTop: "0.04"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Prescription is VOID if the number of drugs prescribed is not noted."
+                                - .ProFormsLabelRight:
+                                  dataKey: prescription.document.name.data.prescriptionCount
+
+                            # signature
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                width: "0.275"
+                                display: flex
+                                justifyContent: space-between
+                              children:
+                                - .ProFormsLabel:
+                                  text: Signature
+                                  style:
+                                    display: inline-block
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                # 签名区域
+                                - type: image
+                                  path=func: =.builtIn.utils.prepareDocToPath
+                                  dataKey: prescription.document.name.data.signatureId
+                                  viewTag: signatureTag
+                                  style:
+                                    left: "0"
+                                    width: "0.275"
+                                    top: "0"
+                                    height: "0.165"
+                                    display: ..formData.signShow
+                              #签名时间
+                            - .ProFormsBaseView:
+                              style:
+                                display: ..formData.signShow
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text=func: .builtIn.string.formatUnixtime_en
+                                  dataKey: prescription.document.name.data.signatureTime
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelLeft:
+                                  text: " Digitally Signed"
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.01"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Date"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtimeL_en
+                                  dataKey: prescription.document.ctime
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+
+                            # Signature END
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabel:
+                                      dataKey: prescription.document.name.data.providerInfo.providerFullName
+                                      style:
+                                        fontSize: .Nfont.nf4
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: prescription.document.name.data.providerInfo.specialty
+                                          style:
+                                            lineHeight: "2vh"
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "LIC #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.providerInfo.lic
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "NPI #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.providerInfo.npi
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "DEA #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.providerInfo.dea
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Email"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.providerInfo.email
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Fax #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.facilityInfo.fax
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Main #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.facilityInfo.phone
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Address"
+                                        - .ProFormsLabelRight:
+                                          dataKey: prescription.document.name.data.facilityInfo.address
+                                - .ProFormsDivider:
+
+
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+
+        - .BaseWarningView:
+        - .BaseWarningView:
+          viewTag: checkView
+          message: "The count of prescriptions is inconformity"
