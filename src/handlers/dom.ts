@@ -68,6 +68,7 @@ const createExtendedDOMResolvers = function (app: App) {
       const value = (event.target as any)?.value || ''
 
       if (iteratorVar) {
+        console.log('test4')
         const dataObject = findListDataObject(component)
         if (dataObject) {
           set(
@@ -78,6 +79,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           component.edit('data-value', value)
           node.dataset.value = value
+          await actionChain?.execute?.(event)
         } else {
           log.red(
             `A ${component.type} component from a "${evtName}" handler tried ` +
