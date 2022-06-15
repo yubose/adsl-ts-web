@@ -450,32 +450,30 @@ const createActions = function createActions(app: App) {
     },
   )
 
-  const getBlob = async (
-    file: File | undefined,
-    action,
-    options,
-  ): Promise<Blob> => {
-    return new Promise((res, rej) => {
-      let blob: Blob = new Blob()
-      let img = document.createElement('img') as HTMLImageElement
-      let rootDom = document.getElementsByTagName('body')[0]
-      let divRootDom = document.createElement('div') as HTMLDivElement
-      let divImgDom = document.createElement('div') as HTMLDivElement
-      let btnResult = document.createElement('button') as HTMLButtonElement
-      let btnCancel = document.createElement('button') as HTMLButtonElement
-      let divDom = document.createElement('div') as HTMLDivElement
-      let divBtn = document.createElement('div') as HTMLDivElement
-      let cropper
-      btnResult.textContent = '确定'
-      btnCancel.textContent = '取消'
-      divRootDom.setAttribute('id', 'rootDom')
-      divRootDom.style.cssText = `
-            position: absolute;
-            height: 100%;
-            width: 100%;
+  const getBlob = (file:File | undefined,action,options):Promise<Blob>=>{
+    return new Promise((res,rej)=>{
+      let blob:Blob = new Blob();
+      let img = document.createElement("img") as HTMLImageElement;
+      let rootDom = document.getElementsByTagName("body")[0];
+      let divRootDom = document.createElement("div") as HTMLDivElement;
+      let divImgDom = document.createElement("div") as HTMLDivElement;
+      let btnResult = document.createElement("button") as HTMLButtonElement;
+      let btnCancel = document.createElement("button") as HTMLButtonElement;
+      let divDom = document.createElement("div") as HTMLDivElement;
+      let divBtn = document.createElement("div") as HTMLDivElement;
+      let cropper;
+        btnResult.textContent = "Confirm";
+        btnCancel.textContent = "Cancel";
+        divRootDom.setAttribute("id","rootDom");
+        let w = document.documentElement.scrollWidth;
+        let h = document.documentElement.scrollHeight;
+        divRootDom.style.cssText = `
+            position: relative;
             background-color: #fff;
             z-index: 10000000;
             display: flex;
+            width: ${w}px;
+            height: ${h}px;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -582,10 +580,16 @@ const createActions = function createActions(app: App) {
     })
   }
 
-  const _getInjectBlob: (
-    name: string,
-  ) => Function | Store.ActionObject['fn'] = (name) =>
-    // true?function hh(){}:
+  const CSVToJSON = (data, csvTitleKbn:string[], delimiter = ',') => {
+    const hanleData:string[] = data.slice(data.indexOf('\n') + 1).split('\n');
+    return hanleData.map(v => {
+        const values = v.split(delimiter);
+        return csvTitleKbn.reduce(
+            (obj, title, index) => (obj[title] = values[index], obj),{});
+    });
+};
+  const _getInjectBlob: (name: string) => Store.ActionObject['fn']|Function = (name) =>
+  // true?function hh(){}:
     async function getInjectBlob(action, options) {
       options.ref?.clear('timeout')
       log.func(name)
@@ -593,20 +597,21 @@ const createActions = function createActions(app: App) {
       const result = await openFileSelector()
       log.func(name)
       switch (result.status) {
-        case 'selected': {
-          const { files } = result
-          const ac = options?.ref
-          const comp = options?.component
-          const dataKey = _pick(action, 'dataKey')
-          const documentType = _pick(action, 'documentType')
-          const downloadStatus = _pick(action, 'downloadStatus')
-          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
-          const fileFormat = _pick(action, 'fileFormat')
-          const shearState = _pick(action, 'shearState')
-          let fileRell: File | undefined
-          if (shearState) {
-            const hreFile = await getBlob(files?.[0], action, options)
-            fileRell = new File([hreFile], files?.[0].name as string)
+        case 'selected':
+          const { files } = result;
+          const ac = options?.ref;
+          const comp = options?.component;
+          const dataKey = _pick(action, 'dataKey');
+          const documentType = _pick(action, 'documentType');
+          const downloadStatus = _pick(action, 'downloadStatus');
+          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000;
+          const fileFormat = _pick(action, 'fileFormat');
+          const shearState = _pick(action,"shearState");
+          let fileRell:File|undefined;
+
+          if(Boolean(shearState)){
+            const hreFile = await getBlob(files?.[0],action,options);
+            fileRell = new File([hreFile],files?.[0].name as string)
           }
 
           if (ac && comp) {
@@ -617,24 +622,68 @@ const createActions = function createActions(app: App) {
               )
               app.updateRoot(downloadStatus, status)
             }
-            // let blob:Blob = await upload(files?.[0]);
             if (fileFormat) {
               ac.data.set(fileFormat, files?.[0].type)
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
             }
             if (u.isStr(dataKey)) {
+              if(files?.[0].type.endsWith("/csv")){
+                // CSV标题汉字所对应的区分名
+
+              const csvTitleKbn:string[] = [
+                "Handle", "Title",
+                "Body (HTML)","Vendor",
+                "Standardized Product Type",
+                "Custom Product Type",
+                "Tags","Published",
+                "Option1 Name",
+                "Option1 Value",
+                "Option2 Name",
+                "Option2 Value",
+                "Option3 Name",
+                "Option3 Value",
+                "Variant SKU",
+                "Variant Grams",
+                "Variant",
+                "Variant Inventory Qty",
+                "Variant Fulfillment Service",
+                "Variant Compare At Price",
+                "Variant Requires Shipping",
+                "Variant Taxable",
+                "Variant Barcode","Image Src",
+                "Image Position","Image Alt Text","Gift Card","SEO Title",
+                "SEO Description","Google Shopping / Google Product Category",
+                "Google Shopping / Gender","Google Shopping / MPN",
+                "Google Shopping / AdWords Grouping","Google Shopping / AdWords Labels",
+                "Google Shopping / Condition","Google Shopping / Custom Product",
+                "Google Shopping / Custom Label 0","Google Shopping / Custom Label 1",
+                "Google Shopping / Custom Label 2","Google Shopping / Custom Label 3",
+                "Google Shopping / Custom Label 4","Variant Image","Variant Weight Unit",
+                "Variant Tax Code","Cost per item","Status"
+              ];
+              console.log("vvv", ac.data.get("data-option"))
+              // console.log("nnnn",ac.data.get(""))
+               // 构建文件读取对象
+              const reader:FileReader  = new FileReader();
+              // 将上传的文件读取为文本
+              reader.readAsText(files?.[0]);
+              reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
+                // 将CSV文本转换为JSON数据
+                const jsonFromCsvFile:{[key in string]:string}[] = CSVToJSON(csvText.target?.result, csvTitleKbn);
+                ac.data.set(dataKey, jsonFromCsvFile);
+                app.updateRoot(dataKey, ac.data.get(dataKey))
+            });
+            }else{
               await imageConversion
-                .compressAccurately(fileRell || ac.data.get(dataKey), size)
-                .then((dataBlob) => {
-                  let newFile =
-                    dataBlob instanceof File
-                      ? dataBlob
-                      : new File([dataBlob], ac.data.get(dataKey).name, {
-                          type: files?.[0].type,
-                        })
-                  app.updateRoot(dataKey, newFile)
+              .compressAccurately(fileRell||ac.data.get(dataKey), size)
+              .then((dataBlob) => {
+                let newFile = new File([dataBlob], ac.data.get(dataKey).name, {
+                  type: files?.[0].type,
                 })
-            } else {
+                app.updateRoot(dataKey, newFile)
+              })
+            }
+            }else {
               log.red(
                 `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
               )
@@ -681,7 +730,7 @@ const createActions = function createActions(app: App) {
             )
           }
           break
-        }
+
         case 'canceled':
           await options?.ref?.abort?.('File input window was closed')
           break
