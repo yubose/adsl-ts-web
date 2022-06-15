@@ -79,7 +79,6 @@ const createExtendedDOMResolvers = function (app: App) {
 
           component.edit('data-value', value)
           node.dataset.value = value
-          await actionChain?.execute?.(event)
         } else {
           log.red(
             `A ${component.type} component from a "${evtName}" handler tried ` +
@@ -88,7 +87,7 @@ const createExtendedDOMResolvers = function (app: App) {
           )
         }
         // TODO - Come back to this to provide more robust functionality
-        if (is.folds.emit(component.blueprint.dataValue)) {
+        if (component.blueprint?.onInput) {
           await actionChain?.execute?.(event)
         }
       } else {
