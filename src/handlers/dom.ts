@@ -1601,7 +1601,11 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               margin: 0;
               padding: 0;
-            `
+            `;
+            let videoBor = document.getElementsByClassName("swiper-container")[0];
+            let videolist = videoBor.getElementsByTagName("video");
+            let v = videolist[0];
+
               let mySwiper: Swiper= new Swiper('.swiper-container', {
                 // 内部元素之间的空隙
                 spaceBetween: option.spaceBetween,
@@ -1638,8 +1642,22 @@ const createExtendedDOMResolvers = function (app: App) {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev'
               },
+              on:{
+                slideChangeTransitionStart: function () {
+                  if (this.activeIndex!==0) {
+                    v.pause();
+                  }
+                }
+              }
             // observer:true,//修改swiper自己或子元素时，自动初始化swiper
             // observeParents:true//修改swiper的父元素时，自动初始化swiper
+              })
+
+              v.addEventListener("play", ()=>{
+                mySwiper.autoplay.stop();
+              })
+              v.addEventListener("pause",()=>{
+                mySwiper.autoplay.start();
               })
               if(option.navigation){
                 node.addEventListener("mouseenter",()=>{
