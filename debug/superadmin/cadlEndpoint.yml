@@ -1,0 +1,37 @@
+baseUrl: ${cadlBaseUrl}
+assetsUrl: ${cadlBaseUrl}assets/
+languageSuffix:
+  zh_CN : _cn
+  es_ES : _es
+  unknown : _en
+fileSuffix: .yml
+startPage: SignIn
+preload:
+  - SideMenuBarDM
+  - MenuBar
+  - BasePage  
+  - BaseCSS
+  - BaseDataModel
+  - BaseDate
+  - DataResource
+page:
+  - AdminIstrator
+  - AdminList
+  - CashOut
+  - CreateNewAccount
+  - FacilityInfo1
+  - LogOut
+  - PrivacyPolicy
+  - SignIn
+  - SignUp
+  - StatementsAngle
+  - StatementsDetail
+  - StatementsView
+  - Statements
+  - SubscriptionAgreement
+  - TransactionsAngle
+  - Transactions
+  - Transfer
+  - UserAgreement
+  - Vendors
+  - OrderDetail

@@ -26,6 +26,7 @@ wsClient
 ;(async () => {
   try {
     const resp = await axios.get(`http://127.0.0.1:3000/routes`)
+
     resp.data.stack.forEach((obj) => {
       if (obj.route?.path) {
         console.dir(obj.route?.path, { depth: Infinity })

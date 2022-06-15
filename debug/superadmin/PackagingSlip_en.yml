@@ -1,0 +1,351 @@
+PackagingSlip:
+  title: "Order Details"
+  pageNumber: 
+  init: #Page initialization
+    # - =.builtIn.array.setPropertyInterlacedChange:
+    #     dataIn:
+    #       arrIn: =..formDataTemp.itemList
+    #       arr: ["backgroundColor"]
+    #       valueArr: ["0xf5f5f5"]
+    #       errorArr: ["0xffffff"]  
+    #     dataOut: PackagingSlip.formDataTemp.itemList 
+  formData: #Input data here
+
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    itemList: 
+      - name: K02 - Knee Aluminum Hinged Guard
+        quantity: 1
+      - name: Back Brace Support
+        quantity: 1
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+          children:
+            - .aitLogo:
+            - .MenuBar:        
+        - .TopBar: 
+        - .InnerBodyView:
+          children:
+            - .TransactionsAndMoneyView: 
+              children:
+                - .PageTitleLabelHasReceivedMoney:
+            - type: view
+              style:
+                top: "0.03"
+                left: "0.69"
+              children:
+                - type: image
+                  path: downLoadBlue.svg
+                  style:
+                    verticalAlign: middle
+                    display: inline-block
+                    width: "0.0087"
+                    height: "0.0163"
+                - type: label
+                  text: "Download"
+                  style:
+                    display: inline-block
+                    verticalAlign: middle
+                    marginLeft: "0.0046"
+                    color: "0x005795"
+                    fontSize: .Nfont.nf3
+                    fontWeight: "600" 
+            - .GotoBack:
+              style:  
+                top: "0.03"
+                left: "0.775"
+            - .ContentBar:
+              style: 
+                # backgroundColor: "0x00579533"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                  children: 
+                    - .FormsTypeTitle:
+                      text: "Packaging Slip"
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.614"
+                        overflow: scroll 
+                      children: 
+                        # facility info start
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - type: view
+                              style:
+                                width: "0.135"
+                                display: inline-block
+                              children: 
+                                - type: image
+                                  path: "office-building.svg"
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: 
+                                  style:
+                                    marginTop: "0.005"
+                                    width: "0.025"
+                                    height: "0.04416"
+                                    display: inline-block
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    marginLeft: "0.01"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children: 
+                                    - .ProFormsLabel:
+                                      text: "A&C Urgent Care"
+                                      dataKey:
+                                      style:
+                                        marginTop: "0"
+                                        fontSize: .Nfont.nf4
+                                    - .ProFormsLabel:
+                                      text: "1000 S Anaheim Blvd Ste 200 Anaheim, CA 92805"
+                                      dataKey: 
+                                      style:
+                                        marginTop: "0.01"
+                                        fontSize: .Nfont.nf1
+                            - type: view
+                              style:
+                                marginLeft: "0.035"
+                                width: "0.12"
+                                display: inline-block
+                              children:
+                                - type: view    
+                                  children:            
+                                    - .ProFormsLabelLeft:
+                                      text: Email
+                                    - .ProFormsLabelRight:
+                                      dataKey:
+                                - type: view    
+                                  children: 
+                                    - .ProFormsLabelLeft:
+                                      text: "Website"
+                                    - .ProFormsLabelRight:
+                                      dataKey: 
+                            - type: view
+                              style:
+                                marginLeft: "0"
+                                width: "0.1"
+                                display: inline-block
+                              children:       
+                                - type: view    
+                                  children: 
+                                    - .ProFormsLabelLeft:
+                                      text: "Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: Global.phoneNumber
+                                - type: view    
+                                  children:                          
+                                    - .ProFormsLabelLeft:
+                                      text: "Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: 
+                        # date/order
+                        - type: view
+                          style: 
+                            marginTop: "0.025"
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Date 
+                                - .ProFormsLabelRight:
+                                  dataKey: 
+                            - type: view
+                              children:             
+                                - .ProFormsLabelLeft:
+                                  text: "Order #"
+                                - .ProFormsLabelRight:
+                                  dataKey: 
+                        - .BoldDivider: 
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                          children: 
+                            - type: view 
+                              style: 
+                                width: "0.04"
+                                display: inline-block
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Ship To:"
+                            - type: view  
+                              style:
+                                width: "0.34"
+                                display: inline-block
+                              children: 
+                                - type: view 
+                                  style: 
+                                    width: "0.36"
+                                    display: inline-block
+                                  children:
+                                    - type: view
+                                      style: 
+                                        display: inline-block
+                                        width: "0.092"
+                                      children:
+                                        - .ProFormsLabelLeft: 
+                                          text: "Name"
+                                        - .ProFormsLabelRight: 
+                                          text: "1234 ABC St"
+                                    - type: view
+                                      style: 
+                                        # width: "0.25"
+                                        marginLeft: "0.005"
+                                        display: inline-block
+                                      children:
+                                        - .ProFormsLabelLeft: 
+                                          text: "Email"
+                                        - .ProFormsLabelRight: 
+                                          text: "1234 ABC St"
+
+                                - type: view 
+                                  style: 
+                                    width: "0.36"
+                                    display: inline-block
+                                  children:
+                                    - type: view
+                                      style: 
+                                        display: inline-block
+                                        width: "0.092"
+                                      children:
+                                        - .ProFormsLabelLeft: 
+                                          text: "Phone #"
+                                        - .ProFormsLabelRight: 
+                                          text: "+18881234567"
+                                    - type: view
+                                      style: 
+                                        width: "0.25"
+                                        marginLeft: "0.005"
+                                        display: inline-block
+                                        
+                                      children:
+                                        - .ProFormsLabelLeft: 
+                                          text: "Address"
+                                        - .ProFormsLabelRight: 
+                                          text: "Sedona Airport (SEZ), 1185, Airport Rd, Sedona"
+                                          style: 
+                                            width: "0.21"
+                                         
+                        - type: view
+                          style:
+                            marginTop: "0.03" 
+                          children:
+                            - .ProFormsLabel:
+                              text: "Items"
+                            - .FormMeterBlue: ""
+                              style: 
+                                marginTop: "0.0046"
+                                width: "0.38584"
+                                borderColor: "0xdedede"
+                                height: "0.041"
+                              children:
+                                - .FormTemplate: ""
+                                  text: "#"
+                                  style:
+                                    paddingLeft: "16px"
+                                    width: "0.05" 
+                                - .FormTemplate: ""
+                                  text: "Name"
+                                  style: 
+                                    width: "0.283" 
+                                - .FormTemplate: ""
+                                  text: "Quantity"
+                                  style: 
+                                    width: "auto"
+                            - type: view  
+                              style: 
+                                width: "0.38584" 
+                                boxSizing: border-box
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.itemList
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.38584"
+                                    margin: '0'
+                                    padding: "0"
+                                    borderLeft: "1px solid #dbdbdb"
+                                    borderRight: "1px solid #dbdbdb"
+                                    boxSizing: border-box
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        height: '0.04'
+                                        display: flex
+                                        align-items: center
+                                        align-content: center
+                                        backgroundColor: itemObject.backgroundColor
+                                        borderBottom: "1px solid #dbdbdb"
+                                        boxSizing: border-box
+                                      children:
+                                        - type: label
+                                          dataKey: listAttr.index
+                                          style:
+                                            width: "0.05"
+                                            paddingLeft: "16px"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            fontSize: .Nfont.nf1
+                                            overflow: hidden
+                                            textOverflow: ellipsis
+                                            whiteSpace: nowrap
+                                        - type: label
+                                          dataKey: itemObject.name
+                                          style:
+                                            width: "0.283"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            paddingLeft: "8px"
+                                            fontSize: .Nfont.nf1
+                                            overflow: hidden
+                                            textOverflow: ellipsis
+                                            whiteSpace: nowrap
+                                        - type: label
+                                          dataKey: itemObject.quantity
+                                          style:
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            paddingLeft: "0.015"
+                                            fontSize: .Nfont.nf1
+                                            textOverflow: ellipsis
+                                            whiteSpace: nowrap
+                                            overflow: hidden
+                        - type: view 
+                          style: 
+                            display: flex 
+                            marginTop: "0.045"
+                            align-items: center
+                            flex-direction: column
+                          children:
+                            - .ProFormsLabel: 
+                              text: "Thank you for Shopping with Us!"
+                            - .ProFormsLabel: 
+                              text: "AiTmed Inc"
+                              style: 
+                                fontWeight: ""
+                                marginTop: "0.02"
+                            - .ProFormsLabel: 
+                              text: "1000 S Anaheim Blvd Ste 306 Anaheim, CA 92805"
+                              style: 
+                                fontWeight: ""
+                                marginTop: "0.01"
+                            - .ProFormsLabel: 
+                              text: "customerinfo@aitmed.com"
+                              style: 
+                                fontWeight: ""
+                                marginTop: "0.01"

@@ -232,6 +232,7 @@ function getWebpackConfig(env) {
       modules: ['node_modules'],
       fallback: {
         assert: false,
+        buffer: false,
         constants: require.resolve('constants-browserify'),
         crypto: require.resolve('crypto-browserify'),
         http: require.resolve('stream-http'),

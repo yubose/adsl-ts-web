@@ -1,0 +1,19 @@
+{
+  "unversionedId": "api-reference/api-reference",
+  "id": "api-reference/api-reference",
+  "title": "API Reference",
+  "description": "",
+  "source": "@site/docs/api-reference/api-reference.md",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/",
+  "permalink": "/docs/api-reference/",
+  "draft": false,
+  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/api-reference/api-reference.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "API Reference"
+  }
+}
