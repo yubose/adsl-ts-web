@@ -1644,21 +1644,43 @@ const createExtendedDOMResolvers = function (app: App) {
               },
               on:{
                 slideChangeTransitionStart: function () {
-                  if (this.activeIndex!==0) {
-                    v.pause();
+                  if(v){
+                    // @ts-ignore
+                    if (this.activeIndex!==0) {
+                      v.pause();
+                    }
+                    v.addEventListener("play", ()=>{
+                      mySwiper.autoplay.stop();
+                    })
                   }
+
                 }
               }
             // observer:true,//修改swiper自己或子元素时，自动初始化swiper
             // observeParents:true//修改swiper的父元素时，自动初始化swiper
               })
+              if(v){
 
-              v.addEventListener("play", ()=>{
-                mySwiper.autoplay.stop();
-              })
-              v.addEventListener("pause",()=>{
-                mySwiper.autoplay.start();
-              })
+                // v.addEventListener("click",()=>{
+                //   console.log("vvvv",v);
+
+                //   v.play();
+
+                // })
+                v.load();
+                v.addEventListener("click",()=>{
+                  if (!v.played) {
+                    v.play();
+                }
+                })
+                if(option.autoplay){
+                  v.addEventListener("pause",()=>{
+                    mySwiper.autoplay.start();
+                  })
+                }
+
+              }
+
               if(option.navigation){
                 node.addEventListener("mouseenter",()=>{
                   prevBtn.style.opacity = "1";
