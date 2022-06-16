@@ -613,7 +613,6 @@ const createActions = function createActions(app: App) {
             const hreFile = await getBlob(files?.[0],action,options);
             fileRell = new File([hreFile],files?.[0].name as string)
           }
-
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
             if (documentType && downloadStatus) {
@@ -629,47 +628,13 @@ const createActions = function createActions(app: App) {
             if (u.isStr(dataKey)) {
               if(files?.[0].type.endsWith("/csv")){
                 // CSV标题汉字所对应的区分名
-
-              const csvTitleKbn:string[] = [
-                "Handle", "Title",
-                "Body (HTML)","Vendor",
-                "Standardized Product Type",
-                "Custom Product Type",
-                "Tags","Published",
-                "Option1 Name",
-                "Option1 Value",
-                "Option2 Name",
-                "Option2 Value",
-                "Option3 Name",
-                "Option3 Value",
-                "Variant SKU",
-                "Variant Grams",
-                "Variant",
-                "Variant Inventory Qty",
-                "Variant Fulfillment Service",
-                "Variant Compare At Price",
-                "Variant Requires Shipping",
-                "Variant Taxable",
-                "Variant Barcode","Image Src",
-                "Image Position","Image Alt Text","Gift Card","SEO Title",
-                "SEO Description","Google Shopping / Google Product Category",
-                "Google Shopping / Gender","Google Shopping / MPN",
-                "Google Shopping / AdWords Grouping","Google Shopping / AdWords Labels",
-                "Google Shopping / Condition","Google Shopping / Custom Product",
-                "Google Shopping / Custom Label 0","Google Shopping / Custom Label 1",
-                "Google Shopping / Custom Label 2","Google Shopping / Custom Label 3",
-                "Google Shopping / Custom Label 4","Variant Image","Variant Weight Unit",
-                "Variant Tax Code","Cost per item","Status"
-              ];
-              console.log("vvv", ac.data.get("data-option"))
-              // console.log("nnnn",ac.data.get(""))
                // 构建文件读取对象
               const reader:FileReader  = new FileReader();
               // 将上传的文件读取为文本
               reader.readAsText(files?.[0]);
               reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
                 // 将CSV文本转换为JSON数据
-                const jsonFromCsvFile:{[key in string]:string}[] = CSVToJSON(csvText.target?.result, csvTitleKbn);
+                const jsonFromCsvFile:{[key in string]:string}[] = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
                 ac.data.set(dataKey, jsonFromCsvFile);
                 app.updateRoot(dataKey, ac.data.get(dataKey))
             });

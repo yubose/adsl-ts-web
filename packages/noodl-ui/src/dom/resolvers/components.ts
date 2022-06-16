@@ -969,9 +969,7 @@ const componentsResolver: t.Resolve.Config = {
           console.log(args)
 
           if (args.component.blueprint?.['path=func']) {
-            console.log('pppp', await args.component?.get?.(c.DATA_VALUE))
             args.component?.get?.(c.DATA_VALUE)?.then?.((path: any) => {
-              console.log('fff', path)
               setAttr('src', path?.url)
             })
           }
