@@ -642,7 +642,7 @@ const createActions = function createActions(app: App) {
               await imageConversion
               .compressAccurately(fileRell||ac.data.get(dataKey), size)
               .then((dataBlob) => {
-                let newFile = new File([dataBlob], ac.data.get(dataKey).name, {
+                let newFile = dataBlob instanceof File ? dataBlob :  new File([dataBlob], ac.data.get(dataKey).name, {
                   type: files?.[0].type,
                 })
                 app.updateRoot(dataKey, newFile)
