@@ -434,7 +434,9 @@ const componentsResolver: t.Resolve.Config = {
         else if (Identify.component.label(args.component)) {
           if (args.node) {
             if (args.component.get(c.DATA_VALUE)) {
-              setAttr('innerHTML', String(args.component.get(c.DATA_VALUE)))
+              let content = String(args.component.get(c.DATA_VALUE))
+              content = content.indexOf('\n')!==-1?content.replace(/\n/g,'<br>'):content
+              setAttr('innerHTML', content)
             } else if (text) {
               setAttr('innerHTML', String(text))
             } else if (args.component.get(c.DATA_PLACEHOLDER)) {

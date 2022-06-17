@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="73" height="27" viewBox="0 0 73 27">
+  <g id="组_9251" data-name="组 9251" transform="translate(-1725 -213)">
+    <text id="Save" transform="translate(1777 235)" fill="#045795" font-size="20" font-family="SegoeUI, Segoe UI"><tspan x="-20.42" y="0">Save</tspan></text>
+    <g id="组_9250" data-name="组 9250" transform="translate(70 30)">
+      <path id="路径_9093" data-name="路径 9093" d="M197.32,184.32h-11a1.84,1.84,0,0,0-2,2v12a1.84,1.84,0,0,0,2,2h12a1.84,1.84,0,0,0,2-2v-10.8a.454.454,0,0,0-.15-.35Zm0,7h-10v-7h10Z" transform="translate(1470.68 5.68)" fill="#045795"/>
+      <path id="路径_9094" data-name="路径 9094" d="M512.495,184.32h1.98a.468.468,0,0,1,.5.5v3.96a.468.468,0,0,1-.5.5h-1.98a.468.468,0,0,1-.5-.5v-3.96A.468.468,0,0,1,512.495,184.32Z" transform="translate(1151.019 5.68)" fill="#045795" opacity="0.3"/>
+    </g>
+  </g>
+</svg>

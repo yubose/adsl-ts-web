@@ -25,10 +25,6 @@ EditProduct:
       - ..formData.isHiddenEdit@: false
       - ..formData.isHiddenEdit@: true
     - if:
-      - =..apiRequest.production.docStoreReq.name.data.options.isHasOptions
-      - ..formData.isShowVariants@: block
-      - ..formData.isShowVariants@: none
-    - if:
       - =..apiRequest.production.docStoreReq.name.data.inventory.isSamePickUpLocation
       - ..formData.isDisplayLocation@: "none"
       - ..formData.isDisplayLocation@: "block"
@@ -75,8 +71,8 @@ EditProduct:
         dataOut: EditProduct.formData.detailImgIds.firstId
     - if:
       - =..formData.detailImgIds.firstId
-      - ..formData.isShowFirstImg@: block
-      - ..formData.isShowFirstImg@: none
+      - ..formData.isShowFirstImg@: false
+      - ..formData.isShowFirstImg@: true
     - =.builtIn.array.getValueByKey:
         dataIn:
           array: =..apiRequest.detailImg.resp.doc
@@ -86,8 +82,8 @@ EditProduct:
         dataOut: EditProduct.formData.detailImgIds.secondId
     - if:
       - =..formData.detailImgIds.secondId
-      - ..formData.isShowSecondImg@: block
-      - ..formData.isShowSecondImg@: none
+      - ..formData.isShowSecondImg@: false
+      - ..formData.isShowSecondImg@: true
     - =.builtIn.array.getValueByKey:
         dataIn:
           array: =..apiRequest.detailImg.resp.doc
@@ -97,8 +93,8 @@ EditProduct:
         dataOut: EditProduct.formData.detailImgIds.thirdId
     - if:
       - =..formData.detailImgIds.thirdId
-      - ..formData.isShowThirdImg@: block
-      - ..formData.isShowThirdImg@: none
+      - ..formData.isShowThirdImg@: false
+      - ..formData.isShowThirdImg@: true
     - =.builtIn.array.getValueByKey:
         dataIn:
           array: =..apiRequest.detailImg.resp.doc
@@ -108,8 +104,8 @@ EditProduct:
         dataOut: EditProduct.formData.detailImgIds.fourId
     - if:
       - =..formData.detailImgIds.fourId
-      - ..formData.isShowFourImg@: block
-      - ..formData.isShowFourImg@: none
+      - ..formData.isShowFourImg@: false
+      - ..formData.isShowFourImg@: true
     - =.builtIn.array.getValueByKey:
         dataIn:
           array: =..apiRequest.detailImg.resp.doc
@@ -119,8 +115,8 @@ EditProduct:
         dataOut: EditProduct.formData.detailImgIds.fiveId
     - if:
       - =..formData.detailImgIds.fiveId
-      - ..formData.isShowFiveImg@: block
-      - ..formData.isShowFiveImg@: none
+      - ..formData.isShowFiveImg@: false
+      - ..formData.isShowFiveImg@: true
     - =.builtIn.array.getValueByKey:
         dataIn:
           array: =..apiRequest.detailImg.resp.doc
@@ -130,8 +126,8 @@ EditProduct:
         dataOut: EditProduct.formData.detailImgIds.sixId
     - if:
       - =..formData.detailImgIds.sixId
-      - ..formData.isShowSixImg@: block
-      - ..formData.isShowSixImg@: none
+      - ..formData.isShowSixImg@: false
+      - ..formData.isShowSixImg@: true
 
     - =..apiRequest.video.docAPI.get: ""
     - ..apiRequest.video.storeResp.doc@: =..apiRequest.video.resp.doc.0
@@ -139,14 +135,8 @@ EditProduct:
       - =..apiRequest.video.resp.doc.0.id
       - ..formData.videoId@: =..apiRequest.video.resp.doc.0.id
       - continue
-    - if: 
-      - =..apiRequest.coverPhoto.document.id
-      - ..formData.isShowCoverImg@: block
-      - continue
 
   formData:
-    isShowVariants: ""
-    errorArr: []
     videoId: ""
     controlVideo: none
     isShowCoverImg: ""
@@ -542,47 +532,8 @@ EditProduct:
                               - =.builtIn.string.judgeFillinAll:
                                   dataIn:
                                     - =..apiRequest.production.docStoreReq.name.data.basicInfo.title
-                                    - =..apiRequest.production.docStoreReq.name.data.basicInfo.type
-                                    - =..apiRequest.production.docStoreReq.name.data.basicInfo.vendor
-                                    - =..apiRequest.production.docStoreReq.name.data.basicInfo.introduction
-                                    - =..apiRequest.coverPhoto.storeResp.doc.id
-                                    - =..apiRequest.production.docStoreReq.name.data.pricing.price
-                              - =.builtIn.array.judgeKeyAndReturnValue:         
-                                  dataIn:
-                                    objArr: 
-                                      - key: "Title"
-                                        value: =..apiRequest.production.docStoreReq.name.data.basicInfo.title
-                                      - key: "Type"
-                                        value: =..apiRequest.production.docStoreReq.name.data.basicInfo.type
-                                      - key: "Vendor"
-                                        value: =..apiRequest.production.docStoreReq.name.data.basicInfo.vendor
-                                      - key: "Introduction"
-                                        value: =..apiRequest.production.docStoreReq.name.data.basicInfo.introduction
-                                      - key: "Cover image"
-                                        value: =..apiRequest.coverPhoto.storeResp.doc.id
-                                      - key: "Price"
-                                        value: =..apiRequest.production.docStoreReq.name.data.pricing.price
-                                    pathKey: "key"
-                                    pathValue: "value"
-                                    valueArr: ["","Select"]
-                                  dataOut:  EditProduct.formData.errorArr
-                              - continue
-                        - actionType: builtIn
-                          funcName: redraw
-                          viewTag: errorView
-                        - actionType: evalObject
-                          object:
-                            - if:
-                              - =.builtIn.string.judgeFillinAll:
-                                  dataIn:
-                                    - =..apiRequest.production.docStoreReq.name.data.basicInfo.title
-                                    - =..apiRequest.production.docStoreReq.name.data.basicInfo.type
-                                    - =..apiRequest.production.docStoreReq.name.data.basicInfo.vendor
-                                    - =..apiRequest.production.docStoreReq.name.data.basicInfo.introduction
-                                    - =..apiRequest.coverPhoto.storeResp.doc.id
-                                    - =..apiRequest.production.docStoreReq.name.data.pricing.price
                               - actionType: popUp
-                                popUpView: errorView
+                                popUpView: notFillView
                                 wait: true
                               - continue
                             - if:
@@ -739,16 +690,8 @@ EditProduct:
                                   dataKey: apiRequest.production.docStoreReq.name.data.basicInfo.title
                             - .AddProductInnerView:
                               children:
-                                - type: view
-                                  style:
-                                  children: 
-                                    - .AddProductLabel:
-                                      text: "Type"
-                                      style: 
-                                        display: inline-block
-                                    - .RedStar: 
-                                      style: 
-                                        display: inline-block
+                                - .AddProductLabel:
+                                  text: "Type"
                                 - .AddProductSelect:
                                   options:
                                     ..formDataTemp.type
@@ -790,16 +733,8 @@ EditProduct:
                             - .AddProductInnerView: 
                             - .AddProductInnerView:
                               children:
-                                - type: view
-                                  style:
-                                  children: 
-                                    - .AddProductLabel:
-                                      text: "Vendor"
-                                      style: 
-                                        display: inline-block
-                                    - .RedStar: 
-                                      style: 
-                                        display: inline-block
+                                - .AddProductLabel:
+                                  text: "Vendor"
                                 - type: view
                                   viewTag: vendorListTag
                                   style:
@@ -857,16 +792,8 @@ EditProduct:
                           style:
                             marginTop: "0.03"
                           children:
-                            - type: view
-                              style:
-                              children: 
-                                - .AddProductLabel:
-                                  text: "Introduction"
-                                  style: 
-                                    display: inline-block
-                                - .RedStar: 
-                                  style: 
-                                    display: inline-block
+                            - .AddProductLabel:
+                              text: "Introduction"
                             - .AddProductTextView:
                               dataKey: apiRequest.production.docStoreReq.name.data.basicInfo.introduction
                     # media
@@ -923,58 +850,53 @@ EditProduct:
                                             display: block
                                         - type: view
                                           style:
-                                            # display: ..formData.isShowCoverImg
-                                          children: 
+                                            display: flex
+                                            justifyContent: center
+                                            height: "0.025"
+                                          children:
                                             - type: view
                                               style:
-                                                display: flex
-                                                justifyContent: center
-                                                height: "0.025"
+                                                width: "0.018"
+                                                justifyContent: flex-start
+                                                ..style.flexStyle:
+                                                borderRight: "1px solid #eeeeee"
+                                                borderColor: '#eeeeee'
                                               children:
-                                                - type: view
+                                                - type: image
+                                                  path: upLoadImg.svg
                                                   style:
-                                                    width: "0.018"
-                                                    justifyContent: flex-start
-                                                    ..style.flexStyle:
-                                                    borderRight: "1px solid #eeeeee"
-                                                    borderColor: '#eeeeee'
-                                                  children:
-                                                    - type: image
-                                                      path: upLoadImg.svg
-                                                      style:
-                                                        width: "0.008"
-                                                      onClick:
-                                                        - actionType: openPhotoLibrary
-                                                          dataObject: BLOB
-                                                          shearState: true
-                                                          dataKey: EditProduct.apiRequest.coverPhoto.document.name.data
-                                                        - actionType: evalObject
-                                                          object:
-                                                            - =..apiRequest.coverPhoto.docAPI.store: ""
-                                                            - ..apiRequest.coverPhoto.document@: =..apiRequest.coverPhoto.storeResp.doc
-                                                        - actionType: builtIn
-                                                          funcName: redraw
-                                                          viewTag: coverPhotoTag
-                                                - type: view
+                                                    width: "0.008"
+                                                  onClick:
+                                                    - actionType: openPhotoLibrary
+                                                      dataObject: BLOB
+                                                      shearState: true
+                                                      dataKey: EditProduct.apiRequest.coverPhoto.document.name.data
+                                                    - actionType: evalObject
+                                                      object:
+                                                        - =..apiRequest.coverPhoto.docAPI.store: ""
+                                                        - ..apiRequest.coverPhoto.document@: =..apiRequest.coverPhoto.storeResp.doc
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: coverPhotoTag
+                                            - type: view
+                                              style:
+                                                width: "0.02"
+                                                justifyContent: flex-end
+                                                ..style.flexStyle:
+                                              children:
+                                                - type: image
+                                                  path: enLarge.svg
                                                   style:
-                                                    width: "0.02"
-                                                    justifyContent: flex-end
-                                                    ..style.flexStyle:
-                                                  children:
-                                                    - type: image
-                                                      path: enLarge.svg
-                                                      style:
-                                                        width: "0.008"
-                                                      onClick:
-                                                        - actionType: evalObject
-                                                          object:
-                                                            - ..formData.imgId@: =..apiRequest.coverPhoto.document.id
-                                                        - actionType: builtIn
-                                                          funcName: redraw
-                                                          viewTag: imgView
-                                                        - actionType: popUp
-                                                          popUpView: imgView
-                              
+                                                    width: "0.008"
+                                                  onClick:
+                                                    - actionType: evalObject
+                                                      object:
+                                                        - ..formData.imgId@: =..apiRequest.coverPhoto.document.id
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: imgView
+                                                    - actionType: popUp
+                                                      popUpView: imgView
                             - type: view
                               style:
                                 width: "0.177"
@@ -1237,7 +1159,6 @@ EditProduct:
                                                               obj: =..apiRequest.detailImg.storeResp.doc
                                                             dataOut: EditProduct.formData.detailImgDoc
                                                         - ..formData.detailImgIds.firstId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                        - ..formData.isShowFirstImg@: 'block'
                                                     - actionType: builtIn
                                                       funcName: redraw
                                                       viewTag: detailImg1Tag
@@ -1247,96 +1168,91 @@ EditProduct:
                                                   style:
                                                     width: "0.062"
                                                     display: block
+                                                    height: "0.106"
                                                 - type: view
                                                   viewTag: firstDetailTag
                                                   style:
-                                                    display: ..formData.isShowFirstImg
-                                                  children:   
+                                                    display: flex
+                                                    justifyContent: center
+                                                    isHidden: ..formData.isShowFirstImg
+                                                    height: "0.025"
+                                                  children:
                                                     - type: view
                                                       style:
+                                                        width: "0.018"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: upLoadImg.svg
+                                                          onClick:
+                                                            - actionType: openPhotoLibrary
+                                                              dataObject: BLOB
+                                                              shearState: true
+                                                              dataKey: EditProduct.apiRequest.detailImg.document.name.data
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =..apiRequest.detailImg.docAPI.store: ""
+                                                                - ..apiRequest.detailImg.storeResp.doc.name.title@: 'FirstDetailImg'
+                                                                - =.builtIn.array.addItemNoRepeat:
+                                                                    dataIn:
+                                                                      array: =..formData.detailImgDoc
+                                                                      path: 'name.title'
+                                                                      obj: =..apiRequest.detailImg.storeResp.doc
+                                                                    dataOut: EditProduct.formData.detailImgDoc
+                                                                - ..formData.detailImgIds.firstId@: =..apiRequest.detailImg.storeResp.doc.id
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg1Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: firstDetailTag
+                                                          style:
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: enLarge.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - ..formData.imgId@: =..formData.detailImgIds.firstId
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: imgView
+                                                            - actionType: popUp
+                                                              popUpView: imgView
+                                                          style:
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
                                                         display: flex
                                                         justifyContent: center
-                                                        height: "0.025"
+                                                        alignItems: center
                                                       children:
-                                                        - type: view
+                                                        - type: image
+                                                          path: redTrash.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =.builtIn.array.removeObjectByValue:
+                                                                    dataIn:
+                                                                      object: =..formData.detailImgDoc
+                                                                      values: id
+                                                                      value: =..formData.detailImgIds.firstId
+                                                                - ..formData.detailImgIds.firstId@: ""
+                                                                - ..formData.isShowFirstImg@: true
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg1Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: firstDetailTag
                                                           style:
-                                                            width: "0.018"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: upLoadImg.svg
-                                                              onClick:
-                                                                - actionType: openPhotoLibrary
-                                                                  dataObject: BLOB
-                                                                  shearState: true
-                                                                  dataKey: EditProduct.apiRequest.detailImg.document.name.data
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =..apiRequest.detailImg.docAPI.store: ""
-                                                                    - ..apiRequest.detailImg.storeResp.doc.name.title@: 'FirstDetailImg'
-                                                                    - =.builtIn.array.addItemNoRepeat:
-                                                                        dataIn:
-                                                                          array: =..formData.detailImgDoc
-                                                                          path: 'name.title'
-                                                                          obj: =..apiRequest.detailImg.storeResp.doc
-                                                                        dataOut: EditProduct.formData.detailImgDoc
-                                                                    - ..formData.isShowFirstImg@: 'block'
-                                                                    - ..formData.detailImgIds.firstId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg1Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: firstDetailTag
-
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
-                                                          style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: enLarge.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - ..formData.imgId@: =..formData.detailImgIds.firstId
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: imgView
-                                                                - actionType: popUp
-                                                                  popUpView: imgView
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
-                                                          style:
-                                                            width: "0.02"
-                                                            display: flex
-                                                            justifyContent: center
-                                                            alignItems: center
-                                                          children:
-                                                            - type: image
-                                                              path: redTrash.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =.builtIn.array.removeObjectByValue:
-                                                                        dataIn:
-                                                                          object: =..formData.detailImgDoc
-                                                                          values: id
-                                                                          value: =..formData.detailImgIds.firstId
-                                                                    - ..formData.detailImgIds.firstId@: ""
-                                                                    - ..formData.isShowFirstImg@: none
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg1Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: firstDetailTag
-                                                              style:
-                                                                width: "0.008"
-                                        
+                                                            width: "0.008"
                                     - type: view
                                       style:
                                         display: inline-block
@@ -1359,7 +1275,7 @@ EditProduct:
                                                   style:
                                                     width: "0.062"
                                                     display: block
-                                                    
+                                                    height: "0.106"
                                                   onClick:
                                                     - actionType: openPhotoLibrary
                                                       dataObject: BLOB
@@ -1376,7 +1292,7 @@ EditProduct:
                                                               obj: =..apiRequest.detailImg.storeResp.doc
                                                             dataOut: EditProduct.formData.detailImgDoc
                                                         - ..formData.detailImgIds.secondId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                        - ..formData.isShowSecondImg@: block
+                                                        - ..formData.isShowSecondImg@: false
                                                     - actionType: builtIn
                                                       funcName: redraw
                                                       viewTag: detailImg2Tag
@@ -1386,90 +1302,85 @@ EditProduct:
                                                 - type: view
                                                   viewTag: secondTag
                                                   style:
-                                                    display: ..formData.isShowSecondImg
-                                                  children: 
+                                                    display: flex
+                                                    justifyContent: center
+                                                    height: "0.025"
+                                                    isHidden: ..formData.isShowSecondImg
+                                                  children:
                                                     - type: view
                                                       style:
-                                                        display: flex
-                                                        justifyContent: center
-                                                        height: "0.025"
+                                                        width: "0.018"
+                                                        ..style.flexStyle:
                                                       children:
-                                                        - type: view
+                                                        - type: image
+                                                          path: upLoadImg.svg
+                                                          onClick:
+                                                            - actionType: openPhotoLibrary
+                                                              dataObject: BLOB
+                                                              shearState: true
+                                                              dataKey: EditProduct.apiRequest.detailImg.document.name.data
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =..apiRequest.detailImg.docAPI.store: ""
+                                                                - ..apiRequest.detailImg.storeResp.doc.name.title@: 'SecondDetailImg'
+                                                                - =.builtIn.array.addItemNoRepeat:
+                                                                    dataIn:
+                                                                      array: =..formData.detailImgDoc
+                                                                      path: 'name.title'
+                                                                      obj: =..apiRequest.detailImg.storeResp.doc
+                                                                    dataOut: EditProduct.formData.detailImgDoc
+                                                                - ..formData.detailImgIds.secondId@: =..apiRequest.detailImg.storeResp.doc.id
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg2Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: secondTag
                                                           style:
-                                                            width: "0.018"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: upLoadImg.svg
-                                                              onClick:
-                                                                - actionType: openPhotoLibrary
-                                                                  dataObject: BLOB
-                                                                  shearState: true
-                                                                  dataKey: EditProduct.apiRequest.detailImg.document.name.data
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =..apiRequest.detailImg.docAPI.store: ""
-                                                                    - ..apiRequest.detailImg.storeResp.doc.name.title@: 'SecondDetailImg'
-                                                                    - =.builtIn.array.addItemNoRepeat:
-                                                                        dataIn:
-                                                                          array: =..formData.detailImgDoc
-                                                                          path: 'name.title'
-                                                                          obj: =..apiRequest.detailImg.storeResp.doc
-                                                                        dataOut: EditProduct.formData.detailImgDoc
-                                                                    - ..formData.isShowSecondImg@: block
-                                                                    - ..formData.detailImgIds.secondId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg2Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: secondTag
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: enLarge.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - ..formData.imgId@: =..formData.detailImgIds.secondId
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: imgView
+                                                            - actionType: popUp
+                                                              popUpView: imgView
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: enLarge.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - ..formData.imgId@: =..formData.detailImgIds.secondId
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: imgView
-                                                                - actionType: popUp
-                                                                  popUpView: imgView
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: redTrash.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =.builtIn.array.removeObjectByValue:
+                                                                    dataIn:
+                                                                      object: =..formData.detailImgDoc
+                                                                      values: id
+                                                                      value: =..formData.detailImgIds.secondId
+                                                                - ..formData.detailImgIds.secondId@: ""
+                                                                - ..formData.isShowSecondImg@: true
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg2Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: secondTag
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: redTrash.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =.builtIn.array.removeObjectByValue:
-                                                                        dataIn:
-                                                                          object: =..formData.detailImgDoc
-                                                                          values: id
-                                                                          value: =..formData.detailImgIds.secondId
-                                                                    - ..formData.detailImgIds.secondId@: ""
-                                                                    - ..formData.isShowSecondImg@: none
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg2Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: secondTag
-                                                              style:
-                                                                width: "0.008"
-                                        
+                                                            width: "0.008"
                                     - type: view
                                       style:
                                         display: inline-block
@@ -1504,7 +1415,7 @@ EditProduct:
                                                               path: 'name.title'
                                                               obj: =..apiRequest.detailImg.storeResp.doc
                                                             dataOut: EditProduct.formData.detailImgDoc
-                                                        - ..formData.isShowThirdImg@: block
+                                                        - ..formData.isShowThirdImg@: false
                                                         - ..formData.detailImgIds.thirdId@: =..apiRequest.detailImg.storeResp.doc.id
                                                     - actionType: builtIn
                                                       funcName: redraw
@@ -1515,94 +1426,89 @@ EditProduct:
                                                   style:
                                                     width: "0.062"
                                                     display: block
+                                                    height: "0.106"
                                                 - type: view
                                                   viewTag: thirdTag
                                                   style:
-                                                    display: ..formData.isShowThirdImg
-                                                  children: 
-
+                                                    display: flex
+                                                    justifyContent: center
+                                                    isHidden: ..formData.isShowThirdImg
+                                                    height: "0.025"
+                                                  children:
                                                     - type: view
-                                                      
                                                       style:
-                                                        display: flex
-                                                        justifyContent: center
-                                                        
-                                                        height: "0.025"
+                                                        width: "0.018"
+                                                        ..style.flexStyle:
                                                       children:
-                                                        - type: view
+                                                        - type: image
+                                                          path: upLoadImg.svg
+                                                          onClick:
+                                                            - actionType: openPhotoLibrary
+                                                              dataObject: BLOB
+                                                              shearState: true
+                                                              dataKey: EditProduct.apiRequest.detailImg.document.name.data
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =..apiRequest.detailImg.docAPI.store: ""
+                                                                - ..apiRequest.detailImg.storeResp.doc.name.title@: 'ThirdDetailImg'
+                                                                - =.builtIn.array.addItemNoRepeat:
+                                                                    dataIn:
+                                                                      array: =..formData.detailImgDoc
+                                                                      path: 'name.title'
+                                                                      obj: =..apiRequest.detailImg.storeResp.doc
+                                                                    dataOut: EditProduct.formData.detailImgDoc
+                                                                - ..formData.detailImgIds.thirdId@: =..apiRequest.detailImg.storeResp.doc.id
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg3Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: thirdTag
                                                           style:
-                                                            width: "0.018"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: upLoadImg.svg
-                                                              onClick:
-                                                                - actionType: openPhotoLibrary
-                                                                  dataObject: BLOB
-                                                                  shearState: true
-                                                                  dataKey: EditProduct.apiRequest.detailImg.document.name.data
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =..apiRequest.detailImg.docAPI.store: ""
-                                                                    - ..apiRequest.detailImg.storeResp.doc.name.title@: 'ThirdDetailImg'
-                                                                    - =.builtIn.array.addItemNoRepeat:
-                                                                        dataIn:
-                                                                          array: =..formData.detailImgDoc
-                                                                          path: 'name.title'
-                                                                          obj: =..apiRequest.detailImg.storeResp.doc
-                                                                        dataOut: EditProduct.formData.detailImgDoc
-                                                                    - ..formData.detailImgIds.thirdId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg3Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: thirdTag
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: enLarge.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - ..formData.imgId@: =..formData.detailImgIds.thirdId
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: imgView
+                                                            - actionType: popUp
+                                                              popUpView: imgView
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: enLarge.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - ..formData.imgId@: =..formData.detailImgIds.thirdId
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: imgView
-                                                                - actionType: popUp
-                                                                  popUpView: imgView
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: redTrash.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =.builtIn.array.removeObjectByValue:
+                                                                    dataIn:
+                                                                      object: =..formData.detailImgDoc
+                                                                      values: id
+                                                                      value: =..formData.detailImgIds.thirdId
+                                                                - ..formData.detailImgIds.thirdId@: ""
+                                                                - ..formData.isShowThirdImg@: true
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg3Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: thirdTag
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: redTrash.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =.builtIn.array.removeObjectByValue:
-                                                                        dataIn:
-                                                                          object: =..formData.detailImgDoc
-                                                                          values: id
-                                                                          value: =..formData.detailImgIds.thirdId
-                                                                    - ..formData.detailImgIds.thirdId@: ""
-                                                                    - ..formData.isShowThirdImg@: none
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg3Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: thirdTag
-                                                              style:
-                                                                width: "0.008"
+                                                            width: "0.008"
 
                                     - type: view
                                       style:
@@ -1638,7 +1544,7 @@ EditProduct:
                                                               path: 'name.title'
                                                               obj: =..apiRequest.detailImg.storeResp.doc
                                                             dataOut: EditProduct.formData.detailImgDoc
-                                                        - ..formData.isShowFourImg@: block
+                                                        - ..formData.isShowFourImg@: false
                                                         - ..formData.detailImgIds.fourId@: =..apiRequest.detailImg.storeResp.doc.id
                                                     - actionType: builtIn
                                                       funcName: redraw
@@ -1649,93 +1555,89 @@ EditProduct:
                                                   style:
                                                     width: "0.062"
                                                     display: block
+                                                    height: "0.106"
                                                 - type: view
                                                   viewTag: fourTag
                                                   style:
-                                                    display: ..formData.isShowFourImg
-                                                  children: 
+                                                    display: flex
+                                                    justifyContent: center
+                                                    isHidden: ..formData.isShowFourImg
+                                                    height: "0.025"
+                                                  children:
                                                     - type: view
-                                                      
                                                       style:
-                                                        display: flex
-                                                        justifyContent: center
-                                                        
-                                                        height: "0.025"
+                                                        width: "0.018"
+                                                        ..style.flexStyle:
                                                       children:
-                                                        - type: view
+                                                        - type: image
+                                                          path: upLoadImg.svg
+                                                          onClick:
+                                                            - actionType: openPhotoLibrary
+                                                              dataObject: BLOB
+                                                              shearState: true
+                                                              dataKey: EditProduct.apiRequest.detailImg.document.name.data
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =..apiRequest.detailImg.docAPI.store: ""
+                                                                - ..apiRequest.detailImg.storeResp.doc.name.title@: 'FourDetailImg'
+                                                                - =.builtIn.array.addItemNoRepeat:
+                                                                    dataIn:
+                                                                      array: =..formData.detailImgDoc
+                                                                      path: 'name.title'
+                                                                      obj: =..apiRequest.detailImg.storeResp.doc
+                                                                    dataOut: EditProduct.formData.detailImgDoc
+                                                                - ..formData.detailImgIds.fourId@: =..apiRequest.detailImg.storeResp.doc.id
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg4Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: fourTag
                                                           style:
-                                                            width: "0.018"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: upLoadImg.svg
-                                                              onClick:
-                                                                - actionType: openPhotoLibrary
-                                                                  dataObject: BLOB
-                                                                  shearState: true
-                                                                  dataKey: EditProduct.apiRequest.detailImg.document.name.data
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =..apiRequest.detailImg.docAPI.store: ""
-                                                                    - ..apiRequest.detailImg.storeResp.doc.name.title@: 'FourDetailImg'
-                                                                    - =.builtIn.array.addItemNoRepeat:
-                                                                        dataIn:
-                                                                          array: =..formData.detailImgDoc
-                                                                          path: 'name.title'
-                                                                          obj: =..apiRequest.detailImg.storeResp.doc
-                                                                        dataOut: EditProduct.formData.detailImgDoc
-                                                                    - ..formData.detailImgIds.fourId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg4Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: fourTag
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: enLarge.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - ..formData.imgId@: =..formData.detailImgIds.fourId
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: imgView
+                                                            - actionType: popUp
+                                                              popUpView: imgView
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: enLarge.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - ..formData.imgId@: =..formData.detailImgIds.fourId
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: imgView
-                                                                - actionType: popUp
-                                                                  popUpView: imgView
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: redTrash.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =.builtIn.array.removeObjectByValue:
+                                                                    dataIn:
+                                                                      object: =..formData.detailImgDoc
+                                                                      values: id
+                                                                      value: =..formData.detailImgIds.fourId
+                                                                - ..formData.detailImgIds.fourId@: ""
+                                                                - ..formData.isShowFourImg@: true
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg4Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: fourTag
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: redTrash.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =.builtIn.array.removeObjectByValue:
-                                                                        dataIn:
-                                                                          object: =..formData.detailImgDoc
-                                                                          values: id
-                                                                          value: =..formData.detailImgIds.fourId
-                                                                    - ..formData.detailImgIds.fourId@: ""
-                                                                    - ..formData.isShowFourImg@: none
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg4Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: fourTag
-                                                              style:
-                                                                width: "0.008"
+                                                            width: "0.008"
 
                                     - type: view
                                       style:
@@ -1771,7 +1673,7 @@ EditProduct:
                                                               path: 'name.title'
                                                               obj: =..apiRequest.detailImg.storeResp.doc
                                                             dataOut: EditProduct.formData.detailImgDoc
-                                                        - ..formData.isShowFiveImg@: block
+                                                        - ..formData.isShowFiveImg@: false
                                                         - ..formData.detailImgIds.fiveId@: =..apiRequest.detailImg.storeResp.doc.id
                                                     - actionType: builtIn
                                                       funcName: redraw
@@ -1782,93 +1684,89 @@ EditProduct:
                                                   style:
                                                     width: "0.062"
                                                     display: block
+                                                    height: "0.106"
                                                 - type: view
                                                   viewTag: fiveTag
                                                   style:
-                                                    display: ..formData.isShowFiveImg
-                                                  children: 
+                                                    display: flex
+                                                    justifyContent: center
+                                                    isHidden: ..formData.isShowFiveImg
+                                                    height: "0.025"
+                                                  children:
                                                     - type: view
-                                                      
                                                       style:
-                                                        display: flex
-                                                        justifyContent: center
-                                                        
-                                                        height: "0.025"
+                                                        width: "0.018"
+                                                        ..style.flexStyle:
                                                       children:
-                                                        - type: view
+                                                        - type: image
+                                                          path: upLoadImg.svg
+                                                          onClick:
+                                                            - actionType: openPhotoLibrary
+                                                              dataObject: BLOB
+                                                              shearState: true
+                                                              dataKey: EditProduct.apiRequest.detailImg.document.name.data
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =..apiRequest.detailImg.docAPI.store: ""
+                                                                - ..apiRequest.detailImg.storeResp.doc.name.title@: 'FiveDetailImg'
+                                                                - =.builtIn.array.addItemNoRepeat:
+                                                                    dataIn:
+                                                                      array: =..formData.detailImgDoc
+                                                                      path: 'name.title'
+                                                                      obj: =..apiRequest.detailImg.storeResp.doc
+                                                                    dataOut: EditProduct.formData.detailImgDoc
+                                                                - ..formData.detailImgIds.fiveId@: =..apiRequest.detailImg.storeResp.doc.id
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg5Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: fiveTag
                                                           style:
-                                                            width: "0.018"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: upLoadImg.svg
-                                                              onClick:
-                                                                - actionType: openPhotoLibrary
-                                                                  dataObject: BLOB
-                                                                  shearState: true
-                                                                  dataKey: EditProduct.apiRequest.detailImg.document.name.data
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =..apiRequest.detailImg.docAPI.store: ""
-                                                                    - ..apiRequest.detailImg.storeResp.doc.name.title@: 'FiveDetailImg'
-                                                                    - =.builtIn.array.addItemNoRepeat:
-                                                                        dataIn:
-                                                                          array: =..formData.detailImgDoc
-                                                                          path: 'name.title'
-                                                                          obj: =..apiRequest.detailImg.storeResp.doc
-                                                                        dataOut: EditProduct.formData.detailImgDoc
-                                                                    - ..formData.detailImgIds.fiveId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg5Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: fiveTag
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: enLarge.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - ..formData.imgId@: =..formData.detailImgIds.fiveId
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: imgView
+                                                            - actionType: popUp
+                                                              popUpView: imgView
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: enLarge.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - ..formData.imgId@: =..formData.detailImgIds.fiveId
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: imgView
-                                                                - actionType: popUp
-                                                                  popUpView: imgView
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: redTrash.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =.builtIn.array.removeObjectByValue:
+                                                                    dataIn:
+                                                                      object: =..formData.detailImgDoc
+                                                                      values: id
+                                                                      value: =..formData.detailImgIds.fiveId
+                                                                - ..formData.detailImgIds.fiveId@: ""
+                                                                - ..formData.isShowFiveImg@: true
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg5Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: fiveTag
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: redTrash.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =.builtIn.array.removeObjectByValue:
-                                                                        dataIn:
-                                                                          object: =..formData.detailImgDoc
-                                                                          values: id
-                                                                          value: =..formData.detailImgIds.fiveId
-                                                                    - ..formData.detailImgIds.fiveId@: ""
-                                                                    - ..formData.isShowFiveImg@: none
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg5Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: fiveTag
-                                                              style:
-                                                                width: "0.008"
+                                                            width: "0.008"
 
                                     - type: view
                                       style:
@@ -1904,7 +1802,7 @@ EditProduct:
                                                               path: 'name.title'
                                                               obj: =..apiRequest.detailImg.storeResp.doc
                                                             dataOut: EditProduct.formData.detailImgDoc
-                                                        - ..formData.isShowSixImg@: block
+                                                        - ..formData.isShowSixImg@: false
                                                         - ..formData.detailImgIds.sixId@: =..apiRequest.detailImg.storeResp.doc.id
                                                     - actionType: builtIn
                                                       funcName: redraw
@@ -1915,94 +1813,90 @@ EditProduct:
                                                   style:
                                                     width: "0.062"
                                                     display: block
+                                                    height: "0.106"
                                                 - type: view
                                                   viewTag: sixTag
                                                   style:
-                                                    display: ..formData.isShowSixImg
-                                                  children: 
+                                                    display: flex
+                                                    justifyContent: center
+                                                    isHidden: ..formData.isShowSixImg
+                                                    height: "0.025"
+                                                  children:
                                                     - type: view
-                                                      
                                                       style:
-                                                        display: flex
-                                                        justifyContent: center
-                                                        
-                                                        height: "0.025"
+                                                        width: "0.018"
+                                                        ..style.flexStyle:
                                                       children:
-                                                        - type: view
-                                                          style:
-                                                            width: "0.018"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
+                                                        - type: image
 
-                                                              path: upLoadImg.svg
-                                                              onClick:
-                                                                - actionType: openPhotoLibrary
-                                                                  dataObject: BLOB
-                                                                  shearState: true
-                                                                  dataKey: EditProduct.apiRequest.detailImg.document.name.data
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =..apiRequest.detailImg.docAPI.store: ""
-                                                                    - ..apiRequest.detailImg.storeResp.doc.name.title@: 'SixDetailImg'
-                                                                    - =.builtIn.array.addItemNoRepeat:
-                                                                        dataIn:
-                                                                          array: =..formData.detailImgDoc
-                                                                          path: 'name.title'
-                                                                          obj: =..apiRequest.detailImg.storeResp.doc
-                                                                        dataOut: EditProduct.formData.detailImgDoc
-                                                                    - ..formData.detailImgIds.sixId@: =..apiRequest.detailImg.storeResp.doc.id
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg6Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: sixTag
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                          path: upLoadImg.svg
+                                                          onClick:
+                                                            - actionType: openPhotoLibrary
+                                                              dataObject: BLOB
+                                                              shearState: true
+                                                              dataKey: EditProduct.apiRequest.detailImg.document.name.data
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =..apiRequest.detailImg.docAPI.store: ""
+                                                                - ..apiRequest.detailImg.storeResp.doc.name.title@: 'SixDetailImg'
+                                                                - =.builtIn.array.addItemNoRepeat:
+                                                                    dataIn:
+                                                                      array: =..formData.detailImgDoc
+                                                                      path: 'name.title'
+                                                                      obj: =..apiRequest.detailImg.storeResp.doc
+                                                                    dataOut: EditProduct.formData.detailImgDoc
+                                                                - ..formData.detailImgIds.sixId@: =..apiRequest.detailImg.storeResp.doc.id
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg6Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: sixTag
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: enLarge.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - ..formData.imgId@: =..formData.detailImgIds.sixId
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: imgView
-                                                                - actionType: popUp
-                                                                  popUpView: imgView
-                                                              style:
-                                                                width: "0.008"
-                                                        - type: view
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: enLarge.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - ..formData.imgId@: =..formData.detailImgIds.sixId
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: imgView
+                                                            - actionType: popUp
+                                                              popUpView: imgView
                                                           style:
-                                                            width: "0.02"
-                                                            ..style.flexStyle:
-                                                          children:
-                                                            - type: image
-                                                              path: redTrash.svg
-                                                              onClick:
-                                                                - actionType: evalObject
-                                                                  object:
-                                                                    - =.builtIn.array.removeObjectByValue:
-                                                                        dataIn:
-                                                                          object: =..formData.detailImgDoc
-                                                                          values: id
-                                                                          value: =..formData.detailImgIds.sixId
-                                                                    - ..formData.detailImgIds.sixId@: ""
-                                                                    - ..formData.isShowSixImg@: none
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: detailImg6Tag
-                                                                - actionType: builtIn
-                                                                  funcName: redraw
-                                                                  viewTag: sixTag
-                                                              style:
-                                                                width: "0.008"
+                                                            width: "0.008"
+                                                    - type: view
+                                                      style:
+                                                        width: "0.02"
+                                                        ..style.flexStyle:
+                                                      children:
+                                                        - type: image
+                                                          path: redTrash.svg
+                                                          onClick:
+                                                            - actionType: evalObject
+                                                              object:
+                                                                - =.builtIn.array.removeObjectByValue:
+                                                                    dataIn:
+                                                                      object: =..formData.detailImgDoc
+                                                                      values: id
+                                                                      value: =..formData.detailImgIds.sixId
+                                                                - ..formData.detailImgIds.sixId@: ""
+                                                                - ..formData.isShowSixImg@: true
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: detailImg6Tag
+                                                            - actionType: builtIn
+                                                              funcName: redraw
+                                                              viewTag: sixTag
+                                                          style:
+                                                            width: "0.008"
 
 
                     # pricing
@@ -2020,16 +1914,8 @@ EditProduct:
                           children:
                             - .AddProductInnerView:
                               children:
-                                - type: view
-                                  style:
-                                  children: 
-                                    - .AddProductLabel:
-                                      text: "Price"
-                                      style: 
-                                        display: inline-block
-                                    - .RedStar: 
-                                      style: 
-                                        display: inline-block
+                                - .AddProductLabel:
+                                  text: "Price"
                                 - .AddProductBoxView:
                                   children:
                                     - type: label
@@ -2579,13 +2465,6 @@ EditProduct:
                                         - =..apiRequest.production.docStoreReq.name.data.options.isHasOptions
                                         - ..formData.isHiddenEdit@: false
                                         - ..formData.isHiddenEdit@: true
-                                      - if:
-                                        - =..apiRequest.production.docStoreReq.name.data.options.isHasOptions
-                                        - ..formData.isShowVariants@: false
-                                        - ..formData.isShowVariants@: true
-                                - actionType: builtIn
-                                  funcName: redraw
-                                  viewTag: variantsTag
                                 - actionType: builtIn
                                   funcName: redraw
                                   viewTag: otherOptionsTag
@@ -2616,10 +2495,8 @@ EditProduct:
                                   popUpView: EditNewOptionsTag
                     # variants
                     - type: view
-                      viewTag: variantsTag
                       style:
                         marginBottom: "0.04"
-                        display: ..formData.isShowVariants
                       children:
                         - .AddProductTitleView:
                           msg: "Variants"
@@ -3280,9 +3157,27 @@ EditProduct:
                                   - actionType: popUp
                                     popUpView: noSelectOptionName
                                     wait: true
-                                    popUpDismiss: 2000
+                                    popUpDismiss: 1000
                                   - continue
-
+                                - if:
+                                  - =.builtIn.array.judgeListLength:
+                                      dataIn:
+                                        array: =..formData.currentOption.styleValue
+                                        len: 0
+                                  - actionType: popUp
+                                    popUpView: noSelectOptionValue
+                                    wait: true
+                                    popUpDismiss: 1000
+                                  - continue
+                                - if:
+                                  - =.builtIn.string.judgeFillinAll:
+                                      dataIn:
+                                        - =..formData.currentOption.styleName
+                                  - actionType: popUp
+                                    popUpView: noSelectOptionName
+                                    wait: true
+                                    popUpDismiss: 1000
+                                  - continue
                                 - if:
                                   - =.builtIn.string.equal:
                                       dataIn:
@@ -3290,20 +3185,12 @@ EditProduct:
                                         string2: 'editOption'
                                   - actionType: evalObject
                                     object:
-                                      - if: 
-                                        - =..formData.optionValueTmp.value
-                                        - =.builtIn.array.add:
-                                            dataIn:
-                                              object: =..formData.currentOption.styleValue
-                                              value: =..formData.optionValueTmp
-                                        - continue
                                       - =.builtIn.array.ChangeAnItemInArray:
                                           dataIn:
                                             array: =..apiRequest.production.docStoreReq.name.data.options.optionsValue
                                             path: "styleName"
                                             obj: =..formData.currentOption
                                       - ..formData.isEditOptionBtn@: ""
-                                      - ..formData.currentOption.styleName@: ""
                                   - actionType: evalObject
                                     object:
                                       - if:
@@ -3315,31 +3202,11 @@ EditProduct:
                                         - actionType: popUp
                                           popUpView: duplicateOptionName
                                           wait: true
-                                          popUpDismiss: 2000
-                                        - actionType: evalObject
-                                          object:
-                                            - if: 
-                                              - =..formData.optionValueTmp.value
-                                              - =.builtIn.array.add:
-                                                  dataIn:
-                                                    object: =..formData.currentOption.styleValue
-                                                    value: =..formData.optionValueTmp
-                                              - continue
-                                            - if:
-                                              - =.builtIn.array.judgeListLength:
-                                                  dataIn:
-                                                    array: =..formData.currentOption.styleValue
-                                                    len: 0
-                                              - actionType: popUp
-                                                popUpView: noSelectOptionValue
-                                                popUpDismiss: 2000
-                                                wait: true
-                                              - continue
-                                            - =.builtIn.array.add:
-                                                dataIn:
-                                                  object: =..apiRequest.production.docStoreReq.name.data.options.optionsValue
-                                                  value: =..formData.currentOption
-                                            - ..formData.currentOption.styleName@: ""
+                                          popUpDismiss: 1000
+                                        - =.builtIn.array.add:
+                                            dataIn:
+                                              object: =..apiRequest.production.docStoreReq.name.data.options.optionsValue
+                                              value: =..formData.currentOption
 
                                 - if:
                                   - =.builtIn.array.judgeListLength:
@@ -3351,7 +3218,7 @@ EditProduct:
 
 
                                 - ..formData.currentOption.styleValue@: []
-                                # - ..formData.currentOption.styleName@: ""
+                                - ..formData.currentOption.styleName@: ""
                                 - ..formData.isShowOptionsList@: block
                                 - ..formData.optionValueTmp.value@: ""
                             - actionType: builtIn
@@ -3413,9 +3280,6 @@ EditProduct:
                             - actionType: builtIn
                               funcName: redraw
                               viewTag: perComArrTag
-                            - actionType: popUp
-                              popUpView: successView
-                              wait: 2000                                  
         - .PopupLightPrompt:
           viewTag: lightPromptTag
           msg: "Option value is required."
@@ -3550,89 +3414,7 @@ EditProduct:
                       style:
                         width: "0.4"
                         height: "0.42"              
-        - type: popUp
-          msg1: Warning
-          msg2: Please complete the required items.
-          viewTag: errorView
-          onClick: 
-            - actionType: popUpDismiss
-              popUpView: __.viewTag
-          style: 
-            left: "0"
-            width: "1"
-            top: "0"
-            height: "1"
-            backgroundColor: "0x00000033"
-            zIndex: "10"
-          children: 
-            - type: view
-              style: 
-                left: "0.44"
-                width: "0.28"
-                top: "0.3"
-                height: "auto"
-                boxShadow: "0px 2px 2px 1px #b7b7b7"
-                borderRadius: "5"
-                backgroundColor: "0xffffff"
-              children: 
-                - type: view
-                  style:
-                    marginTop: "0"
-                    left: "0"
-                    width: "0.28"
-                    height: "0.013"
-                    backgroundColor: "0xe24445"
-                    border-top-left-radius: "5px"
-                    border-top-right-radius: "5px"
-                - type: view
-                  style: 
-                    marginTop: "0"
-                    width: "0.28"
-                    left: "0"
-                    height: "auto"
-                  children: 
-                    - type: image
-                      path: warningRed.svg
-                      style: 
-                        left: "0.12"
-                        width: "0.04"
-                        marginTop: "0.04"
-                    - type: label
-                      text: ____.msg1
-                      style:
-                        left: "0.05"
-                        width: "0.18"
-                        fontSize: .Nfont.nf5
-                        color: "0x171725"
-                        fontWeight: "500"
-                        fontFamily: "Robot"
-                        marginTop: "0.02"
-                        textAlign: 
-                          x: center
-                    - type: label
-                      text: ____.msg2
-                      style:
-                        left: "0.02"
-                        width: "0.24"
-                        marginTop: "0.02"
-                        fontSize: .Nfont.nf4
-                        fontFamily: "Roboto"
-                        color: "0x333333"
-                        textAlign: 
-                          x: center
-                    - type: label
-                      text: ..formData.errorArr
-                      style:
-                        left: "0.02"
-                        width: "0.24"
-                        marginTop: "0.02"
-                        marginBottom: "0.03"
-                        fontSize: .Nfont.nf2
-                        fontFamily: "Roboto"
-                        color: "0x999999"
-                        textAlign: 
-                          x: center   
-        
+
   
   style:
     photoView:

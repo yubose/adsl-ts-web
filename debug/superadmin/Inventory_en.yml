@@ -263,7 +263,7 @@ Inventory:
                             marginTop: "0.009"
                             display: inline-block
                         - .TransactionsTextField: ""
-                          placeholder: Search product name or keyword 
+                          placeHolder: Search product name or keyword
                           dataKey: 
                           style:
                             width: "0.252"
