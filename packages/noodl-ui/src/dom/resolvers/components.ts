@@ -435,7 +435,10 @@ const componentsResolver: t.Resolve.Config = {
           if (args.node) {
             if (args.component.get(c.DATA_VALUE)) {
               let content = String(args.component.get(c.DATA_VALUE))
-              content = content.indexOf('\n')!==-1?content.replace(/\n/g,'<br>'):content
+              content =
+                content.indexOf('\n') !== -1
+                  ? content.replace(/\n/g, '<br>')
+                  : content
               setAttr('innerHTML', content)
             } else if (text) {
               setAttr('innerHTML', String(text))
@@ -968,7 +971,6 @@ const componentsResolver: t.Resolve.Config = {
               !u.isNil(value) && setAttr(attr, value)
             }
           })
-          console.log(args)
 
           if (args.component.blueprint?.['path=func']) {
             args.component?.get?.(c.DATA_VALUE)?.then?.((path: any) => {
