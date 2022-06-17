@@ -1,0 +1,743 @@
+FacilityProfileEdit:
+  title: 
+  pageNumber: 
+  init: #Page initialization
+
+  formData: #Input data here
+
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    state: 
+      - key: Verified
+        color: "0x70ad47"
+      - key: Pending
+        color: "0xed7d31"
+      - key: Not Verified
+        color: "0x045795"        
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+        - .BodyView: 
+          children:
+            - .TopBar: 
+            - .InnerBodyView:
+              children:
+                - .PageTitle:
+                  text: Facility Profile
+                - .GotoBack: 
+                - .ContentView:
+                  children:
+                    - type: view
+                      style:
+                        width: "0.685"
+                        height: "0.15"
+                        margin: auto
+                        display: flex
+                        justifyContent: flex-start
+                        alignItems: center
+                      children:
+                        - type: view
+                          style:
+                            width: "0.4"
+                            height: "0.15"
+                            display: flex
+                            justifyContent: flex-start
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.08"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - type: image
+                                  path: basicInformation.svg
+                                  style:
+                                    width: "0.06"
+                            - type: view
+                              style:
+                                display: flex
+                                justifyContent: center
+                                alignItems: flex-start
+                                flexDirection: column
+                              children:
+                                - type: label
+                                  text: A&C Urgent Care
+                                  dataKey: 
+                                  style:
+                                    width: "0.15"
+                                    height: "0.05"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                    color: "0x000000"
+                                    fontSize: "1vw"
+                                    fontFamily: Poppins
+                                - type: view
+                                  style:
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: flex-start
+                                  children:
+                                    - type: label
+                                      text: "Link: "
+                                      dataKey: 
+                                      style:
+                                        width: "0.02"
+                                        color: "0x668eae"
+                                        fontSize: "0.7vw"
+                                    - type: label
+                                      text: " https://www.aitmed.com/doctor/ehsan-saadat-md-286437"
+                                      dataKey: 
+                                      style:
+                                        width: "0.21"
+                                        fontSize: "0.7vw"
+                                    - type: image
+                                      path: copyImg.svg
+                        - type: view
+                          style:
+                            width: "0.29"
+                            height: "0.06"
+                            display: flex
+                            justifyContent: flex-end
+                            alignItems: flex-start
+                          children:
+                            - type: view
+                              style:
+                                width: "0.18"
+                                height: "0.04"
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xc1c1c1"
+                                borderRadius: "4"
+                                display: flex
+                                justifyContent: space-evenly
+                                alignItems: center
+                              children: 
+                                - type: label
+                                  text: "State:"
+                                  dataKey: 
+                                  style:
+                                    width: "0.02"
+                                    fontSize: "0.7vw"
+                                    color: "0x045795"
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.state
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: '0.15'
+                                    margin: '0'
+                                    axis: horizontal
+                                    alignItems: center
+                                    justifyContent: space-around
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      onClick: 
+                                        - actionType: popUp
+                                          popUpView: stateView
+                                      style:
+
+                                        height: '0.03'
+                                        left: '0'
+                                        marginTop: ''
+                                        display: flex
+                                        alignItems: center
+                                        justifyContent: center
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.key
+                                          style:
+                                            color: itemObject.color
+                                            fontSize: "0.7vw"
+                            - type: view
+                              style:
+                                width: "0.06"
+                                display: flex
+                                justifyContent: flex-end
+                                alignItems: center
+                              children:
+                                - type: image
+                                  path: savePhoto.svg
+                                  onClick: 
+                                    - goto: FacilityProfile
+                                  style:
+                                    width: "3.2vw" 
+                    
+                    - type: view
+                      style:
+                        width: "0.685"
+                        height: "0.57"
+                        margin: auto
+                        display: flex
+                        alignItems: center
+                        flexDirection: column
+                      children:
+                        - type: view
+                          style:
+                            width: "0.685"
+                            height: "0.076"
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.1425"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1425"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                            - type: view
+                              style:
+                                width: "0.1425"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1425"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Office Phone Number"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  text: "714-833-6448"
+                            
+                            - type: view
+                              style:
+                                width: "0.2"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.137"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Location ID"
+                                      style:
+                                        width: "0.055"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  style:
+                                    text: "A&C32798"
+                                    width: "0.18"
+                            - type: view
+                              style:
+                                width: "0.2"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Email"
+                                      style:
+                                        width: "0.035"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  style:
+                                    text: "A&C32798"
+                                    width: "0.2"
+                        - type: view
+                          style:
+                            width: "0.685"
+                            height: "0.076"
+                            display: flex
+                            justifyContent: flex-start
+                            alignItems: center
+                          children: 
+                            - type: view
+                              style:
+                                width: "0.1425"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1425"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Address"
+                                      style: 
+                                        width: "0.1"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  text: "714-833-6448"
+                                  style: 
+                                    width: "0.685"
+                        - type: view
+                          style:
+                            width: "0.685"
+                            height: "0.076"
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.1425"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1425"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Address Second Line"
+                                      style: 
+                                        width: "0.1"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1425"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1425"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Apartment, unit, or floor #"
+                                      style:
+                                        width: "0.12"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1333"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1333"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "City"
+                                      style: 
+                                        width: "0.025"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  width: "0.1"
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1333"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                                alignItems: center
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.12"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                    justifyContent: flex-start
+                                  children:
+                                    - .EditTableText:
+                                      text: "State"
+                                      style:
+                                        width: "0.029"
+                                        justifyContent: flex-start
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  width: "0.1"
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1333"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                alignItems: flex-end
+                                flexDirection: column
+                                # marginLeft: "25px"
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.12"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Zipcode"
+                                      style:
+                                        width: "0.04"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  width: "0.1"
+                                  text: "714-833-6448"
+                            
+                        - type: view
+                          style:
+                            width: "0.685"
+                            height: "0.076"
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.1425"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1425"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "NPI"
+                                      style:
+                                        width: "0.025"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1425"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1425"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Business License"
+                                      style:
+                                        width: "0.075"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1333"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.1333"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "Business License City"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  width: "0.1"
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1333"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                flexDirection: column
+                                alignItems: center
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.12"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                    justifyContent: flex-start
+                                  children:
+                                    - .EditTableText:
+                                      text: "Business License State"
+                                      style:
+                                        width: "0.1"
+                                        justifyContent: flex-start
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  width: "0.1"
+                                  text: "714-833-6448"
+                            - type: view
+                              style:
+                                width: "0.1333"
+                                height: "0.076"
+                                display: flex
+                                justifyContent: center
+                                alignItems: flex-end
+                                flexDirection: column
+                                # marginLeft: "25px"
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.12"
+                                    height: "0.02533"
+                                    display: flex
+                                    alignItems: center
+                                  children:
+                                    - .EditTableText:
+                                      text: "DEA#"
+                                      style:
+                                        width: "0.03"
+                                    - .EditTableStar:
+                                - .EditTableLabel:
+                                  width: "0.1"
+                                  text: "714-833-6448"
+                            
+                        - type: view
+                          style:
+                            width: "0.685"
+                            height: "0.13"
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                            flexDirection: column
+                          children:
+                            - type: view
+                              style:
+                                width: "0.685"
+                                height: "0.03"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "Introducation"
+                                  style:
+                                    width: "0.065" 
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                - .EditTableStar:
+                            - type: textView
+                              style:
+                                width: "0.685" 
+                                height: "0.08"
+                                fontFamily: Poppins
+                                border:
+                                  style: "3"
+                                borderColor: "0xe2e2e2"
+                                borderWidth: "0.001"
+                                boxSizing: border-box
+                        
+                        - type: view
+                          style:
+                            width: "0.685"
+                            height: "0.212"
+                          children:
+                            - type: view
+                              style:
+                                width: "0.685"
+                                height: "0.08"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                              children: 
+                                - type: label
+                                  text: "Uploads"
+                                  dataKey: 
+                                  style:
+                                    width: "0.05"
+                                    height: "0.08"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                    fontSize: "1vw"
+                                - type: view
+                                  style:
+                                    width: "0.525"
+                                    height: "0.08"
+                                    display: flex
+                                    justifyContent: flex-end
+                                    alignItems: center
+                                  children:
+                                    - type: label
+                                      text: "DEA"
+                                      dataKey: 
+                                      style:
+                                    - type: label
+                                      text: "Business License"
+                                      dataKey: 
+                                      style:
+                                        width: "0.35"
+                                        boxSizing: border-box
+                                        paddingLeft: "361px"
+                            - type: view
+                              style:
+                                width: "0.685"
+                                height: "0.132"
+                                display: flex
+                                justifyContent: space-evenly
+                                alignItems: center
+                              children:
+                                - type: image
+                                  path: "DEA.svg"
+                                  style:
+                                - type: image
+                                  path: "BusinessLicensePhoto.svg"
+                                  style:                   
+        - .BaseDetailPop: 
+          viewTag: stateView
+          children: 
+            - .BaseDetailPopView:
+              style: 
+                top: "0.325"
+                left: "0.44"
+                height: "0.35" 
+                width: "0.28"
+              children: 
+                - .BaseDetailPopImg: 
+                  style: 
+                    left: "0.255"
+                    width: "0.01"
+                - .BaseDetailPopLabel: 
+                  text: Change admin state
+                  style: 
+                    top: "0.08"
+                    width: "0.28"
+                    fontSize: "1.1vw"
+                - .BaseDetailPopInnerView:
+                  style: 
+                    top: "0.12"
+                    display: flex
+                    width: "0.28"
+                    height: "0.23"
+                    justifyContent: center
+                    flexDirection: column
+                    alignItems: center
+                  children: 
+                    - type: label
+                      text: After clicking confirm, the status will take effect and be displayed in enterprise admin.
+                      style: 
+                        width: "0.2"
+                        fontSize: "0.9vw"
+                        display: flex
+                        marginTop: "0.01"
+                        lineHeight: "1.8"
+                        justifyContent: center
+                        alignContent: center
+                        flexDirection: column
+                        flex: "1"
+                        textAlign: 
+                          x: center
+                    - type: view
+                      style:
+                        width: "0.28"
+                        flex: "1.5"
+                        display: flex
+                        justifyContent: space-evenly
+                        alignItems: center
+                      children:   
+                        - type: button
+                          text: Cancel
+                          onClick: 
+                            - actionType: popUpDismiss
+                              popUpView: stateView
+                          style:
+                            backgroundColor: "0xc1c1c1"
+                            color: "0xffffff"
+                            width: "0.08"
+                            height: "0.04"
+                            fontSize: "0.9vw"
+                            fontFamily: Poppins
+                            border: 
+                              style: "5"
+                            borderWidth: "1"
+                            borderRadius: "5"                            
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: button
+                          text: Submit
+                          onClick: 
+                            - actionType: popUpDismiss
+                              popUpView: stateView
+                          style:
+                            backgroundColor: "0x005795"
+                            color: "0xffffff"
+                            width: "0.08"
+                            height: "0.04"
+                            fontSize: "0.9vw"
+                            fontFamily: Poppins
+                            border: 
+                              style: "5"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            textAlign:
+                              x: center
+                              y: center                            

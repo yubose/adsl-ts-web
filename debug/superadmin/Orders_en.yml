@@ -3,15 +3,10 @@ Orders:
   init:
     - =..apiRequest.orders.docAPI.get: ""
     # - =..apiRequest.orderEdges.edgeAPI.get: ""
-    - =.builtIn.array.vagueFilterArrayByPath:
-        dataIn:
-          objArr: =..apiRequest.orders.docResp.doc
-          path: deat.state
-          compareStr: "COMPLETED"
-        dataOut: Orders.formData.orderList
+
     - =.builtIn.array.splitTableList: 
         dataIn: 
-          arrObj: =..formData.orderList
+          arrObj: =..apiRequest.orders.docResp.doc
           numX: "12"
           numY: "1"
         dataOut: Orders.formData.tableData
@@ -38,7 +33,6 @@ Orders:
           valueArr: ["0xf5f5f5"]
           errorArr: ["0xffffff"]    
   formData: 
-    orderList: []
     currentOrderId: ""
     currentOrder: ""
     statusHiddenOrShow: "0"
@@ -59,10 +53,9 @@ Orders:
   formDataTemp: #Input data temp here, datatemp should not mix with formData
     statusList:
       - name: "All"
-      - name: "Undelivered"
-      - name: "Delivering"
-      - name: "Cancelled"    
-      - name: "Completed"    
+      - name: "Active"
+      - name: "Archived"
+      - name: "Draft"    
   apiRequest:
     orders:
       docResp: ""
@@ -511,14 +504,14 @@ Orders:
                                     actions:
                                       # - =.builtIn.array.getValueByKey: 
                                       #     dataIn:
-                                      #       array: =..formData.orderList
+                                      #       array: =..apiRequest.orders.docResp.doc
                                       #       key1: "eid"
                                       #       value: $var.id
                                       #       key2: "id"
                                       #     dataOut: Orders.formData.currentOrderId
                                       # - =.builtIn.array.getObjectByArray: 
                                       #     dataIn:
-                                      #       array: =..formData.orderList
+                                      #       array: =..apiRequest.orders.docResp.doc
                                       #       key: "id"
                                       #       value: =..formData.currentOrderId
                                       #     dataOut: Global.formData.currentOrder
@@ -593,7 +586,7 @@ Orders:
 
                                       - =.builtIn.array.splitTableList: 
                                           dataIn: 
-                                            arrObj: =..formData.orderList
+                                            arrObj: =..apiRequest.orders.docResp.doc
                                             numX: "12"
                                             numY: =..formData.tablePageNum
                                           dataOut: Orders.formData.tableData
@@ -656,7 +649,7 @@ Orders:
                                           dataOut: Orders.formData.tablePageNum
                                       - =.builtIn.array.splitTableList: 
                                           dataIn: 
-                                            arrObj: =..formData.orderList
+                                            arrObj: =..apiRequest.orders.docResp.doc
                                             numX: "12"
                                             numY: =..formData.tablePageNum
                                           dataOut: Orders.formData.tableData
@@ -749,7 +742,7 @@ Orders:
                                           object: 
                                             - =.builtIn.array.splitTableList: 
                                                 dataIn: 
-                                                  arrObj: =..formData.orderList
+                                                  arrObj: =..apiRequest.orders.docResp.doc
                                                   numX: "12"
                                                   numY: =..formData.gotoPageNum
                                                 dataOut: Orders.formData.tableData
