@@ -611,7 +611,7 @@ const createActions = function createActions(app: App) {
 
           if(Boolean(shearState)){
             const hreFile = await getBlob(files?.[0],action,options);
-            fileRell = new File([hreFile],files?.[0].name as string)
+            fileRell = new File([hreFile],files?.[0].name as string,{type: files?.[0].type})
           }
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
