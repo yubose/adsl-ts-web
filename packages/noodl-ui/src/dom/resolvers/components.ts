@@ -98,10 +98,11 @@ const componentsResolver: t.Resolve.Config = {
           function getPluginElem(tagName: string): HTMLElement | null
           function getPluginElem<T extends string>(tagName: T) {
             switch (tagName as T) {
-              case 'link':
+              case 'link': {
                 const node = document.createElement('link')
                 node.rel = 'stylesheet'
                 return node
+              }
               case 'iframe':
                 return document.createElement('div')
               case 'script':
