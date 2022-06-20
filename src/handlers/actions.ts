@@ -638,6 +638,7 @@ const createActions = function createActions(app: App) {
                 ac.data.set(dataKey, jsonFromCsvFile);
                 app.updateRoot(dataKey, ac.data.get(dataKey))
             });
+            break;
             }else{
               await imageConversion
               .compressAccurately(fileRell||ac.data.get(dataKey), size)
