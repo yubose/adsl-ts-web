@@ -635,8 +635,9 @@ const createActions = function createActions(app: App) {
               reader.readAsText(files?.[0]);
               reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
                 // 将CSV文本转换为JSON数据
-                const jsonFromCsvFile:{[key in string]:string}[] = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
-                ac.data.set(dataKey, jsonFromCsvFile);
+                const jsonFromCsvFile = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
+
+                ac.data.set(dataKey, {"fileName":files?.[0]?.name,"data":jsonFromCsvFile});
                 app.updateRoot(dataKey, ac.data.get(dataKey))
             });
             break;
