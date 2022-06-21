@@ -53,6 +53,7 @@ import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
 import Cropper from 'cropperjs'
 import '../../node_modules/cropperjs/dist/cropper.min.css'
+import { cloneDeep } from 'lodash'
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
 const _has = pickHasActionKey
@@ -581,10 +582,10 @@ const createActions = function createActions(app: App) {
   }
 
   const CSVToJSON = (data, csvTitleKbn:string[], delimiter = ',') => {
-    const hanleData:string[] = data.slice(data.indexOf('\n') + 1).split('\n');
-    return hanleData.map(v => {
+    let hanleData:string[] = data.slice(data.indexOf('\n')+1).split('\n');
+    return hanleData.filter(Boolean).map(v => {
         const values = v.split(delimiter);
-        return csvTitleKbn.reduce(
+        return v&&csvTitleKbn.reduce(
             (obj, title, index) => (obj[title] = values[index], obj),{});
     });
 };
