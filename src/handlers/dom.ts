@@ -1496,7 +1496,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Rotation': {
       cond: 'rotation',
       resolve({ node, component }) {
-        if (node && component) {
+        if (node && component.get('data-value').length) {
           type optionSetting = {
             borderRadius?:number,
             direction?: "vertical"|"horizontal",
@@ -1519,8 +1519,8 @@ const createExtendedDOMResolvers = function (app: App) {
             },
             loop?:boolean
           }
-          const dataValue = component.get('data-value');
-          const option:optionSetting  = component.get('data-option') as {[key in string]:any};
+          const dataValue = component.get('data-value') as string[];
+            const option:optionSetting  = component.get('data-option') as {[key in string]:any};
             node.setAttribute('class', 'swiper-container');
             let listDom: HTMLUListElement = document.createElement('ul');
             listDom.setAttribute('class', 'swiper-wrapper');
@@ -1570,22 +1570,6 @@ const createExtendedDOMResolvers = function (app: App) {
             node.appendChild(prevBtn);
             node.appendChild(nextBtn);
             node.appendChild(pagination);
-            // const styleOuter = document.createElement("style") as HTMLStyleElement;
-            // const styleTemplete: string = `
-            // .swiper .hide{
-            //   opacity: 0;
-            // }
-            // .swiper-button-next,.swiper-button-prev{
-            //   transition: opacity 0.5s;
-            // }
-            // `;
-            // //@ts-ignore
-            // if (styleOuter?.styleSheet) {
-            //   //@ts-ignore
-            //   styleOuter.styleSheet.cssText = styleTemplete;
-            // } else {
-            //   styleOuter.innerHTML = styleTemplete;
-            // }
             prevBtn.style.opacity = "0";
             nextBtn.style.opacity = "0";
             prevBtn.style.transition = "opacity 0.3s";
@@ -1691,7 +1675,10 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
               }
 
-        }
+
+    }else{
+      console.error("Image array is empty");
+    }
       },
     },
   }
