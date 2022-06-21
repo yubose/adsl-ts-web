@@ -1519,35 +1519,59 @@ const createExtendedDOMResolvers = function (app: App) {
             },
             loop?:boolean
           }
-          const dataValue = component.get('data-value') as string[];
+          const dataValue = component.get('data-value') as (({[key in string]:any}|string)[]);
             const option:optionSetting  = component.get('data-option') as {[key in string]:any};
             node.setAttribute('class', 'swiper-container');
             let listDom: HTMLUListElement = document.createElement('ul');
             listDom.setAttribute('class', 'swiper-wrapper');
             listDom.style.listStyleType = "none";
             for (let index = 0; index < dataValue.length; index++) {
-                let liDom: HTMLLIElement = document.createElement('li')
-                if((dataValue[index] as string).endsWith("mp4")){
-                  let videoDom: HTMLVideoElement = document.createElement('video');
-                  videoDom.src = dataValue[index];
-                  videoDom.setAttribute("controls","controls");
-                  videoDom.setAttribute("preload","auto");
-                  videoDom.setAttribute("poster","https://public.aitmed.com/cadl/www3.83/assets/backgroundBlack.png");
-                  videoDom.setAttribute("width",node.style.width);
-                  videoDom.setAttribute("height",node.style.height);
-                  liDom.appendChild(videoDom);
-                  listDom.appendChild(liDom);
-              }
-              else
-              {
-                  let img: HTMLImageElement = document.createElement('img')
-                  img.src = dataValue[index];
-                  img.style.width = option.childStyle?.width + "";
-                  img.style.height = option.childStyle?.height + "";
-                  // img.style.cursor = "pointer" ;
-                  liDom.appendChild(img);
-                  listDom.appendChild(liDom);
+                let liDom: HTMLLIElement = document.createElement('li');
+                if(typeof dataValue[index] === "object"){
+                  if((dataValue[index] as object)["type"].includes("video")){
+                    let videoDom: HTMLVideoElement = document.createElement('video');
+                    videoDom.src = dataValue[index]?.["path"];
+                    videoDom.setAttribute("controls","controls");
+                    videoDom.setAttribute("preload","auto");
+                    // videoDom.setAttribute("poster","https://public.aitmed.com/cadl/www3.83/assets/backgroundBlack.png");
+                    videoDom.setAttribute("width",node.style.width);
+                    videoDom.setAttribute("height",node.style.height);
+                    liDom.appendChild(videoDom);
+                    listDom.appendChild(liDom);
+                  }else if((dataValue[index] as object)["type"].includes("image")){
+                    let img: HTMLImageElement = document.createElement('img')
+
+                    img.src = dataValue[index]?.["path"];
+                    img.style.width = option.childStyle?.width + "";
+                    img.style.height = option.childStyle?.height + "";
+                    // img.style.cursor = "pointer" ;
+                    liDom.appendChild(img);
+                    listDom.appendChild(liDom);
+                  }
+                }else{
+                  if((dataValue[index] as string).endsWith("mp4")){
+                    let videoDom: HTMLVideoElement = document.createElement('video');
+                    videoDom.src = dataValue[index] as string;
+                    videoDom.setAttribute("controls","controls");
+                    videoDom.setAttribute("preload","auto");
+                    // videoDom.setAttribute("poster","https://public.aitmed.com/cadl/www3.83/assets/backgroundBlack.png");
+                    videoDom.setAttribute("width",node.style.width);
+                    videoDom.setAttribute("height",node.style.height);
+                    liDom.appendChild(videoDom);
+                    listDom.appendChild(liDom);
+                  }
+                  else
+                  {
+                    let img: HTMLImageElement = document.createElement('img')
+                    img.src = dataValue[index] as string;
+                    img.style.width = option.childStyle?.width + "";
+                    img.style.height = option.childStyle?.height + "";
+                    // img.style.cursor = "pointer" ;
+                    liDom.appendChild(img);
+                    listDom.appendChild(liDom);
+                  }
                 }
+
             }
             for (let index = 0; index < listDom.childElementCount; index++) {
               (listDom.children[index] as HTMLLIElement).setAttribute(
