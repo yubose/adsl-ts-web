@@ -65,7 +65,7 @@ lerna exec --scope homepage \"set CONFIG=mob && npm run build\"
 
 ## Correct link to GitLab
 
-- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git
+- <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git>
 
 ### ecosDoc variations
 
@@ -141,40 +141,42 @@ NUI.emit({
 
 ## Test Accounts
 
-| app        | phone #    | password    | who    | Notes            |
-| ---------- | ---------- | ----------- | ------ | ---------------- |
-| aitmedPay  | 8864567890 | 123         | dazhou |
-| admin      | 8862005050 | password    |        |
-| admin      | 7144480995 | Baby2020!   |        |
-| admin      | 5594215342 | Family3496  | toni   |                  |
-| admin      | 8864210047 | aitmed      | toni   |                  |
-| admind2    | 8860000301 |             |        |
-| admind2    | 8865509773 | 123         |        |
-| admind2    | 8866006001 | password    |        |
-| admind2    | 8866006002 | password    |        |
-| admind2    | 2134628002 | letmein123! |        |
-| admind2    | 8863870054 | aitmed      | liz    | Josh Urgent Care |
-| admind2    | 8866540007 | 123         |        | yongjian         |
-| admind2    | 8864565043 | 123         |        | chenchen         |
-| admind2    | 8862320918 | 888666      |        | yuhan            |
-| admind2    | 8862324378 | 888666      |        | austin           |
-| superadmin | 8883202761 | 123         |        | dazhou           |
-| patient    | 8872465555 | 123         | me     |                  |
-| patient    | 8862325577 | 111         | yuhan  |                  |
-| provider   | 8882465555 | 123         | me     |                  |
-| provider   | 8882461211 | 123         | me     |                  |
-| patd       | 8860081221 | letmein123! |        |
-| patd       | 8864240000 | 12345       |        |
-| patd2      | 8861122050 | 123         |        |
-| patd3      | 8864565432 | 123         | jiahao |
-| patd3      | 8862325577 | 111         | yuhan  |
-| prod       | 8865550010 | password    |        |
-| prod       | 8864210053 | aitmed      | toni   |
-| meet       | 8882465555 | 123         | me     |
-| meet       | 8882461211 | 123         | me     |
-| meet4d     | 8862465555 | 142251      |        |
-| meet4d     | 8862468491 | 142251      |        |
-| meet4d     | 8862461234 | 142251      |        |
+| app         | phone #    | password    | who    | Notes            |
+| ----------- | ---------- | ----------- | ------ | ---------------- |
+| aitmedPay   | 8864567890 | 123         | dazhou |
+| admin       | 8862005050 | password    |        |
+| admin       | 7144480995 | Baby2020!   |        |
+| admin       | 5594215342 | Family3496  | toni   |                  |
+| admin       | 8864210047 | aitmed      | toni   |                  |
+| admind2     | 8860000301 |             |        |
+| admind2     | 8865509773 | 123         |        |
+| admind2     | 8866006001 | password    |        |
+| admind2     | 8866006002 | password    |        |
+| admind2     | 2134628002 | letmein123! |        |
+| admind2     | 8863870054 | aitmed      | liz    | Josh Urgent Care |
+| admind2     | 8866540007 | 123         |        | yongjian         |
+| admind2     | 8864565043 | 123         |        | chenchen         |
+| admind2     | 8862320918 | 888666      |        | yuhan            |
+| admind2     | 8862324378 | 888666      |        | austin           |
+| superadmin  | 8883202761 | 123         |        | dazhou           |
+| superadmind | 8864567890 | 123         |        | elizabeth        |
+| patient     | 8872465555 | 123         | me     |                  |
+| patient     | 8862325577 | 111         | yuhan  |                  |
+| patd2       | 8864565432 | 123         | jiahao |                  |
+| provider    | 8882465555 | 123         | me     |                  |
+| provider    | 8882461211 | 123         | me     |                  |
+| patd        | 8860081221 | letmein123! |        |
+| patd        | 8864240000 | 12345       |        |
+| patd2       | 8861122050 | 123         |        |
+| patd2       | 8864565432 | 123         | jiahao | albh3            |
+| patd3       | 8862325577 | 111         | yuhan  |
+| prod        | 8865550010 | password    |        |
+| prod        | 8864210053 | aitmed      | toni   |
+| meet        | 8882465555 | 123         | me     |
+| meet        | 8882461211 | 123         | me     |
+| meet4d      | 8862465555 | 142251      |        |
+| meet4d      | 8862468491 | 142251      |        |
+| meet4d      | 8862461234 | 142251      |        |
 
 ## Ecos types
 
@@ -183,7 +185,6 @@ NUI.emit({
 - 1031
   - Does not require JWT
   - Generates JWT
-  -
   - Secured login
 - 1032
   - Auto secured login

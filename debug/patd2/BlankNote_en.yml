@@ -1,0 +1,423 @@
+BlankNote:
+  title: Blank Note/Form
+  init:
+    - .SignInCheck
+    - ..formData@: =.Global.Note
+    # - actionType: evalObject
+    #   object:
+    #     .Global._nonce@:
+    #       =.builtIn.math.random: ""
+
+  formData: ""
+  formDataTemp: ""
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        width: "1"
+        height: "0.94"
+        overflow: scroll
+
+      children:
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.0246"
+            height: "auto"
+            width: "0.92"
+          children:
+            - type: image
+              path: office-building.svg
+              path=func: =.builtIn.utils.prepareDocToPath
+              dataKey: formData.name.data.facilityInfo.facilityAvatarID
+              style:
+                verticalAlign: middle
+                display: "inline-block"
+                height: "0.0578"
+                width: "5.78vh"
+            - type: view
+              style:
+                verticalAlign: middle
+                marginLeft: "0.08"
+                display: "inline-block"
+                height: "auto"
+                width: "0.71"
+                overflow: hidden
+              children:
+                - type: label
+                  dataKey: formData.name.data.facilityInfo.facilityName
+                  style:
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h20
+                    fontWeight: "600"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+                - type: label
+                  dataKey: formData.name.data.facilityInfo.location
+                  style:
+                    marginTop: "0.0110"
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Email
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.email
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Website
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.website
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Main #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.main
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Fax #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.fax
+
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Exam Date
+                - .DocPublicStyleTwoRight:
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: formData.name.data.patientInfo.examDate
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Patient Name
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.patientName
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Date of Birth
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.dob
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Phone #"
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.phone
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Email"
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.email
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Patient Address"
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  dataKey: formData.name.data.patientInfo.address
+                  style:
+                    height: "auto"
+                    width: "0.92"
+                    fontSize: .Nfont.h14
+                    wordWrap: break-word
+                    color: "0x333333"
+                    fontWeight: "600"
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.027093"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: Title
+              style:
+                fontSize: .Nfont.h14
+                color: "#333333"
+                fontWeight: "600"
+                width: "0.92"
+                height: "auto"
+            - type: label
+              text: "No content"
+              dataKey: formData.name.title
+              style:
+                marginTop: "0.01108374"
+                height: "auto"
+                width: "0.92"
+                padding: "6px 12px"
+                boxSizing: border-box
+                borderRadius: "3"
+                fontSize: .Nfont.h14
+                color: "#333333"
+
+                backgroundColor: "#f4f4f4"
+                wordBreak: break-word
+
+            - type: label
+              text: Notes
+              style:
+                marginTop: "0.027093596"
+                fontSize: .Nfont.h14
+                color: "#333333"
+                fontWeight: "600"
+                width: "0.92"
+                height: "auto"
+
+            - type: label
+              text: "No content"
+              dataKey: formData.name.data.note
+              style:
+                marginTop: "0.01108374"
+                height: "auto"
+                width: "0.92"
+                padding: "6px 12px"
+                boxSizing: border-box
+                borderRadius: "3"
+                fontSize: .Nfont.h14
+                color: "#333333"
+
+                backgroundColor: "#f4f4f4"
+                wordBreak: break-word
+
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.03"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                height: "auto"
+                width: "0.92"
+              children:
+                - type: label
+                  text: "Signature"
+                  style:
+                    display: "inline-block"
+                    width: "0.816"
+                    fontSize: .Nfont.h14
+                    height: "auto"
+                    color: "0x333333"
+                    fontWeight: "600"
+                    textAlign:
+                      x: left
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.01"
+            height: "0.128"
+            width: "0.9"
+            border:
+              style: "4"
+              color: "0xa9a9a9"
+            borderWidth: "2"
+          children:
+            - type: label
+              text: X
+              style:
+                .SignLabelStyle:
+            # 显示暂存的签名
+            - type: image
+              viewTag: signatureShowTag
+              path=func: .builtIn.utils.prepareDocToPath
+              # 传入签名文档的id
+              dataKey: BlankNote.formData.name.data.signatureId
+              style:
+                # 控制显示
+                display: =..formData.flag
+                left: "0"
+                width: "0.88"
+                top: "0"
+                height: "0.128"
+                overflow: scroll
+                zIndex: "1000"
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.0146"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: view
+              viewTag: signatureTimeTag
+              style:
+                display: ..formData.flag
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.92"
+              children:
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: formData.name.data.signatureTime
+                  style:
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    fontSize: .Nfont.h12
+                    color: "0x757575"
+                    verticalAlign: middle
+                - type: label
+                  text: "Digitally Signed"
+                  dataKey:
+                  style:
+                    marginLeft: "0.02"
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    fontSize: .Nfont.h12
+                    color: "0x757575"
+                    verticalAlign: middle
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "auto"
+                height: "auto"
+              children:
+                - type: label
+                  text: Date
+                  style:
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    color: "0x666666"
+                    fontSize: .Nfont.h12
+                - type: label
+                  text=func: .builtIn.string.formatUnixtimeL_en
+                  dataKey: formData.ctime
+                  style:
+                    marginLeft: "0.0373"
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    color: "0x333333"
+                    fontSize: .Nfont.h12
+                    fontWeight: "600"
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.0246"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              dataKey: formData.name.data.providerInfo.physicianName
+              style:
+                height: "auto"
+                width: "0.92"
+                color: "0x333333"
+                fontSize: .Nfont.h16
+                fontWeight: "600"
+                wordWrap: break-word
+            - type: label
+              dataKey: formData.name.data.providerInfo.specialty
+              style:
+                marginTop: "0.006"
+                height: "auto"
+                width: "0.92"
+                color: "0x666666"
+                fontSize: .Nfont.h14
+                wordWrap: break-word
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "LIC #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.license
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "NPI #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.npi
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "DEA #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.dea
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Email"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.email
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Fax #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.fax
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Main #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.main
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Address"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.location
+            - .DocPublicLine:
+              style:
+                marginTop: "0.0246"
+                height: "0.00369"
+        - type: label
+          dataKey: formData.name.data.facilityInfo.website
+          style:
+            marginTop: "0.01"
+            width: "1"
+            height: "auto"
+            color: "0x666666"
+            fontSize: .Nfont.h12
+            textAlign:
+              x: center
+        - type: view
+          style:
+            marginTop: "0.03"

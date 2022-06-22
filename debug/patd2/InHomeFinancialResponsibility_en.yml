@@ -1,0 +1,285 @@
+InHomeFinancialResponsibility:
+  title: "Financial Responsibility"
+  init:
+    - .SignInCheck
+
+    - actionType: evalObject
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 80
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject
+      object: .BaseComponents.getDate
+    - actionType: evalObject
+      object: .BaseComponents.getShow
+    - =..squareCheckout.edgeAPI.store: ""
+    - actionType: evalObject
+      object:
+        - ..website@: =..squareCheckout.response.edge.deat.squareID
+  squareCheckout:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1113
+      bvid: .Global.currentUser.vertex.id
+      subtype: 1
+      name:
+        amount: 45000
+        url: "https://www.aitmed.com"
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: squareCheckout.edge
+        dataOut: squareCheckout.response
+  formData:
+    # todayDate: ""
+    paymentDeclined: none
+    isPaying: block
+  website: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+      children:
+        # title view
+        - type: view
+          style:
+            width: "1"
+            height: "0.1"
+            backgroundColor: "#2988e6"
+          # children:
+          #   - type: image
+          #     path: whiteLeft.svg
+          #     style:
+          #       width: "0.03"
+          #       height: "0.1"
+          #       top: "0"
+          #       left: "0.05"
+          #     onClick:
+          #       - actionType: builtIn
+          #         funcName: goBack
+          #         reload: true
+          #   - .PageTitle:
+          #     text: "Financial Responsibility"
+        # content view
+        - type: view
+          style:
+            width: "1"
+            height: "0.9"
+          children:
+            - .baseLabel:
+              text: "*Payment was declined, please try a new payment method or cancel your appointment"
+              style:
+                width: "0.9"
+                # height: "0.07"
+                margin: "auto"
+                color: red
+                display: ..formData.paymentDeclined
+                textAlign:
+                  x: center
+                lineHeight: "3vh"
+            - type: label
+              text: "Appointment Fee"
+              style:
+                width: "1"
+                height: "0.04"
+                backgroundColor: "#f0f0f0"
+                color: "#4b4b4b"
+                fontSize: .Nfont.n0_6
+
+                textIndent: "5vw"
+                textAlign:
+                  y: center
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.6"
+                margin: "auto"
+                padding: 1px
+              children:
+                - .baseLabel:
+                  text: "The payment below must be paid in full before the appointment can be made"
+                  style:
+                    width: "0.9"
+                    marginTop: "0.01"
+                - .baseLabelBold:
+                  dataKey: BaseComponents.calendarDate.todayDate
+                  style:
+                    marginLeft: "0.03"
+                    marginTop: "0.01"
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "0.06"
+                    borderBottom: "1px solid #dededf"
+                    borderWidth: "1px"
+                  children:
+                    - .baseLabel:
+                      text: "Payment Due"
+                      style:
+                        float: left
+                        marginLeft: "0.03"
+                        lineHeight: "6vh"
+                        fontSize: .Nfont.n3_2
+                    - .baseLabelBold:
+                      text: "$450.00"
+                      style:
+                        float: right
+                        marginRight: "0.03"
+                        lineHeight: "6vh"
+                        fontSize: .Nfont.n3_2
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "0.06"
+                  children:
+                    - .baseLabel:
+                      text: "Total Payment"
+                      style:
+                        float: left
+                        marginLeft: "0.03"
+                        lineHeight: "6vh"
+                    - .baseLabelBold:
+                      text: "$450.00"
+                      style:
+                        float: right
+                        marginRight: "0.03"
+                        lineHeight: "6vh"
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "0.1"
+                    marginTop: "0.02"
+                    backgroundColor: "#f5f5f5"
+                    padding: 1px
+                  children:
+                    - type: view
+                      style:
+                        marginTop: "0.02"
+                        padding: 1px
+                        height: "0.03"
+                      children:
+                        - .baseLabel:
+                          text: "Appointment Type"
+                          style:
+                            float: left
+                            marginLeft: "0.03"
+                        - .baseLabelBold:
+                          text: "Telemedicine"
+                          style:
+                            float: left
+                            marginLeft: "1em"
+                    - type: view
+                      style:
+                        marginTop: "0"
+                        padding: 1px
+                        height: "0.03"
+                      children:
+                        - .baseLabel:
+                          text: "Reason for Payment"
+                          style:
+                            float: left
+                            marginLeft: "0.03"
+                        - .baseLabelBold:
+                          text: "Visit fee"
+                          style:
+                            float: left
+                            marginLeft: "1em"
+                - type: view
+                  style:
+                    display: ..formData.isPaying
+                  children:
+                    - .baseLabelBold:
+                      text: "Patients with medical coverage"
+                      style:
+                        color: "#2c89e6"
+                        marginTop: "0.03"
+                    - .baseLabel:
+                      text: "You may request for a billing statement after your visit and submit a reimbursement request through your insurance company."
+                      style:
+                        marginTop: "0.01"
+                    - .baseLabel:
+                      text: "Refunds may be requested to A&C Urgentcare, please contact them directly at (714)634-4884."
+                      style:
+                        marginTop: "0.01"
+                        fontSize: .Nfont.n2
+                        fontWeight: 350
+            - type: view
+              style:
+                top: "0.7"
+                height: "0.15"
+                width: "1"
+              children:
+                # - .baseLabel:
+                #   text: "Square"
+                #   style:
+                #     fontSize: .Nfont.n3
+                #     display: "inline-block"
+                - type: button
+                  text: "Cancel Appointment"
+                  style:
+                    # display: none
+                    display: ..formData.paymentDeclined
+                    width: "0.9"
+                    height: "0.045"
+                    marginLeft: "0.05"
+                    borderRadius: "5px"
+                    color: "#ffffff"
+                    backgroundColor: "#ff0000"
+                    fontSize: .Nfont.n3_1
+                    fontWeight: "550"
+                - type: button
+                  text: "Pay Now"
+                  style:
+                    width: "0.9"
+                    height: "0.045"
+                    marginLeft: "0.05"
+                    marginTop: "0.01"
+                    borderRadius: "5px"
+                    color: "#ffffff"
+                    backgroundColor: "#30b354"
+                    fontSize: .Nfont.n3_1
+                    fontWeight: "550"
+                  onClick:
+                    - goto: =..squareCheckout.response.edge.deat.squareID #website
+
+                - type: view
+                  style:
+                    left: "0.32"
+                    width: "0.5"
+                    marginTop: "0.01"
+                    display: ..formData.isPaying
+                  children:
+                    - .baseLabel:
+                      text: "Payment are processed by"
+                      style:
+                        fontSize: .Nfont.n3
+                        display: "inline-block"
+                - type: view
+                  style:
+                    left: "0.3"
+                    width: "0.5"
+                    marginTop: auto
+                    display: ..formData.isPaying
+                  children:
+                    - type: image
+                      path: Square.png
+                      style:
+                        height: "0.1"
+                        display: "inline-block"

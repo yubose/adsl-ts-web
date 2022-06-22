@@ -1,0 +1,468 @@
+AppointmentRequest: #xdpage:13
+  title: "Appointment Request"
+  viewPort: top
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..requestList.get
+    - .Global.visitQuestionnaireDoc@: ""
+    - .Global.vaccine@: []
+    - .Global.vaccineDoc@: []
+    - actionType: updateObject
+      dataKey: Global.formData.cov19Test
+      dataObject: .EmptyObj
+    #  清空newPatientForm
+    - actionType: updateObject
+      dataKey: Global.formData.newPatientForm
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.cov19TestNewPatForm
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.cov19TestForm
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.modernaVaccineFirDoseForm
+      dataObject: .EmptyObj
+    # 清空modernaVaccineSecDoseForm
+    - actionType: updateObject
+      dataKey: Global.formData.modernaVaccineSecDoseForm
+      dataObject: .EmptyObj
+    #  清空pifzerVaccineFirDoseForm
+    - actionType: updateObject
+      dataKey: Global.formData.pifzerVaccineFirDoseForm
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.pifzerVaccineSecDoseForm
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.fluVaccinationConsentForm
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.back_InsuranceCard
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.front_IDCard
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.front_InsuranceCard
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.visitQuestionnaireDoc
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.pifzerBioNTech
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.moderna
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.vaccine
+      dataObject: .EmptyArr
+    - actionType: updateObject
+      dataKey: Global.vaccineDoc
+      dataObject: .EmptyArr
+    - .Global.formData.firstToCov19Test@: true
+    - .Global.formData.firstToCov19TestForm@: true
+    - .Global.formData.firstToCov19TestNewPatForm@: true
+    # 重置firstToNewPatientForm状态
+    - .Global.formData.firstToNewPatientForm@: true
+    # 重置firstToNewPatientForm状态
+    - .Global.formData.firstToPfizerVaccineFirDoseForm@: true
+    - .Global.formData.firstToPfizerVaccineSecDose@: true
+    # 重置firstToModernaVaccineSecDoseForm状态
+    - .Global.formData.firstToModernaVaccineFirDoseForm@: true
+    - .Global.formData.firstToModernaVaccineSecDoseForm@: true
+    - .Global.formData.firstFluVaccinationConsentForm@: true
+  requestList:
+    requestData:
+      edge: ""
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataKey: requestList.requestData
+      type: 40000
+      id: .Global.currentUser.vertex.id
+      maxcount: "10000"
+      xfname: "evid"
+      obfname: "ctime"
+      sCondition: "subtype in (0x30002,0x20002,0xa0002,0x60002)"
+      asc: false
+      _nonce: =.Global._nonce
+  currentFaci:
+    vertexResp: ""
+    vertexIn:
+      ObjType: 4
+      id: ""
+      xfname: "E.bvid|E.evid"
+      sCondition: "E.type=1100 AND V.type=20"
+      _nonce: =.Global._nonce
+      maxcount: "1"
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: currentFaci.vertexIn
+        dataOut: AppointmentRequest.currentFaci.vertexResp
+  approve:
+    e2id: "" #refid
+  apiRequest:
+    #邮件结构
+    email:
+      docResp: ""
+      #发送邮件请求
+      docReq:
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(10002)
+        eid: .Global.rootNotebookID
+        name:
+          data:
+            #邮件内容
+            content: ""
+            #收件人姓名
+            receiverName: ""
+            #发送人姓名
+            senderName: .Global.MyProfile.name.data.fullName
+            #收件人头像的id
+            receiverAvatarId: ""
+            #是否带附件
+            haveAttachment: false
+          #邮件标题
+          title: "Appointment Reject"
+          #发件人头像的id
+          user: .Global.MyProfile.name.data.avatar
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: AppointmentRequest.apiRequest.email.docReq
+          dataOut: AppointmentRequest.apiRequest.email.docResp
+    getProvider:
+      edgeQueryReq:
+        type: .EdgeType.InviteInfo
+        id: []
+      edgeAPI:
+        get:
+          api: re
+          dataIn: AppointmentRequest.getProvider
+    #邮件挂载的edge(10002)
+    relation:
+      edgeReq:
+        type: .EdgeType.Email
+        id:
+          - .Global.currentUser.vertex.id
+        xfname: Bvid,Evid
+        maxcount: "1"
+        obfname: ctime
+      edgeResp: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: AppointmentRequest.apiRequest.relation.edgeReq
+          dataOut: AppointmentRequest.apiRequest.relation.edgeResp
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: scrollView
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.9"
+        overflow: scroll
+      children:
+        - type: list
+          iteratorVar: itemObject
+          listObject: ..requestList.requestData.edge
+          contentType: listObject
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1"
+          children:
+            - type: listItem
+              itemObject: ""
+              onClick:
+                - actionType: updateObject
+                  dataKey: Global.formData.request
+                  dataObject: itemObject
+              style:
+                left: "0"
+                width: "1"
+                height: "0.2"
+                backgroundColor: "0xffffff"
+                boxShadow: "0 0 5px #999999"
+                # backgroundColor: "0xcdcdcd"
+              children:
+                - type: label
+                  text: "Provider Name:"
+                  style:
+                    left: "0.05"
+                    top: "0.02"
+                    width: "0.32"
+                    height: "0.03"
+                    fontSize: "2vh"
+                    textAlign:
+                      x: left
+                - type: label
+                  text: no provider
+                  dataKey: itemObject.name.providerName
+                  style:
+                    left: "0.37"
+                    top: "0.02"
+                    width: "0.6"
+                    height: "0.03"
+                    fontSize: "2vh"
+                    color: "0x1b8ec9"
+                    textAlign:
+                      x: left
+                    border:
+                      style: "1"
+                # - type: button
+                #   onClick:
+                #     - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                #       dataKey: Global.appointmnetRequest
+                #       dataObject: itemObject
+                #     - goto: "PatientInfo"
+                #   text: "View patient info"
+                #   style:
+                #     left: "0.65"
+                #     top: "0.02"
+                #     width: "0.35"
+                #     height: "0.025"
+                #     fontSize: "15"
+                #     color: "0xd10114"
+                #     backgroundColor: "0xffffff"
+                #     textAlign:
+                #       x: left
+                #     border:
+                #       style: "1"
+                - type: label
+                  text: "Date & Time:"
+                  style:
+                    left: "0.05"
+                    top: "0.05"
+                    width: "0.28"
+                    height: "0.03"
+                    fontSize: "16"
+                    textAlign:
+                      x: left
+                - type: label
+                  placeholder: "09/10/20 at 8:30am"
+                  dataKey: itemObject.stime
+                  text=func: .builtIn.string.formatUnixtime_en
+                  style:
+                    left: "0.34"
+                    top: "0.05"
+                    width: "0.65"
+                    height: "0.025"
+                    color: "0x1b8ec9"
+                    fontSize: "2vh"
+                    textAlign:
+                      x: left
+                    border:
+                      style: "1"
+                - type: label
+                  text: "Appointment Type:"
+                  style:
+                    left: "0.05"
+                    top: "0.08"
+                    width: "0.38"
+                    height: "0.03"
+                    fontSize: "2vh"
+                    textAlign:
+                      x: left
+                - type: label
+                  placeholder: "09/10/20 at 8:30am"
+                  dataKey: itemObject.name.visitType
+                  style:
+                    left: "0.45"
+                    top: "0.08"
+                    width: "0.5"
+                    height: "0.03"
+                    color: "0x1b8ec9"
+                    fontSize: "2vh"
+                    textAlign:
+                      x: left
+                    border:
+                      style: "1"
+                - type: label
+                  text: "Click approve below to confirm appointment"
+                  style:
+                    left: "0.05"
+                    top: "0.11"
+                    width: "0.94"
+                    height: "0.03"
+                    fontSize: "2vh"
+                    textAlign:
+                      x: left
+                - type: button
+                  onClick:
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: Global.appoinment.request
+                      dataObject: itemObject
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - ..currentFaci.vertexIn.id@: $var.bvid
+                          - =..currentFaci.vertexAPI.get: ""
+                          - .Global.currentFacility@: =..currentFaci.vertexResp.vertex.0
+                    - goto: ApproveInfo
+                    # - goto: AgreeRequest
+                    # - goto: AppointmentConfirmation
+                    # 创建一条新边 E5 , refid = E2 subtype=5  然后把E2的subtype设置成6 创建meetingRoom
+                  text: "Approve"
+                  style:
+                    left: "0.25"
+                    top: "0.15"
+                    width: "0.23"
+                    height: "0.035"
+                    fontSize: "1.6vh"
+                    backgroundColor: "0xffffff"
+                    color: "0x5bc377"
+                    textAlign:
+                      x: center
+                    border:
+                      style: "3"
+                    borderColor: "0x5bc377"
+                    borderRadius: "5"
+                    borderWidth: "1"
+                - type: button
+                  onClick:
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: Global.appoinment.request
+                      dataObject: itemObject
+                    - actionType: popUp
+                      popUpView: DenyView
+                      wait: true
+                  text: "Deny"
+                  style:
+                    left: "0.54"
+                    top: "0.15"
+                    width: "0.23"
+                    height: "0.035"
+                    fontSize: "14"
+                    color: "0xff0000"
+                    backgroundColor: "0xffffff"
+                    textAlign:
+                      x: center
+                    border:
+                      style: "3"
+                    borderColor: "0xff0000"
+                    borderRadius: "5"
+                    borderWidth: "1"
+
+    - type: popUp
+      message: "Appointment Reject"
+      viewTag: DenyView
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - type: view
+          style:
+            left: "0.1"
+            width: "0.8"
+            top: "0.41"
+            height: "0.19"
+            backgroundColor: "0xe5e5e5"
+            border:
+              style: "5"
+            borderWidth: "1"
+            borderRadius: "10"
+            boxShadow: "0px 0px 0px 1px #d8d8db"
+            overflow: hidden
+          children:
+            - type: label
+              text: ___.message
+              style:
+                marginTop: "0.02"
+                width: "0.8"
+                height: "0.02"
+                fontSize: "4.2vw"
+                fontWeight: "600"
+                color: "0x000000"
+                backgroundColor: "0xe5e5e5"
+                textAlign:
+                  x: center
+                  y: center
+            - type: textView
+              placeholder: "Enter the reason here"
+              dataKey: apiRequest.email.docReq.name.data.content
+              style:
+                marginTop: "0.02"
+                backgroundColor: "0xffffff"
+                height: "0.06"
+                width: "0.7"
+                left: "0.05"
+                border:
+                  style: "1"
+                borderRadius: "3"
+                boxShadow: "0px 0px 0px 2px #DEDEDF"
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "0.8"
+                height: "0.001"
+                backgroundColor: "0xcccccc"
+            - type: view
+              style:
+                width: "0.81"
+                height: "0.054"
+              children:
+                - type: label
+                  text: Cancel
+                  style:
+                    top: "0"
+                    left: "0"
+                    width: "0.4"
+                    height: "0.054"
+                    color: "0x0074ff"
+                    fontSize: "4.5vw"
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: DenyView
+                - type: view
+                  style:
+                    top: "0"
+                    left: "0.41"
+                    width: "0.001"
+                    height: "0.054"
+                    backgroundColor: "0xcccccc"
+                - type: label
+                  text: Send
+                  style:
+                    top: "0"
+                    left: "0.42"
+                    width: "0.4"
+                    height: "0.054"
+                    color: "0x0074ff"
+                    fontSize: "4.5vw"
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..apiRequest.relation.edgeReq.id
+                              value: =.Global.appoinment.request.bvid
+                        - =..apiRequest.relation.edgeAPI.get: ""
+                        # - ..apiRequest.email.docReq.eid@: =..apiRequest.relation.edgeResp.edge.0.id
+                    #     - ..apiRequest.email.docReq.name.data.receiverName@: =.Global.appoinment.request.name.patientName
+                    #     - ..apiRequest.email.docReq.name.data.receiverAvatarId@: =.Global.appoinment.request.name.patientAvatarId
+                    #     - =..apiRequest.email.docAPI.store: ""
+                    # - goto: DisagreeRequest

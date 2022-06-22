@@ -1,0 +1,846 @@
+VisitQuestionnaire2:
+  # 这个页面的是保存在全局的
+  pageNumber: "160"
+  title: "Visit Questionnaire"
+  init:
+    - .SignInCheck
+    - ..visitQuestionnaire.docAPI.get
+    - actionType: evalObject
+      object:
+        .VisitQuestionnaire2.visitQuestionnaireObject.document@: =..docResponse.doc.0
+  save:
+    - =.VisitQuestionnaire2.visitQuestionnaireObject.docAPI.store: ""
+  visitQuestionnaireTemp:
+    Visit:
+      input1:
+        - key: purpose
+          value: "What is the purpose of your visit?"
+        - key: anythingElse
+          value: "Is there anything else you would like to talk about?"
+      radio:
+        - key: prescribed
+          value: "Taking medication"
+    isPrescribed:
+      - key: isPrescribed
+        value: "Yes"
+      - key: isPrescribed
+        value: "Sometimes"
+      - key: isPrescribed
+        value: "No"
+    isProblems:
+      - key: isProblems
+        value: "Yes"
+      - key: isProblems
+        value: "Sometimes"
+      - key: isProblems
+        value: "No"
+    isToEmergency:
+      - key: isToEmergency
+        value: "Yes"
+      - key: isToEmergency
+        value: "No"
+    isToAnotherDoctor:
+      - key: isToAnotherDoctor
+        value: "Yes"
+      - key: isToAnotherDoctor
+        value: "No"
+    isFamilyHistoryChanges:
+      - key: isFamilyHistoryChanges
+        value: "Yes"
+      - key: isFamilyHistoryChanges
+        value: "No"
+    isNewDrug:
+      - key: isNewDrug
+        value: "Yes"
+      - key: isNewDrug
+        value: "No"
+  visitQuestionnaireObject:
+    document:
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: visitQuestionnaireObject.document
+        subtype:
+          mediaType: "application/json"
+  visitQuestionnaire:
+    # document:
+    docAPI:
+      .DocAPI: ""
+      get:
+        dataKey: docResponse
+        id: .Global.roomInfo.edge.id
+        xfname: "eid"
+        type: .DocType.VisitQuestionnaire
+        _nonce: =.Global._nonce
+  # subvisitQuestionnaire:
+
+  docResponse:
+    doc:
+      - type: .DocType.VisitQuestionnaire # - type: "257" # private profile
+        eid: .Global.rootNotebookID
+        name: ""
+    error: ""
+    jwt: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: scrollView
+      style:
+        top: "0.1"
+        width: "1"
+        height: "0.9"
+        left: "0"
+        overflow: scroll
+      children:
+        - type: label
+          text: "Please update information if appplicable or requested"
+          style:
+            # color: "0x000000"
+            left: "0"
+            width: "1"
+            fontSize: .Nfont.h1
+            marginTop: "0"
+            height: "0.04"
+            textAlign:
+              x: center
+              y: center
+            # border:
+            #   style: "2"
+            # borderWidth: "1"
+            # borderColor: "0xd4d4d4"
+        - .PatientChartView:
+          style:
+            marginTop: "0"
+            height: "0.53"
+          children:
+            - .PatientChartTitleView:
+              style:
+                marginTop: "0"
+                left: "0"
+                height: "auto"
+              children:
+                - .PatientChartTitle:
+                  text1: Today's Visit
+                  style:
+                    left: "0"
+                    width: "1"
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                    - .VisitQuestionnaireTextField:
+                      placeholder: "Ex: Follow-up, pain, lab results, physical, etc"
+                      dataKey: visitQuestionnaireObject.document.name.data.purpose
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      style:
+                        height: "0.055"
+                      text: Is there anything else you would like to talk about?
+                    - .VisitQuestionnaireTextField:
+                      placeholder: "Ex: medication refill, screening, advice"
+                      dataKey: visitQuestionnaireObject.document.name.data.anythingElse
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      # style:
+                      #   height: '0.055'
+                      text: Taking medications as prescribed?
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..visitQuestionnaireTemp.isPrescribed
+                      iteratorVar: itemObject
+                      viewTag: isPrescribed
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0.07"
+                        margin: "0"
+                        marginTop: "0.01"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            width: "0.31"
+                            height: "0.025"
+                            backgroundColor: "0xffffffff"
+                          children:
+                            - type: image
+                              style:
+                                height: "0.025"
+                                width: "0.042"
+                                top: "0"
+                                left: "0"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..visitQuestionnaireObject.document.name.data.isPrescribed
+                                              string2: $var.value
+                                        - selectOn.svg
+                                        - selectOff.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..visitQuestionnaireObject.document.name.data.isPrescribed
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isPrescribed
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.05"
+                                color: "#5f5f5f"
+                                fontSize: .Nfont.h2
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      # style:
+                      #   height: '0.055'
+                      text: Any problems with your medications?
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..visitQuestionnaireTemp.isProblems
+                      iteratorVar: itemObject
+                      viewTag: isProblems
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0.07"
+                        margin: "0"
+                        marginTop: "0.01"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            width: "0.31"
+                            height: "0.025"
+                            backgroundColor: "0xffffffff"
+                          children:
+                            - type: image
+                              style:
+                                height: "0.025"
+                                width: "0.042"
+                                top: "0"
+                                left: "0"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..visitQuestionnaireObject.document.name.data.isProblems
+                                              string2: $var.value
+                                        - selectOn.svg
+                                        - selectOff.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..visitQuestionnaireObject.document.name.data.isProblems
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isProblems
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.05"
+                                color: "#5f5f5f"
+                                fontSize: .Nfont.h2
+                    - .VisitQuestionnaireTextField:
+                      placeholder: "Please explain here"
+                      dataKey: visitQuestionnaireObject.document.name.data.problems
+        - .PatientChartView:
+          style:
+            marginTop: "0"
+          children:
+            - .PatientChartTitleView:
+              style:
+                marginTop: "0"
+                left: "0"
+                height: "auto"
+              children:
+                - .PatientChartTitle:
+                  text1: Update Information
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      text: Have you been to the emergency room, hospital,or another doctor since your last visit?
+                      style:
+                        height: "0.055"
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..visitQuestionnaireTemp.isToEmergency
+                      iteratorVar: itemObject
+                      viewTag: isToEmergency
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0"
+                        margin: "0"
+                        marginTop: "0.01"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            width: "0.5"
+                            height: "0.025"
+                            backgroundColor: "0xffffffff"
+                          children:
+                            - type: image
+                              style:
+                                height: "0.025"
+                                width: "0.042"
+                                top: "0"
+                                left: "0.17"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..visitQuestionnaireObject.document.name.data.isToEmergency
+                                              string2: $var.value
+                                        - selectOn.svg
+                                        - selectOff.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..visitQuestionnaireObject.document.name.data.isToEmergency
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isToEmergency
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.22"
+                                color: "#5f5f5f"
+                                fontSize: .Nfont.h2
+                    - .VisitQuestionnaireTextField:
+                      placeholder: "Please explain here"
+                      dataKey: visitQuestionnaireObject.document.name.data.toEmergency
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      text: Have you been to another doctor office since your last visit?
+                      style:
+                        height: "0.055"
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..visitQuestionnaireTemp.isToAnotherDoctor
+                      iteratorVar: itemObject
+                      viewTag: isToAnotherDoctor
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0.05"
+                        margin: "0"
+                        marginTop: "0.01"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            width: "0.5"
+                            height: "0.025"
+                            backgroundColor: "0xffffffff"
+                          children:
+                            - type: image
+                              style:
+                                height: "0.025"
+                                width: "0.042"
+                                top: "0"
+                                left: "0.17"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..visitQuestionnaireObject.document.name.data.isToAnotherDoctor
+                                              string2: $var.value
+                                        - selectOn.svg
+                                        - selectOff.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..visitQuestionnaireObject.document.name.data.isToAnotherDoctor
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isToAnotherDoctor
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.22"
+                                height: "0.03"
+                                color: "#5f5f5f"
+                                fontSize: .Nfont.h2
+                    - .VisitQuestionnaireTextField:
+                      placeholder: "Please explain here"
+                      dataKey: visitQuestionnaireObject.document.name.data.toAnotherDoctor
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      text: Any changes or new conditions in your family history?
+                      style:
+                        height: "0.055"
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..visitQuestionnaireTemp.isFamilyHistoryChanges
+                      iteratorVar: itemObject
+                      viewTag: isFamilyHistoryChanges
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0"
+                        margin: "0"
+                        marginTop: "0.01"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            width: "0.5"
+                            height: "0.025"
+                            backgroundColor: "0xffffffff"
+                          children:
+                            - type: image
+                              style:
+                                height: "0.025"
+                                width: "0.042"
+                                top: "0"
+                                left: "0.17"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..visitQuestionnaireObject.document.name.data.isFamilyHistoryChanges
+                                              string2: $var.value
+                                        - selectOn.svg
+                                        - selectOff.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..visitQuestionnaireObject.document.name.data.isFamilyHistoryChanges
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isFamilyHistoryChanges
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.22"
+                                color: "#5f5f5f"
+                                fontSize: .Nfont.h2
+                    - .VisitQuestionnaireTextField:
+                      placeholder: "Please explain here"
+                      dataKey: visitQuestionnaireObject.document.name.data.familyHistoryChanges
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      text: Any new drug or environmental allergies?
+                      # style:
+                      #   height: "0.055"
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..visitQuestionnaireTemp.isNewDrug
+                      iteratorVar: itemObject
+                      viewTag: isNewDrug
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0"
+                        margin: "0"
+                        marginTop: "0.01"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            width: "0.5"
+                            height: "0.025"
+                            backgroundColor: "0xffffffff"
+                          children:
+                            - type: image
+                              style:
+                                height: "0.025"
+                                width: "0.042"
+                                top: "0"
+                                left: "0.17"
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..visitQuestionnaireObject.document.name.data.isNewDrug
+                                              string2: $var.value
+                                        - selectOn.svg
+                                        - selectOff.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..visitQuestionnaireObject.document.name.data.isNewDrug
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..visitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isNewDrug
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                top: "0"
+                                left: "0.22"
+                                color: "#5f5f5f"
+                                fontSize: .Nfont.h2
+                    - .VisitQuestionnaireTextField:
+                      placeholder: "Please explain here"
+                      dataKey: visitQuestionnaireObject.document.name.data.newDrug
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    left: "0"
+                    width: "1"
+                    height: "0.1"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        height: "auto"
+                        left: "0.05"
+                        width: "0.5"
+                        overflow: hidden
+                      children:
+                        - type: label
+                          text: Allergy/Irritant
+                          style:
+                            width: "0.45"
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.h2
+
+                        - type: textField
+                          placeholder: Enter here
+                          dataKey: visitQuestionnaireObject.document.name.data.allergy
+                          style:
+                            width: "0.4"
+                            height: "0.035"
+                            marginTop: "0.02"
+                            color: "0x000000"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000033"
+                            borderRadius: "3"
+                            borderWidth: "1"
+                            fontSize: .Nfont.h2
+
+                    - type: view
+                      style:
+                        top: "0"
+                        height: "0.1"
+                        left: "0.5"
+                        width: "0.5"
+                      children:
+                        - type: label
+                          text: What happens?
+                          style:
+                            width: "0.45"
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.h2
+
+                        - type: textField
+                          placeholder: Enter here
+                          dataKey: visitQuestionnaireObject.document.name.data.happens
+                          style:
+                            width: "0.45"
+                            height: "0.035"
+                            marginTop: "0.02"
+                            color: "0x000000"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000033"
+                            borderRadius: "3"
+                            borderWidth: "1"
+                            fontSize: .Nfont.h2
+
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      text: Other notes?
+                    - type: textView
+                      isEditable: "true"
+                      placeholder: "Please explain here"
+                      dataKey: visitQuestionnaireObject.document.name.data.notes
+                      style:
+                        left: "0.05"
+                        marginTop: "0.01"
+                        width: "0.9"
+                        height: "0.1"
+                        color: "0x000000"
+                        border:
+                          style: "3"
+                        borderColor: "0x00000033"
+                        borderRadius: "3"
+                        borderWidth: "1"
+                        fontSize: .Nfont.h2
+
+                - .PatientChartTitle:
+                  text1: Referring Provider
+                  style:
+                    marginTop: "0.02"
+                - .VisitQuestionnaireTextView:
+                  children:
+                    - .VisitQuestionnaireText:
+                      text: Who referred you?
+                      style:
+                        height: "auto"
+                    - type: textField
+                      placeholder: Name
+                      dataKey: visitQuestionnaireObject.document.name.data.referProvider.name
+                      style:
+                        marginTop: "0.02"
+                        left: "0.05"
+                        height: "0.035"
+                        width: "0.9"
+                        color: "0x000000"
+                        border:
+                          style: "3"
+                        borderColor: "0x00000033"
+                        borderRadius: "3"
+                        borderWidth: "1"
+                        fontSize: .Nfont.h2
+
+                    - type: textField
+                      placeholder: Address
+                      dataKey: visitQuestionnaireObject.document.name.data.referProvider.address
+                      style:
+                        marginTop: "0.02"
+                        left: "0.05"
+                        height: "0.035"
+                        width: "0.9"
+                        # marginTop: "0.02"
+                        color: "0x000000"
+                        border:
+                          style: "3"
+                        borderColor: "0x00000033"
+                        borderRadius: "3"
+                        borderWidth: "1"
+                        fontSize: .Nfont.h2
+
+                    - type: view
+                      style:
+                        marginTop: "0.02"
+                        left: "0.05"
+                        height: "0.035"
+                      children:
+                        - type: textField
+                          placeholder: Phone
+                          dataKey: visitQuestionnaireObject.document.name.data.referProvider.phone
+                          style:
+                            top: "0"
+                            left: "0"
+                            height: "0.035"
+                            width: "0.43"
+                            color: "0x000000"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000033"
+                            borderRadius: "3"
+                            borderWidth: "1"
+                            fontSize: .Nfont.h2
+
+                        - type: textField
+                          placeholder: Fax
+                          dataKey: visitQuestionnaireObject.document.name.data.referProvider.fax
+                          style:
+                            top: "0"
+                            left: "0.46"
+                            height: "0.035"
+                            width: "0.44"
+                            color: "0x000000"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000033"
+                            borderRadius: "3"
+                            borderWidth: "1"
+                            fontSize: .Nfont.h2
+
+                    - type: textField
+                      placeholder: Email
+                      dataKey: visitQuestionnaireObject.document.name.data.referProvider.email
+                      style:
+                        marginTop: "0.02"
+                        left: "0.05"
+                        height: "0.035"
+                        width: "0.9"
+                        color: "0x000000"
+                        border:
+                          style: "3"
+                        borderColor: "0x00000033"
+                        borderRadius: "3"
+                        borderWidth: "1"
+                        fontSize: .Nfont.h2
+
+                - type: button
+                  text: Share
+                  style:
+                    fontStyle: "bold"
+                    fontSize: .Nfont.h2
+                    backgroundColor: "0x2988e6"
+                    marginTop: "0.05"
+                    height: "0.05"
+                    width: "0.5"
+                    left: "0.25"
+                    color: "0xffffff"
+                    border:
+                      style: "3"
+                    borderColor: "0x2988e6"
+                    borderWidth: "1"
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - actionType: evalObject
+                      object: ..save
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        .Global.visitQuestionnaireDoc@: true
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .VisitQuestionnaireTextView:
+                  style:
+                    height: "0.03"

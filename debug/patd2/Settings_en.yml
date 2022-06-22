@@ -1,0 +1,357 @@
+Settings:
+  title: "Settings"
+  init:
+    - .SignInCheck
+    - =.builtIn.string.phoneNumberSplit:
+        dataIn:
+          phoneNumber: =..myVertex.uid
+          sign: " "
+        dataOut: Settings.phone
+    - .Settings.formData.countryCode@: =..phone.0
+    - .Settings.formData.phoneNumber@: =..phone.1
+    # - ..formData.firstName@: =..myVertex.name.firstName
+    # - ..formData.lastName@: =..myVertex.name.lastName
+    - ..formData.userName@: =..myVertex.name.userName
+  phone: []
+  myVertex: .Global.currentUser.vertex
+  formData: #components datakey
+    # firstName: ""
+    # lastName: ""
+    userName: ""
+    countryCode: ""
+    phoneNumber: ""
+    password: xxx
+    confirmPassword: xxx
+  # updateApiData:
+  #   response: ""
+  #   vertexAPI:
+  #     .VertexAPI: ""
+  #     store:
+  #       api: cv # construct uid, pk, esk .. for new account
+  #       dataIn: myVertex
+  #       dataOut: updateApiData.response
+  # needvCode: false
+  # getvCodeData:
+  #   phoneNumber: ""
+  # verificationCode:
+  #   response: ""
+  #   edge:
+  #     .Edge: ""
+  #     type: 1010
+  #     _nonce: =.Global._nonce
+  #     name:
+  #       phone_number: =..getvCodeData.phoneNumber
+  #   edgeAPI:
+  #     .EdgeAPI: ""
+  #     store:
+  #       api: ce
+  #       dataIn: Settings.verificationCode.edge
+  #       dataOut: Settings.verificationCode.response
+  # save:
+  # - ..myVertex.name.firstName@: =..formData.firstName
+  # - ..myVertex.name.lastName@: =..formData.lastName
+  # - ..myVertex.name.userName@: =..formData.userName
+  # - =..updateApiData.vertexAPI.store: ""
+  # update:
+  #   - .Global.currentUser.vertex@ : =..updateApiData.response.vertex # set {".Global.currentUser.vertex":".builtIn.UserVertex"}
+  # - actionType: evalObject
+  #   object:
+  #     =.builtIn.string.concat:
+  #       dataIn:
+  #         - =.Global.currentUser.vertex.name.firstName
+  #         - " "
+  #         - =.Global.currentUser.vertex.name.lastName
+  #       dataOut: Global.currentUser.vertex.name.fullName
+  commonStyle:
+    left: "0.1"
+    fontSize: "16"
+    fontWeight: "400"
+    height: "0.03"
+    width: "0.5"
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - type: button
+          text: Update
+          onClick:
+            - goto: SettingsUpdate
+          style:
+            left: "0.82"
+            top: "0.011"
+            width: "0.18"
+            height: "0.033"
+            backgroundColor: "#2887e5"
+            fontSize: .Nfont.h14
+            color: "0xffffffff"
+            zIndex: 100
+            border:
+              style: "1"
+            textAlign:
+              y: center
+    - type: view
+      style:
+        width: "1"
+        height: "auto"
+
+        overflow: "hiddden"
+      children:
+        - type: image
+          path: settingsLogo.svg
+          style:
+            marginTop: "0.062"
+            marginLeft: "0.18516"
+            width: "63.688vw"
+            height: "17.355vh"
+        - type: label
+          text: Reset Account
+          dataKey:
+          style:
+            marginTop: "0.021"
+            marginLeft: "0.104"
+            width: "0.54"
+            height: "0.15"
+            fontSize: "6.157vh"
+            fontColor: "0x333333"
+            fontWeight: "600"
+        - type: view
+          style:
+            width: "1"
+            height: "auto"
+          children:
+            - type: label
+              text: "Current Username:"
+              dataKey:
+              style:
+                ..style.labelText:
+            - type: textField
+              placeholder: Enter here
+              isEditable: "false"
+              dataKey: formData.userName
+              style:
+                ..style.inputBoxStyle:
+            - type: label
+              text: "Current phone number:"
+              dataKey:
+              style:
+                ..style.labelText:
+                marginTop: "0.0246"
+            - type: textField
+              placeholder: Enter here
+              isEditable: "false"
+              dataKey: myVertex.uid
+              style:
+                ..style.inputBoxStyle:
+        - type: view
+          style:
+            width: "1"
+            height: "0.24"
+          children:
+            - type: button
+              text: Log Out
+              style:
+                ..style.buttonStyle:
+                top: "0.165"
+                backgroundColor: "0x2988e6"
+              onClick:
+                - goto: LogOut
+            - type: image
+              path: logout3.svg
+              style:
+                top: "0.188"
+                left: "0.27"
+                width: "4.8vw"
+                height: "4.8vw"
+                zIndex: 10
+
+  style:
+    labelText:
+      marginTop: "0.0369"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      lineHeight: "27px"
+      color: "0x333333"
+      fontSize: .Nfont.h2
+      fontWeight: "400"
+
+    inputBoxStyle:
+      border:
+        style: 3
+      borderColor: "0xdedede"
+      borderRadius: "4"
+      backgroundColor: "0xEAEAEA"
+      width: "0.91"
+      height: "0.0554"
+      lineHeight: "27px"
+      marginTop: "3px"
+      marginLeft: "0.04"
+      textIndent: "12px"
+      wordBreak: "break-word"
+
+      fontSize: .Nfont.h2
+      color: "0x666666"
+    buttonStyle:
+      left: "0.08"
+      height: "0.069"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "4"
+      color: "0xffffff"
+      fontSize: .Nfont.h20
+      fontWeight: 400
+      textAlign:
+        x: center
+        y: center
+
+    # - type: view
+    #   style:
+    #     top: "0"
+    #     left: "0"
+    #     width: "1"
+    #     height: "1"
+    #   children:
+    #     - .BaseHeader:
+    #     - .HeaderLeftButton:
+    #       onClick:
+    #         - goto: MenuBars
+    #     - type: button
+    #       text: Update
+    #       onClick:
+    #         - goto: SettingsUpdate
+    #       style:
+    #         left: "0.82"
+    #         top: "0"
+    #         width: "0.18"
+    #         height: "0.1"
+    #         backgroundColor: "#2887e5"
+    #         fontSize: .Nfont.h2
+    #         color: "0xffffffff"
+    #         zIndex: 100
+    #         border:
+    #           style: "1"
+    #         textAlign:
+    #           #x: right
+    #           y: center
+    #     # - type: view
+    #     #   style:
+    #     #     marginTop: "0.15"
+    #     #     height: "0.15"
+    #     #     # border:
+    #     #     #   style: "3"
+    #     #     # borderWidth: "1.5"
+    #     #     # borderColor: "red"
+    #     #   children:
+    #     #     - type: label
+    #     #       text:  "First Name:"
+    #     #       style:
+    #     #         ..commonStyle: ""
+    #     #         top: "0.05"
+    #     #     - type: label
+    #     #       dataKey: formData.firstName
+    #     #       style:
+    #     #         ..commonStyle: ""
+    #     #         top: "0.08"
+    #     #         width: "0.3"
+    #     #         border:
+    #     #           style: "2"
+    #     #         borderWidth: "1.5"
+    #     #         borderColor: "0xc2c2c2"
+    #     #     - type: label
+    #     #       text: "Last Name:"
+    #     #       style:
+    #     #         ..commonStyle: ""
+    #     #         top: "0.05"
+    #     #         left: "0.5"
+    #     #     - type: label
+    #     #       dataKey: formData.lastName
+    #     #       style:
+    #     #         ..commonStyle: ""
+    #     #         top: "0.08"
+    #     #         left: "0.55"
+    #     #         width: "0.3"
+    #     #         border:
+    #     #           style: "2"
+    #     #         borderWidth: "1.5"
+    #     #         borderColor: "0xc2c2c2"
+    #     - type: view
+    #       style:
+    #         marginTop: "0.15"
+    #         height: "0.1"
+    #         # border:
+    #         #   style: "3"
+    #         # borderWidth: "1.5"
+    #         # borderColor: "black"
+    #       children:
+    #         - type: label
+    #           text: "Username:"
+    #           style:
+    #             ..commonStyle: ""
+    #             top: "0"
+    #             width: "0.3"
+    #         - type: label
+    #           dataKey: formData.userName
+    #           style:
+    #             ..commonStyle: ""
+    #             top: "0"
+    #             left: "0.35"
+    #             border:
+    #               style: "2"
+    #             borderWidth: "1.5"
+    #             borderColor: "0xc2c2c2"
+    #     - type: view
+    #       style:
+    #         # marginTop: "-0.02"
+    #         height: "0.1"
+    #       children:
+    #         - type: label
+    #           text: "Phone Number:"
+    #           style:
+    #             ..commonStyle: ""
+    #             top: "0"
+    #             width: "0.25"
+    #         - type: label
+    #           dataKey: myVertex.uid
+    #           style:
+    #             ..commonStyle: ""
+    #             top: "0"
+    #             left: "0.35"
+    #             border:
+    #               style: "2"
+    #             borderWidth: "1.5"
+    #             borderColor: "0xc2c2c2"
+    #             textAlign:
+    #               x: left
+    #     - type: view
+    #       style:
+    #         top: "0.77"
+    #         left: "0"
+    #         width: "0.5"
+    #         height: "0.1"
+
+    #       children:
+    #         - type: image
+    #           path: logout2.svg
+    #           style:
+    #             left: "0.35"
+    #             top: "0.03"
+    #             height: "0.03"
+    #         - type: button
+    #           text: Log Out
+    #           style:
+    #             top: "0"
+    #             left: "0.1"
+    #             width: "0.8"
+    #             height: "0.085"
+    #             fontSize: 15
+    #             color: "0x6b6c6cff"
+    #             backgroundColor: "0x00000015"
+    #             textAlign:
+    #               y: center
+    #               x: center
+    #             border:
+    #               style: "1"
+    #           onClick:
+    #             - goto: LogOut

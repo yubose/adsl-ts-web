@@ -1,0 +1,1817 @@
+SuccessfulOneLine:
+  type: popUp
+  viewTag: successfulOneLine
+  message: "Change Successfully!"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        width: "0.5"
+        marginLeft: "0.25"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: deleteTrue.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.message
+          style:
+            width: "0.426"
+            marginLeft: "0.037"
+            marginTop: "0.01"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.029"
+
+publicDeleteUP:
+  type: popUp
+  viewTag: publicDeleteUP
+  message: "Are you sure you want to delete it?"
+  leftText: "Cancel"
+  rightText: "Confirm"
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: publicDeleteUP
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: publicDeleteUP
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "1000"
+    textAlign:
+      y: center
+  children:
+    - type: view
+      style:
+        width: "0.7"
+        marginLeft: "0.15"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14"
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: aboutRed.svg
+          style:
+            marginTop: "0.0295"
+            height: "0.04926"
+        - type: label
+          text: ___.message
+          dataKey:
+          style:
+            height: "auto"
+            width: "0.7"
+            color: "0x333333"
+            fontSize: .Nfont.h14
+            marginTop: "0.00738"
+            textAlign:
+              x: center
+        - type: view
+          style:
+            marginTop: "0.0295"
+            width: "0.7"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+        - type: view
+          style:
+            width: "0.7"
+            boxSizing: border-box
+          children:
+            - type: button
+              text: ____.leftText
+              style:
+                color: "0x007AFF"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 0 14px"
+                fontSize: .Nfont.h14
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: ____.rightText
+              style:
+                color: "0x007AFF"
+                fontWeight: "850"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.349"
+                fontSize: .Nfont.h14
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+
+SuccessfulMultiLine:
+  type: popUp
+  viewTag: successfulMultiLine
+  message: "The document has been downladed to medical document "
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        width: "0.51"
+        marginLeft: "0.245"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: deleteTrue.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.message
+          style:
+            width: "0.436"
+            marginLeft: "0.037"
+            marginTop: "0.01"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.029"
+Tip:
+  type: popUp
+  viewTag: tips
+  message: "Are you sure to remove the Insurance?"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "100"
+    textAlign:
+      y: center
+  leftText: "No"
+  rightText: "Yes"
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: tips
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: tips
+  children:
+    - type: view
+      style:
+        width: "0.7"
+        marginLeft: "0.15"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: aboutRed.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.message
+          style:
+            width: "0.576"
+            marginLeft: "0.062"
+            marginTop: "0.006"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.027"
+            width: "0.7"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+        - type: view
+          style:
+            width: "0.7"
+          children:
+            - type: button
+              text: ____.leftText
+              style:
+                color: "0x007AFF"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 0 14px"
+                height: "0.054"
+                fontSize: .Nfont.h14
+                backgroundColor: "0xE6E6E6"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: ____.rightText
+              style:
+                color: "0x007AFF"
+                fontWeight: "850"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                fontSize: .Nfont.h14
+                backgroundColor: "0xE6E6E6"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+SuccessfulTitleMultiLine:
+  type: popUp
+  viewTag: successfulTitleMultiLine
+  successtitle: "Successfully!"
+  message: "Your payment has been processed"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        width: "0.51"
+        marginLeft: "0.245"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: deleteTrue.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.successtitle
+          style:
+            marginTop: "0.006"
+            fontSize: .Nfont.h14
+            fontWeight: "600"
+            width: "0.51"
+
+            color: "0x333333"
+            textAlign:
+              x: center
+        - type: label
+          text: ___.message
+          style:
+            width: "0.436"
+            marginLeft: "0.037"
+            marginTop: "0.01"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.029"
+
+TipsOneLine:
+  type: popUp
+  viewTag: tipsOneLine
+  message: "Please add a recipient"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        width: "0.5"
+        marginLeft: "0.25"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: aboutRed.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.message
+          style:
+            width: "0.426"
+            marginLeft: "0.037"
+            marginTop: "0.01"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.029"
+
+TipsMultiLine:
+  type: popUp
+  viewTag: tipsMultiLine
+  message: "Please select or change an appropriate start & end time "
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        width: "0.51"
+        marginLeft: "0.245"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: aboutRed.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.message
+          style:
+            width: "0.436"
+            marginLeft: "0.037"
+            lineHeight: "2.58vh"
+            marginTop: "0.01"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.029"
+
+TipsTitleMultiLine:
+  type: popUp
+  viewTag: tipsTitleMultiLine
+  tipstitle: "Payment Declined"
+  message: "Please check your payment information and try again"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        width: "0.55"
+        marginLeft: "0.225"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: aboutRed.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.tipstitle
+          style:
+            marginTop: "0.006"
+            fontSize: .Nfont.h14
+            width: "0.55"
+            fontWeight: "600"
+
+            color: "0x333333"
+            textAlign:
+              x: center
+        - type: label
+          text: ___.message
+          style:
+            width: "0.476"
+            marginLeft: "0.037"
+            marginTop: "0.01"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.029"
+
+cancelResonTips:
+  type: popUp
+  viewTag: cancelResonTips
+  message: "Please enter reason for Cancellation"
+  path: aboutRed.svg
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    # backgroundColor: "0x00000066"
+    zIndex: "101"
+    overflow: hidden
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        marginTop: "0.0923"
+        width: "0.84"
+        marginLeft: "0.08"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "4px"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            marginTop: "0.0123"
+            width: "0.84"
+            height: "auto"
+          children:
+            - type: image
+              path: ____.path
+              style:
+                marginLeft: "0.08"
+                display: "inline-block"
+                height: "0.023"
+                verticalAlign: middle
+            - type: label
+              text: ____.message
+              style:
+                display: "inline-block"
+                verticalAlign: middle
+                width: "0.65"
+                marginLeft: "0.0186"
+                fontSize: .Nfont.h14
+
+                color: "0x333333"
+                wordWrap: break-word
+                textAlign:
+                  x: left
+        - type: view
+          style:
+            marginTop: "0.0123"
+
+Normal:
+  type: popUp
+  viewTag: normal
+  message: "Are you sure you want to delete the message?"
+  leftText: "Cancel"
+  rightText: "Confirm"
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: normal
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: normal
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+
+  children:
+    - type: view
+      style:
+        width: "0.7"
+        marginLeft: "0.15"
+        height: auto
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: label
+          text: ___.message
+          style:
+            width: "0.60"
+            marginLeft: "0.05"
+            marginTop: "0.027"
+            fontSize: .Nfont.h14
+            lineHeight: "1.65vh"
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.027"
+            width: "0.7"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+        - type: view
+          style:
+            width: "0.7"
+            boxSizing: border-box
+          children:
+            - type: button
+              text: ____.leftText
+              style:
+                color: "0x007AFF"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 0 14px"
+                fontSize: .Nfont.h14
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: ____.rightText
+              style:
+                color: "0x007AFF"
+                fontWeight: "850"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.349"
+                fontSize: .Nfont.h14
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+Success:
+  type: popUp
+  viewTag: success
+  message: "Successfully!"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  leftText: "Cancel"
+  rightText: "Confirm"
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: success
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: success
+  children:
+    - type: view
+      style:
+        width: "0.7"
+        marginLeft: "0.15"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: deleteTrue.svg
+          style:
+            marginTop: "0.029"
+            width: "0.13"
+        - type: label
+          text: ___.message
+          style:
+            width: "0.576"
+            marginLeft: "0.062"
+            marginTop: "0.006"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.027"
+            width: "0.7"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+        - type: view
+          style:
+            width: "0.7"
+          children:
+            - type: button
+              text: ____.leftText
+              style:
+                color: "0x007AFF"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 0 14px"
+                height: "0.054"
+                fontSize: .Nfont.h14
+                backgroundColor: "0xE6E6E6"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: ____.rightText
+              style:
+                color: "0x007AFF"
+                fontWeight: "850"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                fontSize: .Nfont.h14
+                backgroundColor: "0xE6E6E6"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+Warning:
+  type: popUp
+  viewTag: warning
+  message: "All the message will be deleted in this folder"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: warning
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: warning
+  children:
+    - type: view
+      style:
+        width: "0.7"
+        marginLeft: "0.15"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            width: "0.7"
+            height: "auto"
+            backgroundColor: "0xd81e06"
+            borderRadius: "14px 14px 0 0"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.006"
+                width: "0.7"
+                height: "auto"
+              children:
+                - type: image
+                  path: aboutWhite.svg
+                  style:
+                    display: inline-block
+                    verticalAlign: middle
+                    marginLeft: "0.23"
+                    width: "0.045"
+                - type: label
+                  text: Warning
+                  style:
+                    fontSize: .Nfont.h14
+                    marginLeft: "0.02"
+                    color: "0xFFFFFF"
+                    display: inline-block
+                    verticalAlign: middle
+
+        - type: view
+          style:
+            height: "0.01"
+            width: "0.7"
+            backgroundColor: "0xd81e06"
+        - type: label
+          text: ___.message
+          style:
+            width: "0.576"
+            marginLeft: "0.062"
+            marginTop: "0.027"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: view
+          style:
+            height: "0.027"
+            width: "0.7"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+        - type: view
+          style:
+            width: "0.7"
+          children:
+            - type: button
+              text: "Cancel"
+              style:
+                color: "0x007AFF"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 0 14px"
+                height: "0.054"
+                backgroundColor: "0xE6E6E6"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: "Confirm"
+              style:
+                color: "0x007AFF"
+                fontWeight: "850"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                backgroundColor: "0xE6E6E6"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+SoftTips:
+  type: popUp
+  viewTag: softTips
+  message: "You need to sign before click next"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        height: "1"
+        width: "1"
+        textAlign:
+          y: center
+      children:
+        - type: view
+          style:
+            width: "0.64"
+            marginLeft: "0.18"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            textAlign:
+              x: center
+          children:
+            - type: label
+              text: ____.message
+              style:
+                width: "0.476"
+                marginLeft: "0.082"
+                marginTop: "0.027"
+                lineHeight: "2.58vh"
+                fontSize: .Nfont.h14
+
+                textAlign:
+                  x: center
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.027"
+SoftTipsEmphasisMultiLine:
+  type: popUp
+  viewTag: softTipsEmphasisMultiLine
+  message: "The appointment has been "
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        width: "0.64"
+        marginLeft: "0.18"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+        textAlign:
+          x: center
+      children:
+        - type: label
+          text: The appointment has been
+          style:
+            width: "0.476"
+            marginLeft: "0.082"
+            marginTop: "0.027"
+            fontSize: .Nfont.h14
+
+            color: "0x333333"
+            textAlign:
+              x: left
+        - type: label
+          textBoard:
+            - text: CANCELED
+              color: "0xFB5051"
+            - text: "&nbsp;&nbsp;by patient"
+          style:
+            width: "0.476"
+            marginLeft: "0.082"
+            marginTop: "0.01"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: left
+            color: "0x333333"
+        - type: label
+          text: "Reason for cancellation:"
+          style:
+            width: "0.476"
+            marginLeft: "0.082"
+            marginTop: "0.012"
+            fontSize: .Nfont.h14
+            fontWeight: "650"
+
+            textAlign:
+              x: left
+            color: "0x4B4B4B"
+        - type: label
+          text: "My Plan has been changed for something"
+          style:
+            width: "0.476"
+            marginLeft: "0.082"
+            marginTop: "0.012"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: left
+            color: "0x2988E6"
+        - type: view
+          style:
+            height: "0.027"
+InputPopUp:
+  type: popUp
+  viewTag: inputPopUp
+  message: "Add New Folder"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: inputPopUp
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: inputPopUp
+  children:
+    - type: view
+      style:
+        width: "0.72"
+        marginLeft: "0.14"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+      children:
+        - type: label
+          text: ___.message
+          style:
+            width: "0.556"
+            marginLeft: "0.082"
+            fontWeight: "550"
+            marginTop: "0.029"
+            fontSize: .Nfont.h16
+
+            textAlign:
+              x: center
+            color: "0x333333"
+        - type: textField
+          placeholder: Enter name here
+          dataKey: datakey
+          style:
+            height: "0.035"
+            width: "0.616"
+            marginTop: "0.02"
+            marginLeft: "0.052"
+            backgroundColor: "0xffffff"
+            textIndent: "1em"
+            border:
+              style: "1"
+            borderRadius: "5"
+            fontSize: .Nfont.h14
+        - type: view
+          style:
+            height: "0.02"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+            width: "0.72"
+        - type: view
+          style:
+            width: "0.72"
+          children:
+            - type: button
+              text: "Cancel"
+              style:
+                color: "0x007AFF"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.359"
+                borderRadius: "0 0 0 14px"
+                fontSize: .Nfont.h14
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: "Confirm"
+              style:
+                color: "0x007AFF"
+                fontWeight: "850"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.359"
+                fontSize: .Nfont.h14
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+InputMultiLine:
+  type: popUp
+  viewTag: inputMultiLine
+  message: "Add New Folder"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: inputMultiLine
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: inputMultiLine
+  children:
+    - type: view
+      style:
+        width: "0.72"
+        marginLeft: "0.14"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+      children:
+        - type: label
+          text: Are you sure you want to cancel this appointment?
+          style:
+            width: "0.616"
+            marginLeft: "0.052"
+            marginTop: "0.029"
+            fontSize: .Nfont.h14
+
+            color: "0x4B4B4B"
+        - type: label
+          textBoard:
+            - text: Reason for
+            - text: "&nbsp;&nbsp;cancellation:"
+              color: "0xFB5051"
+          style:
+            width: "0.616"
+            marginLeft: "0.052"
+            marginTop: "0.0124"
+            fontWeight: "550"
+            fontSize: .Nfont.h14
+
+            textAlign:
+              x: left
+            color: "0x4B4B4B"
+        - type: textView
+          placeholder: Enter name here
+          dataKey: datakey
+          style:
+            height: "0.083"
+            width: "0.616"
+            backgroundColor: "0xffffff"
+            marginTop: "0.01"
+            left: "0.052"
+            textIndent: "1em"
+            border:
+              style: "1"
+            borderRadius: "5"
+            fontSize: .Nfont.h14
+        - type: view
+          style:
+            height: "0.02"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+            width: "0.72"
+        - type: view
+          style:
+            width: "0.72"
+          children:
+            - type: button
+              text: "No"
+              style:
+                color: "0x007AFF"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.359"
+                borderRadius: "0 0 0 14px"
+                fontSize: .Nfont.h14
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: "Yes"
+              style:
+                color: "0x007AFF"
+                fontWeight: "800"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.359"
+                fontSize: .Nfont.h14
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+InviteOneorMultLine:
+  type: popUp
+  viewTag: inviteOneorMultLine
+  message: "Send Invite Link To"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: inviteOneorMultLine
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: inviteOneorMultLine
+  children:
+    - type: view
+      style:
+        width: "0.72"
+        marginLeft: "0.14"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+      children:
+        - type: label
+          text: ___.message
+          style:
+            width: "0.616"
+            marginLeft: "0.052"
+            marginTop: "0.029"
+            fontWeight: "600"
+            fontSize: .Nfont.h16
+
+            color: "0x4B4B4B"
+            textAlign:
+              x: center
+        - type: view
+          style:
+            marginTop: "0.02"
+            textAlign:
+              x: center
+            width: "0.72"
+          children:
+            - type: view
+              children:
+                - type: image
+                  # path=func: =.builtIn.utils.prepareDocToPath
+                  # dataKey
+                  path: inviteAvatar.png
+                  style:
+                    height: "0.06"
+                    width: "6vh"
+                    backgroundColor: "0xFFFFFF"
+                    verticalAlign: middle
+                    display: "inline-block"
+                    borderRadius: "5"
+                    textAlign:
+                      x: center
+                - type: view
+                  style:
+                    display: "inline-block"
+                    verticalAlign: middle
+                    marginLeft: "0.037"
+                    textAlign:
+                      x: left
+                  children:
+                    - type: label
+                      text: Lucy Picklesworth
+                      style:
+                        fontSize: .Nfont.h12
+                        color: "0x333333"
+                        fontWeight: "500"
+                    - type: label
+                      text: Neurologist
+                      style:
+                        fontSize: .Nfont.h12
+                        marginTop: "0"
+                        zIndex: "1000"
+                        color: "0x666666"
+                        fontWeight: "400"
+                    - type: label
+                      text: The Johns Hopkins- Hospital Baltimore
+                      style:
+                        fontSize: .Nfont.h12
+                        maxWidth: "0.43"
+                        marginTop: "0"
+                        zIndex: "1000"
+                        color: "0x666666"
+                        fontWeight: "500"
+        - type: view
+          style:
+            height: "0.02"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+            width: "0.72"
+        - type: view
+          style:
+            width: "0.72"
+          children:
+            - type: button
+              text: "Cancel"
+              style:
+                color: "0x007AFF"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.359"
+                borderRadius: "0 0 0 14px"
+                fontSize: .Nfont.h14
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: "Confirm"
+              style:
+                color: "0x007AFF"
+                fontWeight: "800"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.359"
+                fontSize: .Nfont.h14
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+
+InvitePhone:
+  type: popUp
+  viewTag: invitePhone
+  phoneDataKey: "1"
+  message: "Send Invite Link To"
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: invitePhone
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: invitePhone
+  children:
+    - type: view
+      style:
+        width: "0.75"
+        marginLeft: "0.125"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14px"
+      children:
+        - type: label
+          text: ___.message
+          style:
+            width: "0.616"
+            marginLeft: "0.052"
+            marginTop: "0.029"
+            fontWeight: "600"
+            fontSize: .Nfont.h14
+
+            color: "0x4B4B4B"
+            textAlign:
+              x: center
+        - type: view
+          style:
+            marginTop: "0.02"
+            width: "0.75"
+            textAlign:
+              x: center
+          children:
+            - type: view
+              children:
+                - type: label
+                  text: Send Invite Link To
+                  style:
+                    fontSize: .Nfont.h14
+                    display: inline-block
+                - type: label
+                  text: _____.phoneDataKey
+                  style:
+                    marginLeft: "0.032"
+                    color: "0x0D7AFF"
+                    fontSize: .Nfont.h14
+                    display: inline-block
+
+        - type: view
+          style:
+            height: "0.02"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+            width: "0.75"
+        - type: view
+          style:
+            width: "0.75"
+          children:
+            - type: button
+              text: "Cancel"
+              style:
+                color: "0x007AFF"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.374"
+                borderRadius: "0 0 0 14px"
+                fontSize: .Nfont.h14
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: "Confirm"
+              style:
+                color: "0x007AFF"
+                fontWeight: "800"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.374"
+                fontSize: .Nfont.h14
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+HelloPerson:
+  type: view
+  viewTag: HelloView
+  updateButton:
+    - goto: DashBoard
+  style:
+    isHidden: .Global.nonFirstProfile
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+      x: center
+  children:
+    - type: view
+      style:
+        width: "0.72"
+        height: "auto"
+        borderRadius: "8"
+
+        backgroundColor: "0xdcdbdc"
+        box-sizing: border-box
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: view
+          style:
+            marginTop: "0.0295"
+            width: "auto"
+            height: auto
+            box-sizing: border-box
+          children:
+            - type: label
+              text: Hello,&nbsp;
+              style:
+                display: "inline-block"
+                width: "auto"
+                fontSize: .Nfont.h16
+                fontColor: "0x333333"
+                fontWeight: "700"
+                box-sizing: border-box
+                verticalAlign: middle
+            - type: label
+              text: Please update your
+              style:
+                display: "inline-block"
+                width: "auto"
+                fontSize: .Nfont.h16
+                color: "0x333333"
+                box-sizing: border-box
+                verticalAlign: middle
+        - type: view
+          style:
+            width: "0.72"
+            height: auto
+            box-sizing: border-box
+          children:
+            - type: label
+              text: professional profile
+              style:
+                display: "inline-block"
+                fontSize: .Nfont.h16
+                width: "0.72"
+                color: "0x333333"
+                box-sizing: border-box
+                verticalAlign: middle
+                textAlign:
+                  x: center
+        - type: view
+          style:
+            height: "0.0295"
+            width: "0.72"
+            border:
+              style: "2"
+            borderWidth: "1"
+            borderColor: "0x707070"
+            box-sizing: border-box
+        - type: button
+          text: Update Now
+          style:
+            color: "0x2988E6"
+            width: "0.72"
+
+            fontSize: ".Nfont.h16"
+            height: "0.054"
+            fontColor: "0x333333"
+            fontWeight: "600"
+            backgroundColor: "0xdcdbdc"
+            box-sizing: border-box
+            border:
+              style: "1"
+          onClick: ___.updateButton
+
+TwoChoices:
+  type: popUp
+  viewTag: TwoChoices
+  choice1Text: "Action1"
+  choice2Text: "Action2"
+  lastChoiceText: "Cancel"
+  choice1Button:
+    - actionType: popUpDismiss
+      popUpView: TwoChoices
+  choice2Button:
+    - actionType: popUpDismiss
+      popUpView: TwoChoices
+  lastChoiceButton:
+    - actionType: popUpDismiss
+      popUpView: TwoChoices
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "100"
+  children:
+    - type: view
+      style:
+        marginTop: "0.78"
+        width: "0.9"
+        height: "auto"
+        marginLeft: "0.05"
+        border:
+          style: "1"
+        borderRadius: "10"
+        backgroundColor: "0xdbdbdb"
+      children:
+        - type: button
+          text: ___.choice1Text
+          style:
+            marginTop: "0.001"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            borderRadius: "10"
+            backgroundColor: "0xdbdbdb"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+          onClick: ___.choice1Button
+        - type: view
+          style:
+            width: "0.9"
+            height: "0.0012"
+            backgroundColor: "0x00000066"
+            zIndex: "100"
+        - type: button
+          text: ___.choice2Text
+          style:
+            marginTop: "0.001"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            borderRadius: "10"
+            backgroundColor: "0xdbdbdb"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+          onClick: ___.choice2Button
+    - type: view
+      style:
+        marginTop: "0.01"
+        width: "0.9"
+        height: "auto"
+        marginLeft: "0.05"
+        border:
+          style: "1"
+        borderRadius: "10"
+        backgroundColor: "#ffffff"
+      children:
+        - type: button
+          text: ___.lastChoiceText
+          style:
+            marginTop: "0.001"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            borderRadius: "10"
+            backgroundColor: "#ffffff"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+          onClick: ___.lastChoiceButton
+
+ThreeChoices:
+  type: popUp
+  viewTag: ThreeChoices
+  choice1Text: "Action1"
+  choice2Text: "Action2"
+  choice3Text: "Action3"
+  lastChoiceText: "Cancel"
+  choice1Button:
+    - actionType: popUpDismiss
+      popUpView: ThreeChoices
+  choice2Button:
+    - actionType: popUpDismiss
+      popUpView: ThreeChoices
+  choice3Button:
+    - actionType: popUpDismiss
+      popUpView: ThreeChoices
+  lastChoiceButton:
+    - actionType: popUpDismiss
+      popUpView: ThreeChoices
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+  children:
+    - type: view
+      style:
+        marginTop: "0.72"
+        width: "0.9"
+        height: "auto"
+        marginLeft: "0.05"
+        border:
+          style: "1"
+        borderRadius: "10"
+        backgroundColor: "0xdbdbdb"
+      children:
+        - type: button
+          text: ___.choice1Text
+          style:
+            marginTop: "0.001"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            borderRadius: "10"
+            backgroundColor: "0xdbdbdb"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+          onClick: ___.choice1Button
+        - type: view
+          style:
+            width: "0.9"
+            height: "0.001"
+            backgroundColor: "0x00000066"
+            zIndex: "100"
+        - type: button
+          text: ___.choice2Text
+          style:
+            marginTop: "0.001"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            borderRadius: "10"
+            backgroundColor: "0xdbdbdb"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+          onClick: ___.choice2Button
+        - type: view
+          style:
+            width: "0.9"
+            height: "0.001"
+            backgroundColor: "0x00000066"
+            zIndex: "100"
+        - type: button
+          text: ___.choice3Text
+          style:
+            marginTop: "0.001"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            borderRadius: "10"
+            backgroundColor: "0xdbdbdb"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+          onClick: ___.choice3Button
+    - type: view
+      style:
+        marginTop: "0.01"
+        width: "0.9"
+        height: "auto"
+        marginLeft: "0.05"
+        border:
+          style: "1"
+        borderRadius: "10"
+        backgroundColor: "#ffffff"
+      children:
+        - type: button
+          text: ___.lastChoiceText
+          style:
+            marginTop: "0.001"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            borderRadius: "10"
+            backgroundColor: "#ffffff"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+          onClick: ___.lastChoiceButton
+
+SecondConfirmation:
+  type: popUp
+  viewTag: secondConfirmation
+  message: "The appointment time is over"
+  btnEvent:
+    - actionType: popUpDismiss
+      popUpView: secondConfirmation
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+      x: center
+  children:
+    - type: view
+      style:
+        width: "0.72"
+        height: "auto"
+        borderRadius: "10"
+
+        backgroundColor: "0xdcdbdc"
+        box-sizing: border-box
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: view
+          style:
+            marginTop: "0.0295"
+            width: "0.72"
+            height: "auto"
+            border:
+              style: 2
+            borderWidth: "1"
+            borderColor: "0x707070"
+            boxSizing: border-box
+            paddingLeft: "0.0533"
+            paddingRight: "0.0533"
+            paddingBottom: 2.95vh
+          children:
+            - type: label
+              text: ____.message
+              style:
+                height: "auto"
+                width: "0.6134"
+                fontSize: .Nfont.h14
+                fontColor: "0x333333"
+                boxSizing: border-box
+                lineHeight: "2.58vh"
+                textAlign:
+                  x: center
+        - type: button
+          text: OK
+          style:
+            color: "0x2988E6"
+            width: "0.72"
+
+            fontSize: .Nfont.h14
+            height: "0.054"
+            fontColor: "0x333333"
+            fontWeight: "600"
+            backgroundColor: "0xdcdbdc"
+            box-sizing: border-box
+            border:
+              style: "1"
+          onClick: ___.btnEvent

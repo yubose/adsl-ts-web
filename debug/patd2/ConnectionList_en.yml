@@ -1,0 +1,446 @@
+ConnectionList:
+  title: "My Health Network"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..newConnection.edgeAPI.get
+    - ..connection1.edgeAPI.get
+    - ..connection2.edgeAPI.get
+    - =.builtIn.array.getConnection:
+        dataIn:
+          array1: =..connection1.connectionList.edge
+          array2: =..connection2.connectionList.edge
+        dataOut: ConnectionList.formData.connectionList
+    - =.builtIn.array.getConnection:
+        dataIn:
+          array1: []
+          array2: =..newConnection.newConnectionList.edge
+        dataOut: Global.formData.connectionList
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.concat:
+            dataIn:
+              array1: =..formData.connectionList
+              array2: =.Global.formData.connectionList
+            dataOut: Global.formData.connectionList
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =..newConnection.newConnectionList.edge
+        dataOut: ConnectionList.formData.newConnectionLength
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =..newConnection.newConnectionList.edge
+        dataOut: ConnectionList.formData.allConnectionLength
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.formData.newConnectionLength
+              string2: "0"
+        - continue
+        - ..connectionHidden@: "false"
+  connectionHidden: "true"
+  newConnectionLength: "0"
+  allConnectionLength: "0"
+  newConnection:
+    newConnectionList: ""
+    edgeAPI:
+      get:
+        api: re
+        type: .EdgeType.Invite
+        xfname: evid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        dataKey: newConnection.newConnectionList
+        _nonce: =.Global._nonce
+  formData:
+    connectionList: []
+  connection:
+    edge:
+      id: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: connection.edge
+        dataOut: connection.edge
+      store:
+        api: ce
+        dataIn: connection.edge.edge.0
+  connection1:
+    connectionList:
+      edge: ""
+    edgeAPI:
+      get:
+        api: re
+        type: .EdgeType.Accept
+        xfname: bvid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        dataKey: connection1.connectionList
+        # sCondition: "name LIKE '%Patient%'"
+        _nonce: =.Global._nonce
+  connection2:
+    connectionList:
+      edge: ""
+    edgeAPI:
+      get:
+        api: re
+        type: .EdgeType.Accept
+        xfname: evid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        dataKey: connection2.connectionList
+        # sCondition: "name LIKE '%Patient%'"
+        _nonce: =.Global._nonce
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      style:
+        backgroundColor: "#2887e5"
+    - type: image
+      path: addContacts.svg
+      onClick:
+        - goto: AddHealthNetWork
+      style:
+        top: "0.04"
+        left: "0.84"
+        width: "0.09"
+        zIndex: 100
+    - type: view
+      style:
+        top: "0.1"
+        # left: "0.05"
+        width: "1"
+        height: "0.08"
+        backgroundColor: "0x2988e6"
+      children:
+        - .SearchField:
+          placeholder: "Search"
+          style:
+            left: "0.04"
+            top: "0.01"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+              y: center
+        - type: image
+          path: search.svg
+          style:
+            top: "0.02"
+            left: "0.35"
+            height: "0.03"
+    - .SubMenuView:
+      style:
+        top: "0.18"
+        height: "0.08"
+        border:
+          style: "2"
+        borderWidth: "1"
+        borderColor: "0xdededf"
+        zIndex: "10"
+      children:
+        - .SubMenuButton:
+          text: "Recent"
+          style:
+            width: "0.25"
+            height: "0.05"
+            top: "0.03"
+            left: "0.01"
+            color: "0x2988e6"
+            backgroundColor: "0xffffff"
+          onClick:
+            - goto: RecentContact
+        - .SubMenuButton:
+          text: "Connections"
+          style:
+            width: "0.32"
+            height: "0.05"
+            top: "0.03"
+            left: "0.32"
+            color: "0x2988e6"
+            fontStyle: "bold"
+            border:
+              style: "2"
+              width: "2"
+              color: "0x2988e6"
+            borderColor: "0x2988e6"
+            backgroundColor: "0xffffff"
+          onClick:
+            - goto: ConnectionList
+        - .SubMenuButton:
+          text: "Favorites"
+          style:
+            width: "0.25"
+            height: "0.05"
+            top: "0.03"
+            left: "0.69"
+            color: "0x2988e6"
+            backgroundColor: "0xffffff"
+          onClick:
+            - goto: FavoriteContact
+    - type: view
+      style:
+        top: "0.26"
+        left: "0"
+        width: "1"
+        height: "0.8"
+        # position: fixed
+      children:
+        - type: label
+          contentType: messageHidden
+          text: "No contacts added"
+          style:
+            left: "0.32"
+            top: "0.18"
+            width: "0.6"
+            height: "0.04"
+            fontSize: "18"
+            isHidden: "true"
+        - type: view
+          style:
+            top: "0.01"
+            left: "0"
+            width: "1"
+            height: "0.95"
+            backgroundColor: "#f0f0f0"
+          children:
+            - type: view
+              style:
+                top: "0"
+                left: "0"
+                width: "1"
+                height: "0.08"
+                backgroundColor: "#ffffff"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - goto: NewConnections
+              children:
+                - type: image
+                  path: newConnection.svg
+                  style:
+                    top: "0.02"
+                    left: "0.08"
+                    height: "0.05"
+                    width: "0.13"
+                    zIndex: 100
+                - type: label
+                  dataKey: formData.newConnectionLength
+                  style:
+                    top: "0.014"
+                    left: "0.176"
+                    # width: "0.03"
+                    #
+                    # color: "0xffffff"
+                    # fontSize: '10'
+
+                    zIndex: 300
+                    # textAlign:
+                    #   x: center
+                    #   y: center
+                    # left: "0.22"
+                    # top: "0.005"
+                    width: "0.05"
+                    height: "0.024"
+                    # zIndex: "2"
+                    fontSize: "14"
+                    backgroundColor: "#ff3a41"
+                    isHidden: ..connectionHidden
+                    # visibility: visible
+                    border:
+                      style: "3"
+                    borderRadius: "50"
+                    color: "0xffffff"
+                    textAlign:
+                      x: center
+                - type: label
+                  dataKey: formData.allConnectionLength
+                  style:
+                    top: "0.014"
+                    left: "0.37"
+                    width: "0.03"
+
+                    color: "0xffffff"
+                    fontSize: "10"
+                    zIndex: 300
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  text: "New Connections"
+                  style:
+                    left: "0.27"
+                    top: "0.03"
+                    width: "0.4"
+
+                    fontSize: "15"
+                    zIndex: 100
+            - type: view
+              style:
+                top: "0.082"
+                left: "0"
+                width: "1"
+                height: "0.08"
+                backgroundColor: "#ffffff"
+                # boxShadow: "0px 5px 0px 2px #dededf"
+              onClick:
+                - goto: NewConnections
+              children:
+                - type: image
+                  path: soloPractice.svg
+                  style:
+                    top: "0.02"
+                    left: "0.09"
+                    height: "0.05"
+                    # width: "0.11"
+                    borderRadius: "5"
+                    backgroundColor: "#2988E6"
+                    zIndex: 100
+                - type: label
+                  text: "Medical Falicities"
+                  style:
+                    left: "0.27"
+                    top: "0.03"
+                    width: "0.4"
+
+                    fontSize: "15"
+                    zIndex: 100
+            - type: view
+              style:
+                top: "0.17"
+                left: "0"
+                width: "1"
+                height: "0.75"
+                # overflow: "scroll"
+              children:
+                - type: label
+                  text: "# A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+                  style:
+                    top: "0.05"
+                    left: "0.96"
+                    width: "0.03"
+                    height: "0.7"
+                    color: "#0a84ff"
+                    fontSize: "16"
+                    textAlign:
+                      x: left
+                    zIndex: 10000
+                - type: label
+                  text: "Connections"
+                  style:
+                    top: "0.01"
+                    left: "0.05"
+                    width: "0.5"
+                    height: "0.03"
+                - type: view
+                  style:
+                    top: "0.05"
+                    left: "0"
+                    width: "1"
+                    height: "0.7"
+                    backgroundColor: "#ffffff"
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formData.connectionList
+                      iteratorVar: itemObject
+                      style:
+                        top: "0"
+                        left: "0"
+                        width: "1"
+                        height: "0.7"
+                        margin: "0"
+                        overflow: scroll
+                        # backgroundColor: "0xffffff"
+                      children:
+                        - type: listItem
+                          onClick:
+                            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                              dataKey: Global.middleInformation.PatientVisitInfo
+                              dataObject: itemObject
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.string.phoneNumberSplit:
+                                    dataIn:
+                                      phoneNumber: =.Global.middleInformation.PatientVisitInfo.phone
+                                      sign: " "
+                                    dataOut: Global.middleInformation.PatientVisitInfo.phoneNumber
+                            - actionType: builtIn
+                              funcName: goBack
+                              reload: true
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            # top: "0"
+                            width: "1"
+                            height: "0.09"
+                            border:
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0x00000011"
+                          children:
+                            - type: label
+                              text=func: .builtIn.string.getFirstChar
+                              dataKey: itemObject.name
+                              style:
+                                left: "0.1"
+                                top: "0.022"
+                                height: "0.045"
+                                width: "0.1"
+                                backgroundColor: "#ffc0cb"
+                                color: 0xffffff
+                                lineHeight: "40px"
+
+                                fontSize: "15"
+                                textAlign:
+                                  x: center
+                                zIndex: 100
+                            - type: label
+                              dataKey: itemObject.name
+                              style:
+                                left: "0.27"
+                                top: "0.03"
+                                width: "0.4"
+                                height: "0.025"
+
+                                fontWidth: "100"
+                                fontSize: "15"
+                                color: "#4b4b4b"
+                                zIndex: 100
+                            - type: image
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - $var.favorite
+                                        - providerOn.svg
+                                        - providerOff.svg
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..connection.edge.id@: $var.connectId
+                                      - =..connection.edgeAPI.get: ""
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =$var.favorite
+                                        - ..connection.edge.edge.0.subtype@: 0
+                                        - ..connection.edge.edge.0.subtype@: 1
+                                    - =..connection.edgeAPI.store: ""
+                              style:
+                                top: "0.027"
+                                left: "0.86"
+                                width: "0.06"
+                                zIndex: 100

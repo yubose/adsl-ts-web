@@ -211,6 +211,7 @@ DocType:
   ProductDetailImage: 215041 # 840<<8+1
   OrderHistory: 217601 # # 850<<8+1
   Order: 220161 # 860<<8+1
+  LabReferral: 222721 # 870 << 8+1
 EdgeType:
   JWT: "1030"
   Relation: "1100"

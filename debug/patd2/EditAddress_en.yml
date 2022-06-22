@@ -1,0 +1,718 @@
+EditAddress:
+  title: Address Management
+  pageNumber:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+
+    # 判断是添加 or 删除
+    - actionType: evalObject
+      object:
+        - if:
+            - =.Global.formData.addrStatus
+            - actionType: evalObject
+              object:
+                - ..formData.cancelShow@: "inline-block"
+                - ..formData.deleShow@: "none"
+            - actionType: evalObject
+              object:
+                - ..formData.cancelShow@: "none"
+                - ..formData.deleShow@: "inline-block"
+    # 复现选中的地址进行update or delete
+    - actionType: evalObject
+      object:
+        - if:
+            - =.Global.formData.selectAddress.id
+            - ..apiRequest.addressDocument.docCreateReq@: =.Global.formData.selectAddress
+            - continue
+    # 判断当前的地址是否是默认地址
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.formData.selectAddress.id
+                  string2: =.Global.formData.defaultAddressId
+            - ..formData.flag@: true
+            - ..formData.flag@: false
+  formData:
+    cancelShow: "none"
+    deleShow: "none"
+    errorArr: []
+    address: []
+    filterAddress: []
+  formDataTemp:
+    code: .CountryCode
+
+  apiRequest:
+    addressDocument:
+      docQueryReq:
+        id: ""
+      docQueryResp: ""
+      docCreateResp: ""
+      docCreateReq:
+        eid: .Global.rootNotebookID
+        fid: ""
+        type: .DocType.Address
+        name:
+          data:
+            userName: ""
+            phone:
+              countryCode: "+1"
+              phoneNumber: ""
+              fullPhone: ""
+            email: ""
+            address:
+              line: ""
+              secondLine: ""
+              city: ""
+              country: ""
+              state: ""
+              zipCode: ""
+              fullAddress: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: EditAddress.apiRequest.addressDocument.docQueryReq
+          dataOut: EditAddress.apiRequest.addressDocument.docQueryResp
+        store:
+          api: cd
+          dataIn: EditAddress.apiRequest.addressDocument.docCreateReq
+          dataOut: EditAddress.apiRequest.addressDocument.docCreateResp
+        delete:
+          api: dx
+          dataIn: EditAddress.apiRequest.addressDocument.docQueryReq
+    # 获取所有的地址
+    addressAll:
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.Address
+        ids:
+          - .Global.rootNotebookID
+          - .Global.Profile.id
+        xfname: eid,fid
+        _nonce: =.Global._nonce
+        obfname: ctime
+      docAPI:
+        get:
+          api: rd
+          dataIn: EditAddress.apiRequest.addressAll.docQueryReq
+          dataOut: EditAddress.apiRequest.addressAll.docQueryResp
+    # 获取当前profile信息
+    profile:
+      docCreateResp: ""
+      docCreateReq: .Global.Profile
+      docAPI:
+        store:
+          api: cd
+          dataIn: EditAddress.apiRequest.profile.docCreateReq
+          dataOut: EditAddress.apiRequest.profile.docCreateResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - ..event.backClick
+          - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          viewTag: shippingTag
+          style:
+            marginTop: "0.0270935"
+            ..style.blockBox:
+          children:
+            - type: image
+              path:
+                ..event.checkBoxPath:
+              style:
+                ..style.img:
+              onClick:
+                - ..event.checkBoxClick
+            - type: label
+              text: Set as default shipping address
+              dataKey:
+              style:
+                ..style.setLabel:
+        - type: view
+          style:
+            ..style.blockBox:
+            marginTop: "0.024630"
+          children:
+            - type: label
+              textBoard:
+                - text: Name
+                - text: "*"
+                  color: "#fb5051"
+              style:
+                ..style.title:
+            - type: textField
+              placeholder: Enter here
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.userName
+              style:
+                ..style.input:
+        - type: view
+          style:
+            ..style.blockBox:
+            marginTop: "0.014778"
+          children:
+            - type: label
+              textBoard:
+                - text: "Phone # "
+                - text: "*"
+                  color: "#fb5051"
+              style:
+                ..style.title:
+            - type: select
+              options: ..formDataTemp.code
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.phone.countryCode
+              style:
+                ..style.input:
+                width: "0.1973333"
+            - type: textField
+              options: .CountryCode
+              placeholder: Enter here
+              contentType: phoneNumber
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.phone.phoneNumber
+              style:
+                ..style.input:
+                marginLeft: "0.032"
+                width: "0.456"
+        - type: view
+          style:
+            ..style.blockBox:
+            marginTop: "0.014778"
+          children:
+            - type: label
+              textBoard:
+                - text: Email
+              style:
+                ..style.title:
+            - type: textField
+              placeholder: Enter here
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.email
+              style:
+                ..style.input:
+        - type: label
+          textBoard:
+            - text: "Address"
+            - text: "*"
+              color: "#fb5051"
+          style:
+            ..style.title:
+            marginTop: "0.014778"
+            display: "block"
+        - type: textField
+          placeholder: Address Line
+          dataKey: apiRequest.addressDocument.docCreateReq.name.data.address.line
+          style:
+            ..style.input:
+            width: "0.92"
+            marginTop: "0.0160098"
+            display: "block"
+        - type: textField
+          placeholder: Address Second Line
+          dataKey: apiRequest.addressDocument.docCreateReq.name.data.address.secondLine
+          style:
+            ..style.input:
+            width: "0.92"
+            marginTop: "0.0160098"
+            display: "block"
+        - type: view
+          style:
+            ..style.blockBox:
+            marginTop: "0.0160098"
+          children:
+            - type: textField
+              placeholder: City
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.address.city
+              style:
+                ..style.input:
+                width: "0.208"
+            - type: textField
+              placeholder: County
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.address.country
+              style:
+                ..style.input:
+                width: "0.208"
+                marginLeft: "0.029333"
+            - type: select
+              options: .SelectINformationDM.state
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.address.state
+              style:
+                ..style.input:
+                width: "0.208"
+                marginLeft: "0.029333"
+            - type: textField
+              placeholder: Zip code
+              dataKey: apiRequest.addressDocument.docCreateReq.name.data.address.zipCode
+              style:
+                marginLeft: "0.029333"
+                ..style.input:
+                width: "0.208"
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - type: view
+              style:
+                display: "inline-block"
+              children:
+                - .DocButtonPrivate:
+                  text: Delete
+                  style:
+                    display: ..formData.deleShow
+                    backgroundColor: "#e24445"
+                  onClick:
+                    - ..event.deleteClick
+                - .DocButtonPrivate:
+                  text: Cancel
+                  style:
+                    display: ..formData.cancelShow
+                  onClick:
+                    - ..event.cancelClick
+            - .DocButtonRelease:
+              text: Save
+              onClick:
+                - ..event.checkFields
+                - ..event.dataProcess
+                - ..event.saveClick
+    # 弹窗区域
+    - .TipsMultiLine:
+      type: popUp
+      viewTag: defaultCheck
+      message: Please set as default shipping address first.
+    - type: popUp
+      viewTag: fillCheck
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "200"
+        textAlign:
+          y: center
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: __.viewTag
+      children:
+        - type: view
+          style:
+            width: "0.6"
+            marginLeft: "0.2"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                marginTop: "0.029"
+                width: "0.13"
+            - type: label
+              textBoard:
+                - text: "Please complete the required items: "
+                - text: ""
+                  dataKey: EditAddress.formData.errorArr
+              style:
+                width: "0.55"
+                marginLeft: "0.025"
+                marginTop: "0.01"
+                fontSize: .Nfont.h14
+                lineHeight: 2.58vh
+                textAlign:
+                  x: center
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.029"
+    - .publicDeleteUP:
+      viewTag: BaseDelWarningView
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: BaseDelWarningView
+      rightButton:
+        # 判断当前的地址是否是默认地址
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.selectAddress.id
+                      string2: =.Global.formData.defaultAddressId
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.addressAll.docAPI.get: ""
+                    - ..formData.filterAddress@: =..apiRequest.addressAll.docQueryResp.doc
+                    - =.builtIn.array.removeByName:
+                        dataIn:
+                          object: =..formData.filterAddress
+                          key: id
+                          name: =..apiRequest.addressDocument.docCreateReq.id
+                    - .Global.formData.defaultAddressId@: =..formData.filterAddress.0.id
+                - continue
+        - actionType: evalObject
+          object:
+            - ..apiRequest.addressDocument.docQueryReq.id@: =..apiRequest.addressDocument.docCreateReq.id
+            - =..apiRequest.addressDocument.docAPI.delete: ""
+        # update profile下默认购物地址
+        - actionType: evalObject
+          object:
+            - ..apiRequest.profile.docCreateReq.name.data.shoppingAddressId@: =.Global.formData.defaultAddressId
+            - =..apiRequest.profile.docAPI.store: ""
+            # 更新本地的profile信息
+            - .Global.Profile@: =..apiRequest.profile.docCreateResp.doc
+        - actionType: popUpDismiss
+          popUpView: BaseDelWarningView
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+    - type: popUp
+      viewTag: judgmentOperation
+      message: "Save your changes?"
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+        textAlign:
+          y: center
+      children:
+        - type: view
+          style:
+            width: "0.7"
+            marginLeft: "0.15"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            overflow: hidden
+            textAlign:
+              x: center
+          children:
+            - type: label
+              text: ___.message
+              style:
+                width: "0.6"
+                marginLeft: "0.05"
+                marginTop: "0.027"
+                fontSize: .Nfont.h14
+
+                textAlign:
+                  x: center
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.027"
+                width: "0.7"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+            - type: view
+              style:
+                width: "0.7"
+                boxSizing: border-box
+              children:
+                - type: button
+                  text: "Cancel"
+                  style:
+                    color: "0x007AFF"
+                    backgroundColor: "0xE6E6E6"
+                    display: inline-block
+                    width: "0.349"
+                    borderRadius: "0 0 0 14px"
+                    fontSize: .Nfont.h14
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: judgmentOperation
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - type: view
+                  style:
+                    width: "0.002"
+                    backgroundColor: "0x919192"
+                    display: inline-block
+                    height: "0.054"
+                    zIndex: "50"
+                - type: button
+                  text: "Confirm"
+                  style:
+                    color: "0x007AFF"
+                    fontWeight: "850"
+                    backgroundColor: "0xE6E6E6"
+                    display: inline-block
+                    width: "0.349"
+                    fontSize: .Nfont.h14
+                    borderRadius: "0 0 14px 0"
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick:
+                    - ..event.checkFields
+                    - ..event.dataProcess
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: fillCheck
+                    - actionType: popUpDismiss
+                      popUpView: judgmentOperation
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.array.judgeListLength:
+                                dataIn:
+                                  array: =..formData.errorArr
+                                  len: 0
+                            - continue
+                            - actionType: popUp
+                              popUpView: fillCheck
+                              wait: true
+                              popUpDismiss: 2000
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.addressDocument.docCreateReq.fid@: =.Global.Profile.id
+                        - =..apiRequest.addressDocument.docAPI.store: ""
+                        - =..apiRequest.addressAll.docAPI.get: ""
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.array.judgeListLength:
+                                dataIn:
+                                  array: =..apiRequest.addressAll.docQueryResp.doc
+                                  len: 1
+                            - .Global.formData.defaultAddressId@: =..apiRequest.addressAll.docQueryResp.doc.0.id
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =..formData.flag
+                                    - .Global.formData.defaultAddressId@: =..apiRequest.addressDocument.docCreateResp.doc.id
+                                    - continue
+                    # update profile下默认购物地址
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.profile.docCreateReq.name.data.shoppingAddressId@: =.Global.formData.defaultAddressId
+                        - =..apiRequest.profile.docAPI.store: ""
+                        # 更新本地的profile信息
+                        - .Global.Profile@: =..apiRequest.profile.docCreateResp.doc
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+
+  event:
+    checkFields:
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.judgeKeyAndReturnValue:
+              dataIn:
+                objArr:
+                  - key: "Name"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.userName
+                  - key: "Phone"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.phone.phoneNumber
+                  - key: "Address Line"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.address.line
+                  - key: "Address Second Line"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.address.secondLine
+                  - key: "City"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.address.city
+                  - key: "County"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.address.country
+                  - key: "State"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.address.state
+                  - key: "Zip code"
+                    value: =..apiRequest.addressDocument.docCreateReq.name.data.address.zipCode
+                pathKey: "key"
+                pathValue: "value"
+                valueArr: ["", "Select"]
+              dataOut: EditAddress.formData.errorArr
+    dataProcess:
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.addressDocument.docCreateReq.name.data.address.line
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.addressDocument.docCreateReq.name.data.address.secondLine
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.addressDocument.docCreateReq.name.data.address.city
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.addressDocument.docCreateReq.name.data.address.country
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.addressDocument.docCreateReq.name.data.address.state
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.addressDocument.docCreateReq.name.data.address.zipCode
+          # build fullAddress
+          - =.builtIn.array.formatStringFill:
+              dataIn:
+                strArr: =..formData.address
+                sfill: ","
+              dataOut: EditAddress.apiRequest.addressDocument.docCreateReq.name.data.address.fullAddress
+          # 拼接电话
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..apiRequest.addressDocument.docCreateReq.name.data.phone.countryCode
+                - " "
+                - =..apiRequest.addressDocument.docCreateReq.name.data.phone.phoneNumber
+              dataOut: EditAddress.apiRequest.addressDocument.docCreateReq.name.data.phone.fullPhone
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.flag
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =..formData.flag
+              - actionType: evalObject
+                object:
+                  - =..apiRequest.addressAll.docAPI.get: ""
+                  - ..formData.filterAddress@: =..apiRequest.addressAll.docQueryResp.doc
+                  - =.builtIn.array.removeByName:
+                      dataIn:
+                        object: =..formData.filterAddress
+                        key: id
+                        name: =..apiRequest.addressDocument.docCreateReq.id
+                  - .Global.formData.defaultAddressId@: =..formData.filterAddress.0.id
+                  - ..formData.flag@: false
+              - ..formData.flag@: true
+
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: shippingTag
+    cancelClick:
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    saveClick:
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: fillCheck
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..formData.errorArr
+                    len: 0
+              - continue
+              - actionType: popUp
+                popUpView: fillCheck
+                wait: true
+                popUpDismiss: 2000
+      - actionType: evalObject
+        object:
+          - ..apiRequest.addressDocument.docCreateReq.fid@: =.Global.Profile.id
+          - =..apiRequest.addressDocument.docAPI.store: ""
+          - =..apiRequest.addressAll.docAPI.get: ""
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.addressAll.docQueryResp.doc
+                    len: 1
+              - .Global.formData.defaultAddressId@: =..apiRequest.addressAll.docQueryResp.doc.0.id
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =..formData.flag
+                      - .Global.formData.defaultAddressId@: =..apiRequest.addressDocument.docCreateResp.doc.id
+                      - continue
+      # update profile下默认购物地址
+      - actionType: evalObject
+        object:
+          - ..apiRequest.profile.docCreateReq.name.data.shoppingAddressId@: =.Global.formData.defaultAddressId
+          - =..apiRequest.profile.docAPI.store: ""
+          # 更新本地的profile信息
+          - .Global.Profile@: =..apiRequest.profile.docCreateResp.doc
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    deleteClick:
+      - actionType: popUp
+        popUpView: BaseDelWarningView
+    backClick:
+      - actionType: popUp
+        popUpView: judgmentOperation
+
+  style:
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    blockBox:
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+    title:
+      display: "inline-block"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      verticalAlign: middle
+      width: "0.2333333"
+    input:
+      display: "inline-block"
+      height: "0.0541871"
+      width: "0.685333"
+      verticalAlign: middle
+      boxSizing: border-box
+      border: "1.5px solid #dededf"
+      borderRadius: "4"
+      textIndent: "12px"
+      color: "#333333"
+      fontSize: .Nfont.h14

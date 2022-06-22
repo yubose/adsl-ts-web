@@ -1,0 +1,347 @@
+MedicalRecommendation:
+  title: Medical Recommendation
+  pageNumber:
+  init:
+    - .SignInCheck
+    - .Global.formData.selectAddress@: ""
+    - .Global.formData.production.name.data.options.optionsValue@: []
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..apiRequest.productionList.docQueryReq.ids@: =.Global.Note.name.data.goodsList
+    - =..apiRequest.productionList.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - if:
+            - =.Global.formData.medicalStatus
+            - actionType: evalObject
+              object:
+                - ..formData.detailShow@: "none"
+                # - ..formData.scrollHeight@: "0.8386699"
+                # - ..formData.btnShow@: "none"
+            - actionType: evalObject
+              object:
+                - ..formData.detailShow@: "inline-block"
+                # - ..formData.scrollHeight@: "0.7413793"
+                # - ..formData.btnShow@: "block"
+
+        # 判断此场会议下是否存在分享的Recommendation
+        - if:
+            - =..apiRequest.productionList.docQueryResp.doc.0
+            - actionType: evalObject
+              object:
+                - ..formData.isEmpty@: "none"
+                - ..formData.isContent@: "block"
+            - actionType: evalObject
+              object:
+                - ..formData.isEmpty@: "block"
+                - ..formData.isContent@: "none"
+  formData:
+    isEmpty: "block"
+    isContent: "none"
+    detailShow: "inline-block"
+    btnShow: "block"
+    scrollHeight: "0.7413793"
+  formDataTemp: ""
+  apiRequest:
+    productionList:
+      docQueryResp: ""
+      docQueryReq:
+        ids: []
+        obfname: ctime
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: MedicalRecommendation.apiRequest.productionList.docQueryReq
+          dataOut: MedicalRecommendation.apiRequest.productionList.docQueryResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =.Global.formData.lastPage
+                            string2: "MenuBars"
+                      - goto: =.Global.formData.backPageName
+                      - actionType: builtIn
+                        funcName: goBack
+                        reload: true
+          - .BasePublicHeaderTitle:
+          - .BasePublicHeaderRightText:
+            text: Details
+            style:
+              display: ..formData.detailShow
+            onClick:
+              - ..event.detailsClick
+    # empty
+    - type: view
+      style:
+        display: ..formData.isEmpty
+        ..style.emptyBox:
+      children:
+        - type: image
+          path: noMedical.svg
+          style:
+            ..style.emptyImg:
+    # content
+    - type: view
+      style:
+        display: ..formData.isContent
+      children:
+        - type: view
+          style:
+            ..style.topBox:
+          children:
+            - type: label
+              text: "The following are the drugs or products recommended by provider. If you need to buy. you can click to select the product specifications."
+              style:
+                ..style.topLabel:
+        - type: scrollView
+          style:
+            ..style.scrollBox:
+          children:
+            - type: list
+              androidFlex: true
+              contentType: listObject
+              listObject: ..apiRequest.productionList.docQueryResp.doc
+              iteratorVar: itemObject
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  onClick:
+                    - ..event.itemClick
+                  children:
+                    - type: view
+                      style:
+                        backgroundColor: "0xffffff"
+                        paddingBottom: "0.017241"
+                        width: "0.44266"
+                        borderRadius: "4"
+                        boxSizing: border-box
+                      children:
+                        - type: view
+                          style:
+                            ..style.imageCenter:
+                          children:
+                            - type: image
+                              path: good.svg
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.name.data.coverImgId
+                              style:
+                                ..style.goodImg:
+                        - type: view
+                          style:
+                            ..style.valueBox:
+                            width: "0.4026"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.title
+                              style:
+                                ..style.title:
+                            - type: view
+                              style:
+                                ..style.auto:
+                              children:
+                                - type: label
+                                  text: $
+                                  style:
+                                    ..style.price:
+                                - type: label
+                                  dataKey: itemObject.name.data.pricing.price
+                                  style:
+                                    ..style.price:
+                            - type: view
+                              style:
+                                ..style.purchaseBox:
+                                textAlign:
+                                  y: center
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name.data.basicInfo.type
+                                  style:
+                                    ..style.value:
+                                    color: itemObject.name.data.basicInfo.typeColor
+                                # - type: image
+                                #   path: purchased.svg
+                                #   style:
+                                #     ..style.purchase:
+
+            - type: view
+              style:
+                marginTop: "0.03"
+
+        # - type: view
+        #   style:
+        #     ..style.btnBox:
+        #     display: ..formData.btnShow
+        #   children:
+        #     - type: button
+        #       text: Dismiss
+        #       dataKey:
+        #       style:
+        #         ..style.btn:
+        #       onClick:
+        #         - ..event.dismissClick
+
+  event:
+    detailsClick:
+      # AppointmentLobby or AppointmentLobbyOfficeVisit
+      - actionType: evalObject
+        object:
+          # 判断会议是否关闭，如果关闭则跳转至VisitDetail
+          - if:
+              - =.builtIn.number.typeIsValid:
+                  dataIn:
+                    docType: =.Global.roomInfo.edge.tage
+                    localArr: [9]
+                    binaryArr: [1]
+              - goto: VisitDetial
+              - actionType: evalObject
+                object:
+                  # 如果会议没关闭，根据会议的类型跳转不同页面
+                  - if:
+                      - =.builtIn.number.typeIsValid:
+                          dataIn:
+                            docType: =.Global.roomInfo.edge.subtype
+                            localArr: [17]
+                            binaryArr: [1]
+                      - goto: AppointmentLobby
+                      - goto: AppointmentLobbyOfficeVisit
+    dismissClick:
+    itemClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - .Global.formData.production@: $var
+            - .Global.formData.whetherShopItem@: false
+            - .Global.formData.parentPage@: "MedicalRecommendation"
+            - goto: ProductDetails
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.8386699"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#f5f5f5"
+      color: "#333333"
+    emptyBox:
+      marginTop: "0.2463054"
+      width: "1"
+      height: "auto"
+      textAlign:
+        x: center
+    emptyImg:
+      width: "0.64"
+      height: "0.291871"
+
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+    topBox:
+      width: "1"
+      height: "auto"
+      overflow: hidden
+      paddingBottom: "0.0172413"
+      paddingTop: "0.0172413"
+      borderBottom: "1px solid #dedede"
+    topLabel:
+      marginLeft: "0.04"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      height: "auto"
+      width: "0.92"
+    list:
+      width: "1"
+      margin: "0"
+      height: "0.8386699"
+      boxSizing: border-box
+      backgroundColor: "#f5f5f5"
+    listItem:
+      display: "inline-block"
+      width: "0.4426666"
+      height: "auto"
+      marginLeft: "0.04"
+      marginTop: "0.0147783"
+      backgroundColor: "#f5f5f5"
+      boxSizing: border-box
+      textAlign:
+        x: center
+    goodImg:
+      width: "0.32"
+      height: "0.1477832"
+      boxSizing: border-box
+    valueBox:
+      marginTop: "0.01"
+      paddingLeft: "0.032"
+      paddingRight: "0.032"
+      textAlign:
+        x: left
+    title:
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      boxSizing: "border-box"
+      -webkit-line-clamp: 2
+      display: -webkit-box
+      -webkit-box-orient: vertical
+      overflow: hidden
+      text-overflow: ellipsis
+      wordBreak: break-word
+    price:
+      marginTop: "0.01"
+      color: "#fb5051"
+      fontSize: .Nfont.h16
+      fontWeight: "700"
+      display: inline-block
+    purchaseBox:
+      boxSizing: border-box
+      marginTop: "0.01"
+    value:
+      # display: "inline-block"
+      color: itemObject.name.data.basicInfo.typeColor
+      fontSize: .Nfont.h12
+      width: "0.189333"
+      fontWeight: "600"
+      # verticalAlign: middle
+    purchase:
+      marginLeft: "0.032"
+      display: "inline-block"
+      height: "0.02463"
+      verticalAlign: middle
+    auto:
+      height: auto
+      width: auto
+    imageCenter:
+      textAlign:
+        x: center
+      width: "0.4426666"

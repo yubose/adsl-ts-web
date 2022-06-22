@@ -1,0 +1,833 @@
+EditInboxSelf:
+  pageNumber: "171"
+  title: .Global.editTitle
+  init:
+    - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.inboxContact
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.email
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.inboxMessage
+      dataObject: .EmptyObj
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        - .AddMedicalRecordsToMeeting.sharedDoc@: []
+    - .EditInboxSelf.formData.email@: =.Global.emailForEdit
+    # 初始化邮件选择状态,默认为fasle
+    - =.builtIn.object.setObjectKey:
+        dataIn:
+          objectArr: =..formData.email
+          key: isSelected
+          value: false
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =..formData.email.0
+            - continue
+            - =.builtIn.checkField:
+                dataIn:
+                  contentType: messageHidden
+                  wait: 100
+  requestListHidden: "true"
+  generalInfo:
+    value: true
+  lastTop: "0.0"
+  sharedDoc: []
+  formData:
+    email: []
+    selectedDocList: []
+    isAllSelected: false
+    emailListLength: ""
+    selectedDocListLength: ""
+    typeOfStar: []
+    typeOfRead: []
+    typeOfAttach: []
+    queryArr1: [1, 3, 5, 6]
+    queryArr2: [1, 1, 0, 0]
+    updateEmailType: 0
+    emailList: []
+  email:
+    doclist: ""
+    docRes: ""
+    doc: ""
+    docReq:
+      ObjType: 8
+      id: .Global.currentUser.vertex.id
+      xfname: E.bvid|E.evid
+      sCondition: E.type=10002 AND (D.type & 0xFF00 = 1280)
+      maxcount: 200
+      obfname: ctime
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        api: rd
+        dataIn: EditInboxSelf.email.docReq
+        dataOut: EditInboxSelf.email.docRes
+        subtype:
+          mediaType: ""
+      store:
+        api: cd
+        dataIn: EditInboxSelf.email.doc
+  components:
+    - type: popUp
+      viewTag: moveView
+      style:
+        left: "0.35"
+        width: "0.29"
+        top: "0"
+        height: "0.08"
+        backgroundColor: "0x2988e6"
+        border:
+          style: "3"
+        borderColor: "0x2988e6"
+        borderWidth: "1"
+        borderRadius: "10"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..Move
+          iteratorVar: itemObject
+          style:
+            top: "0"
+            width: "0.29"
+            height: "0.8"
+            left: "0"
+            marginTop: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                left: "0"
+                width: "0.29"
+                height: "0.04"
+                border:
+                  style: "2"
+                borderColor: "0xffffff"
+                borderWidth: "1"
+                backgroundColor: "0x2988e6"
+              children:
+                - type: label
+                  dataKey: itemObject.key
+                  style:
+                    left: "0"
+                    height: "0.04"
+                    width: "0.29"
+                    fontSize: "16"
+                    # lineHeight: '8'
+                    color: "0xffffff"
+                    textAlign:
+                      x: center
+    - type: popUp
+      viewTag: markView
+      style:
+        left: "0.61"
+        width: "0.29"
+        top: "0"
+        height: "0.08"
+        backgroundColor: "0x2988e6"
+        border:
+          style: "3"
+        borderColor: "0x2988e6"
+        borderWidth: "1"
+        borderRadius: "10"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..Mark
+          iteratorVar: itemObject
+          style:
+            top: "0"
+            width: "0.29"
+            height: "0.8"
+            left: "0"
+            marginTop: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                left: "0"
+                width: "0.29"
+                height: "0.04"
+                border:
+                  style: "2"
+                borderColor: "0xffffff"
+                borderWidth: "1"
+                backgroundColor: "0x2988e6"
+                # borderRadius: "10"
+              children:
+                - type: label
+                  dataKey: itemObject.key
+                  style:
+                    left: "0"
+                    height: "0.04"
+                    top: "0.005"
+                    width: "0.29"
+                    color: "0xffffff"
+                    fontSize: "16"
+                    # lineHeight: '1'
+                    textAlign:
+                      x: center
+    - .simplePopup:
+      message: "Are you sure you want to delete the message?"
+      viewTag: trashPopUpView
+      children:
+        - .simplePopupView:
+          children:
+            - .simplePopupLable:
+            - .simplePopupSplit1:
+            - .simplePopupSplit2:
+            - .simplePopupLeftButton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: trashPopUpView
+                  # wait: true
+            - .simplePopupRightButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.selectedDocList.0
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.ecos.updateReidDocListType:
+                                dataIn:
+                                  sourceDocList: =..formData.selectedDocList
+                                  targetBit: 4
+                                  targetValue: 1
+                                  sCondition: type & 0xFF00 = 0xE00
+                                  eid: =.Global.rootNotebookID
+                            - actionType: builtIn
+                              funcName: goBack
+                              reload: true
+                        - actionType: popUp
+                          popUpView: selectPopUpView
+    - type: popUp
+      message: "Permanently delete these messages ?"
+      viewTag: ConfirmWarningPopup
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - .ConfirmWarningPopupView:
+          children:
+            - .ConfirmWarningPopupHeader:
+            - .ConfirmWarningPopupMessage:
+            - .ConfirmWarningPopupSplit1:
+            - .ConfirmWarningPopupSplit2:
+            - .ConfirmWarningPopupLeftButton:
+            - .ConfirmWarningPopupRightButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.ecos.updateReidDocListType:
+                        dataIn:
+                          sourceDocList: =..formData.selectedDocList
+                          targetBit: 5
+                          targetValue: 1
+                          sCondition: type & 0xFF00 = 0xE00
+                          eid: =.Global.rootNotebookID
+                - actionType: popUpDismiss
+                  popUpView: ConfirmWarningPopup
+                - actionType: popUp
+                  popUpView: deleteTruePopUp
+                  # wait: true
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+
+    - .BaseHeader:
+
+    # - .HeaderRightImg:
+    #   path: sideNav3.svg
+    #   onClick:
+    #     - goto: InboxMenu
+    - type: view
+      style:
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.06"
+        border:
+          style: "2"
+        borderColor: "0x00000033"
+        backgroundColor: "0x2988e6"
+        borderWidth: "1"
+        zIndex: "10"
+      children:
+        - type: textField
+          placeholder: "Search"
+          dataKey: formData.serachInfo
+          style:
+            top: "0.015"
+            width: "0.7"
+            left: "0.05"
+            height: "0.03"
+            backgroundColor: "0xffffff"
+            borderRadius: "5"
+            paddingLeft: "20px"
+            borderWidth: "0"
+        - type: label
+          text: Finish
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+          style:
+            top: "0.019"
+            left: "0.83"
+            height: "0.03"
+            width: "0.15"
+            fontSize: .Nfont.h1
+            color: "0xffffff"
+            fontWeight: 400
+            textAlign:
+              x: center
+    - type: view
+      style:
+        top: "0.16"
+        width: "1"
+        left: "0"
+        height: "0.07"
+        # backgroundColor: "0xcdcdcd"
+        zIndex: "10"
+        border:
+          style: "2"
+        borderColor: "0xdcdcdc"
+        borderWidth: "1"
+      children:
+        - type: image
+          viewTag: allSelect
+          style:
+            top: "0.025"
+            left: "0.05"
+            width: "0.05"
+          path:
+            emit:
+              actions:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.isAllSelected
+                          string2: true
+                    - selectOnBlue.svg
+                    - selectOffBlue.svg
+          onClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.isAllSelected
+                          string2: true
+                    - actionType: evalObject
+                      object:
+                        - ..formData.isAllSelected@: false
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =..formData.email
+                              key: isSelected
+                              value: false
+                            dataOut: EditInboxSelf.formData.email
+
+                        - ..formData.selectedDocList@: []
+
+                    - actionType: evalObject
+                      object:
+                        - ..formData.isAllSelected@: true
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =..formData.email
+                              key: isSelected
+                              value: true
+                            dataOut: EditInboxSelf.formData.email
+                        - ..formData.selectedDocList@: []
+                        - =.builtIn.array.concat:
+                            dataIn:
+                              array1: =..formData.selectedDocList
+                              array2: =..formData.email
+                            dataOut: EditInboxSelf.formData.selectedDocList
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: allSelect
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: emailListTag
+
+        - type: label
+          text: All
+          style:
+            top: "0.025"
+            left: "0.12"
+            width: "0.05"
+            fontSize: .Nfont.h15
+        - type: list
+          contentType: listObject
+          listObject: .Global.emailEditFunction
+          iteratorVar: itemObject
+          style:
+            top: "0.017"
+            width: "0.721"
+            margin: "0"
+            left: "0.23"
+            height: "0.036"
+            axis: horizontal
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                width: "0.24"
+                height: "0.036"
+                left: "0"
+                textAlign:
+                  x: right
+              children:
+                - type: image
+                  path:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      actions:
+                        - if:
+                            - true
+                            - $var
+                            - $var
+                  style:
+                    height: "0.036"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =..formData.selectedDocList.0
+                            - continue
+                            - actionType: popUp
+                              popUpView: selectPopUpView
+                              wait: true
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: "inboxDelete.svg"
+                                    string2: $var
+                              - ..formData.chooseButtonName@: $var
+                              - continue
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: "trash.svg"
+                                    string2: $var
+                              - ..formData.chooseButtonName@: $var
+                              - continue
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.chooseButtonName
+                                  string2: trash.svg
+                            - actionType: popUp
+                              popUpView: trashPopUpView
+                              wait: true
+                            - continue
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.chooseButtonName
+                                  string2: inboxDelete.svg
+                            - actionType: popUp
+                              popUpView: ConfirmWarningPopup
+                              wait: true
+                            - continue
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+        # - type: image
+        #   path: trash.svg
+        #   onClick:
+        #     - actionType: evalObject
+        #       object:
+        #         - =.builtIn.ecos.updateDocListType:
+        #             dataIn:
+        #               sourceDocList: =..sharedDoc
+        #               targetBit: 4
+        #               targetValue: 1
+        #     - goto: Trash
+        #   style:
+        #     left: "0.24"
+        #     top: "0.017"
+        #     height: "0.036"
+
+        # - type: image
+        #   path: move.svg
+        #   onClick:
+        #     - actionType: popUp
+        #       popUpView: moveView
+        #     - actionType: popUpDismiss
+        #       popUpView: markView
+        #   style:
+        #     left: "0.49"
+        #     top: "0.017"
+        #     height: "0.036"
+        # - type: image
+        #   path: mark.svg
+        #   onClick:
+        #     - actionType: popUp
+        #       popUpView: markView
+        #     - actionType: popUpDismiss
+        #       popUpView: moveView
+        #   style:
+        #     left: "0.74"
+        #     top: "0.017"
+        #     height: "0.036"
+    - type: scrollView
+      style:
+        left: "0"
+        width: "1"
+        top: "0.23"
+        height: "0.77"
+        # overflow: scroll
+      children:
+        - type: view
+          contentType: messageHidden
+          style:
+            width: "0.5"
+            height: "0.3"
+            top: "0.16"
+            left: "0.25"
+            isHidden: "true"
+            zIndex: "100"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: noEmail.svg
+              style:
+                # height: "0.22"
+                width: "0.5"
+                margin: auto
+            - type: label
+              text: "No message here…"
+              style:
+                textAlign:
+                  x: center
+                left: "0.05"
+                top: "0.24"
+                width: "0.4"
+                height: "0.04"
+                color: "0x000058"
+                fontSize: ".Nfont.h1"
+        - type: list
+          contentType: listObject
+          listObject: ..formData.email
+          iteratorVar: itemObject
+          viewTag: emailListTag
+          style:
+            top: "0"
+            left: "0"
+            margin: "0"
+            width: "1"
+            height: "auto"
+            backgroundColor: "0xffffff"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                width: "1"
+                height: "auto"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                  color: "0xdcdcdc"
+                overflow: hidden
+              children:
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.01"
+                - type: view
+                  style:
+                    width: "1"
+                    height: "auto"
+                  children:
+                    - type: view
+                      style:
+                        height: "auto"
+                        width: "0.1"
+                        display: "inline-block"
+                        verticalAlign: middle
+                      children:
+                        - type: image
+                          viewTag: select
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: true
+                                          string2: $var.isSelected
+                                    - selectOnBlue.svg
+                                    - selectOffBlue.svg
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: true
+                                            string2: $var.isSelected
+                                      - =.builtIn.object.set:
+                                          dataIn:
+                                            object: $var
+                                            key: isSelected
+                                            value: false
+                                      - =.builtIn.object.set:
+                                          dataIn:
+                                            object: $var
+                                            key: isSelected
+                                            value: true
+                                  - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: true
+                                            string2: $var.isSelected
+                                      - =.builtIn.array.add:
+                                          dataIn:
+                                            object: =..formData.selectedDocList
+                                            value: $var
+                                      - =.builtIn.array.removeById:
+                                          dataIn:
+                                            object: =..formData.selectedDocList
+                                            id: $var.id
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: emailListTag
+
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.email
+                                    dataOut: EditInboxSelf.formData.emailListLength
+
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.selectedDocList
+                                    dataOut: EditInboxSelf.formData.selectedDocListLength
+
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.emailListLength
+                                          string2: =..formData.selectedDocListLength
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.isAllSelected@: true
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: allSelect
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.isAllSelected@: false
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: allSelect
+                          style:
+                            left: "0.05"
+                            width: "0.05"
+                    - type: view
+                      style:
+                        height: "auto"
+                        # width: "0.2"
+                        display: "inline-block"
+                        verticalAlign: middle
+                      children:
+                        - type: image
+                          path: patientImage.svg
+                          path=func: =.builtIn.utils.prepareDocToPath
+                          dataKey: itemObject.name.data.receiverAvatarId
+                          style:
+                            marginLeft: "0.02"
+                            verticalAlign: middle
+                            height: "0.06"
+                            borderRadius: "7"
+                            width: "6vh"
+                    - type: view
+                      style:
+                        verticalAlign: middle
+                        display: "inline-block"
+                        height: "auto"
+                        width: "auto"
+                      children:
+                        - type: view
+                          style:
+                            verticalAlign: middle
+                            marginLeft: "0.02"
+                            display: "inline-block"
+                            height: "auto"
+                            width: "0.5"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.receiverName
+                              style:
+                                width: "0.5"
+                                height: "auto"
+                                fontSize: .Nfont.h1
+                                #
+                                color: "0x707070"
+                                # textAlign:
+                                #   x: left
+                                wordBreak: break-word
+                            - type: label
+                              text: "(No subject)"
+                              dataKey: itemObject.name.title # text: sss🔗
+                              style:
+                                marginTop: "0.003"
+                                width: "0.4"
+                                height: "auto"
+                                fontSize: .Nfont.h1
+                                color: "0x707070"
+                                overflow: hidden
+                                textOverflow: ellipsis
+                                whiteSpace: nowrap
+                                wordBreak: break-word
+                            - type: label
+                              text: "(No content)"
+                              dataKey: itemObject.name.data.content
+                              style:
+                                marginTop: "0.003"
+                                width: "0.4"
+                                height: "auto"
+                                fontSize: .Nfont.h1
+                                color: "0x00000099"
+                                overflow: hidden
+                                textOverflow: ellipsis
+                                whiteSpace: nowrap
+                                #
+                                # wordBreak: break-word
+                    - type: view
+                      style:
+                        display: "inline-block"
+                        width: "0.18"
+                        height: "auto"
+                        verticalAlign: top
+                      children:
+                        - type: label
+                          text=func: =.builtIn.date.formatData
+                          dataKey: itemObject.ctime
+                          style:
+                            height: "auto"
+                            width: "0.18"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            # width: "0.24"
+                            height: "auto"
+                          children:
+                            - type: image
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - $var.name.data.haveAttachment
+                                        - flatAttachment.svg
+                                        - null.png
+                              style:
+                                height: "0.03"
+                                verticalAlign: middle
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.01"
+    - .BaseMessageWarnPopup:
+      viewTag: deleteTruePopUp
+      message: Delete Successful!
+      imagePath:
+        deleteTrue.svg
+        # - type: image
+        #   viewTag: select
+        #   path:
+        #     emit:
+        #       dataKey:
+        #         var: itemObject
+        #       actions:
+        #         - if:
+        #           - =.builtIn.number.typeIsValid:
+        #               dataIn:
+        #                 docType: $var.type
+        #                 localArr: [1,3,6]
+        #                 binaryArr: [1,1,0]
+        #           - providerOn.svg
+        #           - providerOff.svg
+        #   onClick:
+        #     - emit:
+        #         dataKey:
+        #           var: itemObject
+        #         actions:
+        #           - if:
+        #             - =.builtIn.number.typeIsValid:
+        #                 dataIn:
+        #                   docType: $var.type
+        #                   localArr: [1,3,6]
+        #                   binaryArr: [1,1,0]
+        #             - =.builtIn.number.inhx:
+        #                 dataIn:
+        #                   intHex: $var.type
+        #                   index: 3
+        #                   hex: 0
+        #                 dataOut: EditInboxSelf.formData.updateEmailType
+        #             - =.builtIn.number.inhx:
+        #                 dataIn:
+        #                   intHex: $var.type
+        #                   index: 3
+        #                   hex: 1
+        #                 dataOut: EditInboxSelf.formData.updateEmailType
+        #           - ..email.doc@: $var
+        #     - actionType: evalObject
+        #       object:
+        #         - ..email.doc.type@: =..formData.updateEmailType
+        #         - .Global.jwt.edge.bvid@: =..email.doc.bsig
+        #         - =.Global.jwt.edgeAPI.store: ""
+        #         - =..email.docAPI.store: ""
+        #         - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+        #         - =.Global.jwt.edgeAPI.store: ""
+        #     - actionType: evalObject
+        #       object:
+        #         .Global._nonce@:
+        #           =.builtIn.math.random: ""
+        #     - actionType: evalObject
+        #       object:
+        #         - =..email.docAPI.get: ""
+        #         - =.builtIn.goto:
+        #             dataIn:
+        #               destination: EditInboxSelf
+        #               pageReload: true
+        #   style:
+        #     left: "0.88"
+        #     top: "0.04"
+        #     height: "0.04"

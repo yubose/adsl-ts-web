@@ -1,0 +1,831 @@
+SettingsUpdate:
+  title: "Update Settings"
+  init:
+    - .SignInCheck
+    - =.builtIn.string.phoneNumberSplit:
+        dataIn:
+          phoneNumber: =..myVertex.uid
+          sign: " "
+        dataOut: SettingsUpdate.phone
+    - .SettingsUpdate.formData.countryCode@: =..phone.0
+    - .SettingsUpdate.formData.phoneNumber@: =..phone.1
+
+    # - actionType: evalObject
+    #   object:
+    #     =.builtIn.utils.getCountryCode:
+    #       dataIn:
+    #         uid: =..myVertex.uid
+    #       dataOut: SettingsUpdate.formData.countryCode
+    # - actionType: evalObject
+    #   object:
+    #     =.builtIn.utils.getPhoneNumber:
+    #       dataIn:
+    #         uid: =..myVertex.uid
+    #       dataOut: SettingsUpdate.formData.phoneNumber
+    # - ..formData.firstName@: =..myVertex.name.firstName
+    # - ..formData.lastName@: =..myVertex.name.lastName
+    - ..formData.userName@: =..myVertex.name.userName
+    - ..myVertex.tage@: "0"
+    - if:
+        - =.Global.Profile.id
+        - actionType: evalObject
+          object:
+            - ..profile.docCreateReq@: []
+            - ..profile.docCreateReq@: =.Global.Profile
+        - actionType: evalObject
+          object:
+            - =..profile.docAPI.get: ""
+  myVertex: .Global.currentUser.vertex
+  phone: []
+  apiRequest:
+    hashTag:
+      docCreateReq:
+        eid: .Global.rootNotebookID
+        type: .DocType.HashTag
+        reid: ""
+        name:
+          data:
+            hashTime: ""
+            hashFields:
+              - name
+              - mtime
+              - type
+            hashCode: "" # sha256
+      docAPI:
+        store:
+          api: cd
+          dataIn: SettingsUpdate.apiRequest.hashTag.docCreateReq
+          dataOut: SettingsUpdate.apiRequest.hashTag.docCreateResp
+  formData: #components datakey
+    # firstName: ""
+    # lastName: ""
+    userName: ""
+    countryCode: ""
+    phoneNumber: ""
+    password: xxxxx...
+    confirmPassword: xxxxx...
+    code: ""
+  formDataTemp:
+    selectTemp:
+      - "+1"
+      - "+86"
+  profile:
+    docCreateResp: ""
+    docCreateReq:
+      type: .DocType.PatientProfile
+      eid: .Global.rootNotebookID
+      name:
+        data:
+          isFirstCreateProfile: false
+          #profile版本
+          version: 2
+          #默认保险
+          insuranceId: ""
+          #用户基本信息
+          basicInfo:
+            avatar: ""
+            phone: ""
+            firstName: ""
+            middleName: ""
+            lastName: ""
+            dateOfBirth: ""
+            gender: ""
+            socialSecurity: ""
+            fullName: ""
+            userName: ""
+          #联系信息
+          contactInfo:
+            alternatePhone:
+              countryCode: "+1"
+              phoneNumber: ""
+              fullPhone: ""
+            email: ""
+            address:
+              line: ""
+              secondLine: ""
+              #市
+              city: ""
+              #郡、县
+              county: ""
+              #州
+              state: ""
+              #邮政编码
+              zipCode: ""
+              fullAddress: ""
+          #紧急联系人信息
+          emergencyContact:
+            firstName: ""
+            middleName: ""
+            lastName: ""
+            #与当前用户的关系，如母子等
+            relation: ""
+            phone:
+              countryCode: "+1"
+              phoneNumber: ""
+              fullPhone: ""
+          #身份证信息
+          identification:
+            type: Drive License
+            id: ""
+            #身份证照片的docId
+            imageId: ""
+          #雇佣者信息
+          employment:
+            #雇佣者姓名
+            employerName: ""
+            dept: ""
+            #经营范围
+            NatureBusiness: ""
+            #工作
+            Occupation: ""
+            #电话
+            Telephone: ""
+            fax: ""
+            #邮箱
+            email: ""
+            #地址
+            address:
+              fullAddress: ""
+              line: ""
+              secondLine: ""
+              #市
+              city: ""
+              #郡、县
+              county: ""
+              #州
+              state: ""
+              #邮政编码
+              zipCode: ""
+    docAPI:
+      get:
+        api: rd
+        dataIn: SettingsUpdate.profile.docQueryReq
+        dataOut: SettingsUpdate.profile.docQueryResp
+      store:
+        api: cd
+        dataIn: SettingsUpdate.profile.docCreateReq
+        dataOut: SettingsUpdate.profile.docCreateResp
+  updateApiData:
+    response: ""
+    #   .Global.currentUser.vertex: "" # inherit
+    vertexAPI:
+      .VertexAPI: ""
+      store:
+        api: cv # construct uid, pk, esk .. for new account
+        dataIn: myVertex
+        dataOut: SettingsUpdate.updateApiData.response
+  needvCode: false
+  changedPassword: false
+  getvCodeData:
+    phoneNumber: ""
+  verificationCode:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1011
+      _nonce: =.Global._nonce
+      name:
+        phone_number: =..getvCodeData.phoneNumber
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: verificationCode.edge
+        dataOut: SettingsUpdate.verificationCode.response
+  save:
+    # - ..myVertex.name.firstName@: =..formData.firstName
+    # - ..myVertex.name.lastName@: =..formData.lastName
+    - ..myVertex.name.userName@: =..formData.userName
+    - actionType: evalObject
+      object:
+        =.builtIn.string.concat:
+          dataIn:
+            - =..formData.userName
+            - =..formData.countryCode
+            - " "
+            - =..formData.phoneNumber
+          dataOut: SettingsUpdate.myVertex.uid
+    - =..updateApiData.vertexAPI.store: ""
+  update:
+    - .Global.currentUser.vertex@: =..updateApiData.response.vertex # set {".Global.currentUser.vertex":".builtIn.UserVertex"}
+    # - .Global.Profile.name.data.basicInfo.userName@: =..updateApiData.response.vertex.name.userName
+    # - .Global.Profile.name.data.basicInfo.phone@: =..updateApiData.response.vertex.name.phoneNumber
+    - ..profile.docCreateReq.name.data.basicInfo.userName@: =..updateApiData.response.vertex.name.userName
+    - ..profile.docCreateReq.name.data.userName@: =..updateApiData.response.vertex.name.userName
+    - ..profile.docCreateReq.name.data.basicInfo.phone@: =..updateApiData.response.vertex.name.phoneNumber
+    - ..profile.docCreateReq.name.data.phone@: =..updateApiData.response.vertex.name.phoneNumber
+    - =..profile.docAPI.store: ""
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: SettingsUpdate.apiRequest.hashTag.docCreateReq.name.data.hashTime
+    - =.builtIn.utils.gethashCode:
+        dataIn:
+          hashFields: =..apiRequest.hashTag.docCreateReq.name.data.hashFields
+        dataOut: SettingsUpdate.apiRequest.hashTag.docCreateReq.name.data.hashCode
+    - ..apiRequest.hashTag.docCreateReq.reid@: =..profile.docCreateResp.doc.id
+    - =..apiRequest.hashTag.docAPI.store: ""
+    - .Global.formData.hashTag@: =..apiRequest.hashTag.docCreateResp.doc
+    - .Global.Profile@: ""
+    - .Global.Profile@: =.SettingsUpdate.profile.docCreateResp.doc
+    - .Global.phoneNumber@: =..formData.phoneNumber
+    - actionType: evalObject
+      object:
+        #     - =.builtIn.string.concat:
+        #         dataIn:
+        #           - =.Global.currentUser.vertex.name.firstName
+        #           - " "
+        #           - =.Global.currentUser.vertex.name.lastName
+        #         dataOut: Global.currentUser.vertex.name.fullName
+        - goto: Settings
+  updateMyVertex:
+    # - ..myVertex.name.firstName@: =..formData.firstName
+    # - ..myVertex.name.lastName@: =..formData.lastName
+    - ..myVertex.name.userName@: =..formData.userName
+    - ..myVertex.name.phoneNumber@: =..getvCodeData.phoneNumber
+    - ..myVertex.tage@: =..formData.code
+    - actionType: evalObject
+      object:
+        =.builtIn.string.concat:
+          dataIn:
+            - =..formData.userName
+            - =..formData.countryCode
+            - " "
+            - =..formData.phoneNumber
+          dataOut: SettingsUpdate.myVertex.uid
+    # - .Global.currentUser.JWT@: =..verificationCode.response.jwt
+    - =..updateApiData.vertexAPI.store: ""
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..updateApiData.response.code
+              string2: 1031 #userid has been used
+        - actionType: popUp
+          popUpView: sameuserid
+          wait: true
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..updateApiData.response.code
+              string2: 1052 #userid invalid
+        - actionType: popUp
+          popUpView: invaliduserid
+          wait: true
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..updateApiData.response.code
+              string2: 1032 #phone number has been used
+        - actionType: popUp
+          popUpView: samephonenum
+          wait: true
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..updateApiData.response.code
+              string2: 112
+        - actionType: popUp
+          popUpView: wrongCode
+          wait: true
+        - continue
+    - actionType: evalObject
+      object: ..update
+    # - =.builtIn.goto:
+    #     dataIn:
+    #       destination: Settings
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: view
+      style:
+        width: "1"
+        height: "auto"
+
+      children:
+        - type: view
+          style:
+            width: auto
+            height: "auto"
+            oveflow: hidden
+          children:
+            - type: label
+              text: "Username :"
+              dataKey:
+              style:
+                ..style.labelText:
+                marginTop: "0.055"
+            - type: textField
+              placeholder: Enter here
+              dataKey: formData.userName
+              style:
+                ..style.inputBoxStyle:
+        - type: view
+          style:
+            marginTop: "0.032019"
+            marginLeft: "0.04"
+            width: "0.92"
+            height: "auto"
+            oveflow: hidden
+          children:
+            - type: view
+              style:
+                width: "auto"
+                height: "auto"
+                display: "inline-block"
+              children:
+                - type: label
+                  text: "Country:"
+                  dataKey:
+                  style:
+                    fontSize: .Nfont.h16
+                - type: select
+                  placeholder: ..formDataTemp.selectTemp
+                  required: "true"
+                  dataKey:
+                  options: ..formDataTemp.selectTemp
+                  style:
+                    marginTop: "0.00369"
+                    height: "0.055"
+                    width: "0.21"
+                    boxSizing: border-box
+                    border:
+                      style: 3
+                    borderRadius: "4"
+                    borderWidth: "1.5"
+                    borderColor: "0xdedede"
+
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    textIndent: "12px"
+            - type: view
+              style:
+                marginLeft: "0.032"
+                width: "auto"
+                height: "auto"
+                display: "inline-block"
+              children:
+                - type: label
+                  text: "Phone number:"
+                  dataKey:
+                  style:
+                    fontSize: .Nfont.h16
+                - type: textField
+                  viewTag: phoneNumberVT
+                  contentType: phoneNumber
+                  placeholder: ..formData.phoneNumber
+                  dataKey: formData.phoneNumber
+                  required: "true"
+                  onChange:
+                    - emit:
+                        actions:
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.countryCode
+                                    string2: "+965" # Kuwait
+                              - ..formData.checkOk@: true
+                              - =.builtIn.string.phoneVerification:
+                                  dataIn:
+                                    phoneNumber: =..formData.phoneNumber
+                                    countryCode: =..formData.countryCode
+                                  dataOut: SettingsUpdate.formData.checkOk
+                          - if:
+                              - =..formData.checkOk
+                              - continue
+                              - ..formData.checkMessage@: "Unacceptible phone number format example: 888-999-0000"
+                  style:
+                    marginTop: "0.00369"
+                    height: "0.055"
+                    width: "0.672"
+                    boxSizing: border-box
+                    border:
+                      style: 3
+                    borderRadius: "4"
+                    borderWidth: "1.5"
+                    borderColor: "0xdedede"
+
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    textIndent: "12px"
+        - type: view
+          style:
+            width: "1"
+            height: "auto"
+          children:
+            - type: label
+              text: "New Password :"
+              dataKey:
+              style:
+                ..style.labelText:
+            - type: textField
+              dataKey: formData.password
+              style:
+                ..style.inputBoxStyle:
+        - type: view
+          style:
+            width: "1"
+            height: "auto"
+          children:
+            - type: label
+              text: "Confirm Password :"
+              dataKey:
+              style:
+                ..style.labelText:
+            - type: textField
+              placeholder: Enter here
+              dataKey: formData.confirmPassword
+              style:
+                ..style.inputBoxStyle:
+        - type: button
+          text: Cancel
+          style:
+            ..style.buttonStyle:
+            marginTop: "0.25"
+            backgroundColor: "0xc4c4c4"
+          # onClick:
+          #   - goto:
+
+        - type: button
+          text: Save
+          onClick:
+            - actionType: evalObject
+              object:
+                =.builtIn.string.concat:
+                  dataIn:
+                    - =..formData.countryCode
+                    - " "
+                    - =..formData.phoneNumber
+                  dataOut: SettingsUpdate.getvCodeData.phoneNumber
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..getvCodeData.phoneNumber
+                          string2: =.Global.currentUser.vertex.uid
+                    - continue
+                    - ..needvCode@: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.password
+                          string2: "xxxxx..."
+                    - continue
+                    - actionType: evalObject
+                      object:
+                        - ..needvCode@: true
+                        - ..changedPassword@: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.password
+                          string2: =..formData.confirmPassword #need improve!!
+                    - continue
+                    - actionType: popUp
+                      popUpView: samePassword
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.userName
+                          string2: =.Global.currentUser.vertex.name.userName
+                    - continue
+                    - ..needvCode@: true
+            # - actionType: evalObject
+            #   object:
+            #     # - =..verificationCode.edgeAPI.store : ""
+            #     - actionType: popUp
+            #       popUpView: inputVerificationCode
+            #       wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..changedPassword
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.eccNaCl.encryptAES:
+                            dataIn:
+                              key: =..formData.password
+                              message: =..myVertex.sk
+                            dataOut: SettingsUpdate.myVertex.esk
+                    - continue
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..needvCode
+                    - actionType: evalObject
+                      object:
+                        - =..verificationCode.edgeAPI.store: ""
+                        - actionType: popUp
+                          popUpView: inputVerificationCode
+                          wait: true
+                        #- goto: Settings
+                    - continue
+            - actionType: evalObject
+              object: ..save
+            - actionType: evalObject
+              object: ..update
+            - actionType: evalObject
+              object:
+                .Global._nonce@:
+                  =.builtIn.math.random: ""
+            # - goto: Settings
+          style:
+            ..style.buttonStyle:
+            marginTop: "0.021"
+            backgroundColor: "0x2988e6"
+
+    - type: popUp
+      viewTag: samephonenum
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.3"
+            width: "0.9"
+            height: "0.35"
+            zIndex: "100"
+            backgroundColor: "0xeaeaea"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "This phone number has been used "
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.08"
+                  width: "0.89333"
+                  height: "0.05"
+                  color: "0x000000"
+                  fontSize: "19"
+                  display: inline
+                  # fontStyle: "bold"
+
+                  textAlign:
+                    x: center
+                    y: center
+            - type: label
+              text: "Do you want to take over this phone number?"
+              style:
+                .LabelStyle:
+                  left: "0.02"
+                  top: "0.15"
+                  width: "0.84"
+                  height: "0.05"
+                  color: "0x000000"
+                  fontSize: "19"
+                  display: inline
+                  # fontStyle: "bold"
+
+                  textAlign:
+                    x: center
+                    y: center
+            - type: view
+              style:
+                left: "0"
+                top: "0.25"
+                width: "0.9"
+                height: "0.001"
+                backgroundColor: "0x00000088"
+            - type: button
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: samephonenum
+              text: CANCEL
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "19"
+                  display: inline
+                  backgroundColor: "0xeaeaea"
+                  textAlign:
+                    x: center
+                    y: center
+                  border:
+                    style: "5"
+                    borderRadius: "15"
+            - type: button
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: samephonenum
+                - actionType: evalObject
+                  object:
+                    ..myVertex.type@: "-1"
+                - actionType: evalObject
+                  object: ..updateMyVertex
+              text: OKAY
+              style:
+                .LabelStyle:
+                  left: "0.45"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "19"
+                  display: inline
+                  backgroundColor: "0xeeeeee"
+                  textAlign:
+                    x: center
+                    y: center
+                  border:
+                    style: "5"
+                    borderRadius: "15"
+            - type: view
+              style:
+                left: "0.45"
+                top: "0.25"
+                width: "0.001"
+                height: "0.1"
+                backgroundColor: "0x00000088"
+
+    - type: popUp
+      viewTag: inputVerificationCode
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.3"
+            width: "0.89333"
+            height: "0.35"
+            zIndex: "100"
+            backgroundColor: "0xeaeaea"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Enter the 6-digit verification code"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.08"
+                  width: "0.89333"
+                  height: "0.05"
+                  color: "0x000000"
+                  fontSize: "19"
+                  display: inline
+                  # fontStyle: "bold"
+
+                  textAlign:
+                    x: center
+                    y: center
+            - type: textField
+              contentType: number
+              dataKey: formData.code
+              required: "true"
+              style:
+                .LabelStyle:
+                  left: "0.02"
+                  top: "0.15"
+                  width: "0.84"
+                  height: "0.05"
+                  color: "0x00000088"
+                  fontSize: "20"
+                  display: inline
+                  border:
+                    style: "3"
+                    color: "0xb5b5b8"
+                  borderWidth: "1"
+                  textAlign:
+                    x: center
+                    y: center
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.25436"
+                  width: "0.89333"
+                  height: "0.001"
+                  backgroundColor: "0x00000088"
+            - type: button
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: inputVerificationCode
+              text: CANCEL
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "19"
+                  display: inline
+                  backgroundColor: "0xeaeaea"
+                  textAlign:
+                    x: center
+                    y: center
+                  border:
+                    style: "5"
+                    borderRadius: "15"
+            - type: button
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: inputVerificationCode
+                - actionType: evalObject
+                  object: ..updateMyVertex
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #       - =.Global.currentUser.vertex.sk
+                #       - goto: MeetingRoomInvited
+                #       - continue
+              text: SUBMIT
+              style:
+                .LabelStyle:
+                  left: "0.45"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "19"
+                  display: inline
+                  backgroundColor: "0xeaeaea"
+                  textAlign:
+                    x: center
+                    y: center
+                  border:
+                    style: "5"
+                    borderRadius: "15"
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0.45"
+                  top: "0.255"
+                  width: "0.002"
+                  height: "0.08"
+                  backgroundColor: "0x00000088"
+
+  style:
+    labelText:
+      marginTop: "0.032"
+      marginLeft: "0.04"
+      width: "auto"
+      height: "auto"
+      lineHeight: "27px"
+      color: "0x333333"
+      fontSize: .Nfont.h2
+      fontWeight: "400"
+
+    inputBoxStyle:
+      border:
+        style: 3
+      borderColor: "0xdedede"
+      borderRadius: "4"
+      width: "0.91"
+      height: "0.0554"
+      borderWidth: "1.5"
+      lineHeight: "27px"
+      marginTop: "3px"
+      marginLeft: "0.04"
+      textIndent: "12px"
+      wordBreak: "break-word"
+
+      fontSize: .Nfont.h2
+      color: "0x333333"
+    buttonStyle:
+      left: "0.08"
+      height: "0.069"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "4"
+      color: "0xffffff"
+
+      fontSize: .Nfont.h20
+      fontWeight: 400
+      textAlign:
+        x: center
+        y: center

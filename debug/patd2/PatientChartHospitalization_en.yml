@@ -1,0 +1,126 @@
+PatientChartHospitalization:
+  pageNumber: "176"
+  title: "Patient Chart"
+  init:
+    - .SignInCheck
+    - ..generalInfo.isKnown@: =.Global.patientInfo.generalInfo.isKnown
+  generalInfo:
+    isKnown:
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderRightButton:
+      text: Skip
+      onClick:
+        - goto: PatientChartAddHospitalization
+    - type: view
+      style:
+        height: "0.1"
+      children:
+        - type: image
+          path: patientChart11_6.svg
+          style:
+            width: "0.9"
+            top: "0.12"
+            height: "0.035"
+            left: "0.05"
+    - type: view
+      style:
+        left: "0"
+        top: "0.14"
+        height: "0.35"
+        width: "1"
+      children:
+        - type: label
+          text: Hospitalizations
+          style:
+            left: "0.1"
+            top: "0.02"
+            height: "0.05"
+            width: "0.5"
+            fontWeight: "500"
+            textAlign:
+              x: left
+            fontSize: "18"
+            color: "0x000000"
+        - type: image
+          viewTag: provider
+
+          onClick:
+            - actionType: builtIn
+              funcName: toggleProviderOnOff
+          path: selectOff.svg
+          pathSelected: selectOn.svg
+          style:
+            height: "0.025"
+            width: "0.042"
+            left: "0.1"
+            top: "0.08"
+        - type: label
+          text: None
+          style:
+            left: "0.18"
+            width: "0.9"
+            height: "0.03"
+            top: "0.078"
+            textAlign:
+              x: left
+            fontSize: "12"
+
+        - type: textField
+          placeholder: Date (mm/dd/yyyy)
+          style:
+            left: "0.1"
+            top: "0.13"
+            width: "0.4"
+            height: "0.03"
+            fontSize: "11.5"
+            border:
+              style: "3"
+            textIndent: "10px"
+            borderColor: "0x00000066"
+            borderRadius: "3"
+        - type: textField
+          placeholder: Reason
+          style:
+            left: "0.1"
+            top: "0.18"
+            width: "0.4"
+            height: "0.03"
+            fontSize: "11.5"
+            border:
+              style: "3"
+            textIndent: "10px"
+            borderColor: "0x00000066"
+            borderRadius: "3"
+        - type: button
+          text: Add hospitalization
+          onClick:
+            - goto: PatientChartAddHospitalization
+          style:
+            left: "0.3"
+            top: "0.24"
+            height: "0.045"
+            width: "0.4"
+            border:
+              style: "3"
+            color: "0x2988e6"
+            fontStyle: "bold"
+            borderRadius: "7"
+            backgroundColor: "0xffffff"
+            borderWidth: "1.8"
+    - type: button
+      text: Next
+      onClick:
+        - goto: PatientChartAddHospitalization
+      style:
+        left: "0.12"
+        width: "0.76"
+        top: "0.9"
+        height: "0.05"
+        color: "0xffffffff"
+        border:
+          style: "3"
+        borderColor: "0x2988e6"
+        backgroundColor: "0x2988e6"
+        borderRadius: "3"
