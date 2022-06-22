@@ -580,15 +580,27 @@ const createActions = function createActions(app: App) {
       })
     })
   }
-
-  const CSVToJSON = (data, csvTitleKbn:string[], delimiter = ',') => {
-    let hanleData:string[] = data.slice(data.indexOf('\n')+1).split('\n');
-    return hanleData.filter(Boolean).map(v => {
-        const values = v.split(delimiter);
-        return v&&csvTitleKbn.reduce(
-            (obj, title, index) => (obj[title] = values[index], obj),{});
+  const requireCsv = async (files,dataKey,ac,comp)=>{
+    const CSVToJSON = (data, csvTitleKbn:string[], delimiter = ',') => {
+      let hanleData:string[] = data.slice(data.indexOf('\n')+1).split('\n');
+      return hanleData.filter(Boolean).map(v => {
+          const values = v.split(delimiter);
+          return v&&csvTitleKbn.reduce(
+              (obj, title, index) => (obj[title] = values[index], obj),{});
+      });
+  };
+    const reader:FileReader  = new FileReader();
+    // 将上传的文件读取为文本
+    reader.readAsText(files?.[0]);
+    let result = new Promise((res)=>{
+      reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
+        // 将CSV文本转换为JSON数据
+        const jsonFromCsvFile = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
+        res(jsonFromCsvFile)
     });
-};
+    });
+  return await result;
+  }
   const _getInjectBlob: (name: string) => Store.ActionObject['fn']|Function = (name) =>
   // true?function hh(){}:
     async function getInjectBlob(action, options) {
@@ -630,17 +642,10 @@ const createActions = function createActions(app: App) {
               if(files?.[0].type.endsWith("/csv")){
                 // CSV标题汉字所对应的区分名
                // 构建文件读取对象
-              const reader:FileReader  = new FileReader();
-              // 将上传的文件读取为文本
-              reader.readAsText(files?.[0]);
-              reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
-                // 将CSV文本转换为JSON数据
-                const jsonFromCsvFile = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
-
-                ac.data.set(dataKey, {"fileName":files?.[0]?.name,"data":jsonFromCsvFile});
-                app.updateRoot(dataKey, ac.data.get(dataKey))
-            });
-            break;
+              let jsonFromCsvFile = await requireCsv(files,dataKey,ac,comp);
+              ac.data.set(dataKey, {"fileName":files?.[0]?.name,"data":jsonFromCsvFile});
+              app.updateRoot(dataKey, ac.data.get(dataKey))
+              break;
             }else{
               await imageConversion
               .compressAccurately(fileRell||ac.data.get(dataKey), size)
