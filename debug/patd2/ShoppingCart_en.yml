@@ -1,0 +1,546 @@
+ShoppingCart:
+  title: Shopping Cart
+  pageNumber:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =..apiRequest.shoppingCart.docAPI.get: ""
+    - .Global.formData.shoppingCart@: =..apiRequest.shoppingCart.docQueryResp.doc
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.array.judgeListLength:
+                dataIn:
+                  array: =..formData.chooseProductList
+                  len: 0
+            - actionType: evalObject
+              object:
+                - ..formData.btnColor@: "#c1c1c1"
+                - ..formData.btnPointer@: "none"
+            - actionType: evalObject
+              object:
+                - ..formData.btnColor@: "#2988e6"
+                - ..formData.btnPointer@: ""
+    - =.builtIn.array.matchModAttr:
+        dataIn:
+          obj: =..apiRequest.shoppingCart.docQueryResp.doc
+          path: "name.data.orderList.0.productionList.0.inventoryId"
+          data:
+            [
+              "name.data.orderList.0.productionList.0.num",
+              "name.data.orderList.0.productionList.0.totalMoney",
+            ]
+        dataOut: Global.formData.shoppingCart
+    - ..formData.shoppingCart@: =.Global.formData.shoppingCart
+  formData:
+    shoppingCart: []
+    # 控制是否全选
+    allFlag: false
+    # 控制删除按钮颜色
+    btnColor: "#c1c1c1"
+    # 控制删除按钮是否可以点击
+    btnPointer: ""
+    # 选中的商品id数组
+    chooseProductList: []
+    # 初始对象数组长度
+    initialLength: ""
+    # 选中数组长度
+    selectedLength: ""
+  formDataTemp: ""
+  apiRequest:
+    shoppingCart:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 28
+        id: .Global.currentUser.vertex.id
+        xfname: bvid|evid
+        sfname: "{\"join\":\"INNER JOIN Edge E ON E.id=D.eid\",\"result\":\"D.*\"}"
+        type: .DocType.Order
+        sCondition: D.tage!=-1 AND E.type = 40000
+        obfname: mtime
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: ShoppingCart.apiRequest.shoppingCart.docQueryReq
+          dataOut: ShoppingCart.apiRequest.shoppingCart.docQueryResp
+  components:
+    - type: view
+      style:
+        ..style.formatBox:
+      children:
+        - .BasePublicHeader:
+            children:
+              - .BasePublicHeaderLeft:
+                leftClick:
+                  - actionType: evalObject
+                    object:
+                      - .Global.formData.whetherShopItem@: false
+                      - .Global.formData.parentPage@: "MedicalRecommendation"
+                      - goto: .Global.formData.lastPage
+              - .BasePublicHeaderTitle:
+              - .BasePublicHeaderRightText:
+                style:
+                  width: "0.16"
+                  marginLeft: "0"
+                text: Address
+                onClick:
+                  - ..event.addressClick
+        - type: view
+          style:
+            ..style.allBox:
+          children:
+            - type: image
+              viewTag: allCheckBoxTag
+              path:
+                ..event.allCheckPath:
+              style:
+                ..style.allCheck:
+              onClick:
+                - ..event.allCheckBoxClick
+            - type: label
+              text: All
+              style:
+                ..style.allLabel:
+            - type: label
+              text: Edit
+              style:
+                ..style.edit:
+              onClick:
+                - ..event.editClick
+        - type: scrollView
+          style:
+            ..style.scrollBox:
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..formData.shoppingCart
+              iteratorVar: itemObject
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.auto:
+                      children:
+                        - type: view
+                          style:
+                            ..style.auto:
+                            display: "inline-block"
+                            verticalAlign: middle
+                          children:
+                            - type: image
+                              viewTag: listDataTag
+                              path:
+                                ..event.checkBoxPath:
+                              onClick:
+                                - ..event.checkBoxClick
+                              style:
+                                ..style.listItemImg:
+                        - type: view
+                          style:
+                            display: "inline-block"
+                            verticalAlign: middle
+                          onClick:
+                            - ..event.itemClick
+                          children:
+                            - type: image
+                              path: good.png
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.name.data.orderList.0.productionList.0.coverImgId
+                              style:
+                                ..style.listItemIcon:
+                            - type: view
+                              style:
+                                ..style.contentBox:
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name.data.orderList.0.productionList.0.title
+                                  style:
+                                    ..style.title:
+                                - type: view
+                                  style:
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.name.data.orderList.0.productionList.0.type
+                                      style:
+                                        ..style.typeValue:
+                                        color: itemObject.name.data.orderList.0.productionList.0.typeColor
+                                # - type: view
+                                #   style:
+                                #   children:
+                                #     - type: label
+                                #       dataKey: itemObject.name.data.orderList.0.productionList.0.productInfo
+                                #       style:
+                                #         ..style.describe:
+                                - type: view
+                                  style:
+                                    ..style.secondBox:
+                                  children:
+                                    - type: view
+                                      style:
+                                        ..style.productInfoBox:
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.name.data.orderList.0.productionList.0.productInfo
+                                          style:
+                                            ..style.productInfo:
+                                        - type: label
+                                          textBoard:
+                                            - text: "x"
+                                            - text: "12"
+                                              dataKey: itemObject.name.data.orderList.0.productionList.0.num
+                                          style:
+                                            ..style.productNum:
+                                    - type: label
+                                      text=func: .builtIn.string.dollarFormat
+                                      dataKey: itemObject.name.data.orderList.0.productionList.0.totalMoney
+                                      style:
+                                        ..style.price:
+
+            - type: view
+              style:
+                marginTop: "0.03"
+
+        - type: view
+          style:
+            ..style.btnBox:
+          children:
+            - type: button
+              text: Pay now
+              viewTag: btnTag
+              style:
+                ..style.btn:
+              onClick:
+                - ..event.btnClick
+
+  event:
+    allCheckPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.allFlag
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    allCheckBoxClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =..formData.allFlag
+              - actionType: evalObject
+                object:
+                  - ..formData.allFlag@: false
+                  - ..formData.chooseProductList@: []
+              - actionType: evalObject
+                object:
+                  - ..formData.allFlag@: true
+                  - =.builtIn.array.getListByKey:
+                      dataIn:
+                        array: =..formData.shoppingCart
+                        keyId: id
+                      dataOut: ShoppingCart.formData.chooseProductList
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..formData.chooseProductList
+                    len: 0
+              - actionType: evalObject
+                object:
+                  - ..formData.btnColor@: "#c1c1c1"
+                  - ..formData.btnPointer@: "none"
+              - actionType: evalObject
+                object:
+                  - ..formData.btnColor@: "#2988e6"
+                  - ..formData.btnPointer@: ""
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: allCheckBoxTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: listDataTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: btnTag
+    checkBoxPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..formData.chooseProductList
+                    value: $var.id
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.array.has:
+                    dataIn:
+                      object: =..formData.chooseProductList
+                      value: $var.id
+                - =.builtIn.array.removeByValue:
+                    dataIn:
+                      object: =..formData.chooseProductList
+                      value: $var.id
+                - =.builtIn.array.add:
+                    dataIn:
+                      object: =..formData.chooseProductList
+                      value: $var.id
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..formData.chooseProductList
+                    len: 0
+              - actionType: evalObject
+                object:
+                  - ..formData.btnColor@: "#c1c1c1"
+                  - ..formData.btnPointer@: "none"
+              - actionType: evalObject
+                object:
+                  - ..formData.btnColor@: "#2988e6"
+                  - ..formData.btnPointer@: ""
+      # 反选
+      - actionType: evalObject
+        object:
+          # 原对象数组长度
+          - =.builtIn.array.getListLength:
+              dataIn:
+                object: =..formData.shoppingCart
+              dataOut: ShoppingCart.formData.initialLength
+          # 选中数组长度
+          - =.builtIn.array.getListLength:
+              dataIn:
+                object: =..formData.chooseProductList
+              dataOut: ShoppingCart.formData.selectedLength
+          # 判断两个长度是否相等
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.initialLength
+                    string2: =..formData.selectedLength
+              - ..formData.allFlag@: true
+              - ..formData.allFlag@: false
+      - actionType: builtIn
+        funcName: redrawCurrent
+        viewTag: listDataTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: btnTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: allCheckBoxTag
+    addressClick:
+      - actionType: evalObject
+        object:
+          - goto: AddressManagement
+
+    btnClick:
+      - actionType: evalObject
+        object:
+          - .Global.formData.productionIdsSelectedInShoppingCart@: =..formData.chooseProductList
+          - .Global.formData.whetherShoppingCart@: true
+          - goto: OrderConfirmation
+    editClick:
+      - actionType: evalObject
+        object:
+          - goto: EditShoppingCart
+    itemClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - .Global.formData.parentPage@: "ShoppingCart"
+            # 是否点击购物车商品进入详情页
+            - .Global.formData.whetherShopItem@: true
+            - .Global.formData.currentShopItem@: $var
+            - goto: ProductDetails
+  style:
+    formatBox:
+      height: "1"
+      width: "1"
+      boxSizing: border-box
+      overflow: hidden
+    scrollBox:
+      width: "1"
+      height: "0.78078"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      color: "#333333"
+      backgroundColor: "#f5f5f5"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: ..formData.btnColor
+      pointer-events: ..formData.btnPointer
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+    allBox:
+      width: "1"
+      height: "auto"
+      paddingLeft: "0.04"
+      paddingRight: "0.04"
+      paddingTop: "0.018472"
+      paddingBottom: "0.018472"
+      boxSizing: border-box
+      borderBottom: "1px solid #dedede"
+    allCheck:
+      marginLeft: "0.04"
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    allLabel:
+      marginLeft: "0.032"
+      fontSize: .Nfont.h14
+      display: "inline-block"
+      verticalAlign: middle
+      width: "0.73"
+    edit:
+      fontSize: .Nfont.h14
+      display: "inline-block"
+      verticalAlign: middle
+    list:
+      width: "0.92"
+      margin: "0"
+      marginLeft: "0.04"
+      height: auto
+      boxSizing: border-box
+    listItem:
+      marginTop: "0.014778"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+      boxSizing: border-box
+      backgroundColor: "0xffffff"
+      paddingTop: "0.02463"
+      paddingBottom: "0.02463"
+      paddingLeft: "0.04"
+      borderRadius: "4"
+    listItemImg:
+      height: "0.01970"
+      pointer-events: itemObject.isBuy
+    auto:
+      width: auto
+      height: auto
+    listItemIcon:
+      margin: "0"
+      padding: "0"
+      # marginLeft: "0.0426666"
+      marginLeft: "0.02133333"
+      display: "inline-block"
+      height: "0.134236"
+      width: "0.290666"
+      verticalAlign: middle
+      boxSizing: border-box
+      border: "1px solid #dedede"
+      # borderRadius: "4px"
+    contentBox:
+      display: "inline-block"
+      # marginLeft: "0.048"
+      marginLeft: "0.02133333"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    title:
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      boxSizing: "border-box"
+      -webkit-line-clamp: 2
+      display: -webkit-box
+      -webkit-box-orient: vertical
+      overflow: hidden
+      text-overflow: ellipsis
+      wordBreak: break-word
+      width: "0.41333333"
+    typeValue:
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      width: "0.41333333"
+      fontWeight: "600"
+      verticalAlign: middle
+    describe:
+      marginTop: "0.016009"
+      display: itemObject.isWarn
+      paddingLeft: "0.021333"
+      paddingRight: "0.021333"
+      fontSize: .Nfont.h12
+      color: "#fb5051"
+      height: "auto"
+      lineHeight: "2.58vh"
+      border: "1px solid #fb5051"
+      borderRadius: "1.29vh"
+    secondBox:
+      display: itemObject.isBuy
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    productInfoBox:
+      marginTop: "0.006157"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    productInfo:
+      display: "inline-block"
+      paddingLeft: "0.021333"
+      width: "0.37"
+      height: "0.033251"
+      backgroundColor: "#f8f8f8"
+      color: "#666666"
+      borderRadius: "4"
+      boxSizing: border-box
+      fontSize: .Nfont.h12
+      lineHeight: "3.3251vh"
+      overflow: hidden
+      textOverflow: ellipsis
+      whiteSpace: nowrap
+      verticalAlign: middle
+    productNum:
+      marginLeft: "0.02133333"
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      color: "#333333"
+      boxSizing: border-box
+      border: "1px solid #c1c1c1"
+      borderRadius: "2"
+      padding: "2px 4px"
+      verticalAlign: middle
+    price:
+      marginTop: "0.01"
+      color: "#fb5051"
+      width: "0.45"
+      fontSize: .Nfont.h16
+      fontWeight: "700"

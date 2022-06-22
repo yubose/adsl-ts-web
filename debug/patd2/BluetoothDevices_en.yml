@@ -1,0 +1,503 @@
+#For Android Only
+BluetoothDevices:
+  # step1: scan device and set in availableDevices and list in available device list
+  # step2: select deveice and set in Global.connectedDevices list
+  # question: 1. the  funcName: btRedraw means?
+  title: "Bluetooth Devices"
+  init:
+    - .SignInCheck
+    - actionType: builtIn
+      funcName: initBluetooth
+  device:
+    name: ""
+    address: ""
+  #connectedDevices: []
+  scanStatus: Scan
+  availableDevices: []
+  currentObject:
+  currentDevice:
+    retrieve:
+      - ..currentDevice.docAPI.get: ""
+    deviceObjs:
+    address: ""
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        id: =..currentDevice.address
+        xfname: fid
+        type: .DocType.BtDeviceObj
+        dataKey: currentDevice.deviceObjs
+        maxcount: "1000"
+        obfname: "mtime"
+        _nonce: =.Global._nonce
+  currentDeviceInfo:
+    retrieve:
+      - ..currentDeviceInfo.docAPI.get: ""
+    targetId: ""
+    deviceInfoDoc:
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        id: =..currentDeviceInfo.targetId
+        type: .DocType.BtDeviceInfo
+        dataKey: currentDeviceInfo.deviceInfoDoc
+        maxcount: "1000"
+        obfname: "mtime"
+        _nonce: =.Global._nonce
+  components:
+    - .BasePublicHeader: # height: "0.055" # 44.66px
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - goto:
+                dataIn:
+                  destination: VitalSigns
+                  reload: false
+            # - actionType: builtIn
+            #   funcName: goBack
+            #   reload: false #reload must be false, otherwise data from devices may be overwritten
+        - .BasePublicHeaderTitle:
+          style:
+            fontSize: .Nfont.h18
+    - type: label
+      text: "Selected Devices"
+      style:
+        left: "0.04"
+        fontSize: .Nfont.h14
+        color: "0x333333"
+        width: "0.5"
+        marginTop: "0.0125"
+
+        textAlign:
+          x: left
+    # - type: view
+    #   style:
+    #     marginTop: "0.01724"
+    #     marginLeft: "0"
+    #     width: "1"
+    #     height: "0.395"
+    #     backgroundColor: "#ffffff"
+    #     overflow: scroll
+    #   children:
+    - type: list
+      contentType: listObject
+      listObject: .Global.connectedDevices
+      iteratorVar: itemObject
+      viewTag: availableTag
+      style:
+        width: "1"
+        height: "0.395"
+        marginTop: "0.0035"
+        overflow: scroll
+        isRefresh: true
+      children:
+        - type: listItem
+          itemObject: ""
+          style:
+            width: "1"
+            # height: "0.08"
+            marginTop: "0.01477"
+          children:
+            - type: image
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - ..currentObject@: $var
+                - actionType: popUp
+                  popUpView: deleting
+              path: sacha.png
+              style:
+                marginLeft: "0.04"
+                width: "0.048"
+                display: inline-block
+                verticalAlign: middle
+            - type: view
+              style:
+                display: inline-block
+                verticalAlign: middle
+                width: "0.653" #"0.707"
+                marginLeft: "0.0213"
+              children:
+                - type: label
+                  dataKey: itemObject.name
+                  style:
+                    fontSize: .Nfont.h14
+                    fontStyle: "bold"
+                    lineHeight: "1.43"
+
+                    color: "#000000"
+                - type: label
+                  text: "No connected"
+                  dataKey: itemObject.status
+                  style:
+                    fontSize: .Nfont.h12
+                    color: itemObject.fontColor
+                    lineHeight: "1.667"
+
+            - type: label
+              text: "Disconnect"
+              dataKey: itemObject.buttonText1
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - actionType: builtIn
+                        funcName: getBluetoothData
+                        device: $var
+                - actionType: builtIn
+                  funcName: btRedraw
+              style:
+                fontSize: .Nfont.h14
+                color: "0x2988e6"
+                fontStyle: "bold"
+                width: "0.1977"
+
+                display: inline-block
+                verticalAlign: Top
+                textAlign:
+                  x: right
+    - type: view
+      style:
+        marginTop: "0"
+        height: "0.002"
+        width: "0.92"
+        marginLeft: "0.04"
+        borderRadius: "2"
+        backgroundColor: "0xDEDEDE"
+    - type: view
+      style:
+        width: "1"
+        textAlign:
+          x: center
+      children:
+        - type: view
+          style:
+            width: auto
+          children:
+            - type: image
+              path: redraw.svg
+              style:
+                width: "0.037"
+                display: inline-block
+                marginTop: "0.003"
+            - type: label
+              text: Pull Down to Refresh
+              style:
+                fontSize: "12"
+                marginLeft: "0.0106"
+
+                color: "#C1C1C1"
+                display: inline-block
+    - type: view
+      style:
+        width: "1"
+        marginTop: "0.005"
+      children:
+        - type: label
+          text: "Available Devices"
+          style:
+            fontSize: .Nfont.h14
+            color: "0x333333"
+            marginLeft: "0.04"
+            width: "0.4"
+            verticalAlign: middle
+            display: inline-block
+
+            textAlign:
+              x: left
+        #  scan Bluetooth and set in availableDevives list
+        - type: button
+          dataKey: scanStatus
+          viewTag: scanButton
+          onClick:
+            - actionType: builtIn
+              funcName: discoverBluetooth
+              object: availableDevices
+              viewTag: scanButton
+          style:
+            marginLeft: "0.12"
+            width: "0.4"
+            height: "0.0369"
+            fontSize: ".Nfont.h14"
+            display: inline-block
+            color: "0xffffff"
+            verticalAlign: middle
+            backgroundColor: "#2FB355"
+            border:
+              style: "3"
+            borderColor: "#2FB355"
+            borderWidth: "1"
+
+            borderRadius: "5"
+            textAlign:
+              x: center
+              y: center
+
+    - type: list
+      contentType: listObject
+      listObject: ..availableDevices #..formData.connectionList
+      iteratorVar: itemObject
+      viewTag: availableTag
+      style:
+        width: "1"
+        height: "0.435"
+        margin: "0"
+        marginTop: "0.0025"
+        isRefresh: true
+        overflow: scroll
+      children:
+        - type: listItem
+          itemObject: ""
+          style:
+            marginTop: "0.0123"
+            width: "1"
+          children:
+            - type: label
+              dataKey: itemObject.name
+              style:
+                width: "0.7"
+                marginLeft: "0.04"
+                fontSize: .Nfont.h14
+                fontStyle: "bold"
+                color: "#333333"
+                display: inline-block
+            - type: label
+              text: "Select"
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - if:
+                          - actionType: builtIn
+                            funcName: selectBluetoothDevice
+                            device: $var
+                          - actionType: evalObject
+                            object:
+                              - =.builtIn.array.removeByName:
+                                  dataIn:
+                                    object: =..availableDevices
+                                    key: "address"
+                                    name: $var.address
+                              - =.builtIn.array.removeByName: #去重？
+                                  dataIn:
+                                    object: =.Global.connectedDevices
+                                    key: "address"
+                                    name: $var.address
+                              - =.builtIn.array.add:
+                                  dataIn:
+                                    object: =.Global.connectedDevices
+                                    value: $var
+                          - actionType: popUp
+                            popUpView: duplicateDevice
+                - actionType: builtIn
+                  funcName: btRedraw
+              style:
+                width: "0.22"
+                display: inline-block
+                fontSize: .Nfont.h14
+                fontStyle: "bold"
+                color: "0x2988e6"
+                textAlign:
+                  y: center
+                  x: right
+    - type: popUp
+      viewTag: duplicateDevice
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.3"
+            width: "0.89333"
+            height: "0.35"
+            zIndex: "100"
+            backgroundColor: "0xeaeaea"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "There is already a device of this type connected."
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.08"
+                  width: "0.89333"
+                  height: "0.05"
+                  color: "0x000000"
+                  fontSize: "19"
+                  display: inline
+                  # fontStyle: "bold"
+
+                  textAlign:
+                    x: center
+                    y: center
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.25436"
+                  width: "0.89333"
+                  height: "0.001"
+                  backgroundColor: "0x00000088"
+            - type: button
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: duplicateDevice
+              text: OK
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.275"
+                  width: "0.89333"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "19"
+                  display: inline
+                  backgroundColor: "0xeaeaea"
+                  textAlign:
+                    x: center
+                    y: center
+                  border:
+                    style: "5"
+                    borderRadius: "15"
+    - .Normal:
+      message: "Are you sure you want to delete the device?"
+      viewTag: deleting
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: deleting
+      rightButton:
+        - actionType: popUpDismiss
+          popUpView: deleting
+        - =.builtIn.array.removeByName:
+            dataIn:
+              object: =.Global.connectedDevices
+              key: "address"
+              name: =..currentObject.address
+        - actionType: builtIn
+          funcName: unselectBluetoothDevice
+          device: =..currentObject
+        - actionType: builtIn
+          funcName: btRedraw
+    - .TipsTitleMultiLine:
+      tipstitle: Connection unsuccessful
+      message: Please make sure bluetooth device is on and within communication range
+      viewTag: unSuccessful
+    - .SuccessfulOneLine:
+      message: "Connect Successfully"
+      viewTag: "successful"
+    # - type: popUp
+    #   viewTag: deleting
+    #   style:
+    #     left: "0"
+    #     top: "0"
+    #     width: "1"
+    #     height: "1"
+    #     backgroundColor: "0x00000066"
+    #   children:
+    #     - type: view
+    #       style:
+    #         left: "0.05"
+    #         top: "0.3"
+    #         width: "0.89333"
+    #         height: "0.35"
+    #         zIndex: "100"
+    #         backgroundColor: "0xeaeaea"
+    #         border:
+    #           style: "5"
+    #         borderRadius: "15"
+    #       children:
+    #         - type: label
+    #           text: "Are you sure you want to delete the device?"
+    #           style:
+    #             .LabelStyle:
+    #               left: "0"
+    #               top: "0.08"
+    #               width: "0.89333"
+    #               height: "0.05"
+    #               color: "0x000000"
+    #               fontSize: "19"
+    #               display: inline
+    #               # fontStyle: "bold"
+    #
+    #               textAlign:
+    #                 x: center
+    #                 y: center
+    #         - type: divider
+    #           style:
+    #             .DividerStyle:
+    #               left: "0"
+    #               top: "0.25436"
+    #               width: "0.89333"
+    #               height: "0.001"
+    #               backgroundColor: "0x00000088"
+    #         - type: button
+    #           onClick:
+    #             - actionType: popUpDismiss
+    #               popUpView: deleting
+    #           text: "Cancel"
+    #           style:
+    #             .LabelStyle:
+    #               left: "0"
+    #               top: "0.275"
+    #               width: "0.42"
+    #               height: "0.06812"
+    #               color: "0x007affff"
+    #               fontSize: "19"
+    #               display: inline
+    #               backgroundColor: "0xeaeaea"
+    #               textAlign:
+    #                 x: center
+    #                 y: center
+    #               border:
+    #                 style: "5"
+    #                 borderRadius: "15"
+    #         - type: button
+    #           onClick:
+    #             - actionType: popUpDismiss
+    #               popUpView: deleting
+    #             - =.builtIn.array.removeByName:
+    #                 dataIn:
+    #                   object: =.Global.connectedDevices
+    #                   key: "address"
+    #                   name: =..currentObject.address
+    #             - actionType: builtIn
+    #               funcName: unselectBluetoothDevice
+    #               device: =..currentObject
+    #             - actionType: builtIn
+    #               funcName: btRedraw
+    #           text: "Confirm"
+    #           style:
+    #             .LabelStyle:
+    #               left: "0.45"
+    #               top: "0.275"
+    #               width: "0.42"
+    #               height: "0.06812"
+    #               color: "0x007affff"
+    #               fontSize: "19"
+    #               display: inline
+    #               backgroundColor: "0xeaeaea"
+    #               textAlign:
+    #                 x: center
+    #                 y: center
+    #               border:
+    #                 style: "5"
+    #                 borderRadius: "15"
+    #         - type: divider
+    #           style:
+    #             .DividerStyle:
+    #               left: "0.45"
+    #               top: "0.255"
+    #               width: "0.002"
+    #               height: "0.08"
+    #               backgroundColor: "0x00000088"

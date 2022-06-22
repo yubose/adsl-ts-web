@@ -1,4 +1,4 @@
-apiHost: albh2.aitmed.io
+apiHost: albh3.aitmed.io
 apiPort: '443'
 webApiHost: apiHost
 appApiHost: apiHost
@@ -6,24 +6,24 @@ connectiontimeout: '5'
 loadingLevel: 1
 debug: console_log_api
 isGetPosition: false
-syncHost: https://syncd.aitmed.io:443
-elasticClient: https://elasticd.aitmed.io
-searchLink: https://searchd.aitmed.io
+syncHost: https://sync.aitmed.io:443
+elasticClient: https://elastic.aitmed.io
+searchLink: https://search.aitmed.io
 viewWidthHeightRatio:
-  min: 1.78
-  max: 1.78
+    min: 1.78
+    max: 1.78
 web:
   cadlVersion:
-    stable: 0.02
-    test: 0.02
+    stable: 1.07
+    test: 1.07
 ios:
   cadlVersion:
-    stable: 0.02
-    test: 0.02
+    stable: 1.07
+    test: 1.07
 android:
   cadlVersion:
-    stable: 0.02
-    test: 0.02
+    stable: 1.07
+    test: 1.07
 cadlBaseUrl: http://127.0.0.1:3000/
 cadlMain: cadlEndpoint.yml
-timestamp: 17092021
+timestamp: 06152022

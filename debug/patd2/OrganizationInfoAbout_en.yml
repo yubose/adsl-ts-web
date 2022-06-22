@@ -1,0 +1,304 @@
+OrganizationInfoAbout:
+  title: "Organization Info"
+  init:
+    - .SignInCheck
+
+    # 获取所有的facility和location
+    - ..facilityAll.vertexAPI.get
+    # 获取facilityInfo
+    - ..facilityInfo.vertexAPI.get
+    - ..location@: =.OrganizationInfoAbout.facilityAll.vertexResp.vertex
+  # 查询facilityInfo
+  facilityInfo:
+    vertex:
+      ObjType: "4"
+      id: .Global.currentFacility.bsig
+      xfname: "E.bvid"
+      type: 271361
+      sCondition: "E.type=10000"
+      _nonce: =.Global._nonce
+    facilityInfoResp: ""
+    vertexAPI:
+      get:
+        api: rd
+        dataIn: OrganizationInfoAbout.facilityInfo.vertex
+        dataOut: OrganizationInfoAbout.facilityInfo.facilityInfoResp
+    # 包括所有的facility和location
+  facilityAll:
+    vertex:
+      ObjType: "4"
+      id: .Global.currentFacility.bsig
+      xfname: "E.bvid"
+      sCondition: "E.type=1100 AND V.type!=1 AND V.type!=20"
+      maxcount: "100"
+      obfname: "ctime"
+      asc: true
+      _nonce: =.Global._nonce
+    vertexResp: ""
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: OrganizationInfoAbout.facilityAll.vertex
+        dataOut: OrganizationInfoAbout.facilityAll.vertexResp
+  # location
+  location: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - type: scrollView
+      style:
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+      children:
+        - type: view
+          style:
+            # left: "0"
+            width: "1"
+            # top: "0"
+            height: "0.26"
+            border:
+              style: "2"
+            borderWidth: "3"
+            borderColor: "0xdededf"
+          children:
+            # Facility 头像
+            - type: image
+              style:
+                top: "0.03"
+                width: "0.1"
+                left: "0.45"
+              path: office-building.svg
+              path=func: =.builtIn.utils.prepareDocToPath
+              dataKey: facilityInfo.facilityInfoResp.doc.0.name.data.basicInfo.businessLogo
+              viewTag: businessLogo
+              contentType: file
+            # 二维码
+            - type: image
+              path: qr.svg
+              style:
+                left: "0.85"
+                width: "0.08"
+                top: "0.03"
+              # Facility 名称
+            - type: label
+              dataKey: OrganizationInfoAbout.facilityAll.vertexResp.vertex.0.name.basicInfo.medicalFacilityName
+              text: A&C Urgent Care
+              style:
+                left: "0"
+                width: "1"
+                top: "0.09"
+                height: "0.04"
+                fontSize: .Nfont.h4
+                color: "0x4b4b4b"
+                textAlign:
+                  x: center
+                fontWeight: "600"
+            - type: label
+              dataKey: OrganizationInfoAbout.facilityAll.vertexResp.vertex.0.name.basicInfo.state
+              text: Anaheim
+              style:
+                left: "0"
+                width: "1"
+                top: "0.13"
+                height: "0.025"
+                fontSize: .Nfont.h1
+                color: "0x4b4b4b"
+                fontWeight: "600"
+                textAlign:
+                  x: center
+            - type: view
+              onClick:
+                - goto: InboxDashboard
+              style:
+                width: "1"
+                left: "0"
+                height: "0.1"
+                top: "0.16"
+              children:
+                - type: image
+                  path: mailIcon.svg
+                  style:
+                    left: "0.425"
+                    width: "0.15"
+                - type: label
+                  text: AiTmail
+                  style:
+                    left: "0.425"
+                    width: "0.15"
+                    top: "0.06"
+                    fontSize: .Nfont.h15
+                    color: "0x4b4b4b"
+                    textAlign:
+                      x: center
+        - type: view
+          style:
+            marginTop: "0"
+            width: "1"
+            height: "0.63"
+          children:
+            - type: view
+              style:
+                # left: "0"
+                width: "1"
+                # top: "0"
+                height: "0.05"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0xdededf"
+              children:
+                - type: label
+                  text: About
+                  style:
+                    left: "0.13"
+                    width: "0.24"
+                    top: "0.01"
+                    height: "0.039"
+                    fontSize: .Nfont.h2
+                    fontWeight: "600"
+                    color: "0x2988e6"
+                    border:
+                      style: "2"
+                    borderWidth: "3"
+                    borderColor: "0x2988e6"
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  text: Providers
+                  onClick:
+                    - goto: OrganizationInfoProviders
+                  style:
+                    left: "0.38"
+                    width: "0.24"
+                    top: "0.01"
+                    height: "0.039"
+                    fontSize: .Nfont.h2
+                    color: "0x2988e6"
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  text: Services
+                  onClick:
+                    - goto: OrganizationInfoServices
+                  style:
+                    left: "0.63"
+                    width: "0.24"
+                    top: "0.01"
+                    height: "0.039"
+                    fontSize: .Nfont.h2
+                    color: "0x2988e6"
+                    textAlign:
+                      x: center
+                      y: center
+            #  Facility 信息区域
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                marginTop: "0"
+                overflow: hidden
+              children:
+                - .OrganizationView:
+                  children:
+                    - .OrganizationText:
+                      text: "Phone Number:"
+                    - .OrganizationDataKey:
+                      dataKey: OrganizationInfoAbout.facilityAll.vertexResp.vertex.0.name.basicInfo.phoneNumber
+                - .OrganizationView:
+                  children:
+                    - .OrganizationText:
+                      text: "Email:"
+                    - .OrganizationDataKey:
+                      dataKey: OrganizationInfoAbout.facilityAll.vertexResp.vertex.0.name.basicInfo.email
+                - .OrganizationView:
+                  children:
+                    - .OrganizationText:
+                      text: "Fax:"
+                    - .OrganizationDataKey:
+                      dataKey: OrganizationInfoAbout.facilityAll.vertexResp.vertex.0.name.basicInfo.phoneNumber
+                - .OrganizationView:
+                  children:
+                    - .OrganizationText:
+                      text: "Address:"
+                    - .OrganizationDataKey:
+                      dataKey: OrganizationInfoAbout.facilityAll.vertexResp.vertex.0.name.basicInfo.address
+                - .OrganizationView:
+                  children:
+                    - .OrganizationText:
+                      text: "Introduction:"
+                - .OrganizationView:
+                  children:
+                    - .OrganizationText:
+                      style:
+                        width: "0.9"
+                      dataKey: OrganizationInfoAbout.facilityAll.vertexResp.vertex.0.name.basicInfo.introduction
+                - .OrganizationView:
+            #  locations 标题
+            - type: view
+              style:
+                marginTop: "0"
+                height: "0.05"
+                width: "1"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: Locations
+                  style:
+                    left: "0.07"
+                    height: "0.05"
+                    width: "0.5"
+                    textAlign:
+                      y: center
+            #  locations 信息区域
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "1"
+                height: "0.33"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..location
+                  iteratorVar: itemObject
+                  style:
+                    width: "1"
+                    margin: "0"
+                    height: auto
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: "1"
+                        height: "auto"
+                        border:
+                          style: "2"
+                        borderColor: "0xdededf"
+                        borderWidth: "2"
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.basicInfo.medicalFacilityName
+                          # textBoard:
+                          # - dataKey: itemObject.name.basicInfo.medicalFacilityName
+                          # - text: "-"
+                          # - dataKey: itemObject.name.basicInfo.state
+                          style:
+                            marginTop: "0.01"
+                            left: "0.1"
+                            height: "0.03"
+                            width: "0.6"
+                        - type: label
+                          dataKey: itemObject.name.basicInfo.address
+                          style:
+                            marginTop: "0.01"
+                            marginBottom: "1vh"
+                            left: "0.1"
+                            wordBreak: break-word
+                            height: auto
+                            width: "0.7"

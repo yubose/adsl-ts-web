@@ -1,0 +1,170 @@
+AgreeRequest:
+  pageNumber: "140"  
+  dataObject: .Global.appoinment.request
+  edgeE1Info: ""
+  title: "Approve successful"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        - ..approveRequest.edge.stime@: =..dataObject.stime
+        - ..approveRequest.edge.etime@: =..dataObject.etime
+        - =.AgreeRequest.approveRequest.edgeAPI.store: ""
+  approveRequest:
+    edge:
+      .Edge: ""
+      id: ""
+      subtype: 5 
+      type: 40000
+      bvid: .Global.currentUser.vertex.id 
+      refid: ..dataObject.id
+      name: 
+        roomName: ..dataObject.name.visitReason
+        setting:
+          timeSlotBackColor: ..dataObject.name.blockColor
+          timeSlotColor: ..dataObject.name.fontColor
+          patientName: ..dataObject.name.patientName
+          visitReason: ..dataObject.name.visitReason
+          visitType: ..dataObject.name.visitType
+          Reason: ..dataObject.name.Reason
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataKey: approveRequest.edge 
+  #E0
+  # updateE2Edge:
+  #   edge:
+  #     .AgreeRequest.dataObject: ""
+  #   edgeAPI:
+  #     .EdgeAPI: ""
+  #     store:
+  #       api: ce
+  #       dataKey: updateE2Edge.edge
+  getE1EdgeId:
+    edge: ""
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataKey: getE1EdgeId
+      id: ..dataObject.id
+      xfname: "id"
+      maxcount: "1"
+      _nonce: =.Global._nonce
+  getE1Edge:
+    edge:
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataKey: getE1Edge
+      id: ..getE1EdgeId.edge.0.refid
+      xfname: "id"
+      _nonce: =.Global._nonce
+  updateE1Edge:
+    edge:
+      .AgreeRequest.edgeE1Info: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataKey: updateE1Edge.edge
+  components:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - .BaseHeader:
+        - type:  view 
+          style:
+            left: "0"
+            top: "0.15"
+            width: "1"
+            height: "0.85"
+          #for loop through listObject, we got each itemObject
+          children:
+            - type: image
+              path: popUpSuccess.svg
+              style:
+                left: "0.35"
+                top: "0.15"
+                width: "0.3"
+                # height: "0.21"   
+            - type: label
+              text: "You have approved this request."
+              style:
+                left: "0.1"
+                top: "0.35"
+                width: "0.8"
+                height: "0.03"
+                fontSize: "20"
+                fontStyle: "bold"
+                color: "0x000000bb"
+                display: "inline"
+                textAlign:
+                  x: center
+                  y: center
+            - type: label
+              text: "Patient will receive your consent notice"
+              style:
+                left: "0.1"
+                top: "0.42"
+                width: "0.8"
+                height: "0.03"
+                fontSize: "16"
+                color: "0x00000088"
+                display: "inline"
+                textAlign:
+                  x: center
+                  y: center
+            - type: label
+              dataKey: dataObject.name.firstName
+              #text: "John"
+              style:
+                left: "0.1"
+                top: "0.48"
+                width: "0.8"
+                height: "0.03"
+                fontSize: "16"
+                color: "0x00000088"
+                display: "inline"
+                textAlign:
+                  x: center
+                  y: center 
+            - type: label
+              dataKey: dataObject.name.phoneNumber
+              #text: "+1 7148397253"
+              style:
+                left: "0.1"
+                top: "0.54"
+                width: "0.8"
+                height: "0.03"
+                fontSize: "16"
+                color: "0x00000088"
+                display: "inline"
+                textAlign:
+                  x: center
+                  y: center 
+            - type: button
+              onClick:
+                - goto: PatientDashboard
+              text: Okay
+              style:
+                left: "0.1"
+                top: "0.65"
+                width: "0.8"
+                height: "0.06"
+                fontSize: "18"
+                color: "0xffffffff"
+                backgroundColor: "0x2988e6ff"
+                textAlign:
+                  x: center
+                border:
+                  style: "1"               
+  

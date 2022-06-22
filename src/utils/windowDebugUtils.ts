@@ -19,7 +19,8 @@ import type App from '../App'
 import is from './is'
 
 export function getWindowDebugUtils(app: App) {
-  const navigate = (destination: string) => () => app.navigate(destination)
+  const navigate = (destination: string) => async () =>
+    app.navigate(destination)
 
   function filterComponentCache<Arg>(
     fn: (arg: Arg, obj: lib.ComponentCacheObject) => boolean,
@@ -81,13 +82,18 @@ export function getWindowDebugUtils(app: App) {
         (viewTag, obj) => obj.component?.blueprint?.viewTag === viewTag,
       ),
     },
-    currentUser: () => app.root.Global?.currentUser,
+    get currentUser() {
+      return app.root.Global?.currentUser
+    },
+    get loginUser() {
+      return app.root.Global?.loginUser
+    },
     findArrOfMinSize: function findArrOfMinSize(
       root = {} as Record<string, any>,
       size: number,
-      path = [] as (string | number)[],
+      path = [] as (number | string)[],
     ) {
-      const results = [] as { arr: any[]; path: (string | number)[] }[]
+      const results = [] as { arr: any[]; path: (number | string)[] }[]
 
       if (Array.isArray(root)) {
         const count = root.length
@@ -197,11 +203,11 @@ export function getWindowDebugUtils(app: App) {
     goToPaymentUrl4: () =>
       (window.location.href =
         'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
-    pageTable: () => {
+    get pageTable() {
       const pagesList = [] as string[]
       const result = [] as { page: string; ndom: number; nui: number }[]
       const getKey = (page: lib.NDOMPage | lib.Page) =>
-        page.page === '' ? 'unknown' : page.page
+        page?.page === '' ? 'unknown' : page?.page
 
       const nuiCachePageEntries = [...app.cache.page.get().values()]
       const ndomPagesEntries = u.entries(app.ndom.pages)
@@ -231,7 +237,9 @@ export function getWindowDebugUtils(app: App) {
 
       return result
     },
-    uid: () => app.root.Global?.currentUser?.vertex?.uid,
+    get uid() {
+      return app.root.Global?.currentUser?.vertex?.uid
+    },
   }
 
   return o

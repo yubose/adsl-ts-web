@@ -1,0 +1,488 @@
+Message2:
+  pageNumber: "225"
+  title: "Message"
+  init:
+    - .SignInCheck
+
+    - ..listData.get
+    - ..inboxMessage.get
+    - ..attachmentList.get
+    - actionType: evalObject
+      object:
+        ..inboxMessage.document@: =..inboxMessage.doc.0
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.emailNumber
+              string2: "0"
+        - .Global.inboxHidden@: "true"
+        - .Global.inboxHidden@: "false"
+
+  email:
+    edge: .Global.email
+    edgeAPI:
+      store:
+        api: ce
+        dataKey: email.edge
+  #get attachment
+  attachmentList:
+    get:
+      .DocAPI.get: ""
+      api: rd
+      dataKey: attachmentList
+      type: .DocType.UploadFile
+      id: .Global.email.id
+      xfname: eid
+      maxcount: "100"
+      obfname: "mtime"
+      _nonce: =.Global._nonce
+  # get inbox message
+  inboxMessage:
+    document: ""
+    get:
+      .DocAPI.get: ""
+      api: rd
+      id: .Global.email.id
+      xfname: eid
+      type: .DocType.InboxMessage
+      dataKey: inboxMessage
+      maxcount: "10"
+      obfname: "mtime"
+      _nonce: =.Global._nonce
+  inboxFolder: ""
+  listData:
+    folderList:
+      edge: ""
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      type: .EdgeType.Folder
+      id: .Global.currentUser.vertex.id
+      xfname: bvid
+      maxcount: "200"
+      dataKey: listData.folderList
+      _nonce: .Global._nonce@
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      # path: backWhiteArrow.svg
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    # - .HeaderRightImg:
+    #   path: elipsis.svg
+    #   onClick:
+    #     - actionType: popUp
+    #       popUpView: detailview
+    - .HeaderRightImg:
+      path: elipsis.svg
+      style:
+        width: "0.05"
+        height: "0.02"
+      # onClick:
+      #   - actionType: evalObject
+      #     object:
+      #       ..styleAttribute.funcBar@: "block"
+      #   - actionType: builtIn
+      #     funcName: redraw
+      #     viewTag: funbar
+      # onClick:
+      #   - actionType: popUp
+      #     popUpView: detailview
+    - type: view
+      style:
+        width: "1"
+        height: "0.8"
+        top: "0.1"
+        left: "0"
+        display: "block"
+      viewTag: funbar
+      children:
+        - type: view
+          style:
+            width: "1"
+            left: "0"
+            height: "0.075"
+            # backgroundColor: "0xcdcdcd"
+            zIndex: "10"
+            border:
+              style: "2"
+            borderColor: "0x00000066"
+            borderWidth: "1"
+            position: "relative"
+            # backgroundColor: =..styleAttribute.funcBar
+          children:
+            - type: button
+              text: Trash
+              onClick:
+                - actionType: evalObject
+                  object:
+                    ..email.edge.subtype@: 50
+                - actionType: evalObject
+                  object:
+                    - =..email.edgeAPI.store: ""
+                - goto: Trash
+              style:
+                left: "0.21"
+                width: "0.18"
+                top: "0.02"
+                height: "0.035"
+                fontSize: "16"
+                color: "0xd10101"
+                border:
+                  style: "3"
+                borderColor: "0xd10101"
+                borderWidth: "1"
+                borderRadius: "20"
+                textAlign:
+                  x: center
+                backgroundColor: "0xffffff"
+            - type: button
+              text: Move
+              onClick:
+                - actionType: popUp
+                  popUpView: moveView
+              style:
+                left: "0.59"
+                width: "0.18"
+                top: "0.02"
+                height: "0.035"
+                fontSize: "16"
+                color: "0x2988e6"
+                border:
+                  style: "3"
+                borderColor: "0x2988e6"
+                borderWidth: "1"
+                borderRadius: "20"
+                textAlign:
+                  x: center
+                backgroundColor: "0xffffff"
+            - type: popUp
+              viewTag: moveView
+              style:
+                top: "0"
+                left: "0"
+                width: "1"
+                height: "0.9"
+                zIndex: "20"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: moveView
+              children:
+                - type: view
+                  style:
+                    left: "0.53"
+                    width: "0.29"
+                    top: "0.075"
+                    height: "0.2"
+                    zIndex: "100"
+                    backgroundColor: "0x2988e6"
+                    border:
+                      style: "3"
+                    borderColor: "0x2988e6"
+                    borderWidth: "1"
+                    borderRadius: "10"
+                    overflow: scroll
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..listData.folderList.edge
+                      iteratorVar: itemObject
+                      style:
+                        top: "0"
+                        width: "0.29"
+                        # height: "0.08"
+                        left: "0"
+                        marginTop: "0"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          onClick:
+                            - actionType: updateObject
+                              dataKey: Message2.inboxFolder
+                              dataObject: itemObject.id
+                            - actionType: evalObject
+                              object:
+                                ..email.edge.name.folderID@: =..inboxFolder.id
+                            - actionType: updateObject
+                              object: ..update
+                          style:
+                            left: "0"
+                            width: "0.29"
+                            height: "0.04"
+                            border:
+                              style: "2"
+                            borderColor: "0xffffff"
+                            borderWidth: "1"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.folderName
+                              style:
+                                left: "0"
+                                height: "0.04"
+                                top: "0.005"
+                                width: "0.29"
+                                color: "0xffffff"
+                                textAlign:
+                                  x: center
+        - type: view
+          style:
+            top: "0.08"
+            width: "1"
+            height: "0.17"
+            display: "block"
+            border:
+              style: "2"
+              width: "1"
+            borderColor: "0xdededf"
+            backgroundColor: "0xffffff"
+            boxShadow: "0px 15px 10px -15px #0000002f"
+          children:
+            - type: label
+              text=func: .builtIn.string.getFirstChar
+              dataKey: email.edge.name.data.senderName
+              style:
+                left: "0.05"
+                top: "0.02"
+                width: "0.13"
+                height: "0.06"
+                fontSize: "18"
+                color: "#2988e6"
+                # textIndent: "18px"
+                textAlign:
+                  y: center
+                  x: center
+                backgroundColor: "#b2d1ff"
+            - type: label
+              text: "From:"
+              style:
+                left: "0.23"
+                top: "0.025"
+                height: "0.035"
+                fontSize: "15"
+                textAlign:
+                  x: left
+            - type: label
+              text: Blair Zhang
+              dataKey: email.edge.name.data.senderName
+              style:
+                fontSize: "15"
+                fontWeight: "450"
+                height: "0.035"
+                width: "0.3"
+                color: "0x707070"
+                left: "0.35"
+                top: "0.025"
+                textAlign:
+                  x: left
+            - type: label
+              text: "To:"
+              style:
+                left: "0.23"
+                top: "0.055"
+                height: "0.035"
+                fontSize: "15"
+                textAlign:
+                  x: left
+            - type: label
+              text: Christopher Grenz
+              dataKey: email.edge.name.data.receiverName
+              style:
+                fontSize: "15"
+                fontWeight: "450"
+                height: "0.035"
+                width: "0.4"
+                color: "0x707070"
+                left: "0.3"
+                top: "0.055"
+                textAlign:
+                  x: left
+            - type: label
+              text: Anaheim Marketing Plan
+              dataKey: email.edge.name.title
+              style:
+                fontSize: "22"
+                fontWeight: "500"
+                # color: "0x707070"
+                left: "0.05"
+                top: "0.09"
+                width: "0.9"
+            - type: view
+              style:
+                left: "0.05"
+                top: "0.13"
+                width: "0.4"
+                height: "0.03"
+                borderRadius: "2"
+                # backgroundColor: "0xEBEBEB"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..attachmentList.doc
+                  iteratorVar: itemObject
+                  style:
+                    top: "0"
+                    width: "0.4"
+                    height: "0.035"
+                    left: "0"
+                    marginTop: "0"
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      onClick:
+                        - actionType: updateObject
+                          dataKey: Global.DocReference.document
+                          dataObject: itemObject
+                        - goto: ViewMedicalRecord
+                      style:
+                        left: "0"
+                        width: "0.4"
+                        height: "0.03"
+                        border:
+                          style: "2"
+                        borderColor: "0xffffff"
+                        borderWidth: "1"
+                      children:
+                        - type: image
+                          path: pin.svg
+                          style:
+                            left: "0"
+                            height: "0.025"
+                            top: "0.005"
+                        - type: label
+                          # text: Anaheim Urgent Care List for
+                          dataKey: itemObject.name.title
+                          style:
+                            fontSize: "12"
+                            fontWeight: 200
+                            left: "0.08"
+                            top: "0.005"
+                            width: "0.4"
+                            height: "0.03"
+                            color: "0x4A91C4"
+                            textAlign:
+                              y: center
+            - type: label
+              text=func: .builtIn.string.formatUnixtime_en
+              dataKey: email.edge.ctime
+              style:
+                top: "0.025"
+                height: "0.02"
+                width: "0.34"
+                textAlign:
+                  y: center
+                left: "0.66"
+                fontSize: "10"
+                color: "0x707070s"
+            - type: image
+              viewTag: select
+              path:
+                emit:
+                  dataKey:
+                    var: email
+                  actions:
+                    - if:
+                        - $var.edge.name.isStar
+                        - providerOn.svg
+                        - providerOff.svg
+              style:
+                height: "0.02"
+                left: "0.88"
+                top: "0.045"
+            - type: label
+              text: Details
+              onClick:
+                - goto: Attachment
+              style:
+                top: "0.07"
+                height: "0.02"
+                left: "0.85"
+                fontSize: "12"
+                color: "0x4A91C4"
+                textAlign:
+                  y: center
+        - type: view
+          style:
+            top: "0.27"
+            left: "0"
+            width: "1"
+            height: "0.4"
+            # backgroundColor: "0xcdcdcd"
+          children:
+            - type: textView
+              isEditable: "false"
+              dataKey: email.edge.name.data.content
+              style:
+                width: "0.9"
+                left: "0.05"
+                fontSize: "14"
+                height: "0.4"
+
+                color: "0x757575"
+                fontWeight: 300
+                isEditable: "false"
+                border:
+                  style: "1"
+    - type: view
+      style:
+        top: "0.9"
+        width: "1"
+        height: "0.1"
+        left: "0"
+        backgroundColor: "0x2988e6"
+        zIndex: "10"
+      children:
+        - .DashboardFooterView:
+          onClick:
+            - goto: "PatientDashboard"
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: dashboard.svg
+            - .DashboardFooterTxt:
+              style:
+                color: "#ffffff"
+        - .DashboardFooterView:
+          style:
+            left: "0.333"
+          onClick:
+            - goto: "InboxDashboard"
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: inboxYellow.svg
+            - .DashboardFooterTxt:
+              text: "Inbox"
+              style:
+                color: "#FECE55"
+            - type: label
+              dataKey: Global.emailNumber
+              style:
+                left: "0.19"
+                top: "0.005"
+                width: "0.05"
+                height: "0.025"
+                fontSize: "14"
+                backgroundColor: "0xfd3a3a"
+                isHidden: .Global.inboxHidden
+                border:
+                  style: "3"
+                borderColor: "0xfd3a3a"
+                borderRadius: "50"
+                color: "0xffffff"
+                textAlign:
+                  x: center
+        - .DashboardFooterView:
+          style:
+            left: "0.666"
+          onClick:
+            - goto: MenuBars
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: me.svg
+            - .DashboardFooterTxt:
+              text: "Me"

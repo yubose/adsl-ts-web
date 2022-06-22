@@ -1,0 +1,1745 @@
+VitalSigns4:
+  title: "VitalSigns"
+  init:
+    - .SignInCheck
+
+  components:
+    - .BaseHeader:
+        backgroundColor: "0x2988e6"
+    - .HeaderLeftButton:
+      onClick:
+       - goto:
+    - .HeaderRightImg:
+      path: sideNav.svg
+      onClick:
+        - goto:
+    - type: view
+      style:
+        left: "0"
+        width: "1"      
+        top: "0.1"
+        height: "0.03"
+        border:
+          style: "1"
+        # borderColor: "0x00000033"
+        # backgroundColor: "#111011"
+        borderWidth: "1"
+        zIndex: "10"
+      children:
+        - type: label
+          text: Patient Name
+          style:
+            top: "0.01"
+            left: "0.1"
+            width: "0.3"
+            height: "0.03"
+            fontSize: "12"
+            # fonsStyle: "bold"   
+            textAlign:
+              x: left
+              y: center    
+        - type: label
+          text: "Thomas Mueller"
+          # dataKey:
+          style:
+            top: "0.01"
+            left: "0.6"
+            width: "0.4"
+            height: "0.03"
+            fontSize: "16"
+            fontStyle: "bold"
+            textAlign:
+              x: right
+              y: center  
+    - type: scrollView
+      style: 
+        top: "0.15"
+        left: "0"
+        width: "1"
+        height: "0.75"
+        # border: 
+        #   style: "1"
+        # overflow: "scroll"   
+      children:
+        - type: view 
+          style:
+            top: "0.01"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Blood Pressure
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+                  # y: center
+            - type: label
+              text: (mmHg)
+              style:
+                left: "0.42"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "12"
+                # fontWeight: "600"
+                textAlign:
+                    x: left
+                    y: center
+            - type: label
+              text: 140/100
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+                  # y: center
+            - type: label
+              text: Measuref ranges
+              # dateKey:
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  # x: left
+            - type: label
+              text: Sys:126-148 Dia:80-116
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.01"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: Week
+              onClick:
+                - goto:
+              style:
+                left: "0.10"
+                top: "0.32"
+                height: "0.02"
+                width: "0.11"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2 weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.22"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: Month
+              onClick:
+                - goto:
+              style:
+                left: "0.40"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3 mo
+              onClick:
+                - goto:
+              style:
+                left: "0.53"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6 mo
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: Year
+              onClick:
+                - goto:
+              style:
+                left: "0.79"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+        - type: view 
+          style:
+            top: "0.38"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Heart Rate
+              # dateKey: 
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+            - type: label
+              text: 92
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+            - type: label
+              text: (bpm)
+              style:
+                left: "0.32"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "12"
+                # fontWeight: "600"
+                textAlign:
+                    x: left
+                    y: center      
+            - type: label
+              text: Measuref ranges
+              # dateKey:
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  # x: left
+            - type: label
+              text: 60 - 92 bpm
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.01"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: Week
+              onClick:
+                - goto:
+              style:
+                left: "0.10"
+                top: "0.32"
+                height: "0.02"
+                width: "0.11"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2 weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.22"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: Month
+              onClick:
+                - goto:
+              style:
+                left: "0.40"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3 mo
+              onClick:
+                - goto:
+              style:
+                left: "0.53"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6 mo
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: Year
+              onClick:
+                - goto:
+              style:
+                left: "0.79"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+        - type: view 
+          style:
+            top: "0.76"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Temperayure
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+            - type: label
+              text: 99F(36.5C)
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+            - type: button
+              text: F
+              onClick:
+                # -
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.025"
+                width: "0.1"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+            - type: button
+              text: C
+              onClick:
+                # -
+              style:
+                left: "0.17"
+                top: "0.05"
+                height: "0.025"
+                width: "0.1"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"    
+            - type: label
+              text: Measuref ranges
+              # dateKey:
+              style:
+                left: "0.4"
+                top: "0.05"
+                height: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  # x: left
+            - type: label
+              text: 98-99
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.05"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: week
+              onClick:
+                - goto:
+              style:
+                left: "0.16"
+                top: "0.32"
+                height: "0.02"
+                width: "0.09"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.26"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: month
+              onClick:
+                - goto:
+              style:
+                left: "0.44"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3m
+              onClick:
+                - goto:
+              style:
+                left: "0.57"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6m
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 1 y
+              onClick:
+                - goto:
+              style:
+                left: "0.75"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+        - type: view 
+          style:
+            top: "1.14"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Pulse Oximetry
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+            - type: label
+              text: (oxygen saturation%)
+              style:
+                left: "0.42"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "12"
+                # fontWeight: "600"
+                textAlign:
+                    x: left
+                    y: center
+            - type: label
+              text: 100
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+            - type: label
+              text: Measuref ranges
+              # dateKey:
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  # x: left
+            - type: label
+              text: 100
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.05"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: week
+              onClick:
+                - goto:
+              style:
+                left: "0.16"
+                top: "0.32"
+                height: "0.02"
+                width: "0.09"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.26"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: month
+              onClick:
+                - goto:
+              style:
+                left: "0.44"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3m
+              onClick:
+                - goto:
+              style:
+                left: "0.57"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6m
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 1 y
+              onClick:
+                - goto:
+              style:
+                left: "0.75"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+        - type: view 
+          style:
+            top: "1.52"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Respirations
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+            - type: label
+              text: (breaths/min)
+              style:
+                left: "0.35"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "12"
+                # fontWeight: "600"
+                textAlign:
+                    x: left
+                    y: center
+            - type: label
+              text: 18
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+            - type: label
+              text: Measuref range
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  # x: left
+            - type: label
+              text: 12 -18
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.05"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: week
+              onClick:
+                - goto:
+              style:
+                left: "0.16"
+                top: "0.32"
+                height: "0.02"
+                width: "0.09"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.26"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: month
+              onClick:
+                - goto:
+              style:
+                left: "0.44"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3m
+              onClick:
+                - goto:
+              style:
+                left: "0.57"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6m
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 1 y
+              onClick:
+                - goto:
+              style:
+                left: "0.75"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+        - type: view 
+          style:
+            top: "1.9"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Body weight
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+            - type: label
+              text: (lbs)
+              style:
+                left: "0.36"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "12"
+                # fontWeight: "600"
+                textAlign:
+                    x: left
+                    y: center
+            - type: label
+              text: 200.6
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+            - type: label
+              text: Measuref ranges
+              # dateKey:
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  # x: left
+            - type: label
+              text: Sys:126-148 Dia:80-116
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.05"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: week
+              onClick:
+                - goto:
+              style:
+                left: "0.16"
+                top: "0.32"
+                height: "0.02"
+                width: "0.09"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.26"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: month
+              onClick:
+                - goto:
+              style:
+                left: "0.44"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3m
+              onClick:
+                - goto:
+              style:
+                left: "0.57"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6m
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 1 y
+              onClick:
+                - goto:
+              style:
+                left: "0.75"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center                  
+        - type: view 
+          style:
+            top: "2.28"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Body Mass Index
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.5"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+            - type: label
+              text: (kg/m2)
+              style:
+                left: "0.46"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "12"
+                # fontWeight: "600"
+                textAlign:
+                    x: left
+                    y: center
+            - type: label
+              text: 34.3
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+            - type: label
+              text: Measuref ranges
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.02"
+                width: "0.3"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  # x: left
+            - type: label
+              text: 34-34.8
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.05"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: week
+              onClick:
+                - goto:
+              style:
+                left: "0.16"
+                top: "0.32"
+                height: "0.02"
+                width: "0.09"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.26"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: month
+              onClick:
+                - goto:
+              style:
+                left: "0.44"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3m
+              onClick:
+                - goto:
+              style:
+                left: "0.57"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6m
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 1 y
+              onClick:
+                - goto:
+              style:
+                left: "0.75"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center                  
+        - type: view 
+          style:
+            top: "2.66"
+            left: "0.05"
+            width: "0.90"
+            height: "0.35"
+            border:
+              style: "3"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Blood Glucose
+              style:
+                left: "0.05"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: left
+            - type: label
+              text: (mg/dl)
+              style:
+                left: "0.4"
+                top: "0.008"
+                height: "0.04"
+                width: "0.4"
+                fontSize: "12"
+                # fontWeight: "600"
+                textAlign:
+                    x: left
+                    y: center
+            - type: label
+              text: 126
+              # dateKey: 
+              style:
+                left: "0.3"
+                top: "0.008"
+                height: "0.04"
+                width: "0.55"
+                fontSize: "20"
+                fontWeight: "600"
+                textAlign:
+                  x: right
+            - type: button
+              text: Random
+              onClick:
+                # -
+              style:
+                left: "0.05"
+                top: "0.05"
+                height: "0.025"
+                width: "0.14"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: Before meal
+              onClick:
+                # -
+              style:
+                left: "0.20"
+                top: "0.05"
+                height: "0.025"
+                width: "0.21"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: After meal
+              onClick:
+                # -
+              style:
+                left: "0.42"
+                top: "0.05"
+                height: "0.025"
+                width: "0.19"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: label
+              text: 88-160
+              # dateKey:
+              style:
+                left: "0.3"
+                top: "0.05"
+                height: "0.02"
+                width: "0.55"
+                fontSize: "14"
+                # fonsweight: "600"
+                textAlign:
+                  x: right  
+            - type: button
+              text: Day
+              onClick:
+                - goto:
+              style:
+                left: "0.05"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fontSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: week
+              onClick:
+                - goto:
+              style:
+                left: "0.16"
+                top: "0.32"
+                height: "0.02"
+                width: "0.09"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 2weeks
+              onClick:
+                - goto:
+              style:
+                left: "0.26"
+                top: "0.32"
+                height: "0.02"
+                width: "0.17"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: month
+              onClick:
+                - goto:
+              style:
+                left: "0.44"
+                top: "0.32"
+                height: "0.02"
+                width: "0.12"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 3m
+              onClick:
+                - goto:
+              style:
+                left: "0.57"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "10"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 6m
+              onClick:
+                - goto:
+              style:
+                left: "0.66"
+                top: "0.32"
+                height: "0.02"
+                width: "0.08"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
+            - type: button
+              text: 1 y
+              onClick:
+                - goto:
+              style:
+                left: "0.75"
+                top: "0.32"
+                height: "0.02"
+                width: "0.10"
+                border: 
+                  style: "3"
+                borderRadius: "5"
+                borderColor: "#2988e6"
+                fonsSize: "1"
+                color: "#2988e6"
+                backgroundColor: "#fafafa"
+                textAlign:
+                  x: center
+                  y: center
