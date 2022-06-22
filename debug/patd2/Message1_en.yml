@@ -1,0 +1,598 @@
+Message1:
+  pageNumber: "220"
+  title: "Message"
+  init:
+    - .SignInCheck
+
+    - if:
+        - .builtIn.SignInOk # 'true', 'false'
+        - continue
+        - goto: SignIn
+    - ..listData.get
+    - ..inboxMessage.get
+    #--For password recovery
+    - actionType: evalObject
+      object:
+        .Message1.docDetail.document@: =.Global.email
+    - if:
+        - =.Message1.docDetail.document.fid
+        - ..NewPasswordHelper.docAPI.get
+        - continue
+    - if:
+        - =..docResponse.doc.0
+        - ..userData.get
+        - continue
+    - if:
+        - =..userData.userVertex.vertex.0.pk
+        - actionType: evalObject
+          object:
+            - =.builtIn.eccNaCl.decryptASK:
+                dataIn:
+                  eData: =..docResponse.doc.0.name.aesk
+                  recvSk: =.Global.currentUser.vertex.sk
+                  sendPk: =..userData.userVertex.vertex.0.pk
+                dataOut: Message1.formData.password #aesk
+            - =.builtIn.string.split16Dkey:
+                dataIn: =.Message1.formData.password
+                dataOut: Message1.formData.split
+            - .Message1.docDetail.document.name.data@: =..formData.split
+        - continue
+    - actionType: evalObject
+      object:
+        ..inboxMessage.document@: =..inboxMessage.doc.0
+    - actionType: evalObject
+      object:
+        =.builtIn.string.concat:
+          dataIn:
+            - "Re:"
+            - =.Global.email.name.title
+          dataOut: Message1.subject
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.requestListNum
+              string2: "0"
+        - ..requestListHidden@: true
+        - ..requestListHidden@: false
+          #获取未读邮件数量
+    - actionType: evalObject
+      object:
+        - .AddMedicalRecordsToMeeting.sharedDoc@: []
+        - =.builtIn.string.concat:
+            dataIn:
+              - =..emailShow.docReq.sCondition
+              - " AND D.ovid != from_base64('"
+              - =.Global.currentUser.vertex.id
+              - "')"
+            dataOut: Message1.emailShow.docReq.sCondition
+    - =..emailShow.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - =.builtIn.number.hx:
+            dataIn:
+              docGroup: =..emailShow.docRes.doc
+              localArr: [1, 2, 5, 6]
+              binaryArr: [1, 0, 0, 0]
+            dataOut: Message1.emailShow.unreadEmail
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..emailShow.unreadEmail
+            dataOut: Global.emailNumber
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.emailNumber
+                  string2: "0"
+            - .Global.inboxHidden@: "true"
+            - .Global.inboxHidden@: "false"
+  emailShow:
+    unreadEmail: []
+    doclist: ""
+    docRes: ""
+    doc: ""
+    docReq:
+      ObjType: 8
+      id: .Global.currentUser.vertex.id
+      xfname: E.bvid|E.evid
+      sCondition: E.type=10002 AND (D.type & 0xFF00 = 1280)
+      maxcount: 200
+      obfname: ctime
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        api: rd
+        dataIn: Message1.emailShow.docReq
+        dataOut: Message1.emailShow.docRes
+        subtype:
+          mediaType: ""
+  #--For password recovery
+  docDetail:
+    document: ""
+    docAPI:
+      .DocAPI: ""
+      store:
+        dataIn: Message1.docDetail.document
+      delete:
+        api: dx
+        dataIn: Message1.docDetail.document
+  docResponse:
+    doc:
+    error: ""
+    jwt: ""
+  NewPasswordHelper:
+    document:
+    docAPI:
+      .DocAPI: ""
+      get:
+        .DocAPI.get: ""
+        api: rd
+        ids:
+          - =.Message1.docDetail.document.fid
+        xfname: id
+        type: .DocType.PasswordHelper
+        maxcount: "1"
+        obfname: "mtime"
+        dataKey: docResponse
+        _nonce: =.Global._nonce
+  userData:
+    userVertex:
+      vertex:
+    request:
+      id: =..docResponse.doc.0.bsig # the ovid of document
+      xfname: id
+      type: 1
+    get:
+      api: rv
+      dataIn: userData.request
+      dataOut: userData.userVertex
+  formData:
+    password: ""
+    split: ""
+  #--
+  requestListHidden: "true"
+  subject: ""
+  inboxFolder: ""
+  listData:
+    folderList:
+      edge: ""
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      type: .EdgeType.Folder
+      id: .Global.currentUser.vertex.id
+      xfname: bvid
+      maxcount: "200"
+      dataKey: listData.folderList
+      _nonce: .Global._nonce@
+  email:
+    doc: .Global.email
+    docAPI:
+      store:
+        api: cd
+        dataKey: email.doc
+  inboxMessage:
+    document: ""
+    get:
+      .DocAPI.get: ""
+      api: rd
+      id: .Global.email.id
+      xfname: eid
+      type: .DocType.InboxMessage
+      dataKey: inboxMessage
+      maxcount: "10"
+      obfname: "mtime"
+      _nonce: =.Global._nonce
+  saveEmail:
+    - .Message1.NewEmail.edgeAPI.store: ""
+  NewEmail:
+    response: ""
+    edge:
+      .Edge: ""
+      type: .EdgeType.Email
+      subtype: 10
+      name:
+        title: ""
+        folderID: ""
+        isStar: false
+        isDraft: false
+        isRead: false
+        receiveName: ""
+        senderName: ""
+      bvid: .Global.currentUser.vertex.id
+      evid: ""
+      refid: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataKey: NewEmail.edge
+        dataOut: NewEmail.response
+  components:
+    - .BaseHeader:
+    - .HeaderLeftImg:
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+      path: backWhiteArrow.svg
+    - .HeaderRightImg:
+      path: elipsis.svg
+      style:
+        width: "0.05"
+        height: "0.02"
+    - type: view
+      style:
+        width: "1"
+        height: "0.8"
+        top: "0.1"
+        left: "0"
+        display: "block"
+      viewTag: funbar
+      children:
+        - type: view
+          style:
+            width: "1"
+            left: "0"
+            height: "0.075"
+            zIndex: "10"
+            border:
+              style: "2"
+            borderColor: "0x00000066"
+            borderWidth: "1"
+            position: "relative"
+            top: "0"
+          children:
+            - type: button
+              text: Trash
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.createjwt.edge.bvid@: =.Global.email.bsig
+                    - =.Global.createjwt.edgeAPI.store: ""
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..email.doc.type
+                          index: 5
+                          hex: 1
+                        dataOut: Message1.email.doc.type
+                    - =..email.docAPI.store: ""
+                    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+                    - =.Global.createjwt.edgeAPI.store: ""
+                - goto: Trash
+              style:
+                left: "0.15"
+                width: "0.18"
+                top: "0.02"
+                height: "0.035"
+                fontSize: "16"
+                color: "0xd10101"
+                border:
+                  style: "3"
+                borderColor: "0xd10101"
+                borderWidth: "1"
+                borderRadius: "20"
+                textAlign:
+                  x: center
+                backgroundColor: "0xffffff"
+            - type: button
+              text: Move
+              onClick:
+                - actionType: popUp
+                  popUpView: moveView
+              style:
+                left: "0.41"
+                width: "0.18"
+                top: "0.02"
+                height: "0.035"
+                fontSize: "16"
+                color: "0x2988e6"
+                border:
+                  style: "3"
+                borderColor: "0x2988e6"
+                borderWidth: "1"
+                borderRadius: "20"
+                textAlign:
+                  x: center
+                backgroundColor: "0xffffff"
+            - type: button
+              text: Reply
+              onClick: #reply 只能发送一个，再次回复只有一个邮件发生变化，而不是生成
+                - goto: NewMessage2
+              style:
+                left: "0.67"
+                width: "0.18"
+                top: "0.02"
+                height: "0.035"
+                fontSize: "16"
+                color: "0xffffff"
+                border:
+                  style: "3"
+                borderColor: "0x2988e6"
+                borderWidth: "1"
+                borderRadius: "20"
+                textAlign:
+                  x: center
+                backgroundColor: "0x2988e6"
+        - type: view
+          style:
+            top: "0.08"
+            width: "1"
+            height: "0.17"
+            display: "block"
+            border:
+              style: "2"
+              width: "1"
+            borderColor: "0xdededf"
+            backgroundColor: "0xffffff"
+            boxShadow: "0px 15px 10px -15px #0000002f"
+          children:
+            - type: view
+              style:
+                marginTop: "0"
+                width: "1"
+                left: "0"
+                height: "0.135"
+              children:
+                - type: label
+                  text=func: .builtIn.string.getFirstChar
+                  dataKey: Global.email.name.data.senderName
+                  style:
+                    left: "0.05"
+                    top: "0.02"
+                    width: "0.13"
+                    height: "0.06"
+                    fontSize: "18"
+                    color: "#2988e6"
+                    textIndent: "18px"
+                    textAlign:
+                      y: center
+                    backgroundColor: "#b2d1ff"
+                - type: label
+                  text: "From:"
+                  style:
+                    left: "0.23"
+                    top: "0.025"
+                    height: "0.035"
+                    fontSize: "15"
+                    textAlign:
+                      x: left
+                - type: label
+                  text: Blair Zhang
+                  dataKey: Global.email.name.data.senderName
+                  style:
+                    fontSize: "15"
+                    fontWeight: "450"
+                    height: "0.035"
+                    width: "0.4"
+                    color: "0x707070"
+                    left: "0.35"
+                    top: "0.025"
+                    textAlign:
+                      x: left
+                - type: label
+                  text: "To:"
+                  style:
+                    left: "0.23"
+                    top: "0.055"
+                    height: "0.035"
+                    fontSize: "15"
+                    textAlign:
+                      x: left
+                - type: label
+                  dataKey: Global.email.name.data.receiverName
+                  style:
+                    fontSize: "15"
+                    fontWeight: "450"
+                    height: "0.035"
+                    width: "0.4"
+                    color: "0x707070"
+                    left: "0.3"
+                    top: "0.055"
+                    textAlign:
+                      x: left
+                - type: label
+                  text: Anaheim Marketing Plan
+                  dataKey: Global.email.name.title
+                  style:
+                    fontSize: "22"
+                    fontWeight: "500"
+                    left: "0.05"
+                    top: "0.1"
+                    width: "0.9"
+            - type: label
+              text=func: .builtIn.string.formatUnixtime_en
+              dataKey: Global.email.ctime
+              style:
+                top: "0.025"
+                height: "0.02"
+                width: "0.34"
+                textAlign:
+                  y: center
+                left: "0.66"
+                fontSize: "10"
+                color: "0x707070s"
+            - type: image
+              viewTag: select
+              path:
+                emit:
+                  dataKey:
+                    var: email
+                  actions:
+                    - if:
+                        - $var.edge.name.isStar
+                        - providerOn.svg
+                        - providerOff.svg
+              style:
+                height: "0.02"
+                left: "0.88"
+                top: "0.045"
+            - type: label
+              text: Details
+              onClick:
+                - goto: Attachment
+              style:
+                top: "0.07"
+                height: "0.02"
+                left: "0.85"
+                fontSize: "12"
+                color: "0x4A91C4"
+                textAlign:
+                  y: center
+        - type: view
+          style:
+            top: "0.27"
+            left: "0"
+            width: "1"
+            height: "0.4"
+          children:
+            # - type: ecosDoc
+            - type: textView
+              isEditable: false
+              dataKey: Global.email.name.data.content
+              # ecosObj: ..docDetail.document
+              style:
+                width: "0.9"
+                left: "0.05"
+
+                fontSize: "14"
+                height: "0.4"
+                color: "0x757575"
+                fontWeight: 300
+                isEditable: "false"
+                border:
+                  style: "1"
+                textAlign:
+                  y: top
+        - type: popUp
+          viewTag: moveView
+          style:
+            top: "0"
+            left: "0"
+            width: "1"
+            height: "0.8"
+            zIndex: "20"
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: moveView
+          children:
+            - type: view
+              style:
+                left: "0.35"
+                width: "0.29"
+                top: "0.075"
+                height: "0.12"
+                zIndex: "100"
+                backgroundColor: "0x2988e6"
+                border:
+                  style: "3"
+                borderColor: "0x2988e6"
+                borderWidth: "1"
+                borderRadius: "10"
+                overflow: scroll
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..listData.folderList.edge
+                  iteratorVar: itemObject
+                  style:
+                    top: "0"
+                    width: "0.29"
+                    left: "0"
+                    marginTop: "0"
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      onClick:
+                        - actionType: updateObject
+                          dataKey: Message1.inboxFolder
+                          dataObject: itemObject.id
+                        - actionType: evalObject
+                          object:
+                            ..email.edge.name.folderID@: =..inboxFolder.id
+                        - actionType: evalObject
+                          object:
+                            - =..email.edgeAPI.store: ""
+                      style:
+                        left: "0"
+                        width: "0.29"
+                        height: "0.04"
+                        border:
+                          style: "2"
+                        borderColor: "0xffffff"
+                        borderWidth: "1"
+                        backgroundColor: "0x2988e6"
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.folderName
+                          style:
+                            left: "0"
+                            height: "0.04"
+                            top: "0.005"
+                            width: "0.29"
+                            color: "0x000000"
+                            textAlign:
+                              x: center
+    - type: view
+      style:
+        top: "0.9"
+        width: "1"
+        height: "0.1"
+        left: "0"
+        backgroundColor: "0x2988e6"
+        zIndex: "10"
+      children:
+        - .DashboardFooterView:
+          onClick:
+            - goto: "PatientDashboard"
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: dashboard.svg
+            - .DashboardFooterTxt:
+              style:
+                color: "#ffffff"
+        - .DashboardFooterView:
+          style:
+            left: "0.333"
+          onClick:
+            - goto: "InboxDashboard"
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: inboxYellow.svg
+            - .DashboardFooterTxt:
+              text: "Inbox"
+              style:
+                color: "#FECE55"
+            - type: label
+              dataKey: Global.emailNumber
+              style:
+                left: "0.19"
+                top: "0.005"
+                width: "0.05"
+                height: "0.025"
+                fontSize: "14"
+                isHidden: .Global.inboxHidden
+                backgroundColor: "0xfd3a3a"
+                border:
+                  style: "3"
+                borderColor: "0xfd3a3a"
+                borderRadius: "50"
+                color: "0xffffff"
+                textAlign:
+                  x: center
+        - .DashboardFooterView:
+          style:
+            left: "0.666"
+          onClick:
+            - goto: MenuBars
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: me.svg
+            - .DashboardFooterTxt:
+              text: "Me"

@@ -1,6 +1,10 @@
 Vendors:   
   title:  Vendors
   init:
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: "" 
     - =..apiRequest.vendor.docAPI.get: ""
     - ..formData.vendorList@: =..apiRequest.vendor.docResp.doc
     - =.builtIn.array.splitTableList: 
@@ -28,6 +32,7 @@ Vendors:
           valueArr: ["0xf5f5f5"]
           errorArr: ["0xffffff"]    
   formData: 
+    addSaveBtnColor: "0xc1c1c1"   # 添加vendor 按钮变色
     searchInfo: ""
     vendorList: []
     currentVendor: {}
@@ -698,6 +703,19 @@ Vendors:
                               color: "0xff0000"
                         - .vendorPopTextField:    
                           dataKey: apiRequest.vendor.docStoreReq.name.data.name
+                          onInput: 
+                            - actionType: evalObject
+                              object:
+                                - if: 
+                                  - =.builtIn.string.judgeFillinAll: 
+                                      dataIn: 
+                                        - =..apiRequest.vendor.docStoreReq.name.data.name  
+                                        - =..apiRequest.vendor.docStoreReq.name.data.phone  
+                                  - ..formData.addSaveBtnColor@: "0xc1c1c1"
+                                  - ..formData.addSaveBtnColor@: "0x005795"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: addBtnTag                          
                     - .vendorPopView:  
                       children:
                         - .vendorPopText: 
@@ -713,6 +731,20 @@ Vendors:
                               color: "0xff0000"
                         - .vendorPopTextField:   
                           dataKey: apiRequest.vendor.docStoreReq.name.data.phone  
+                          onInput: 
+                            - actionType: evalObject
+                              object:
+                                - if: 
+                                  - =.builtIn.string.judgeFillinAll: 
+                                      dataIn: 
+                                        - =..apiRequest.vendor.docStoreReq.name.data.name  
+                                        - =..apiRequest.vendor.docStoreReq.name.data.phone  
+                                  - ..formData.addSaveBtnColor@: "0xc1c1c1"
+                                  - ..formData.addSaveBtnColor@: "0x005795"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: addBtnTag
+                                
                     - .vendorPopView:  
                       children:
                         - .vendorPopText: 
@@ -720,9 +752,13 @@ Vendors:
                         - .vendorPopTextField: 
                           dataKey: apiRequest.vendor.docStoreReq.name.data.extension                                                   
                 - .ConfirmBtnView: 
+                  viewTag: addBtnTag
                   children: 
                     - .ConfirmButton: 
-                      text: Confirm  
+                      text: Save  
+                      style: 
+                        backgroundColor: ..formData.addSaveBtnColor
+                        border: none
                       onClick:
                         - actionType: evalObject
                           object: 

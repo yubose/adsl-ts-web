@@ -1,0 +1,537 @@
+NewPatFormReviewPage1:
+  title: "New Patient Forms"
+
+  init:
+    - .SignInCheck
+    - if:
+        - =.Global.roomInfo.edge.id
+        - ..apiRequest.newPatientForm.docAPI.get
+        - continue
+
+    - .Global.formData.newPatientForm@: =..apiRequest.newPatientForm.docRes.doc.0
+  # 请求文档
+  apiRequest: #Input data request here
+    newPatientForm:
+      docRes: ""
+      docReq:
+        id: .Global.roomInfo.edge.id
+        type: .DocType.PatientForm
+        xfname: eid
+      docAPI:
+        get:
+          api: rd
+          dataIn: NewPatFormReviewPage1.apiRequest.newPatientForm.docReq
+          dataOut: NewPatFormReviewPage1.apiRequest.newPatientForm.docRes
+  formDataTemp:
+    checkBoxTemp:
+      - key: isConsent
+        value: I consent above information is true and correct.
+      - key: isAgree
+        value: I agree to share my information with said provider.
+  components:
+    - type: view
+      style:
+        ..style.formatting:
+      children:
+        - .BasePublicHeader:
+          children:
+            - .BasePublicHeaderLeft:
+            - .BasePublicHeaderTitle:
+
+        - type: view
+          style:
+            ..style.bodyBox:
+          children:
+            - type: view
+              style:
+                ..style.viewBox:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      text: Patient Info
+                      dataKey:
+                      style:
+                        ..style.titlelabel:
+                    - type: label
+                      text: "1&nbsp;/&nbsp;2"
+                      dataKey:
+                      style:
+                        ..style.pageNum:
+            - type: scrollView
+              style:
+                ..style.scrollBox:
+              children:
+                - type: label
+                  text: Basic Info
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: First Name
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.firstName
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Middle Name
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.middleName
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Last Name
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.lastName
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Date of Birth
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.dateOfBirth
+                      style:
+                        ..style.blockBoxInput:
+
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Gender
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                        width: "0.4106"
+                    - type: label
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.gender
+                      style:
+                        ..style.blockBoxInput:
+
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Patient Address
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                        display: "block"
+                        marginTop: "0.0283"
+                    - type: label
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.fullAddress
+                      style:
+                        ..style.blockInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.0246"
+                  children:
+                    - type: label
+                      text: "Phone #"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.mainContact
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Alternate Phone #"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.alternativePhone
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Email"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.email
+                      style:
+                        ..style.blockBoxInput:
+                - type: label
+                  text: Emergency Contact
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                    marginTop: "0.04433"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Name"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.name
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Relation"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.relation
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Phone #"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.phoneNumber
+                      style:
+                        ..style.blockBoxInput:
+                - type: label
+                  text: Employment
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                    marginTop: "0.04433"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Employer"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.employer
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Occupation"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: label
+
+                      dataKey: Global.formData.newPatientForm.name.data.patientInfo.occupation
+                      style:
+                        ..style.blockBoxInput:
+
+                - type: view
+                  style:
+                    ..style.listBox:
+                    marginTop: "0.0320"
+                    width: "0.92"
+                  children:
+                    - type: list
+                      viewTag: checkedView
+                      contentType: listObject
+                      listObject: ..formDataTemp.checkBoxTemp
+                      iteratorVar: itemObject
+                      style:
+                        ..style.list:
+                        width: "0.92"
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            ..style.checkItem:
+                          children:
+                            - type: image
+                              style:
+                                ..style.itemImg:
+                              path:
+                                ..event.checkBox:
+                              onClick:
+                                - ..event.checkBoxClick
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                ..style.itemValue:
+
+                - type: view
+                  style:
+                    marginTop: "0.03"
+
+        - type: view
+          style:
+            ..style.btnBox:
+          children:
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.btn:
+              onClick:
+                - goto: NewPatFormReviewPage2
+  event:
+    checkBox:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =.Global.formData.newPatientForm.name.data.patientInfo.agreement
+                    value: $var.key
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+  # 样式
+  style: #Input style fragment here
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84852"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.7832"
+      boxSizing: border-box
+      overflow: scroll
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0246"
+    blockBox:
+      marginTop: "0.01477"
+      height: "auto"
+      width: "0.92"
+    blockBoxTitle:
+      display: "inline-block"
+      width: "0.42"
+      height: "auto"
+      verticalAlign: middle
+      color: "#333333"
+      fontSize: .Nfont.h14
+    blockBoxInput:
+      display: "inline-block"
+      width: "0.4986"
+      height: "auto"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      verticalAlign: middle
+      fontWeight: "600"
+      textAlign:
+        x: right
+    dateBox:
+      display: "inline-block"
+      width: "0.4986"
+      height: "0.0369"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+    dateInput:
+      display: "inline-block"
+      border:
+        style: 1
+      boxSizing: border-box
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "0.03078"
+      verticalAlign: middle
+      textIndent: "12px"
+      width: "0.4266"
+      backgroundColor: "#ffffff"
+    dateImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.02"
+    listBox:
+      # display: "inline-block"
+      width: "auto"
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    list:
+      width: "auto"
+      height: auto
+      margin: "0"
+      boxSizing: border-box
+      overflow: hidden
+    genderListItem:
+      marginLeft: "0.01"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.01"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    blockInput:
+      marginTop: "0.01"
+      height: "auto"
+      width: "0.92"
+      boxSizing: border-box
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "0x333333"
+      wordWrap: break-word
+    InputBox:
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    checkItem:
+      margin: "0"
+      marginTop: "0.01724"
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

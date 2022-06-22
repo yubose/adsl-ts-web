@@ -1,0 +1,765 @@
+PatientChartAddAllergies:
+  title: Patient Chart
+  pageNumber: "173"
+  init: #Page initialization
+    - .SignInCheck
+    - ..allergies@: =.Global.formData.PatientchartInfo.name.data.allergies.allergiesList
+    - ..formData.status@: =.Global.formData.PatientchartInfo.name.data.allergies.status
+    #判断是否需要显示formShow
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =.PatientChartAddAllergies.allergies
+            dataOut: PatientChartAddAllergies.formData.dataLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.status
+                  string2: "Yes"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.dataLength
+                          string2: "0"
+                    - actionType: evalObject
+                      object:
+                        - ..formData.yesflag@: "block"
+                        - ..formData.formShow@: "none"
+                    - actionType: evalObject
+                      object:
+                        - ..formData.yesflag@: "block"
+                        - ..formData.formShow@: "block"
+            - ..formData.yesflag@: "none"
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.flag.isMeetingPatientchart
+              string2: true
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.roomInfo.edge.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.rootNotebookID
+
+  allergySelectedObj:
+    allergy: ""
+    happen: ""
+
+  # #create patient document temple to save
+  apiRequest:
+    newChart:
+      docResp: ""
+      docReq:
+        id: ""
+        eid: .Global.rootNotebookID
+        tage: 0
+        type: .DocType.PatientChart
+        name:
+          data: ""
+          title: ""
+          user: .Global.Profile.name.data.basicInfo.fullName
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientChartAddAllergies.apiRequest.newChart.docReq
+          dataOut: PatientChartAddAllergies.apiRequest.newChart.docResp
+
+  formData:
+    status: "Yes"
+    yesflag: "block"
+    noflag: "none"
+    formShow: "block"
+    selectedItem: ""
+    dataLength: ""
+    #
+    # show:
+    #   emptyContent: "No content"
+    #   listShow: "none"
+    #   emptyShow: "block"
+    #   noShow: "none"
+  formDataTemp:
+    radioTemp:
+      - key: status
+        value: "No known allergies (including drugs)"
+      - key: status
+        value: "Yes"
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - type: view
+          style:
+            ..style.backLeft:
+          children:
+            - type: image
+              path: arrowLeftgrey.svg
+              style:
+                ..style.backLeftImg:
+              onClick:
+                - ..event.backClick
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Skip
+          onClick:
+            - ..event.skipClick
+    - type: view
+      style:
+        ..style.bodyBox:
+      children:
+        - type: view
+          style:
+            ..style.viewBox:
+          children:
+            - type: view
+              style:
+                ..style.titleBox:
+              children:
+                - type: label
+                  text: Allergies
+                  dataKey:
+                  style:
+                    ..style.titlelabel:
+                - type: label
+                  text: "3&nbsp;/&nbsp;11"
+                  dataKey:
+                  style:
+                    ..style.pageNum:
+        - type: scrollView
+          style:
+            ..style.scrollBox:
+          children:
+            - type: label
+              text: "Please enter all enviromental and drug allergies, along with what happened during the reaction"
+              dataKey:
+              style:
+                ..style.secondLabel:
+            - type: list
+              viewTag: selectTag
+              contentType: listObject
+              listObject: ..formDataTemp.radioTemp
+              iteratorVar: itemObject
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.raidoPath:
+                      style:
+                        ..style.itemImg:
+                      onClick:
+                        - ..event.radioClick
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.itemValue:
+
+            - type: view
+              viewTag: YesTag
+              style:
+                ..style.contentBox:
+                display: ..formData.yesflag
+              children:
+                - type: textField
+                  placeholder: Allergen ex:peanut
+                  dataKey: allergySelectedObj.allergy
+                  style:
+                    ..style.pulickBox:
+                - type: textField
+                  placeholder: Describe reaction
+                  dataKey: allergySelectedObj.happen
+                  style:
+                    ..style.pulickBox:
+                - type: label
+                  text: + add more
+                  style:
+                    ..style.addBox:
+                  onClick:
+                    - ..event.addClick
+                - type: view
+                  viewTag: allergiesShow
+                  style:
+                    ..style.infoBox:
+                    display: ..formData.formShow
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..allergies # to dataObject to enumerate the list
+                      iteratorVar: itemObject
+                      viewTag: allergiesShow
+                      style:
+                        ..style.infoList:
+                      children:
+                        - type: listItem
+                          style:
+                            ..style.infoListItem:
+                          children:
+                            - type: view
+                              style:
+                                ..style.valueBox:
+                              children:
+                                - type: image
+                                  path: x.svg
+                                  style:
+                                    ..style.deleImg:
+                                  onClick:
+                                    - ..event.delClick
+                                - type: label
+                                  text: "Allergy/Irritant"
+                                  style:
+                                    ..style.firstTitle:
+                            - type: label
+                              dataKey: itemObject.allergy
+                              style:
+                                ..style.firstVlaue:
+                            - type: label
+                              text: "What happens?"
+                              style:
+                                ..style.publicTitle:
+                            - type: label
+                              dataKey: itemObject.happen
+                              style:
+                                ..style.publicValue:
+                            - type: view
+                              style:
+                                ..style.cutOffLine:
+
+            #底部
+            - type: view
+              style:
+                marginTop: "0.03"
+
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - type: view
+              style:
+                ..style.leftBox:
+              onClick:
+                - ..event.lastStep
+              children:
+                - type: image
+                  path: leftStep.svg
+                  style:
+                    ..style.leftImg:
+                - type: label
+                  text: Last Step
+                  style:
+                    ..style.leftlabel:
+
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.nextBtn:
+              onClick:
+                - ..event.btnClick
+    #弹框
+    - .Normal:
+      message: "The information you added will be cleared"
+      viewTag: alertDialog
+      leftButton:
+        - actionType: evalObject
+          object:
+            - ..formData.status@: "Yes"
+        - actionType: popUpDismiss
+          popUpView: alertDialog
+      rightButton:
+        - actionType: evalObject
+          object:
+            - ..formData.status@: "No known allergies (including drugs)"
+            - ..formData.yesflag@: "none"
+            - .PatientChartAddAllergies.allergies@: []
+            - ..formData.formShow@: "none"
+            - ..formData.dataLength@: "0"
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: selectTag
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: YesTag
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: allergiesShow
+        - actionType: popUpDismiss
+          popUpView: alertDialog
+    - .publicDeleteUP:
+      viewTag: BaseDelWarningView
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: BaseDelWarningView
+      rightButton:
+        - actionType: evalObject
+          object:
+            - =.builtIn.array.removeByName:
+                dataIn:
+                  object: =.PatientChartAddAllergies.allergies
+                  key: allergy
+                  name: =..formData.selectedItem.allergy
+        - actionType: evalObject
+          object:
+            - =.builtIn.array.getListLength:
+                dataIn:
+                  object: =.PatientChartAddAllergies.allergies
+                dataOut: PatientChartAddAllergies.formData.dataLength
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.PatientChartAddAllergies.formData.dataLength
+                      string2: "0"
+                - ..formData.formShow@: "none"
+                - ..formData.formShow@: "block"
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: allergiesShow
+        - actionType: popUpDismiss
+          popUpView: BaseDelWarningView
+
+    - .TipsOneLine:
+      viewTag: dataCheck
+      message: "Please enter complete data"
+    - .TipsOneLine:
+      viewTag: reasonRepeatView
+      message: "Please add allergy differently!"
+
+    - .Normal:
+      message: "Do you want to save your changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartAddAllergies.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+      rightButton:
+        - actionType: evalObject
+          object:
+            - .Global.formData.PatientchartInfo.name.data.allergies.status@: =..formData.status
+            - .Global.formData.PatientchartInfo.name.data.allergies.allergiesList@: =..allergies
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartAddAllergies.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+
+  event:
+    skipClick:
+      - goto: PatientChartAddMedications
+    backClick:
+      - actionType: popUp
+        popUpView: judgmentOperation
+        wait: true
+    lastStep:
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.allergies.status@: =..formData.status
+          - .Global.formData.PatientchartInfo.name.data.allergies.allergiesList@: =..allergies
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    btnClick:
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.allergies.status@: =..formData.status
+          - .Global.formData.PatientchartInfo.name.data.allergies.allergiesList@: =..allergies
+      - goto: PatientChartAddMedications
+
+    raidoPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.status
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    radioClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..formData.status
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =.PatientChartAddAllergies.formData
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =.PatientChartAddAllergies.formData
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.status
+                    string2: "No known allergies (including drugs)"
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..formData.dataLength
+                            string2: "0"
+                      - continue
+                      - actionType: popUp
+                        popUpView: alertDialog
+                        wait: true
+              - continue
+
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.status
+                    string2: "Yes"
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..formData.dataLength
+                            string2: "0"
+                      - actionType: evalObject
+                        object:
+                          - ..formData.yesflag@: "block"
+                          - ..formData.formShow@: "none"
+                          # - ..formData.show.listShow@: "none"
+                          # - ..formData.show.emptyShow@: "block"
+                          # - ..formData.show.noShow@: "none"
+                      - actionType: evalObject
+                        object:
+                          - ..formData.yesflag@: "block"
+                          - ..formData.formShow@: "block"
+                          # - ..formData.show.listShow@: "block"
+                          # - ..formData.show.emptyShow@: "none"
+                          # - ..formData.show.noShow@: "none"
+              - ..formData.yesflag@: "none"
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: selectTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: YesTag
+
+    addClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.number.formValid:
+                  dataIn:
+                    docData: =..allergySelectedObj
+              - continue
+              - actionType: popUp
+                popUpView: dataCheck
+                wait: true
+          - if:
+              - =.builtIn.array.checkElememtExist:
+                  dataIn:
+                    objArr: =..allergies
+                    values: =..allergySelectedObj.allergy
+              - actionType: popUp
+                popUpView: reasonRepeatView
+                wait: true
+              - continue
+      - emit:
+          actions:
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =..allergies
+                  value: =..allergySelectedObj # create copy .create by value ,not reference
+      - actionType: evalObject
+        object:
+          - ..allergySelectedObj.allergy@: ""
+          - ..allergySelectedObj.happen@: ""
+      - actionType: evalObject
+        object:
+          - ..formData.formShow@: "block"
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.getListLength:
+              dataIn:
+                object: =..allergies
+              dataOut: PatientChartAddAllergies.formData.dataLength
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: YesTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: allergiesShow
+
+    delClick:
+      - actionType: popUp
+        popUpView: BaseDelWarningView
+      - actionType: updateObject
+        dataKey: PatientChartAddAllergies.formData.selectedItem
+        dataObject: itemObject
+
+  style:
+    bodyBox:
+      width: "auto"
+      height: "0.84729"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.77832"
+      boxSizing: border-box
+      overflow: scroll
+    contentBox:
+      display: "none"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0197"
+      lineHeight: "2.58vh"
+    regularLabel:
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      marginTop: "0.025862"
+      lineHeight: "2.58vh"
+    list:
+      margin: "0"
+      marginTop: "0.02216"
+      width: "0.9"
+      height: auto
+      axis: vertical
+      boxSizing: border-box
+      overflow: hidden
+    listItem:
+      marginTop: "0.0072"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.02133"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    pulickBox:
+      marginTop: "0.014778"
+      width: "0.92"
+      height: "0.03694"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      textIndent: "12px"
+    addBox:
+      marginLeft: "0.71466"
+      marginTop: "0.0123"
+      fontSize: .Nfont.h14
+      color: "0x1492e6"
+      height: "auto"
+      width: "auto"
+      fontWeight: "600"
+    infoBox:
+      marginTop: "0.02093"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 3
+      boxSizing: border-box
+      borderRadius: "4"
+      borderColor: "0xdedede"
+      overflow: hidden
+      paddingBottom: "0.0147"
+    infoList:
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+    infoListItem:
+      width: "0.9"
+      height: "auto"
+      overflow: hidden
+      boxSizing: border-box
+    valueBox:
+      marginTop: "0.0147"
+      marginLeft: "0.032"
+      width: "auto"
+      height: "auto"
+    deleImg:
+      display: "inline-block"
+      height: "0.0221"
+      verticalAlign: middle
+    firstTitle:
+      marginLeft: "0.0213"
+      display: "inline-block"
+      height: "auto"
+      width: "0.78"
+      fontSize: .Nfont.h14
+      color: "0x666666"
+      verticalAlign: middle
+    firstVlaue:
+      marginTop: "0.00862"
+      marginLeft: "0.1013"
+      width: "0.78"
+      height: "auto"
+      textAlign:
+        x: left
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      wordWrap: break-word
+    publicTitle:
+      marginTop: "0.01847"
+      marginLeft: "0.1013"
+      width: "0.78"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x666666"
+    publicValue:
+      marginTop: "0.00862"
+      marginLeft: "0.1013"
+      width: "0.78"
+      height: "auto"
+      textAlign:
+        x: left
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      wordWrap: break-word
+    cutOffLine:
+      marginTop: "0.0147"
+      marginLeft: "0.1013"
+      width: "0.78"
+      height: "1px"
+      backgroundColor: "0xf0f0f0"
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+    leftBox:
+      marginLeft: "0.05"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "auto"
+      width: "auto"
+      marginTop: "0.0123"
+    leftImg:
+      verticalAlign: middle
+      display: "inline-block"
+      height: "0.02955"
+    leftlabel:
+      marginLeft: "0.02"
+      verticalAlign: middle
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x2988e6"
+      fontWeight: "600"
+    nextBtn:
+      marginTop: "0.0123"
+      marginLeft: "0.156"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.045"
+      width: "0.45333"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: 600
+      textAlign:
+        x: center

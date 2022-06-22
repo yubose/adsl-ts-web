@@ -1,0 +1,361 @@
+OrganizationInfoProviders:
+  title: "Organization Info"
+  init:
+    - .SignInCheck
+
+    # 获取所有的facility和location
+    - ..facilityAll.vertexAPI.get
+    #  获取所有的Provide
+    - ..provderList.docAPI.get
+    #  获取facilityInfo
+    - ..facilityInfo.vertexAPI.get
+  # 包括所有的facility和location
+  facilityAll:
+    vertex:
+      ObjType: "4"
+      id: .Global.currentFacility.bsig
+      xfname: "E.bvid"
+      sCondition: "E.type=1100 AND V.type!=1 AND V.type!=20"
+      maxcount: "100"
+      obfname: "ctime"
+      asc: true
+      _nonce: =.Global._nonce
+    vertexResp: ""
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: OrganizationInfoProviders.facilityAll.vertex
+        dataOut: OrganizationInfoProviders.facilityAll.vertexResp
+  #  查询facilityInfo
+  facilityInfo:
+    vertex:
+      ObjType: "4"
+      id: .Global.currentFacility.bsig
+      xfname: "E.bvid"
+      type: 271361
+      sCondition: "E.type=10000"
+      _nonce: =.Global._nonce
+    facilityInfoResp: ""
+    vertexAPI:
+      get:
+        api: rd
+        dataIn: OrganizationInfoProviders.facilityInfo.vertex
+        dataOut: OrganizationInfoProviders.facilityInfo.facilityInfoResp
+  #  所有的Provide
+  provderList:
+    list: ""
+    docAPI:
+      get:
+        api: rd
+        type: 35841
+        xfname: E.bvid|E.evid
+        id: .Global.currentFacility.bsig
+        ObjType: 12
+        _nonce: =.Global._nonce
+        dataKey: provderList.list
+        sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+  # Provide 列表
+  prodList: ""
+
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - type: scrollView
+      style:
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+      children:
+        - type: view
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "0.26"
+            border:
+              style: "2"
+            borderWidth: "3"
+            borderColor: "0xdededf"
+          children:
+            # Facility 头像
+            - type: image
+              style:
+                top: "0.03"
+                width: "0.1"
+                left: "0.45"
+              path: office-building.svg
+              path=func: =.builtIn.utils.prepareDocToPath
+              dataKey: facilityInfo.facilityInfoResp.doc.0.name.data.basicInfo.businessLogo
+              viewTag: businessLogo
+              contentType: file
+            # 二维码
+            - type: image
+              path: qr.svg
+              style:
+                left: "0.85"
+                width: "0.08"
+                top: "0.03"
+              # Facility 名称
+            - type: label
+              dataKey: OrganizationInfoProviders.facilityAll.vertexResp.vertex.0.name.basicInfo.medicalFacilityName
+              text: A&C Urgent Care
+              style:
+                left: "0"
+                width: "1"
+                top: "0.09"
+                height: "0.04"
+                fontSize: .Nfont.h4
+                color: "0x4b4b4b"
+                textAlign:
+                  x: center
+                fontWeight: "600"
+            - type: label
+              dataKey: OrganizationInfoProviders.facilityAll.vertexResp.vertex.0.name.basicInfo.state
+              text: Anaheim
+              style:
+                left: "0"
+                width: "1"
+                top: "0.13"
+                height: "0.025"
+                fontSize: .Nfont.h1
+                color: "0x4b4b4b"
+                fontWeight: "600"
+                textAlign:
+                  x: center
+            - type: view
+              onClick:
+                - goto: InboxDashboard
+              style:
+                width: "1"
+                left: "0"
+                height: "0.1"
+                top: "0.16"
+              children:
+                - type: image
+                  path: mailIcon.svg
+                  style:
+                    left: "0.425"
+                    width: "0.15"
+                - type: label
+                  text: AiTmail
+                  style:
+                    left: "0.425"
+                    width: "0.15"
+                    top: "0.06"
+                    fontSize: .Nfont.h15
+                    color: "0x4b4b4b"
+                    textAlign:
+                      x: center
+        - type: view
+          style:
+            top: "0.265"
+            width: "1"
+            left: "0"
+            height: "0.63"
+          children:
+            # tab栏区域
+            - type: view
+              style:
+                left: "0"
+                width: "1"
+                top: "0"
+                height: "0.05"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0xdededf"
+              children:
+                - type: label
+                  text: About
+                  onClick:
+                    - goto: OrganizationInfoAbout
+                  style:
+                    left: "0.13"
+                    width: "0.24"
+                    top: "0.01"
+                    height: "0.039"
+                    color: "0x2988e6"
+                    fontSize: .Nfont.h2
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  text: Providers
+                  style:
+                    left: "0.38"
+                    width: "0.24"
+                    top: "0.01"
+                    height: "0.039"
+                    fontSize: .Nfont.h2
+                    fontWeight: "600"
+                    color: "0x2988e6"
+                    border:
+                      style: "2"
+                    borderWidth: "3"
+                    borderColor: "0x2988e6"
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  text: Services
+                  onClick:
+                    - goto: OrganizationInfoServices
+                  style:
+                    left: "0.63"
+                    width: "0.24"
+                    top: "0.01"
+                    height: "0.039"
+                    fontSize: .Nfont.h2
+                    color: "0x2988e6"
+                    textAlign:
+                      x: center
+                      y: center
+            - type: scrollView
+              style:
+                left: "0"
+                width: "1"
+                top: "0.06"
+                height: "0.6"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..provderList.list.doc
+                  iteratorVar: itemObject
+                  style:
+                    width: "1"
+                    margin: "0"
+                    height: "auto"
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: "1"
+                        height: "0.131"
+                        border:
+                          style: "2"
+                        borderColor: "0xdededf"
+                        borderWidth: "2"
+                      children:
+                        #  头像区域
+                        - type: view
+                          style:
+                            height: "0.13"
+                            width: "0.23"
+                            textAlign:
+                              x: center
+                              y: center
+                          children:
+                            - type: image
+                              style:
+                                width: "0.15"
+                                border:
+                                  style: "1"
+                              path: ava.png
+                              path=func: =.builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.name.data.avatar
+                              viewTag: avatar
+                              contentType: file
+                        - type: view
+                          style:
+                            top: "0"
+                            left: "0.24"
+                            height: "0.13"
+                            width: "0.73"
+                          children:
+                            # provider 名称
+                            - type: label
+                              dataKey: itemObject.name.data.fullName
+                              style:
+                                marginTop: "0.01"
+                                wordBreak: break-word
+                                width: "0.4"
+                                height: "auto"
+                                fontSize: .Nfont.h3
+                            # provider Specialty
+                            - type: label
+                              dataKey: itemObject.name.data.selectedSpecialty
+                              style:
+                                marginTop: "0.01"
+                                width: "0.75"
+                                height: "auto"
+                                wordWrap: break-word
+                                fontSize: .Nfont.h1
+            #  prover list
+            # - type: scrollView
+            #   style:
+            #     left: "0"
+            #     width: '1'
+            #     top: "0.06"
+            #     height: "0.6"
+            #   children:
+            #     - type: list
+            #       contentType: listObject
+            #       listObject: ..provderList.list.doc
+            #       iteratorVar: itemObject
+            #       style:
+            #         width: '1'
+            #         margin: '0'
+            #         height: "auto"
+            #       children:
+            #         - type: listItem
+            #           itemObject:
+            #           style:
+            #             width: '1'
+            #             display: flex
+            #             border:
+            #               style: "2"
+            #             borderColor: "0xdededf"
+            #             borderWidth: "2"
+            #           children:
+            #             #  头像区域
+            #             - type: view
+            #               style:
+            #                 display: flex
+            #                 width: "0.23"
+            #                 textAlign:
+            #                   x: center
+            #                   y: center
+            #               children:
+            #                 - type: image
+            #                   style:
+            #                     width: "0.15"
+            #                     border:
+            #                       style: "1"
+            #                     zIndex: 100
+            #                     margin: "1vh"
+            #                   path: ava.png
+            #                   path=func: =.builtIn.utils.prepareDocToPath
+            #                   dataKey: itemObject.name.data.avatar
+            #                   viewTag: avatar
+            #                   contentType: file
+            #             - type: view
+            #               style:
+            #                 display: flex
+            #                 flex: 1
+            #                 flexDirection: column
+            #                 marginBottom: "1vh"
+            #               children:
+            #                 # provider 名称
+            #                 - type: label
+            #                   dataKey: itemObject.name.data.fullName
+            #                   style:
+            #                     flex: 1
+            #                     marginTop: "0.01"
+            #                     wordBreak: break-word
+            #                     width: "0.4"
+            #                     fontSize: .Nfont.h3
+            #                     zIndex: 100
+            #                 # provider Specialty
+            #                 - type: label
+            #                   dataKey: itemObject.name.data.selectedSpecialty
+            #                   style:
+            #                     marginTop: "0.01"
+            #                     flex: 1
+            #                     width: "0.75"
+            #                     wordWrap: break-word
+            #                     fontSize: .Nfont.h1
+            #                     zIndex: 100

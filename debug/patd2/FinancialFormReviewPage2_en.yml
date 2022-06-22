@@ -1,0 +1,1795 @@
+FinancialFormReviewPage2:
+  title: Financial Responsibility Form
+  pageNumber:
+  init:
+    - .SignInCheck
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.name.data.billingInfo.medicalInsurance
+              string2: "Yes"
+        - actionType: evalObject
+          object:
+            - ..formData.noflag@: none
+            - ..formData.yesflag@: "block"
+        - actionType: evalObject
+          object:
+            - ..formData.yesflag@: none
+            - ..formData.noflag@: "block"
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.name.data.billingInfo.visitType
+              string2: "Medical Insurance"
+        - actionType: evalObject
+          object:
+            - ..formData.medicalShow@: "block"
+            - ..formData.workShow@: "none"
+            - ..formData.personalShow@: "none"
+            - if:
+                - =.Global.Note.name.data.billingInfo.indentification.injury.isUseOtherInsurance
+                - actionType: evalObject
+                  object:
+                    - ..formData.display.secondaryInsurance@: block
+                    - ..formData.display_secondaryInsurance@: block
+                - actionType: evalObject
+                  object:
+                    - ..formData.display.secondaryInsurance@: none
+                    - ..formData.display_secondaryInsurance@: none
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.name.data.billingInfo.visitType
+              string2: "Workers Comp"
+        - actionType: evalObject
+          object:
+            - ..formData.medicalShow@: "none"
+            - ..formData.workShow@: "block"
+            - ..formData.personalShow@: "none"
+            - ..formData.display.secondaryInsurance@: none
+            - ..formData.display_secondaryInsurance@: none
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.name.data.billingInfo.visitType
+              string2: "Personal Injury"
+        - actionType: evalObject
+          object:
+            - ..formData.medicalShow@: "none"
+            - ..formData.workShow@: "none"
+            - ..formData.personalShow@: "block"
+            - if:
+                - =.Global.Note.name.data.billingInfo.indentification.injury.isUseOtherInsurance
+                - actionType: evalObject
+                  object:
+                    - ..formData.display.secondaryInsurance@: block
+                    - ..formData.display_secondaryInsurance@: block
+                - actionType: evalObject
+                  object:
+                    - ..formData.display.secondaryInsurance@: none
+                    - ..formData.display_secondaryInsurance@: none
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.billingInfo.indentification.injury.personalInjuryType
+                      string2: Auto Accident
+                - =.builtIn.object.setProperty:
+                    dataIn:
+                      obj: =..formDataTemp.personalInjury
+                      label: "value"
+                      text: =.Global.Note.name.data.billingInfo.indentification.injury.personalInjuryType
+                      arr: ["show"]
+                      valueArr: ["inline-block"]
+                      errorArr: ["none"]
+                    dataOut: FinancialFormReviewPage2.formDataTemp.personalInjury
+                - =.builtIn.object.setProperty:
+                    dataIn:
+                      obj: =..formDataTemp.personalInjury
+                      label: "value"
+                      text: =.Global.Note.name.data.billingInfo.indentification.injury.personalInjuryType
+                      arr: ["show"]
+                      valueArr: ["none"]
+                      errorArr: ["none"]
+                    dataOut: FinancialFormReviewPage2.formDataTemp.personalInjury
+                # - ..formData.viewDisplay_personalInjury@: inline-block
+                # - ..formData.viewDisplay_personalInjury@: none
+            - if:
+                - =.Global.Note.name.data.billingInfo.indentification.injury.isUseDefaultInsurance
+                - actionType: evalObject
+                  object:
+                    - ..formData.display.primaryInsurance@: block
+                    - ..formData.medicalShow@: block
+                - actionType: evalObject
+                  object:
+                    - ..formData.display.primaryInsurance@: none
+                    - ..formData.medicalShow@: none
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.name.data.billingInfo.indentification.relationShip.relation
+              string2: "Self"
+        - ..formData.selectShow@: "none"
+        - ..formData.selectShow@: "block"
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.relation
+              string2: "Self"
+        - ..formData.display.relationship_secondaryInsurance@: none
+        - ..formData.display.relationship_secondaryInsurance@: block
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.roomInfo.edge.name.visitType
+              string2: Telemedicine
+        - actionType: evalObject
+          object:
+            - ..formData.telePayShow@: block
+            - ..formData.visitPayShow@: none
+        - actionType: evalObject
+          object:
+            - ..formData.telePayShow@: none
+            - ..formData.visitPayShow@: block
+
+  formData:
+    display_secondaryInsurance: none
+    viewDisplay_personalInjury: none
+    display:
+      secondaryInsurance: none
+      primaryInsurance: none
+      relationship_secondaryInsurance: none
+    uploadInsuranceCardType: ""
+    calendarType: ""
+    state: ""
+    relation: ""
+    yesflag: "block"
+    noflag: "none"
+    medicalInsurance: ""
+    type: ""
+    medicalShow: "none"
+    workShow: "none"
+    personalShow: "none"
+    pay: ""
+    telePayShow: "none"
+    visitPayShow: "none"
+    selectShow: "none"
+    showInsuranceImageId: ""
+  formDataTemp:
+    personalInjury:
+      - key: 1) Auto Accident
+        value: Auto Accident
+        show: "none"
+      - key: 2) Other Accident
+        value: Other Accident
+        show: "none"
+    genderTemp:
+      - key: gender
+        value: "Male"
+      - key: gender
+        value: "Female"
+      - key: gender
+        value: "Other"
+    haveInsurance:
+      - key: medicalInsurance
+        value: "Yes"
+      - key: medicalInsurance
+        value: "No"
+    coverage:
+      - key: type
+        value: "Medical Insurance"
+      - key: type
+        value: "Workers Comp"
+      - key: type
+        value: "Personal Injury"
+    payTeleTemp:
+      - key: pay
+        value: "Pay online"
+    payVisitTemp:
+      - key: pay
+        value: "Pay online"
+      - key: pay
+        value: "Pay at the front desk"
+
+  components:
+    - type: view
+      style:
+        ..style.formatting:
+      children:
+        - .BasePublicHeader:
+          children:
+            - .BasePublicHeaderLeft:
+            - .BasePublicHeaderTitle:
+        - type: view
+          style:
+            ..style.bodyBox:
+          children:
+            - type: view
+              style:
+                ..style.viewBox:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      text: Medical Coverage
+                      dataKey:
+                      style:
+                        ..style.titlelabel:
+                    - type: label
+                      text: "2&nbsp;/&nbsp;2"
+                      dataKey:
+                      style:
+                        ..style.pageNum:
+            - type: scrollView
+              style:
+                ..style.scrollBox:
+              children:
+                - type: label
+                  text: "Do you have medical insurance?"
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                - type: list
+                  viewTag: medicalInsuranceTag
+                  contentType: listObject
+                  listObject: ..formDataTemp.haveInsurance
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                    width: "0.92"
+                    axis: horizontal
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.raidoPath:
+                          style:
+                            ..style.itemImg:
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+                # Yes
+                - type: view
+                  viewTag: YesTag
+                  style:
+                    ..style.yesBox:
+                    display: ..formData.yesflag
+                  children:
+                    - type: label
+                      text: What type of coverage you would like to use for this visit?
+                      dataKey:
+                      style:
+                        ..style.thirdLabel:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.coverage
+                      iteratorVar: itemObject
+                      style:
+                        ..style.coverageList:
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            ..style.coverageItem:
+                          children:
+                            - type: image
+                              path:
+                                ..event.coveragePath:
+                              style:
+                                ..style.itemImg:
+                            - type: label
+                              text:
+                              dataKey: itemObject.value
+                              style:
+                                ..style.itemValue:
+                    - type: view
+                      style:
+                        ..style.boxStyle:
+                        display: ..formData.workShow
+                      children:
+                        - type: label
+                          text: Employer Name
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                            marginTop: "0.024630"
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.companyName
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Employer Telephone #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.employment.Telephone
+                          style:
+                            ..style.blockBoxInput:
+
+                        # - type: view
+                        #   style:
+                        #     ..style.blockBox:
+                        #   children:
+                        - type: label
+                          text: Employer Address
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.employment.address.fullAddress
+                          style:
+                            ..style.blockBoxInput:
+
+                        - type: label
+                          text: "Insurance Company Name(Claims Administrator)"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.claims.claimsAdmin
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Claim #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.claims.claim
+                          style:
+                            ..style.blockBoxInput:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              text: Date of Injury
+                              dataKey:
+                              style:
+                                ..style.blockBoxTitle:
+                            - type: view
+                              viewTag: birthTag
+                              style:
+                                ..style.dateBox:
+                              children:
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.indentification.injury.dateOfInjury
+                                  style:
+                                    ..style.dateInput:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              text: Claims Address
+                              dataKey:
+                              style:
+                                ..style.blockBoxTitle:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.indentification.claims.address.fullAddress
+                              style:
+                                ..style.blockInput:
+                                marginTop: "0.01"
+
+                        - type: label
+                          text: "Claims Adjuster"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.claims.adjuster.name
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Adjuster Phone #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.claims.adjuster.phone
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Adjusters Fax #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.claims.adjuster.fax
+                          style:
+                            ..style.blockBoxInput:
+
+                    - type: view
+                      style:
+                        ..style.boxStyle:
+                        display: ..formData.personalShow
+                      children:
+                        - type: list
+                          viewTag: tag_personalInjury
+                          contentType: listObject
+                          listObject: ..formDataTemp.personalInjury
+                          iteratorVar: itemObject
+                          style:
+                            ..style.list_personalInjury:
+                          children:
+                            - type: listItem
+                              itemObject:
+                              style:
+                                ..style.listitem_personalInjury:
+                              children:
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    width: "auto"
+                                    height: "0.02709359"
+                                    overflow: hidden
+                                    verticalAlign: middle
+                                  children:
+                                    - type: image
+                                      path:
+                                        ..event.imagePath_selectAccident:
+                                      style:
+                                        ..style.itemImg:
+                                    - type: label
+                                      text:
+                                      dataKey: itemObject.key
+                                      style:
+                                        ..style.itemValue:
+
+                                - type: view
+                                  viewTag: tag_stateForSecInsurance
+                                  style:
+                                    ..style.view_personalInjury:
+                                    display: "inline-block"
+                                    verticalAlign: middle
+                                    marginLeft: "0.064"
+                                  children:
+                                    - type: view
+                                      style:
+                                        width: "auto"
+                                        height: "auto"
+                                        display: itemObject.show
+                                      children:
+                                        - type: label
+                                          text: State
+                                          style:
+                                            ..style.state_personalInjury:
+                                            fontWeight: "600"
+                                        - type: label
+                                          text: "--"
+                                          dataKey: Global.Note.name.data.billingInfo.indentification.injury.state
+                                          style:
+                                            ..style.select_stateForSecInsurance:
+                        # - type: view
+                        #   style:
+                        #     height: auto
+                        #     width: auto
+                        #   children:
+                        #     - type: view
+                        #       style:
+                        #         display: inline-block
+                        #       children:
+                        #         - type: list
+                        #           viewTag: tag_personalInjury
+                        #           contentType: listObject
+                        #           listObject: ..formDataTemp.personalInjury
+                        #           iteratorVar: itemObject
+                        #           style:
+                        #             ..style.list_personalInjury:
+                        #           children:
+                        #             - type: listItem
+                        #               itemObject:
+                        #               style:
+                        #                 ..style.listitem_personalInjury:
+                        #               children:
+                        #                 - type: image
+                        #                   path:
+                        #                     ..event.imagePath_selectAccident:
+                        #                   style:
+                        #                     ..style.itemImg:
+                        #                 - type: label
+                        #                   text:
+                        #                   dataKey: itemObject.key
+                        #                   style:
+                        #                     ..style.itemValue:
+                        #     - type: view
+                        #       viewTag: tag_stateForSecInsurance
+                        #       style:
+                        #         ..style.view_personalInjury:
+                        #       children:
+                        #         - type: view
+                        #           style:
+                        #             width: auto
+                        #             height: auto
+                        #             display: ..formData.viewDisplay_personalInjury
+                        #           children:
+                        #             - type: label
+                        #               text: State
+                        #               style:
+                        #                 ..style.state_personalInjury:
+                        #             - type: label
+                        #               dataKey: Global.Note.name.data.billingInfo.indentification.injury.state
+                        #               style:
+                        #                 ..style.select_stateForSecInsurance:
+                        - type: label
+                          text: Attorneys Name
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                            marginTop: "0.024630"
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.injury.name
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Phone #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.injury.phone
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Fax #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.injury.fax
+                          style:
+                            ..style.blockBoxInput:
+
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              text: Address
+                              dataKey:
+                              style:
+                                ..style.blockBoxTitle:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.indentification.injury.address.fullAddress
+                              style:
+                                ..style.blockBoxInput:
+
+                                marginTop: "0.01"
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              text: Date of Injury
+                              dataKey:
+                              style:
+                                ..style.blockBoxTitle:
+                            - type: view
+                              viewTag: birthTag
+                              style:
+                                ..style.dateBox:
+                              children:
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.indentification.injury.dateOfInjury
+                                  style:
+                                    ..style.dateInput:
+                    - type: view
+                      viewTag: tag_primaryInsurance
+                      style:
+                        display: ..formData.display.primaryInsurance
+                        marginTop: "0.020935"
+                        ..style.blockBox:
+                      children:
+                        - type: image
+                          path:
+                            ..event.image_showPrimaryInsurance:
+                          style:
+                            display: "inline-block"
+                            verticalAlign: middle
+                            width: "0.0241"
+                        - type: label
+                          text: Use primary medical insurance
+                          style:
+                            ..style.setLabel:
+                    - type: view
+                      style:
+                        ..style.boxStyle:
+                        display: ..formData.medicalShow
+                      children:
+                        - type: label
+                          text: Insurance Company Name
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                            marginTop: "0.024630"
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.companyName
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: Insurance Plan / Medical Group
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.insurancePlan
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: Insured Name
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.insuredName
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Insurance ID"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.insuranceId
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Group #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.insuranceGroup
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Relationship to Patient"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.indentification.relationShip.relation
+                          style:
+                            ..style.blockBoxInput:
+                        - type: view
+                          viewTag: selectTag
+                          style:
+                            ..style.blockBox:
+                            display: ..formData.selectShow
+                          children:
+                            - type: label
+                              text: "1) Name"
+                              dataKey:
+                              style:
+                                ..style.blockRegularTitle:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.indentification.relationShip.name
+                              style:
+                                ..style.blockBoxInput:
+                            - type: label
+                              text: "2) Date of Birth"
+                              dataKey:
+                              style:
+                                ..style.blockRegularTitle:
+                            - type: view
+                              viewTag: birthTag
+                              style:
+                                ..style.dateBox:
+                              children:
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.patientInfo.dateOfBirth
+                                  isEditable: "false"
+                                  style:
+                                    ..style.dateInput:
+                            - type: label
+                              text: "3) Gender"
+                              dataKey:
+                              style:
+                                ..style.blockRegularTitle:
+
+                            - type: list
+                              viewTag: tag_idImage
+                              contentType: listObject
+                              listObject: ..formDataTemp.genderTemp
+                              iteratorVar: itemObject
+                              style:
+                                ..style.genterlist:
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    ..style.genderListItem:
+                                  children:
+                                    - type: image
+                                      path:
+                                        ..event.pathEmit_sex:
+                                      style:
+                                        ..style.itemImg:
+                                    - type: label
+                                      text:
+                                      dataKey: itemObject.value
+                                      style:
+                                        ..style.genderItemValue:
+
+                            - type: view
+                              style:
+                                ..style.blockBox:
+                                marginTop: "0.0221674"
+                              children:
+                                - type: label
+                                  text: "4) Address"
+                                  dataKey:
+                                  style:
+                                    ..style.blockRegularTitle:
+                                    margin: "0"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.indentification.relationShip.address.fullAddress
+                                  style:
+                                    ..style.addressInput:
+                                    marginTop: "0.01"
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              text: Claims Address
+                              dataKey:
+                              style:
+                                ..style.blockBoxTitle:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.indentification.claims.address.line
+                              style:
+                                ..style.blockBoxInput:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.indentification.claims.address.secondLine
+                              style:
+                                ..style.blockBoxInput:
+                            - type: view
+                              style:
+                                ..style.InputBox:
+                                marginTop: "0.01"
+                              children:
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.indentification.claims.address.city
+                                  style:
+                                    ..style.blockInput:
+                                    width: "0.21"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.indentification.claims.address.county
+                                  style:
+                                    ..style.blockInput:
+                                    marginLeft: "0.026"
+                                    width: "0.21"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.indentification.claims.address.state
+                                  style:
+                                    ..style.blockInput:
+                                    marginLeft: "0.026"
+                                    width: "0.21"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.indentification.claims.address.zipCode
+                                  style:
+                                    ..style.blockInput:
+                                    marginLeft: "0.026"
+                                    width: "0.21"
+
+                        - type: label
+                          text: Please upload your medical insurance card
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                            marginTop: "0.024630"
+
+                        - type: view
+                          style:
+                            ..style.cardBox:
+                            marginTop: "0.0123"
+                          children:
+                            - type: view
+                              style:
+                                ..style.boxStyle:
+                                display: "inline-block"
+                                width: "0.38"
+                              children:
+                                - type: view
+                                  style:
+                                    ..style.boxStyle:
+                                    width: "0.38"
+                                    textAlign:
+                                      x: center
+                                    backgroundColor: "#f4f4f4"
+                                    borderRadius: "4"
+                                    padding: "5px 7px"
+                                    boxSizing: border-box
+                                  onClick:
+                                    - ..event.image_uploadFrontInsuranceCard
+                                  children:
+                                    - type: image
+                                      path: defaultImg.svg
+                                      viewTag: front_InsuranceCardTag
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: Global.Note.name.data.billingInfo.indentification.front_InsuranceCard
+                                      style:
+                                        ..style.card:
+                                - type: label
+                                  text: Front of Insurance Card
+                                  dataKey:
+                                  style:
+                                    ..style.bottomText:
+                            - type: view
+                              style:
+                                ..style.boxStyle:
+                                display: "inline-block"
+                                marginLeft: "0.06133"
+                                width: "0.38"
+                              children:
+                                - type: view
+                                  style:
+                                    ..style.boxStyle:
+                                    width: "0.38"
+                                    textAlign:
+                                      x: center
+                                    backgroundColor: "#f4f4f4"
+                                    borderRadius: "4"
+                                    padding: "5px 7px"
+                                    boxSizing: border-box
+                                  onClick:
+                                    - ..event.image_uploadBackInsuranceCard
+                                  children:
+                                    - type: image
+                                      path: defaultImg.svg
+                                      viewTag: back_InsuranceCardTag
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: Global.Note.name.data.billingInfo.indentification.back_InsuranceCard
+                                      style:
+                                        ..style.card:
+                                - type: label
+                                  text: Back of Insurance Card
+                                  dataKey:
+                                  style:
+                                    ..style.bottomText:
+                    - type: view
+                      viewTag: tag_secondaryInsurance
+                      style:
+                        display: ..formData.display.secondaryInsurance
+                        marginTop: "0.020935"
+                        ..style.blockBox:
+                      children:
+                        - type: image
+                          path:
+                            ..event.image_showSecondaryInsurance:
+                          style:
+                            display: "inline-block"
+                            verticalAlign: middle
+                            width: "0.0241"
+                        - type: label
+                          text: Use secondary medical insurance
+                          style:
+                            ..style.setLabel:
+                    - type: view
+                      viewTag: tag_secondaryInsurance
+                      style:
+                        ..style.boxStyle:
+                        display: ..formData.display_secondaryInsurance
+                      children:
+                        - type: view
+                          viewTag: tag_multSecondaryInsurance
+                          style:
+                            display: ..formData.display_multSecondaryInsurance
+                          children:
+                            - type: label
+                              text: Medical Insurance
+                              style:
+                                ..style.label_medicalInsurance:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.insuranceInfo
+                              style:
+                                ..style.blockBoxInput:
+                        - type: label
+                          text: Insurance Company Name
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                            marginTop: "0.024630"
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.companyName
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: Insurance Plan / Medical Group
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.insurancePlan
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: Insured Name
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.insuredName
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Insurance ID"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.insuranceId
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Group #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.insuranceGroup
+                          style:
+                            ..style.blockBoxInput:
+                        - type: label
+                          text: "Relationship to Patient"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.relation
+                          style:
+                            ..style.blockBoxInput:
+                        - type: view
+                          viewTag: tag_relationship_secondaryInsurance
+                          style:
+                            ..style.blockBox:
+                            display: ..formData.display.relationship_secondaryInsurance
+                          children:
+                            - type: label
+                              text: "1) Name"
+                              dataKey:
+                              style:
+                                ..style.blockRegularTitle:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.name
+                              style:
+                                ..style.blockBoxInput:
+                            - type: label
+                              text: "2) Date of Birth"
+                              dataKey:
+                              style:
+                                ..style.blockRegularTitle:
+                            - type: view
+                              viewTag: birthTag
+                              style:
+                                ..style.dateBox:
+                              children:
+                                - type: label
+                                  placeholder: Select
+                                  dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.dateOfBirth
+                                  isEditable: "false"
+                                  style:
+                                    ..style.dateInput:
+                            - type: label
+                              text: "3) Gender"
+                              dataKey:
+                              style:
+                                ..style.blockRegularTitle:
+
+                            - type: list
+                              viewTag: tag_idImage
+                              contentType: listObject
+                              listObject: ..formDataTemp.genderTemp
+                              iteratorVar: itemObject
+                              style:
+                                ..style.genterlist:
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    ..style.genderListItem:
+                                  children:
+                                    - type: image
+                                      path:
+                                        ..event.pathEmit_genderSecondaryInsurance:
+                                      style:
+                                        ..style.itemImg:
+                                    - type: label
+                                      text:
+                                      dataKey: itemObject.value
+                                      style:
+                                        ..style.genderItemValue:
+
+                            - type: view
+                              style:
+                                ..style.blockBox:
+                                marginTop: "0.0221674"
+                              children:
+                                - type: label
+                                  text: "4) Address"
+                                  dataKey:
+                                  style:
+                                    ..style.blockRegularTitle:
+                                    margin: "0"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.address.line
+                                  style:
+                                    ..style.blockBoxInput:
+                                    marginTop: "0.01"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.address.secondLine
+                                  style:
+                                    ..style.blockBoxInput:
+                                    marginTop: "0.01"
+                                - type: view
+                                  style:
+                                    ..style.InputBox:
+                                    marginTop: "0.01"
+                                  children:
+                                    - type: label
+                                      text: "No content"
+                                      dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.address.city
+                                      style:
+                                        ..style.blockInput:
+                                        width: "0.21"
+                                    - type: label
+                                      text: "No content"
+                                      dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.address.county
+                                      style:
+                                        ..style.blockInput:
+                                        marginLeft: "0.026"
+                                        width: "0.21"
+                                    - type: label
+                                      dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.address.state
+                                      text: "No content"
+                                      style:
+                                        ..style.blockInput:
+                                        marginLeft: "0.026"
+                                        width: "0.21"
+                                    - type: label
+                                      text: "No content"
+                                      dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.address.zipCode
+                                      style:
+                                        ..style.blockInput:
+                                        marginLeft: "0.026"
+                                        width: "0.21"
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              text: Claims Address
+                              dataKey:
+                              style:
+                                ..style.blockBoxTitle:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.claims.address.line
+                              style:
+                                ..style.blockBoxInput:
+                            - type: label
+                              text: "No content"
+                              dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.claims.address.secondLine
+                              style:
+                                ..style.blockBoxInput:
+                            - type: view
+                              style:
+                                ..style.InputBox:
+                                marginTop: "0.01"
+                              children:
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.claims.address.city
+                                  style:
+                                    ..style.blockInput:
+                                    width: "0.21"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.claims.address.county
+                                  style:
+                                    ..style.blockInput:
+                                    marginLeft: "0.026"
+                                    width: "0.21"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.claims.address.state
+                                  style:
+                                    ..style.blockInput:
+                                    marginLeft: "0.026"
+                                    width: "0.21"
+                                - type: label
+                                  text: "No content"
+                                  dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.claims.address.zipCode
+                                  style:
+                                    ..style.blockInput:
+                                    marginLeft: "0.026"
+                                    width: "0.21"
+
+                        - type: label
+                          text: Please upload your medical insurance card
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                            marginTop: "0.024630"
+
+                        - type: view
+                          style:
+                            ..style.cardBox:
+                            marginTop: "0.0123"
+                          children:
+                            - type: view
+                              style:
+                                ..style.boxStyle:
+                                display: "inline-block"
+                                width: "0.38"
+                              children:
+                                - type: view
+                                  style:
+                                    ..style.boxStyle:
+                                    textAlign:
+                                      x: center
+                                    backgroundColor: "#f4f4f4"
+                                    borderRadius: "4"
+                                    padding: "5px 7px"
+                                    boxSizing: border-box
+                                    width: "0.38"
+                                  children:
+                                    - type: image
+                                      path: defaultImg.svg
+                                      viewTag: front_InsuranceCardTag
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.front_InsuranceCard
+                                      style:
+                                        ..style.card:
+                                - type: label
+                                  text: Front of Insurance Card
+                                  style:
+                                    ..style.bottomText:
+                            - type: view
+                              style:
+                                ..style.boxStyle:
+                                display: "inline-block"
+                                marginLeft: "0.04"
+                                width: "0.38"
+                              children:
+                                - type: view
+                                  style:
+                                    ..style.boxStyle:
+                                    textAlign:
+                                      x: center
+                                    backgroundColor: "#f4f4f4"
+                                    borderRadius: "4"
+                                    padding: "5px 7px"
+                                    boxSizing: border-box
+                                    width: "0.38"
+                                  children:
+                                    - type: image
+                                      path: defaultImg.svg
+                                      viewTag: back_InsuranceCardTag
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: Global.Note.name.data.billingInfo.secondaryInsurance.back_InsuranceCard
+                                      style:
+                                        ..style.card:
+                                - type: label
+                                  text: Back of Insurance Card
+                                  dataKey:
+                                  style:
+                                    ..style.bottomText:
+                # NO
+                - type: view
+                  viewTag: NoTag
+                  style:
+                    ..style.noBox:
+                    display: ..formData.noflag
+                  children:
+                    - type: label
+                      text: "Social Security #"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                        marginTop: "0.024630"
+                    - type: label
+                      text: "No content"
+                      dataKey: Global.Note.name.data.billingInfo.indentification.security
+                      style:
+                        ..style.blockBoxInput:
+                    - type: label
+                      text: "How would you like to pay ?"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.payTeleTemp
+                      iteratorVar: itemObject
+                      style:
+                        ..style.coverageList:
+                        display: ..formData.telePayShow
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            ..style.coverageItem:
+                          children:
+                            - type: image
+                              path:
+                                ..event.payTelePath:
+                              style:
+                                ..style.itemImg:
+                            - type: label
+                              text:
+                              dataKey: itemObject.value
+                              style:
+                                ..style.itemValue:
+                    - type: list
+                      viewTag: visitTag
+                      contentType: listObject
+                      listObject: ..formDataTemp.payVisitTemp
+                      iteratorVar: itemObject
+                      style:
+                        ..style.coverageList:
+                        display: ..formData.visitPayShow
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            ..style.coverageItem:
+                          children:
+                            - type: image
+                              path:
+                                ..event.payTelePath:
+                              style:
+                                ..style.itemImg:
+                            - type: label
+                              text:
+                              dataKey: itemObject.value
+                              style:
+                                ..style.itemValue:
+                - type: view
+                  style:
+                    marginTop: "0.03"
+        - type: view
+          style:
+            ..style.btnBox:
+          children:
+            - type: button
+              text: Done
+              dataKey:
+              style:
+                ..style.btn:
+              onClick:
+                - ..event.btnClick
+    - type: popUp
+      viewTag: imgBlockBigTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333333"
+        top: "0"
+        textAlign:
+          x: "center"
+          y: "center"
+      children:
+        - type: image
+          path: defaultImg.svg
+          path=func: =.builtIn.utils.prepareDocToPath
+          dataKey: formData.showInsuranceImageId
+          style:
+            width: "0.8"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: imgBlockBigTag
+  event:
+    image_showPrimaryInsurance:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.billingInfo.indentification.injury.isUseDefaultInsurance
+                    string2: true
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    imagePath_selectAccident:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.billingInfo.indentification.injury.personalInjuryType
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+          # - actionType: builtIn
+          #   funcName: redraw
+          #   viewTag: tag_personalInjury
+    image_showSecondaryInsurance:
+      emit:
+        actions:
+          - if:
+              - =.Global.Note.name.data.billingInfo.indentification.injury.isUseOtherInsurance
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    raidoPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.billingInfo.medicalInsurance
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    coveragePath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.billingInfo.visitType
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    pathEmit_sex:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.billingInfo.indentification.relationShip.gender
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    pathEmit_genderSecondaryInsurance:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.billingInfo.secondaryInsurance.relationShip.gender
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    payTelePath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.billingInfo.indentification.pay
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    image_uploadFrontInsuranceCard:
+      - actionType: evalObject
+        object:
+          - ..formData.showInsuranceImageId@: =.Global.Note.name.data.billingInfo.indentification.front_InsuranceCard
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: imgBlockBigTag
+      - actionType: popUp
+        popUpView: imgBlockBigTag
+    image_uploadBackInsuranceCard:
+      - actionType: evalObject
+        object:
+          - ..formData.showInsuranceImageId@: =.Global.Note.name.data.billingInfo.indentification.back_InsuranceCard
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: imgBlockBigTag
+      - actionType: popUp
+        popUpView: imgBlockBigTag
+    btnClick:
+      # - goto: MedicalDocuments
+      - goto: =.Global.formData.pageName
+  style:
+    select_stateForSecInsurance:
+      width: "0.21"
+      display: inline-block
+      height: "0.0369"
+      marginLeft: "0.0375"
+      border:
+        style: 1
+      boxSizing: border-box
+      borderRadius: "3"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      textIndent: "12px"
+      verticalAlign: middle
+      backgroundColor: "#f4f4f4"
+      lineHeight: 3.69vh
+    listitem_personalInjury:
+      width: "auto"
+      height: "auto"
+      left: "0"
+      marginTop: "0.0209"
+    list_personalInjury:
+      width: "auto"
+      marginLeft: "0.027"
+      height: auto
+    view_personalInjury:
+      width: "auto"
+      height: "auto"
+      display: inline-block
+    blockInputAlone:
+      height: "0.0369"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+      verticalAlign: "middle"
+    select_secondaryInsurance:
+      marginTop: "0.011"
+      height: "0.0369"
+      width: "0.92"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      textIndent: "12px"
+      verticalAlign: middle
+    label_medicalInsurance:
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      marginTop: "0.0221"
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84852"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.77832"
+      boxSizing: border-box
+      overflow: scroll
+    yesBox:
+      display: "none"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    noBox:
+      display: "none"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0197"
+      lineHeight: "2.58vh"
+    list:
+      margin: "0"
+      marginTop: "0.01724"
+      width: "auto"
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    listItem:
+      display: "inline-block"
+      width: "0.2666"
+      height: "auto"
+      boxSizing: border-box
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.02133"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+    thirdLabel:
+      marginTop: "0.02216"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "#333333"
+      width: "0.92"
+      height: "auto"
+      lineHeight: "2.58vh"
+    coverageList:
+      width: "0.92"
+      margin: "0"
+      height: auto
+      overflow: hidden
+    coverageItem:
+      marginTop: "0.019704"
+      width: "0.92"
+      height: "auto"
+    blockBoxTitle:
+      marginTop: "0.01477"
+      width: "0.92"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      fontWeight: "600"
+    blockRegularTitle:
+      marginTop: "0.01477"
+      width: "0.92"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x333333"
+    blockBoxInput:
+      marginTop: "0.0135467"
+      width: "0.92"
+      height: "auto"
+      borderRadius: "3"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      backgroundColor: "#f4f4f4"
+      padding: "6px 12px"
+      wordBreak: break-word
+      verticalAlign: middle
+      boxSizing: border-box
+    blockBox:
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    blockInput:
+      height: "auto"
+      width: "0.92"
+      boxSizing: border-box
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      padding: "6px 12px"
+      wordBreak: break-word
+      backgroundColor: "#f4f4f4"
+      # verticalAlign: "middle"
+      display: "inline-block"
+      borderRadius: "3"
+    addressInput:
+      height: "auto"
+      width: "0.92"
+      boxSizing: border-box
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      padding: "6px 12px"
+      wordBreak: break-word
+      backgroundColor: "#f4f4f4"
+      # verticalAlign: "middle"
+      # display: "inline-block"
+      borderRadius: "3"
+    boxStyle:
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    cardBox:
+      width: "auto"
+      height: "auto"
+      textAlign:
+        x: left
+      overflow: hidden
+      boxSizing: border-box
+    card:
+      width: "0.38"
+      height: "0.12"
+      boxSizing: border-box
+    cardText:
+      marginTop: "0.01"
+      fontSize: .Nfont.h12
+      color: "#333333"
+      boxSizing: border-box
+    bottomText:
+      marginTop: "0.01"
+      fontSize: .Nfont.h12
+      width: "19.82758vh"
+      textAlign:
+        x: center
+    dateBox:
+      marginTop: "0.0135467"
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+      verticalAlign: middle
+      padding: "6px 12px"
+      wordBreak: break-word
+      backgroundColor: "#f4f4f4"
+      borderRadius: "3"
+    dateInput:
+      display: "inline-block"
+      boxSizing: border-box
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "auto"
+      verticalAlign: middle
+      width: "0.848"
+      backgroundColor: "#f4f4f4"
+      borderRadius: "3"
+    dateImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.02"
+    genterlist:
+      marginTop: "0.020935"
+      height: "auto"
+      width: "auto"
+      axis: horizontal
+    genderListItem:
+      marginRight: "0.096"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    genderItemValue:
+      marginLeft: "0.01"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    state_personalInjury:
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+      display: inline-block

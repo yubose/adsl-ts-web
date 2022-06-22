@@ -1,0 +1,586 @@
+FinancialFormReviewPage1:
+  title: Financial Responsibility Form
+  init:
+    - .SignInCheck
+  formData:
+    showInsuranceImageId: ""
+  formDataTemp:
+    genderTemp:
+      - key: gender
+        value: "Male"
+      - key: gender
+        value: "Female"
+      - key: gender
+        value: "Other"
+  apiRequest:
+
+  components:
+    - type: view
+      style:
+        ..style.formatting:
+      children:
+        - .BasePublicHeader:
+          children:
+            - .BasePublicHeaderLeft:
+            - .BasePublicHeaderTitle:
+        - type: view
+          style:
+            ..style.bodyBox:
+          children:
+            - type: view
+              style:
+                ..style.viewBox:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      text: Identification
+                      dataKey:
+                      style:
+                        ..style.titlelabel:
+                    - type: label
+                      text: "1&nbsp;/&nbsp;2"
+                      dataKey:
+                      style:
+                        ..style.pageNum:
+            - type: scrollView
+              style:
+                ..style.scrollBox:
+              children:
+                - type: label
+                  text: Uploaded ID
+                  dataKey:
+                  style:
+                    ..style.label_uploadedId:
+                - type: view
+                  style:
+                    ..style.cardBox:
+                  onClick:
+                    - ..event.imgShow
+                  children:
+                    - type: image
+                      path: defaultImg.svg
+                      viewTag: front_IDCardTag
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: Global.Note.name.data.patientInfo.identification.imageId
+                      style:
+                        ..style.card:
+
+                - type: view
+                  style:
+                    ..style.contentBox:
+                  children:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                          children:
+                            - type: label
+                              text: First Name
+                              style:
+                                ..style.inputTitle:
+                            - type: label
+                              text: "&nbsp;"
+                              dataKey: Global.Note.name.data.patientInfo.firstName
+                              style:
+                                ..style.input:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.024"
+                          children:
+                            - type: label
+                              text: Middle Name
+                              style:
+                                ..style.inputTitle:
+                            - type: label
+                              text: "&nbsp;"
+                              dataKey: Global.Note.name.data.patientInfo.middleName
+                              style:
+                                ..style.input:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.024"
+                          children:
+                            - type: label
+                              text: Last Name
+                              style:
+                                ..style.inputTitle:
+                            - type: label
+                              text: "&nbsp;"
+                              dataKey: Global.Note.name.data.patientInfo.lastName
+                              style:
+                                ..style.input:
+
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                        marginTop: "0.01477"
+                      children:
+                        - type: label
+                          text: Date of Birth
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: view
+                          viewTag: birthTag
+                          style:
+                            ..style.dateBox:
+                          children:
+                            - type: label
+                              placeholder: Select
+                              dataKey: Global.Note.name.data.patientInfo.dateOfBirth
+                              isEditable: "false"
+                              style:
+                                ..style.dateInput:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                        marginTop: "0.01477"
+                      children:
+                        - type: label
+                          text: ID Type
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "&nbsp;"
+                          dataKey: Global.Note.name.data.patientInfo.identification.type
+                          style:
+                            ..style.blockBoxInput:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                        marginTop: "0.01477"
+                      children:
+                        - type: label
+                          text: "ID #"
+                          dataKey:
+                          style:
+                            ..style.blockBoxTitle:
+                        - type: label
+                          text: "&nbsp;"
+                          dataKey: Global.Note.name.data.patientInfo.identification.id
+                          style:
+                            ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.01477"
+                  children:
+                    - type: label
+                      text: Gender
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                        width: "0.31"
+                    - type: view
+                      style:
+                        ..style.genterlistBox:
+                      children:
+                        - type: list
+                          viewTag: tag_idImage
+                          contentType: listObject
+                          listObject: ..formDataTemp.genderTemp
+                          iteratorVar: itemObject
+                          style:
+                            ..style.genterlist:
+                          children:
+                            - type: listItem
+                              itemObject:
+                              style:
+                                ..style.genderListItem:
+                              children:
+                                - type: image
+                                  path:
+                                    ..event.pathEmit_sex:
+                                  style:
+                                    ..style.itemImg:
+                                - type: label
+                                  text:
+                                  dataKey: itemObject.value
+                                  style:
+                                    ..style.genderItemValue:
+
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.01477"
+                  children:
+                    - type: label
+                      text: "Patient Address"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                        display: "block"
+                        marginTop: "0.0283"
+                    - type: label
+                      text: "&nbsp;"
+                      dataKey: Global.Note.name.data.patientInfo.address.line
+                      style:
+                        ..style.blockInputLong:
+                        marginTop: "0.01"
+                    - type: label
+                      text: "&nbsp;"
+                      dataKey: Global.Note.name.data.patientInfo.address.secondLine
+                      style:
+                        ..style.blockInputLong:
+                        marginTop: "0.01"
+                    - type: view
+                      style:
+                        ..style.InputBox:
+                        marginTop: "0.01"
+                      children:
+                        - type: label
+                          text: "&nbsp;"
+                          dataKey: Global.Note.name.data.patientInfo.address.city
+                          style:
+                            ..style.blockInput:
+                            width: "0.21"
+                        - type: label
+                          text: "&nbsp;"
+                          dataKey: Global.Note.name.data.patientInfo.address.county
+                          style:
+                            ..style.blockInput:
+                            marginLeft: "0.026"
+                            width: "0.21"
+                        - type: label
+                          text: "&nbsp;"
+                          dataKey: Global.Note.name.data.patientInfo.address.state
+                          options: .SelectINformationDM.state
+                          style:
+                            ..style.blockInput:
+                            marginLeft: "0.026"
+                            width: "0.21"
+                        - type: label
+                          text: "&nbsp;"
+                          dataKey: Global.Note.name.data.patientInfo.address.zipCode
+                          style:
+                            ..style.blockInput:
+                            marginLeft: "0.026"
+                            width: "0.21"
+        - type: view
+          style:
+            ..style.btnBox:
+          children:
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.btn:
+              onClick:
+                - ..event.btnClick
+    - type: popUp
+      viewTag: imgBlockBigTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333333"
+        top: "0"
+        textAlign:
+          x: "center"
+          y: "center"
+      children:
+        - type: image
+          path: defaultImg.svg
+          path=func: =.builtIn.utils.prepareDocToPath
+          dataKey: formData.showInsuranceImageId
+          style:
+            width: "0.8"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: imgBlockBigTag
+  event:
+    pathEmit_sex:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.patientInfo.gender
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    imgShow:
+      - actionType: evalObject
+        object:
+          - ..formData.showInsuranceImageId@: =.Global.Note.name.data.patientInfo.identification.imageId
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: imgBlockBigTag
+      - actionType: popUp
+        popUpView: imgBlockBigTag
+    btnClick:
+      - actionType: evalObject
+        object:
+          - goto: FinancialFormReviewPage2
+  style:
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84852"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.77832"
+      boxSizing: border-box
+      overflow: scroll
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+    label_uploadedId:
+      marginTop: "0.0271"
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+    cardBox:
+      marginTop: "0.016009"
+      width: "auto"
+      height: "auto"
+      textAlign:
+        x: left
+      overflow: hidden
+    card:
+      height: "0.198275"
+      width: "31.5270vh"
+      objectFit: contain
+      borderRadius: "4"
+    imgCamera:
+      position: absolute
+      top: "0.15640"
+      left: "27.15517vh"
+      height: "0.0418"
+      width: "4.18vh"
+    contentBox:
+      marginTop: "0.027093"
+      width: "0.92"
+      height: "auto"
+    tipsTitle:
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+    list:
+      width: "1"
+      height: "auto"
+      margin: "0"
+      marginTop: "0.0123"
+    item:
+      width: "1"
+      height: "auto"
+    sign:
+      display: "inline-block"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+    itemValue:
+      marginLeft: "0.02"
+      display: "inline-block"
+      width: "0.9"
+      wordBreak: break-word
+      fontSize: .Nfont.h14
+      color: "#333333"
+      lineHeight: "2.58vh"
+    blockBox:
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    inlineBlock:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+      boxSizing: border-box
+    inputTitle:
+      width: "auto"
+      height: "auto"
+      fontWeight: "600"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+    input:
+      marginTop: "0.006157"
+      width: "0.29066"
+      height: "auto"
+      boxSizing: border-box
+      borderRadius: "3"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      padding: "6px 12px"
+      backgroundColor: "#f4f4f4"
+      wordBreak: break-word
+    blockBoxTitle:
+      display: "inline-block"
+      width: "0.313333"
+      height: "auto"
+      verticalAlign: middle
+      color: "#333333"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+    blockBoxInput:
+      display: "inline-block"
+      width: "0.6053333"
+      height: "auto"
+      boxSizing: border-box
+      borderRadius: "3"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      verticalAlign: middle
+      backgroundColor: "#f4f4f4"
+      padding: "6px 12px"
+      wordBreak: break-word
+    dateBox:
+      display: "inline-block"
+      width: "0.6053333"
+      height: "auto"
+      backgroundColor: "#f4f4f4"
+      boxSizing: border-box
+      verticalAlign: middle
+      padding: "6px 12px"
+    dateInput:
+      boxSizing: border-box
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "auto"
+      verticalAlign: middle
+      width: "0.53333"
+      backgroundColor: "#f4f4f4"
+      wordBreak: break-word
+      borderRadius: "3"
+    dateImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.02"
+    genderListItem:
+      display: "inline-block"
+      width: "0.2"
+      height: "auto"
+      boxSizing: border-box
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    genderItemValue:
+      marginLeft: "0.01"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    genterlistBox:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+    genterlist:
+      height: "auto"
+      width: "0.603"
+      axis: horizontal
+    blockInput:
+      height: "auto"
+      width: "0.92"
+      boxSizing: border-box
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      # verticalAlign: "middle"
+      display: "inline-block"
+      padding: "6px 12px"
+      backgroundColor: "#f4f4f4"
+      wordBreak: break-word
+      borderRadius: "3"
+    blockInputLong:
+      height: "auto"
+      width: "0.92"
+      boxSizing: border-box
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      padding: "6px 12px"
+      backgroundColor: "#f4f4f4"
+      wordBreak: break-word
+      borderRadius: "3"

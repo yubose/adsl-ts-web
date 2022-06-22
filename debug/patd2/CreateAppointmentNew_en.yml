@@ -1,0 +1,981 @@
+CreateAppointmentNew:
+  title: "Change Appointment"
+  init:
+    - .SignInCheck
+    - ..dataObject@: =.Global.roomInfo.edge
+    - =.builtIn.number.transformSubtype:
+        dataIn:
+          subtype: =..dataObject.subtype
+          addition: 1
+        dataOut: CreateAppointmentNew.formData.currentSubtype
+    - ..publicProfile.document.id@: =..dataObject.name.providerId
+    - =..publicProfile.docAPI.get: ""
+    - .Global.ProviderProfile@: =..publicProfile.docResponse.doc.0
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - .Global.formData.patientDoc.status.sharePatientChart@: ""
+    - .Global.visitQuestionnaireDoc@: ""
+    - .Global.vaccine@: []
+    - .Global.vaccineDoc@: []
+    - actionType: evalObject
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: CreateAppointmentNew.calendarDate.year
+    - actionType: evalObject
+      object:
+        #获取当前时间的unix时间戳
+        - =.builtIn.date.getNowLocalUnixTime:
+            dataIn: ""
+            dataOut: CreateAppointmentNew.formData.currentLocalTime
+        #设置可预约时间的scondition
+        - =.builtIn.string.concat:
+            dataIn:
+              - "(etime>"
+              - =..formData.currentLocalTime
+              - " OR "
+              - "stime>="
+              - =..formData.currentLocalTime
+              - ")"
+              - " AND "
+              - "subtype="
+              - =..formData.currentSubtype
+            dataOut: Global.scheduleScondition2
+        - =.CreateAppointmentNew.apiRequest.getFirstAvail.edgeAPI.get: ""
+        - ..formData.isApiRequest@: =..apiRequest.getFirstAvail.response.edge.0
+        - if:
+            - =..formData.isApiRequest.id
+            - actionType: evalObject
+              object:
+                - =.builtIn.date.stampToDay:
+                    dataIn:
+                      timeStamp: =..apiRequest.getFirstAvail.response.edge.0.stime
+                    dataOut: CreateAppointmentNew.formData.adjacentEdgeTime
+                - .CreateAppointmentNew.calendarDate.year@: =.CreateAppointmentNew.formData.adjacentEdgeTime.year
+                - .CreateAppointmentNew.calendarDate.month@: =.CreateAppointmentNew.formData.adjacentEdgeTime.month
+                - .CreateAppointmentNew.calendarDate.day@: =.CreateAppointmentNew.formData.adjacentEdgeTime.day
+            - actionType: evalObject
+              object:
+                - =.builtIn.date.getMonth:
+                    dataIn: ""
+                    dataOut: CreateAppointmentNew.calendarDate.month
+                - =.builtIn.date.getYear:
+                    dataIn: ""
+                    dataOut: CreateAppointmentNew.calendarDate.year
+                - =.builtIn.date.getDate:
+                    dataIn: ""
+                    dataOut: CreateAppointmentNew.calendarDate.day
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =..calendarDate.month
+            dataOut: CreateAppointmentNew.calendarDate.monthName
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - =..calendarDate.year
+              - "-"
+              - =..calendarDate.month
+              - "-"
+              - =..calendarDate.day
+            dataOut: CreateAppointmentNew.calendarDate.todayDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getTimeStampOfDate:
+            dataIn:
+              date: =..calendarDate.todayDate
+            dataOut: CreateAppointmentNew.calendarDate.todayStamp
+        - =..apiRequest.appointment_E1.edgeAPI.get: ""
+        - =.builtIn.array.push:
+            dataIn:
+              messages: =..schedule.edge.id
+              newMessage: =..apiRequest.appointment_E1.edgeQueryResp.edge.0.evid
+            dataOut: CreateAppointmentNew.schedule.edge.id
+        - =.builtIn.array.push:
+            dataIn:
+              messages: =..schedule.edge.id
+              newMessage: =..apiRequest.appointment_E1.edgeQueryResp.edge.0.bvid
+            dataOut: CreateAppointmentNew.schedule.edge.id
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - "(stime<="
+              - =..calendarDate.todayStamp.start
+              - " AND "
+              - "etime>"
+              - =..calendarDate.todayStamp.start
+              - " OR "
+              - "stime>="
+              - =..calendarDate.todayStamp.start
+              - " AND "
+              - "etime<="
+              - =..calendarDate.todayStamp.end
+              - " OR "
+              - "stime<"
+              - =..calendarDate.todayStamp.end
+              - " AND "
+              - "etime>="
+              - =..calendarDate.todayStamp.end
+              - ")"
+              - " AND "
+              - "subtype="
+              - =..formData.currentSubtype
+            dataOut: Global.scheduleScondition
+    - actionType: evalObject
+      object:
+        - =..schedule.get: ""
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =..calendarDate.year
+              month: =..calendarDate.month
+              day: =..calendarDate.day
+            dataOut: CreateAppointmentNew.selectDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.miniWeeklyCalendarArray:
+            dataIn:
+              year: =..calendarDate.year
+              month: =..calendarDate.month
+              today: =..calendarDate.day
+              markDay: =..calendarDate.day
+              color: "0x4b4b4b"
+              backgroundColor: "0xffffff00"
+              todayColor: "0xffffff"
+              todayBackgroundColor: "0x2988e6"
+              pastTimeColor: "0xbababa"
+              currentDateTime: =..calendarDate.todayDate
+            dataOut: CreateAppointmentNew.calendarDate.dayLable
+        - =..visitReason.docAPI.get: ""
+    #1
+    - actionType: evalObject
+      object:
+        ..visitReason.document@: =..visitReason.response.doc.0
+    - actionType: evalObject
+      object:
+        - =..schedule.get: ""
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.splitTime:
+            dataIn:
+              object2: =..schedule.scheduleList.edge
+              timeSlot: =..dataObject.name.duration
+              year: =..calendarDate.year
+              month: =..calendarDate.month
+              day: =..calendarDate.day
+              isSplitCurrent: true
+            dataOut: CreateAppointmentNew.splitTime
+    - =.builtIn.date.getTime:
+        dataIn:
+        dataOut: CreateAppointmentNew.nowTimeStamp
+  splitTime: []
+  reasonForVisit: []
+  temporaryInfo: ""
+  reason: ""
+  duration: ""
+  selectDate: ""
+  visitType: "Telemedicine"
+  docu:
+  clock: ""
+  visitReason:
+    response: ""
+    document:
+      type: .DocType.VisitReason
+      name:
+        data:
+          reasonForVisit: []
+      eid: .Global.rootNotebookID
+    docQueryReq:
+      type: .DocType.VisitReason
+      id: .Global.roomInfo.edge.name.providerId
+      obfname: ctime
+      xfname: ovid
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        api: rd
+        dataIn: CreateAppointmentNew.visitReason.docQueryReq
+        dataOut: CreateAppointmentNew.visitReason.response
+  formData:
+    adjacentEdgeTime: ""
+    doctorId: .Global.roomInfo.edge.evid
+    rootnootbookInfo:
+    rootnootbookId: ""
+    duration: ""
+    nextBtnColor: "0xc1c1c1"
+    currentSubtype: "196609"
+    currentLocalTime: ""
+    isApiRequest:
+      id: ""
+  checkData:
+    check:
+      edge: ""
+    get:
+      edgeAPI.get: ""
+      api: re
+      dataKey: checkData.check
+      id:
+        - .Global.ProviderProfile.bsig
+        - .Global.ProviderProfile.bsig
+      xfname: bvid,evid
+      type: 40000
+      sCondition: "subtype=196609"
+      _nonce: =.Global._nonce
+  save:
+    - =.CreateAppointmentNew.newAppointment.edgeAPI.store: ""
+  # 获取provider信息
+  publicProfile:
+    docResponse: ""
+    document:
+      id: ""
+      xfname: ovid
+      type: .DocType.DoctorPublicProfile
+      maxcount: "1000"
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        api: rd
+        dataIn: publicProfile.document
+        dataOut: publicProfile.docResponse
+  schedule:
+    response: ""
+    scheduleList: ""
+    edge:
+      type: 40000
+      id: []
+      sCondition: =.Global.scheduleScondition
+      xfname: bvid,evid
+      obfname: "stime"
+      asc: true
+      _nonce: =.Global._nonce
+    get:
+      api: re
+      dataIn: CreateAppointmentNew.schedule.edge
+      dataOut: CreateAppointmentNew.schedule.scheduleList
+  todaySchedule: ""
+  calendarDate:
+    month: ""
+    year: ""
+    day: ""
+    dayLable: []
+    weekLabel:
+      - key: SU
+      - key: MO
+      - key: TU
+      - key: WE
+      - key: TH
+      - key: FR
+      - key: SA
+    todayDate: "YYYY-MM-DD"
+    monthName: ""
+    tempDate: ""
+    calendarDate:
+    Scondition: ""
+    todayStamp: ""
+
+  nowTimeStamp: ""
+  apiRequest:
+    # get e1 so that get e1.bvid and evid
+    appointment_E1:
+      edgeQueryReq:
+        ObjType: 4
+        id: .Global.roomInfo.edge.id
+        xfname: E.id
+      edgeQueryResp: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: CreateAppointmentNew.apiRequest.appointment_E1.edgeQueryReq
+          dataOut: CreateAppointmentNew.apiRequest.appointment_E1.edgeQueryResp
+    #获取最近可预约时间段
+    getFirstAvail:
+      response: ""
+      edge:
+        type: 40000
+        id: .Global.roomInfo.edge.evid
+        sCondition: "=.Global.scheduleScondition2"
+        maxcount: "1"
+        xfname: "evid"
+        obfname: "stime"
+        asc: true
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          .EdgeAPI.get: ""
+          api: re
+          dataIn: CreateAppointmentNew.apiRequest.getFirstAvail.edge
+          dataOut: CreateAppointmentNew.apiRequest.getFirstAvail.response
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        width: "1"
+        height: "0.9"
+        top: "0.1"
+      children:
+        - type: view
+          style:
+            width: "0.9"
+            height: "0.2"
+            left: "0.06"
+          children:
+            - type: view
+              style:
+                marginTop: "0.015"
+                height: "0.1"
+              children:
+                - .questionTitle:
+                  text: "Appointment Type"
+                - .questionTextField:
+                  # placeholder: "Telemedicine"
+                  dataKey: dataObject.name.visitType
+                  style:
+                    width: "0.89"
+                    backgroundColor: "0xfafafa"
+            - type: view
+              style:
+                height: "auto"
+                width: "0.9"
+              children:
+                - type: view
+                  style:
+                    width: "0.45"
+                    display: "inline-block"
+                  children:
+                    - .questionTitle:
+                      text: "Reason for Visit"
+                    - .questionTextField:
+                      dataKey: dataObject.name.Reason
+                      style:
+                        width: "0.45"
+                        backgroundColor: "0xfafafa"
+                - type: view
+                  style:
+                    width: "0.25"
+                    display: "inline-block"
+                    marginLeft: "0.05"
+                  children:
+                    - .questionTitle:
+                      text: "Duration (min)"
+                    - .questionTextField:
+                      dataKey: dataObject.name.duration
+                      style:
+                        width: "0.25"
+                        backgroundColor: "0xfafafa"
+                - type: view
+                  style:
+                    width: "0.1"
+                    display: "inline-block"
+                    marginLeft: "0.05"
+                  children:
+                    - .questionTitle:
+                      style:
+                        color: "#2988e6"
+                        textDecoration: underline
+                        marginTop: "0.05"
+        - type: view
+          viewTag: setSchedule
+          style:
+            marginTop: "0.01"
+            height: "auto"
+            width: "1"
+            backgroundColor: "0xe9f2fc"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.01"
+                marginLeft: "0.05"
+                height: "0.04"
+                width: "0.9"
+              children:
+                - type: select
+                  dataKey: calendarDate.monthName
+                  options: .BaseComponents.month
+                  style:
+                    verticalAlign: "middle"
+                    display: "inline-block"
+                    width: "0.15"
+                    height: "0.03"
+                    boxSizing: "border-box"
+                    border:
+                      style: 1
+                    color: "0x474747"
+                    fontSize: .Nfont.h1
+                    backgroundColor: "0xe9f2fc"
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        - .BaseComponents.calendarDate.monthName@: =..calendarDate.monthName
+                        - .BaseComponents.calendarDate.year@: =..calendarDate.year
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =.BaseComponents.calendarDate.monthName
+                              flag: 2
+                            dataOut: CreateAppointmentNew.calendarDate.month
+                        - .BaseComponents.calendarDate.day@: 1
+                        - =.builtIn.date.miniWeeklyCalendarArray:
+                            dataIn:
+                              year: =..calendarDate.year
+                              month: =..calendarDate.month
+                              today: 33
+                              markDay: 1
+                              color: "0x4b4b4b"
+                              backgroundColor: "0xffffff00"
+                              todayColor: "0xffffff"
+                              todayBackgroundColor: "0x2988e6"
+                              pastTimeColor: "0xbababa"
+                            dataOut: CreateAppointmentNew.calendarDate.dayLable
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                - type: select
+                  dataKey: calendarDate.year
+                  options: .BaseComponents.year
+                  style:
+                    verticalAlign: "middle"
+                    display: "inline-block"
+                    marginLeft: "0.02"
+                    width: "0.15"
+                    height: "0.03"
+                    boxSizing: "border-box"
+                    border:
+                      style: 1
+                    color: "0x474747"
+                    fontSize: .Nfont.h1
+                    backgroundColor: "0xe9f2fc"
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        - .BaseComponents.calendarDate.year@: =..calendarDate.year
+                        - =.builtIn.date.transformYear:
+                            dataIn:
+                              year: =..calendarDate.year
+                            dataOut: CreateAppointmentNew.calendarDate.year
+                        - =.builtIn.date.miniWeeklyCalendarArray:
+                            dataIn:
+                              year: =..BaseComponents.calendarDate.year
+                              month: 1
+                              today: 33
+                              markDay: 1
+                              color: "0x4b4b4b"
+                              backgroundColor: "0xffffff00"
+                              todayColor: "0xffffff"
+                              todayBackgroundColor: "0x2988e6"
+                              pastTimeColor: "0xbababa"
+                              currentDateTime: =..calendarDate.todayDate
+                            dataOut: CreateAppointmentNew.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        - .CreateAppointmentNew.calendarDate.month@: 1
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: CreateAppointmentNew.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                - type: label
+                  dataKey: CreateAppointmentNew.selectDate
+                  style:
+                    verticalAlign: "middle"
+                    display: "inline-block"
+
+                    height: "auto"
+                    width: "0.57"
+                    color: "0x474747"
+                    fontSize: .Nfont.h1
+                    textAlign:
+                      x: right
+
+            - type: view
+              style:
+                marginTop: "0.01"
+                height: "auto"
+                width: "1"
+              children:
+                - type: view
+                  style:
+                    display: "inline-block"
+                    height: "0.08"
+                    width: "0.08"
+                    textAlign:
+                      x: center
+                    boxSizing: "border-box"
+                  children:
+                    - type: image
+                      path: leftDate.svg
+                      style:
+                        top: "0.02"
+                        left: "0"
+                        height: "0.05"
+                      onClick:
+                        - emit:
+                            actions:
+                              - =.builtIn.date.LastWeek:
+                                  dataIn:
+                                    year: =..calendarDate.dayLable.0.year
+                                    month: =..calendarDate.dayLable.0.month
+                                    day: =..calendarDate.dayLable.0.day
+                                  dataOut: CreateAppointmentNew.calendarDate.tempDate
+                              - =.builtIn.date.miniWeeklyCalendarArray:
+                                  dataIn:
+                                    year: =..calendarDate.tempDate.year
+                                    month: =..calendarDate.tempDate.month
+                                    today: =..calendarDate.day
+                                    markDay: =..calendarDate.tempDate.day
+                                    color: "0x4b4b4b"
+                                    backgroundColor: "0xffffff00"
+                                    todayColor: "0xffffff"
+                                    todayBackgroundColor: "0x2988e6"
+                                    pastTimeColor: "0xbababa"
+                                    currentDateTime: =..calendarDate.todayDate
+                                  dataOut: CreateAppointmentNew.calendarDate.dayLable
+                        - actionType: evalObject
+                          object:
+                            - ..calendarDate.year@: =..calendarDate.tempDate.year
+                            - ..calendarDate.month@: =..calendarDate.tempDate.month
+                            - =.builtIn.date.transformMonth:
+                                dataIn:
+                                  month: =..calendarDate.month
+                                dataOut: CreateAppointmentNew.calendarDate.monthName
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: setSchedule
+                - type: view
+                  style:
+                    display: "inline-block"
+                    height: "0.08"
+                    width: "0.84"
+                    boxSizing: "border-box"
+                    # backgroundColor: "pink"
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..calendarDate.dayLable
+                      iteratorVar: itemObject
+                      viewTag: calendarColor
+                      style:
+                        axis: horizontal
+                        width: "0.823"
+                        height: "0.08"
+                        boxSizing: "border-box"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            marginLeft: "0"
+                            width: "0.115"
+                            height: "0.08"
+                            boxSizing: "border-box"
+                            backgroundColor: itemObject.backgroundColor
+                            borderRadius: "22px 22px 22px 22px"
+                            overflow: hidden
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..temporaryInfo@: =..calendarDate
+                                - ..formData.temporarySplitTime@: =..splitTime
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - .CreateAppointmentNew.splitTime@: []
+                                  - .CreateAppointmentNew.splitTime@: []
+                                  - ..calendarDate.year@: $var.year
+                                  - ..calendarDate.month@: $var.month
+                                  - ..calendarDate.day@: $var.day
+                                  - =.builtIn.date.ShowDateByNumber:
+                                      dataIn:
+                                        year: =..calendarDate.year
+                                        month: =..calendarDate.month
+                                        day: =..calendarDate.day
+                                      dataOut: CreateAppointmentNew.selectDate
+                                  - =.builtIn.date.transformMonth:
+                                      dataIn:
+                                        month: =..calendarDate.month
+                                      dataOut: CreateAppointmentNew.calendarDate.monthName
+                                  - =.builtIn.string.concat:
+                                      dataIn:
+                                        - =..calendarDate.year
+                                        - "-"
+                                        - =..calendarDate.month
+                                        - "-"
+                                        - $var.day
+                                      dataOut: CreateAppointmentNew.calendarDate.todayDate
+                                  - =.builtIn.date.getTimeStampOfDate:
+                                      dataIn:
+                                        date: =..calendarDate.todayDate
+                                      dataOut: CreateAppointmentNew.calendarDate.todayStamp
+                                  - =.builtIn.date.miniWeeklyCalendarArray:
+                                      dataIn:
+                                        year: $var.year
+                                        month: $var.month
+                                        today: $var.day
+                                        markDay: $var.day
+                                        color: "0x4b4b4b"
+                                        backgroundColor: "0xffffff00"
+                                        todayColor: "0xffffff"
+                                        todayBackgroundColor: "0x2988e6"
+                                        pastTimeColor: "0xbababa"
+                                        currentDateTime: =..calendarDate.todayDate
+                                      dataOut: CreateAppointmentNew.calendarDate.dayLable
+                                  - =.builtIn.string.concat:
+                                      dataIn:
+                                        - "(stime<="
+                                        - =..calendarDate.todayStamp.start
+                                        - " AND "
+                                        - "etime>"
+                                        - =..calendarDate.todayStamp.start
+                                        - " OR "
+                                        - "stime>="
+                                        - =..calendarDate.todayStamp.start
+                                        - " AND "
+                                        - "etime<="
+                                        - =..calendarDate.todayStamp.end
+                                        - " OR "
+                                        - "stime<"
+                                        - =..calendarDate.todayStamp.end
+                                        - " AND "
+                                        - "etime>="
+                                        - =..calendarDate.todayStamp.end
+                                        - ")"
+                                        - " AND "
+                                        - "subtype="
+                                        - =..formData.currentSubtype
+                                      dataOut: Global.scheduleScondition
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.math.greater:
+                                        dataIn:
+                                          num1: =.CreateAppointmentNew.calendarDate.todayStamp.end
+                                          num2: =.CreateAppointmentNew.nowTimeStamp
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: dateCheck
+                                      wait: true
+                                - ..schedule.scheduleList.edge@: []
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =..schedule.get: ""
+                            - actionType: evalObject
+                              object:
+                                - .CreateAppointmentNew.splitTime@: []
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.date.splitTime:
+                                    dataIn:
+                                      object2: =..schedule.scheduleList.edge
+                                      timeSlot: =..dataObject.name.duration
+                                      year: =..calendarDate.year
+                                      month: =..calendarDate.month
+                                      day: =..calendarDate.day
+                                      isSplitCurrent: true
+                                    dataOut: CreateAppointmentNew.splitTime
+                                - if:
+                                    - =.CreateAppointmentNew.splitTime.0.stime
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: noAvailableTag
+                                      wait: true
+                            - actionType: evalObject
+                              object:
+                                - ..clock.bvid@: ""
+                                - if:
+                                    - =..clock.bvid
+                                    - ..formData.nextBtnColor@: "0x2988e6"
+                                    - ..formData.nextBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: splitTimeTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: setSchedule
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: nextBtn
+                          children:
+                            - type: label
+                              dataKey: itemObject.weekDay
+                              style:
+                                marginTop: "0.01"
+                                width: "0.115"
+                                color: itemObject.color
+                                fontSize: .Nfont.h1
+                                textAlign:
+                                  x: center
+                            - type: label
+                              dataKey: itemObject.day
+                              style:
+                                marginTop: "0.01"
+                                width: "0.115"
+                                height: "0.045"
+                                color: itemObject.color
+                                fontSize: .Nfont.h2
+                                borderRadius: "80"
+                                textAlign:
+                                  x: center
+
+                - type: view
+                  style:
+                    display: "inline-block"
+                    height: "0.08"
+                    width: "0.08"
+                    textAlign:
+                      x: center
+                    boxSizing: "border-box"
+                  children:
+                    - type: image
+                      path: rightDate.svg
+                      style:
+                        top: "0.02"
+                        right: "0"
+                        height: "0.05"
+                      onClick:
+                        - emit:
+                            actions:
+                              - =.builtIn.date.NextWeek:
+                                  dataIn:
+                                    year: =..calendarDate.dayLable.6.year
+                                    month: =..calendarDate.dayLable.6.month
+                                    day: =..calendarDate.dayLable.6.day
+                                  dataOut: CreateAppointmentNew.calendarDate.tempDate
+                              - =.builtIn.date.miniWeeklyCalendarArray:
+                                  dataIn:
+                                    year: =..calendarDate.tempDate.year
+                                    month: =..calendarDate.tempDate.month
+                                    today: =..calendarDate.day
+                                    markDay: =..calendarDate.tempDate.day
+                                    color: "0x4b4b4b"
+                                    backgroundColor: "0xffffff00"
+                                    todayColor: "0xffffff"
+                                    todayBackgroundColor: "0x2988e6"
+                                    pastTimeColor: "0xbababa"
+                                    currentDateTime: =..calendarDate.todayDate
+                                  dataOut: CreateAppointmentNew.calendarDate.dayLable
+                        - actionType: evalObject
+                          object:
+                            - ..calendarDate.year@: =..calendarDate.tempDate.year
+                            - ..calendarDate.month@: =..calendarDate.tempDate.month
+                            - =.builtIn.date.transformMonth:
+                                dataIn:
+                                  month: =..calendarDate.month
+                                dataOut: CreateAppointmentNew.calendarDate.monthName
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: setSchedule
+            - type: view
+              style:
+                marginTop: "0.02"
+
+        - type: view
+          style:
+            top: "0.4"
+            left: "0"
+            width: "1"
+            height: "0.42"
+          viewTag: splitTimeTag
+          children:
+            # - type: label
+            #   text: "Morning"
+            #   style:
+            #     left: "0.4"
+            #     top: "0.03"
+            #     width: "0.4"
+            #     height: "0.04"
+            #     color: "#808080"
+            #     fontSize: "20"
+            - .BaseList:
+              androidGrid: true
+              listObject: ..splitTime
+              style:
+                height: "0.41"
+                width: "0.9"
+                left: "0.05"
+                overflow: scroll
+                backgroundColor: "0xffffff"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    # top: "0"
+                    width: "0.29"
+                    height: "0.07"
+                    display: "inline-block"
+                  children:
+                    - type: label
+                      dataKey: itemObject.showTime
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - ..clock@: $var
+                              - .Global.clock@: $var
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.date.getTime:
+                                dataIn:
+                                dataOut: MobileContacts.nowTimeStamp
+                            - if:
+                                - =.builtIn.math.greater:
+                                    dataIn:
+                                      num1: =..clock.stime
+                                      num2: =..nowTimeStamp
+                                - continue
+                                - actionType: popUp
+                                  popUpView: check
+                                  wait: true
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.object.setProperty:
+                                dataIn:
+                                  obj: =..splitTime
+                                  label: "showTime"
+                                  text: =..clock.showTime
+                                  arr: ["backgroundColor", "fontColor"]
+                                  valueArr: ["0x2988e6", "0xffffff"]
+                                  errorArr: ["0xffffff", "0x474747"]
+                                dataOut: CreateAppointmentNew.splitTime
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =..clock.bvid
+                                - ..formData.nextBtnColor@: "0x2988e6"
+                                - ..formData.nextBtnColor@: "0xc1c1c1"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: splitTimeTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: nextBtn
+                      style:
+                        width: "0.25"
+                        height: "0.05"
+                        # top: "0.01"
+                        left: "0.03"
+                        fontWeight: "400"
+                        zIndex: "10"
+                        color: itemObject.fontColor
+                        fontSize: .Nfont.h15
+                        backgroundColor: itemObject.backgroundColor
+                        borderRadius: "6"
+                        boxSizing: "border-box"
+                        borderWidth: "1"
+                        border:
+                          style: 3
+                        borderColor: "0xdededf"
+                        textAlign:
+                          x: center
+                          y: center
+        - type: button
+          text: "Next"
+          viewTag: nextBtn
+          style:
+            top: "0.83"
+            left: "0.1"
+            width: "0.8"
+            height: "0.045"
+            fontWeight: "500"
+
+            fontSize: .Nfont.h3
+            color: "0xffffff"
+            backgroundColor: ..formData.nextBtnColor
+            borderWidth: "1"
+            border:
+              style: 3
+            borderColor: ..formData.nextBtnColor
+            borderRadius: "2"
+            textAlign:
+              x: center
+              y: center
+          onClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.date.getTime:
+                    dataIn:
+                    dataOut: MobileContacts.nowTimeStamp
+                - if:
+                    - =.builtIn.math.greater:
+                        dataIn:
+                          num1: =..clock.stime
+                          num2: =..nowTimeStamp
+                    - continue
+                    - actionType: popUp
+                      popUpView: check
+                      wait: true
+            - actionType: evalObject
+              object:
+                - .Global.formData.appointment.visitType@: =..dataObject.name.visitType
+                - .Global.formData.appointment.selectDate@: =..selectDate
+                - .Global.formData.appointment.duration@: =..dataObject.name.duration
+                - .Global.formData.appointment.docu@: =..dataObject.name.document
+                - .Global.formData.appointment.reason@: =..dataObject.name.Reason
+            - goto: CreateAppointmentNewNext
+    - .TipsMultiLine:
+      viewTag: noAvailableTag
+      message: "There is no appointment available"
+      onClick:
+        - actionType: evalObject
+          object:
+            - ..calendarDate@: =..temporaryInfo
+            - ..temporaryInfo@: ""
+            - =.builtIn.date.ShowDateByNumber:
+                dataIn:
+                  year: =..calendarDate.year
+                  month: =..calendarDate.month
+                  day: =..calendarDate.day
+                dataOut: CreateAppointmentNew.selectDate
+        - actionType: popUpDismiss
+          popUpView: __.viewTag
+
+    - .TipsMultiLine:
+      viewTag: dateCheck
+      message: "Please don't choose the past time"
+      onClick:
+        - actionType: evalObject
+          object:
+            - ..calendarDate@: =..temporaryInfo
+            - ..temporaryInfo@: ""
+            - =.builtIn.date.ShowDateByNumber:
+                dataIn:
+                  year: =..calendarDate.year
+                  month: =..calendarDate.month
+                  day: =..calendarDate.day
+                dataOut: CreateAppointmentNew.selectDate
+        - actionType: popUpDismiss
+          popUpView: __.viewTag
+    - .SoftTips:
+      message: Please don't select the past time
+      viewTag: check

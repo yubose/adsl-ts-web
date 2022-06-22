@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="40.881" viewBox="0 0 50 40.881">
+  <g id="reception-desk" transform="translate(0 -14.59)">
+    <path id="Path_4927" data-name="Path 4927" d="M29.5,343.938H73.814V330H29.5Zm29.51-10.77h8.824V335.7H59.01Zm0,5.068h8.824v2.534H59.01ZM47.245,335.7h2.941v-2.534h2.941V335.7h2.941v2.534H53.127v2.534H50.186v-2.534H47.245ZM35.48,333.168H44.3V335.7H35.48Zm0,5.068H44.3v2.534H35.48Z" transform="translate(-26.608 -288.467)" fill="#3c58a0"/>
+    <ellipse id="Ellipse_500" data-name="Ellipse 500" cx="4.639" cy="4.088" rx="4.639" ry="4.088" transform="translate(33.403 14.59)" fill="#1886ea"/>
+    <path id="Path_4928" data-name="Path 4928" d="M317.647,112.6c0-4.192-3.958-7.6-8.824-7.6S300,108.41,300,112.6v2.534h17.647Z" transform="translate(-270.588 -82.472)" fill="#4fabf7"/>
+    <path id="Path_4929" data-name="Path 4929" d="M53.824,46.472h2.941V43.938h8.824V30H45V43.938h8.824Z" transform="translate(-40.588 -13.808)" fill="#29abe2"/>
+    <path id="Path_4930" data-name="Path 4930" d="M0,255H50v3.8H0Z" transform="translate(0 -219.802)" fill="#1071bc"/>
+  </g>
+</svg>
