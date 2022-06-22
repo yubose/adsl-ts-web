@@ -153,12 +153,13 @@ componentResolver.setResolver(async (component, options, next) => {
       if (
         u.isStr(dataObjects) &&
         ((iteratorVar && dataObjects.startsWith(iteratorVar)) ||
-          dataObjects.startsWith('itemObject'))
+          dataObjects.startsWith(iteratorVar))
       ) {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
         dataObjects = get(findListDataObject(component), dataKey)
       }
+
       if (u.isArr(dataObjects)) {
         const numDataObjects = dataObjects.length
         for (let index = 0; index < numDataObjects; index++) {
@@ -202,7 +203,6 @@ componentResolver.setResolver(async (component, options, next) => {
           dataObject = getByRef(opts.getRoot(),_ref,pageName )
         }
         let listObject =
-          // component.blueprint.listObject || component.get('listObject')  
           dataObject ||
           component.blueprint.listObject ||
           component.get('listObject')
@@ -217,13 +217,15 @@ componentResolver.setResolver(async (component, options, next) => {
         let dataObject = getListObject(options,parentParentList)
         if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
           const parentDataObject = getData(parentParentList,options)
-          let dataKey: any = parentListObject.toString()
-          dataKey = excludeIteratorVar(parentListObject, iteratorVar)
-          dataObject = excludeIteratorVar(parentDataObject, dataKey)
+          let dataKey: any = dataObject.toString()
+          dataKey = excludeIteratorVar(dataKey, 'itemObject')
+          dataObject = get(parentDataObject, dataKey)
         }
-        return dataObject[parentIndex]
+        if(u.isArr(dataObject)){
+          return dataObject[parentIndex]
+        }
+        return
       }
-
       let iteratorVar = findIteratorVar(component)
       const currentIndex = context?.index
       const parentList = component.parent as NuiComponent.Instance
@@ -236,9 +238,10 @@ componentResolver.setResolver(async (component, options, next) => {
       }
 
       const currentDataObject = parentListObject[currentIndex]
-      if(context){
+      if(context && currentDataObject){
         context['dataObject'] = currentDataObject
       }
+      
 
     }
     /* -------------------------------------------------------
