@@ -435,12 +435,23 @@ const componentsResolver: t.Resolve.Config = {
         else if (Identify.component.label(args.component)) {
           if (args.node) {
             if (args.component.get(c.DATA_VALUE)) {
-              let content = String(args.component.get(c.DATA_VALUE))
-              content =
-                content.indexOf('\n') !== -1
-                  ? content.replace(/\n/g, '<br>')
-                  : content
-              setAttr('innerHTML', content)
+              const datavalue = args.component.get(c.DATA_VALUE)
+              if(typeof(datavalue.then) === 'function'){
+                datavalue.then?.((content: string) => {
+                  content =
+                    content.indexOf('\n') !== -1
+                      ? content.replace(/\n/g, '<br>')
+                      : content
+                  setAttr('innerHTML', content)
+                })
+              }else{
+                let content = String(datavalue)
+                content =
+                  content.indexOf('\n') !== -1
+                    ? content.replace(/\n/g, '<br>')
+                    : content
+                setAttr('innerHTML', content)
+              }
             } else if (text) {
               setAttr('innerHTML', String(text))
             } else if (args.component.get(c.DATA_PLACEHOLDER)) {
