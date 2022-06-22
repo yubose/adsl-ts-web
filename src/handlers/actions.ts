@@ -624,7 +624,7 @@ const createActions = function createActions(app: App) {
 
           if(Boolean(shearState)){
             const hreFile = await getBlob(files?.[0],action,options);
-            fileRell = new File([hreFile],files?.[0].name as string,{type: files?.[0].type})
+            fileRell = new File([hreFile],files?.[0].name as string,(!(files?.[0].type.includes("svg"))?{type: files?.[0].type} as FilePropertyBag:undefined))
           }
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
@@ -632,6 +632,7 @@ const createActions = function createActions(app: App) {
               const status = (documentType as string[])?.some(
                 (item) => item === files?.[0]?.['type'].split('/')[1],
               )
+              ac.data.set(downloadStatus,status)
               app.updateRoot(downloadStatus, status)
             }
             if (fileFormat) {
