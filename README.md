@@ -148,6 +148,7 @@ NUI.emit({
 | admin       | 7144480995 | Baby2020!   |        |
 | admin       | 5594215342 | Family3496  | toni   |                  |
 | admin       | 8864210047 | aitmed      | toni   |                  |
+| admind      | 8865550418 | 123         |        | chenchen         |
 | admind2     | 8860000301 |             |        |
 | admind2     | 8865509773 | 123         |        |
 | admind2     | 8866006001 | password    |        |
