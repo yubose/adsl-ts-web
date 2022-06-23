@@ -153,12 +153,13 @@ componentResolver.setResolver(async (component, options, next) => {
       if (
         u.isStr(dataObjects) &&
         ((iteratorVar && dataObjects.startsWith(iteratorVar)) ||
-          dataObjects.startsWith('itemObject'))
+          dataObjects.startsWith(iteratorVar))
       ) {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
         dataObjects = get(findListDataObject(component), dataKey)
       }
+
       if (u.isArr(dataObjects)) {
         const numDataObjects = dataObjects.length
         for (let index = 0; index < numDataObjects; index++) {
@@ -184,6 +185,70 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
+    if(is.component.listItem(component)){
+      function getListObject(opts: ConsumerOptions,component:NuiComponent.Instance) {
+        let page = opts.page
+        let pageName = ''
+        if (u.isStr(page)) {
+          pageName = page
+          page = opts.getRootPage()
+        } else if (isNuiPage(page)) {
+          pageName = page.page
+        }
+        const _ref = u.isStr(component?.props?._ref_)?
+                        component?.props?._ref_:
+                        component?.blueprint?._ref_
+        let dataObject
+        if (u.isStr(_ref) && is.reference(_ref)) {
+          dataObject = getByRef(opts.getRoot(),_ref,pageName )
+        }
+        let listObject =
+          dataObject ||
+          component.blueprint.listObject ||
+          component.get('listObject')
+        return listObject
+      }
+      function getData(component:NuiComponent.Instance,options){
+        let newComponent = component
+        while(!is.component.listItem(newComponent)){
+          newComponent = newComponent.parent as NuiComponent.Instance
+        }
+        const parentItem = newComponent
+        const parentIndex = parentItem.get('index')?
+                              parentItem.get('index'):
+                              parentItem.get('listIndex')
+        const parentParentList = parentItem?.parent as NuiComponent.Instance
+        let dataObject = getListObject(options,parentParentList)
+        if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
+          const parentDataObject = getData(parentParentList,options)
+          let dataKey: any = dataObject.toString()
+          dataKey = excludeIteratorVar(dataKey, 'itemObject')
+          dataObject = get(parentDataObject, dataKey)
+        }
+
+        if(u.isArr(dataObject)){
+          return dataObject[parentIndex]
+        }
+        return
+      }
+      let iteratorVar = findIteratorVar(component)
+      const currentIndex = context?.index
+      const parentList = component.parent as NuiComponent.Instance
+      let parentListObject = getListObject(options,parentList)
+      if(u.isStr(parentListObject) && parentListObject.startsWith(iteratorVar)){
+        const listObject = getData(parentList,options)
+        let dataKey: any = parentListObject.toString()
+        dataKey = excludeIteratorVar(parentListObject, iteratorVar)
+        parentListObject = get(listObject,dataKey)
+      }
+
+      const currentDataObject = parentListObject[currentIndex]
+      if(context && currentDataObject){
+        context['dataObject'] = currentDataObject
+      }
+      
+
+    }
     /* -------------------------------------------------------
       ---- PAGE
     -------------------------------------------------------- */
@@ -500,7 +565,6 @@ componentResolver.setResolver(async (component, options, next) => {
     /* -------------------------------------------------------
       ---- CHILDREN
     -------------------------------------------------------- */
-
     // Children of list components are created by the lib.
     // All other children are handled here
     if (!isListLike(component) && !is.component.page(component)) {
