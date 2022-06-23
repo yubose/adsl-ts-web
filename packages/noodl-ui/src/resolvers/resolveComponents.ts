@@ -209,7 +209,11 @@ componentResolver.setResolver(async (component, options, next) => {
         return listObject
       }
       function getData(component:NuiComponent.Instance,options){
-        const parentItem = component.parent as NuiComponent.Instance
+        let newComponent = component
+        while(!is.component.listItem(newComponent)){
+          newComponent = newComponent.parent as NuiComponent.Instance
+        }
+        const parentItem = newComponent
         const parentIndex = parentItem.get('index')?
                               parentItem.get('index'):
                               parentItem.get('listIndex')
@@ -221,6 +225,7 @@ componentResolver.setResolver(async (component, options, next) => {
           dataKey = excludeIteratorVar(dataKey, 'itemObject')
           dataObject = get(parentDataObject, dataKey)
         }
+
         if(u.isArr(dataObject)){
           return dataObject[parentIndex]
         }
