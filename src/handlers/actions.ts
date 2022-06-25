@@ -644,7 +644,7 @@ const createActions = function createActions(app: App) {
                 // CSV标题汉字所对应的区分名
                // 构建文件读取对象
               let jsonFromCsvFile = await requireCsv(files,dataKey,ac,comp);
-              ac.data.set(dataKey, {"fileName":files?.[0]?.name,"data":jsonFromCsvFile});
+              ac.data.set(dataKey, {"name":files?.[0]?.name,"data":jsonFromCsvFile});
               app.updateRoot(dataKey, ac.data.get(dataKey))
               break;
             }else{
