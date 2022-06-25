@@ -77,6 +77,9 @@ export function getSdkHelpers(app: App) {
     get initExtend() {
       return extendedSdkBuiltIns.initExtend.bind(app)
     },
+    get routeRediredct() {
+      return app.builtIns.get('routeRediredct')?.find(Boolean)?.fn
+    },
     get initAutoDC() {
       return extendedSdkBuiltIns.initAutoDC.bind(app)
     },

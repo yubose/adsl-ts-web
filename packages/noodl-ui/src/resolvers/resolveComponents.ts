@@ -243,7 +243,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
 
       const currentDataObject = parentListObject[currentIndex]
-      if(context && currentDataObject){
+      if(context && u.isArr(currentDataObject)){
         context['dataObject'] = currentDataObject
       }
       
