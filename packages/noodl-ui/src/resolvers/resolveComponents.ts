@@ -43,6 +43,7 @@ componentResolver.setResolver(async (component, options, next) => {
     getRootPage,
     on,
     page,
+    createActionChain,
     resolveComponents,
   } = options
   
@@ -59,7 +60,7 @@ componentResolver.setResolver(async (component, options, next) => {
   try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
-    const { contentType, dataKey, path, text, textBoard } = original
+    const { contentType, dataKey, path, text, textBoard,validateField } = original
     const iteratorVar =
       context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
     /* -------------------------------------------------------
@@ -533,6 +534,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
+    //
     /* -------------------------------------------------------
       ---- TIMERS (LABEL)
     -------------------------------------------------------- */
@@ -560,6 +562,26 @@ componentResolver.setResolver(async (component, options, next) => {
       } else {
         u.isObj(dataObject) && set(dataObject, dataKey, dataValue)
       }
+    }
+    
+    /* -------------------------------------------------------
+      ---- ValidateField
+    -------------------------------------------------------- */
+    if(validateField){
+      const actionChain = createActionChain('validateField', [
+        { emit: validateField.emit, actionType: 'emit' },
+      ])
+      on?.actionChain && actionChain.use(on.actionChain)
+      const result = await actionChain.execute()
+      const status = result?.[0]?.result
+      if(status){
+        component.blueprint.style = original.validateClass
+        component.props.style = original.validateClass
+      }else{
+        component.blueprint.style = original.usuallyClass
+        component.props.style = original.usuallyClass
+      }
+      console.log('test9',component,result)
     }
 
     /* -------------------------------------------------------
