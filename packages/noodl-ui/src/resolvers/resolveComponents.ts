@@ -186,6 +186,9 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
+    /* -------------------------------------------------------
+      ---- ITEM
+    -------------------------------------------------------- */
     if(is.component.listItem(component)){
       function getListObject(opts: ConsumerOptions,component:NuiComponent.Instance) {
         let page = opts.page
@@ -219,16 +222,18 @@ componentResolver.setResolver(async (component, options, next) => {
                               parentItem.get('index'):
                               parentItem.get('listIndex')
         const parentParentList = parentItem?.parent as NuiComponent.Instance
-        let dataObject = getListObject(options,parentParentList)
-        if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
-          const parentDataObject = getData(parentParentList,options)
-          let dataKey: any = dataObject.toString()
-          dataKey = excludeIteratorVar(dataKey, 'itemObject')
-          dataObject = get(parentDataObject, dataKey)
-        }
+        if(is.component.listLike(parentParentList)){
+          let dataObject = getListObject(options,parentParentList)
+          if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
+            const parentDataObject = getData(parentParentList,options)
+            let dataKey: any = dataObject.toString()
+            dataKey = excludeIteratorVar(dataKey, 'itemObject')
+            dataObject = get(parentDataObject, dataKey)
+          }
 
-        if(u.isArr(dataObject)){
-          return dataObject[parentIndex]
+          if(u.isArr(dataObject)){
+            return dataObject[parentIndex]
+          }
         }
         return
       }
@@ -244,7 +249,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
 
       const currentDataObject = parentListObject[currentIndex]
-      if(context && u.isArr(currentDataObject)){
+      if(context && u.isObj(currentDataObject)){
         context['dataObject'] = currentDataObject
       }
       
