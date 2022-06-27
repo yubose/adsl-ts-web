@@ -43,6 +43,7 @@ componentResolver.setResolver(async (component, options, next) => {
     getRootPage,
     on,
     page,
+    createActionChain,
     resolveComponents,
   } = options
   
@@ -59,7 +60,7 @@ componentResolver.setResolver(async (component, options, next) => {
   try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
-    const { contentType, dataKey, path, text, textBoard } = original
+    const { contentType, dataKey, path, text, textBoard,validateField } = original
     const iteratorVar =
       context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
     /* -------------------------------------------------------
@@ -185,6 +186,9 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
+    /* -------------------------------------------------------
+      ---- ITEM
+    -------------------------------------------------------- */
     if(is.component.listItem(component)){
       function getListObject(opts: ConsumerOptions,component:NuiComponent.Instance) {
         let page = opts.page
@@ -218,16 +222,18 @@ componentResolver.setResolver(async (component, options, next) => {
                               parentItem.get('index'):
                               parentItem.get('listIndex')
         const parentParentList = parentItem?.parent as NuiComponent.Instance
-        let dataObject = getListObject(options,parentParentList)
-        if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
-          const parentDataObject = getData(parentParentList,options)
-          let dataKey: any = dataObject.toString()
-          dataKey = excludeIteratorVar(dataKey, 'itemObject')
-          dataObject = get(parentDataObject, dataKey)
-        }
+        if(is.component.listLike(parentParentList)){
+          let dataObject = getListObject(options,parentParentList)
+          if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
+            const parentDataObject = getData(parentParentList,options)
+            let dataKey: any = dataObject.toString()
+            dataKey = excludeIteratorVar(dataKey, 'itemObject')
+            dataObject = get(parentDataObject, dataKey)
+          }
 
-        if(u.isArr(dataObject)){
-          return dataObject[parentIndex]
+          if(u.isArr(dataObject)){
+            return dataObject[parentIndex]
+          }
         }
         return
       }
@@ -243,7 +249,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
 
       const currentDataObject = parentListObject[currentIndex]
-      if(context && currentDataObject){
+      if(context && u.isObj(currentDataObject)){
         context['dataObject'] = currentDataObject
       }
       
@@ -533,6 +539,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
+    //
     /* -------------------------------------------------------
       ---- TIMERS (LABEL)
     -------------------------------------------------------- */
@@ -560,6 +567,26 @@ componentResolver.setResolver(async (component, options, next) => {
       } else {
         u.isObj(dataObject) && set(dataObject, dataKey, dataValue)
       }
+    }
+    
+    /* -------------------------------------------------------
+      ---- ValidateField
+    -------------------------------------------------------- */
+    if(validateField){
+      const actionChain = createActionChain('validateField', [
+        { emit: validateField.emit, actionType: 'emit' },
+      ])
+      on?.actionChain && actionChain.use(on.actionChain)
+      const result = await actionChain.execute()
+      const status = result?.[0]?.result
+      if(status){
+        component.blueprint.style = original.validateClass
+        component.props.style = original.validateClass
+      }else{
+        component.blueprint.style = original.usuallyClass
+        component.props.style = original.usuallyClass
+      }
+      console.log('test9',component,result)
     }
 
     /* -------------------------------------------------------

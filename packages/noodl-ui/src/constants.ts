@@ -13,6 +13,7 @@ export const lib = {
     'dataKey',
     'dataValue',
     'path',
+    'validateField',
     'placeholder',
     'postMessage',
     'dataOption',
