@@ -158,7 +158,8 @@ componentResolver.setResolver(async (component, options, next) => {
       ) {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
-        dataObjects = get(findListDataObject(component), dataKey)
+        const originData = findListDataObject(component) || context?.dataObject
+        dataObjects = get(originData, dataKey)
       }
 
       if (u.isArr(dataObjects)) {
@@ -217,7 +218,7 @@ componentResolver.setResolver(async (component, options, next) => {
         while(!is.component.listItem(newComponent)){
           newComponent = newComponent.parent as NuiComponent.Instance
         }
-        const parentItem = newComponent
+        const parentItem = newComponent as NuiComponent.Instance
         const parentIndex = parentItem.get('index')?
                               parentItem.get('index'):
                               parentItem.get('listIndex')
@@ -231,7 +232,7 @@ componentResolver.setResolver(async (component, options, next) => {
             dataObject = get(parentDataObject, dataKey)
           }
 
-          if(u.isArr(dataObject)){
+          if(parentIndex && u.isArr(dataObject)){
             return dataObject[parentIndex]
           }
         }
@@ -247,8 +248,11 @@ componentResolver.setResolver(async (component, options, next) => {
         dataKey = excludeIteratorVar(parentListObject, iteratorVar)
         parentListObject = get(listObject,dataKey)
       }
-
-      const currentDataObject = parentListObject[currentIndex]
+      
+      let currentDataObject
+      if(currentIndex && u.isArr(parentListObject)){
+        currentDataObject = parentListObject[currentIndex]
+      }
       if(context && u.isObj(currentDataObject)){
         context['dataObject'] = currentDataObject
       }
@@ -586,7 +590,6 @@ componentResolver.setResolver(async (component, options, next) => {
         component.blueprint.style = original.usuallyClass
         component.props.style = original.usuallyClass
       }
-      console.log('test9',component,result)
     }
 
     /* -------------------------------------------------------
