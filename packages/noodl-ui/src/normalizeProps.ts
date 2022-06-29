@@ -478,6 +478,10 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
               styleValue = getByRef(styleValue, {
                 ...getHelpers({ rootKey: isLocal ? pageName : undefined }),
               })
+              if(styleKey === "autoplay"){
+                //@ts-ignore
+              blueprint.autoplay = styleValue;
+              }
             }
 
             if (s.isKeyRelatedToWidthOrHeight(styleValue)) {
