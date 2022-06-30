@@ -54,14 +54,14 @@ const getRoot = () => ({
   },
 })
 
-describe.only(`Extractor`, () => {
-  describe.only(`[for of] should iterate over the root`, () => {
+describe(`Extractor`, () => {
+  describe(`[for of] should iterate over the root`, () => {
     xit(``, () => {
       //
     })
   })
 
-  describe.only(`doc`, () => {
+  describe(`doc`, () => {
     it(
       `should be able to collect all assets using the DocIterator, ` +
         `DocVisitor, FileStructure, LinkStructure, and ObjAccumulator`,
