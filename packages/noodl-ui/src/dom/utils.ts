@@ -617,6 +617,9 @@ export const findFirstByViewTag = makeFindFirstBy<string>((doc, viewTag) =>
 export const findFirstByDataOption = makeFindFirstBy<string>((doc, dataOption) =>
   doc.querySelector(`[data-option="${dataOption}"]`),
 )
+export const findFirstByVideoOption = makeFindFirstBy<string>((doc, videoOption) =>
+  doc.querySelector(`[video-option="${videoOption}"]`),
+)
 export const findFirstByElementId = makeFindFirstBy<
   t.NuiComponent.Instance | string
 >((doc, c) => doc.getElementById(u.isStr(c) ? c : c?.id))
