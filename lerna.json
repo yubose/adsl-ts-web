@@ -2,7 +2,7 @@
   "command": {
     "bootstrap": {
       "hoist": true,
-      "ignore": ["noodl-loader"]
+      "ignore": ["noodl-loader", "noodl-builder"]
     },
     "create": {
       "license": "MIT"
@@ -20,7 +20,6 @@
     "packages/homepage",
     "packages/gatsby-plugin-noodl",
     "packages/noodl-action-chain",
-    "packages/noodl-builder",
     "packages/noodl-core",
     "packages/noodl-yaml",
     "packages/noodl-file",

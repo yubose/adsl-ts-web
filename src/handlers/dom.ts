@@ -1519,7 +1519,10 @@ const createExtendedDOMResolvers = function (app: App) {
             },
             loop?:boolean
           }
+
           const dataValue = component.get('data-value') as (({[key in string]:any}|string)[]);
+          const videoData = component.get('video-option');
+          // console.log(videoData,"kkkk")
             const option:optionSetting  = component.get('data-option') as {[key in string]:any};
             node.setAttribute('class', 'swiper-container');
             let listDom: HTMLUListElement = document.createElement('ul');
@@ -1533,7 +1536,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     videoDom.src = dataValue[index]?.["path"];
                     videoDom.setAttribute("controls","controls");
                     videoDom.setAttribute("preload","auto");
-                    // videoDom.setAttribute("poster","https://public.aitmed.com/cadl/www3.83/assets/backgroundBlack.png");
+                    videoDom.setAttribute("poster",videoData);
                     videoDom.setAttribute("width",node.style.width);
                     videoDom.setAttribute("height",node.style.height);
                     liDom.appendChild(videoDom);
@@ -1554,7 +1557,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     videoDom.src = dataValue[index] as string;
                     videoDom.setAttribute("controls","controls");
                     videoDom.setAttribute("preload","auto");
-                    // videoDom.setAttribute("poster","https://public.aitmed.com/cadl/www3.83/assets/backgroundBlack.png");
+                    videoDom.setAttribute("poster",videoData[0]);
                     videoDom.setAttribute("width",node.style.width);
                     videoDom.setAttribute("height",node.style.height);
                     liDom.appendChild(videoDom);

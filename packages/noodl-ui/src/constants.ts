@@ -17,6 +17,7 @@ export const lib = {
     'placeholder',
     'postMessage',
     'dataOption',
+    'videoOption',
     'register',
   ],
   dataAttributes: [
@@ -114,6 +115,7 @@ export const trigger = {
   ON_MOUSEENTER: 'onMouseEnter',
   ON_MOUSELEAVE: 'onMouseLeave',
   DATA_OPTION: 'dataOption',
+  VIDEO_OPTION: 'videoOption',
   ON_MOUSEOUT: 'onMouseOut',
   ON_MOUSEOVER: 'onMouseOver',
   ON_LAZYLOADING: 'onLazyLoading',

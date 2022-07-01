@@ -41,6 +41,23 @@ export function promise<V = any>(value: unknown): value is Promise<V> {
   return value !== null && typeof value === 'object' && 'then' in value
 }
 
+export function stringInArray(arr: any[], value: unknown) {
+  if (Array.isArray(arr) && typeof value === 'string') {
+    return arr.some((item) => item === value)
+  }
+  return false
+}
+
 export function url(value: unknown): boolean {
-  return typeof value === 'string' && regex.url.test(value)
+  if (typeof value !== 'string') return false
+
+  let url
+
+  try {
+    url = new URL(value)
+  } catch (_) {
+    return false
+  }
+
+  return url.protocol === 'http:' || url.protocol === 'https:'
 }
