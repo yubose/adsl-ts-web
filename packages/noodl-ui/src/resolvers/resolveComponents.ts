@@ -583,12 +583,12 @@ componentResolver.setResolver(async (component, options, next) => {
       on?.actionChain && actionChain.use(on.actionChain)
       const result = await actionChain.execute()
       const status = result?.[0]?.result
-      if(status){
-        component.blueprint.style = original.validateClass
-        component.props.style = original.validateClass
+      if(status===true || status==='true'){
+        component.blueprint.style = cloneDeep(original.validateClass)
+        component.props.style = cloneDeep(original.validateClass)
       }else{
-        component.blueprint.style = original.usuallyClass
-        component.props.style = original.usuallyClass
+        component.blueprint.style = cloneDeep(original.usuallyClass)
+        component.props.style = cloneDeep(original.usuallyClass)
       }
     }
 
