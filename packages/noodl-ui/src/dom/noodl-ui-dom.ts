@@ -668,6 +668,7 @@ class NDOM extends NDOMInternal {
       this.page ||
       this.createPage({ id: component?.id || node?.id })
     let parent = component?.parent
+    let index = component.get('index') || 0
 
     try {
       if (component) {
@@ -703,9 +704,11 @@ class NDOM extends NDOMInternal {
           newComponent.setParent(parent)
           parent.createChild(newComponent)
         }
+        if(index){
+          newComponent.edit({index})
+        }
 
         this.removeComponent(component)
-
         newComponent = await nui.resolveComponents?.({
           callback: options?.callback,
           components: newComponent,
