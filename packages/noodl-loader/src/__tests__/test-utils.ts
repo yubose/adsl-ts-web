@@ -1,6 +1,35 @@
+import path from 'path'
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 
 export const ui = { ...actionFactory, ...componentFactory }
+
+export function getFixturePath(...paths: string[]) {
+  return path.join(__dirname, 'fixtures', ...paths)
+}
+
+export function getPathToConfig() {
+  return getFixturePath('meetd2.yml')
+}
+
+export function getPathToCadlEndpoint() {
+  return getFixturePath('cadlEndpoint.yml')
+}
+
+export function getPathToBaseCss() {
+  return getFixturePath('BaseCSS.yml')
+}
+
+export function getPathToBaseDataModel() {
+  return getFixturePath('BaseDataModel.yml')
+}
+
+export function getPathToBasePage() {
+  return getFixturePath('BasePage.yml')
+}
+
+export function getPathToSignInPage() {
+  return getFixturePath('SignIn.yml')
+}
 
 export function getRoot() {
   const root = {

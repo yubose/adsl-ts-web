@@ -7,10 +7,19 @@ import nock from 'nock'
 import sinon from 'sinon'
 import y from 'yaml'
 import { ensureExt } from 'noodl-file'
+import {
+  getFixturePath,
+  getPathToBaseCss,
+  getPathToBaseDataModel,
+  getPathToBasePage,
+  getPathToConfig,
+  getPathToCadlEndpoint,
+  getPathToSignInPage,
+} from './test-utils'
 import loadFiles from '../utils/loadFiles'
 import Loader from '../Loader'
 import loadFile from '../utils/loadFile'
-import Loaderv2 from '../Loaderv2'
+import Loaderv2 from '../Loader/Loader'
 import * as c from '../constants'
 
 const meetd2yml = fs.readFileSync(path.join(__dirname, './fixtures/meetd2.yml'))
@@ -79,20 +88,19 @@ async function init(
 
 describe.only(`Loaderv2`, () => {
   describe(`when loading by url`, () => {
-    it(``, async () => {
+    xit(``, async () => {
       const loader = new Loaderv2()
-      const filepathToConfig = path.join(__dirname, './fixtures/meetd2.yml')
       const url = `https://public.aitmed.com/cadl/admindd8.28/SideMenuBarDM_en.yml`
 
-      const loaded = await loader.load(filepathToConfig)
+      const loaded = await loader.load(getPathToConfig())
       console.log(loader.root)
     })
 
-    xit(`should load root config props`, () => {
+    xit(`should load root config props`, async () => {
       //
     })
 
-    xit(`should load app config props`, () => {
+    xit(`should load app config props`, async () => {
       //
     })
 
@@ -106,19 +114,65 @@ describe.only(`Loaderv2`, () => {
   })
 
   describe(`when loading by file path`, () => {
-    xit(`should load root config props`, () => {
-      //
+    it(`should load root config props`, async () => {
+      const loader = new Loaderv2()
+      loader.config.configKey = 'meetd2'
+      await loader.load(getPathToConfig())
+      expect(loader.config.apiHost).to.eq('albh2.aitmed.io')
+      expect(loader.config.apiPort).to.eq('443')
+      expect(loader.config.viewWidthHeightRatio).to.have.property('min', 0.56)
+      expect(loader.config.viewWidthHeightRatio).to.have.property('max', 0.7)
+      expect(loader.config.webApiHost).to.eq('apiHost')
+      expect(loader.config.appApiHost).to.eq('apiHost')
+      expect(loader.config).to.have.property('loadingLevel', 1)
+      expect(loader.config.baseUrl).to.eq('http://127.0.0.1:3001/')
+      expect(loader.config.appKey).to.eq('cadlEndpoint.yml')
+      expect(loader.config).to.have.property('timestamp').to.eq(5272021)
     })
 
-    xit(`should load app config props`, () => {
-      //
+    it(`should load app config props`, async () => {
+      const loader = new Loaderv2()
+      loader.config.configKey = 'meetd2'
+      await loader.load(getPathToConfig())
+      await loader.load(getPathToCadlEndpoint())
+      expect(loader.cadlEndpoint.assetsUrl).to.eq(`\${cadlBaseUrl}assets/`)
+      expect(loader.cadlEndpoint.baseUrl).to.eq(`\${cadlBaseUrl}`)
+      expect(loader.cadlEndpoint.languageSuffix).to.be.an('object')
+      expect(loader.cadlEndpoint.fileSuffix).to.eq('.yml')
+      expect(loader.cadlEndpoint.startPage).to.eq('SignIn')
+      expect(loader.cadlEndpoint.preload).to.be.an('array')
+      expect(loader.cadlEndpoint.pages).to.be.an('array')
+      expect(loader.cadlEndpoint.preload).to.include.members([
+        'BasePage',
+        'BaseCSS',
+        'BaseDataModel',
+      ])
+      expect(loader.cadlEndpoint.pages).to.include.members([
+        'AboutAitmed',
+        'AddContact',
+        'DocumentNotes',
+        'EditContact',
+        'ReferenceTest',
+      ])
     })
 
-    xit(`should load preload urls`, () => {
-      //
+    it.only(`should load preload files`, async () => {
+      const loader = new Loaderv2()
+      loader.config.configKey = 'meetd2'
+      await loader.load(getPathToConfig())
+      await loader.load(getPathToCadlEndpoint())
+      expect(loader.root).not.to.have.property('Style')
+      expect(loader.root).not.to.have.property('ImageStyle')
+      expect(loader.root).not.to.have.property('LabelStyle')
+      await loader.load(getPathToBaseCss())
+      console.log(loader.root)
+      console.log(getPathToBaseCss())
+      // expect(loader.root).to.have.property('Style')
+      // expect(loader.root).to.have.property('ImageStyle')
+      // expect(loader.root).to.have.property('LabelStyle')
     })
 
-    xit(`should load page urls`, () => {
+    xit(`should load page files`, () => {
       //
     })
   })
