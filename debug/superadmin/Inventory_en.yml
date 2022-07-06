@@ -11,9 +11,10 @@ Inventory:
         .Global._nonce@:
           =.builtIn.math.random: "" 
     - =..apiRequest.production.docAPI.get: ""
+    - ..formData.productList@: =..apiRequest.production.docResp.doc
     - =.builtIn.array.splitTableList: 
         dataIn: 
-          arrObj: =..apiRequest.production.docResp.doc
+          arrObj: =..formData.productList
           numX: "12"
           numY: "1"
         dataOut: Inventory.formData.tableData
@@ -37,6 +38,16 @@ Inventory:
           errorArr: ["0xffffff"]
         dataOut: Inventory.formData.tableList
   formData: #Input data here
+    csvData: []
+    continueBtnColor: "0xc1c1c1"
+    csvRespData: {}
+    csvFileName: "" 
+    importCsvShow: "none"  # 判断是否显示导出csv的弹窗
+    uploadCsvShow: "block"
+    uploadSuccessShow: "none"
+    productList: []    # 列表显示的product list
+    searchInputInfo: ""   # 输入框输入的内容
+    searchDeleteShow: "none"   # 控制是否显示清空搜索内容的图片
     statusHiddenOrShow: "0"
     vendorHiddenOrShow: "0"
     updateCondition: 
@@ -63,7 +74,17 @@ Inventory:
     vendorList: 
       - name: "All"
       - name: "No Vendors Created"
-
+    csvData: [
+          "Handle", "Title",
+          "Standardized Product Type","Vendor",
+          "Product Status","Introduction",
+          "Image Src","Image Position","Price","Cost per item","MRSP","Tax","SKU","Barcode","Inventory Policy",
+          "Inventory Count","Requires Shipping","Length","Width",
+          "Height","Length Unit","Weight","Weight Unit","Option1 Name",
+          "Option1 Value","Option2 Name","Option2 Value","Option3 Name","Option3 Value",
+          "Option4 Name","Option4 Value","Variant Price","Variant Stock","Variant SKU",
+          "Variant Barcode"
+              ]
     previewProductList: 
       - variants: Regular
         sku: 1234567123456
@@ -99,7 +120,7 @@ Inventory:
           dataIn: Inventory.apiRequest.production.deleteReq
 
 
-  event: 
+  event:  
     vendorArrow: 
       - actionType: popUp
         popUpView: vendorTag
@@ -190,6 +211,13 @@ Inventory:
                     alignItems: center
                   children: 
                     - type: view
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..formData.importCsvShow@: "block"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: importProductTag
                       style:
                         ..style.btnView:
                       children:
@@ -242,8 +270,9 @@ Inventory:
                   children:
                     # search patient
                     - type: view
+                      viewTag: searchTag
                       style:
-                        width: "0.285"
+                        width: "0.295"
                         height: "auto"
                         display: inline-block
                         marginTop: "0.02"
@@ -263,128 +292,222 @@ Inventory:
                             marginTop: "0.009"
                             display: inline-block
                         - .TransactionsTextField: ""
-                          placeHolder: Search product name or keyword
-                          dataKey: 
+                          placeholder: Search by product name, status, type, vendor
+                          dataKey: formData.searchInputInfo
+                          onInput:
+                            - actionType: evalObject
+                              object:
+                                - if: 
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.searchInputInfo
+                                        string2: "" 
+                                  - actionType: evalObject
+                                    object:
+                                      - ..formData.searchDeleteShow@: "none"
+                                      - ..formData.productList@: =..apiRequest.production.docResp.doc
+                                  - actionType: evalObject
+                                    object:
+                                      - ..formData.searchDeleteShow@: "inline-block"
+                                      - =.builtIn.array.vagueFilterArrayByPath:
+                                          dataIn:
+                                            objArr: =..apiRequest.production.docResp.doc
+                                            path: ["name.data.basicInfo.title","name.data.basicInfo.type","name.data.basicInfo.vendor","name.data.basicInfo.productStatus.value"]
+                                            compareStr: =..formData.searchInputInfo
+                                          dataOut: Inventory.formData.productList   
+                                - ..formData.tablePageNum@: "1"   
+                                - =.builtIn.array.splitTableList: 
+                                    dataIn: 
+                                      arrObj: =..formData.productList
+                                      numX: "12"
+                                      numY: =..formData.tablePageNum
+                                    dataOut: Inventory.formData.tableData
+                                - ..formData.tableList@: =..formData.tableData.0 
+                                - =.builtIn.array.setPropertyInterlacedChange:
+                                    dataIn:
+                                      arrIn: =..formData.tableList
+                                      arr: ["backgroundColor"]
+                                      valueArr: ["0xf5f5f5"]
+                                      errorArr: ["0xffffff"]
+                                    dataOut: Inventory.formData.tableList
+                                - =.builtIn.string.concat: 
+                                    dataIn: 
+                                      - =..formData.tablePageNum
+                                      - " / "
+                                      - =..formData.tableData.1
+                                    dataOut: Inventory.formData.tableCurrentPage # current page
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableFooter
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: deleteSearchTag                                                       
                           style:
                             width: "0.252"
                             marginLeft: "0.005"
                             display: inline-block
                             border: none
-                    # vendor
-                    - type: view
-                      style:
-                        width: "auto"
-                        marginLeft: "0.016"
-                        display: inline-block
-                        marginTop: "0.02"
-                      children:
-                        - type: label
-                          text: Vendor
-                          dataKey: 
+                        - type: image
+                          path: deleteGrayCircle.svg
+                          viewTag: deleteSearchTag
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..formData.searchInputInfo@: ""
+                                - ..formData.searchDeleteShow@: "none"
+                                - ..formData.productList@: =..apiRequest.production.docResp.doc
+                                - ..formData.tablePageNum@: "1"   
+                                - =.builtIn.array.splitTableList: 
+                                    dataIn: 
+                                      arrObj: =..formData.productList
+                                      numX: "12"
+                                      numY: =..formData.tablePageNum
+                                    dataOut: Inventory.formData.tableData
+                                - ..formData.tableList@: =..formData.tableData.0 
+                                - =.builtIn.array.setPropertyInterlacedChange:
+                                    dataIn:
+                                      arrIn: =..formData.tableList
+                                      arr: ["backgroundColor"]
+                                      valueArr: ["0xf5f5f5"]
+                                      errorArr: ["0xffffff"]
+                                    dataOut: Inventory.formData.tableList
+                                - =.builtIn.string.concat: 
+                                    dataIn: 
+                                      - =..formData.tablePageNum
+                                      - " / "
+                                      - =..formData.tableData.1
+                                    dataOut: Inventory.formData.tableCurrentPage # current page                                
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableFooter
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: searchTag    
                           style:
-                            fontSize: .Nfont.n6
-                            display: inline-block
-                            marginTop: "0.005"
-                            marginRight: "0.006"
-                            textAlign:
-                              y: center
-                        - type: view
-                          style:
-                            display: inline-block
-                          onClick:  
-                            - ..event.vendorArrow
-                          children: 
-                            - .TransactionsTextField: ""
-                              viewTag: vendorTextFiledTag
-                              placeholder: Select
-                              isEditable: false
-                              dataKey: formData.updateCondition.vendorSelected.list
-                              style:
-                                width: "0.118"
-                                fontSize: .Nfont.nf2
-                                backgroundColor: "#ffffff"
-                                paddingRight: "3em"
-                            - type: image
-                              viewTag: vendorBlackArrowTag
-                              path:
-                                emit:
-                                  dataKey:
-                                      var: itemObject
-                                  actions:  
-                                    - if: 
-                                      - =.builtIn.string.equal:
-                                          dataIn:
-                                            string1: =..formData.vendorHiddenOrShow
-                                            string2: "0"
-                                      - downArrowDeepGray.svg
-                                      - upArrowDeepGray.svg.svg
-                              style:
-                                ..style.arrowCondition: ""
-                    # status
-                    - type: view
-                      style:
-                        width: "auto"
-                        marginLeft: "0.016"
-                        display: inline-block
-                        marginTop: "0.02"
-                      children:
-                        - type: label
-                          text: Status
-                          dataKey: 
-                          style:
-                            fontSize: .Nfont.n6
-                            display: inline-block
-                            marginTop: "0.005"
-                            marginRight: "0.006"
-                            textAlign:
-                              y: center
-                        - type: view
-                          style:
-                            display: inline-block
-                          onClick:  
-                            - ..event.statusArrow
-                          children: 
-                            - .TransactionsTextField: ""
-                              viewTag: statusTextFiledTag
-                              placeholder: Select
-                              isEditable: false
-                              dataKey: formData.updateCondition.statusSelected.list
-                              style:
-                                width: "0.117"
-                                fontSize: .Nfont.nf2
-                                backgroundColor: "#ffffff"
-                                paddingRight: "3em"
-                            - type: image
-                              viewTag: statusBlackArrowTag
-                              path:
-                                emit:
-                                  dataKey:
-                                      var: itemObject
-                                  actions:  
-                                    - if: 
-                                      - =.builtIn.string.equal:
-                                          dataIn:
-                                            string1: =..formData.statusHiddenOrShow
-                                            string2: "0"
-                                      - downArrowDeepGray.svg
-                                      - upArrowDeepGray.svg.svg
-                              style:
-                                ..style.arrowCondition: ""
-                                left: "0.1015"
-                    # update
-                    - type: button
-                      text: Update
-                      style:
-                        ..style.updateBtn: ""
-                      onClick:
-                        - actionType: evalObject
-                          object:
-                    # revise
-                    - type: label
-                      text: Revise
-                      dataKey: 
-                      style:
-                        ..style.reviseBtn: ""
+                            width: "0.009"
+                            marginTop: "0.009"
+                            display: ..formData.searchDeleteShow
+                    # # vendor
+                    # - type: view
+                    #   style:
+                    #     width: "auto"
+                    #     marginLeft: "0.016"
+                    #     display: inline-block
+                    #     marginTop: "0.02"
+                    #   children:
+                    #     - type: label
+                    #       text: Vendor
+                    #       dataKey: 
+                    #       style:
+                    #         fontSize: .Nfont.n6
+                    #         display: inline-block
+                    #         marginTop: "0.005"
+                    #         marginRight: "0.006"
+                    #         textAlign:
+                    #           y: center
+                    #     - type: view
+                    #       style:
+                    #         display: inline-block
+                    #       onClick:  
+                    #         - ..event.vendorArrow
+                    #       children: 
+                    #         - .TransactionsTextField: ""
+                    #           viewTag: vendorTextFiledTag
+                    #           placeholder: Select
+                    #           isEditable: false
+                    #           dataKey: formData.updateCondition.vendorSelected.list
+                    #           style:
+                    #             width: "0.118"
+                    #             fontSize: .Nfont.nf2
+                    #             backgroundColor: "#ffffff"
+                    #             paddingRight: "3em"
+                    #         - type: image
+                    #           viewTag: vendorBlackArrowTag
+                    #           path:
+                    #             emit:
+                    #               dataKey:
+                    #                   var: itemObject
+                    #               actions:  
+                    #                 - if: 
+                    #                   - =.builtIn.string.equal:
+                    #                       dataIn:
+                    #                         string1: =..formData.vendorHiddenOrShow
+                    #                         string2: "0"
+                    #                   - downArrowDeepGray.svg
+                    #                   - upArrowDeepGray.svg.svg
+                    #           style:
+                    #             ..style.arrowCondition: ""
+                    # # status
+                    # - type: view
+                    #   style:
+                    #     width: "auto"
+                    #     marginLeft: "0.016"
+                    #     display: inline-block
+                    #     marginTop: "0.02"
+                    #   children:
+                    #     - type: label
+                    #       text: Status
+                    #       dataKey: 
+                    #       style:
+                    #         fontSize: .Nfont.n6
+                    #         display: inline-block
+                    #         marginTop: "0.005"
+                    #         marginRight: "0.006"
+                    #         textAlign:
+                    #           y: center
+                    #     - type: view
+                    #       style:
+                    #         display: inline-block
+                    #       onClick:  
+                    #         - ..event.statusArrow
+                    #       children: 
+                    #         - .TransactionsTextField: ""
+                    #           viewTag: statusTextFiledTag
+                    #           placeholder: Select
+                    #           isEditable: false
+                    #           dataKey: formData.updateCondition.statusSelected.list
+                    #           style:
+                    #             width: "0.117"
+                    #             fontSize: .Nfont.nf2
+                    #             backgroundColor: "#ffffff"
+                    #             paddingRight: "3em"
+                    #         - type: image
+                    #           viewTag: statusBlackArrowTag
+                    #           path:
+                    #             emit:
+                    #               dataKey:
+                    #                   var: itemObject
+                    #               actions:  
+                    #                 - if: 
+                    #                   - =.builtIn.string.equal:
+                    #                       dataIn:
+                    #                         string1: =..formData.statusHiddenOrShow
+                    #                         string2: "0"
+                    #                   - downArrowDeepGray.svg
+                    #                   - upArrowDeepGray.svg.svg
+                    #           style:
+                    #             ..style.arrowCondition: ""
+                    #             left: "0.1015"
+                    # # update
+                    # - type: button
+                    #   text: Update
+                    #   style:
+                    #     ..style.updateBtn: ""
+                    #   onClick:
+                    #     - actionType: evalObject
+                    #       object:
+                    # # revise
+                    # - type: label
+                    #   text: Revise
+                    #   dataKey: 
+                    #   style:
+                    #     ..style.reviseBtn: ""
 
 
                 # Table
@@ -423,22 +546,27 @@ Inventory:
                           text: Product 
                           style: 
                             ..style.inventoryHeaderStyle: 
-                            width: "0.259"
+                            width: "0.248"
                         - type: label
                           text: Status
                           style: 
                             ..style.inventoryHeaderStyle: 
-                            width: "0.071"
+                            width: "0.067"
                         - type: label
                           text: Inventory 
                           style: 
                             ..style.inventoryHeaderStyle: 
-                            width: "0.12"
+                            width: "0.067"
+                        - type: label
+                          text: Options
+                          style: 
+                            ..style.inventoryHeaderStyle: 
+                            width: "0.121"
                         - type: label
                           text: Type
                           style: 
                             ..style.inventoryHeaderStyle: 
-                            width: "0.132"
+                            width: "0.075"
                         - type: label
                           text: Vendor 
                           style: 
@@ -491,24 +619,30 @@ Inventory:
                             - type: label
                               dataKey: itemObject.name.data.basicInfo.title
                               style: 
-                                width: "0.259" 
+                                width: "0.248" 
                                 ..style.inventoryBodyStyle: ""
                             - type: label
                               dataKey: itemObject.name.data.basicInfo.productStatus.value
                               style: 
-                                width: "0.071" 
+                                width: "0.067" 
                                 ..style.inventoryBodyStyle: ""
                                 color: itemObject.name.data.basicInfo.productStatus.color
-
                             - type: label
-                              dataKey: itemObject.name.data.inventory.inventoryCount
+                              
+                              dataKey: itemObject.name.title
                               style: 
-                                width: "0.12"
+                                width: "0.067"
+                                ..style.inventoryBodyStyle: ""   
+                            - type: label
+                              text: No Options
+                              dataKey: itemObject.name.data.options.optionSpliceStr
+                              style: 
+                                width: "0.121"
                                 ..style.inventoryBodyStyle: ""   
                             - type: label
                               dataKey: itemObject.name.data.basicInfo.type
                               style: 
-                                width: "0.132" 
+                                width: "0.075" 
                                 ..style.inventoryBodyStyle: ""
                             - type: label
                               dataKey: itemObject.name.data.basicInfo.vendor
@@ -610,7 +744,7 @@ Inventory:
                                           dataOut: Inventory.formData.tablePageNum
                                       - =.builtIn.array.splitTableList: 
                                           dataIn: 
-                                            arrObj: =..apiRequest.production.docResp.doc
+                                            arrObj: =..formData.productList
                                             numX: "12"
                                             numY: =..formData.tablePageNum
                                           dataOut: Inventory.formData.tableData
@@ -676,7 +810,7 @@ Inventory:
                                           dataOut: Inventory.formData.tablePageNum # update page num
                                       - =.builtIn.array.splitTableList: 
                                           dataIn: 
-                                            arrObj: =..apiRequest.production.docResp.doc
+                                            arrObj: =..formData.productList
                                             numX: "12"
                                             numY: =..formData.tablePageNum
                                           dataOut: Inventory.formData.tableData
@@ -769,7 +903,7 @@ Inventory:
                                           object: 
                                             - =.builtIn.array.splitTableList: 
                                                 dataIn: 
-                                                  arrObj: =..apiRequest.production.docResp.doc
+                                                  arrObj: =..formData.productList
                                                   numX: "12"
                                                   numY: =..formData.gotoPageNum
                                                 dataOut: Inventory.formData.tableData
@@ -958,12 +1092,13 @@ Inventory:
                         marginTop: "0.011"
                         fontSize: .Nfont.n6_1_2
         # import product
-        - type: popUp
+        - type: view
           viewTag: importProductTag
           style:
             top: "0"
             width: "1"
             height: "1"
+            display: ..formData.importCsvShow
             backgroundColor: "0x00000033"
             zIndex: "10"
           children:
@@ -1000,7 +1135,13 @@ Inventory:
                     marginTop: "0.014"
                   children:
                     - type: label
-                      text: "Please select a CSV file to upload. "
+                      textBoard:
+                        - text: Download a 
+                        - text: " "
+                        - text: AiTmed CSV template
+                          color: "0x005795"
+                        - text: " "
+                        - text: to see an example of the format required
                       dataKey: 
                       style:
                         fontSize: .Nfont.nf3
@@ -1022,7 +1163,7 @@ Inventory:
                   children: 
                     - type: view
                       style:
-                        display: none
+                        display: ..formData.uploadCsvShow
                       children: 
                         - type: view
                           style:
@@ -1054,9 +1195,26 @@ Inventory:
                           children: 
                             - type: button
                               text: Upload
+                              dataOption: Inventory.formDataTemp.csvData
                               onClick: 
+                                - actionType: openPhotoLibrary
+                                  dataObject: BLOB
+                                  dataKey: Inventory.formData.csvRespData 
                                 - actionType: evalObject
                                   object:
+                                    - ..formData.uploadCsvShow@: "none"
+                                    - ..formData.uploadSuccessShow@: "block"
+                                    - ..formData.continueBtnColor@: "0x005795"
+                                    - ..formData.csvFileName@: =..formData.csvRespData.fileName
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: uploadView
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: fileNameTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: btnView
                               style:
                                 width: "0.1" 
                                 height: "0.04" 
@@ -1074,7 +1232,7 @@ Inventory:
                                   y: center
                     - type: view
                       style:
-                        display: 
+                        display: ..formData.uploadSuccessShow
                       children: 
                         - type: label
                           text: "Uploaded File:"
@@ -1104,7 +1262,7 @@ Inventory:
                                     width: "0.008"
                                     display: "inline-block"
                                 - type: label
-                                  text: ABC Store CSV product list.xlsx
+                                  dataKey: formData.csvFileName
                                   style: 
                                     display: "inline-block"
                                     fontSize: .Nfont.nf0
@@ -1197,6 +1355,7 @@ Inventory:
                         marginLeft: "0.005"
                         color: "#595959"
                 - type: view
+                  viewTag: btnView
                   style:
                     marginTop: "0.032"
                     width: "0.305"
@@ -1220,10 +1379,61 @@ Inventory:
                     - type: button
                       text: Continue
                       onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.handleProductionCsvData:  
+                                dataIn:
+                                  originalArray: =..formData.csvRespData.data    
+                                dataOut: Inventory.formData.csvData 
+                                              
+                            - =.builtIn.ecos.createDocList:
+                                dataIn:
+                                  dataArray: =..formData.csvData
+                                  type: 197121
+                                  eid: =.Global.rootNotebookID
+                                  reid: ""  
+                            - =..apiRequest.production.docAPI.get: ""
+                            - ..formData.productList@: =..apiRequest.production.docResp.doc
+                            - =.builtIn.array.splitTableList: 
+                                dataIn: 
+                                  arrObj: =..formData.productList
+                                  numX: "12"
+                                  numY: "1"
+                                dataOut: Inventory.formData.tableData
+                            - ..formData.tableList@: =..formData.tableData.0
+                            - ..formData.tablePageNum@: "1"
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.tablePageNum # page num
+                                  - " / "
+                                  - =..formData.tableData.1 # total page
+                                dataOut: Inventory.formData.tableCurrentPage # current page                           
+                            - =.builtIn.number.addition: # get totalPage+1 to verify legitimacy of gotoPageNum
+                                dataIn:
+                                  num: =..formData.tableData.1
+                                  step: "1"
+                                dataOut: Inventory.formData.totalPageMore # update page num 
+                            - =.builtIn.array.setPropertyInterlacedChange:
+                                dataIn:
+                                  arrIn: =..formData.tableList
+                                  arr: ["backgroundColor"]
+                                  valueArr: ["0xf5f5f5"]
+                                  errorArr: ["0xffffff"]
+                                dataOut: Inventory.formData.tableList                                                         
                         - actionType: popUpDismiss
                           popUpView: importProductTag # 
-                        - actionType: popUp
-                          popUpView: unSupportedFileTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableFooter
+                        # - actionType: popUp
+                        #   popUpView: unSupportedFileTag
                       style:
                         marginLeft: "0.02"
                         border:
@@ -1234,7 +1444,7 @@ Inventory:
                         fontSize: .Nfont.nf3
                         width: "0.055"
                         height: "0.038"
-                        backgroundColor: "#c1c1c1"
+                        backgroundColor: ..formData.continueBtnColor
                         fontWeight: "600"
                         textAlign:
                           x: center     
@@ -1523,15 +1733,16 @@ Inventory:
                           - =..apiRequest.production.docAPI.delete: ""
                           - =.builtIn.array.removeById:
                               dataIn:
-                                object: =..apiRequest.production.docResp.doc
+                                object: =..formData.productList
                                 id: =..apiRequest.production.deleteReq.id
                           - =.builtIn.array.splitTableList: 
                               dataIn: 
-                                arrObj: =..apiRequest.production.docResp.doc
+                                arrObj: =..formData.productList
                                 numX: "12"
                                 numY: "1"
                               dataOut: Inventory.formData.tableData
                           - ..formData.tableList@: =..formData.tableData.0
+                          - ..formData.tablePageNum@: '1'
                           - =.builtIn.string.concat:
                               dataIn:
                                 - =..formData.tablePageNum # page num
@@ -1552,10 +1763,12 @@ Inventory:
                               dataOut: Inventory.formData.tableList
                     - actionType: builtIn
                       funcName: redraw
-                      viewTag: tableView   
+                      viewTag: tableFooter   
                     - actionType: popUpDismiss
                       popUpView: deleteProductTag
-  
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableView   
   
   
   

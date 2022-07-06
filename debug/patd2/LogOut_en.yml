@@ -1,0 +1,335 @@
+LogOut: # This is page name
+  module: patient
+  pageNumber: "65" # xd page 10
+  emptyVertex:
+    vertex: ""
+  init:
+    - .SignInCheck
+
+    - =.builtIn.math.greater:
+        dataIn:
+          num1: =.Global.PasswordExpireTime
+          num2: =.Global.currentDateTime
+        dataOut: LogOut.formData.passOk
+  formData:
+    password: ""
+    sk: ""
+    pass: ""
+    isCheck: false
+    passOk: ""
+  save:
+    - =.builtIn.eccNaCl.decryptAES:
+        dataIn:
+          key: =..formData.password
+          message: =.Global.currentUser.vertex.esk
+        dataOut: LogOut.formData.sk
+    - =.builtIn.eccNaCl.skCheck:
+        dataIn:
+          pk: =.Global.currentUser.vertex.pk
+          sk: =..formData.sk
+        dataOut: LogOut.formData.pass  
+    - if:
+      - =..formData.isCheck
+      - =.builtIn.math.add:
+          dataIn:
+            num1: =.Global.currentDateTime
+            num2: 86400
+          dataOut: Global.PasswordExpireTime
+      - actiontype: evalObject
+        object:
+          .Global.PasswordExpireTime@: "0"
+  components:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: view
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000088"
+        - type: view
+          style:
+            left: "0.08"
+            top: "0.21798"
+            width: "0.84"
+            height: "0.57221"
+            backgroundColor: "0xffffffff"
+            border:
+              style: "5"
+            borderRadius: "8"
+          children:
+            - type: label
+              text: "Confirm your password:"
+              style:
+                color: "0x00000058"
+                left: "0.04"
+                top: "0.04"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "14"
+            - type: label
+              text: "Reset Password"
+              style:
+                left: "0.58"
+                top: "0.035"
+                width: "0.7"
+                height: "0.04"
+                fontSize: "10"
+                color: "0x388eccff"
+                textAlign:
+                  y: center 
+              onClick:
+                - goto: SettingsUpdate                 
+            - type: view
+              style:
+                left: "0.04"
+                top: "0.075"
+                width: "0.76"
+                height: "0.13624"
+              children:    
+                  - type: textField
+                    contentType: password
+                    #placeholder: "Enter password here"
+                    dataKey: formData.password
+                    required: "true"
+                    style:
+                      fontSize: "14"
+                      left: "0.0"
+                      top: "0.0"
+                      width: "0.76"
+                      height: "0.05449"
+                      border:
+                        style: "2"
+                        width: "1"
+                        color: "0x00000088"
+                  - type: label
+                    contentType: messageHidden
+                    text: "Password Incorrect"
+                    # dataKey: formData.password
+                    style:
+                      fontSize: "14"
+                      left: "0"
+                      top: "0.11"
+                      width: "0.76"
+                      height: "0.04"
+                      color: "0xff0000ff" 
+                      isHidden: "true"
+                      textAlign:
+                        x: center
+                        y: center 
+                  - type: image
+                    viewTag: select
+                    path: 
+                      emit:
+                        actions:
+                          - if:
+                              - =..formData.isCheck
+                              - selectOn.svg
+                              - selectOff.svg
+                    onClick:
+                      # - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      #   dataKey: ContactsList.contactInfo.document
+                      #   dataObject: itemObject # this must be a rootRoom
+                      - emit:
+                          dataKey: 
+                            var: ..formData
+                          actions:
+                            - if:
+                                - $var.isCheck
+                                - =.builtIn.object.set:
+                                    dataIn:
+                                      object: $var
+                                      key: isCheck
+                                      value: false
+                                - =.builtIn.object.set:
+                                    dataIn:
+                                      object: $var
+                                      key: isCheck
+                                      value: true
+                      - actionType: builtIn
+                        funcName: redraw
+                        viewTag: select
+                    style:
+                      height: "0.035"
+                      width: "0.035"
+                      top: "0.071"
+                      left: "0.0"        
+                  - type: label
+                    text: 'Remember password for "Lock/Log out" in next 24 hours'
+                    style:
+                      fontSize: "14"
+                      left: "0.06"
+                      top: "0.071"
+                      width: "0.7"
+                      height: "auto"
+                      color: "0x000000"
+                      textAlign:
+                        y: center                         
+            - type: view
+              style:
+                left: "0.04"
+                top: "0.21"
+                width: "0.76"
+                height: "0.115"
+                shadow: "true"
+              children:
+                  - type: image
+                    path: lock.svg
+                    style:
+                      left: "0.02667"
+                      top: "0.01"
+                      height: "0.04"                 
+                  - type: button
+                    text: Lock application
+                    onClick: 
+                      - actionType: evalObject
+                        object: 
+                          - if:
+                            - =..formData.passOk
+                            - ..formData.pass@: true
+                            - actionType: evalObject
+                              object: ..save
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =..formData.pass
+                            - continue
+                            - actionType: builtIn
+                              funcName: checkField
+                              contentType: messageHidden
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =..formData.pass
+                            - .Global.currentUser.vertex.sk@ : "" 
+                            - continue
+                      - actionType: evalObject
+                        object:
+                          - if:  
+                            - =..formData.pass       
+                            - goto: SignIn
+                            - continue
+                    style:
+                      left: "0.16"
+                      top: "0.01362"
+                      width: "0.58667"
+                      height: "0.04087"
+                      border:
+                        style: "3"
+                      borderRadius: "5"
+                      backgroundColor: "0xefefef"
+                      color: "0x00000088"
+                      fontSize: "15"
+                      fontStyle: bold
+                  - type: label
+                    text: "Remember this device, only type password to sign in"
+                    style:
+                      left: "0.16"
+                      top: "0.06449"
+                      width: "0.58667"
+                      height: "0.04087"
+                      color: "0x00000058"
+                      fontSize: "14"
+            - type: view
+              style:
+                left: "0.04"
+                top: "0.34197"
+                width: "0.76"
+                height: "0.14"
+                shadow: "true"
+              children:
+                  - type: image
+                    path: logout2.svg
+                    style:
+                      left: "0.02667"
+                      top: "0.02"
+                      height: "0.04"                
+                  - type: button
+                    text: Log out of application
+                    onClick: 
+                      - actionType: evalObject
+                        object: 
+                          - if:
+                            - =..formData.passOk
+                            - ..formData.pass@: true
+                            - actionType: evalObject
+                              object: ..save
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =..formData.pass
+                            - continue
+                            - actionType: builtIn
+                              funcName: checkField
+                              contentType: messageHidden
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =..formData.pass
+                            - .Global.currentUser.vertex.esk@ : ""
+                            - continue 
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =..formData.pass
+                            - .Global.currentUser.vertex.sk@ : ""
+                            - continue   
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =..formData.pass
+                            - =.builtIn.cleanLocalStorage
+                            - continue     
+                      - actionType: evalObject
+                        object:
+                          - if:  
+                            - =..formData.pass       
+                            - goto: SignIn
+                            - continue
+                    style:
+                      left: "0.16"
+                      top: "0.01362"
+                      width: "0.58667"
+                      height: "0.04"
+                      border:
+                        style: "3"
+                      borderRadius: "5"
+                      backgroundColor: "0xefefef"
+                      color: "0x00000088"
+                      fontSize: "15"
+                      fontStyle: bold
+                  - type: label
+                    text: "Clear credentials. Username, password and device verfification needed to sign in"
+                    style:
+                      left: "0.16"
+                      top: "0.05449"
+                      width: "0.58667"
+                      height: "0.1"
+                      color: "0x00000058"
+                      fontSize: "14"
+            - type: button
+              text : Cancel
+              onClick: 
+                - goto: MenuBars
+              style:
+                color: "0xffffffff"
+                left: "0.3"
+                top: "0.5"
+                width: "0.3"
+                height: "0.05"
+                fontSize: "16"
+                fontStyle: bold
+                backgroundColor: "0x2988e6ff"
+                border:
+                  style: "3"
+                borderRadius: "5"  
+                display: inline
+                textAlign:
+                  x: center
+                  y: center

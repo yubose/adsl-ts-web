@@ -1,0 +1,268 @@
+UploadMedicalRecord:
+  pageNumber: "330 340"
+  title: "Add Documents"
+  init:
+    - .SignInCheck
+  save:
+    - =..medicalRecord.docAPI.store: ""
+  medicalRecord:
+    document:
+      .Global.medicalRecord.document: ""
+      name:
+        recordName: ""
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: medicalRecord.document
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        height: "0.1"
+    - type: view
+      style:
+        left: "0"
+        top: "0.15"
+        width: "1"
+        height: "0.85"
+      children:
+        - type: label
+          text: Document Name
+          style:
+            left: "0.15"
+            top: "0.08"
+            width: "0.72"
+            height: "0.04"
+            color: "0xc2c2c2af"
+            fontSize: "12"
+
+        - type: textField
+          dataKey: medicalRecord.document.name.recordName
+          style:
+            left: "0.133"
+            top: "0.11"
+            width: "0.72"
+            height: "0.06"
+            fontSize: "14"
+            paddingLeft: "7px"
+            color: "0x000000ff"
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"
+        - type: button
+          onClick:
+            - actionType: popUp
+              popUpView: selectView
+          style:
+            left: "0.133"
+            top: "0.25"
+            width: "0.72"
+            height: "0.15"
+            backgroundColor: "0xffffffff"
+            border:
+              style: "4"
+            borderWidth: "1"
+          children:
+            - type: image
+              path: cloud.svg
+              style:
+                left: "0.1"
+                top: "0.05"
+                height: "0.04"
+            - type: label
+              text: Click here to upload
+              style:
+                left: "0.25"
+                width: "0.6"
+                top: "0"
+                height: "0.15"
+                fontSize: "12"
+                color: "0x808080aa"
+                textAlign:
+                  y: center
+        - type: button
+          onClick:
+            - actionType: popUp
+              popUpView: selectView
+          style:
+            left: "0.133"
+            top: "0.43"
+            width: "0.72"
+            height: "0.15"
+            backgroundColor: "0xffffffff"
+            border:
+              style: "4"
+            borderWidth: "1"
+          children:
+            - type: image
+              path: cloud.svg
+              style:
+                left: "0.1"
+                top: "0.05"
+                height: "0.04"
+            - type: label
+              text: Click here to upload
+              style:
+                left: "0.25"
+                width: "0.6"
+                top: "0"
+                height: "0.15"
+                fontSize: "12"
+                color: "0x808080aa"
+                textAlign:
+                  y: center
+        # - type: button
+        #   onClick:
+        #     - actionType: popUp
+        #       popUpView: selectView
+        #   style:
+        #     left: "0.133"
+        #     top: "0.45"
+        #     width: "0.72"
+        #     height: "0.15"
+        #     backgroundColor: "0xffffffff"
+        #     border:
+        #       style: "4"
+        #     borderWidth: "0.72"
+        #   children:
+        #     - type: image
+        #       path: cloud.svg
+        #       style:
+        #         left: "0.05"
+        #         top: "0.05"
+        #         width: "0.1"
+        #         height: "0.04"
+        #     - type: label
+        #       text: Click here to upload
+        #       style:
+        #         left: "0.15"
+        #         top: "0.05"
+        #         width: "0.6"
+        #         height: "0.05"
+        #         fontSize: "8"
+        #         color: "0x808080aa"
+        - type: button
+          text: Done
+          onClick:
+            - actionType: evalObject
+              object: ..save
+            - goto: ViewMedicalRecord
+          style:
+            left: "0.133"
+            top: "0.73"
+            width: "0.72"
+            height: "0.06"
+            backgroundColor: "0x2988e6ff"
+            color: "0xffffffff"
+            textAlign:
+              x: center
+            border:
+              style: "1"
+    - type: popUp
+      viewTag: selectView
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0xa9a9a9cc"
+      children:
+        - type: view
+          style:
+            top: "0.59"
+            width: "0.9"
+            height: "0.275"
+            left: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "0xe9e9e9"
+            zIndex: 1000
+          children:
+            - type: label
+              textBoard:
+                - text: Medical Records
+                - br:
+                - text: Upload an image or document
+                  color: "0x8f8f8faf"
+              style:
+                top: "0.02"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "10"
+                color: "0x808080ff"
+
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                  color: "0xbababa"
+                borderWidth: "1"
+            - type: button
+              text: Camera
+              onClick:
+                - goto: ViewMedicalRecord
+                - actionType: builtIn
+                  funcName: UploadCamera
+              style:
+                top: "0.085"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "18"
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                  color: "0xbababa"
+                borderWidth: "1"
+            - type: button
+              text: Photo Library
+              style:
+                top: "0.146"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "18"
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                  color: "0xbababa"
+                borderWidth: "1"
+            - type: button
+              text: Document Manager
+              style:
+                top: "0.206"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "18"
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: 1
+        - type: button
+          text: Cancel
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: selectView
+          style:
+            top: "0.9"
+            left: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: "18"
+            color: "0x1d88fc"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            borderRadius: "10"
+            border:
+              style: 1

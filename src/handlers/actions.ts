@@ -53,6 +53,7 @@ import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
 import Cropper from 'cropperjs'
 import '../../node_modules/cropperjs/dist/cropper.min.css'
+import { cloneDeep } from 'lodash'
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
 const _has = pickHasActionKey
@@ -579,15 +580,27 @@ const createActions = function createActions(app: App) {
       })
     })
   }
-
-  const CSVToJSON = (data, csvTitleKbn:string[], delimiter = ',') => {
-    const hanleData:string[] = data.slice(data.indexOf('\n') + 1).split('\n');
-    return hanleData.map(v => {
-        const values = v.split(delimiter);
-        return csvTitleKbn.reduce(
-            (obj, title, index) => (obj[title] = values[index], obj),{});
+  const requireCsv = async (files,dataKey,ac,comp)=>{
+    const CSVToJSON = (data, csvTitleKbn:string[], delimiter = ',') => {
+      let hanleData:string[] = data.slice(data.indexOf('\n')+1).split('\n');
+      return hanleData.filter(Boolean).map(v => {
+          const values = v.split(delimiter);
+          return v&&csvTitleKbn.reduce(
+              (obj, title, index) => (obj[title] = values[index], obj),{});
+      });
+  };
+    const reader:FileReader  = new FileReader();
+    // 将上传的文件读取为文本
+    reader.readAsText(files?.[0]);
+    let result = new Promise((res)=>{
+      reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
+        // 将CSV文本转换为JSON数据
+        const jsonFromCsvFile = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
+        res(jsonFromCsvFile)
     });
-};
+    });
+  return await result;
+  }
   const _getInjectBlob: (name: string) => Store.ActionObject['fn']|Function = (name) =>
   // true?function hh(){}:
     async function getInjectBlob(action, options) {
@@ -611,7 +624,7 @@ const createActions = function createActions(app: App) {
 
           if(Boolean(shearState)){
             const hreFile = await getBlob(files?.[0],action,options);
-            fileRell = new File([hreFile],files?.[0].name as string,{type: files?.[0].type})
+            fileRell = new File([hreFile],files?.[0].name as string,(!(files?.[0].type.includes("svg"))?{type: files?.[0].type} as FilePropertyBag:undefined))
           }
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
@@ -619,6 +632,7 @@ const createActions = function createActions(app: App) {
               const status = (documentType as string[])?.some(
                 (item) => item === files?.[0]?.['type'].split('/')[1],
               )
+              ac.data.set(downloadStatus,status)
               app.updateRoot(downloadStatus, status)
             }
             if (fileFormat) {
@@ -629,15 +643,10 @@ const createActions = function createActions(app: App) {
               if(files?.[0].type.endsWith("/csv")){
                 // CSV标题汉字所对应的区分名
                // 构建文件读取对象
-              const reader:FileReader  = new FileReader();
-              // 将上传的文件读取为文本
-              reader.readAsText(files?.[0]);
-              reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
-                // 将CSV文本转换为JSON数据
-                const jsonFromCsvFile:{[key in string]:string}[] = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
-                ac.data.set(dataKey, jsonFromCsvFile);
-                app.updateRoot(dataKey, ac.data.get(dataKey))
-            });
+              let jsonFromCsvFile = await requireCsv(files,dataKey,ac,comp);
+              ac.data.set(dataKey, {"name":files?.[0]?.name,"data":jsonFromCsvFile});
+              app.updateRoot(dataKey, ac.data.get(dataKey))
+              break;
             }else{
               await imageConversion
               .compressAccurately(fileRell||ac.data.get(dataKey), size)

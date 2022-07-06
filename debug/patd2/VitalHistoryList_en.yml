@@ -1,0 +1,280 @@
+#For Android Only
+VitalHistoryList:
+  title: "History"
+  init:
+    - .SignInCheck
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.vitalsInAppointment
+              string2: "false"
+        - actionType: evalObject
+          object:
+            - =..localDataRequest.vital.docAPI.get: ""
+            - ..formData.vitalsList@: =..localDataRequest.vital.docQueryResp.doc
+        - actionType: evalObject
+          object:
+            - =..apiRequest.vital.docAPI.get: ""
+            - ..formData.vitalsList@: =..apiRequest.vital.docQueryResp.doc
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+  formData:
+    listHeight: "0.83"
+    documentShow: "block"
+    vitalsList: []
+  localDataRequest:
+    vital:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.rootNotebookID
+        xfname: "eid"
+        sCondition: "ctime>1650038400"
+        _nonce: =.Global._nonce
+        type: .DocType.VitalSigns
+        obfname: ctime
+      docAPI:
+        get:
+          api: rd
+          dataIn: VitalHistoryList.localDataRequest.vital.docQueryReq
+          dataOut: VitalHistoryList.localDataRequest.vital.docQueryResp
+  apiRequest:
+    vital:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.roomInfo.edge.id
+        xfname: "reid"
+        _nonce: =.Global._nonce
+        sCondition: "ctime>1650038400"
+        type: .DocType.VitalSigns
+        obfname: ctime
+      docAPI:
+        get:
+          api: rd
+          dataIn: VitalHistoryList.apiRequest.vital.docQueryReq
+          dataOut: VitalHistoryList.apiRequest.vital.docQueryResp
+  components:
+    - .BasePublicHeader: # height: "0.055" # 44.66px
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: builtIn
+              funcName: goBack
+              reload: false #reload must be false, otherwise data from devices may be overwritten
+        - .BasePublicHeaderTitle:
+          style:
+            fontSize: .Nfont.h18
+    - type: list
+      viewTag: docListTag
+      contentType: listObject
+      listObject: ..formData.vitalsList
+      iteratorVar: itemObject
+      style:
+        display: ..formData.documentShow
+        margin: "0"
+        width: "1"
+        height: "0.94"
+        overflow-y: scroll
+        overflow-x: hidden
+      children:
+        - type: listItem
+          itemObject:
+          style:
+            marginLeft: "0.04"
+            width: "0.92"
+            marginTop: "0.01478"
+            overflow: hidden
+            backgroundColor: "0xffffff"
+            borderRadius: "5"
+            height: "0.098"
+            boxShadow: "0px 0px 5px #0000001a"
+            textAlign:
+              y: center
+          onClick:
+            - actionType: updateObject
+              dataKey: Global.vitalsInfo
+              dataObject: itemObject
+            - goto: VitalHistoryInfo
+          children:
+            - type: view
+              style:
+                width: "0.6667"
+                display: inline-block
+
+                verticalAlign: middle
+              children:
+                - type: view # time
+                  style:
+                    width: auto
+                    height: auto
+
+                  children:
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtimeL_en
+                      dataKey: itemObject.ctime
+                      style:
+                        marginLeft: "0.0533"
+                        height: "auto"
+                        fontSize: .Nfont.h14
+                        verticalAlign: middle
+                        lineHeight: "26px"
+                        display: inline-block
+                        wordBreak: break-word
+                        color: "0x666666"
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtimeLT_en
+                      dataKey: itemObject.ctime
+                      style:
+                        marginLeft: "0.01"
+                        height: "auto"
+                        fontSize: .Nfont.h14
+                        display: inline-block
+                        lineHeight: "26px"
+                        verticalAlign: middle
+                        wordBreak: break-word
+                        color: "0x666666"
+                - type: label
+                  dataKey: itemObject.name.data.title
+                  style:
+                    fontSize: .Nfont.h14
+                    marginTop: "0.0074"
+
+                    marginLeft: "0.0533"
+                    fontWeight: "600"
+                    color: "0x333333"
+            - type: button
+              dataKey: itemObject.name.data.classTag.name
+              style:
+                height: "0.02955"
+                width: "0.2"
+                display: inline-block
+                verticalAlign: middle
+                fontSize: .Nfont.h12
+                color: itemObject.name.data.classTag.fontColor
+                border:
+                  style: 1
+                backgroundColor: itemObject.name.data.classTag.backgroundColor
+                fontWeight: "600"
+                boxSizing: "border-box"
+
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+          #   - type: view
+          #     style:
+          #       marginTop: "0.0173"
+          #       marginLeft: "0.04"
+          #       width: "0.92"
+          #       height: "auto"
+          #       overflow: hidden
+          #     children:
+          #       - type: label
+          #         dataKey: itemObject.name.title
+          #         style:
+          #           display: "inline-block"
+          #           width: "0.525"
+          #           height: "auto"
+          #           fontSize: .Nfont.h16
+          #           fontWeight: "600"
+          #           verticalAlign: top
+          #           wordBreak: break-word
+          #       - type: view
+          #         style:
+          #           marginLeft: "0.058"
+          #           display: "inline-block"
+          #           verticalAlign: top
+          #           width: "0.16"
+          #           height: "auto"
+          #         children:
+          #           - type: label
+          #             dataKey: itemObject.name.data.classTag.name
+          #             style:
+          #               height: "0.025"
+          #               width: "0.16"
+          #               fontSize: .Nfont.h12
+          #               color: itemObject.name.data.classTag.fontColor
+          #               border:
+          #                 style: 1
+          #               backgroundColor: itemObject.name.data.classTag.backgroundColor
+          #               fontWeight: "600"
+          #               boxSizing: "border-box"
+          #               borderRadius: "3"
+          #               textAlign:
+          #                 x: center
+          #                 y: center
+          #       - type: view
+          #         style:
+          #           marginLeft: "0.013"
+          #           display: "inline-block"
+          #           verticalAlign: top
+          #           width: "0.16"
+          #           height: "auto"
+          #         children:
+          #           - type: view
+          #             style:
+          #               display: itemObject.name.data.statusTag.display
+          #               width: "auto"
+          #               height: "auto"
+          #             children:
+          #               - type: label
+          #                 dataKey: itemObject.name.data.statusTag.name
+          #                 style:
+          #                   height: "0.025"
+          #                   width: "0.16"
+          #                   fontSize: .Nfont.h12
+          #                   color: itemObject.name.data.statusTag.fontColor
+          #                   border:
+          #                     style: 1
+          #                   backgroundColor: itemObject.name.data.statusTag.backgroundColor
+          #                   fontWeight: "600"
+          #                   boxSizing: "border-box"
+          #                   borderRadius: "3"
+          #                   textAlign:
+          #                     x: center
+          #                     y: center
+          #   - type: view
+          #     style:
+          #       marginTop: "0.001"
+          #       marginLeft: "0.04"
+          #       width: "0.92"
+          #       height: "auto"
+          #       overflow: hidden
+          #     children:
+          #       - type: label
+          #         dataKey: itemObject.name.user
+          #         style:
+          #           display: "inline-block"
+          #           width: "0.42"
+          #           height: "auto"
+          #           fontSize: .Nfont.h14
+          #           verticalAlign: middle
+          #           wordBreak: break-word
+          #           color: "0x666666"
+          #       - type: label
+          #         text=func: .builtIn.string.formatUnixtime_en
+          #         dataKey: itemObject.mtime
+          #         style:
+          #           marginLeft: "0.08"
+          #           display: "inline-block"
+          #           width: "0.42"
+          #           height: "auto"
+          #           fontSize: .Nfont.h12
+          #           verticalAlign: middle
+          #           wordBreak: break-word
+          #           color: "0x999999"
+          #           textAlign:
+          #             x: right
+          #   - type: view
+          #     style:
+          #       marginTop: "0.0153"
+          #       width: "1"
+          #       height: "0.0013"
+          #       backgroundColor: "0xdedede"
+          #   - type: view
+          #     style:
+          #       marginTop: "0"
+          #       height: "0.001"
+          # onClick:
+          #   - continue

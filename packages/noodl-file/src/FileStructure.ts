@@ -29,13 +29,6 @@ class FileStructure extends t.AStructure<IFileStructure> {
     if (transform) this.#transform = transform
   }
 
-  is(p: string) {
-    if (this.#transform) p = this.#transform(p)
-    if (p.startsWith('file:')) return true
-    if (is.file(p)) return true
-    return false
-  }
-
   createStructure(p: string, group?: string) {
     const raw = p
     if (this.#transform) p = this.#transform(p)
@@ -77,6 +70,13 @@ class FileStructure extends t.AStructure<IFileStructure> {
     if (is.text(parsed.base)) return 'text'
     if (is.video(parsed.base)) return 'video'
     return 'unknown'
+  }
+
+  is(p: string) {
+    if (this.#transform) p = this.#transform(p)
+    if (p.startsWith('file:')) return true
+    if (is.file(p)) return true
+    return false
   }
 }
 

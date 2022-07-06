@@ -1,0 +1,100 @@
+VisitHistory:
+  title: "Visit History"
+  pageNumber: "260"
+  init:
+    - .SignInCheck
+
+    - ..listData.get
+  listData: 
+    WaitingInRoom:
+      edge: "" 
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataKey: listData.WaitingInRoom
+      type: .EdgeType.WaitingRoom
+      id: .Global.currentUser.vertex.id
+      sCondition: "subtype&0xff in (6,100) AND tage>=0 AND tage&0x100 in (256)" 
+      xfname: "bvid | evid"
+      obfname : "mtime" 
+      maxcount: "20"
+      _nonce: .Global._nonce
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - goto: 'PatientDashboard'
+    - type: scrollView
+      style: 
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+      children: 
+        - type: list
+          contentType: listObject
+          listObject: ..listData.WaitingInRoom.edge
+          iteratorVar: itemObject
+          style:
+            top: "0"
+            margin: "0"
+            left: "0"
+            width: "1"
+            height: "auto"
+            # backgroundColor: "0x00000066"
+            boxShadow: "0px 0px 1px #dededf"
+          children:
+            - type: listItem
+              itemObject: ""
+              onClick: 
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.roomInfo.edge
+                  dataObject: itemObject
+                - goto: VisitDetial
+              style:
+                left: "0"
+                # top: "0"
+                width: "1"
+                height: "0.1"
+                border:
+                  style: "2"
+                borderColor: "0x00000066"
+                borderWidth: "1"
+              children:
+                - type: label
+                  dataKey: itemObject.name.visitReason
+                  style:
+                    top: "0.02"
+                    fontSize: .Nfont.h2
+                    fontWeight: 550
+                    left: "0.08"
+                    # color: itemObject.name.fontColor
+                - type: label
+                  dataKey: itemObject.name.providerName
+                  style:
+                    top: "0.055"
+                    fontSize: .Nfont.h2
+                    fontWeight: 350
+                    left: "0.08"
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: itemObject.stime
+                  style:
+                    top: "0.055"
+                    width: "0.49"
+                    fontSize: .Nfont.h15
+                    fontWeight: 350
+                    left: "0.50"
+                    textAlign:
+                      x: right
+                - type: label
+                  dataKey: itemObject.name.visitType
+                  style:
+                    top: "0.02"
+                    fontSize: .Nfont.h15
+                    width: "0.45"
+                    left: "0.5"
+                    textAlign:
+                      x: right
+                    color: itemObject.name.fontColor
+      

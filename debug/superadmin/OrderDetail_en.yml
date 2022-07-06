@@ -39,11 +39,13 @@ OrderDetail:
             string2: 'Cancelled'
       - ..formData.statusBackgroundColor@: "#f2cbcb"
       - continue
-    # - =.builtIn.math.add: 
-    #     dataIn:
-    #       num1: =..formData.currentOrder.name.data.amount
-    #       num2: 
-    #     dataOut: OrderDetail.formData.totalMoney
+    - =.builtIn.utils.codeCompile: 
+        dataIn: 
+          param: 
+            - =..formData.currentOrder.name.data.amount
+            - =..formData.currentOrder.name.data.shippingCost
+          codeSnip: "return +(param[0]) + +(param[1])"
+        dataOut: OrderDetail.formData.totalMoney
   
   formData: 
     totalMoney: ""
@@ -261,7 +263,7 @@ OrderDetail:
                       onClick: 
                         - actionType: popUp
                           popUpView: saveChangeTag
-                        - goto: Orders
+                        # - goto: Orders
                       text: "Cancel"
                     - ..style.topBarBtn:
                       text: Save
@@ -314,7 +316,13 @@ OrderDetail:
                         - ..style.leftBarLabel:                      
                           text: Email
                         - ..style.leftBarLabelData:                      
-                          dataKey: formData.currentOrder.name.data.email
+                          dataKey: formData.currentOrder.name.data.contactInfomation.email
+                    - ..style.leftBarLabelView: 
+                      children:   
+                        - ..style.leftBarLabel:                      
+                          text: Phone
+                        - ..style.leftBarLabelData:                      
+                          dataKey: formData.currentOrder.name.data.contactInfomation.phone
                     - ..style.leftBarTitleView: 
                       style: 
                         marginTop: "0.015"
@@ -414,7 +422,6 @@ OrderDetail:
                             - type: select
                               dataKey: formData.currentOrder.name.data.orderStatus
                               options: 
-                                - select
                                 - Delivering
                                 - Undelivered
                                 - Completed
@@ -576,7 +583,7 @@ OrderDetail:
                             - ..style.rightLabel:
                               text: Total
                             - ..style.rightLabelData:
-                              dataKey: formData.currentOrder.name.data.amount
+                              dataKey: apiRequest.production.docResp.doc.0.name.data.orderList.0.productionList.0.totalMoney
                     - ..style.rightBarTitle:     
                       text: Payment 
                     - type: view
@@ -600,10 +607,10 @@ OrderDetail:
                               text: Subtotal
                               style: 
                                 width: "0.125"                    
-                            - ..style.rightListTitle:
-                              text: Tax
-                              style: 
-                                width: "0.085"                       
+                            # - ..style.rightListTitle:
+                            #   text: Tax
+                            #   style: 
+                            #     width: "0.085"                       
                             - ..style.rightListTitle:
                               text: Shipping Cost
                               style: 
@@ -633,23 +640,26 @@ OrderDetail:
                                 alignItems: center
                               children:
                                 - ..style.rightListTitle:
-                                  dataKey: formData.currentOrder
-                                  text=func: .builtIn.object.transformStatus
+                                  # dataKey: formData.currentOrder
+                                  text: Paid
+                                  # text=func: .builtIn.object.transformStatus
                                   style: 
                                     width: "0.085"
+                                    color: '#2fb8a0'
                                 - ..style.rightListTitle:
                                   dataKey: formData.currentOrder.name.data.amount
                                   style: 
                                     width: "0.125"                      
+                                # - ..style.rightListTitle:
+                                #   text: "5"
+                                #   style: 
+                                #     width: "0.085"                       
                                 - ..style.rightListTitle:
-                                  text: "5"
-                                  style: 
-                                    width: "0.085"                       
-                                - ..style.rightListTitle:
-                                  text: "10"
+                                  dataKey: formData.currentOrder.name.data.shippingCost
                                   style: 
                                     width: "0.113"                        
                                 - ..style.rightListTitle:
+                                  dataKey: formData.totalMoney
                                   text: "100"
                                   style: 
                                     width: "0.05"        
@@ -658,7 +668,7 @@ OrderDetail:
                             - ..style.rightLabel:
                               text: Paid by customer
                             - ..style.rightLabelData:
-                              text: $324.49
+                              dataKey: formData.currentOrder.name.data.amount
                     - ..style.rightBarTitle:     
                       text: Order History 
                     - type: view
@@ -702,17 +712,22 @@ OrderDetail:
                               onClick: 
                                 - actionType: evalObject
                                   object: 
-                                    - =.builtIn.string.formatNowTime: 
-                                        dataIn: 
-                                        dataOut: OrderDetail.formData.currentOrderHistory.ctime 
-                                    - =.builtIn.array.push:
-                                        dataIn:
-                                          newMessage: =..formData.currentOrderHistory 
-                                          messages: =..apiRequest.orderHistory.docStoreReq.name.data.history
-                                        dataOut: OrderDetail.apiRequest.orderHistory.docStoreReq.name.data.history
-                                          
-                                    - ..formData.currentOrderHistory.content@: ""
-                                    - ..formData.currentOrderHistory.ctime@: ""
+                                    - if: 
+                                      - =..formData.currentOrderHistory.content
+                                      - actionType: evalObject
+                                        object:
+                                          - =.builtIn.string.formatNowTime: 
+                                              dataIn: 
+                                              dataOut: OrderDetail.formData.currentOrderHistory.ctime 
+                                          - =.builtIn.array.push:
+                                              dataIn:
+                                                newMessage: =..formData.currentOrderHistory 
+                                                messages: =..apiRequest.orderHistory.docStoreReq.name.data.history
+                                              dataOut: OrderDetail.apiRequest.orderHistory.docStoreReq.name.data.history
+                                                
+                                          - ..formData.currentOrderHistory.content@: ""
+                                          - ..formData.currentOrderHistory.ctime@: ""
+                                      - continue
                                 - actionType: builtIn
                                   funcName: redraw
                                   viewTag: contentTag
@@ -788,13 +803,20 @@ OrderDetail:
                 - .BaseJudgeButtonView: 
                   children: 
                     - .BaseJudgeButtonNo:  
+                      onClick: 
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true   
                       style: 
                         textDecoration: underline
                     - .BaseJudgeButtonYes:  # 可以重写       
                       onClick: 
-                        - actionType: builtIn
-                          funcName: goBack
-                          reload: true                             
+                        - actionType: evalObject
+                          object: 
+                            - ..apiRequest.orders.docStoreReq@: =..formData.currentOrder
+                            - =..apiRequest.orders.docAPI.store: ""
+                            - =..apiRequest.orderHistory.docAPI.store: ""
+                            - goto: Orders                           
         - .BaseSuccessfulView: 
           viewTag: saveSuccessView
           msg: Save Successfully!                    

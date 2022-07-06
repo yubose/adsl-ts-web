@@ -1,304 +1,148 @@
 TestPage:
-  title: TestPage
-  init: #Page initialization
+  pageNumber: "0"
 
-  dataTemp: #Input data temp here
+  title: "Test Page"
 
-  formData: #Input data here
-    typePatient: Type
-    patientData: []
-    patient:
-      # - patient:
-      #   typePatient: Type
-      #   fontColor: "0x045795"
-      #   typePatientWidth: "1vw"
-      - typePatient: All
-        fontColor: "0x000000"
-        backgroundColor: ""
-        typePatientWidth: "4vw"
-      - typePatient: Telemedicine
-        fontColor: "0x7eb559"
-        typePatientWidth: "5vw"
-        backgroundColor: ""
-      - typePatient: Office Visit
-        typePatientWidth: "5vw"
-        backgroundColor: ""
-        fontColor: "0xee8a46"
-      - typePatient: COVID-19 Testing
-        typePatientWidth: "7vw"
-        backgroundColor: ""
-        fontColor: "0xbf0000"
-      - typePatient: COVID-19 Vaccine
-        fontColor: "0xbf0000"
-        backgroundColor: ""
-        typePatientWidth: "8vw"
-    tableTitle: History
-    tableNum: [1,1,1,1,1,1]
-    tableData: [tableTitle,tableTitle,tableTitle,tableTitle,tableTitle,tableTitle,tableTitle]           # sdk 返回的数组,包括当前显示第几页的数据list 和 被切分成总共多少页面
-    tableListOne: [tableCurrentPage,tableCurrentPage,tableCurrentPage]
-    tableListTwo: 
-      [tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage] # sdk 返回的数组的第一项，list真正打印的数据
-    tablePageNum: "1"     # previous和next 中间的文本显示的数据
-    tableCurrentPage: "1" # 当前显示的当前页面/总页面
-    gotoPageNum: ""       # goto 后面的文本显示
-    totalPageMore: ""     #totalPage(tableData .1) + 1 
-  serverRequest: #Input data request here
-
-  style: #Input style fragment here
-  components: 
+  init:
+    - .SignInCheck
+    - ..apiRequest.fac_RootNotebook.edgeReq.id@: "P7a0cKFrT6g9I3gDxYGmcQ=="
+    - =..apiRequest.fac_RootNotebook.edgeAPI.get: ""
+    - ..apiRequest.facility.documentReq.id@: =..apiRequest.fac_RootNotebook.edge.edge.0.id
+  formData: 
+    csvRespData: []
+    csvData: [
+          "Handle", "Title",
+          "Standardized Product Type","Vendor",
+          "Product Status","Introduction",
+          "Image Src","Image Position","Price","Cost per item","MRSP","Tax","SKU","Barcode","Inventory Policy",
+          "Inventory Count","Requires Shipping","Length","Width",
+          "Height","Length Unit","Weight","Weight Unit","Option1 Name",
+          "Option1 Value","Option2 Name","Option2 Value","Option3 Name","Option3 Value",
+          "Option4 Name","Option4 Value","Variant Price","Variant Stock","Variant SKU",
+          "Variant Barcode"
+              ]
+    userList: []
+    searchByPhone: ""
+    popShow: "none"
+  apiRequest:
+    facility:
+      response: ""
+      documentReq:
+        id: ""
+        xfname: eid
+        type: .DocType.FacilityProfile
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: TestPage.apiRequest.facility.documentReq
+          dataOut: TestPage.apiRequest.facility.response
+    fac_RootNotebook:
+      edgeReq:
+        id: ""
+        xfname: bvid
+        type: .EdgeType.RootNotebook
+      edge: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: TestPage.apiRequest.fac_RootNotebook.edgeReq
+          dataOut: TestPage.apiRequest.fac_RootNotebook.edge
+    user: 
+      vertexIn: 
+        type: 1
+        xfname: none
+        sCondition: ""
+        maxcount: "500"
+      vertexResp:
+        vertex: []
+      vertexAPI:
+        get: 
+          api: rv
+          dataIn: TestPage.apiRequest.user.vertexIn
+          dataOut: TestPage.apiRequest.user.vertexResp
+  components:
     - .TotalView: 
       children: 
-        # loading
-        - .loading: ""
-        # SideBar
-        - .SideMenuBar: ""
-
-        - type: view
-          style:
-            width: '0.84'
-            display: flex
-            flexWrap: wrap
+        - .SideMenuBar: 
           children:
-            - .TopBar: 
-            - .InnerBodyView:
+            - .aitLogo:
+            - .MenuBar:   
+        - .TopBar:
+          style:
+            left: "0.16"
+            marginTop: "0"
+            height: "0.063"
+            width: "0.84"        
+        # - .InnerBodyView:
+        - type: view 
+          style:
+            backgroundColor: "0xf4f8fa"
+            width: "0.84"
+            height: "0.937"
+            left: "0.16"
+            top: "0.063"
+          children:
+            # - .PageTitleLabel: 
+            - type: label
+              text: ..title
+              style:
+                fontSize: .Nfont.nf6
+                fontFamily: "Roboto"            
+                fontWeight: "600"
+                left: "0.03328"
+                height: "0.06256"
+                textAlign:
+                  y: center
+            - .ContentBar:
+              style:
+                marginTop: "0"
+                backgroundColor: "0xffffff"
+                width: "0.82"
+                height: "0.85594"
+                # marginLeft: "0.01"
+                borderRadius: "6"
+                border: 
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
               children:
-                - .PageTitle:
-                - .ContentView:
+                - type: view
+                  style:
+                    height: "0.12236"
+                    width: "0.76544"
+                    marginTop: "0.04"
+                    left: "0.02288"
                   children:
-                    - type: view
-                      viewTag: tableView
-                      style: 
-                        display: flex
-                        flexWrap: wrap
-                        justifyContent: center
-                        alignItems: center
-                      children: 
-                        - type: view
-                          style: 
-                            width: "0.75"
-                            marginTop: "2vw"
-                            display: flex
-                            justifyContent: space-between
-                          children:
-                            - type: view
-                              style:
-                                width: "0.37"
-                                height: '0.04'
-                              children:
-                                - type: textField
-                                  style:
-                                    width: "0.37"
-                                    height: '0.04'
-                                    boxSizing: border-box
-                                    border: 
-                                      style: "3"
-                                    borderWidth: "2"
-                                    borderColor: "0xe0e0e0"
-                                    borderRadius: "5px"
-                            - type: view
-                              style:
-                                
-                                width: "0.37"
-                                margin: '0'
-                                boxSizing: border-box
-                                height: '0.04'
-                                border: 
-                                  style: "3"
-                                borderWidth: "2"
-                                borderColor: "0xe0e0e0"
-                                borderRadius: "5px"
-                                axis: horizontal
-                              children:
-                                - type: view
-                                  style:
-                                    width: "5vw"
-                                    height: "0.035"
-                                    textAlign:
-                                      x: center
-                                      y: center
-                                  children:
-                                    - type: image
-                                      path: awesomeType.svg
-                                      style:
-                                        textAlign:
-                                          x: center
-                                          y: center
-                                        width: "1vw"
-                                    - type: label
-                                      text: ..formData.typePatient
-                                      style:
-                                        width: "2vw"
-                                        textAlign:
-                                          x: center
-                                          y: center
-                                        color: "0x045795"
-                                - type: list
-                                  viewTag: titleView
-                                  contentType: listObject
-                                  listObject: ..formData.patient
-                                  iteratorVar: itemObject
-                                  style:
-                                    axis: horizontal
-                                    width: "0.37"
-                                    margin: '0'
-                                    height: auto
-                                  children:
-                                    - type: listItem
-                                      itemObject: 
-                                      style:
-                                        display: "flex"
-                                        justifyContent: center
-                                        width: itemObject.typePatientWidth
-                                        height: "0.035"
-                                      children:
-                                        - type: label
-                                          dataKey: itemObject.typePatient
-                                          style:
-                                            backgroundColor: itemObject.backgroundColor
-                                            color: itemObject.fontColor 
-                                            border: 
-                                              style: ""
-                                            borderWidth: "1"
-                                            borderColor: ""
-                                            borderRadius: "5"
-                                            fontSize: "0.6vw"
-                                            width: itemObject.typePatientWidth
-                                            textAlign:
-                                              x: center
-                                              y: center
-                                          onClick: 
-                                            - emit:
-                                                dataKey: 
-                                                  var: itemObject
-                                                actions:
-                                                  - =.builtIn.object.setProperty: 
-                                                      dataIn: 
-                                                        obj: =..formData.patient
-                                                        label: "typePatient"
-                                                        text: $var.typePatient
-                                                        arr: ["backgroundColor","color"]
-                                                        valueArr: ["0x045795","0xffffff"]
-                                                        errorArr: ["",""]
-                                            - actionType: builtIn
-                                              funcName: redraw
-                                              viewTag: titleView
-                        #TableTitle
-                        - type: label
-                          viewTag: tableTitle
-                          text: ..formData.tableTitle
-                          style:  
-                            marginTop: 1vw
-                            paddingLeft: "2vw"
-                            width:  "0.75"
-                            height:  "0.03"
-                            backgroundColor: "0x014c82" 
-                            fontSize: "1vw" 
-                            fontWeight: "500" 
-                            boxSizing: "border-box" 
-                            color: "0xffffff" 
-                            textAlign:
-                              y: "center" 
-                        #TableHeader
-                        - type: list
-                          contentType: listObject
-                          listObject: ..formData.tableData
-                          iteratorVar: itemObject
-                          style:
-                            width: "0.75"
-                            margin: '0'
-                            axis: horizontal
-                            backgroundColor: "0xefefef"
-                            justifyContent: center
-                            alignItems: center
-                          children:
-                            - type: listItem
-                              itemObject: 
-                              style:
-                                display: flex
-                                flex: "1"
-                                height: "0.05"
-                                justifyContent: center
-                                alignItems: center
-                                border: 
-                                  style: "3"
-                                borderWidth: "1"
-                                borderColor: "0xe2e8eb"
-                                borderRadius: ""
-                              children:
-                                - type: label
-                                  dataKey: itemObject
-                                  style: 
-                                    marginRight: "2vw"
-                                    display: flex
-                                    fontSize: "1vw"
-                                    justifyContent: center
-                                    alignItems: center
-                        - type: list
-                          contentType: listObject
-                          listObject: ..formData.tableListOne
-                          iteratorVar: itemObject
-                          style:
-                            margin: '0'
-                            height: auto
-                          children:
-                            - type: listItem
-                              itemObject: 
-                              children:
-                                - type: list
-                                  contentType: listObject
-                                  listObject: ..formData.tableListTwo
-                                  iteratorVar: itemObject
-                                  style:
-                                    width: "0.75"
-                                    axis: horizontal
-                                    margin: '0'
-                                    justifyContent: center
-                                    alignItems: center
-                                  children:
-                                    - type: listItem
-                                      itemObject: 
-                                      style:
-                                        display: flex
-                                        flex: "1"
-                                        height: "0.05"
-                                        justifyContent: center
-                                        alignItems: center
-                                        border: 
-                                          style: "3"
-                                        borderWidth: "1"
-                                        borderColor: "0xe2e8eb"
-                                      children:
-                                        - type: label
-                                          dataKey: itemObject
-                                          style: 
-                                            # marginRight: "2vw"
-                                            display: flex
-                                            # flex: "1"
-                                            fontSize: "1vw"
-                                            alignItems: center
-                            # - type: list
-                            #   contentType: listObject
-                            #   listObject: ..formData.tableList
-                            #   iteratorVar: itemObject
-                            #   style:
-                            #     # width: '1'
-                            #     axis: vertical
-                            #     # margin: '0'
-                            #     justifyContent: center
-                            #     alignItems: center
-                            #     height: auto
-                            #   children:
-                            #     - type: listItem
-                            #       itemObject: 
-                            #       style:
-                            #         # width: '1'
-                            #         height: ''
-                            #         marginTop: ''
-                            #       children:
-                            #         - type: label
-                            #           style:
-                            #             display: flex
-                            #             justifyContent: center
-                            #             alignItems: center
+                    - type: image
+                      viewTag: videoDefaultTag
+                      path: rectangle.svg
+                      dataOption: TestPage.formData.csvData
+                      style:
+                        width: "0.081"
+                        margin: auto
+                      onClick:
+                        - actionType: openPhotoLibrary
+                          dataObject: BLOB
+                          dataKey: TestPage.formData.csvRespData    
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.handleProductionCsvData:  
+                                dataIn:
+                                  originalArray: =..formData.csvRespData                                 
+                    - type: button
+                      text: Test
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.handleProductionCsvData:  
+                                dataIn:
+                                  originalArray: =..formData.csvRespData                      
+                      style:
+                        marginTop: "0.1"
+                        textAlign:
+                          x: center
+                          y: center 
 
-                                            
+                                 
+                

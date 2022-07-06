@@ -1,0 +1,433 @@
+SearchPosition:
+  title: "Search"
+  init: #Page initialization
+    - .SignInCheck
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.currentPosition
+              string2: ""
+        - continue
+        - actionType: evalObject
+          object:
+            - ..displayControl.mapPosition@: "block"
+            - ..formData.locationAddress@: =.Global.currentPosition
+
+  displayControl:
+    noResults: "none"
+    addressInfomation: "block"
+    searchResults: "none"
+    failPosition: "none"
+    mapPosition: "none"
+
+  style: #Input style fragment here
+  formData:
+    pos: ""
+    suggestAddress: []
+    locationAddress: "false"
+  components:
+    #导航条
+    - type: view
+      style:
+        marginTop: "0"
+        height: "0.055"
+        width: "1"
+        backgroundColor: "0x2988e6"
+        textAlign:
+          y: center
+      children:
+        - type: view
+          style:
+            height: "auto"
+            width: "auto"
+          children:
+            - type: view
+              style:
+                marginLeft: "0.025"
+                display: "inline-block"
+                verticalAlign: middle
+                height: "auto"
+                width: "0.15"
+                textAlign:
+                  x: center
+              onClick:
+                - goto: AppointmentSearch
+              children:
+                - type: label
+                  text: Cancel
+                  dataKey:
+                  style:
+                    marginLeft: "0.025"
+                    color: "0xffffff"
+                    fontSize:
+                      .Nfont.h14
+
+                      # fontWeight: "600"
+            - type: view
+              style:
+                marginLeft: "0.025"
+                display: "inline-block"
+                verticalAlign: middle
+                height: "auto"
+              children:
+                - type: label
+                  text: Search
+                  dataKey:
+                  style:
+                    color: "0xffffff"
+                    fontSize: .Nfont.h16
+
+                    width: "0.6"
+                    textAlign:
+                      x:
+                        center
+                        # fontWeight: "700"
+            - type: view
+              style:
+                marginLeft: "0.025"
+                verticalAlign: middle
+                display: "inline-block"
+                height: "auto"
+                width: "0.15"
+                textAlign:
+                  x: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.pos@: =..formData.pos
+                - goto: AppointmentSearch
+              children:
+                - type: label
+                  text: Done
+                  dataKey:
+                  style:
+                    marginLeft: "0.025"
+                    color: "0xffffff"
+                    fontSize: .Nfont.h14
+                    width: "0.15"
+
+                    # fontWeight: "600"
+    #搜索框
+    - type: view
+      style:
+        marginTop: "0"
+        height: "0.055"
+        width: "1"
+        borderBottom: "1px solid #e6e6e6"
+        borderColor: "0xf0f0f0"
+        borderWidth: "1px"
+        textAlign:
+          y: center
+      children:
+        - type: view
+          style:
+            height: "auto"
+            width: "auto"
+          children:
+            - type: textField
+              viewTag: searchAddressTag
+              debounce: 500
+              placeholder: address, zip code, or city
+              dataKey: formData.pos
+              onInput:
+                - actionType: evalObject
+                  object:
+                    - .SearchPosition.formData.suggestAddress@: []
+                    - =.builtIn.search.suggestAddress:
+                        dataIn:
+                          query: =..formData.pos
+                        dataOut: SearchPosition.formData.suggestAddress
+                    - if:
+                        - =.builtIn.array.judgeListLength:
+                            dataIn:
+                              array: =..formData.suggestAddress
+                              len: 0
+                        - actionType: evalObject
+                          object:
+                            - ..displayControl.noResults@: "block"
+                            - ..displayControl.searchResults@: "none"
+                            - ..displayControl.addressInfomation@: "block"
+                        - actionType: evalObject
+                          object:
+                            - ..displayControl.noResults@: "none"
+                            - ..displayControl.searchResults@: "block"
+                            - ..displayControl.addressInfomation@: "none"
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.pos
+                              string2: ""
+                        - ..displayControl.noResults@: "none"
+                        - continue
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: searchResults
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: noResults
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: addressInfomation
+              style:
+                border:
+                  style: "1"
+                fontSize: .Nfont.h14
+                width: "1"
+                textIndent: "1em"
+    # noResults
+    - type: view
+      viewTag: noResults
+      style:
+        marginTop: "0"
+        height: "auto"
+        width: "1"
+        borderBottom: "1px solid #e6e6e6"
+        display: ..displayControl.noResults
+        borderColor: "0xf0f0f0"
+        borderWidth: "1px"
+      children:
+        - type: view
+          style:
+            width: "1"
+            height: "0.1"
+            textAlign:
+              x: center
+              y: center
+          children:
+            - type: image
+              path: noResults.svg
+              style:
+                height: "0.07"
+    #addressInfomation
+    - type: view
+      viewTag: addressInfomation
+      style:
+        width: "auto"
+        height: "auto"
+        display: ..displayControl.addressInfomation
+      children:
+        #Current location
+        - type: view
+          viewTag: currentLocation
+          style:
+            marginTop: "0"
+            height: "auto"
+            width: "1"
+            borderBottom: "1px solid #e6e6e6"
+            borderColor: "0xf0f0f0"
+            borderWidth: "1px"
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "0.04"
+                textAlign:
+                  y: center
+              children:
+                - type: view
+                  style:
+                    width: "auto"
+                    height: "auto"
+                  children:
+                    - type: image
+                      path: positionTag.svg
+                      style:
+                        width: "0.04"
+                        display: "inline-block"
+                        verticalAlign: middle
+                        # height: "0.055"
+                        marginLeft: "0.05"
+                    - type: label
+                      text: Current location
+                      dataKey:
+                      style:
+                        marginLeft: "0.05"
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                        verticalAlign: middle
+
+                        color: "0x2988e6"
+                        fontWeight: "600"
+                    - type: image
+                      path: mapPositioning.svg
+                      style:
+                        height: "0.025"
+                        display: "inline-block"
+                        verticalAlign: middle
+                        marginLeft: "0.45"
+                  onClick:
+                    # - actionType: initLocation
+                    - actionType: getLocationAddress
+                      dataKey: formData.locationAddress
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.locationAddress
+                                  string2: "false"
+                            - actionType: evalObject
+                              object:
+                                - ..displayControl.failPosition@: "block"
+                                - ..displayControl.mapPosition@: "none"
+                            - actionType: evalObject
+                              object:
+                                - .Global.currentPosition@: =..formData.locationAddress
+                                - .Global.pos@: =..formData.locationAddress
+                                - ..displayControl.failPosition@: "none"
+                                - ..displayControl.mapPosition@: "block"
+                                - goto: AppointmentSearch
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: mapPosition
+            - type: view
+              viewTag: mapPosition
+              style:
+                width: "auto"
+                height: "auto"
+              children:
+                - type: label
+                  text: Fail to get location, please try again
+                  style:
+                    marginTop: "0"
+                    display: ..displayControl.failPosition
+                    fontSize: .Nfont.h14
+                    marginLeft: "0.14"
+                    paddingBottom: "0.008"
+                    color: "0xfb5051"
+                - type: label
+                  dataKey: formData.locationAddress
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.pos@: =..formData.locationAddress
+                    - goto: AppointmentSearch
+                  style:
+                    marginTop: "0"
+                    display: ..displayControl.mapPosition
+                    fontSize: .Nfont.h14
+                    marginLeft: "0.14"
+                    maxWidth: "0.6"
+                    paddingBottom: "0.008"
+        #myAddress
+        - type: view
+          viewTag: myAddress
+          style:
+            marginTop: "0"
+            height: "auto"
+            width: "1"
+            borderBottom: "1px solid #e6e6e6"
+            borderColor: "0xf0f0f0"
+            borderWidth: "1px"
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "0.04"
+                textAlign:
+                  y: center
+              children:
+                - type: view
+                  style:
+                    width: "auto"
+                    height: "auto"
+                  children:
+                    - type: image
+                      path: positionTag.svg
+                      style:
+                        width: "0.04"
+                        display: "inline-block"
+                        verticalAlign: middle
+                        marginLeft: "0.05"
+                    - type: label
+                      text: My address
+                      style:
+                        marginLeft: "0.05"
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                        verticalAlign: middle
+
+                        color: "0x2988e6"
+                        fontWeight: "600"
+            - type: view
+              viewTag: myAddress
+              style:
+                width: "auto"
+                height: "auto"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.pos@: =.Global.Profile.name.data.contactInfo.address.fullAddress
+                - goto: AppointmentSearch
+              children:
+                - type: label
+                  # text: Sedona 1185 Airport ,1185 Airport Rd ,1185 Airport Rd
+                  dataKey: Global.Profile.name.data.contactInfo.address.fullAddress
+                  style:
+                    marginTop: "0"
+                    fontSize: .Nfont.h14
+                    marginLeft: "0.14"
+                    maxWidth: "0.6"
+                    lineHeight: "35px"
+                # - type: view
+                #   style:
+                #     height: "0.008"
+    # 搜索结果
+    - type: list
+      viewTag: searchResults
+      contentType: listObject
+      listObject: ..formData.suggestAddress
+      iteratorVar: itemObject
+      style:
+        marginTop: "0"
+        display: ..displayControl.searchResults
+        width: "1"
+        height: "0.88"
+        overflow: scroll
+      children:
+        - type: listItem
+          itemObject: ""
+          hover:
+            backgroundColor: "0xffecf1cd"
+          onMouseEnter:
+            - emit:
+                dataKey:
+                  var: itemObject
+                actions:
+                  - ..formData.pos@: $var.place_name
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: searchAddressTag
+          style:
+            width: "1"
+            height: "auto"
+          children:
+            - type: label
+              highlightKey: formData.pos
+              highlightStyle:
+                color: "#FF6666"
+              dataKey: itemObject.place_name
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - .Global.pos@: $var.place_name
+                      - ..formData.pos@: $var.place_name
+                      - ..displayControl.searchResults@: "none"
+                      - ..displayControl.addressInfomation@: "block"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: searchAddressTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: addressInfomation
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: searchResults
+                - goto: AppointmentSearch
+              style:
+                marginTop: "0.02"
+                marginLeft: "0.03"
+                fontSize: .Nfont.h14
+                width: "0.9"

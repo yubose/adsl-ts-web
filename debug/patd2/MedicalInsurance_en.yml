@@ -1,0 +1,1663 @@
+MedicalInsurance:
+  title: "Medical Insurance"
+  pageNumber: ""
+  init:
+    - .SignInCheck
+    #一开始即创建保险以方便后续的default判断
+    - actionType: evalObject
+      object:
+        - if:
+            - =.Global.Profile.name.data.basicInfo.fullName
+            - ..apiRequest.insuranceCard.docCreateReq.name.data.memberName@: =.Global.Profile.name.data.basicInfo.fullName
+            - continue
+        - =..apiRequest.insuranceCard.docAPI.store: ""
+    - ..apiRequest.insuranceCard.docCreateReq@: =..apiRequest.insuranceCard.docCreateResp.doc
+    - ..apiRequest.front_insuranceCardImage.docCreateReq.reid@: =..apiRequest.insuranceCard.docCreateReq.id
+    - ..apiRequest.back_insuranceCardImage.docCreateReq.reid@: =..apiRequest.insuranceCard.docCreateReq.id
+    - if:
+        - .Global.formData.insurance.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.insuranceCard.docCreateReq@: =.Global.formData.insurance
+            - ..formData.display@: "block"
+            - ..formData.scrollHeight@: "0.84729"
+            - if:
+                - =..apiRequest.insuranceCard.docCreateReq.name.data.front_InsuranceCardId
+                - ..formDataTemp.imgFrontDisplay@: "block"
+                - continue
+            - if:
+                - =..apiRequest.insuranceCard.docCreateReq.name.data.back_InsuranceCardId
+                - ..formDataTemp.imgBackDisplay@: "block"
+                - continue
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Profile.name.data.insuranceId
+              string2: =..apiRequest.insuranceCard.docCreateReq.id
+        - ..formData.flag@: true
+        - ..formData.flag@: false
+    #android use calendar init
+    - actionType: evalObject
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: FinancialFormEditPage1.calendarDate.year
+    #android use calendar init
+    - actionType: evalObject
+      object: .BaseComponents.getDate
+    #android use calendar init
+    - actionType: evalObject
+      object: .BaseComponents.getShow
+    - actionType: evalObject
+      object:
+        - ..calendarDate@: =.BaseComponents.calendarDate
+    #IOS use calendar init
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: FinancialFormEditPage1.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: FinancialFormEditPage1.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: FinancialFormEditPage1.calendarDate.day
+    #IOS use calendar init
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.FinancialFormEditPage1.calendarDate.year
+              month: =.FinancialFormEditPage1.calendarDate.month
+              today: =.FinancialFormEditPage1.calendarDate.day
+            dataOut: FinancialFormEditPage1.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.FinancialFormEditPage1.calendarDate.month
+            dataOut: FinancialFormEditPage1.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.FinancialFormEditPage1.calendarDate.year
+              month: =.FinancialFormEditPage1.calendarDate.month
+              day: =.FinancialFormEditPage1.calendarDate.day
+              formatType: "M/D/Y"
+            dataOut: FinancialFormEditPage1.calendarDate.todayDate
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.insuranceCard.docCreateReq.name.data.relation
+              string2: "Self"
+        - ..formData.selectShow@: "none"
+        - ..formData.selectShow@: "block"
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: selectTag
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: defaultTag
+  formData:
+    address: []
+    flag: true
+    fileSize: ""
+    #点击保险卡照片放大时popup中的image的id
+    showInsuranceImageId: ""
+    #判断remove按钮隐藏还是显示
+    display: "none"
+    selectShow: "none"
+    scrollHeight: "0.94"
+  formDataTemp:
+    imgFrontDisplay: "none"
+    imgBackDisplay: "none"
+    genderTemp:
+      - key: gender
+        value: "Male"
+      - key: gender
+        value: "Female"
+      - key: gender
+        value: "Other"
+  apiRequest:
+    #正面保险卡图片
+    front_insuranceCardImage:
+      docCreateReq:
+        type: .DocType.F_InsuranceCard
+        eid: .Global.rootNotebookID
+        reid: ""
+        name:
+          data: binFile
+      docDeleteReq:
+        id: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: MedicalInsurance.apiRequest.front_insuranceCardImage.docCreateReq
+          dataOut: Global.formData.front_InsuranceCard
+        delete:
+          api: dx
+          dataIn: MedicalInsurance.apiRequest.front_insuranceCardImage.docDeleteReq
+    #反面保险卡图片
+    back_insuranceCardImage:
+      docCreateReq:
+        type: .DocType.B_InsuranceCard
+        eid: .Global.rootNotebookID
+        reid: ""
+        name:
+          data: binFile
+      docDeleteReq:
+        id: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: MedicalInsurance.apiRequest.back_insuranceCardImage.docCreateReq
+          dataOut: Global.formData.back_InsuranceCard
+        delete:
+          api: dx
+          dataIn: MedicalInsurance.apiRequest.back_insuranceCardImage.docDeleteReq
+    oldDefaultInsurance:
+      docQueryReq:
+        id: ""
+      docQueryResp: ""
+      docCreateReq: ""
+      docCreateResp: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: MedicalInsurance.apiRequest.oldDefaultInsurance.docQueryReq
+          dataOut: MedicalInsurance.apiRequest.oldDefaultInsurance.docQueryResp
+        store:
+          api: cd
+          dataIn: MedicalInsurance.apiRequest.oldDefaultInsurance.docCreateReq
+          dataOut: MedicalInsurance.apiRequest.oldDefaultInsurance.docCreateResp
+    #保险卡信息
+    insuranceCard:
+      docQueryReq:
+        id: ""
+      docQueryResp: ""
+      docCreateResp: ""
+      docCreateReq:
+        eid: .Global.rootNotebookID
+        type: .DocType.InsuranceCard
+        name:
+          data:
+            # 保险卡简略信息，格式：companyName - memberId
+            insuranceInfo: ""
+            #是否未默认保险卡
+            default: false
+            #保险公司名称
+            companyName: ""
+            #保险计划或者医疗组织
+            planOrMedicalGroup: ""
+            #成员名称
+            memberName: ""
+            #成员id
+            memberId: ""
+            #组织号码
+            groupNumber: ""
+            #政策号码
+            policyNumber: ""
+            #政策持有者名字
+            policyHolderName: ""
+            #与患者的关系
+            relation: "Self"
+            relationAddress:
+              line: ""
+              secondLine: ""
+              city: ""
+              county: ""
+              state: ""
+              zipCode: ""
+              fullAddress: ""
+            gender: ""
+            relationBirth: ""
+            relationName: ""
+            #保险卡正面照片docId
+            front_InsuranceCardId: ""
+            #保险卡反面照片docId
+            back_InsuranceCardId: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: MedicalInsurance.apiRequest.insuranceCard.docQueryReq
+          dataOut: MedicalInsurance.apiRequest.insuranceCard.docQueryResp
+        store:
+          api: cd
+          dataIn: MedicalInsurance.apiRequest.insuranceCard.docCreateReq
+          dataOut: MedicalInsurance.apiRequest.insuranceCard.docCreateResp
+        delete:
+          api: dx
+          dataIn: MedicalInsurance.apiRequest.insuranceCard.docCreateReq
+    #检查个数，为了default恒定存在
+    insurance:
+      docDeleteReq: ""
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.InsuranceCard
+        ids:
+          - .Global.rootNotebookID
+          - .Global.Profile.id
+        xfname: eid,fid
+        _nonce: =.Global._nonce
+        obfname: ctime
+      docAPI:
+        get:
+          api: rd
+          dataIn: MedicalInsurance.apiRequest.insurance.docQueryReq
+          dataOut: MedicalInsurance.apiRequest.insurance.docQueryResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+          - .BasePublicHeaderTitle:
+          - .BasePublicHeaderRightText:
+            text: Save
+            onClick:
+              - ..event.saveClick
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+        height: ..formData.scrollHeight
+      children:
+        - type: view
+          style:
+            ..style.titleBox:
+          children:
+            - type: label
+              text: Please add all your Medical Insurance
+              dataKey:
+              style:
+                ..style.titlelabel:
+            - type: view
+              style:
+                marginTop: "0.0123"
+                width: "1"
+                height: "0.0008"
+                backgroundColor: "0xdedede"
+        - type: view
+          style:
+            ..style.secondBox:
+          children:
+            - type: view
+              viewTag: defaultTag
+              style:
+                marginTop: "0.020935"
+                ..style.blockBox:
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxPath:
+                  style:
+                    ..style.img:
+                  onClick:
+                    - ..event.checkBoxClick
+                - type: label
+                  text: Set as primary insurance
+                  dataKey:
+                  style:
+                    ..style.setLabel:
+            - type: label
+              textBoard:
+                - text: "Insurance Company Name"
+                - text: "&nbsp;"
+                - text: "*"
+                  color: "#ff0000"
+              dataKey:
+              style:
+                ..style.blockBoxTitle:
+                marginTop: "0.024630"
+            - type: textField
+              placeholder: Enter here
+              dataKey: apiRequest.insuranceCard.docCreateReq.name.data.companyName
+              style:
+                ..style.blockBoxInput:
+            - type: label
+              textBoard:
+                - text: "Insurance Plan / Medical Group"
+                - text: "&nbsp;"
+                - text: "*"
+                  color: "#ff0000"
+              dataKey:
+              style:
+                ..style.blockBoxTitle:
+            - type: textField
+              placeholder: Enter here
+              dataKey: apiRequest.insuranceCard.docCreateReq.name.data.planOrMedicalGroup
+              style:
+                ..style.blockBoxInput:
+            - type: label
+              textBoard:
+                - text: "Insured Name"
+                - text: "&nbsp;"
+                - text: "*"
+                  color: "#ff0000"
+              dataKey:
+              style:
+                ..style.blockBoxTitle:
+            - type: textField
+              placeholder: Enter here
+              dataKey: apiRequest.insuranceCard.docCreateReq.name.data.memberName
+              style:
+                ..style.blockBoxInput:
+            - type: label
+              textBoard:
+                - text: "Insurance ID #"
+                - text: "&nbsp;"
+                - text: "*"
+                  color: "#ff0000"
+              dataKey:
+              style:
+                ..style.blockBoxTitle:
+            - type: textField
+              placeholder: Enter here
+              dataKey: apiRequest.insuranceCard.docCreateReq.name.data.memberId
+              style:
+                ..style.blockBoxInput:
+            - type: label
+              text: "Group #"
+              dataKey:
+              style:
+                ..style.blockBoxTitle:
+            - type: textField
+              placeholder: Enter here
+              dataKey: apiRequest.insuranceCard.docCreateReq.name.data.groupNumber
+              style:
+                ..style.blockBoxInput:
+            - type: label
+              text: "Relationship to Patient"
+              dataKey:
+              style:
+                ..style.blockBoxTitle:
+            - type: select
+              placeholder: Enter here
+              options: .SelectINformationDM.relation
+              dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relation
+              style:
+                ..style.blockBoxInput:
+              onChange:
+                - ..event.selectChange
+            - type: view
+              viewTag: selectTag
+              style:
+                ..style.blockBox:
+                display: ..formData.selectShow
+              children:
+                - type: label
+                  text: "1) Name"
+                  dataKey:
+                  style:
+                    ..style.blockRegularTitle:
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationName
+                  style:
+                    ..style.blockBoxInput:
+                - type: label
+                  text: "2) Date of Birth"
+                  dataKey:
+                  style:
+                    ..style.blockRegularTitle:
+                - type: view
+                  viewTag: dateBirthTag
+                  style:
+                    ..style.dateBox:
+                    height: "0.054187"
+                  onClick:
+                    - actionType: popUp
+                      popUpView: birthDay
+                  children:
+                    - type: textField
+                      viewTag: birthTag
+                      placeholder: Select
+                      dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationBirth
+                      isEditable: "false"
+                      style:
+                        ..style.dateInput:
+                        height: "0.051724"
+                    - type: image
+                      path: dateImg.svg
+                      style:
+                        ..style.dateImg:
+                - type: label
+                  text: "3) Gender"
+                  dataKey:
+                  style:
+                    ..style.blockRegularTitle:
+
+                - type: list
+                  viewTag: tag_idImage
+                  contentType: listObject
+                  listObject: ..formDataTemp.genderTemp
+                  iteratorVar: itemObject
+                  style:
+                    ..style.genterlist:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.genderListItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.pathEmit_sex:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.onClick_sex
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.genderItemValue:
+
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.0221674"
+                  children:
+                    - type: label
+                      text: "4) Address"
+                      dataKey:
+                      style:
+                        ..style.blockRegularTitle:
+                        margin: "0"
+                    - type: textField
+                      placeholder: Address Line
+                      dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.line
+                      style:
+                        ..style.blockInputOne:
+                        marginTop: "0.01"
+                    - type: textField
+                      placeholder: Address Second Line
+                      dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.secondLine
+                      style:
+                        ..style.blockInputOne:
+                        marginTop: "0.01"
+                    - type: view
+                      style:
+                        ..style.InputBox:
+                        marginTop: "0.01"
+                      children:
+                        - type: textField
+                          placeholder: City
+                          dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.city
+                          style:
+                            ..style.blockInput:
+                            width: "0.21"
+                        - type: textField
+                          placeholder: County
+                          dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.county
+                          style:
+                            ..style.blockInput:
+                            marginLeft: "0.026"
+                            width: "0.21"
+                        - type: select
+                          dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.state
+                          options: .SelectINformationDM.state
+                          style:
+                            ..style.blockInput:
+                            marginLeft: "0.026"
+                            width: "0.21"
+                        - type: textField
+                          placeholder: Zip code
+                          dataKey: apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.zipCode
+                          style:
+                            ..style.blockInput:
+                            marginLeft: "0.026"
+                            width: "0.21"
+
+            - type: view
+              style:
+                ..style.blockBox:
+                marginTop: "0.0320197"
+              children:
+                - type: label
+                  textBoard:
+                    - text: "Front of Insurance Card"
+                    - text: "&nbsp;"
+                    - text: "*"
+                      color: "#ff0000"
+                  dataKey:
+                  style:
+                    ..style.inlineTitle:
+                - type: label
+                  text: Upload
+                  dataKey:
+                  style:
+                    ..style.upload:
+                  onClick:
+                    - ..event.frontUpload
+            - type: view
+              viewTag: front_InsuranceImage
+              style:
+                ..style.imgBox:
+                display: ..formDataTemp.imgFrontDisplay
+              onClick:
+                - ..event.frontShow
+              children:
+                - type: image
+                  path: defaultImg.svg
+                  path=func: .builtIn.utils.prepareDocToPath
+                  dataKey: apiRequest.insuranceCard.docCreateReq.name.data.front_InsuranceCardId
+                  style:
+                    ..style.card:
+            - type: view
+              style:
+                ..style.blockBox:
+                marginTop: "0.0320197"
+              children:
+                - type: label
+                  textBoard:
+                    - text: "Back of Insurance Card"
+                    - text: "&nbsp;"
+                    - text: "*"
+                      color: "#ff0000"
+                  dataKey:
+                  style:
+                    ..style.inlineTitle:
+                - type: label
+                  text: Upload
+                  dataKey:
+                  style:
+                    ..style.upload:
+                  onClick:
+                    - ..event.backUpload
+
+            - type: view
+              viewTag: back_InsuranceImage
+              style:
+                ..style.imgBox:
+                display: ..formDataTemp.imgBackDisplay
+              onClick:
+                - ..event.backShow
+              children:
+                - type: image
+                  path: defaultImg.svg
+                  path=func: .builtIn.utils.prepareDocToPath
+                  dataKey: apiRequest.insuranceCard.docCreateReq.name.data.back_InsuranceCardId
+                  style:
+                    ..style.card:
+            - type: view
+              style:
+                marginTop: "0.03"
+
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formData.display
+      children:
+        - type: button
+          text: Remove
+          dataKey:
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.removeClick
+    - .SuccessfulOneLine:
+      message: successfully
+    # all fill check popup
+    - .TipsMultiLine:
+      type: popUp
+      viewTag: fillCheck
+      message: Please complete the required items.
+    #remove popup
+    - .Tip:
+      viewTag: removePopUp
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: removePopUp
+      rightButton:
+        - actionType: popUpDismiss
+          popUpView: removePopUp
+        - actionType: evalObject
+          object:
+            - =..apiRequest.insuranceCard.docAPI.delete: ""
+            - =.builtIn.array.removeByName:
+                dataIn:
+                  object: =.Global.selfMedicalLicense
+                  key: id
+                  name: =..apiRequest.insuranceCard.docCreateReq.id
+            - if:
+                - =.Global.selfMedicalLicense.0
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.insuranceCard.docQueryReq.id@: =.Global.selfMedicalLicense.0.id
+                    - =..apiRequest.insuranceCard.docAPI.get: ""
+                    - ..apiRequest.insuranceCard.docCreateReq@: =..apiRequest.insuranceCard.docQueryResp.doc.0
+                    - ..apiRequest.insuranceCard.docCreateReq.name.data.default@: true
+                    - =..apiRequest.insuranceCard.docAPI.store: ""
+                    - ..apiRequest.profile.docCreateReq.name.data.insuranceId@: =.Global.selfMedicalLicense.0.id
+                    - .Global.Profile.name.data.insuranceId@: =.Global.selfMedicalLicense.0.id
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.profile.docCreateReq.name.data.insuranceId@: ""
+                    - .Global.Profile.name.data.insuranceId@: ""
+        - actionType: builtIn
+          funcName: goBack
+          wait: 1000
+          reload: true
+    - .simplePopup:
+      viewTag: front_InsuranceCard_OverWritePopup
+      children:
+        - .simplePopupView:
+          style:
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: "Are you sure you want to overwrite the original file?"
+              style:
+                marginTop: "0.04"
+                marginLeft: "0.03"
+                width: "0.64"
+                height: "auto"
+                color: "0x4b4b4b"
+                fontSize: .Nfont.h2
+
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                marginTop: "0.04"
+                height: "0.001"
+                width: "0.72"
+                backgroundColor: "0x8f8f90"
+            - type: view
+              style:
+                height: "0.06"
+                width: "0.72"
+              children:
+                - .simplePopupSplit1:
+                  style:
+                    top: "0"
+                    height: "0.06"
+                - .simplePopupLeftButton:
+                  text: "NO"
+                  style:
+                    top: "0.01"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: front_InsuranceCard_OverWritePopup
+                - .simplePopupRightButton:
+                  text: "Yes"
+                  style:
+                    top: "0.01"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: front_InsuranceCard_OverWritePopup
+                    - actionType: popUp
+                      popUpView: front_InsuranceCardImage
+    - .simplePopup:
+      viewTag: back_InsuranceCard_OverWritePopup
+      children:
+        - .simplePopupView:
+          style:
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: "Are you sure you want to overwrite the original file?"
+              style:
+                marginTop: "0.04"
+                marginLeft: "0.03"
+                width: "0.64"
+                height: "auto"
+                color: "0x4b4b4b"
+                fontSize: .Nfont.h2
+
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                marginTop: "0.04"
+                height: "0.001"
+                width: "0.72"
+                backgroundColor: "0x8f8f90"
+            - type: view
+              style:
+                height: "0.06"
+                width: "0.72"
+              children:
+                - .simplePopupSplit1:
+                  style:
+                    top: "0"
+                    height: "0.06"
+                - .simplePopupLeftButton:
+                  text: "NO"
+                  style:
+                    top: "0.01"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: back_InsuranceCard_OverWritePopup
+                - .simplePopupRightButton:
+                  text: "Yes"
+                  style:
+                    top: "0.01"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: back_InsuranceCard_OverWritePopup
+                    - actionType: popUp
+                      popUpView: back_InsuranceCardImage
+
+    - type: popUp
+      viewTag: front_InsuranceCardImage
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0x99999966"
+        zIndex: 10000
+      children:
+        - type: view
+          style:
+            top: "0.74"
+            width: "0.9"
+            height: "0.135"
+            left: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "0xe9e9e9"
+            zIndex: 1000
+          children:
+            - type: button
+              text: Camera
+              contentType: file
+              style:
+                top: "0.01"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                  width: "0.0001"
+                borderColor: "0x00000066"
+              onClick:
+                - actionType: openCamera
+                  dataObject: BLOB
+                  dataKey: MedicalInsurance.apiRequest.front_insuranceCardImage.docCreateReq.name.data
+                - actionType: popUpDismiss
+                  popUpView: front_InsuranceCardImage
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =.builtIn.math.lessthanSize:
+                #             dataIn:
+                #               object: =..apiRequest.front_insuranceCardImage.docCreateReq.name.data # object
+                #               key: 2 #mb
+                #         - ..formData.flag@: false
+                #         - actionType: evalObject
+                #           object:
+                #             - =.builtIn.utils.getFileSize:
+                #                 dataIn:
+                #                   object: =..apiRequest.front_insuranceCardImage.docCreateReq.name.data
+                #                   units: mb
+                #                 dataOut: MedicalInsurance.formData.fileSize
+                #             - =.builtIn.string.concat:
+                #                 dataIn:
+                #                   - "Your file size:"
+                #                   - =..formData.fileSize
+                #                   - "Mb"
+                #                 dataOut: Global.formData.fileSize
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    # - if:
+                    #     - =..formData.flag
+                    #     - actionType: popUp
+                    #       popUpView: overSize
+                    #       wait: true
+                    #     - continue
+                    - =..apiRequest.front_insuranceCardImage.docAPI.store: ""
+                    - ..apiRequest.insuranceCard.docCreateReq.name.data.front_InsuranceCardId@: =.Global.formData.front_InsuranceCard.doc.id
+                    - ..formDataTemp.imgFrontDisplay@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: front_InsuranceImage
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: imgBlockBigTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: front_InsuranceImage
+                - actionType: popUp
+                  popUpView: uploadImageSuccTag
+                  wait: 2000
+            - type: button
+              text: Photo Library
+              contentType: file
+              onClick:
+                - actionType: openPhotoLibrary
+                  dataObject: BLOB
+                  dataKey: MedicalInsurance.apiRequest.front_insuranceCardImage.docCreateReq.name.data
+                - actionType: popUpDismiss
+                  popUpView: front_InsuranceCardImage
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =.builtIn.math.lessthanSize:
+                #             dataIn:
+                #               object: =..apiRequest.front_insuranceCardImage.docCreateReq.name.data # object
+                #               key: 2 #mb
+                #         - ..formData.flag@: false
+                #         - actionType: evalObject
+                #           object:
+                #             - =.builtIn.utils.getFileSize:
+                #                 dataIn:
+                #                   object: =..apiRequest.front_insuranceCardImage.docCreateReq.name.data
+                #                   units: mb
+                #                 dataOut: MedicalInsurance.formData.fileSize
+                #             - =.builtIn.string.concat:
+                #                 dataIn:
+                #                   - "Your file size:"
+                #                   - =..formData.fileSize
+                #                   - "Mb"
+                #                 dataOut: Global.formData.fileSize
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    # - if:
+                    #     - =..formData.flag
+                    #     - actionType: popUp
+                    #       popUpView: overSize
+                    #       wait: true
+                    #     - continue
+                    - =..apiRequest.front_insuranceCardImage.docAPI.store: ""
+                    - ..apiRequest.insuranceCard.docCreateReq.name.data.front_InsuranceCardId@: =.Global.formData.front_InsuranceCard.doc.id
+                    - ..formDataTemp.imgFrontDisplay@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: front_InsuranceImage
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: imgBlockBigTag
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: front_InsuranceImage
+                - actionType: popUp
+                  popUpView: uploadImageSuccTag
+                  wait: 2000
+              style:
+                top: "0.07"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border: "none"
+                borderRadius: "10"
+        - type: button
+          text: Cancel
+          style:
+            top: "0.9"
+            left: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: "18"
+            color: "0x1d88fc"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            borderRadius: "10"
+            border:
+              style: 1
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: front_InsuranceCardImage
+    - type: popUp
+      viewTag: back_InsuranceCardImage
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0x99999966"
+        zIndex: 10000
+      children:
+        - type: view
+          style:
+            top: "0.74"
+            width: "0.9"
+            height: "0.135"
+            left: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "0xe9e9e9"
+            zIndex: 1000
+          children:
+            - type: button
+              text: Camera
+              contentType: file
+              style:
+                top: "0.01"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                  width: "0.0001"
+                borderColor: "0x00000066"
+              onClick:
+                - actionType: openCamera
+                  dataObject: BLOB
+                  dataKey: MedicalInsurance.apiRequest.back_insuranceCardImage.docCreateReq.name.data
+                - actionType: popUpDismiss
+                  popUpView: back_InsuranceCardImage
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =.builtIn.math.lessthanSize:
+                #             dataIn:
+                #               object: =..apiRequest.back_insuranceCardImage.docCreateReq.name.data # object
+                #               key: 2 #mb
+                #         - ..formData.flag@: false
+                #         - actionType: evalObject
+                #           object:
+                #             - =.builtIn.utils.getFileSize:
+                #                 dataIn:
+                #                   object: =..apiRequest.back_insuranceCardImage.docCreateReq.name.data
+                #                   units: mb
+                #                 dataOut: MedicalInsurance.formData.fileSize
+                #             - =.builtIn.string.concat:
+                #                 dataIn:
+                #                   - "Your file size:"
+                #                   - =..formData.fileSize
+                #                   - "Mb"
+                #                 dataOut: Global.formData.fileSize
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    # - if:
+                    #     - =..formData.flag
+                    #     - actionType: popUp
+                    #       popUpView: overSize
+                    #       wait: true
+                    #     - continue
+                    - =..apiRequest.back_insuranceCardImage.docAPI.store: ""
+                    - ..apiRequest.insuranceCard.docCreateReq.name.data.back_InsuranceCardId@: =.Global.formData.back_InsuranceCard.doc.id
+                    - ..formDataTemp.imgBackDisplay@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: back_InsuranceImage
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: imgBlockBigTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: front_InsuranceImage
+                - actionType: popUp
+                  popUpView: uploadImageSuccTag
+                  wait: 2000
+            - type: button
+              text: Photo Library
+              contentType: file
+              onClick:
+                - actionType: openPhotoLibrary
+                  dataObject: BLOB
+                  dataKey: MedicalInsurance.apiRequest.back_insuranceCardImage.docCreateReq.name.data
+                - actionType: popUpDismiss
+                  popUpView: back_InsuranceCardImage
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =.builtIn.math.lessthanSize:
+                #             dataIn:
+                #               object: =..apiRequest.back_insuranceCardImage.docCreateReq.name.data # object
+                #               key: 2 #mb
+                #         - ..formData.flag@: false
+                #         - actionType: evalObject
+                #           object:
+                #             - =.builtIn.utils.getFileSize:
+                #                 dataIn:
+                #                   object: =..apiRequest.back_insuranceCardImage.docCreateReq.name.data
+                #                   units: mb
+                #                 dataOut: MedicalInsurance.formData.fileSize
+                #             - =.builtIn.string.concat:
+                #                 dataIn:
+                #                   - "Your file size:"
+                #                   - =..formData.fileSize
+                #                   - "Mb"
+                #                 dataOut: Global.formData.fileSize
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    # - if:
+                    #     - =..formData.flag
+                    #     - actionType: popUp
+                    #       popUpView: overSize
+                    #       wait: true
+                    #     - continue
+                    - =..apiRequest.back_insuranceCardImage.docAPI.store: ""
+                    - ..apiRequest.insuranceCard.docCreateReq.name.data.back_InsuranceCardId@: =.Global.formData.back_InsuranceCard.doc.id
+                    - ..formDataTemp.imgBackDisplay@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: back_InsuranceImage
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: imgBlockBigTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: front_InsuranceImage
+                - actionType: popUp
+                  popUpView: uploadImageSuccTag
+                  wait: 2000
+              style:
+                top: "0.07"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border: "none"
+                borderRadius: "10"
+        - type: button
+          text: Cancel
+          style:
+            top: "0.9"
+            left: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: "18"
+            color: "0x1d88fc"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            borderRadius: "10"
+            border:
+              style: 1
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: back_InsuranceCardImage
+    - type: popUp
+      viewTag: imgBlockBigTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333333"
+        top: "0"
+        textAlign:
+          x: "center"
+          y: "center"
+      children:
+        - type: image
+          path: defaultImg.svg
+          path=func: =.builtIn.utils.prepareDocToPath
+          dataKey: formData.showInsuranceImageId
+          style:
+            width: "0.8"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: imgBlockBigTag
+
+    - type: popUp
+      viewTag: uploadImageSuccTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333366"
+        top: "0"
+      children:
+        - type: view
+          style:
+            backgroundColor: "0xe6e6e6"
+            height: "0.2"
+            width: "0.6"
+            left: "0.2"
+            top: "0.3"
+            border:
+              style: ""
+            borderWidth: "1"
+            borderColor: ""
+            borderRadius: "10"
+          children:
+            - type: image
+              path: successMark.png
+              style:
+                width: "0.15"
+                left: "0.225"
+                top: "0.04"
+            - type: label
+              text: Upload Successfully
+              style:
+                width: "0.6"
+                height: "0.1"
+                lineHeight: "10vh"
+                marginTop: "0.1"
+                textAlign:
+                  x: center
+
+    - type: popUp
+      viewTag: zhuanquanViewTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "10000"
+        backgroundColor: "0x33333366"
+        top: "0"
+        # pointerEvents: "none"
+      children:
+        - type: view
+          style:
+            backgroundColor: "0xffffff"
+            height: "0.2"
+            width: "0.6"
+            left: "0.2"
+            top: "0.3"
+            border:
+              style: ""
+            borderWidth: "1"
+            borderColor: ""
+            borderRadius: "10"
+          children:
+            - type: image
+              path: zhuanquan.gif
+              style:
+                width: "0.4"
+                left: "0.1"
+                top: "0.04"
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.86"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.insuranceCard.docCreateReq.name.data.relationBirth@: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: birthTag
+                - actionType: popUpDismiss
+                  popUpView: birthDay
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.flag
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =..formData.flag
+              - ..formData.flag@: false
+              - ..formData.flag@: true
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: defaultTag
+
+    pathEmit_sex:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.insuranceCard.docCreateReq.name.data.gender
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    onClick_sex:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.insuranceCard.docCreateReq.name.data.gender
+                      string2: $var.value
+                - continue
+                - ..apiRequest.insuranceCard.docCreateReq.name.data.gender@: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: tag_idImage
+    selectChange:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.insuranceCard.docCreateReq.name.data.relation
+                    string2: "Self"
+              - ..formData.selectShow@: "none"
+              - ..formData.selectShow@: "block"
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: selectTag
+    backUpload:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.insuranceCard.docCreateReq.name.data.back_InsuranceCardId
+                    string2: ""
+              - continue
+              - actionType: popUp
+                popUpView: back_InsuranceCard_OverWritePopup
+                wait: true
+      - actionType: popUp
+        popUpView: back_InsuranceCardImage
+    frontUpload:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.insuranceCard.docCreateReq.name.data.front_InsuranceCardId
+                    string2: ""
+              - continue
+              - actionType: popUp
+                popUpView: front_InsuranceCard_OverWritePopup
+                wait: true
+      - actionType: popUp
+        popUpView: front_InsuranceCardImage
+    backShow:
+      - actionType: evalObject
+        object:
+          - ..formData.showInsuranceImageId@: =..apiRequest.insuranceCard.docCreateReq.name.data.back_InsuranceCardId
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: imgBlockBigTag
+      - actionType: popUp
+        popUpView: imgBlockBigTag
+    frontShow:
+      - actionType: evalObject
+        object:
+          - ..formData.showInsuranceImageId@: =..apiRequest.insuranceCard.docCreateReq.name.data.front_InsuranceCardId
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: imgBlockBigTag
+      - actionType: popUp
+        popUpView: imgBlockBigTag
+    saveClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.allComplete:
+                  dataIn:
+                    - =..apiRequest.insuranceCard.docCreateReq.name.data.companyName
+                    - =..apiRequest.insuranceCard.docCreateReq.name.data.planOrMedicalGroup
+                    - =..apiRequest.insuranceCard.docCreateReq.name.data.memberName
+                    - =..apiRequest.insuranceCard.docCreateReq.name.data.memberId
+                    - =..apiRequest.insuranceCard.docCreateReq.name.data.front_InsuranceCardId
+                    - =..apiRequest.insuranceCard.docCreateReq.name.data.back_InsuranceCardId
+              - continue
+              - actionType: popUp
+                popUpView: fillCheck
+                wait: true
+          - ..apiRequest.insuranceCard.docCreateReq.fid@: =.Global.Profile.id
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: ""
+                    string2: =..apiRequest.insuranceCard.docCreateReq.id
+              - continue
+              - =.builtIn.array.removeByName:
+                  dataIn:
+                    object: =.Global.selfMedicalLicense
+                    key: id
+                    name: =..apiRequest.insuranceCard.docCreateReq.id
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.line
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.secondLine
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.city
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.county
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.state
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..formData.address
+                value: =..apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.zipCode
+          - =.builtIn.array.formatStringFill:
+              dataIn:
+                strArr: =..formData.address
+                sfill: ","
+              dataOut: MedicalInsurance.apiRequest.insuranceCard.docCreateReq.name.data.relationAddress.fullAddress
+          - if:
+              - =..formData.flag
+              - ..apiRequest.insuranceCard.docCreateReq.name.data.default@: true
+              - continue
+          - if:
+              - =.Global.Profile.name.data.insuranceId
+              - continue
+              - ..apiRequest.insuranceCard.docCreateReq.name.data.default@: true
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..apiRequest.insuranceCard.docCreateReq.name.data.companyName
+                - " - "
+                - =..apiRequest.insuranceCard.docCreateReq.name.data.memberId
+              dataOut: MedicalInsurance.apiRequest.insuranceCard.docCreateReq.name.data.insuranceInfo
+          - =..apiRequest.insuranceCard.docAPI.store: ""
+          - =.builtIn.array.add:
+              dataIn:
+                object: =.Global.selfMedicalLicense
+                value: =..apiRequest.insuranceCard.docCreateResp.doc
+          - if:
+              - =..formData.flag
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.Global.Profile.name.data.insuranceId
+                      - actionType: evalObject
+                        object:
+                          - ..apiRequest.oldDefaultInsurance.docQueryReq.id@: =.Global.Profile.name.data.insuranceId
+                          - =..apiRequest.oldDefaultInsurance.docAPI.get: ""
+                          - ..apiRequest.oldDefaultInsurance.docCreateReq@: =..apiRequest.oldDefaultInsurance.docQueryResp.doc.0
+                          - ..apiRequest.oldDefaultInsurance.docCreateReq.name.data.default@: false
+                          - =..apiRequest.oldDefaultInsurance.docAPI.store: ""
+                          - .Global.Profile.name.data.insuranceId@: =..apiRequest.insuranceCard.docCreateResp.doc.id
+                      - continue
+              - continue
+          # if no default insurance, the first insurance patient saved will be the default insurance
+          - if:
+              - =.Global.Profile.name.data.insuranceId
+              - continue
+              - .Global.Profile.name.data.insuranceId@: =..apiRequest.insuranceCard.docCreateReq.id
+      - actionType: popUp
+        popUpView: successfulOneLine
+        wait: 1000
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    removeClick:
+      - actionType: popUp
+        popUpView: removePopUp
+
+  style:
+    scrollBox:
+      width: "1"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    titleBox:
+      marginTop: "0.01970"
+      paddingBottom: "1.23vh"
+      width: "1"
+      height: "auto"
+      # border:
+      #   style: 2
+      # borderWidth: "1"
+      # borderColor: "#dedede"
+    titlelabel:
+      marginLeft: "0.04"
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    secondBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    blockBox:
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+    blockBoxTitle:
+      marginTop: "0.01477"
+      width: "0.92"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      fontWeight: "600"
+    blockBoxInput:
+      marginTop: "0.0135467"
+      width: "0.92"
+      height: "0.054187"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "4"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      textIndent: "12px"
+      verticalAlign: middle
+    blockRegularTitle:
+      marginTop: "0.01477"
+      width: "0.92"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x333333"
+    genterlist:
+      marginTop: "0.020935"
+      height: "auto"
+      width: "auto"
+      axis: horizontal
+    genderListItem:
+      # marginRight: "0.096"
+      width: "0.25"
+      height: "auto"
+      boxSizing: border-box
+    genderItemValue:
+      marginLeft: "0.01"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    dateBox:
+      marginTop: "0.0135467"
+      width: "0.92"
+      height: "0.0369"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+      verticalAlign: middle
+    dateInput:
+      display: "inline-block"
+      border:
+        style: 1
+      boxSizing: border-box
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "0.03078"
+      verticalAlign: middle
+      textIndent: "12px"
+      width: "0.848"
+      backgroundColor: "#ffffff"
+    dateImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.02"
+    blockInput:
+      height: "0.054187"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+      verticalAlign: "middle"
+      display: "inline-block"
+    blockInputOne:
+      height: "0.054187"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+      verticalAlign: "middle"
+    inlineTitle:
+      ..style.blockBoxTitle:
+      margin: "0"
+      display: "inline-block"
+      width: "0.7946666"
+      verticalAlign: middle
+    upload:
+      display: "inline-block"
+      height: "auto"
+      width: "auto"
+      color: "#2988e6"
+      fontSize: .Nfont.h14
+      verticalAlign: middle
+      textDecoration: underline
+    imgBox:
+      ..style.blockBox:
+      marginTop: "0.01"
+      height: "0.123152"
+      width: "0.4293333"
+      padding: "5px 7px"
+      backgroundColor: "#f0f2f4"
+      borderRadius: "4"
+      boxSizing: border-box
+      textAlign:
+        x: center
+    card:
+      height: "0.1108374"
+      width: "0.389333"
+      objectFit: contain
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#d81e06"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

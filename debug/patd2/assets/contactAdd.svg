@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="66" height="49" viewBox="0 0 66 49">
+  <g id="组_9730" data-name="组 9730" transform="translate(-199 -256)">
+    <rect id="矩形_19689" data-name="矩形 19689" width="66" height="49" transform="translate(199 256)" fill="#fff"/>
+    <text id="Add" transform="translate(221 301)" fill="#2fb355" font-size="12" font-family="ProximaNova-Regular, Proxima Nova"><tspan x="0" y="0">Add</tspan></text>
+    <g id="组_9751" data-name="组 9751">
+      <g id="椭圆_705" data-name="椭圆 705" transform="translate(216 256)" fill="none" stroke="#2fb355" stroke-width="1">
+        <circle cx="16" cy="16" r="16" stroke="none"/>
+        <circle cx="16" cy="16" r="15.5" fill="none"/>
+      </g>
+    </g>
+    <g id="组_9769" data-name="组 9769" transform="translate(-599.592 -734.978)">
+      <path id="路径_9567" data-name="路径 9567" d="M15.394,12.788A3.394,3.394,0,1,0,12,9.394,3.394,3.394,0,0,0,15.394,12.788Z" transform="translate(816.047 991.978)" fill="none" stroke="#30b354" stroke-linejoin="round" stroke-width="1.2"/>
+      <path id="路径_9568" data-name="路径 9568" d="M36,29v0Z" transform="translate(803.683 978.294)" fill="none" fill-rule="evenodd"/>
+      <path id="路径_9569" data-name="路径 9569" d="M30,35h0Z" transform="translate(806.774 975.203)" fill="none" fill-rule="evenodd"/>
+      <path id="路径_9570" data-name="路径 9570" d="M32.909,29v5.818M30,31.909h5.818" transform="translate(805.319 978.294)" fill="none" stroke="#30b354" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+      <path id="路径_9571" data-name="路径 9571" d="M16.182,28H12.206c-2.172,0-3.258,0-4.088.423a3.879,3.879,0,0,0-1.7,1.7C6,30.948,6,32.034,6,34.206v.582H16.182" transform="translate(819.138 978.809)" fill="none" stroke="#30b354" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+    </g>
+  </g>
+</svg>

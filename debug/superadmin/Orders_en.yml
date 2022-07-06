@@ -3,10 +3,16 @@ Orders:
   init:
     - =..apiRequest.orders.docAPI.get: ""
     # - =..apiRequest.orderEdges.edgeAPI.get: ""
-
+    - =.builtIn.array.vagueFilterArrayByPath:
+        dataIn:
+          objArr: =..apiRequest.orders.docResp.doc
+          path: deat.state
+          compareStr: "COMPLETED"
+        dataOut: Orders.formData.orderList
+    - ..formData.orderListData@: =..formData.orderList
     - =.builtIn.array.splitTableList: 
         dataIn: 
-          arrObj: =..apiRequest.orders.docResp.doc
+          arrObj: =..formData.orderList
           numX: "12"
           numY: "1"
         dataOut: Orders.formData.tableData
@@ -33,6 +39,10 @@ Orders:
           valueArr: ["0xf5f5f5"]
           errorArr: ["0xffffff"]    
   formData: 
+    searchInputInfo: ""   # 输入框输入的内容
+    searchDeleteShow: "none"   # 控制是否显示清空搜索内容的图片
+    orderList: []   # 所有deat为completed的订单
+    orderListData: []   # list打印的数据 
     currentOrderId: ""
     currentOrder: ""
     statusHiddenOrShow: "0"
@@ -53,9 +63,10 @@ Orders:
   formDataTemp: #Input data temp here, datatemp should not mix with formData
     statusList:
       - name: "All"
-      - name: "Active"
-      - name: "Archived"
-      - name: "Draft"    
+      - name: "Undelivered"
+      - name: "Delivering"
+      - name: "Cancelled"    
+      - name: "Completed"    
   apiRequest:
     orders:
       docResp: ""
@@ -270,8 +281,9 @@ Orders:
                   children:
                     # search patient
                     - type: view
+                      viewTag: searchTag
                       style:
-                        width: "0.455"
+                        width: "0.295"
                         height: "auto"
                         display: inline-block
                         marginTop: "0.02"
@@ -291,79 +303,172 @@ Orders:
                             marginTop: "0.009"
                             display: inline-block
                         - .TransactionsTextField: ""
-                          placeholder: Search order number
-                          dataKey: 
+                          placeholder: Search by customer name、status、delivery method
+                          dataKey: formData.searchInputInfo
+                          onInput:
+                            - actionType: evalObject
+                              object:
+                                - if: 
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.searchInputInfo
+                                        string2: "" 
+                                  - actionType: evalObject
+                                    object:
+                                      - ..formData.searchDeleteShow@: "none"
+                                      - ..formData.orderListData@: =..formData.orderList
+                                  - actionType: evalObject
+                                    object:
+                                      - ..formData.searchDeleteShow@: "inline-block"
+                                      - =.builtIn.array.vagueFilterArrayByPath:
+                                          dataIn:
+                                            objArr: =..formData.orderList
+                                            path: ["name.data.customerName","name.data.orderStatus","name.data.shippingTime"]
+                                            compareStr: =..formData.searchInputInfo
+                                          dataOut: Orders.formData.orderListData   
+                                - ..formData.tablePageNum@: "1"   
+                                - =.builtIn.array.splitTableList: 
+                                    dataIn: 
+                                      arrObj: =..formData.orderListData
+                                      numX: "12"
+                                      numY: =..formData.tablePageNum
+                                    dataOut: Orders.formData.tableData
+                                - ..formData.tableList@: =..formData.tableData.0 
+                                - =.builtIn.array.setPropertyInterlacedChange:
+                                    dataIn:
+                                      arrIn: =..formData.tableList
+                                      arr: ["backgroundColor"]
+                                      valueArr: ["0xf5f5f5"]
+                                      errorArr: ["0xffffff"]
+                                    dataOut: Orders.formData.tableList
+                                - =.builtIn.string.concat: 
+                                    dataIn: 
+                                      - =..formData.tablePageNum
+                                      - " / "
+                                      - =..formData.tableData.1
+                                    dataOut: Orders.formData.tableCurrentPage # current page
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableFooter
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: deleteSearchTag                               
                           style:
                             width: "0.252"
                             marginLeft: "0.005"
                             display: inline-block
                             border: none
-                 
-                    # status
-                    - type: view
-                      style:
-                        width: "auto"
-                        marginLeft: "0.016"
-                        display: inline-block
-                        marginTop: "0.02"
-                      children:
-                        - type: label
-                          text: Status
-                          dataKey: 
+                        - type: image
+                          path: deleteGrayCircle.svg
+                          viewTag: deleteSearchTag
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..formData.searchInputInfo@: ""
+                                - ..formData.searchDeleteShow@: "none"
+                                - ..formData.orderListData@: =..formData.orderList
+                                - ..formData.tablePageNum@: "1"   
+                                - =.builtIn.array.splitTableList: 
+                                    dataIn: 
+                                      arrObj: =..formData.orderListData
+                                      numX: "12"
+                                      numY: =..formData.tablePageNum
+                                    dataOut: Orders.formData.tableData
+                                - ..formData.tableList@: =..formData.tableData.0 
+                                - =.builtIn.array.setPropertyInterlacedChange:
+                                    dataIn:
+                                      arrIn: =..formData.tableList
+                                      arr: ["backgroundColor"]
+                                      valueArr: ["0xf5f5f5"]
+                                      errorArr: ["0xffffff"]
+                                    dataOut: Orders.formData.tableList
+                                - =.builtIn.string.concat: 
+                                    dataIn: 
+                                      - =..formData.tablePageNum
+                                      - " / "
+                                      - =..formData.tableData.1
+                                    dataOut: Orders.formData.tableCurrentPage # current page                                
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableView
+                            - actionType: builtIn 
+                              funcName: redraw
+                              viewTag: tableFooter
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: searchTag    
                           style:
-                            fontSize: .Nfont.n6
-                            display: inline-block
-                            marginTop: "0.005"
-                            marginRight: "0.006"
-                            textAlign:
-                              y: center
-                        - type: view
-                          style:
-                            display: inline-block
-                          onClick:  
-                            - ..event.statusArrow
-                          children: 
-                            - .TransactionsTextField: ""
-                              viewTag: statusTextFiledTag
-                              placeholder: Select
-                              isEditable: false
-                              dataKey: formData.updateCondition.statusSelected.list
-                              style:
-                                width: "0.117"
-                                fontSize: .Nfont.nf2
-                                backgroundColor: "#ffffff"
-                                paddingRight: "3em"
-                            - type: image
-                              viewTag: statusBlackArrowTag
-                              path:
-                                emit:
-                                  dataKey:
-                                      var: itemObject
-                                  actions:  
-                                    - if: 
-                                      - =.builtIn.string.equal:
-                                          dataIn:
-                                            string1: =..formData.statusHiddenOrShow
-                                            string2: "0"
-                                      - downArrowDeepGray.svg
-                                      - upArrowDeepGray.svg.svg
-                              style:
-                                ..style.arrowCondition: ""
-                                left: "0.1015"
-                    # update
-                    - type: button
-                      text: Update
-                      style:
-                        ..style.updateBtn: ""
-                      onClick:
-                        - actionType: evalObject
-                          object:
-                    # revise
-                    - type: label
-                      text: Revise
-                      dataKey: 
-                      style:
-                        ..style.reviseBtn: ""
+                            width: "0.009"
+                            marginTop: "0.009"
+                            display: ..formData.searchDeleteShow
+                    # # status
+                    # - type: view
+                    #   style:
+                    #     width: "auto"
+                    #     marginLeft: "0.016"
+                    #     display: inline-block
+                    #     marginTop: "0.02"
+                    #   children:
+                    #     - type: label
+                    #       text: Status
+                    #       dataKey: 
+                    #       style:
+                    #         fontSize: .Nfont.n6
+                    #         display: inline-block
+                    #         marginTop: "0.005"
+                    #         marginRight: "0.006"
+                    #         textAlign:
+                    #           y: center
+                    #     - type: view
+                    #       style:
+                    #         display: inline-block
+                    #       onClick:  
+                    #         - ..event.statusArrow
+                    #       children: 
+                    #         - .TransactionsTextField: ""
+                    #           viewTag: statusTextFiledTag
+                    #           placeholder: Select
+                    #           isEditable: false
+                    #           dataKey: formData.updateCondition.statusSelected.list
+                    #           style:
+                    #             width: "0.117"
+                    #             fontSize: .Nfont.nf2
+                    #             backgroundColor: "#ffffff"
+                    #             paddingRight: "3em"
+                    #         - type: image
+                    #           viewTag: statusBlackArrowTag
+                    #           path:
+                    #             emit:
+                    #               dataKey:
+                    #                   var: itemObject
+                    #               actions:  
+                    #                 - if: 
+                    #                   - =.builtIn.string.equal:
+                    #                       dataIn:
+                    #                         string1: =..formData.statusHiddenOrShow
+                    #                         string2: "0"
+                    #                   - downArrowDeepGray.svg
+                    #                   - upArrowDeepGray.svg.svg
+                    #           style:
+                    #             ..style.arrowCondition: ""
+                    #             left: "0.1015"
+                    # # update
+                    # - type: button
+                    #   text: Update
+                    #   style:
+                    #     ..style.updateBtn: ""
+                    #   onClick:
+                    #     - actionType: evalObject
+                    #       object:
+                    # # revise
+                    # - type: label
+                    #   text: Revise
+                    #   dataKey: 
+                    #   style:
+                    #     ..style.reviseBtn: ""
 
                 - type: view
                   viewTag: tableView
@@ -491,7 +596,7 @@ Orders:
                                 width: "0.092"  
                                 ..style.formBody:
                             - type: label
-                              dataKey: itemObject.name.data.deliveryMethod
+                              dataKey: itemObject.name.data.shippingTime
                               style:
                                 width: "0.092"  
                                 ..style.formBody:     
@@ -504,14 +609,14 @@ Orders:
                                     actions:
                                       # - =.builtIn.array.getValueByKey: 
                                       #     dataIn:
-                                      #       array: =..apiRequest.orders.docResp.doc
+                                      #       array: =..formData.orderList
                                       #       key1: "eid"
                                       #       value: $var.id
                                       #       key2: "id"
                                       #     dataOut: Orders.formData.currentOrderId
                                       # - =.builtIn.array.getObjectByArray: 
                                       #     dataIn:
-                                      #       array: =..apiRequest.orders.docResp.doc
+                                      #       array: =..formData.orderList
                                       #       key: "id"
                                       #       value: =..formData.currentOrderId
                                       #     dataOut: Global.formData.currentOrder
@@ -586,7 +691,7 @@ Orders:
 
                                       - =.builtIn.array.splitTableList: 
                                           dataIn: 
-                                            arrObj: =..apiRequest.orders.docResp.doc
+                                            arrObj: =..formData.orderListData
                                             numX: "12"
                                             numY: =..formData.tablePageNum
                                           dataOut: Orders.formData.tableData
@@ -649,7 +754,7 @@ Orders:
                                           dataOut: Orders.formData.tablePageNum
                                       - =.builtIn.array.splitTableList: 
                                           dataIn: 
-                                            arrObj: =..apiRequest.orders.docResp.doc
+                                            arrObj: =..formData.orderListData
                                             numX: "12"
                                             numY: =..formData.tablePageNum
                                           dataOut: Orders.formData.tableData
@@ -742,7 +847,7 @@ Orders:
                                           object: 
                                             - =.builtIn.array.splitTableList: 
                                                 dataIn: 
-                                                  arrObj: =..apiRequest.orders.docResp.doc
+                                                  arrObj: =..formData.orderListData
                                                   numX: "12"
                                                   numY: =..formData.gotoPageNum
                                                 dataOut: Orders.formData.tableData

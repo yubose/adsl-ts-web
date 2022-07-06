@@ -1,0 +1,183 @@
+InboxFavoriteContact:
+  pageNumber: "360"
+  title: "FContacts"
+  init:
+    - .SignInCheck
+    - ..listData.get
+    - if:
+        - ..listData.favoriteList.0.doc.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
+  save:
+    - =.FavoriteContact.contactInfo.docAPI.store: ""
+  searchData:
+    searchContact: ""
+  listData:
+    favoriteList:
+      - .Document:
+    get:
+      .DocAPI.get: ""
+      api: rd
+      dataKey: listData.favoriteList
+      ids:
+        - .Global.rootNotebookID
+      type: .DocType.ContactFav
+      xfname: eid
+      maxcount: "10"
+      obfname: "mtime"
+      sCondtion: .DocType.GetFavContact
+      _nonce: =.Global._nonce
+  contactInfo:
+    document: ""
+    docAPI:
+      .DocAPI: ""
+      store:
+        dataKey: FavoriteContact.contactInfo.document
+  generalInfo:
+    value: true
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderRightImg:
+      path: addMeeting.svg
+      onClick:
+        - goto: AddContact
+    - type: view
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: view
+          style:
+            height: "0.1"
+        - type: view
+          style:
+            top: "0.09"
+            backgroundColor: "0x2988e6"
+            height: "0.05"
+            width: "1"
+            zIndex: "10"
+          children:
+            - type: button
+              text: "Contacts"
+              style:
+                top: "0.01"
+                left: "0.18"
+                width: "0.2"
+                height: "0.03"
+                color: "0x9bc6e5ff"
+                backgroundColor: "0x2988e6"
+                #
+                fontSize: "15"
+                border:
+                  style: "1"
+              onClick:
+                - goto: InboxContacts
+            - type: button
+              text: "Favorites"
+              style:
+                top: "0.01"
+                left: "0.6"
+                width: "0.2"
+                height: "0.03"
+                color: "0xffffffff"
+                backgroundColor: "0x2988e6"
+                #
+                fontSize: "15"
+                border:
+                  style: "1"
+        - type: view
+          style:
+            top: "0.12"
+            left: "0"
+            width: "1"
+            height: "0.85"
+          children:
+            - type: label
+              contentType: messageHidden
+              text: "No current invitations"
+              style:
+                # left: "0.31"
+                top: "0.25"
+                width: "1"
+                height: "0.04"
+                color: "0x000058"
+                fontSize: "16"
+                isHidden: "true"
+                textAlign:
+                  x: center
+            - type: list
+              contentType: listObject
+              listObject: ..listData.favoriteList.0.doc
+              iteratorVar: itemObject
+              style:
+                top: "0"
+                left: "0"
+                width: "1"
+                height: "0.85"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - actionType: updateObject
+                      dataKey: Global.inboxContact
+                      dataObject: itemObject
+                    - goto: NewMessage
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "0.1"
+                    # backgroundColor: "0xcdcdcd"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+                  children:
+                    - type: image
+                      # path: providerOn.svg
+                      # pathSelected: providerOff.svg
+                      viewTag: select
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..generalInfo.value
+                                      string2: $var.name.data.isFavorite
+                                - providerOn.svg
+                                - providerOff.svg
+                      style:
+                        top: "0.03"
+                        left: "0.07"
+                        height: "0.04"
+                    - type: label
+                      # text: ..itemObject.name.personName
+                      dataKey: itemObject.name.data.firstName
+                      onClick:
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                          dataKey: Global.DocReference.document
+                          dataObject: itemObject # this must be a rootRoom
+                        - goto: ContactInformation
+                      style:
+                        left: "0.22"
+                        height: "0.1"
+                        width: "0.45"
+                        top: "0.036"
+                    - type: image
+                      # path: mobileContacts.svg
+                      path: rightYellowArrow.svg
+                      style:
+                        left: "0.88"
+                        top: "0.037"
+                        height: "0.025"
+                        zIndex: 1000
+                      onClick:
+                        - goto: VideoChat

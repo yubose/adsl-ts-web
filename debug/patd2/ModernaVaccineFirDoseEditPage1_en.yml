@@ -1,0 +1,979 @@
+ModernaVaccineFirDoseEditPage1:
+  title: "Moderna Vaccine Form - First Dose"
+  init:
+    - .SignInCheck
+
+    - actionType: updateObject
+      dataKey: Global.formData.back_InsuranceCard
+      dataObject: .EmptyObj
+
+    - actionType: updateObject
+      dataKey: Global.formData.front_IDCard
+      dataObject: .EmptyObj
+
+    - actionType: updateObject
+      dataKey: Global.formData.front_InsuranceCard
+      dataObject: .EmptyObj
+
+    #android use calendar init
+    - actionType: evalObject
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: ModernaVaccineFirDoseEditPage1.calendarDate.year
+    #android use calendar init
+    - actionType: evalObject
+      object: .BaseComponents.getDate
+    #android use calendar init
+    - actionType: evalObject
+      object: .BaseComponents.getShow
+    - actionType: evalObject
+      object:
+        - ..calendarDate@: =.BaseComponents.calendarDate
+    #IOS use calendar init
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: ModernaVaccineFirDoseEditPage1.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: ModernaVaccineFirDoseEditPage1.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: ModernaVaccineFirDoseEditPage1.calendarDate.day
+    #IOS use calendar init
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.ModernaVaccineFirDoseEditPage1.calendarDate.year
+              month: =.ModernaVaccineFirDoseEditPage1.calendarDate.month
+              today: =.ModernaVaccineFirDoseEditPage1.calendarDate.day
+            dataOut: ModernaVaccineFirDoseEditPage1.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.ModernaVaccineFirDoseEditPage1.calendarDate.month
+            dataOut: ModernaVaccineFirDoseEditPage1.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.ModernaVaccineFirDoseEditPage1.calendarDate.year
+              month: =.ModernaVaccineFirDoseEditPage1.calendarDate.month
+              day: =.ModernaVaccineFirDoseEditPage1.calendarDate.day
+              formatType: "M/D/Y"
+            dataOut: ModernaVaccineFirDoseEditPage1.calendarDate.todayDate
+    # 判断modernaVaccineFirDoseForm是否存在,存在显示上次填写的数据,否则显示默认数据
+    - if:
+        - =.Global.formData.modernaVaccineFirDoseForm.id
+        - actionType: evalObject
+          object:
+            - ..patientInfo@: =.Global.formData.modernaVaccineFirDoseForm.name.data.patientInfo
+            - ..billingInfo@: =.Global.formData.modernaVaccineFirDoseForm.name.data.billingInfo
+        - continue
+
+    #  判断是否是第一次填写firstToModernaVaccineFirDoseForm
+    - if:
+        - =.Global.formData.firstToModernaVaccineFirDoseForm
+        - actionType: evalObject
+          object:
+            - ..apiRequest.modernaVaccineFirDoseForm.docReq.name.data@: =.VaccineFormDM.modernaVaccineFirDoseFormDM
+            - ..patientInfo@: =.VaccineFormDM.pifzerVaccineFirDoseFormDM.patientInfo
+
+            - =..apiRequest.modernaVaccineFirDoseForm.docAPI.store: ""
+            # 复显Patient信息
+            - ..patientInfo.address@: =.Global.Profile.name.data.contactInfo.address.fullAddress
+            - ..patientInfo.dateOfBirth@: =.Global.Profile.name.data.basicInfo.dateOfBirth
+            - ..patientInfo.gender@: =.Global.Profile.name.data.basicInfo.gender
+            - ..patientInfo.email@: =.Global.Profile.name.data.contactInfo.email
+            - ..patientInfo.firstName@: =.Global.Profile.name.data.basicInfo.firstName
+            - ..patientInfo.lastName@: =.Global.Profile.name.data.basicInfo.lastName
+            - ..patientInfo.mainContact@: =.Global.Profile.name.data.basicInfo.phone
+            - ..patientInfo.middleName@: =.Global.Profile.name.data.basicInfo.middleName
+            # 补充
+            - ..patientInfo.residence@: =.Global.Profile.name.data.contactInfo.address.county
+            - ..patientInfo.alternativePhone@: =.Global.Profile.name.data.contactInfo.alternatePhone.fullPhone
+            - ..patientInfo.employer@: =.Global.Profile.name.data.employment.employerName
+            - ..patientInfo.occupation@: =.Global.Profile.name.data.employment.Occupation
+            - ..patientInfo.agreement@: []
+            - ..patientInfo.fullName@: =.Global.Profile.name.data.basicInfo.fullName
+            - ..patientInfo.fullAddress@: =.Global.Profile.name.data.contactInfo.address.fullAddress
+            - ..patientInfo.county@: =.Global.Profile.name.data.contactInfo.address.county
+
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =.Global.Profile.name.data.emergencyContact.firstName
+                  - " "
+                  - =.Global.Profile.name.data.emergencyContact.middleName
+                  - " "
+                  - =.Global.Profile.name.data.emergencyContact.lastName
+                dataOut: ModernaVaccineFirDoseEditPage1.patientInfo.name
+            - ..patientInfo.relation@: =.Global.Profile.name.data.emergencyContact.relation
+            - ..patientInfo.phoneNumber@: =.Global.Profile.name.data.emergencyContact.phone.fullPhone
+            - if:
+                - =.Global.Profile.name.data.contactInfo.address.city
+                - ..patientInfo.city@: =.Global.Profile.name.data.contactInfo.address.city
+                - continue
+            - if:
+                - =.Global.Profile.name.data.contactInfo.address.line
+                - ..patientInfo.line@: =.Global.Profile.name.data.contactInfo.address.line
+                - continue
+            - if:
+                - =.Global.Profile.name.data.contactInfo.address.secondLine
+                - ..patientInfo.secondLine@: =.Global.Profile.name.data.contactInfo.address.secondLine
+                - continue
+            - if:
+                - =.Global.Profile.name.data.contactInfo.address.state
+                - ..patientInfo.state@: =.Global.Profile.name.data.contactInfo.address.state
+                - continue
+            - if:
+                - =.Global.Profile.name.data.contactInfo.address.zipCode
+                - ..patientInfo.zipCode@: =.Global.Profile.name.data.contactInfo.address.zipCode
+                - continue
+            # billingInfo
+            - ..billingInfo.IDType@: =.Global.Profile.name.data.identification.type
+            - ..billingInfo.indentification.security@: =.Global.Profile.name.data.basicInfo.socialSecurity
+            # 判断是否有保险
+            - if:
+                - =.Global.Profile.name.data.insuranceId
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.defaultInsurance.docAPI.get: ""
+                    # 获取img id
+                    - .Global.formData.modernaVaccineFirDoseForm.name.data.billingInfo.indentification.front_InsuranceCard@: =..apiRequest.defaultInsurance.docQueryResp.doc.0.name.data.front_InsuranceCardId
+                    - .Global.formData.modernaVaccineFirDoseForm.name.data.billingInfo.indentification.back_InsuranceCard@: =..apiRequest.defaultInsurance.docQueryResp.doc.0.name.data.back_InsuranceCardId
+                    # 文字信息
+                    - ..billingInfo.indentification.companyName@: =..apiRequest.defaultInsurance.docQueryResp.doc.0.name.data.companyName
+                    - ..billingInfo.indentification.insurancePlan@: =..apiRequest.defaultInsurance.docQueryResp.doc.0.name.data.planOrMedicalGroup
+                    - ..billingInfo.indentification.insuredName@: =..apiRequest.defaultInsurance.docQueryResp.doc.0.name.data.memberName
+                    - ..billingInfo.indentification.insuranceId@: =..apiRequest.defaultInsurance.docQueryResp.doc.0.name.data.memberId
+                - continue
+        - continue
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    monthName: ""
+    todayDate: ""
+    dayLable: []
+  # patient填写信息
+  patientInfo: ""
+  # billingInfo填写信息
+  billingInfo:
+    medicalInsurance: " "
+    IDType: ""
+    indentification:
+      companyName: " "
+      insuredName: " "
+      insurancePlan: " "
+      insuranceId: " "
+      security: " "
+  formData:
+    agreeLength: ""
+
+  formDataTemp:
+    checkBoxTemp:
+      - key: isConsent
+        value: I consent above information is true and correct.
+      - key: isAgree
+        value: I agree to share my information with said provider.
+    genderTemp:
+      - key: gender
+        value: "Male"
+      - key: gender
+        value: "Female"
+      - key: gender
+        value: "Other"
+  apiRequest:
+    modernaVaccineFirDoseForm:
+      docResp: ""
+      docReq:
+        id: ""
+        eid: .Global.rootNotebookID
+        type: .DocType.ModernaVaccineFirDoseForm
+        name:
+          data: ""
+          title: "Moderna Vaccine Form - First Dose"
+          user: .Global.Profile.name.data.basicInfo.fullName
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: ModernaVaccineFirDoseEditPage1.apiRequest.modernaVaccineFirDoseForm.docReq
+          dataOut: ModernaVaccineFirDoseEditPage1.apiRequest.modernaVaccineFirDoseForm.docResp
+    # get default insurance from the patient profile
+    defaultInsurance:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.Profile.name.data.insuranceId
+      docAPI:
+        get:
+          api: rd
+          dataIn: ModernaVaccineFirDoseEditPage1.apiRequest.defaultInsurance.docQueryReq
+          dataOut: ModernaVaccineFirDoseEditPage1.apiRequest.defaultInsurance.docQueryResp
+  components:
+    - type: view
+      style:
+        ..style.formatting:
+      children:
+        - .BasePublicHeader:
+          children:
+            - type: view
+              style:
+                ..style.backLeft:
+              children:
+                - type: image
+                  path: arrowLeftgrey.svg
+                  style:
+                    ..style.backLeftImg:
+                  onClick:
+                    - ..event.backClick
+            - .BasePublicHeaderTitle:
+              style:
+                fontSize: .Nfont.h14
+        - type: view
+          style:
+            ..style.bodyBox:
+          children:
+            - type: view
+              style:
+                ..style.viewBox:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      text: Patient Info
+                      dataKey:
+                      style:
+                        ..style.titlelabel:
+                    - type: label
+                      text: "1&nbsp;/&nbsp;4"
+                      dataKey:
+                      style:
+                        ..style.pageNum:
+            - type: scrollView
+              style:
+                ..style.scrollBox:
+              children:
+                - type: label
+                  text: Basic Info
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: First Name
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.firstName
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Middle Name
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.middleName
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Last Name
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.lastName
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Date of Birth
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: view
+                      viewTag: birthTag
+                      style:
+                        ..style.dateBox:
+                      children:
+                        - type: textField
+                          placeholder: Select
+                          dataKey: patientInfo.dateOfBirth
+                          isEditable: "false"
+                          style:
+                            ..style.dateInput:
+                        - type: image
+                          path: dateImg.svg
+                          style:
+                            ..style.dateImg:
+                      onClick:
+                        - actionType: popUp
+                          popUpView: birthDay
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Gender
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                        width: "0.4106"
+                    - type: view
+                      style:
+                        ..style.listBox:
+                        width: "0.5094"
+                      children:
+                        - type: list
+                          viewTag: genderTag
+                          contentType: listObject
+                          listObject: ..formDataTemp.genderTemp
+                          iteratorVar: itemObject
+                          style:
+                            ..style.list:
+                            width: "0.5094"
+                            axis: horizontal
+                          children:
+                            - type: listItem
+                              itemObject:
+                              style:
+                                ..style.genderListItem:
+                              children:
+                                - type: image
+                                  path:
+                                    ..event.raidoPath:
+                                  style:
+                                    ..style.itemImg:
+                                  onClick:
+                                    - ..event.radioClick
+
+                                - type: label
+                                  text:
+                                  dataKey: itemObject.value
+                                  style:
+                                    ..style.itemValue:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Patient Address
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                        display: "block"
+                        marginTop: "0.0283"
+                    - type: textField
+                      placeholder: Address Line
+                      dataKey: patientInfo.line
+                      style:
+                        ..style.blockInput:
+                        marginTop: "0.01"
+                    - type: textField
+                      placeholder: Address Second Line
+                      dataKey: patientInfo.secondLine
+                      style:
+                        ..style.blockInput:
+                        marginTop: "0.01"
+                    - type: view
+                      style:
+                        ..style.InputBox:
+                        marginTop: "0.01"
+                      children:
+                        - type: textField
+                          placeholder: City
+                          dataKey: patientInfo.city
+                          style:
+                            ..style.blockInput:
+                            verticalAlign: "middle"
+                            display: "inline-block"
+                            width: "0.21"
+                        - type: textField
+                          placeholder: County
+                          dataKey: patientInfo.county
+                          style:
+                            ..style.blockInput:
+                            verticalAlign: "middle"
+                            display: "inline-block"
+                            marginLeft: "0.026"
+                            width: "0.21"
+                        - type: select
+                          dataKey: patientInfo.state
+                          options: .SelectINformationDM.state
+                          style:
+                            ..style.blockInput:
+                            verticalAlign: "middle"
+                            display: "inline-block"
+                            marginLeft: "0.026"
+                            width: "0.21"
+                        - type: textField
+                          placeholder: Zip code
+                          dataKey: patientInfo.zipCode
+                          style:
+                            ..style.blockInput:
+                            verticalAlign: "middle"
+                            display: "inline-block"
+                            marginLeft: "0.026"
+                            width: "0.21"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.0246"
+                  children:
+                    - type: label
+                      text: "Phone #"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.mainContact
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Alternate Phone #"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.alternativePhone
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Email"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.email
+                      style:
+                        ..style.blockBoxInput:
+                - type: label
+                  text: Emergency Contact
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                    marginTop: "0.04433"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Name"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.name
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Relation"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.relation
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Phone #"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.phoneNumber
+                      style:
+                        ..style.blockBoxInput:
+                - type: label
+                  text: Employment
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                    marginTop: "0.04433"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Employer"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.employer
+                      style:
+                        ..style.blockBoxInput:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: "Occupation"
+                      dataKey:
+                      style:
+                        ..style.blockBoxTitle:
+                    - type: textField
+                      placeholder: Enter here
+                      dataKey: patientInfo.occupation
+                      style:
+                        ..style.blockBoxInput:
+
+                - type: view
+                  style:
+                    ..style.listBox:
+                    display: block
+                    marginTop: "0.0320"
+                    width: "0.92"
+                  children:
+                    - type: list
+                      viewTag: checkedView
+                      contentType: listObject
+                      listObject: ..formDataTemp.checkBoxTemp
+                      iteratorVar: itemObject
+                      style:
+                        ..style.list:
+                        width: "0.92"
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            ..style.checkItem:
+                          children:
+                            - type: image
+                              style:
+                                ..style.itemImg:
+                              path:
+                                ..event.checkBox:
+                              onClick:
+                                - ..event.checkBoxClick
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                ..style.itemValue:
+
+                - type: view
+                  style:
+                    marginTop: "0.03"
+
+        - type: view
+          style:
+            ..style.btnBox:
+          children:
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.btn:
+              onClick:
+                - ..event.btnClick
+
+    # 弹窗区域
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.86"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..patientInfo.dateOfBirth@: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: birthTag
+                - actionType: popUpDismiss
+                  popUpView: birthDay
+    - .TipsOneLine:
+      viewTag: agreeView
+      message: "Please complete require fields"
+
+  event:
+    raidoPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..patientInfo.gender
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    radioClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..patientInfo.gender
+                      string2: $var.value
+                - continue
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..patientInfo
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: genderTag
+    checkBox:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..patientInfo.agreement
+                    value: $var.key
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.array.has:
+                    dataIn:
+                      object: =..patientInfo.agreement
+                      value: $var.key
+                - =.builtIn.array.removeByValue:
+                    dataIn:
+                      object: =..patientInfo.agreement
+                      value: $var.key
+                - =.builtIn.array.add:
+                    dataIn:
+                      object: =..patientInfo.agreement
+                      value: $var.key
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: checkedView
+    backClick:
+      - actionType: evalObject
+        object:
+          - .Global.formData.modernaVaccineFirDoseForm@: =..apiRequest.modernaVaccineFirDoseForm.docResp.doc
+          # 将patientInfo信息保存
+          - .Global.formData.modernaVaccineFirDoseForm.name.data.patientInfo@: =..patientInfo
+          # 将billingInfo信息保存
+          - .Global.formData.modernaVaccineFirDoseForm.name.data.billingInfo@: =..billingInfo
+          # 更新文档状态
+          - .Global.formData.firstToModernaVaccineFirDoseForm@: false
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    btnClick:
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.getListLength:
+              dataIn:
+                object: =..patientInfo.agreement
+              dataOut: ModernaVaccineFirDoseEditPage1.formData.agreeLength
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.agreeLength
+                    string2: "2"
+              - continue
+              - actionType: popUp
+                popUpView: agreeView
+                wait: true
+                popUpDismiss: 2000
+      - actionType: evalObject
+        object:
+          - .Global.formData.modernaVaccineFirDoseForm@: =..apiRequest.modernaVaccineFirDoseForm.docResp.doc
+          # 将patientInfo信息保存
+          - .Global.formData.modernaVaccineFirDoseForm.name.data.patientInfo@: =..patientInfo
+          # 将billingInfo信息保存
+          - .Global.formData.modernaVaccineFirDoseForm.name.data.billingInfo@: =..billingInfo
+          # 更新文档状态
+          - .Global.formData.firstToModernaVaccineFirDoseForm@: false
+      - goto: ModernaVaccineFirDoseEditPage2
+
+  # 样式
+  style: #Input style fragment here
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84852"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.7832"
+      boxSizing: border-box
+      overflow: scroll
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0246"
+    blockBox:
+      marginTop: "0.01477"
+      height: "auto"
+      width: "0.92"
+    blockBoxTitle:
+      display: "inline-block"
+      width: "0.42"
+      height: "auto"
+      verticalAlign: middle
+      color: "#333333"
+      fontSize: .Nfont.h14
+    blockBoxInput:
+      display: "inline-block"
+      width: "0.4986"
+      height: "0.0369"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      textIndent: "12px"
+      verticalAlign: middle
+    dateBox:
+      display: "inline-block"
+      width: "0.4986"
+      height: "0.0369"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+    dateInput:
+      display: "inline-block"
+      border:
+        style: 1
+      boxSizing: border-box
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "0.03078"
+      verticalAlign: middle
+      textIndent: "12px"
+      width: "0.4266"
+      backgroundColor: "#ffffff"
+    dateImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.02"
+    listBox:
+      display: "inline-block"
+      width: "auto"
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    list:
+      width: "auto"
+      height: auto
+      margin: "0"
+      boxSizing: border-box
+      overflow: hidden
+    genderListItem:
+      marginLeft: "0.01"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.01"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    blockInput:
+      height: "0.0369"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+    InputBox:
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    checkItem:
+      margin: "0"
+      marginTop: "0.01724"
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
