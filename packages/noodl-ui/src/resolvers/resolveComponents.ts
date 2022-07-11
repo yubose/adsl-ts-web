@@ -434,7 +434,7 @@ componentResolver.setResolver(async (component, options, next) => {
             component.toJSON(),
           )
         }
-        const dataObject = findListDataObject(component) || context?.dataObject
+        const dataObject = u.isObj(findListDataObject(component))?findListDataObject(component) : context?.dataObject
         const listAttribute = getListAttribute(component)
         textBoard.forEach((item) => {
           if (is.textBoardItem(item)) {
@@ -577,18 +577,28 @@ componentResolver.setResolver(async (component, options, next) => {
       ---- ValidateField
     -------------------------------------------------------- */
     if(validateField){
+      let validateFieldValue = validateField
+      if(!validateField?.emit){
+        for(const key of Object.keys(validateField)){
+          if(is.reference(key)){
+            const value = getByRef(getRoot(),key,page.page)
+            validateFieldValue = value[0]
+          }
+        }
+      }
+
       const actionChain = createActionChain('validateField', [
-        { emit: validateField.emit, actionType: 'emit' },
+        { emit: validateFieldValue.emit, actionType: 'emit' },
       ])
       on?.actionChain && actionChain.use(on.actionChain)
       const result = await actionChain.execute()
       const status = result?.[0]?.result
-      if(status){
-        component.blueprint.style = original.validateClass
-        component.props.style = original.validateClass
+      if(status===true || status==='true'){
+        component.blueprint.style = cloneDeep(original.validateClass)
+        component.props.style = cloneDeep(original.validateClass)
       }else{
-        component.blueprint.style = original.usuallyClass
-        component.props.style = original.usuallyClass
+        component.blueprint.style = cloneDeep(original.usuallyClass)
+        component.props.style = cloneDeep(original.usuallyClass)
       }
     }
 

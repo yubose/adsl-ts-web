@@ -13,6 +13,8 @@ If `npm install -f` was never run (or if packages was not installed) you can _sk
 
 The app will be built using config `www` by default. To build with a different config like `mob.yml` pass `CONFIG=mob` to env variables when running `npm run build`
 
+<!-- aws s3 sync . s3://public.aitmed.com/static/www/4.06.9/ -->
+
 > Example:
 
 On Mac:
