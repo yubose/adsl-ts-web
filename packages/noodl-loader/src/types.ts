@@ -248,3 +248,10 @@ export type Hooks = {
   }): void
   [c.appPageRetrieveFailed](args: { error: Error; pageName: string }): void
 }
+
+export type YAMLNode =
+  | y.Document
+  | y.Document.Parsed
+  | y.Node
+  | y.YAMLMap
+  | y.YAMLSeq

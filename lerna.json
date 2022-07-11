@@ -2,14 +2,14 @@
   "command": {
     "bootstrap": {
       "hoist": true,
-      "ignore": ["noodl-loader", "noodl-builder"]
+      "ignore": ["noodl-loader"]
     },
     "create": {
       "license": "MIT"
     },
     "publish": {
       "bump": "patch",
-      "ignore": ["noodl-ui-test-utils", "noodl-builder", "noodl-loader"],
+      "ignore": ["noodl-ui-test-utils", "noodl-loader"],
       "message": "Update"
     }
   },
@@ -20,6 +20,7 @@
     "packages/homepage",
     "packages/gatsby-plugin-noodl",
     "packages/noodl-action-chain",
+    "packages/noodl-builder",
     "packages/noodl-core",
     "packages/noodl-yaml",
     "packages/noodl-file",

@@ -34,6 +34,13 @@ export function video<S extends string = string>(
 export function file<S extends string = string>(
   value: string,
 ): value is `${S}.${Ext.Image | Ext.Video}` {
+  if (typeof value !== 'string') return false
+  if (value.startsWith('file:')) return true
+  try {
+    new URL(value) as any
+    return false
+  } catch (error) {}
+  if (!value.includes('.') && !value.includes('/')) return false
   return regex.file.test(value)
 }
 
@@ -51,7 +58,7 @@ export function stringInArray(arr: any[], value: unknown) {
 export function url(value: unknown): boolean {
   if (typeof value !== 'string') return false
 
-  let url
+  let url: URL
 
   try {
     url = new URL(value)
