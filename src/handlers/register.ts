@@ -88,24 +88,24 @@ class createRegisters{
         log.func('onNotificationClicked')
         log.hotpink('', { obj, arg })
       },
-      twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
-        log.func('twilioOnPeopleJoin')
-        log.grey(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
-          register: obj,
-          params,
-        })
-        app.meeting.hideWaitingOthersMessage()
-      },
-      twilioOnNoParticipant(
-        obj: Register.Object,
-        { room }: { room?: Room } = {},
-      ) {
-        log.func('twilioOnNoParticipant')
-        log.grey(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
-        if (room?.participants?.size === 0) {
-          app.meeting.showWaitingOthersMessage()
-        }
-      },
+      // twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
+      //   log.func('twilioOnPeopleJoin')
+      //   log.grey(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
+      //     register: obj,
+      //     params,
+      //   })
+      //   app.meeting.hideWaitingOthersMessage()
+      // },
+      // twilioOnNoParticipant(
+      //   obj: Register.Object,
+      //   { room }: { room?: Room } = {},
+      // ) {
+      //   log.func('twilioOnNoParticipant')
+      //   log.grey(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
+      //   if (room?.participants?.size === 0) {
+      //     app.meeting.showWaitingOthersMessage()
+      //   }
+      // },
   
       async twilioOnPeopleShowRoom(obj: Register.Object, arg) {
         log.func('twilioOnPeopleShowRoom')
@@ -138,6 +138,10 @@ class createRegisters{
                 })
               ))
           }else if(action?.actionType && action?.actionType == 'builtIn'){
+            // const newAction = createAction({
+            //   action: action,
+            //   trigger: 'register',
+            // })
             const functName = action.funcName
             const builtInFn = app.root.builtIn[functName] || app.root.extendedBuiltIn[functName]
             u.isFnc(builtInFn) && 
@@ -294,6 +298,11 @@ class createRegisters{
         await handleRegister(componentObject)
         
       },
+      async twilioOnPeopleJoin(componentObject: GlobalRegisterComponent){
+        log.func('twilioOnPeopleJoin')
+        componentObject.eventId = 'twilioOnPeopleJoin'
+        await handleRegister(componentObject)
+      } 
     }
 
   }
@@ -372,36 +381,13 @@ class createRegisters{
   }
 
   extendVideoFunction(onEvent:string){
-    if(this.app.globalRegister){
+    if(this.app.ndom.global.register){
       log.func('extendVideoFunction')
       const componentObject = this.app.ndom.global.register.get(onEvent)
       if (componentObject) {
         const onEvent = componentObject.props.onEvent as any
         ;(this.registrees as any)[onEvent](componentObject)
       } 
-
-    //   for (const componentObject of this.app.globalRegister) {
-    //     if (is.component.register(componentObject)) {
-    //       // Already attached a function
-    //       if (u.isFnc(componentObject.onEvent)) continue
-    //       if (!componentObject.onEvent) {
-    //         log.red(
-    //           `The "onEvent" identifier was not found in the register component!`,
-    //           componentObject,
-    //         )
-    //         continue
-    //       }
-
-    //       if (
-    //         componentObject.onEvent === onEvent &&
-    //         u.isStr(componentObject.onEvent) &&
-    //         u.isFnc(this.registrees[componentObject.onEvent])
-    //       ) {
-    //         const onEvent = componentObject.onEvent as any
-    //         ;(this.registrees as any)[onEvent](componentObject)
-    //       } 
-    //     }
-    //   }
     }
   }
 

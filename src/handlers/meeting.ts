@@ -33,22 +33,21 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.func('onConnectionChange')
       log.grey(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
+        app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
         const participantsNumber = app.meeting.room.participants.size
         if(
-          app.config?.platform && 
-          app.config.platform ==='patient' && 
           participantsNumber == 0 &&
           app.meeting.room.state === 'connected'
           ){
-          // app.register.extendVideoFunction('onProviderDisconnect')
           app.register.extendVideoFunction('onDisconnect')
         }
         toast(`A participant disconnected`, { type: 'error' })
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })
       } else if (event === 'participantReconnected') {
+        app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
         toast(`A participant reconnected`, { type: 'success' })
       }
     }
@@ -147,11 +146,11 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           app.root,
         )
       }
-      app.nui.emit({
-        type: 'register',
-        event: 'twilioOnPeopleJoin',
-        params: { room: app.meeting.room },
-      })
+      // app.nui.emit({
+      //   type: 'register',
+      //   event: 'twilioOnPeopleJoin',
+      //   params: { room: app.meeting.room },
+      // })
     }
   }
 
@@ -160,7 +159,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       app.meeting.removeFalseParticipants(app.getSdkParticipants()),
     )
     if (!app.getRoomParticipants().size || !app.getSdkParticipants()?.length) {
-      app.meeting.showWaitingOthersMessage()
+      // app.meeting.showWaitingOthersMessage()
       app.nui.emit({
         type: 'register',
         event: 'twilioOnNoParticipant',
