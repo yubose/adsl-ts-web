@@ -75,7 +75,7 @@ const nui = NUI
 async function getGenerator({
   configKey = 'www',
   configUrl = `https://public.aitmed.com/config/${configKey}.yml`,
-  ecosEnv = 'test',
+  ecosEnv = 'stable',
   use = {},
 } = {}) {
   try {
