@@ -1,0 +1,32 @@
+{
+  "appKey": "",
+  "assetsUrl": "",
+  "baseUrl": "",
+  "configKey": "",
+  "configUrl": "",
+  "deviceType": "",
+  "ecosEnv": "",
+  "loglevel": "INFO",
+  "startPage": "",
+  "missingFiles": {
+    "assets": {},
+    "pages": {}
+  },
+  "paths": {
+    "cacheDir": "",
+    "cacheFiles": {},
+    "cwd": "",
+    "output": "",
+    "resolvedAssetsDir": "",
+    "resolvedConfigsDir": "",
+    "resolvedAppConfigFile": "",
+    "resolvedOutputNamespacedWithConfig": "",
+    "src": "",
+    "template": ""
+  },
+  "timestamp": "7/11/2022, 4:19:31 PM",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  }
+}

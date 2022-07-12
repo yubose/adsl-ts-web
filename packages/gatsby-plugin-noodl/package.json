@@ -85,7 +85,10 @@
   },
   "keywords": [
     "aitmed",
-    "website"
+    "website",
+    "noodl",
+    "static",
+    "gatsby"
   ],
   "license": "0BSD",
   "main": "index.js",
@@ -101,10 +104,10 @@
     "trailingComma": "all"
   },
   "scripts": {
+    "bump:minor": "npm version patch -f",
     "test": "cross-env NODE_ENV=test mocha --watch --watch-files . \"__tests__/**/*.test.js\""
   },
   "types": "./types.d.ts",
-  "version": "1.0.3",
   "workspaces": [
     "./"
   ]

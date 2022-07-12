@@ -14,6 +14,35 @@ import type { Action } from 'noodl-action-chain'
 import type { PluginOptions as GatsbyPluginOptions } from 'gatsby'
 import type { data } from './gatsby-node'
 
+export interface GatsbyNoodlPluginOptions {
+  plugins: GatsbyPluginOptions
+  config?: string
+  cwd?: string
+  deviceType?: 'web' | 'android' | 'ios'
+  ecosEnv?: Env
+  /**
+   * Dumps a file with useful metadata about the most recent build
+   * The output file will be saved at <cwd>/output/metadata.json
+   */
+  metadata?: boolean
+  loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
+  paths?: {
+    // assets?: string
+    /** Directory where yml/asset files will be saved to */
+    output?: string
+    /** "src" directory */
+    src?: string
+    /** Path to the template component used as templates to generate the component pages */
+    template?: string
+  }
+  startPage?: string
+  viewport?: {
+    width: number
+    height: number
+  }
+  version?: LiteralUnion<'latest', string>
+}
+
 export namespace InternalData {
   /**
    * Used in the client side
@@ -38,40 +67,6 @@ export namespace InternalData {
     output: string
     template: string
   }
-}
-
-export interface GatsbyNoodlPluginOptions {
-  plugins: GatsbyPluginOptions
-  /**
-   * If buildSource is "local" it will build using files locally (using "path" configured above).
-   *
-   * If buildSource is "remote" it will build files remotely using the "config" key as the endpoint.
-   *
-   * Defaults to "remote"
-   */
-  buildSource?: string
-  config?: string
-  cwd?: string
-  deviceType?: 'web' | 'android' | 'ios'
-  ecosEnv?: Env
-  /**
-   * Dumps a file with useful metadata about the most recent build
-   * The output file will be saved at <cwd>/output/metadata.json
-   */
-  metadata?: boolean
-  loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
-  paths?: {
-    // assets?: string
-    output?: string
-    src?: string
-    template?: string
-  }
-  startPage?: string
-  viewport?: {
-    width: number
-    height: number
-  }
-  version?: LiteralUnion<'latest', string>
 }
 
 /**
