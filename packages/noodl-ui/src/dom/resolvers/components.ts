@@ -390,9 +390,9 @@ const componentsResolver: t.Resolve.Config = {
           // load promise return to image
           if (args.component.blueprint?.['path=func']) {
             // ;(node as HTMLImageElement).src = '../waiting.png'
-            args.component
-              ?.get?.(c.DATA_VALUE)
-              ?.then?.((path: any) => {
+            const result = args.component?.get?.(c.DATA_VALUE)
+            if(result?.then){
+              result.then?.((path: any) => {
                 if (!path) {
                   console.log(
                     `%cReceived an empty value from "path=func"! An empty string will be set as the image's "src" attribute`,
@@ -429,6 +429,9 @@ const componentsResolver: t.Resolve.Config = {
                 if (!args.component?.get?.(c.DATA_SRC)) return
                 setAttr('src', args.component?.get?.(c.DATA_SRC) || '')
               })
+            }else if(args.component.get('wait')){
+              setAttr('src', result?.url)
+            }
           }
         }
         // LABEL
