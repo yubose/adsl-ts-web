@@ -197,6 +197,15 @@ window.addEventListener('load', async (e) => {
     })
 
     window.addEventListener('popstate', createOnPopState(app))
+
+    // Experimenting with noodl-app's wrapper
+    if ('publishViewport' in window) {
+      // @ts-expect-error
+      window.publishViewport?.({
+        width: app.viewport.width,
+        height: app.viewport.height,
+      })
+    }
   } catch (error) {
     console.error(error)
   } finally {
