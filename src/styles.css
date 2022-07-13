@@ -14,10 +14,23 @@ input::-ms-clear,
 input::-ms-reveal {
   display: none;
 }
+
+input::-webkit-input-placeholder { /* WebKit browsers */
+  color: #c1c1c1 !important;
+  }
+  input::-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color: #c1c1c1 !important;
+
+  }
+  input::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color: #c1c1c1 !important;
+
+  }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button{
     -webkit-appearance: none !important;
 }
+
 body {
   margin: 0;
   padding: 0;
@@ -44,7 +57,7 @@ button:hover {
 }
 
 input::placeholder {
-  opacity: 0.6;
+  opacity: 1;
 }
 textarea::-webkit-input-placeholder { /* WebKit browsers */
   color: #c1c1c1;
@@ -57,17 +70,6 @@ textarea::-webkit-input-placeholder { /* WebKit browsers */
 
   }
 
-  input::-webkit-input-placeholder { /* WebKit browsers */
-  color: #c1c1c1;
-  }
-  input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-  color: #c1c1c1;
-
-  }
-  input::-moz-placeholder { /* Mozilla Firefox 19+ */
-  color: #c1c1c1;
-
-  }
   input,textarea{
     font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   }
