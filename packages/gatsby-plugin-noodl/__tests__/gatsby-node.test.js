@@ -95,10 +95,7 @@ afterEach(() => {
   mfs.restore()
 })
 
-
-
 const getDumpedMetadata = () => dumpMetadata()
-
 
 describe.only(`gatsby-node.js`, () => {
   it.only(``, () => {
