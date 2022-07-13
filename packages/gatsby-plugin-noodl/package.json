@@ -105,7 +105,7 @@
   },
   "scripts": {
     "bump:minor": "npm version patch -f",
-    "test": "cross-env NODE_ENV=test mocha --watch --watch-files . \"__tests__/**/*.test.js\""
+    "test": "cross-env NODE_ENV=test mocha --watch --watch-files . \"__tests__/**/*.test.js\" --file __tests__/setup.js"
   },
   "types": "./types.d.ts",
   "workspaces": [
