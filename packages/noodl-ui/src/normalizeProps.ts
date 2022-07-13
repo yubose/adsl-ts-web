@@ -478,6 +478,10 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
               styleValue = getByRef(styleValue, {
                 ...getHelpers({ rootKey: isLocal ? pageName : undefined }),
               })
+              if(styleKey === "autoplay"){
+                //@ts-ignore
+              blueprint.autoplay = styleValue;
+              }
             }
 
             if (s.isKeyRelatedToWidthOrHeight(styleValue)) {
@@ -657,11 +661,25 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
           if (is.reference(originalValue)) {
             isLocalOption = is.localReference(originalValue)
           }
+
           props['data-option'] = get(
             isLocalOption ? root[pageName] : root,
             datapath,
-          )
-      }
+          );
+      }else if (originalKey === 'videoOption') {
+        // @ts-ignore
+        let datapath = nu.toDataPath(nu.trimReference(originalValue))
+        let isLocalOption = is.localKey(datapath.join('.'))
+        // Note: This is here for fallback reasons.
+        // dataKey should never be a reference in the noodl
+        if (is.reference(originalValue)) {
+          isLocalOption = is.localReference(originalValue)
+        }
+        props['video-option'] = get(
+          isLocalOption ? root[pageName] : root,
+          datapath,
+        );
+    }
       else {
         // Arbitrary references
         if (u.isStr(originalValue) && is.reference(originalValue)) {

@@ -52,7 +52,6 @@ let _loader
 let _appKey = ''
 let _assetsUrl = ''
 let _baseUrl = ''
-let _buildSource = ''
 let _cacheDir = ''
 let _cwd = ''
 let _configKey = ''
@@ -66,16 +65,18 @@ let _viewport = {
   height: DEFAULT_VIEWPORT_HEIGHT,
 }
 
-const _pages = {
+let _pages = {
   json: {},
   serialized: {},
 }
 
-const _paths = {
+let _paths = {
   output: '',
   src: '',
   template: '',
 }
+
+exports.paths = _paths
 
 /** @type { string[] } */
 const _savedAssets = []
@@ -90,18 +91,17 @@ const _preloadKeys = []
 const _pageKeys = []
 
 /** @type { GatsbyNoodlPluginPageContextMap } */
-const _context_ = {}
+let _context_ = {}
 
 /** @type { import('./types').DumpedMetadata } */
-const _dump = { paths: {} }
+let _dump = { paths: {} }
 
 /** @type { import('./types').DumpedMetadata['missingFiles'] } */
-const _missingFiles = { assets: {}, pages: {} }
+let _missingFiles = { assets: {}, pages: {} }
 
 /** @type { import('./types').DumpedMetadata['paths']['cacheFiles'] } */
-const _cacheFiles = {}
+let _cacheFiles = {}
 
-let isFileSystemOutput = false
 let resolvedAssetsDir = ''
 let resolvedConfigsDir = ''
 let resolvedAppConfigFile = ''
@@ -125,18 +125,20 @@ const getPageRefs = (pageName) => _sdkCache?.refs?.[pageName] || {}
  * @param { opts:{ paths?: any } } args
  * @returns { Promise<import('./types').DumpedMetadata> }
  */
-const dumpMetadata = async ({ paths: pathsProp, ...other } = {}) => {
+const dumpMetadata = async ({
+  paths: pathsProp,
+  write = true,
+  ...other
+} = {}) => {
   const metadata = withoutCwd({
     appKey: _appKey,
     assetsUrl: _assetsUrl,
     baseUrl: _baseUrl,
-    buildSource: _buildSource,
     configKey: _configKey,
     configUrl: _configUrl,
     deviceType: _deviceType,
     ecosEnv: _ecosEnv,
     loglevel: _loglevel,
-    isFileSystemOutput,
     startPage: _startPage,
     missingFiles: _missingFiles,
     ...other,
@@ -159,10 +161,43 @@ const dumpMetadata = async ({ paths: pathsProp, ...other } = {}) => {
       height: _viewport?.height,
     },
   })
-  await fs.writeJson(path.join(_paths.output, './metadata.json'), metadata, {
-    spaces: 2,
-  })
+  if (write) {
+    await fs.writeJson(path.join(_paths.output, './metadata.json'), metadata, {
+      spaces: 2,
+    })
+  }
   return metadata
+}
+
+exports.dumpMetadata = dumpMetadata
+
+exports.reset = () => {
+  _appKey = ''
+  _assetsUrl = ''
+  _baseUrl = ''
+  _cacheDir = ''
+  _cwd = ''
+  _configKey = ''
+  _configUrl = ''
+  _deviceType = ''
+  _loglevel = DEFAULT_LOG_LEVEL
+  _ecosEnv = ''
+  _startPage = ''
+  _viewport = { width: DEFAULT_VIEWPORT_WIDTH, height: DEFAULT_VIEWPORT_HEIGHT }
+  _pages = { json: {}, serialized: {} }
+  _paths = { output: '', src: '', template: '' }
+  _savedAssets.length = 0
+  _loggedAssets.length = 0
+  _preloadKeys.length = 0
+  _pageKeys.length = 0
+  _context_ = {}
+  _dump = { paths: {} }
+  _missingFiles = { assets: {}, pages: {} }
+  _cacheFiles = {}
+  resolvedAssetsDir = ''
+  resolvedConfigsDir = ''
+  resolvedAppConfigFile = ''
+  resolvedOutputNamespacedWithConfig = ''
 }
 
 /**
@@ -175,6 +210,7 @@ const dumpMetadata = async ({ paths: pathsProp, ...other } = {}) => {
  */
 exports.onPreInit = (_, pluginOpts) => {
   newline()
+
   const loglevel = pluginOpts?.loglevel
 
   if (
@@ -186,9 +222,9 @@ exports.onPreInit = (_, pluginOpts) => {
     _dump.loglevel = loglevel
   }
 
-  for (const key of ['path', 'template']) {
+  for (const key of u.keys(_paths)) {
     if (pluginOpts[key]) {
-      pluginOpts[key] = utils.normalizePath(pluginOpts[key])
+      pluginOpts[key] = u.unixify(pluginOpts[key])
       _dump.paths[key] = pluginOpts[key]
     }
   }
@@ -199,10 +235,10 @@ exports.onPreInit = (_, pluginOpts) => {
  * @param { GatsbyNoodlPluginOptions } pluginOpts
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
-  const outputPath = pluginOpts.paths?.output || DEFAULT_OUTPUT_PATH
-  isFileSystemOutput = !!pluginOpts.paths?.output
+  _paths.output = pluginOpts.paths?.output || DEFAULT_OUTPUT_PATH
+  _paths.src = pluginOpts.paths?.src || DEFAULT_SRC_PATH
+  _paths.template = pluginOpts.paths?.template || DEFAULT_TEMPLATE_PATH
 
-  _buildSource = pluginOpts.buildSource || DEFAULT_BUILD_SOURCE
   _cacheDir = args.cache.directory
   _cwd = pluginOpts.cwd || process.cwd()
   _configKey = pluginOpts.config || DEFAULT_CONFIG
@@ -211,11 +247,6 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   _ecosEnv = pluginOpts.ecosEnv || DEFAULT_ECOS_ENV
   _loglevel = pluginOpts.loglevel || DEFAULT_LOG_LEVEL
 
-  _paths.output = outputPath
-  _paths.src = pluginOpts.paths.src || DEFAULT_SRC_PATH
-  _paths.template = pluginOpts.paths.template || DEFAULT_TEMPLATE_PATH
-
-  debug(`Build source: ${yellow(_buildSource)}`)
   debug(`Current working directory: ${yellow(_cwd)}`)
   debug(`Config key: ${yellow(_configKey)}`)
   debug(`Config url: ${yellow(_configUrl)}`)
@@ -239,7 +270,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   debug(`Resolved assetsDir: ${yellow(resolvedAssetsDir)}`)
   debug(`Resolved configFile: ${yellow(resolvedConfigsDir)}`)
 
-  if (isFileSystemOutput) {
+  if (pluginOpts.paths?.output) {
     if (!fs.existsSync(_paths.output)) {
       await fs.ensureDir(_paths.output)
       debug(`Created output directory at ${yellow(_paths.output)}`)

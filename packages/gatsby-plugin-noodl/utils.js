@@ -64,11 +64,11 @@ function removeExt(str, ext = 'yml') {
 }
 
 function getAssetFilePath(srcPath, filename) {
-  return path.join(srcPath, `./${filename}`)
+  return u.unixify(path.join(srcPath, `./${filename}`))
 }
 
 function getConfigDir(configKey, cwd = process.cwd()) {
-  return path.join(cwd, 'output', removeExt(configKey, 'yml'))
+  return u.unixify(path.join(cwd, 'output', removeExt(configKey, 'yml')))
 }
 
 const utils = {

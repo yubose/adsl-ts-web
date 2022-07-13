@@ -43,6 +43,7 @@ componentResolver.setResolver(async (component, options, next) => {
     getRootPage,
     on,
     page,
+    createActionChain,
     resolveComponents,
   } = options
   
@@ -59,7 +60,7 @@ componentResolver.setResolver(async (component, options, next) => {
   try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
-    const { contentType, dataKey, path, text, textBoard } = original
+    const { contentType, dataKey, path, text, textBoard,validateField } = original
     const iteratorVar =
       context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
     /* -------------------------------------------------------
@@ -157,7 +158,8 @@ componentResolver.setResolver(async (component, options, next) => {
       ) {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
-        dataObjects = get(findListDataObject(component), dataKey)
+        const originData = findListDataObject(component) || context?.dataObject
+        dataObjects = get(originData, dataKey)
       }
 
       if (u.isArr(dataObjects)) {
@@ -185,6 +187,9 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
+    /* -------------------------------------------------------
+      ---- ITEM
+    -------------------------------------------------------- */
     if(is.component.listItem(component)){
       function getListObject(opts: ConsumerOptions,component:NuiComponent.Instance) {
         let page = opts.page
@@ -213,21 +218,23 @@ componentResolver.setResolver(async (component, options, next) => {
         while(!is.component.listItem(newComponent)){
           newComponent = newComponent.parent as NuiComponent.Instance
         }
-        const parentItem = newComponent
+        const parentItem = newComponent as NuiComponent.Instance
         const parentIndex = parentItem.get('index')?
                               parentItem.get('index'):
                               parentItem.get('listIndex')
         const parentParentList = parentItem?.parent as NuiComponent.Instance
-        let dataObject = getListObject(options,parentParentList)
-        if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
-          const parentDataObject = getData(parentParentList,options)
-          let dataKey: any = dataObject.toString()
-          dataKey = excludeIteratorVar(dataKey, 'itemObject')
-          dataObject = get(parentDataObject, dataKey)
-        }
+        if(is.component.listLike(parentParentList)){
+          let dataObject = getListObject(options,parentParentList)
+          if(u.isStr(dataObject) && dataObject.startsWith('itemObject')){
+            const parentDataObject = getData(parentParentList,options)
+            let dataKey: any = dataObject.toString()
+            dataKey = excludeIteratorVar(dataKey, 'itemObject')
+            dataObject = get(parentDataObject, dataKey)
+          }
 
-        if(u.isArr(dataObject)){
-          return dataObject[parentIndex]
+          if(parentIndex && u.isArr(dataObject)){
+            return dataObject[parentIndex]
+          }
         }
         return
       }
@@ -241,9 +248,12 @@ componentResolver.setResolver(async (component, options, next) => {
         dataKey = excludeIteratorVar(parentListObject, iteratorVar)
         parentListObject = get(listObject,dataKey)
       }
-
-      const currentDataObject = parentListObject[currentIndex]
-      if(context && currentDataObject){
+      
+      let currentDataObject
+      if(currentIndex && u.isArr(parentListObject)){
+        currentDataObject = parentListObject[currentIndex]
+      }
+      if(context && u.isObj(currentDataObject)){
         context['dataObject'] = currentDataObject
       }
       
@@ -424,7 +434,7 @@ componentResolver.setResolver(async (component, options, next) => {
             component.toJSON(),
           )
         }
-        const dataObject = findListDataObject(component) || context?.dataObject
+        const dataObject = u.isObj(findListDataObject(component))?findListDataObject(component) : context?.dataObject
         const listAttribute = getListAttribute(component)
         textBoard.forEach((item) => {
           if (is.textBoardItem(item)) {
@@ -533,6 +543,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
+    //
     /* -------------------------------------------------------
       ---- TIMERS (LABEL)
     -------------------------------------------------------- */
@@ -561,7 +572,50 @@ componentResolver.setResolver(async (component, options, next) => {
         u.isObj(dataObject) && set(dataObject, dataKey, dataValue)
       }
     }
+    
+    /* -------------------------------------------------------
+      ---- ValidateField
+    -------------------------------------------------------- */
+    if(validateField){
+      let validateFieldValue = validateField
+      if(!validateField?.emit){
+        for(const key of Object.keys(validateField)){
+          if(is.reference(key)){
+            const value = getByRef(getRoot(),key,page.page)
+            validateFieldValue = value[0]
+          }
+        }
+      }
 
+      const actionChain = createActionChain('validateField', [
+        { emit: validateFieldValue.emit, actionType: 'emit' },
+      ])
+      on?.actionChain && actionChain.use(on.actionChain)
+      const result = await actionChain.execute()
+      const status = result?.[0]?.result
+      if(status===true || status==='true'){
+        component.blueprint.style = cloneDeep(original.validateClass)
+        component.props.style = cloneDeep(original.validateClass)
+      }else{
+        component.blueprint.style = cloneDeep(original.usuallyClass)
+        component.props.style = cloneDeep(original.usuallyClass)
+      }
+    }
+
+    if(original?.style?.emit){
+      const emitAction = original.style.emit
+      const actionChain = createActionChain('LoadStyle', [
+        { emit: emitAction, actionType: 'emit' },
+      ])
+      on?.actionChain && actionChain.use(on.actionChain)
+      const result = await actionChain.execute()
+      const status = result?.[0]?.result
+      if(u.isObj(status)){
+        for(const k of Object.keys(status)){
+          original.style[k] = status[k]
+        }
+      }
+    }
     /* -------------------------------------------------------
       ---- CHILDREN
     -------------------------------------------------------- */

@@ -1025,6 +1025,25 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
 
       }
+  const routeRediredct : Store.BuiltInObject['fn'] = async function onRouteRediredct(
+    action,
+    options,
+  ){
+    let pageNames = _pick(action, 'pageNames')
+    let routeStr:string = ''
+    if(u.isArr(pageNames)){
+      let url = window.location.href
+      const parts  = url.split('?')
+      const basePart = parts[0]
+      const oldRouteStr = parts[1]
+      u.reduce(
+        pageNames,
+        (acc, key) => (routeStr = `${routeStr?routeStr+'-':routeStr}${key}`),
+        ""
+      )
+      if(oldRouteStr !== routeStr) app.mainPage.pageUrl = `${basePart}?${routeStr}`
+    }
+  }
     
 
   const builtIns = {
@@ -1045,6 +1064,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     redraw,
     redrawCurrent,
     copy,
+    routeRediredct,
     dismissOnTouchOutside,
     extendMeeting,
   }
