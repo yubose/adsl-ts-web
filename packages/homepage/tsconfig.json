@@ -21,6 +21,7 @@
       "@/consts": ["./src/constants.ts"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/static/*": ["./src/static/*"],
+      "@/gatsby-plugin-noodl/types": ["../gatsby-plugin-noodl/types.d.ts"],
       "@/test-utils": ["./src/__tests__/test-utils.tsx"]
     },
     "resolveJsonModule": true,

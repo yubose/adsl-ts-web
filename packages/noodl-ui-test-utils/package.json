@@ -32,5 +32,11 @@
   },
   "types": "./dist/index.d.ts",
   "typings": "dist/noodl-ui-test-utils.d.ts",
-  "version": "0.0.13"
+  "version": "0.0.13",
+  "dependencies": {
+    "@jsmanifest/utils": "^1.0.73",
+    "lodash": "^4.17.21",
+    "noodl-types": "^1.0.211",
+    "type-fest": "^2.16.0"
+  }
 }

@@ -40,18 +40,14 @@
     "target": "es2017"
   },
   "include": [
-    "dev/cpt/**/*.js",
-    "dev/cpt/**/*.ts",
     "packages/noodl-file/src/**/*",
     "packages/noodl-loader/src/**/*",
     "packages/noodl-core/src/**/*",
     "packages/homepage/src/**/*",
     "packages/noodl-yaml/src/**/*",
-    "packages/noodl-pi/src/**/*",
     "packages/noodl-ui/src/**/*",
     "packages/noodl-utils/src/**/*",
     "packages/noodl-types/src/**/*",
-    "public/piBackgroundWorker.js",
     "src/**/*"
   ],
   "exclude": [

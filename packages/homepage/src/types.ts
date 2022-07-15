@@ -5,7 +5,7 @@ import type {
   PageContext as GatsbyPluginPageContext,
   ListComponentsContext,
   StaticComponentObject,
-} from 'gatsby-plugin-noodl'
+} from '@/gatsby-plugin-noodl/types'
 import type useRootObject from './hooks/useRootObject'
 
 export type { ComponentPath, StaticComponentObject }

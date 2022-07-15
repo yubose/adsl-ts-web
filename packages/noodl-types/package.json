@@ -1,6 +1,10 @@
 {
   "author": "Christopher Tran <christopher@aitmed.com>",
   "description": "NOODL TypeScript Definitions",
+  "devDependencies": {
+    "lodash": "^4.17.21",
+    "type-fest": "^2.16.0"
+  },
   "engines": {
     "node": ">=14",
     "npm": ">=6"

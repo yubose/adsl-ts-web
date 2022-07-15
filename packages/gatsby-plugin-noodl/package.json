@@ -1,8 +1,16 @@
 {
   "author": "Christopher <christopher@aitmed.com>",
   "dependencies": {
+    "@jsmanifest/utils": "^1.0.73",
+    "axios": "^0.27.2",
+    "fs-extra": "^10.1.0",
     "gatsby-source-filesystem": "^4.2.0",
-    "loglevel": "^1.8.0"
+    "lodash": "^4.17.21",
+    "loglevel": "^1.8.0",
+    "noodl": "^0.0.50",
+    "noodl-types": "*",
+    "noodl-ui": "*",
+    "yaml": "^2.1.1"
   },
   "description": "Gatsby AiTmed plugin to generate static pages from a noodl config",
   "devDependencies": {

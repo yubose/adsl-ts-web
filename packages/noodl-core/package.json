@@ -1,5 +1,8 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
+  "dependencies": {
+    "noodl-types": "*"
+  },
   "description": "Core JavaScript library for the Neuron Organic Object Description Language (NOODL)",
   "devDependencies": {
     "sinon-chai": "^3.7.0"

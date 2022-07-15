@@ -1,5 +1,9 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
+  "dependencies": {
+    "noodl-types": "*",
+    "type-fest": "^2.16.0"
+  },
   "description": "JavaScript library to build noodl objects",
   "directories": {
     "dist": "dist",
