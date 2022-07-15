@@ -16,6 +16,18 @@ const {
   dumpMetadata,
 } = require('../gatsby-node')
 
+const rootDir = appRoot.toString()
+const cwd = process.cwd()
+
+function getAllFiles() {
+  /** @type { string[] } */
+  const files = []
+  const dirfiles = fs.readdirSync('.')
+  for (const filename of dirfiles) {
+    //
+  }
+}
+
 const getMockCache = () => {
   const cache = new Map()
   return {
@@ -35,60 +47,92 @@ const getMockCache = () => {
 beforeEach(() => {
   reset()
 
-  function getAllFiles() {
-    //
-  }
-
   mfs({
-    packages: {
-      [`packages/gatsby-plugin-noodl`]: {
-        __tests__: {},
-        node_modules: {},
-        'gatsby-node.js': '',
-        'package.json': '{}',
-        'tsconfig.json': '{}',
-        'types.d.ts': '',
-        'utils.js': '',
+    node_modules: mfs.directory({
+      items: {
+        winston: mfs.directory({
+          items: {
+            lib: mfs.directory({
+              items: {
+                winston: mfs.directory({
+                  items: {
+                    transports: mfs.directory({
+                      items: {
+                        'console.js': mfs.file({ content: '' }),
+                      },
+                    }),
+                  },
+                }),
+              },
+            }),
+          },
+        }),
       },
-      [`packages/homepage`]: {
-        src: {
-          resources: {
-            assets: [
-              'a_animation1.png',
-              'a_animation2.png',
-              'a_animation3.png',
-              'abdominal_pain_in_children.png',
-              'aboutRed.svg',
-              'IconAwesomeCheck.png',
-              'zhuanquan.gif',
-            ].reduce(
-              (acc, filename) => u.assign(acc, { [filename]: Buffer.from([]) }),
-              {},
-            ),
-            images: { 'logo.png': Buffer.from([]) },
-            'favicon.ico': 'favicon data',
-          },
-          static: {
-            'BaseCSS.json': '{}',
-            'logo.png': Buffer.from([]),
-            'robots.txt': '',
-          },
-          templates: {
-            [`page.tsx`]: '',
-          },
-          'theme.ts': '',
-        },
-        [`gatsby-browser.js`]: '',
-        [`gatsby-config.js`]: '',
-        [`gatsby-node.js`]: '',
-        [`gatsby-ssr.js`]: '',
-        [`package.json`]: '{}',
-        [`tsconfig.json`]: '{}',
+    }),
+    packages: mfs.directory({
+      items: {
+        [`packages/gatsby-plugin-noodl`]: mfs.directory({
+          __tests__: mfs.directory(),
+          node_modules: mfs.directory(),
+          'gatsby-node.js': mfs.file({ content: '' }),
+          'package.json': mfs.file({ content: '{}' }),
+          'tsconfig.json': mfs.file({ content: '{}' }),
+          'types.d.ts': mfs.file({ content: '' }),
+          'utils.js': mfs.file({ content: '' }),
+        }),
+        [`packages/homepage`]: mfs.directory({
+          src: mfs.directory({
+            items: {
+              resources: mfs.directory({
+                items: {
+                  assets: mfs.directory({
+                    items: [
+                      'a_animation1.png',
+                      'a_animation2.png',
+                      'a_animation3.png',
+                      'abdominal_pain_in_children.png',
+                      'aboutRed.svg',
+                      'IconAwesomeCheck.png',
+                      'zhuanquan.gif',
+                    ].reduce(
+                      (acc, filename) =>
+                        u.assign(acc, {
+                          [filename]: mfs.file({ content: Buffer.from([]) }),
+                        }),
+                      {},
+                    ),
+                  }),
+                  images: mfs.directory({
+                    items: {
+                      'logo.png': mfs.file({ content: Buffer.from([]) }),
+                    },
+                  }),
+                  'favicon.ico': mfs.file({ content: 'favicon data' }),
+                },
+              }),
+              static: mfs.directory({
+                items: {
+                  'BaseCSS.json': mfs.file({ content: '{}' }),
+                  'logo.png': mfs.file({ content: Buffer.from([]) }),
+                  'robots.txt': mfs.file({ content: '' }),
+                },
+              }),
+              templates: mfs.directory({
+                items: { [`page.tsx`]: mfs.file({ content: '' }) },
+              }),
+              'theme.ts': mfs.file({ content: '' }),
+            },
+          }),
+          [`gatsby-browser.js`]: mfs.file({ content: '' }),
+          [`gatsby-config.js`]: mfs.file({ content: '' }),
+          [`gatsby-node.js`]: mfs.file({ content: '' }),
+          [`gatsby-ssr.js`]: mfs.file({ content: '' }),
+          [`package.json`]: mfs.file({ content: '{}' }),
+          [`tsconfig.json`]: mfs.file({ content: '{}' }),
+        }),
       },
-    },
+    }),
   })
-  console.log(`Mock root:`)
-  console.log(fs.readdirSync('.'))
 })
 
 afterEach(() => {
@@ -98,8 +142,10 @@ afterEach(() => {
 const getDumpedMetadata = () => dumpMetadata()
 
 describe.only(`gatsby-node.js`, () => {
-  it.only(``, () => {
-    console.log(appRoot)
+  it(``, async () => {
+    console.log(`Mock root:`)
+    console.log(fs.readdirSync('.'))
+    console.log(appRoot.toString())
     console.log(process.cwd())
     console.log(__dirname)
   })
@@ -115,13 +161,15 @@ describe.only(`gatsby-node.js`, () => {
       expect(pluginOptions.output).to.eq('meetd2')
       expect(pluginOptions.src).to.eq('C:/Users/Chris/abc/drafts')
       expect(pluginOptions.template).to.eq('D:/Users/Chris/drafts')
-
-      console.log(await getDumpedMetadata())
     })
   })
 
-  describe(`onPluginInit`, () => {
-    xit(`should set the cache directory`, async () => {})
+  describe.only(`onPluginInit`, () => {
+    it(`should set the cache directory`, async () => {
+      await onPluginInit({ cache: { directory: '.cache' } })
+      expect((await getDumpedMetadata()).cacheDir).to.eq('.cachef')
+    })
+
     xit(`should set the cwd`, async () => {})
     xit(`should set the configKey`, async () => {})
     xit(`should set the configUrl`, async () => {})

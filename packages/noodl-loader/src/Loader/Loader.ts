@@ -1,41 +1,42 @@
 import * as u from '@jsmanifest/utils'
-import fs from 'fs-extra'
 import path from 'path'
 import y from 'yaml'
+import Extractor from '../Extractor'
 import NoodlConfig from '../Config'
 import NoodlCadlEndpoint from '../CadlEndpoint'
 import loadFile from '../utils/loadFile'
 import { fetchYml, isNode, merge, toDocument, unwrap } from '../utils/yml'
 import { assertNonEmpty } from '../utils/assert'
-import { isPageInArray } from './loaderUtils'
+import { isPageInArray, resolvePath } from './loaderUtils'
 import * as is from '../utils/is'
 import * as t from '../types'
 
 class NoodlLoader {
-  #preload = new Map<string, Record<string, t.YAMLNode>>()
-  #pages = new Map<string, Record<string, t.YAMLNode>>()
-  #root = {
-    Config: null,
-    Global: {} as Record<string, t.YAMLNode>,
-  } as {
+  #root: {
     Config: NoodlConfig | null
     Global: Record<string, t.YAMLNode>
   } & { [key: string]: any }
 
   config: NoodlConfig
-  cadlEndpoint: NoodlCadlEndpoint;
+  cadlEndpoint: NoodlCadlEndpoint
+  extractor: Extractor;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       config: this.config.toJSON(),
       cadlEndpoint: this.cadlEndpoint.toJSON(),
+      rootKeys: u.keys(this.#root),
     }
   }
 
   constructor() {
-    this.config = new NoodlConfig()
+    this.#root = {
+      Config: new NoodlConfig(),
+      Global: {} as Record<string, t.YAMLNode>,
+    }
+    this.config = this.#root.Config as NoodlConfig
     this.cadlEndpoint = new NoodlCadlEndpoint()
-    this.#root.Config = this.config
+    this.extractor = new Extractor(this.#root)
   }
 
   get root() {
@@ -53,48 +54,35 @@ class NoodlLoader {
     try {
       if (is.url(value)) {
         let url = new URL(value)
-        let { origin, protocol, host, pathname } = url
-        let { base: filename, ext, name } = path.parse(url.href)
+        let { name } = path.parse(url.href)
 
         if (name.endsWith('_en')) name = name.substring(0, name.length - 3)
-
-        let regex = new RegExp(name, 'i')
-
-        console.log({
-          ext,
-          filename,
-          name,
-          protocol,
-          host,
-          pathname,
-          origin,
-        })
 
         if (url.pathname.endsWith('.yml')) {
           let { configKey, appKey } = this.config
           let doc = await fetchYml(url.href, 'doc')
           if (doc) {
-            if (configKey && regex.test(configKey)) {
+            if (configKey && name === configKey) {
               this.loadRootConfig(doc)
               if (options?.appConfig === false) return
-              // Continue with app config
-            } else if (appKey && regex.test(appKey)) {
+              // TODO - Continue with app config
+            } else if ((appKey && name === appKey) || appKey.includes(name)) {
               this.loadAppConfig(doc)
             } else {
               if (is.stringInArray(this.cadlEndpoint.preload, name)) {
-                //
+                this.loadPreload(doc)
               } else if (is.stringInArray(this.cadlEndpoint.pages, name)) {
-                //
+                this.loadPage(name, doc)
               }
             }
           }
         }
       } else if (is.file(value)) {
-        const { name } = path.parse(value)
+        const filepath = resolvePath(value)
         const yml = loadFile(value)
         const doc = toDocument(yml)
 
-        console.log({ name })
+        const { name } = path.parse(filepath)
 
         if (this.config.configKey === name) {
           if (y.isMap(doc.contents)) {
@@ -113,7 +101,7 @@ class NoodlLoader {
               }
             })
           }
-        } else if (this.config.appKey.includes('cadlEndpoint')) {
+        } else if (this.config.appKey.includes(name)) {
           if (y.isMap(doc.contents)) {
             doc.contents.items.forEach((pair) => {
               const key = unwrap(pair.key) as string
@@ -129,13 +117,14 @@ class NoodlLoader {
             })
           }
         } else if (isPageInArray(this.cadlEndpoint.preload, name)) {
-          console.log('hello?')
           this.loadPreload(doc)
         } else if (isPageInArray(this.cadlEndpoint.pages, name)) {
           this.loadPage(name, doc)
+        } else {
+          //
         }
       } else if (u.isStr(value)) {
-        //
+        // console.log({ value })
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -167,7 +156,23 @@ class NoodlLoader {
               'viewWidthHeightRatio',
             ].includes(key)
           ) {
-            this.config[key] = pair.value
+            const nodeValue = unwrap(pair.value)
+
+            if (y.isMap(nodeValue)) {
+              this.config[key] = nodeValue.items.reduce((acc, pair) => {
+                acc[unwrap(pair.key) as string] = unwrap(pair.value)
+                return acc
+              }, {})
+            } else {
+              if (key === 'cadlBaseUrl') {
+                this.config.baseUrl = nodeValue as string
+              } else if (key === 'cadlMain') {
+                this.config.appKey = nodeValue as string
+                this.config[key] = nodeValue as string
+              } else {
+                this.config[key] = nodeValue
+              }
+            }
           } else if (['web', 'ios', 'android'].includes(key)) {
             this.config[key] = pair.value
           }
@@ -186,16 +191,22 @@ class NoodlLoader {
     if (y.isMap(appConfig.contents)) {
       for (const pair of appConfig.contents.items) {
         const key = String(pair.key)
+        const nodeValue = unwrap(pair.value) as any
+
         if (/assetsUrl|baseUrl|fileSuffix/i.test(key)) {
-          this.cadlEndpoint[key] = pair.value
+          this.cadlEndpoint[key] = nodeValue
         } else if (key === 'languageSuffix') {
-          this.cadlEndpoint[key] = pair.value as any
+          this.cadlEndpoint[key] = nodeValue
         } else if (key === 'startPage') {
-          this.cadlEndpoint[key] = pair.value as any
+          this.cadlEndpoint[key] = nodeValue
         } else if (key === 'preload') {
-          this.cadlEndpoint[key] = pair.value as any
+          this.cadlEndpoint[key] = y.isSeq(nodeValue)
+            ? nodeValue.items.map(unwrap)
+            : nodeValue
         } else if (key === 'page') {
-          this.cadlEndpoint[key] = pair.value
+          this.cadlEndpoint.pages = y.isSeq(nodeValue)
+            ? nodeValue.items.map(unwrap)
+            : nodeValue
         }
       }
     }
@@ -213,7 +224,11 @@ class NoodlLoader {
   }
 
   loadPage(name: string, page: any) {
-    this.#root[name] = page
+    if (u.isStr(name)) {
+      this.#root[name] = page
+    } else if (isNode(name)) {
+      this.#root[name] = page
+    }
     return this
   }
 }
