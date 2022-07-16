@@ -300,6 +300,7 @@
       "no-setter-return": "off",
       "no-undef": "off",
       "no-unused-vars": "off",
+      "no-unreachable": "off",
       "prefer-rest-params": "off",
       "quotes": "off"
     }
