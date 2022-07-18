@@ -320,13 +320,16 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   | HTMLVideoElement
                   | HTMLAudioElement
                   | null
-
+              
                 if (is.isBooleanTrue(isBinding)) {
+                  const el = app.meeting.mainStream.getElement()
+                  el.style.width = "100%"
+                  el.style.height = "100%"
                   log.grey(
                     `${streamLabel} is set to true. ` +
                       `Proceeding to turn on ${type} streaming now...`,
                   )
-
+                  
                   if (el) {
                     log.grey(
                       `${streamLabel} element exists. Checking if it is paused...`,
