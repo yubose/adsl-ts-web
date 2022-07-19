@@ -29,14 +29,19 @@ injectGlobal(
   }),
 )
 
-export default function ({ element, headComponents }) {
+/**
+ *
+ * @param { import('gatsby').WrapRootElementBrowserArgs } args
+ * @returns
+ */
+export default function (args) {
+  const { element } = args
   return (
     <>
       <Helmet htmlAttributes={{ lang: 'en' }}>
         <meta charSet="utf-8" />
         <meta httpEquiv="x-ua-compatible" content="ie=edge; charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {headComponents}
         <link rel="icon" type="image/png" href={favicon} sizes="32x32" />
         <link rel="icon" type="image/png" href={favicon} sizes="42x42" />
         <meta name="build-timestamp" content={timestamp} />

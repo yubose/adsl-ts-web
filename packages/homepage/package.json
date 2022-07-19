@@ -204,7 +204,7 @@
     "url": "https://github.com/pfftdammitchris/aitmed.com.git"
   },
   "scripts": {
-    "build": "gatsby build --prefix-paths",
+    "build": "gatsby build",
     "build-storybook": "build-storybook",
     "clean": "gatsby clean",
     "deploy": "aws s3 rm s3://public.aitmed.com/static/web/latest/ --recursive && aws s3 cp public/ s3://public.aitmed.com/static/web/latest/ --recursive",
