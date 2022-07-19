@@ -219,6 +219,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // Just set the participant as the mainStream  since it's open
           if (!o.mainStream.hasParticipant()) {
             o.mainStream.setParticipant(participant)
+            app.register.extendVideoFunction('twilioOnPeopleJoin')
             await app.meeting.onAddRemoteParticipant?.(
               participant as t.RemoteParticipant,
               o.mainStream,
