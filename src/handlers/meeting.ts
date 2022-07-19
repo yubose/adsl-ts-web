@@ -33,7 +33,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.func('onConnectionChange')
       log.grey(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
-        app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        app.register.extendVideoFunction('twilioOnPeopleJoin')
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
         const participantsNumber = app.meeting.room.participants.size
