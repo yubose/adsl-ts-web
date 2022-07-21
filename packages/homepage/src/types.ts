@@ -13,25 +13,25 @@ export type { ComponentPath, StaticComponentObject }
 export type AppContext = ReturnType<typeof useRootObject>
 
 export interface PageContext extends Omit<GatsbyPluginPageContext, 'lists'> {
-  getId: (id: string | StaticComponentObject) => string
+  getId: (id: StaticComponentObject | string) => string
   getListObject: (
-    id: string | StaticComponentObject,
+    id: StaticComponentObject | string,
     root?: Record<string, any>,
     pageName?: string,
-  ) => nt.ReferenceString | any[]
-  getIteratorVar: (id: string | StaticComponentObject) => string
+  ) => any[] | nt.ReferenceString
+  getIteratorVar: (id: StaticComponentObject | string) => string
   getCtxObject: (
-    id: string | StaticComponentObject,
+    id: StaticComponentObject | string,
   ) => PageContextListContextObject | null
   getDataObject: (
-    id: string | StaticComponentObject,
+    id: StaticComponentObject | string,
     root?: Record<string, any>,
     pageName?: string,
   ) => any
-  isListConsumer: (id: string | StaticComponentObject) => boolean
+  isListConsumer: (id: StaticComponentObject | string) => boolean
   isCtxObj: (
     obj: PageContextListContextObject,
-    id: string | StaticComponentObject,
+    id: StaticComponentObject | string,
   ) => boolean
   assetsUrl: string
   baseUrl: string
@@ -43,7 +43,8 @@ export interface PageContext extends Omit<GatsbyPluginPageContext, 'lists'> {
 
 export type PageContextListContextObject = ListComponentsContext[string]
 
-export type RootObject<O extends Record<string, any> = Record<string, any>> = {
-  Global: Record<LiteralUnion<'currentUser', string>, any>
-  Style?: nt.StyleObject
-} & O
+export type RootObject<O extends Record<string, any> = Record<string, any>> =
+  O & {
+    Global: Record<LiteralUnion<'currentUser', string>, any>
+    Style?: nt.StyleObject
+  }

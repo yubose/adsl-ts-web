@@ -965,11 +965,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         error instanceof Error && toast(error.message, { type: 'error' })
     }
   }
-    
-  
 
-   
-  
+
+
+
+
   const dismissOnTouchOutside: Store.BuiltInObject['fn'] =
     async function onDismissOnTouchOutside(action, options) {
       log.func('dismissOnTouchOutside')
@@ -1017,7 +1017,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             }
           ,remainTime*1000)
           app.register.setTimeId('extendVideoChatTime',id)
-          
+
         }else{
           console.log('The meeting might had already ended. Please reschedule or cancel it.')
           app.meeting.leave()
@@ -1044,7 +1044,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if(oldRouteStr !== routeStr) app.mainPage.pageUrl = `${basePart}?${routeStr}`
     }
   }
-    
+
 
   const builtIns = {
     checkField,
@@ -1107,7 +1107,7 @@ export const extendedSdkBuiltIns = {
    * Called when user clicks the download icon. The passed in args should contain
    * the ecosObj that contains the file data
    */
-  download(this: App, { ecosObj }: { ecosObj?: EcosDocument<any> } = {}) {
+  download(this: App, { ecosObj,fileName }: { ecosObj?: EcosDocument<any>,fileName?:string}) {
     log.func('download (document)')
     if (!ecosObj) {
       return log.red(
@@ -1124,7 +1124,7 @@ export const extendedSdkBuiltIns = {
       )
     }
     let ext = ''
-    let filename = (ecosObj.name.title || '') as string
+    // let filename = (ecosObj.name.title || '') as string
     let mimeType = (ecosObj.name.type || '') as string
     let data
 
@@ -1141,9 +1141,11 @@ export const extendedSdkBuiltIns = {
       }
     }
 
-    ext && u.isStr(filename) && (filename += ext)
-    !data && (data = ecosObj.name?.data || '')
-    return download(data, filename)
+    // ext && u.isStr(filename) && (filename += ext)
+    !data && (data = ecosObj.name?.data || '');
+    !fileName&&(fileName = ecosObj.name.title);
+    // console.log(ecosObj.name.title,"kkkk")
+    return download(data, fileName)
   },
   downloadQRCode(
     this: App,
@@ -1337,7 +1339,7 @@ export const extendedSdkBuiltIns = {
     //   //   }
     //   // ,10*1000)
     //   // this.register.setTimeId('extendVideoChatTime',id)
-      
+
     // }
 
   },
@@ -1353,7 +1355,7 @@ export const extendedSdkBuiltIns = {
     const currentTime = Math.ceil(new Date().getTime() / 1000)
     const meetingEndTime = action?.meetingEndTime
     const remainTime = meetingEndTime-currentTime-popUpWaitSeconds
-    // const remainTime2 = meetingEndTime-currentTime 
+    // const remainTime2 = meetingEndTime-currentTime
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
     this.register.setMeetingEndTime(meetingEndTime)
     if (remainTime > 0){
@@ -1367,7 +1369,7 @@ export const extendedSdkBuiltIns = {
         remainTime*1000
       )
       this.register.setTimeId('extendVideoChatTime',initAutoDcTime)
-      
+
       // const endMeetingId = setTimeout(
       //   ()=>{
       //     const participantsNumber = this.meeting.room.participants.size
@@ -1379,7 +1381,7 @@ export const extendedSdkBuiltIns = {
       //   remainTime2*1000
       // )
 
-      
+
     }
   }
 

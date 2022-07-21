@@ -1,10 +1,11 @@
+// @ts-nocheck
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as nu from 'noodl-utils'
 import axios, { AxiosRequestConfig } from 'axios'
 import { fp, is } from 'noodl-core'
 import { ARoot } from 'noodl-core'
-import { getFileName, getFileStructure, getLinkStructure } from 'noodl-file'
+import { getLinkStructure } from 'noodl-file'
 import type { FileSystem } from 'noodl-file'
 import * as chalk from 'chalk'
 import chunk from 'lodash/chunk'
@@ -105,15 +106,11 @@ class NoodlLoader<
     this.log.level = options.loglevel || this.options.loglevel
     this.log.debug(`Options`, this.options)
     this.log.debug(
-      `Instantiating with config: ${(
-        this.configKey || '<no config received>',
-      )}`,
+      `Instantiating with config: ${this.configKey || '<no config received>'}`,
     )
 
     this.log.debug(
-      `Initiating root with with default keys: ${(
-        defaultKeys.join(', '),
-      )}`,
+      `Initiating root with with default keys: ${defaultKeys.join(', ')}`,
     )
 
     if (dataType === 'object') {
@@ -140,15 +137,16 @@ class NoodlLoader<
     this.log.debug(
       `Initiated root ${
         options.dataType === 'object' ? `as an object` : 'with a map'
-      } with default keys: ${(
+      } with default keys: ${
         options.dataType === 'object'
           ? Object.keys(this.root).join(', ')
           : [...this.root.keys()].join(', ')
-      )}`
+      }`,
     )
   }
 
-  #fetch = (url: string, opts?: AxiosRequestConfig) => axios.get(url, opts)
+  #fetch = async (url: string, opts?: AxiosRequestConfig) =>
+    axios.get(url, opts)
 
   get fs() {
     return this.#fs as FileSystem
@@ -164,7 +162,7 @@ class NoodlLoader<
     spread,
   }: {
     dir?: string
-    docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+    docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
     fallback?: {
       appConfig?: Parameters<
         NoodlLoader<ConfigKey, DataType>['loadAppConfig']
@@ -173,7 +171,7 @@ class NoodlLoader<
     loadPages?: boolean
     loadPreloadPages?: boolean
     requestOptions?: AxiosRequestConfig
-    spread?: string | string[]
+    spread?: string[] | string
   } = {}) {
     if (!this.configKey) {
       throw new Error(
@@ -181,9 +179,9 @@ class NoodlLoader<
       )
     }
 
-    this.log.info(`Using app key ${(this.appKey)}`)
-    this.log.info(`Using device type ${(this.deviceType)}`)
-    this.log.info(`Using eCOS environment: ${(this.env)}`)
+    this.log.info(`Using app key ${this.appKey}`)
+    this.log.info(`Using device type ${this.deviceType}`)
+    this.log.info(`Using eCOS environment: ${this.env}`)
 
     const result = [
       await this.loadRootConfig({ dir, docOptions, requestOptions }),
@@ -353,7 +351,7 @@ class NoodlLoader<
               const value = node.value
               if (regex.video.test(value) && !urlCache.includes(value)) {
                 urlCache.push(value)
-                this.log.debug(`Found asset: ${(value)}`)
+                this.log.debug(`Found asset: ${value}`)
                 addAsset(value)
               }
             }
@@ -368,9 +366,7 @@ class NoodlLoader<
           !urlCache.includes(value)
         ) {
           urlCache.push(value)
-          this.log.debug(
-            `Found ${(String(key))} asset: ${(value)}`,
-          )
+          this.log.debug(`Found ${String(key)} asset: ${value}`)
           addAsset(value)
         }
       })(this.root)
@@ -381,7 +377,7 @@ class NoodlLoader<
 
   getIn(
     obj: Record<string, any> | y.Document | y.Document.Parsed,
-    key: string | string[],
+    key: string[] | string,
   ) {
     if (y.isDocument(obj)) return obj.getIn(fp.toArr(key))
     return get(obj, key)
@@ -417,13 +413,13 @@ class NoodlLoader<
    */
   async loadRootConfig(options: {
     dir: string
-    docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+    docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
     config?: string
     requestOptions?: AxiosRequestConfig
   }): Promise<DataType extends 'map' ? y.Document : Record<string, any>>
 
   async loadRootConfig(
-    config: y.Document | Record<string, any>,
+    config: Record<string, any> | y.Document,
   ): Promise<DataType extends 'map' ? y.Document : Record<string, any>>
 
   async loadRootConfig(
@@ -434,15 +430,15 @@ class NoodlLoader<
 
   async loadRootConfig(
     options:
-      | y.Document
       | Record<string, any>
+      | y.Document
+      | string
       | {
           dir: string
-          docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+          docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
           config?: string
           requestOptions?: AxiosRequestConfig
-        }
-      | string = this.configKey,
+        } = this.configKey,
     customConfigUrl?: string,
     requestOptionsProp?: AxiosRequestConfig,
   ) {
@@ -451,7 +447,7 @@ class NoodlLoader<
       | undefined
     let configYml = ''
     let docOptions:
-      | (y.ParseOptions & y.DocumentOptions & y.SchemaOptions)
+      | (y.DocumentOptions & y.ParseOptions & y.SchemaOptions)
       | undefined
     let requestOptions: AxiosRequestConfig
 
@@ -474,23 +470,20 @@ class NoodlLoader<
         options?.requestOptions && (requestOptions = options.requestOptions)
         docOptions = options.docOptions
         const dir = options.dir || ''
-        const configFilePath = path.join(dir, this.fs.ensureExt(this.configKey, 'yml'))
+        const configFilePath = path.join(
+          dir,
+          this.fs.ensureExt(this.configKey, 'yml'),
+        )
         if (existsSync(configFilePath)) {
-          this.log.debug(
-            `Loading root config from: ${(configFilePath)}`,
-          )
+          this.log.debug(`Loading root config from: ${configFilePath}`)
           configYml = await readFile(configFilePath, 'utf8')
           configDocument = parseYml(this.dataType, configYml, docOptions)
         } else {
           if (!dir) {
-            this.log.debug(
-              `Fetching config ${(this.configKey)} remotely`,
-            )
+            this.log.debug(`Fetching config ${this.configKey} remotely`)
           } else {
             this.log.error(
-              `Tried to load root config from ${(
-                configFilePath
-              )} but the location does not exist`
+              `Tried to load root config from ${configFilePath} but the location does not exist`,
             )
           }
         }
@@ -501,7 +494,7 @@ class NoodlLoader<
       }
     } else if (is.str(options)) {
       this.configKey = options
-      this.log.debug(`Fetching config ${(options)} remotely`)
+      this.log.debug(`Fetching config ${options} remotely`)
     }
 
     if (!this.configKey) {
@@ -532,7 +525,7 @@ class NoodlLoader<
     }
 
     if (!configYml || !configDocument) {
-      this.log.info(`Config URL: ${(configUrl)}`)
+      this.log.info(`Config URL: ${configUrl}`)
       this.emit(c.rootConfigIsBeingRetrieved, {
         configKey: this.configKey,
         configUrl,
@@ -549,7 +542,7 @@ class NoodlLoader<
     }
 
     this.setInRoot(this.configKey, configDocument)
-    this.log.debug(`Root key ${(this.configKey)} set`)
+    this.log.debug(`Root key ${this.configKey} set`)
     this.emit(c.rootConfigRetrieved, {
       rootConfig: configDocument as DataType extends 'map'
         ? y.Document
@@ -559,9 +552,7 @@ class NoodlLoader<
     })
 
     this.configVersion = this.getConfigVersion(configDocument)
-    this.log.info(
-      `Config version: ${(this.configVersion) || '<unknown>'}`,
-    )
+    this.log.info(`Config version: ${this.configVersion || '<unknown>'}`)
     this.emit(c.configVersionSet, this.configVersion)
 
     y.visit(
@@ -571,9 +562,7 @@ class NoodlLoader<
       {
         Pair: (key, node) => {
           if (y.isScalar(node.key) && node.key.value === 'cadlBaseUrl') {
-            this.log.debug(
-              `Encountered base url: ${(String(node.value))}`,
-            )
+            this.log.debug(`Encountered base url: ${String(node.value)}`)
             if (
               y.isScalar(node.value) &&
               is.str(node.value) &&
@@ -583,9 +572,7 @@ class NoodlLoader<
               node.value.value = this.#replaceNoodlPlaceholders(
                 node.value.value as string,
               )
-              this.log.info(
-                `Setting base url to ${(String(node.value.value))}`
-              )
+              this.log.info(`Setting base url to ${String(node.value.value)}`)
               this.emit(c.placeholderPurged, {
                 before,
                 after: node.value.value as string,
@@ -599,9 +586,7 @@ class NoodlLoader<
             const before = node.value
             node.value = this.#replaceNoodlPlaceholders(node.value)
             this.log.info(
-              `Replaced a placeholder from ${(before)} to ${(
-                String(node.value)
-              )}`,
+              `Replaced a placeholder from ${before} to ${String(node.value)}`,
             )
             this.emit(c.placeholderPurged, {
               before,
@@ -628,7 +613,7 @@ class NoodlLoader<
     requestOptions,
   }: {
     dir?: string
-    docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+    docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
     fallback?: () => Promise<string> | string
     requestOptions?: AxiosRequestConfig
   } = {}) {
@@ -650,9 +635,7 @@ class NoodlLoader<
         path.join(dir, this.fs.ensureExt(this.appKey, 'yml')),
       )
       if (existsSync(appConfigFilePath)) {
-        this.log.debug(
-          `Loading app config from: ${(appConfigFilePath)}`,
-        )
+        this.log.debug(`Loading app config from: ${appConfigFilePath}`)
         appConfigYml = await readFile(appConfigFilePath, 'utf8')
         this.log.debug(`Retrieved app config yml`)
         appConfigDocument = parseYml(this.dataType, appConfigYml, docOptions)
@@ -663,11 +646,9 @@ class NoodlLoader<
         )
       } else {
         this.log.error(
-          `Attempted to load the app config (${(
-            'cadlEndpoint'
-          )}) from ${(
+          `Attempted to load the app config (${'cadlEndpoint'}) from ${
             appConfigFilePath || '<App config file path is empty>'
-          )} but the location does not exist`,
+          } but the location does not exist`,
         )
       }
     }
@@ -689,7 +670,7 @@ class NoodlLoader<
           }. ` +
             `If a fallback loader was provided, it will be used. ` +
             `Otherwise the app config will be undefined`,
-          { fallbackProvided: is.fnc(fallback) }
+          { fallbackProvided: is.fnc(fallback) },
         )
         is.fnc(fallback) && (yml = await fallback())
       }
@@ -713,7 +694,7 @@ class NoodlLoader<
       this.log.debug(
         `Loaded app config as a y ${
           this.dataType === 'map' ? 'doc' : 'object'
-        } on root key: ${(this.appKey)}`,
+        } on root key: ${this.appKey}`,
       )
     } else {
       this.log.error(`Attempted to load app config but it was empty or invalid`)
@@ -728,11 +709,11 @@ class NoodlLoader<
   }
 
   async loadPage(
-    options: { requestOptions?: AxiosRequestConfig } & (DataType extends 'map'
+    options: DataType extends 'map'
       ? {
           dir: string
           doc?: y.Document
-          docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+          docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
           name: string
           spread?: OrArray<string>
         }
@@ -741,10 +722,10 @@ class NoodlLoader<
           name: string
           object?: Record<string, any>
           spread?: OrArray<string>
-        }),
+        } & { requestOptions?: AxiosRequestConfig },
   ): Promise<
     | (DataType extends 'map'
-        ? y.Node | y.Document<unknown>
+        ? y.Document<unknown> | y.Node
         : Record<string, any>)
     | undefined
   >
@@ -753,15 +734,16 @@ class NoodlLoader<
     name: string | undefined,
     document_?: y.Document,
     requestOptions?: AxiosRequestConfig,
-  ): Promise<y.Node | y.Document<unknown> | undefined>
+  ): Promise<y.Document<unknown> | y.Node | undefined>
 
   async loadPage(
     options:
-      | ({ requestOptions?: AxiosRequestConfig } & (DataType extends 'map'
+      | string
+      | (DataType extends 'map'
           ? {
               dir: string
               doc?: y.Document
-              docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+              docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
               name: string
               spread?: OrArray<string>
             }
@@ -770,15 +752,14 @@ class NoodlLoader<
               name: string
               object?: Record<string, any>
               spread?: OrArray<string>
-            }))
-      | string
+            } & { requestOptions?: AxiosRequestConfig })
       | undefined = '',
-    documentOrObject?: y.Document | Record<string, any>,
+    documentOrObject?: Record<string, any> | y.Document,
     requestOptionsProp?: AxiosRequestConfig,
   ) {
     let dir = ''
     let docOptions:
-      | (y.ParseOptions & y.DocumentOptions & y.SchemaOptions)
+      | (y.DocumentOptions & y.ParseOptions & y.SchemaOptions)
       | undefined
     let name = ''
     let requestOptions: AxiosRequestConfig
@@ -795,7 +776,7 @@ class NoodlLoader<
           ? // @ts-expect-error
             options.object
           : undefined
-          fp.toArr(options.spread).forEach((s) => s && spread.push(s), )
+      fp.toArr(options.spread).forEach((s) => s && spread.push(s))
     }
 
     if (requestOptionsProp) requestOptions = requestOptionsProp
@@ -842,7 +823,7 @@ class NoodlLoader<
                 this.setInRoot(key, documentOrObject)
               }
 
-              this.log.debug(`Saved a node on root key: ${(key)}`)
+              this.log.debug(`Saved a node on root key: ${key}`)
               this.emit(c.appPageRetrieved, {
                 pageName,
                 pageObject: documentOrObject as DataType extends 'map'
@@ -864,7 +845,7 @@ class NoodlLoader<
           : Record<string, any>,
       ) => {
         this.log.debug(`Spreading keys: ${fp.toArr(keys).join(', ')}`)
-        const spreadFunction = (value: y.Document | Record<string, any>) => {
+        const spreadFunction = (value: Record<string, any> | y.Document) => {
           if (y.isMap(value)) {
             for (const pair of value.items) {
               if (y.isScalar(pair.key)) {
@@ -917,14 +898,12 @@ class NoodlLoader<
         this.setInRoot(key, documentOrObject)
       } else {
         this.log.error(
-          `Page ${(
-            name || '<empty>'
-          )} was not loaded because of bad parameters`,
+          `Page ${name || '<empty>'} was not loaded because of bad parameters`,
         )
       }
 
       if (name) {
-        this.log.info(`Loaded page ${(name)}`)
+        this.log.info(`Loaded page ${name}`)
         this.emit(c.appPageRetrieved, {
           pageName: name,
           pageObject: documentOrObject as DataType extends 'map'
@@ -937,7 +916,7 @@ class NoodlLoader<
       if (error instanceof Error) {
         if ((error as any).response?.status === 404) {
           this.log.error(
-            `[${red(error.name)}]: Could not find page ${(name || '')}`,
+            `[${red(error.name)}]: Could not find page ${name || ''}`,
           )
           this.emit(c.appPageNotFound, {
             appKey: this.appKey,
@@ -946,9 +925,7 @@ class NoodlLoader<
           })
         } else {
           this.log.error(
-            `[${yellow(error.name)}] on page ${(name || '')}: ${
-              error.message
-            }`,
+            `[${yellow(error.name)}] on page ${name || ''}: ${error.message}`,
           )
         }
         this.emit(c.appPageRetrieveFailed, {
@@ -966,7 +943,7 @@ class NoodlLoader<
     spread,
   }: {
     dir?: string
-    docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+    docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
     requestOptions?: AxiosRequestConfig
     spread?: OrArray<string>
   } = {}) {
@@ -991,18 +968,16 @@ class NoodlLoader<
             this.log.debug(logMessage)
             preloadPages.push(node.value)
           } else {
-            this.log.warn(
-              `Preload page "${(node.value)}" already exists`,
-            )
+            this.log.warn(`Preload page "${node.value}" already exists`)
           }
         }
       }
     } else if (is.arr(seq)) {
       for (const name of seq) {
         if (is.str(name) && !this.hasInRoot(name)) {
-          let logMessage = `Adding preload page: ${(name)}`
+          let logMessage = `Adding preload page: ${name}`
           if (spreadKeys.includes(name)) {
-            logMessage += ` (its keys ${(`will spread`)} on root)`
+            logMessage += ` (its keys ${`will spread`} on root)`
           }
           this.log.debug(logMessage)
           preloadPages.push(name)
@@ -1032,7 +1007,7 @@ class NoodlLoader<
   }: {
     chunks?: number
     dir?: string
-    docOptions?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions
+    docOptions?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions
     requestOptions?: AxiosRequestConfig
     spread?: OrArray<string>
   } = {}) {
@@ -1048,7 +1023,7 @@ class NoodlLoader<
         if (y.isScalar(node) && is.str(node.value)) {
           !pages.includes(node.value) && pages.push(node.value)
           if (!pages.includes(node.value)) {
-            this.log.info(`Loading page: "${(node.value)}"`)
+            this.log.info(`Loading page: "${node.value}"`)
           }
         }
       }
@@ -1057,7 +1032,7 @@ class NoodlLoader<
         if (is.str(node)) {
           !pages.includes(node) && pages.push(node)
           if (!pages.includes(node)) {
-            this.log.info(`Loading page: "${(node)}"`)
+            this.log.info(`Loading page: "${node}"`)
           }
         }
       }
@@ -1066,13 +1041,13 @@ class NoodlLoader<
     const chunkedPages = chunk(pages, chunks)
 
     this.log.debug(
-      `${(String(pages.length))} pages are being loaded in ${(
-        String(chunkedPages.length)
-      )} chunks ${('concurrently')}`,
+      `${String(pages.length)} pages are being loaded in ${String(
+        chunkedPages.length,
+      )} chunks ${'concurrently'}`,
     )
 
     const allPages = await Promise.all(
-      chunkedPages.map((chunked) =>
+      chunkedPages.map(async (chunked) =>
         Promise.all(
           chunked.map(async (c) =>
             this.loadPage({ name: c, dir, docOptions, requestOptions, spread }),
@@ -1082,9 +1057,7 @@ class NoodlLoader<
     )
 
     this.log.info(
-      `${(
-        String(chunkedPages.length * chunks)
-      )} pages in total were loaded`,
+      `${String(chunkedPages.length * chunks)} pages in total were loaded`,
     )
 
     return flatten(allPages)

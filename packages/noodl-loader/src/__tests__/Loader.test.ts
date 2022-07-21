@@ -1,16 +1,18 @@
 // import * as u from '@jsmanifest/utils'
 // import { expect } from 'chai'
 // import chalk from 'chalk'
-// import loadFiles from '../utils/loadFiles'
+// import fs from 'fs-extra'
 // import * as path from 'path'
 // import nock from 'nock'
 // import sinon from 'sinon'
 // import y from 'yaml'
+// import { ensureExt } from 'noodl-file'
+// import loadFiles from '../utils/loadFiles'
 // import Loader from '../Loader'
 // import loadFile from '../utils/loadFile'
 // import * as c from '../constants'
 
-// const meetd2yml = readFileSync(path.join(__dirname, './fixtures/meetd2.yml'))
+// const meetd2yml = fs.readFileSync(path.join(__dirname, './fixtures/meetd2.yml'))
 // const baseCssObject = loadFile(
 //   path.join(__dirname, './fixtures/BaseCSS.yml'),
 //   'json',
@@ -22,7 +24,10 @@
 // const loadYmlFactory =
 //   (filename = '') =>
 //   () =>
-//     readFileSync(path.join(pathToFixtures, `${ensureExt(filename, 'yml')}`))
+//     fs.readFileSync(
+//       path.join(pathToFixtures, `${ensureExt(filename, 'yml')}`),
+//       'utf8',
+//     )
 
 // const getRootConfigYml = loadYmlFactory(config)
 // const getAppConfigYml = loadYmlFactory(`cadlEndpoint`)
@@ -56,7 +61,7 @@
 // })
 
 // async function init(
-//   _loader = loader as Loader | ConstructorParameters<typeof Loader>[0],
+//   _loader = loader as ConstructorParameters<typeof Loader>[0] | Loader,
 // ) {
 //   let options: ConstructorParameters<typeof Loader>[0]
 //   if (!(_loader instanceof Loader)) {
@@ -71,7 +76,7 @@
 //   })
 // }
 
-// describe(chalk.keyword('navajowhite')('noodl'), () => {
+// describe.skip(chalk.keyword('navajowhite')('noodl'), () => {
 //   describe(`constructor`, () => {
 //     it(`should construct without errors when given no args`, () => {
 //       expect(() => new Loader()).to.not.throw()

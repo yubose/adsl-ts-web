@@ -188,8 +188,9 @@ class NOODLViewport {
           previousWidth,
           previousHeight,
         })
-      }
-
+      } 
+      const trulyWindowWidth = window.screen.width;
+      const trulyWindowHeight = window.screen.height;
       const onUnload = (e: Event) => {
         // window.removeEventListener('gesturestart', this.#onResize)
         // window.removeEventListener('gestureend', this.#onResize)
@@ -206,6 +207,11 @@ class NOODLViewport {
         window.addEventListener('unload', onUnload)
       }
       if (/android/i.test(userAgent)) {
+        window.removeEventListener('resize', this.#onResize)
+        window.removeEventListener('unload', onUnload)
+      }
+      if(trulyWindowWidth < trulyWindowHeight) {
+        //like phone browser but set UA as desktop
         window.removeEventListener('resize', this.#onResize)
         window.removeEventListener('unload', onUnload)
       }

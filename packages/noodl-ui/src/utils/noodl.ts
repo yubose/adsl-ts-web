@@ -34,7 +34,7 @@ export function getListAttribute(component: NuiComponent.Instance){
         list.blueprint.listObject || list.get('listObject')  
       // dataObject = list.get('listObject')
     }
-    
+
     if(
       u.isStr(dataObject) &&
       dataObject.startsWith('itemObject')&&
@@ -134,6 +134,7 @@ export function findListDataObject(
     let listIndex = u.isNum(listItem.get('index'))
       ? listItem.get('index')
       : listItem.get('listIndex')
+    listIndex = listIndex?listIndex:0
 
     if (isComponent(list)) {
       if (Identify.component.listItem(component)) {

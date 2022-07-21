@@ -617,6 +617,7 @@ const createActions = function createActions(app: App) {
           const dataKey = _pick(action, 'dataKey');
           const documentType = _pick(action, 'documentType');
           const downloadStatus = _pick(action, 'downloadStatus');
+          const fileType = _pick(action, 'fileType');
           const size = _pick(action, 'size') && +_pick(action, 'size') / 1000;
           const fileFormat = _pick(action, 'fileFormat');
           const shearState = _pick(action,"shearState");
@@ -634,6 +635,11 @@ const createActions = function createActions(app: App) {
               )
               ac.data.set(downloadStatus,status)
               app.updateRoot(downloadStatus, status)
+            }
+            if(fileType){
+              const type = files?.[0]?.name.split(".").at(-1);
+              ac.data.set(fileType,type)
+              app.updateRoot(fileType, type)
             }
             if (fileFormat) {
               ac.data.set(fileFormat, files?.[0].type)

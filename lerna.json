@@ -9,7 +9,7 @@
     },
     "publish": {
       "bump": "patch",
-      "ignore": ["noodl-ui-test-utils", "noodl-builder", "noodl-loader"],
+      "ignore": ["noodl-ui-test-utils", "noodl-loader"],
       "message": "Update"
     }
   },

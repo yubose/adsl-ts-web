@@ -43,6 +43,7 @@
     "dev/cpt/**/*.js",
     "dev/cpt/**/*.ts",
     "packages/noodl-file/src/**/*",
+    "packages/noodl-loader/src/**/*",
     "packages/noodl-core/src/**/*",
     "packages/homepage/src/**/*",
     "packages/noodl-yaml/src/**/*",

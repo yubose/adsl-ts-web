@@ -1,6 +1,40 @@
+import * as u from '@jsmanifest/utils'
+import nock from 'nock'
+import fs from 'fs-extra'
+import path from 'path'
+import { getMockRoot } from 'mock-fs'
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 
+export const defaultBaseUrl = 'http://127.0.0.1:3001/'
 export const ui = { ...actionFactory, ...componentFactory }
+
+export function getFixturePath(...paths: string[]) {
+  return path.join(process.cwd(), 'src', '__tests__', 'fixtures', ...paths)
+}
+
+export function getPathToConfig() {
+  return getFixturePath('meetd2.yml')
+}
+
+export function getPathToCadlEndpoint() {
+  return getFixturePath('cadlEndpoint.yml')
+}
+
+export function getPathToBaseCss() {
+  return getFixturePath('BaseCSS.yml')
+}
+
+export function getPathToBaseDataModel() {
+  return getFixturePath('BaseDataModel.yml')
+}
+
+export function getPathToBasePage() {
+  return getFixturePath('BasePage.yml')
+}
+
+export function getPathToSignInPage() {
+  return getFixturePath('SignIn.yml')
+}
 
 export function getRoot() {
   const root = {
@@ -70,4 +104,63 @@ export function getRoot() {
   }
 
   return root as Record<string, any> & typeof root
+}
+
+export function parseMockedFileSystemRoot(root = getMockRoot()) {
+  const files = {} as Record<string, any>
+
+  if (u.isObj(root._items)) {
+    for (const [name, value] of u.entries(root._items)) {
+      if (u.isObj(value)) {
+        if ('_items' in value) {
+          files[name] = parseMockedFileSystemRoot(value)
+        } else if ('_content' in value) {
+          files[name] = value._content
+        }
+      }
+    }
+  }
+
+  return files
+}
+
+export function proxyPageYmls({
+  baseUrl = defaultBaseUrl,
+  names = [],
+}: {
+  baseUrl?: string
+  names?:
+    | (string | { name: string; content: any })[]
+    | string
+    | { name: string; content: any }
+}) {
+  const proxiedRoutes = [] as {
+    filename: string
+    name: string
+    ext: string
+    route: string
+    content: string
+  }[]
+
+  u.array(names).forEach((obj) => {
+    let ext = path.extname(u.isObj(obj) ? obj.name : obj)
+    if (ext.startsWith('.')) ext = ext.substring(1)
+    let name = u.isObj(obj) ? obj.name : obj
+    let filename = path.basename(name)
+    if (name.endsWith(`.${ext}`)) name = name.substring(0, `.${ext}`.length)
+    let route = `/${filename}`
+    let content = ''
+
+    if (u.isObj(obj) && obj.content) {
+      content = obj.content
+    } else if (fs.existsSync(getFixturePath(filename))) {
+      content = fs.readFileSync(getFixturePath(filename), 'utf8')
+    }
+
+    console.log({ baseUrl, route })
+    nock(baseUrl).get(route).reply(200, content)
+    proxiedRoutes.push({ filename, name, ext, route, content })
+  })
+
+  return proxiedRoutes
 }

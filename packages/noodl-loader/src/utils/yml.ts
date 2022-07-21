@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import axios from 'axios'
 import y from 'yaml'
 import type { ToStringOptions } from 'yaml'
@@ -11,9 +12,22 @@ import * as t from '../types'
  * @param as Return data as json or yml. Defaults to 'yml'
  * @returns { string | Record<string, any> }
  */
-export async function fetchYml(url = '', as: 'json' | 'yml' = 'yml') {
+export async function fetchYml(
+  url: string,
+  as: 'doc',
+): Promise<y.Document | y.Document.Parsed>
+export async function fetchYml(
+  url: string,
+  as: 'json',
+): Promise<Record<string, any>>
+export async function fetchYml(url: string, as?: 'yml'): Promise<string>
+export async function fetchYml(
+  url: string,
+  as: 'doc' | 'json' | 'yml' = 'yml',
+) {
   try {
     const isJson = as === 'json'
+    const isDoc = as === 'doc'
     const contentType = isJson ? 'application/json' : 'text/plain'
     const { data: yml } = await axios.get(url, {
       headers: {
@@ -21,7 +35,7 @@ export async function fetchYml(url = '', as: 'json' | 'yml' = 'yml') {
         'Content-Type': contentType,
       },
     })
-    return isJson ? y.parse(yml) : yml
+    return isJson ? y.parse(yml) : isDoc ? toDocument(yml) : yml
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     throw err
@@ -36,6 +50,46 @@ export function isNode(
     typeof value === 'object' &&
     (y.isNode(value) || y.isPair(value) || y.isDocument(value))
   )
+}
+
+export function merge(node: unknown, value: unknown) {
+  if (node instanceof Map) {
+    if (y.isDocument(value) && y.isMap(value.contents)) {
+      value = value.contents
+    }
+    if (y.isMap(value)) {
+      value.items.forEach((pair) => node.set(pair.key, pair.value))
+    }
+  } else if (y.isMap(node)) {
+    if (y.isDocument(value) && y.isMap(value.contents)) {
+      value = value.contents
+    }
+    if (y.isMap(value)) {
+      value.items.forEach((pair) => node.set(pair.key, pair.value))
+    }
+  } else if (y.isSeq(node)) {
+    if (y.isSeq(value)) {
+      value.items.forEach((item) => node.add(item))
+    }
+  } else if (y.isPair(node)) {
+    if (y.isPair(value)) {
+      node.value = value.value
+    }
+  } else if (y.isScalar(node)) {
+    if (y.isScalar(value)) {
+      node.value = value.value
+    } else if (y.isPair(value)) {
+      node.value = value.value
+    }
+  } else if (u.isObj(node)) {
+    if (y.isDocument(value) && y.isMap(value.contents)) {
+      value = value.contents
+    }
+    if (y.isMap(value)) {
+      value.items.forEach((pair) => (node[String(pair.key)] = pair.value))
+    }
+  }
+  return node
 }
 
 export function parse<DataType extends t.Loader.RootDataType>(
@@ -92,4 +146,21 @@ export function toDocument(
 
 export function withYmlExt(s = '') {
   return !s.endsWith('.yml') && (s += '.yml')
+}
+
+/**
+ * Unwraps a Scalar node if given a Scalar
+ * @param node Scalar or value
+ * @returns The unwrapped scalar or value
+ */
+
+export function unwrap<N extends y.Document>(node: N): N['contents']
+export function unwrap<N extends y.Scalar>(node: N): N['value']
+export function unwrap<V = unknown>(root: V): V
+export function unwrap(node: unknown) {
+  if (node !== null && typeof node === 'object') {
+    if (y.isScalar(node)) return node.value
+    if (y.isDocument(node)) return node.contents
+  }
+  return node
 }

@@ -3,7 +3,7 @@
 If `npm install -f` was never run (or if packages was not installed) you can _skip to_ _Step 2_
 
 0. `git checkout dev2`
-1. `lerna exec --scope homepage \"gatsby clean\" && lerna clean && rm -rf node_modules package-lock.json`
+1. `lerna exec --scope homepage npx gatsby clean && lerna clean && rm -rf node_modules package-lock.json`
 2. `npm install -f`
 3. `lerna exec --scope homepage npm run build` (or go to the folder by doing `cd packages/homepage && npm run build`)
 4. The static app will be built to: `./packages/homepage/public`. The files in this folder are the files we upload to an s3 bucket
@@ -12,6 +12,8 @@ If `npm install -f` was never run (or if packages was not installed) you can _sk
 7. Go to AWS CloudFront and update the resource path
 
 The app will be built using config `www` by default. To build with a different config like `mob.yml` pass `CONFIG=mob` to env variables when running `npm run build`
+
+<!-- aws s3 sync . s3://public.aitmed.com/static/www/4.06.9/ -->
 
 > Example:
 
@@ -148,6 +150,7 @@ NUI.emit({
 | admin       | 7144480995 | Baby2020!   |        |
 | admin       | 5594215342 | Family3496  | toni   |                  |
 | admin       | 8864210047 | aitmed      | toni   |                  |
+| admind      | 8865550418 | 123         |        | chenchen         |
 | admind2     | 8860000301 |             |        |
 | admind2     | 8865509773 | 123         |        |
 | admind2     | 8866006001 | password    |        |

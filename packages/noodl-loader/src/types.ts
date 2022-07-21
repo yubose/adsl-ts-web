@@ -2,6 +2,8 @@ import type { LiteralUnion } from 'type-fest'
 import type { createFileSystem } from 'noodl-file'
 import y from 'yaml'
 import * as nt from 'noodl-types'
+import type Config from './Config'
+import type CadlEndpoint from './CadlEndpoint'
 import * as c from './constants'
 
 type OrArray<V> = V | V[]
@@ -39,11 +41,25 @@ export interface IAccumulator<V = any> {
   value: V
 }
 
-export interface ILoader<
-  DataType extends Loader.RootDataType = Loader.RootDataType,
-> {
-  root: Loader.Root<DataType>
-  options: Loader.Options<string, DataType>
+export abstract class ALoader {
+  abstract root: Record<string, any>
+  abstract load(...args: any[]): Promise<any> | any
+}
+
+export abstract class ALoaderStrategy {
+  abstract is(value: any): boolean
+  abstract load(
+    value: any,
+    options: Pick<LoaderCommonOptions, 'config' | 'root'> & Record<string, any>,
+  ):
+    | Promise<{ config: string; cadlEndpoint?: string }>
+    | { config: string; cadlEndpoint?: string }
+}
+
+export interface LoaderCommonOptions {
+  config: Config
+  cadlEndpoint: CadlEndpoint
+  root: ALoader['root']
 }
 
 export namespace Loader {
@@ -248,3 +264,10 @@ export type Hooks = {
   }): void
   [c.appPageRetrieveFailed](args: { error: Error; pageName: string }): void
 }
+
+export type YAMLNode =
+  | y.Document
+  | y.Document.Parsed
+  | y.Node
+  | y.YAMLMap
+  | y.YAMLSeq

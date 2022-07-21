@@ -17,3 +17,7 @@ export const appConfigParsed = 'PARSED_APP_CONFIG'
 export const appPageNotFound = 'APP_PAGE_DOES_NOT_EXIST'
 export const appPageRetrieved = 'RETRIEVED_APP_PAGE'
 export const appPageRetrieveFailed = 'RETRIEVE_APP_PAGE_FAILED'
+
+export const _id = {
+  strategy: Symbol.for(`noodl-loader:strategy`),
+} as const
