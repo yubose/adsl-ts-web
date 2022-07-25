@@ -106,6 +106,11 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       if (app.selfStream.getElement()) {
         app.selfStream.getElement().style.zIndex = '1000'
       }
+
+      const participantsNumber = app.meeting.room?.participants?.size
+      if(participantsNumber == 0){
+        app.register.extendVideoFunction('twilioOnPeopleShowRoom')
+      }
       log.func('onConnected')
       log.grey(`Bound local participant to selfStream`, app.selfStream)
     }

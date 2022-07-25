@@ -115,7 +115,7 @@ class createRegisters{
     }
     
     const handleRegister = async(componentObject: GlobalRegisterComponent)=>{
-      let actions = componentObject.props.actions
+      let actions = componentObject?.props?.actions
       try{
         const component = (await this.app.nui?.resolveComponents(
           componentObject,
@@ -302,7 +302,12 @@ class createRegisters{
         log.func('twilioOnPeopleJoin')
         componentObject.eventId = 'twilioOnPeopleJoin'
         await handleRegister(componentObject)
-      } 
+      },
+      async twilioOnPeopleShowRoom(componentObject: GlobalRegisterComponent){
+        log.func('twilioOnPeopleShowRoom')
+        componentObject.eventId = 'twilioOnPeopleShowRoom'
+        await handleRegister(componentObject)
+      }
     }
 
   }
@@ -385,7 +390,7 @@ class createRegisters{
       log.func('extendVideoFunction')
       const componentObject = this.app.ndom.global.register.get(onEvent)
       if (componentObject) {
-        const onEvent = componentObject.props.onEvent as any
+        // const onEvent = componentObject.props.onEvent as any
         ;(this.registrees as any)[onEvent](componentObject)
       } 
     }
