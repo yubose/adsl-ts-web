@@ -1,52 +1,6 @@
 {
-  "_id": "aitmed-noodl-web@1.0.1",
+  "_id": "web@1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
-  "bin": {
-    "nui": "./bin/cli.js"
-  },
-  "version": "1.0.28",
-  "description": "",
-  "keywords": [],
-  "license": "ISC",
-  "private": true,
-  "scripts": {
-    "clean": "rm -rf node_modules package-lock.json packages/*/node_modules packages/*/package-lock.json packages/*/dist packages/*/.cache",
-    "bootstrap": "lerna bootstrap --hoist",
-    "build": "npm run lib:build && webpack --mode=production",
-    "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
-    "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
-    "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
-    "build:deploy:test": "npm run build:test && npm run deploy:test",
-    "build:deploy:static": "npm run build:static && npm run deploy:static",
-    "build:serve": "cross-env ECOS_ENV=test NODE_ENV=production npm run serve",
-    "build:static": "cross-env NODE_ENV=production lerna exec --scope homepage npm run clean && lerna exec --scope homepage npm run build",
-    "build:stable": "cross-env NODE_ENV=production DEPLOYING=true npm run build -- --env ECOS_ENV=stable --env DEPLOYING=true --env NODE_ENV=production",
-    "build:test": "cross-env NODE_ENV=production npm run build -- --env ECOS_ENV=test --env DEPLOYING=true",
-    "fresh": "cd packages/homepage && gatsby clean && cd ../.. && lerna clean --yes && rm -rf package-lock.json node_modules && npm i -f",
-    "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
-    "deploy:stable": "bash s3Deploy.sh build",
-    "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
-    "deploy:static": "lerna exec --scope homepage npm run deploy",
-    "editor": "lerna exec --scope noodl-editor 'npm run start'",
-    "lib:build:development": "cross-env lerna run --scope noodl-ui --scope noodl-types build:development",
-    "lib:build": "cross-env lerna exec --scope noodl-ui --scope noodl-types \"npm run build\"",
-    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna exec --scope noodl-ui \"npm run start\"",
-    "___disabled_postinstall": "node scripts/postinstall",
-    "prebuild": "rm -rf dist build",
-    "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
-    "serve:static": "lerna exec --scope homepage npm run serve",
-    "start": "webpack serve --port 3000 --mode=development",
-    "start:stable": "cross-env NODE_ENV=development HMR=true ECOS_ENV=stable USE_DEV_PATHS=true npm run start",
-    "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start -- --env ECOS_ENV=test",
-    "start:static": "lerna exec --scope homepage npm start",
-    "start:docs:core": "lerna exec --scope core-docs npm start",
-    "sync": "node scripts/op sync",
-    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
-    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src",
-    "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
-    "test:nui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
-    "updatesdk": "node scripts/update.js -u sdk -d"
-  },
   "dependencies": {
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",
@@ -59,7 +13,6 @@
     "date-fns": "^2.21.2",
     "elasticsearch-browser": "^16.7.1",
     "firebase": "^8.7.0",
-    "homepage": "1.0.0",
     "html2canvas": "^1.4.1",
     "idb-keyval": "^6.0.3",
     "image-conversion": "^2.1.1",
@@ -67,6 +20,12 @@
     "localforage": "^1.10.0",
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
+    "noodl-action-chain": "^0.0.113",
+    "noodl-common": "^0.0.58",
+    "noodl-types": "^1.0.222",
+    "noodl-ui": "^0.1.133",
+    "noodl-utils": "^0.0.95",
+    "noodl-yaml": "^0.0.12",
     "qrcode": "^1.4.4",
     "signature_pad": "^3.0.0-beta.4",
     "sql.js": "^1.6.2",
@@ -74,6 +33,7 @@
     "util": "^0.12.3",
     "vercel-toast": "^1.5.3"
   },
+  "description": "",
   "devDependencies": {
     "@aitmed/cadl": "^1.0.688",
     "@aitmed/ecos-lvl2-sdk": "^1.4.198",
@@ -156,14 +116,6 @@
     "nock": "^13.1.4",
     "nodemon": "^2.0.9",
     "noodl": "^0.0.28",
-    "noodl-action-chain": "file:packages/noodl-action-chain",
-    "noodl-builder": "file:packages/noodl-builder",
-    "noodl-common": "^0.0.45",
-    "noodl-types": "file:packages/noodl-types",
-    "noodl-ui": "file:packages/noodl-ui",
-    "noodl-ui-dom": "file:packages/noodl-ui-dom",
-    "noodl-ui-test-utils": "file:packages/noodl-ui-test-utils",
-    "noodl-utils": "file:packages/noodl-utils",
     "nx": "^14.4.2",
     "parse-imports-ts": "^1.0.2",
     "path-browserify": "^1.0.1",
@@ -209,7 +161,6 @@
     "yaml": "^2.1.0"
   },
   "eslintConfig": {
-    "root": true,
     "env": {
       "es6": true,
       "mocha": true,
@@ -235,24 +186,16 @@
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
+      "ecmaFeatures": {},
       "ecmaVersion": 2021,
       "project": "./tsconfig.json",
-      "sourceType": "module",
-      "ecmaFeatures": {}
+      "sourceType": "module"
     },
     "plugins": [
       "@typescript-eslint",
       "prettier"
     ],
-    "settings": {
-      "import/resolver": {
-        "node": {
-          "moduleDirectory": [
-            "node_modules"
-          ]
-        }
-      }
-    },
+    "root": true,
     "rules": {
       "@typescript-eslint/await-thenable": "warn",
       "@typescript-eslint/ban-ts-comment": "off",
@@ -279,8 +222,8 @@
           "argsIgnorePattern": "^_"
         }
       ],
-      "@typescript-eslint/prefer-nullish-coalescing": "warn",
       "@typescript-eslint/prefer-enum-initializers": "error",
+      "@typescript-eslint/prefer-nullish-coalescing": "warn",
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/prefer-ts-expect-error": "error",
       "@typescript-eslint/promise-function-async": "warn",
@@ -294,21 +237,32 @@
       "import/no-extraneous-dependencies": "off",
       "import/no-unresolved": "off",
       "import/prefer-default-export": "off",
-      "prefer-const": "off",
-      "prettier/prettier": "error",
       "no-async-promise-executor": "off",
       "no-dupe-class-members": "off",
       "no-inner-declarations": "off",
       "no-redeclare": "off",
       "no-setter-return": "off",
       "no-undef": "off",
-      "no-unused-vars": "off",
       "no-unreachable": "off",
+      "no-unused-vars": "off",
+      "prefer-const": "off",
       "prefer-rest-params": "off",
+      "prettier/prettier": "error",
       "quotes": "off"
+    },
+    "settings": {
+      "import/resolver": {
+        "node": {
+          "moduleDirectory": [
+            "node_modules"
+          ]
+        }
+      }
     }
   },
-  "name": "aitmed-noodl-web",
+  "keywords": [],
+  "license": "ISC",
+  "name": "web",
   "prettier": {
     "arrowParens": "always",
     "endOfLine": "lf",
@@ -318,8 +272,47 @@
     "tabWidth": 2,
     "trailingComma": "all"
   },
+  "private": true,
+  "scripts": {
+    "___disabled_postinstall": "node scripts/postinstall",
+    "bootstrap": "lerna bootstrap --hoist",
+    "build": "webpack --mode=production",
+    "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
+    "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
+    "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
+    "build:deploy:static": "npm run build:static && npm run deploy:static",
+    "build:deploy:test": "npm run build:test && npm run deploy:test",
+    "build:serve": "cross-env ECOS_ENV=test NODE_ENV=production npm run serve",
+    "build:stable": "cross-env NODE_ENV=production DEPLOYING=true npm run build -- --env ECOS_ENV=stable --env DEPLOYING=true --env NODE_ENV=production",
+    "build:static": "cross-env NODE_ENV=production lerna exec --scope homepage npm run clean && lerna exec --scope homepage npm run build",
+    "build:test": "cross-env NODE_ENV=production npm run build -- --env ECOS_ENV=test --env DEPLOYING=true",
+    "clean": "rm -rf node_modules package-lock.json packages/*/node_modules packages/*/package-lock.json packages/*/dist packages/*/.cache",
+    "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
+    "deploy:stable": "bash s3Deploy.sh build",
+    "deploy:static": "lerna exec --scope homepage npm run deploy",
+    "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
+    "editor": "lerna exec --scope noodl-editor 'npm run start'",
+    "fresh": "cd packages/homepage && gatsby clean && cd ../.. && lerna clean --yes && rm -rf package-lock.json node_modules && npm i -f",
+    "lib:build": "cross-env lerna exec --scope noodl-ui --scope noodl-types \"npm run build\"",
+    "lib:build:development": "cross-env lerna run --scope noodl-ui --scope noodl-types build:development",
+    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna exec --scope noodl-ui \"npm run start\"",
+    "prebuild": "rm -rf dist build",
+    "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
+    "serve:static": "lerna exec --scope homepage npm run serve",
+    "start": "webpack serve --port 3000 --mode=development",
+    "start:docs:core": "lerna exec --scope core-docs npm start",
+    "start:stable": "cross-env NODE_ENV=development HMR=true ECOS_ENV=stable USE_DEV_PATHS=true npm run start",
+    "start:static": "lerna exec --scope homepage npm start",
+    "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start -- --env ECOS_ENV=test",
+    "sync": "node scripts/op sync",
+    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
+    "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src",
+    "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
+    "test:nui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
+    "updatesdk": "node scripts/update.js -u sdk -d"
+  },
+  "version": "1.0.29",
   "workspaces": [
-    "apps/*",
     "packages/*"
   ]
 }

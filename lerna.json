@@ -1,7 +1,6 @@
 {
   "command": {
     "bootstrap": {
-      "hoist": true,
       "ignore": ["noodl-core-docs", "noodl-pi"]
     },
     "create": {
@@ -9,36 +8,15 @@
     },
     "publish": {
       "bump": "patch",
-      "ignore": [
-        "noodl-core-docs",
-        "noodl-file",
-        "noodl-loader",
-        "noodl-pi",
-        "noodl-yaml",
-        "noodl-ui-test-utils"
-      ],
+      "ignoreChanges": ["noodl-core-docs", "noodl-pi"],
       "message": "Update"
     }
   },
-  "ignore": ["noodl-core-docs", "noodl-pi", "noodl-yaml"],
+  "ignore": ["noodl-core-docs", "noodl-pi"],
   "ignoreChanges": ["**/__tests__/**"],
-  "loglevel": "success",
-  "packages": [
-    "packages/homepage",
-    "packages/gatsby-plugin-noodl",
-    "packages/noodl-action-chain",
-    "packages/noodl-builder",
-    "packages/noodl-core",
-    "packages/noodl-loader",
-    "packages/noodl-yaml",
-    "packages/noodl-file",
-    "packages/noodl-pi",
-    "packages/noodl-types",
-    "packages/noodl-ui",
-    "packages/noodl-ui-test-utils",
-    "packages/noodl-utils"
-  ],
-  "registry": "https://registry.npmjs.org/",
+  "loglevel": "debug",
+  "packages": ["apps/static", "apps/web"],
   "useNx": true,
+  "useWorkspaces": true,
   "version": "independent"
 }

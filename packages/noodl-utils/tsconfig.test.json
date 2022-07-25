@@ -1,9 +1,0 @@
-{
-	"compilerOptions": {
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"module": "commonjs",
-		"target": "es2017"
-	},
-	"extends": "./tsconfig.json",
-	"files": ["./src/**/*.test.ts"]
-}

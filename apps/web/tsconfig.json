@@ -1,0 +1,47 @@
+{
+  "ts-node": {
+    "transpileOnly": true
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "keyofStringsOnly": true,
+    "lib": ["dom", "dom.iterable", "esnext", "WebWorker", "WebWorker.ImportScripts"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": false,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "noLib": false,
+    "outDir": "../../output/apps/web",
+    "pretty": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "es2018"
+  },
+  "include": [
+    "src",
+    "analysis/server.js"
+  ],
+  "exclude": [
+    "analysis",
+    "build",
+    "debug",
+    "docs",
+    "libs",
+    "node_modules",
+    "public"
+  ],
+  "extends": "../../tsconfig.json"
+}

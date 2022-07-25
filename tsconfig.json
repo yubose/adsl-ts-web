@@ -1,63 +1,18 @@
 {
-  "ts-node": {
-    "transpileOnly": true
-  },
-  "typedocOptions": {
-    "entryPoints": [
-      "./packages/noodl-ui/tsconfig.json",
-      "./packages/noodl-ui-dom/tsconfig.json"
-    ],
-    "name": "AiTmed NOODL",
-    "out": "./docs/"
-  },
-  "compilerOptions": {
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "declarationMap": true,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
-    "importHelpers": true,
-    "keyofStringsOnly": true,
-    "lib": ["dom", "dom.iterable", "esnext", "WebWorker", "WebWorker.ImportScripts"],
-    "module": "esnext",
-    "moduleResolution": "node",
-    "noEmitOnError": false,
-    "noImplicitAny": false,
-    "noImplicitThis": true,
-    "noLib": false,
-    "outDir": "build",
-    "paths": {},
-    "pretty": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "target": "es2017"
-  },
   "include": [
-    "packages/noodl-file/src/**/*",
-    "packages/noodl-loader/src/**/*",
-    "packages/noodl-core/src/**/*",
-    "packages/homepage/src/**/*",
-    "packages/noodl-yaml/src/**/*",
-    "packages/noodl-ui/src/**/*",
-    "packages/noodl-utils/src/**/*",
-    "packages/noodl-types/src/**/*",
-    "src/**/*"
+    "apps"
   ],
   "exclude": [
     "docs",
-    "libs",
     "node_modules",
     "build",
     "dist",
     "generated",
     "output",
     "**/*.d.ts"
+  ],
+  "references": [
+    "apps/static",
+    "apps/web"
   ]
 }
