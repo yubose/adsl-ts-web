@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import axios from 'axios'
 import y from 'yaml'
 import type { ToStringOptions } from 'yaml'
@@ -52,7 +53,14 @@ export function isNode(
 }
 
 export function merge(node: unknown, value: unknown) {
-  if (y.isMap(node)) {
+  if (node instanceof Map) {
+    if (y.isDocument(value) && y.isMap(value.contents)) {
+      value = value.contents
+    }
+    if (y.isMap(value)) {
+      value.items.forEach((pair) => node.set(pair.key, pair.value))
+    }
+  } else if (y.isMap(node)) {
     if (y.isDocument(value) && y.isMap(value.contents)) {
       value = value.contents
     }
@@ -72,6 +80,13 @@ export function merge(node: unknown, value: unknown) {
       node.value = value.value
     } else if (y.isPair(value)) {
       node.value = value.value
+    }
+  } else if (u.isObj(node)) {
+    if (y.isDocument(value) && y.isMap(value.contents)) {
+      value = value.contents
+    }
+    if (y.isMap(value)) {
+      value.items.forEach((pair) => (node[String(pair.key)] = pair.value))
     }
   }
   return node

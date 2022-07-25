@@ -134,6 +134,7 @@ const dumpMetadata = async ({
     appKey: _appKey,
     assetsUrl: _assetsUrl,
     baseUrl: _baseUrl,
+    cacheDir: _cacheDir,
     configKey: _configKey,
     configUrl: _configUrl,
     deviceType: _deviceType,
