@@ -33,7 +33,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.func('onConnectionChange')
       log.grey(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
-        app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
         const participantsNumber = app.meeting.room.participants.size
@@ -47,7 +47,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })
       } else if (event === 'participantReconnected') {
-        app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
         toast(`A participant reconnected`, { type: 'success' })
       }
     }
@@ -320,13 +320,16 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   | HTMLVideoElement
                   | HTMLAudioElement
                   | null
-
+              
                 if (is.isBooleanTrue(isBinding)) {
+                  const el = app.meeting.mainStream.getElement()
+                  el.style.width = "100%"
+                  el.style.height = "100%"
                   log.grey(
                     `${streamLabel} is set to true. ` +
                       `Proceeding to turn on ${type} streaming now...`,
                   )
-
+                  
                   if (el) {
                     log.grey(
                       `${streamLabel} element exists. Checking if it is paused...`,

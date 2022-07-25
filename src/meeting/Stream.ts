@@ -386,6 +386,14 @@ class MeetingStream {
       backdrop.style.bottom = '0px'
       backdrop.style.left = '0px'
       backdrop.style.background = '#000'
+      const img = document.createElement('img')
+      img.style.width = "50%"
+      img.style.height = "auto"
+      img.style.position = 'absolute'
+      img.style.top = '25%'
+      img.style.left = "25%"
+      img.setAttribute('src','default.png')
+      backdrop.appendChild(img)
       this.#node?.appendChild?.(backdrop)
     }
 

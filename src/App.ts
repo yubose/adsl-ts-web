@@ -855,7 +855,7 @@ class App {
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight
       ) {
-        if (this.currentPage === 'VideoChat') return
+        // if (this.currentPage === 'VideoChat') return
         this.aspectRatio = aspectRatio
         refreshWidthAndHeight()
         document.body.style.width = `${args.width}px`

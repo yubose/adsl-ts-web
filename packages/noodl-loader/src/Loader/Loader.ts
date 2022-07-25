@@ -5,17 +5,20 @@ import Extractor from '../Extractor'
 import NoodlConfig from '../Config'
 import NoodlCadlEndpoint from '../CadlEndpoint'
 import loadFile from '../utils/loadFile'
-import { fetchYml, isNode, merge, toDocument, unwrap } from '../utils/yml'
+import { isNode, merge, toDocument, unwrap } from '../utils/yml'
 import { assertNonEmpty } from '../utils/assert'
 import { isPageInArray, resolvePath } from './loaderUtils'
+import type Strategy from './Strategy'
 import * as is from '../utils/is'
 import * as t from '../types'
 
-class NoodlLoader {
+class NoodlLoader extends t.ALoader {
   #root: {
     Config: NoodlConfig | null
     Global: Record<string, t.YAMLNode>
   } & { [key: string]: any }
+
+  #strategies = [] as t.ALoaderStrategy[]
 
   config: NoodlConfig
   cadlEndpoint: NoodlCadlEndpoint
@@ -30,6 +33,7 @@ class NoodlLoader {
   }
 
   constructor() {
+    super()
     this.#root = {
       Config: new NoodlConfig(),
       Global: {} as Record<string, t.YAMLNode>,
@@ -43,89 +47,82 @@ class NoodlLoader {
     return this.#root
   }
 
-  async load(
-    value: string,
-    options?: {
-      appConfig?: boolean
-      preload?: boolean
-      pages?: boolean
-    },
-  ) {
+  async load(value: string) {
     try {
-      if (is.url(value)) {
-        let url = new URL(value)
-        let { name } = path.parse(url.href)
+      for (const strategy of this.#strategies) {
+        if (strategy.is(value)) {
+          let result = strategy.load(value, {
+            root: this.root,
+          })
 
-        if (name.endsWith('_en')) name = name.substring(0, name.length - 3)
+          if (u.isPromise(result)) result = await result
 
-        if (url.pathname.endsWith('.yml')) {
-          let { configKey, appKey } = this.config
-          let doc = await fetchYml(url.href, 'doc')
-          if (doc) {
-            if (configKey && name === configKey) {
-              this.loadRootConfig(doc)
-              if (options?.appConfig === false) return
-              // TODO - Continue with app config
-            } else if ((appKey && name === appKey) || appKey.includes(name)) {
-              this.loadAppConfig(doc)
-            } else {
-              if (is.stringInArray(this.cadlEndpoint.preload, name)) {
-                this.loadPreload(doc)
-              } else if (is.stringInArray(this.cadlEndpoint.pages, name)) {
-                this.loadPage(name, doc)
-              }
+          const { config: configYml, cadlEndpoint: cadlEndpointYml = '' } =
+            result
+
+          const config = toDocument(configYml)
+          const cadlEndpoint = toDocument(cadlEndpointYml)
+
+          for (const doc of [config, cadlEndpoint]) {
+            if (y.isMap(doc.contents)) {
+              const isRootConfig = doc === config
+              const name = (
+                isRootConfig ? this.config.configKey : this.config.appKey
+              ).replace(/_en|\.yml/i, '')
+
+              doc.contents.items.forEach((pair) => {
+                const key = unwrap(pair.key) as string
+                const value = y.isNode(pair.value)
+                  ? pair.value.toJSON()
+                  : pair.value
+
+                if (isRootConfig) {
+                  if (key === 'cadlBaseUrl') {
+                    this.config.baseUrl = value
+                  } else if (key === 'cadlMain') {
+                    this.config.appKey = value
+                  } else {
+                    this.config[key] = value
+                  }
+                } else {
+                  if (key === 'page') {
+                    this.cadlEndpoint.pages = value
+                  } else {
+                    this.cadlEndpoint[key] = value
+                  }
+                }
+              })
             }
           }
         }
-      } else if (is.file(value)) {
-        const filepath = resolvePath(value)
-        const yml = loadFile(value)
-        const doc = toDocument(yml)
-
-        const { name } = path.parse(filepath)
-
-        if (this.config.configKey === name) {
-          if (y.isMap(doc.contents)) {
-            doc.contents.items.forEach((pair) => {
-              const key = unwrap(pair.key) as string
-              const value = y.isNode(pair.value)
-                ? pair.value.toJSON()
-                : pair.value
-
-              if (key === 'cadlBaseUrl') {
-                this.config.baseUrl = value
-              } else if (key === 'cadlMain') {
-                this.config.appKey = value
-              } else {
-                this.config[key] = value
-              }
-            })
-          }
-        } else if (this.config.appKey.includes(name)) {
-          if (y.isMap(doc.contents)) {
-            doc.contents.items.forEach((pair) => {
-              const key = unwrap(pair.key) as string
-              const value = y.isNode(pair.value)
-                ? pair.value.toJSON()
-                : pair.value
-
-              if (key === 'page') {
-                this.cadlEndpoint.pages = value
-              } else {
-                this.cadlEndpoint[key] = value
-              }
-            })
-          }
-        } else if (isPageInArray(this.cadlEndpoint.preload, name)) {
-          this.loadPreload(doc)
-        } else if (isPageInArray(this.cadlEndpoint.pages, name)) {
-          this.loadPage(name, doc)
-        } else {
-          //
-        }
-      } else if (u.isStr(value)) {
-        // console.log({ value })
       }
+
+      // if (url.pathname.endsWith('.yml')) {
+      //   let { configKey, appKey } = this.config
+      //   let doc = await fetchYml(url.href, 'doc')
+      //   if (doc) {
+      //     if (configKey && name === configKey) {
+      //       this.loadRootConfig(doc)
+      //       if (options?.appConfig === false) return
+      //       // TODO - Continue with app config
+      //     } else if ((appKey && name === appKey) || appKey.includes(name)) {
+      //       this.loadAppConfig(doc)
+      //     } else {
+      //       if (is.stringInArray(this.cadlEndpoint.preload, name)) {
+      //         this.loadPreload(doc)
+      //       } else if (is.stringInArray(this.cadlEndpoint.pages, name)) {
+      //         this.loadPage(name, doc)
+      //       }
+      //     }
+      //   }
+      // }
+
+      // if (isPageInArray(this.cadlEndpoint.preload, name)) {
+      //   this.loadPreload(doc)
+      // } else if (isPageInArray(this.cadlEndpoint.pages, name)) {
+      //   this.loadPage(name, doc)
+      // } else {
+      //   //
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       throw err
@@ -228,6 +225,13 @@ class NoodlLoader {
       this.#root[name] = page
     } else if (isNode(name)) {
       this.#root[name] = page
+    }
+    return this
+  }
+
+  use(value: Strategy) {
+    if (is.strategy(value)) {
+      this.#strategies.push(value)
     }
     return this
   }
