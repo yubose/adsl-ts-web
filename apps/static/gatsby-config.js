@@ -79,7 +79,9 @@ module.exports = {
       resolve: 'gatsby-transformer-sharp',
     },
     {
-      resolve: `gatsby-plugin-noodl`,
+      resolve: require.resolve(
+        '../../../aitmed-noodl-lib/packages/gatsby-plugin-noodl',
+      ),
       options: {
         // Defaults to "aitmed"
         config: configKey,
@@ -108,7 +110,7 @@ module.exports = {
           // Ensures the assets will be correctly located
           src: `${__dirname}/src`,
           // Path to the template used to render noodl pages
-          template: `./src/templates/page.tsx`,
+          template: require.resolve(`./src/templates/page.tsx`),
         },
         // Defaults to { width: 1024, height: 768 }
         viewport,

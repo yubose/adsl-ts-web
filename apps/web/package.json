@@ -108,7 +108,6 @@
     "mutation-observer": "^1.0.3",
     "nock": "^13.1.4",
     "nodemon": "^2.0.9",
-    "noodl": "^0.0.28",
     "nx": "^14.4.2",
     "parse-imports-ts": "^1.0.2",
     "path-browserify": "^1.0.1",

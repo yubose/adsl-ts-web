@@ -42,8 +42,6 @@ const paths = {
   generated: getFilePath('../../generated'),
 }
 
-console.log(paths)
-
 /**
  * @type { Record<'name' | 'title' | 'description' | 'favicon' | 'keywords' | 'injectScripts', any> }
  */
