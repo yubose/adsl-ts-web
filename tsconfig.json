@@ -10,9 +10,5 @@
     "generated",
     "output",
     "**/*.d.ts"
-  ],
-  "references": [
-    "apps/static",
-    "apps/web"
   ]
 }

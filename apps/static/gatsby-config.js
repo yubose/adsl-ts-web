@@ -36,6 +36,8 @@ for (const titleOrDescOrName of [siteName, siteTitle, siteDescription]) {
  * @type { import('gatsby').GatsbyConfig }
  */
 module.exports = {
+  jsxRuntime: 'automatic',
+  jsxImportSource: '@emotion/react',
   siteMetadata: {
     siteName,
     siteTitle,
@@ -79,8 +81,6 @@ module.exports = {
     {
       resolve: `gatsby-plugin-noodl`,
       options: {
-        // Defaults to "remote"
-        buildSource,
         // Defaults to "aitmed"
         config: configKey,
         // Defaults to current directory
@@ -88,7 +88,7 @@ module.exports = {
         // Used to grab the version in the config object (defaults to "web")
         deviceType: 'web',
         // Defaults to "info"
-        loglevel: 'INFO',
+        loglevel: 'debug',
         // If introspection is true, it will dump all of the TRANSFORMED noodl
         // pages in json to the output path specified below as
         //  "<outputPath>/<config>.introspection.json"
@@ -108,7 +108,7 @@ module.exports = {
           // Ensures the assets will be correctly located
           src: `${__dirname}/src`,
           // Path to the template used to render noodl pages
-          template: path.resolve(`src/templates/page.tsx`),
+          template: `./src/templates/page.tsx`,
         },
         // Defaults to { width: 1024, height: 768 }
         viewport,

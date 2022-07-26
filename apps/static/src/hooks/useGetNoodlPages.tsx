@@ -11,7 +11,7 @@ function useGetNoodlPages() {
     }
   }>(
     graphql`
-      {
+      query AllNoodPageQuery {
         allNoodlPage {
           nodes {
             name

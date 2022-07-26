@@ -19,3 +19,7 @@ exports.onCreateWebpackConfig = ({ actions, stage }) => {
     })
   }
 }
+
+exports.onPostBuild = ({ reporter }) => {
+  reporter.info(`Your AiTmed static web application has been built`)
+}

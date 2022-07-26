@@ -71,20 +71,25 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
 
   log(webpackConfig)
 
+  /** @type { ws.WebSocket } */
+  let socket
+
   /** @type chokidar.FSWatcher */
   let watcher
 
   /** @type ws.Server */
   let wss
+
   /** @type { ReturnType<typeof createWss> } */
   let wssApi
-
-  /** @type { ws.WebSocket } */
-  let socket
 
   const appDir = path.join(basedir, 'app') // "./analysis/app"
   const testDir = path.join(basedir, configKey) // "./analysis/<configKey>"
   const watchGlobs = [path.join(basedir, '**/*')]
+
+  console.log(`App directory: ${appDir}`)
+  console.log(`Test directory: ${testDir}`)
+  console.log(`Watch globs: ${watchGlobs.join(', ')}`)
 
   {
     const pathToAnalysisDashboardFile = path.join(appDir, 'Dashboard_en.yml')

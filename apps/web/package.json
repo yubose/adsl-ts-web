@@ -83,21 +83,14 @@
     "del": "^4.1.1",
     "docusaurus": "^1.14.7",
     "dotenv": "^10.0.0",
-    "esbuild": "^0.13.12",
     "esbuild-loader": "^2.13.1",
-    "eslint": "^8.12.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-prettier": "^4.0.0",
     "espree": "^9.3.2",
     "execa": "^5.1.1",
     "express": "^4.17.1",
-    "fast-glob": "^3.2.11",
     "file-loader": "^6.2.0",
-    "fs-extra": "^10.0.0",
     "globby": "^11.0.2",
     "html-webpack-harddisk-plugin": "^2.0.0",
-    "html-webpack-plugin": "^5.3.1",
+    "html-webpack-plugin": "^5.5.0",
     "http-browserify": "^1.7.0",
     "https-browserify": "^1.0.0",
     "idb": "^7.0.1",
@@ -119,7 +112,6 @@
     "nx": "^14.4.2",
     "parse-imports-ts": "^1.0.2",
     "path-browserify": "^1.0.1",
-    "prettier": "^2.6.1",
     "pretty-bytes": "^5.6.0",
     "process": "^0.11.10",
     "rollup": "^2.59.0",
@@ -195,7 +187,6 @@
       "@typescript-eslint",
       "prettier"
     ],
-    "root": true,
     "rules": {
       "@typescript-eslint/await-thenable": "warn",
       "@typescript-eslint/ban-ts-comment": "off",
@@ -276,7 +267,7 @@
   "scripts": {
     "___disabled_postinstall": "node scripts/postinstall",
     "bootstrap": "lerna bootstrap --hoist",
-    "build": "webpack --mode=production",
+    "build": "cross-env ECOS_ENV=stable NODE_ENV=production webpack --mode=production",
     "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
     "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
     "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
@@ -311,8 +302,5 @@
     "test:nui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
-  "version": "1.0.29",
-  "workspaces": [
-    "packages/*"
-  ]
+  "version": "1.0.29"
 }

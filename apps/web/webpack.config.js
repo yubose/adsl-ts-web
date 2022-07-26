@@ -14,7 +14,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
-const InjectScriptsPlugin = require('../../scripts/InjectScriptsPlugin')
+const InjectScriptsPlugin = require('./InjectScriptsPlugin')
 
 const serializeErr = (err) => ({
   name: err.name,
@@ -34,7 +34,7 @@ const paths = {
     app: getFilePath('./analysis/app'),
   },
   debug: getFilePath('./debug'),
-  build: getFilePath('../../output/apps/web/build'),
+  build: getFilePath('../../output/apps/web'),
   public: getFilePath('public'),
   pkg: {
     current: getFilePath('./package.json'),
@@ -70,7 +70,9 @@ function getWebpackConfig(env) {
   let outputFileName = ''
   let buildVersion = ''
 
-  if (fs.existsSync(paths.build)) del.sync(path.join(paths.build, '**/*'))
+  if (fs.existsSync(paths.build)) {
+    del.sync(path.join(paths.build, '**/*'), { force: true, overwrite: true })
+  }
 
   outputFileName =
     mode === 'production' ? `[name].[contenthash].js` : '[name].js'
@@ -93,6 +95,7 @@ function getWebpackConfig(env) {
   const environmentPluginOptions = {}
 
   if (env.APP || env.DEBUG) {
+    // TODO - env.APP is broken. Pass in env.DEBUG instead
     if (env.APP) {
       environmentPluginOptions.ANALYSIS_APP = env.APP
       devServerOptions.static.push(paths.analysis.base)
@@ -102,14 +105,14 @@ function getWebpackConfig(env) {
          * @param { import('webpack-dev-server/types/lib/Server') } devServer
          */
         function onAfterSetupMiddleware(devServer) {
-          require('./analysis/server')
+          const analysis = require('./analysis/server.js')
             .createAnalysisModule(paths.analysis.base, devServer, {
               env,
               webpackConfig: webpackOptions,
             })
             .registerRoutes()
-            .watch()
-            .listen()
+          analysis.watch()
+          analysis.listen()
         },
       )
     } else {
@@ -173,26 +176,18 @@ function getWebpackConfig(env) {
           'Origin, X-Requested-With, Content-Type, Accept, Authorization',
       },
       port: 3000,
-      ...devServerOptions,
+      ...u.omit(devServerOptions, ['onAfterSetupMiddleware']),
       /**
-       * @param { import('webpack-dev-server/types/lib/Server') } devServer
+       * @type { import('webpack-dev-server')['setupMiddlewares'] }
        */
-      onAfterSetupMiddleware: async function (devServer) {
+      setupMiddlewares(middlewares, devServer) {
         if (devServer) {
           devServer.app.get('/routes', (req, res) => {
             res.status(200).json({ ...devServer.app._router })
           })
-          await Promise.all(
-            devServerOptions.onAfterSetupMiddleware.map((fn) => {
-              return new Promise(async (resolve) => {
-                if (!fn) resolve()
-                const promise = fn(devServer)
-                if (u.isPromise(promise)) await promise
-                resolve(promise)
-              })
-            }),
-          )
+          devServerOptions.onAfterSetupMiddleware.forEach((fn) => fn(devServer))
         }
+        return middlewares
       },
     },
     devtool: false,
@@ -221,7 +216,7 @@ function getWebpackConfig(env) {
       alias: { fs: getFilePath('../../node_modules/fs-extra') },
       cache: true,
       extensions: ['.ts', '.js'],
-      modules: ['node_modules', '../../node_modules'],
+      modules: ['node_modules'],
       fallback: {
         assert: false,
         buffer: false,
@@ -232,11 +227,12 @@ function getWebpackConfig(env) {
         path: require.resolve('path-browserify'),
         process: require.resolve('process/browser'),
         stream: require.resolve('stream-browserify'),
+        util: false,
       },
     },
     plugins: [
       new WorkboxPlugin.InjectManifest({
-        swSrc: getFilePath('./src/firebase-messaging-sw.ts'),
+        swSrc: './src/firebase-messaging-sw.ts',
         swDest: 'firebase-messaging-sw.js',
         maximumFileSizeToCacheInBytes: 500000000,
         mode: 'production',
@@ -331,7 +327,7 @@ function getWebpackConfig(env) {
         ],
       }),
       new webpack.ProgressPlugin({
-        handler: webpackProgress,
+        // handler: webpackProgress,
       }),
       ...((settings.injectScripts && [
         new InjectScriptsPlugin({ path: settings.injectScripts }),
@@ -445,3 +441,18 @@ module.exports.settings = settings
 // }
 
 // return [webpackOptions, workerConfig]
+
+process
+  .on('exit', (exitCode) => {
+    log(`Process exited with code ${u.yellow(exitCode)}`)
+  })
+  .on('uncaughtException', (err, origin) => {
+    log(
+      `Uncaught exception ${u.yellow(serializeErr(err))} - Origin: ${u.yellow(
+        origin,
+      )}`,
+    )
+  })
+  .on('unhandledRejection', (reason) => {
+    log(`Reason ${u.yellow(reason)}`)
+  })
