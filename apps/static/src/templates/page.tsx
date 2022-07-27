@@ -14,7 +14,6 @@ function NoodlPageTemplate(props: NoodlPageTemplateProps) {
 
   React.useEffect(() => {
     console.log(props)
-    console.log('Mounted')
   }, [])
 
   return <>{page.components.map(page.render)}</>

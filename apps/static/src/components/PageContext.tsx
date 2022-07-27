@@ -17,7 +17,7 @@ function PageContext({
 }: React.PropsWithChildren<
   Pick<
     t.PageContext,
-    'assetsUrl' | 'baseUrl' | 'lists' | 'name' | 'components' | 'refs' | 'slug'
+    'assetsUrl' | 'baseUrl' | 'components' | 'lists' | 'name' | 'refs' | 'slug'
   >
 >) {
   const {

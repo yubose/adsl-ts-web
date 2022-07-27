@@ -1,10 +1,5 @@
 const u = require('@jsmanifest/utils')
-const path = require('path')
 
-//const pathPrefix = `static/web/latest` // if deployed not to root directory
-const pathPrefix = `` // deployed to root directory
-// If buildSource is "local" it will build using files locally (using "path" configured above). If buildSource is "remote" it will build files remotely using the "config" key as the endpoint. Defaults to "remote"
-const buildSource = process.env.BUILD_SOURCE || 'remote'
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
 const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'www'
 const viewport = process.env.MOBILE
@@ -79,9 +74,10 @@ module.exports = {
       resolve: 'gatsby-transformer-sharp',
     },
     {
-      resolve: require.resolve(
-        '../../../aitmed-noodl-lib/packages/gatsby-plugin-noodl',
-      ),
+      resolve: 'gatsby-plugin-noodl',
+      // resolve: require.resolve(
+      //   '../../../aitmed-noodl-lib/packages/gatsby-plugin-noodl',
+      // ),
       options: {
         // Defaults to "aitmed"
         config: configKey,

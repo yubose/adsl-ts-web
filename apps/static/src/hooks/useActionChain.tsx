@@ -120,7 +120,7 @@ function useActionChain() {
             inline: 'center',
           })
         } else {
-          navigate(`/${value}`)
+          await navigate(`/${value}/index.html`)
         }
       } else {
         window.location.href = value
@@ -398,7 +398,7 @@ function useActionChain() {
    */
   const wrapWithHelpers = React.useMemo(
     () => (fn: (args: ExecuteArgs, helpers: ExecuteHelpers) => Promise<any>) => {
-      return function (args: ExecuteArgs) {
+      return async function (args: ExecuteArgs) {
         return fn(args, {
           requiresDynamicHandling: (obj: any) => {
             return (

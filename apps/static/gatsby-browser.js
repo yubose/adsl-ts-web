@@ -7,18 +7,18 @@ export function onClientEntry() {
   console.log(`[onClientEntry]`)
 }
 
-export function registerServiceWorker({
-  getResourceURLsForPathname,
-  loadPage,
-  loadPageSync,
-}) {
-  if (typeof window === 'undefined') return
-  console.log('[registerServiceWorker]', {
-    urlResourcesForCurrentPathname: getResourceURLsForPathname(
-      window.location?.pathname || '',
-    ),
-  })
-}
+// export function registerServiceWorker({
+//   getResourceURLsForPathname,
+//   loadPage,
+//   loadPageSync,
+// }) {
+//   if (typeof window === 'undefined') return
+//   console.log('[registerServiceWorker]', {
+//     urlResourcesForCurrentPathname: getResourceURLsForPathname(
+//       window.location?.pathname || '',
+//     ),
+//   })
+// }
 
 /**
  * @param { import('gatsby').RouteUpdateArgs } param0
