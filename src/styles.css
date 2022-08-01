@@ -78,7 +78,9 @@ input,
 select {
   flex-grow: 1;
 }
-
+input,textarea{
+  font-size: 14px;
+}
 iframe.ecosdoc {
   /* width: 100%;
   height: 100%;
