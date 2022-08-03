@@ -1,3 +1,11 @@
+require('jsdom-global')('', {
+  resources: 'usable',
+  runScripts: 'dangerously',
+  url: `https://127.0.0.1:3001`,
+  beforeParse: (win) => {
+    global.EventTarget = win.EventTarget
+  },
+})
 const u = require('@jsmanifest/utils')
 
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
@@ -74,10 +82,10 @@ module.exports = {
       resolve: 'gatsby-transformer-sharp',
     },
     {
-      resolve: 'gatsby-plugin-noodl',
-      // resolve: require.resolve(
-      //   '../../../aitmed-noodl-lib/packages/gatsby-plugin-noodl',
-      // ),
+      // resolve: 'gatsby-plugin-noodl',
+      resolve: require.resolve(
+        '../../../aitmed-noodl-lib/packages/gatsby-plugin-noodl',
+      ),
       options: {
         // Defaults to "aitmed"
         config: configKey,

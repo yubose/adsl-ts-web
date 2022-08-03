@@ -1,0 +1,93 @@
+HomePage:
+  formData:
+    show:
+      - img: circleLight.png
+        number: '1'
+      - img: ellipseBlack.png
+        number: '2'
+      - img: ellipseBlack.png
+        number: '3'
+  components:
+    - type: list
+      viewTag: imageUpdate
+      contentType: listObject
+      listObject: ..formData.show
+      iteratorVar: itemObject
+      style:
+        width: 'calc(250.17/1920*100vw)'
+        height: calc(93.69/1920*100vw)
+        axis: horizontal
+        justifyContent: space-evenly
+        alignItems: center
+      children:
+        - type: listItem
+          itemObject: ''
+          onClick:
+            - emit:
+                dataKey:
+                  var: itemObject
+                actions:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: $var.number
+                            string2: '1'
+                      - ..formData.show@: =..HomeList.First
+                      - continue
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: $var.number
+                            string2: '2'
+                      - ..formData.show@: =..HomeList.Second
+                      - continue
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: $var.number
+                            string2: '3'
+                      - ..formData.show@: =..HomeList.Third
+                      - continue
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: '1'
+                            string2: $var.number
+                      - ..imgData@: =..imgDataCopy
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: '2'
+                            string2: $var.number
+                      - ..imgData@: =..imgDataNext
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: '3'
+                            string2: $var.number
+                      - ..imgData@: =..imgDataSecond
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: imageUpdate
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: imagePaths
+          style:
+            width: calc(14.05/1920*100vw)
+            height: calc(14.05/1920*100vw)
+            display: flex
+            justifyContent: center
+            alignItems: center
+          children:
+            - type: image
+              path:
+                emit:
+                  dataKey:
+                    var: itemObject
+                  actions:
+                    - if:
+                        - true
+                        - $var.img
+                        - $var.img
+              style:
+                height: calc(14.05/1920*100vw)
