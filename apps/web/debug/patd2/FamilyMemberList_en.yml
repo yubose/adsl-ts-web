@@ -1,0 +1,253 @@
+FamilyMemberList:
+  title: "My Family Members"
+  init:
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: "" 
+    - .SignInCheck
+    - .Global.createjwt.edge.bvid@: =.Global.loginUser.vertex.id
+    - =.Global.createjwt.edgeAPI.store: ""  
+    - =.builtIn.utils.setTimer:
+        dataIn:
+          timeUnix: 1000  
+    - ..listData.get
+  listData:
+    family:
+      vertex: ""
+    vertex: 
+      ObjType: "4"
+      id: =.Global.loginUser.vertex.id
+      xfname: "E.bvid"
+      sCondition: "E.type in (1100,1200) AND V.type=10"
+      maxcount : "100"
+      obfname : "ctime"
+      _nonce: =.Global._nonce
+    get:
+      api: rv
+      dataOut: listData.family
+      dataIn: listData.vertex    
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+                - =.Global.createjwt.edgeAPI.store: ""                                                                                                                           
+            - actionType: builtIn
+              funcName: goBack
+              reload: true  
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: addContacts.svg
+          style:
+            height: "0.025"
+          onClick:
+            - actionType: evalObject
+              object:      
+                - .Global.familyNotebookID@: =.Global.loginUser.vertex.deat.rnb64ID        
+            - goto: AddFamilyMember 
+    - type: list
+      contentType: listObject
+      listObject: ..listData.family.vertex #..formData.connectionList
+      iteratorVar: itemObject
+      style:
+        width: '1'
+        margin: '0'
+        height: auto
+      children:
+        - type: listItem
+          itemObject: 
+          onClick:
+            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+              dataKey: Global.profile
+              dataObject: itemObject
+            - actionType: evalObject
+              object:
+                - .Global.familyNotebookID@: =.Global.profile.deat.rnb64ID                                                         
+            - goto: FamilyMemberInfo 
+          style:
+            width: '1'
+            height: 'auto'
+            marginTop: '0.01'
+            border:
+              style: 2
+            borderWidth: "1"
+            borderColor: "#ededed"
+            paddingBottom: "0.01"
+          children:
+          - type: view
+            style:
+              width: '1'
+              height: 'auto'
+            children:
+              - type: image
+                path: ava.png
+                path=func: =.builtIn.utils.prepareDocToPath
+                dataKey: itemObject.name.avatar
+                style:
+                  marginLeft: "0.04"
+                  height: "0.059"
+                  width: "0.118"
+                  display: "inline-block"
+                  verticalAlign: middle 
+              - type: label
+                dataKey: itemObject.name.userName
+                style:
+                  marginLeft: "0.032"
+                  display: "inline-block"
+                  width: "0.6"
+                  height: "0.022"
+                  verticalAlign: middle 
+              - type: image
+                path: blueRight.png
+                style:
+                  marginLeft: "0.12"
+                  height: "0.025"
+                  width: "0.05"
+                  display: "inline-block"
+                  verticalAlign: middle 
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+    #         - =.Global.createjwt.edgeAPI.store: ""                                                                                                                           
+    #     - actionType: builtIn
+    #       funcName: goBack
+    #       reload: true  
+    #   style:
+    #     backgroundColor: "#2887e5"
+    # - type: image
+    #   path: addContacts.svg
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:      
+    #         - .Global.familyNotebookID@: =.Global.loginUser.vertex.deat.rnb64ID        
+    #     - goto: AddFamilyMember
+    #   style:
+    #     top: "0.033"
+    #     left: "0.84"
+    #     width: "0.09"
+    #     zIndex: 100
+    # - type: view
+    #   style:
+    #     # top: "0.1"
+    #     width: "1"
+    #     height: "0.8"
+    #     # backgroundColor: "0x2988e6"
+    #   children:
+    #     # - type: view
+    #     #   style:
+    #     #     height: "auto"
+    #     #     width: "1"
+    #     #   children:
+    #     #     - .SearchField:
+    #     #       placeholder: "Search"
+    #     #       style:
+    #     #         left: "0.04"
+    #     #         marginTop: "0.01"
+    #     #         backgroundColor: "0xffffff"
+    #     #         textAlign:
+    #     #           x: center
+    #     #           y: center 
+    #     #     - type: image
+    #     #       path: search.svg
+    #     #       style:
+    #     #         top: "0.02"
+    #     #         left: "0.35"
+    #     #         height: "0.03"
+    #     - type: view
+    #       style:
+    #         left: "0"
+    #         marginTop: "0.01"
+    #         width: "1"
+    #         height: auto
+    #         backgroundColor: "#ffffff"
+    #       children:
+    #         - type: list
+    #           contentType: listObject
+    #           listObject: ..listData.family.vertex #..formData.connectionList
+    #           iteratorVar: itemObject
+    #           style:
+    #             left: "0"
+    #             width: "1"
+    #             height: "0.8"
+    #             margin: "0"
+    #             overflow: scroll
+    #             backgroundColor: "#ffffff"
+    #           children:
+    #             - type: listItem
+    #               itemObject: ""
+    #               style:
+    #                 left: "0"
+    #                 width: "0.94"
+    #                 height: "0.09"
+    #                 # border:
+    #                 #   style: "2"
+    #                 # borderWidth: "0.6"
+    #                 # borderColor: "#2887e5"                            
+    #               children:
+    #                 - type: image
+    #                   path: ava.png
+    #                   path=func: =.builtIn.utils.prepareDocToPath
+    #                   # dataKey: Global.Profile.name.data.avatar
+    #                   dataKey: itemObject.name.avatar
+    #                   style:
+    #                     left: "0.1"
+    #                     top: "0.022"
+    #                     height: "0.045"
+    #                     width: "0.1"
+    #                     color: "0xffffff"
+    #                     lineHeight: "40px"
+    #                     fontSize: .Nfont.h3
+    #                     textAlign:
+    #                       x: center
+    #                       y: center
+    #                     zIndex: 100
+    #                 - type: label
+    #                   dataKey: itemObject.name.userName
+    #                   onClick:
+    #                     - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+    #                       dataKey: Global.profile
+    #                       dataObject: itemObject
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - .Global.familyNotebookID@: =.Global.profile.deat.rnb64ID                                                         
+    #                     - goto: FamilyMemberInfo 
+    #                   style:
+    #                     left: "0.27"
+    #                     top: "0"
+    #                     width: "0.4"
+    #                     height: '0.09'
+    #                     fontWidth: "100"
+    #                     fontSize: .Nfont.h2  
+    #                     color: "#4b4b4b"
+    #                     zIndex: 100
+    #                     textAlign: 
+    #                       y: center
+    #                 - type: image
+    #                   path: blueRight.png
+    #                   style:
+    #                     left: "0.8"
+    #                     top: "0.03"
+    #                     height: "0.03"
+    #                     width: "0.1"
+    #                     color: "0xffffff"
+    #                     lineHeight: "40px"
+    #                     fontSize: .Nfont.h3
+    #                     textAlign:
+    #                       x: center
+    #                       y: center
+    #                     zIndex: 100
+    #                   onClick:
+    #                     - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+    #                       dataKey: Global.profile
+    #                       dataObject: itemObject
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - .Global.familyNotebookID@: =.Global.profile.deat.rnb64ID                                                          
+    #                     - goto: FamilyMemberInfo                               

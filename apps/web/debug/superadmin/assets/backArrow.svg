@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="15.811" height="13.811" viewBox="0 0 15.811 13.811">
+  <g id="arrow" transform="translate(1.061 0.75)">
+    <path id="路径" d="M2.5,0h7a4.5,4.5,0,0,1,0,9h-7A20.554,20.554,0,0,1,.159,8.874" fill="none" stroke="#005795" stroke-linecap="round" stroke-width="1.5" fill-rule="evenodd"/>
+    <line id="直线备份-2" x1="3" y2="3" transform="translate(0 6)" fill="none" stroke="#005795" stroke-linecap="round" stroke-width="1.5"/>
+    <line id="直线备份-3" x1="3" y1="3" transform="translate(0 9)" fill="none" stroke="#005795" stroke-linecap="round" stroke-width="1.5"/>
+  </g>
+</svg>

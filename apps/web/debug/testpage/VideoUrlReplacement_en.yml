@@ -1,0 +1,296 @@
+VideoUrlReplacement:
+  init:
+    - =..apiRequest.vendor.docAPI.get: ''
+    - =.builtIn.array.selectOneToArr:
+        dataIn:
+          arr: =..apiRequest.vendor.docResp.doc
+          key: 'name.data.name'
+        dataOut: VideoUrlReplacement.formData.vendorList
+    - =.builtIn.array.selectOneToArr:
+        dataIn:
+          arr: =..apiRequest.vendor.docResp.doc
+          key: 'name.data.name'
+        dataOut: VideoUrlReplacement.formData.noSelectVendorList
+    - =.builtIn.array.push:
+        dataIn:
+          messages: =..formData.vendorList
+          newMessage: 'Select'
+        dataOut: VideoUrlReplacement.formData.vendorList
+  apiRequest:
+    video:
+      storeResp: ''
+      document:
+        eid: .Global.rootNotebookID
+        reid: ''
+        .Document: ''
+        subtype:
+          isEncrypted: '0'
+          isOnServer: '0'
+        type: .DocType.ProductVideo
+        name:
+          title: ''
+          type: ..apiRequest.video.docAPI.store.subtype.mediaType
+          data: binFile
+        deat:
+          sig: ''
+          url: ''
+      deleteReq:
+        id: ''
+      docAPI:
+        store:
+          api: cd
+          dataIn: VideoUrlReplacement.apiRequest.video.document
+          dataOut: VideoUrlReplacement.apiRequest.video.storeResp
+          subtype:
+            mediaType: 'video/mp4'
+        delete:
+          api: dx
+          dataIn: VideoUrlReplacement.apiRequest.video.deleteReq
+    vendor:
+      docReq:
+        id: .Global.rootNotebookID
+        xfname: eid
+        _nonce: =.Global._nonce
+        type: .DocType.Vendor
+        obfname: 'ctime'
+      docResp: ''
+      docStoreResp: ''
+      docStoreReq:
+        eid: .Global.rootNotebookID
+        type: .DocType.Vendor
+        name:
+          title: ''
+          data:
+            name: ''
+            contact: ''
+            phone: ''
+            extension: ''
+            docAPI:
+      docAPI:
+        store:
+          api: cd
+          dataIn: VideoUrlReplacement.apiRequest.vendor.docStoreReq
+          dataOut: VideoUrlReplacement.apiRequest.vendor.docStoreResp
+        get:
+          api: rd
+          dataIn: VideoUrlReplacement.apiRequest.vendor.docReq
+          dataOut: VideoUrlReplacement.apiRequest.vendor.docResp
+  formData:
+    controls: true
+    videoId: ''
+    controlVideo: none
+    address: []
+    isShowCoverImg: true
+    isShowVideoImg: true
+    isShowFirstImg: true
+    isShowSecondImg: true
+    isShowThirdImg: true
+    isShowFourImg: true
+    isShowFiveImg: true
+    isShowSixImg: true
+    coverImgDoc: []
+    videoDoc: []
+    videoImgDoc: []
+    detailImgDoc: []
+    imgId: ''
+    detailImgIds:
+      {
+        firstId: '',
+        secondId: '',
+        thirdId: '',
+        fourId: '',
+        fiveId: '',
+        sixId: '',
+      }
+    optionValueTmp: { value: '', color: '0x333333', borderStyle: 'none' }
+    maxMinObj: {}
+    vendorList: []
+    noSelectVendorList: []
+    perComArr: []
+    isEditOptionBtn: ''
+    isShowOptionsList: none
+    currentOption: { styleName: '', styleValue: [] }
+    # currentOptionValue: ""
+    isHiddenEdit: true
+    isDisplayShip: 'none'
+    isDisplayLocation: 'none'
+    confirmBtnColor: '#c1c1c1'
+    addVendorBtnColor: '#c1c1c1'
+    selectStatus:
+      isChargeTax: false
+      isContinueSell: false
+      isSameLocation: true
+      isPhysicalProduct: false
+      otherOptions: false
+  components:
+    - type: view
+      style:
+        display: flex
+        justifyContent: center
+        marginTop: '0.002'
+        left: '0.2'
+        width: '1'
+      children:
+        - type: view
+          style:
+            width: '0.081'
+            ..style.imageView:
+          children:
+            - type: video
+              viewTag: videoTag
+              # path: uploadCloud.svg
+              path=func: .builtIn.utils.prepareDocToPath
+              dataKey: apiRequest.video.storeResp.doc.id
+              # path: apiRequest.video.storeResp.doc.deat.url
+              # poster: backgroundBlack.png
+              controls: false
+              autoplay: true
+              style:
+                width: '0.081'
+                height: '0.112'
+                display: block
+            - type: view
+              style:
+                display: flex
+                justifyContent: center
+                height: '0.025'
+              children:
+                - type: view
+                  style:
+                    width: '0.018'
+                    ..style.flexStyle:
+                  children:
+                    - type: image
+                      path: upLoadImg.svg
+                      onClick:
+                        - actionType: openPhotoLibrary
+                          dataObject: BLOB
+                          # shearState: true
+                          dataKey: VideoUrlReplacement.apiRequest.video.document.name.data
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.video.deleteReq.id@: =..formData.videoId
+                            - =..apiRequest.video.docAPI.delete: ''
+                            - ..formData.videoId@: ''
+                            - =..apiRequest.video.docAPI.store: ''
+                            - ..formData.videoId@: =..apiRequest.video.storeResp.doc.id
+                            - ..formData.controls@: false
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoTag
+                      style:
+                        left: '0.00005'
+                        width: '0.1'
+                - type: view
+                  style:
+                    width: '0.02'
+                    ..style.flexStyle:
+                  children:
+                    - type: image
+                      path: video.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..formData.controlVideo@: block
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoTag
+                      style:
+                        left: '0.1'
+                        width: '0.1'
+                - type: view
+                  style:
+                    width: '0.02'
+                    ..style.flexStyle:
+                  children:
+                    - type: image
+                      path: redTrash.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.video.deleteReq.id@: =..formData.videoId
+                            - =..apiRequest.video.docAPI.delete: ''
+
+                            - ..apiRequest.video.storeResp.doc.id@: ''
+
+                            - if:
+                                - =..apiRequest.videoCover.storeResp.doc.id
+                                - ..apiRequest.videoCover.deleteReq.id@: =..apiRequest.videoCover.storeResp.doc.id
+                                - continue
+                            - =..apiRequest.videoCover.docAPI.delete: ''
+                            - ..apiRequest.videoCover.storeResp.doc.id: ''
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoCoverTag
+                      style:
+                        left: '0.2'
+                        width: '0.1'
+        - type: view
+          viewTag: videoViewTag
+          style:
+            left: '0'
+            width: '1'
+            top: '0'
+            height: '1'
+            zIndex: '10'
+            backgroundColor: '0x00000033'
+            display: ..formData.controlVideo
+          children:
+            - type: view
+              style:
+                left: '0.37'
+                width: '0.4'
+                height: '0.52'
+                top: '0.248'
+                borderRadius: '5px'
+                backgroundColor: '0x000000'
+              children:
+                - type: view
+                  style:
+                    left: '0.34'
+                    height: '0.05'
+                    marginTop: '0'
+                    width: '0.07'
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: closeWhite.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..formData.controlVideo@: none
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: videoViewTag
+                      style:
+                        width: '0.01'
+                - type: view
+                  style:
+                    width: '0.334'
+                    marginTop: '0'
+                    height: '0.365'
+                    textAlign:
+                      x: center
+                  children:
+                    - type: video
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: apiRequest.video.storeResp.doc.id
+                      controls: true
+                      autoplay: true
+                      style:
+                        width: '0.4'
+                        height: '0.42'

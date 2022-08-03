@@ -1,0 +1,972 @@
+StatementsView:
+  title:  StatementsView
+  pageNumber: 
+  init: #Page initialization
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    - ..formData.todayDate@: =.BaseDate.calendarDate.selectDate
+    - =.builtIn.string.concat:
+        dataIn:
+          - "D.ctime>"
+          - =.Global.formData.stateStart.stamp.start
+          - " AND "
+          - "D.ctime<"
+          - =.Global.formData.stateEnd.stamp.end
+          - " AND "
+          - "E.type=1113 AND D.type in (2001,2002)"
+        dataOut: StatementsView.apiRequest.hasPaidProfile.getDocReq.sCondition
+    - =..apiRequest.hasPaidProfile.docAPI.get: ""
+    - ..formData.transactionList@: =..apiRequest.hasPaidProfile.getDocResp.doc
+    - if: 
+      - =..formData.transactionList.0
+      - actionType: evalObject
+        object:
+          - =.builtIn.object.extract:
+              dataIn:
+                array: =..formData.transactionList
+                field: name.data.orderInfo.amount
+              dataOut: StatementsView.formData.totalAmountArr
+          - =.builtIn.math.cumulative: 
+              dataIn: 
+                numArr: =..formData.totalAmountArr
+              dataOut: StatementsView.formData.totalAmount
+          - =.builtIn.number.multiply: 
+              dataIn: 
+                number: =..formData.totalAmount
+                multiple: 100
+              dataOut: StatementsView.formData.totalAmount              
+      - continue
+    - =.builtIn.string.concat:
+        dataIn:
+          - "D.ctime>"
+          - =.Global.formData.stateStart.stamp.start
+          - " AND "
+          - "D.ctime<"
+          - =.Global.formData.stateEnd.stamp.end
+          - " AND "
+          - "E.type=1113 AND D.type=2003"
+        dataOut: StatementsView.apiRequest.squareCashout.docReq.sCondition    
+    - =..apiRequest.squareCashout.docAPI.get: ""
+    - ..formData.cashOutList@: =..apiRequest.squareCashout.docResp.doc
+    # total Payment
+    - if: 
+      - =..formData.cashOutList.0
+      - actionType: evalObject
+        object:
+          - =.builtIn.object.extract:
+              dataIn:
+                array: =..apiRequest.squareCashout.docResp.doc
+                field: name.data.orderInfo.amount
+              dataOut: StatementsView.formData.totalPaymentArr
+          - =.builtIn.math.cumulative: 
+              dataIn: 
+                numArr: =..formData.totalPaymentArr
+              dataOut: StatementsView.formData.totalPayment
+          - =.builtIn.number.multiply: 
+              dataIn: 
+                number: =..formData.totalPayment
+                multiple: 100
+              dataOut: StatementsView.formData.totalPayment      
+      - continue      
+    - =.builtIn.string.concat:
+        dataIn:
+          - "D.ctime>"
+          - =.Global.formData.stateStart.stamp.start
+          - " AND "
+          - "D.ctime<"
+          - =.Global.formData.stateEnd.stamp.end
+          - " AND "
+          - "E.type=1113 AND D.reid IS NOT NULL AND D.type = 2001"
+        dataOut: StatementsView.apiRequest.totalReceived.docReq.name.nonce
+    - =..apiRequest.totalReceived.docAPI.store: ""
+    - ..formData.totalReceived@: =..apiRequest.totalReceived.docResp.doc.size  
+
+    - =.builtIn.string.concat:
+        dataIn:
+          - "D.ctime>"
+          - =.Global.formData.stateStart.stamp.start
+          - " AND "
+          - "D.ctime<"
+          - =.Global.formData.stateEnd.stamp.end
+          - " AND "
+          - "E.type=1113 AND D.reid IS NOT NULL AND D.type = 2002"
+        dataOut: StatementsView.apiRequest.totalRefund.docReq.name.nonce
+    - =..apiRequest.totalRefund.docAPI.store: ""
+    - ..formData.totalRefund@: =..apiRequest.totalRefund.docResp.doc.size 
+
+    - =.builtIn.string.concat:
+        dataIn:
+          - "D.ctime>"
+          - =.Global.formData.stateStart.stamp.start
+          - " AND "
+          - "D.ctime<"
+          - =.Global.formData.stateEnd.stamp.end
+          - " AND "
+          - "E.type=1113 AND D.reid IS NOT NULL AND D.type = 2003"
+        dataOut: StatementsView.apiRequest.totalCashOut.docReq.name.nonce
+    - =..apiRequest.totalCashOut.docAPI.store: ""
+    - ..formData.totalCashOut@: =..apiRequest.totalCashOut.docResp.doc.size         
+    # get last statement and gain beginning balance
+    - =..apiRequest.lastStatement.docAPI.get: ""
+    - if: 
+      - =..apiRequest.lastStatement.docResp.doc.0.name.nonce
+      - ..formData.beginningBalance@: =..apiRequest.lastStatement.docResp.doc.0.name.nonce
+      - continue
+    # get ending balance 
+    - if: 
+      - =..apiRequest.hasPaidProfile.getDocResp.doc.0
+      - ..formData.endingBalance@: =..apiRequest.hasPaidProfile.getDocResp.doc.0.size
+      - continue
+    - ..apiRequest.createStatement.document.name.nonce@: =..formData.endingBalance
+  formData: #Input data here
+    beginningBalance: "0.00"
+    endingBalance: "0.00"
+    totalCashout: "0.00" # Total CashOut
+    totalReceived: "0.00" # Total Received
+    totalRefund: "0.00" # Total Refund
+    cashOutList: []
+    transactionList: []
+    totalAmountArr: []
+    totalAmount: "0.00"  # Total Amount
+    totalPaymentArr: []
+    totalPayment: "0.00"    
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  apiRequest: #Input data request here
+    hasPaidProfile: 
+      getDocResp: 
+        doc: []
+      getDocReq: 
+        ObjType: 8
+        id: .Global.formData.currentFacility.bsig
+        xfname: E.bvid|E.evid
+        obfname: ctime
+        sCondition: ""
+        _nonce: .Global._nonce
+        maxcount: "100"
+      docAPI: 
+        get:
+          api: rd
+          dataIn: StatementsView.apiRequest.hasPaidProfile.getDocReq
+          dataOut: StatementsView.apiRequest.hasPaidProfile.getDocResp
+    squareCashout: 
+      docResp: ""
+      docReq: 
+        ObjType: 8
+        id: .Global.formData.currentFacility.bsig
+        xfname: E.bvid|E.evid
+        sCondition: ""
+      docAPI:
+        get: 
+          api: rd 
+          dataIn: StatementsView.apiRequest.squareCashout.docReq
+          dataOut: StatementsView.apiRequest.squareCashout.docResp          
+    createStatement: 
+      document: 
+        eid: .Global.formData.paymentEdgeID   # the id of the type=1113 edge which evid is the facility
+        type: .DocType.Statement   # 20000
+        name: 
+          title: .Global.formData.currentFacility.name.data.basicInfo.medicalFacilityName
+          data: ""
+      docStoreResp: ""
+      docAPI: 
+        store: 
+          api: cd
+          dataIn: apiRequest.createStatement.document
+          dataOut: StatementsView.apiRequest.createStatement.docStoreResp
+    totalReceived: 
+      docResp: ""
+      docReq: 
+        type: .DocType.OrderTotal
+        eid: .Global.formData.paymentEdgeID 
+        name: 
+          data: ""
+          nonce: ""
+      docAPI: 
+        store: 
+          api: cd
+          dataIn: apiRequest.totalReceived.docReq
+          dataOut: StatementsView.apiRequest.totalReceived.docResp  
+    totalRefund: 
+      docResp: ""
+      docReq: 
+        type: .DocType.RefundTotal
+        eid: .Global.formData.paymentEdgeID 
+        name: 
+          data: ""
+          nonce: ""
+      docAPI: 
+        store: 
+          api: cd
+          dataIn: apiRequest.totalRefund.docReq
+          dataOut: StatementsView.apiRequest.totalRefund.docResp
+    totalCashOut: 
+      docResp: ""
+      docReq: 
+        type: .DocType.CashOutTotal
+        eid: .Global.formData.paymentEdgeID 
+        name: 
+          data: ""
+          nonce: ""
+      docAPI: 
+        store: 
+          api: cd
+          dataIn: apiRequest.totalCashOut.docReq
+          dataOut: StatementsView.apiRequest.totalCashOut.docResp
+    # 获取上一次statement 时的currentBalance作为本次的beginning balance
+    lastStatement:  
+      docIn: 
+        ObjType: 8
+        id: 
+          - .Global.currentUser.vertex.id
+          - .Global.formData.currentFacility.bsig
+        xfname: E.bvid,E.evid
+        type: .DocType.Statement   # 20000
+        sCondition: "E.type=1113"
+        _nonce: =.Global._nonce
+        maxcount: "1"
+        obfname: "ctime"
+      docResp: 
+        doc: []
+      docAPI: 
+        get: 
+          api: rd
+          dataIn: apiRequest.lastStatement.docIn
+          dataOut: StatementsView.apiRequest.lastStatement.docResp
+  style: #Input style fragment here
+
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+          children:
+            - .aitLogo:
+            - .MenuBar:        
+        - .TopBar: 
+        - .InnerBodyView:
+          children:
+            - .GotoBack:
+              style:  
+                top: "0.018"
+              onClick:
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+            # - .PageTitleLabel:
+            - .ContentBar:
+              style: 
+                marginTop: "0.06"
+                height: "0.84"
+              children:
+                - type: scrollView
+                  viewTag: statementsView
+                  style:
+                    backgroundColor: "0xffffff"
+                    width: "0.795"
+                    height: "0.84"
+                    left: "0.016"
+                    border: 
+                      style: "3"
+                    borderColor: "0xffffff"
+                    boxSizing: border-box
+                  children:
+                    - type: view
+                      style:
+                        top: "0.02"
+                        left: "0.65"
+                        # top: "0.0164"
+                        # left: "0.745"
+                        # width: "0.065"
+                      children:                          
+                        - type: image
+                          path: generate.svg
+                          style:
+                            verticalAlign: middle
+                            display: inline-block
+                            width: "0.0087"
+                            height: "0.0163"
+                        - type: label
+                          text: "Generate"
+                          onClick:                      
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.EcosObj.exportPDF:
+                                    dataIn:
+                                      ecosObj: ""
+                                      viewTag: pdfViewTag
+                                    dataOut: StatementsView.apiRequest.createStatement.document.name.data
+                                - =.StatementsView.apiRequest.createStatement.docAPI.store: ""                           
+                          style:
+                            display: inline-block
+                            verticalAlign: middle
+                            marginLeft: "0.0046"
+                            color: "0x005795"
+                            fontSize: .Nfont.nf3
+                            fontWeight: "500"
+                            textDecoration: underline                             
+                    - .DownLoadBtn: ""
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.EcosObj.exportPDF:
+                                dataIn:
+                                  ecosObj: ""
+                                  viewTag: pdfViewTag     
+                      style:
+                        top: "0.02"
+                        left: "0.73"
+                    - type: view
+                      viewTag: pdfViewTag
+                      style:
+                        width: "0.795"
+                        height: "auto"
+                      children: 
+                        - type: view
+                          style:
+                            width: "0.18"
+                            height: "0.088"
+                            marginTop: "0.045"
+                            marginLeft: "0.02" 
+                          children:
+                            - type: image
+                              path: aitmedBlack.svg
+                              style:
+                                display: inline-block
+                                width: "0.05" 
+                                height: "0.088"
+                            - type: view
+                              style:
+                                left: "0.01"
+                                display: inline-block
+                                width: "0.12"                
+                                height: "0.088"
+                              children:
+                                - type: label
+                                  text: "1000 S Anaheim Blvd Ste 200"
+                                  style:
+                                    marginLeft: "0.008"
+                                    marginTop: "0.014"
+                                    fontSize: .Nfont.n6_1
+                                - type: label
+                                  text: "Anaheim, CA 92805"
+                                  style:
+                                    marginLeft: "0.008"
+                                    marginTop: "0.003"
+                                    fontSize: .Nfont.n6_1
+                                - type: label
+                                  text: "(714) 634-4884"
+                                  style:
+                                    marginLeft: "0.008"
+                                    marginTop: "0.003"
+                                    fontSize: .Nfont.n6_1                          
+                        - type: view
+                          style:
+                            width: "0.766"
+                            height: "0.2"
+                            marginTop: "0.035"
+                            marginLeft: "0.02"
+                          children:
+                            - type: view
+                              style:
+                                width: "0.16"
+                                height: "0.2"
+                                display: inline-block
+                                left: "0"
+                              children:
+                                - type: label
+                                  dataKey: Global.formData.currentFacility.name.data.basicInfo.medicalFacilityName
+                                  style:
+                                    marginTop: "0"
+                                    fontSize: .Nfont.n4_2_1
+                                    fontWeight: "600"
+                                    color: "0x0063A8"
+                                    height: "0.04"
+                                    border:
+                                      style: "2"
+                                    borderWidth: "2"
+                                    textIndent: "0.25em"
+                                - type: label
+                                  dataKey: Global.formData.currentFacility.name.data.basicInfo.location
+                                  style:
+                                    marginLeft: "0.008"
+                                    marginTop: "0.01"
+                                    fontSize: .Nfont.n6_3
+                                # - type: label
+                                #   text: "Anaheim, CA 92805"
+                                #   style:
+                                #     marginLeft: "0.008"
+                                #     marginTop: "0.003"
+                                #     fontSize: .Nfont.n6_3
+                                - type: label
+                                  dataKey: Global.formData.currentFacility.name.data.basicInfo.phoneNumber
+                                  style:
+                                    marginLeft: "0.008"
+                                    marginTop: "0.003"
+                                    fontSize: .Nfont.n6_3
+                                - type: view
+                                  style:
+                                    marginLeft: "0"
+                                    marginTop: "0.02"
+                                    width: "0.16"
+                                    height: "0.02"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Statement Date"
+                                      style:
+                                        marginLeft: "0"
+                                        fontSize: .Nfont.n6_3
+                                        fontWeight: "700"
+                                        width: "0.06"
+                                    - type: label
+                                      dataKey: formData.todayDate
+                                      style:
+                                        marginLeft: "0.005"
+                                        fontSize: .Nfont.n6_1
+                                        width: "0.095"
+                                - type: view
+                                  style:
+                                    marginLeft: "0"
+                                    marginTop: "0.01"
+                                    width: "0.25"
+                                    height: "0.02"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Statement Period"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0"
+                                        fontSize: .Nfont.n6_3
+                                        fontWeight: "700"
+                                    - type: label
+                                      dataKey: Global.formData.stateStart.date
+                                      style:
+                                        marginLeft: "0.005"
+                                        fontSize: .Nfont.n6_1  
+                                    - type: label
+                                      text: "-"
+                                      style:
+                                        marginLeft: "0.005"
+                                        fontSize: .Nfont.n6_1
+                                    - type: label
+                                      dataKey: Global.formData.stateEnd.date
+                                      style:
+                                        marginLeft: "0.005"
+                                        fontSize: .Nfont.n6_1                                                                                                   
+                            - type: view
+                              style:
+                                width: "0.16"
+                                height: "0.2"
+                                display: inline-block
+                                marginLeft: "0.443"
+                              children:
+                                - type: label
+                                  text: "Summary"
+                                  dataKey: 
+                                  style:
+                                    fontSize: .Nfont.n4_2_1
+                                    fontWeight: "600"
+                                    color: "0x0063A8"
+                                    height: "0.04"
+                                    border:
+                                      style: "2"
+                                    borderWidth: "2"
+                                    textIndent: "0.25em"
+                                - type: view
+                                  style:
+                                    marginLeft: "0"
+                                    marginTop: "0.016"
+                                    width: "0.16"
+                                    height: "0.02"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Beginning Balance"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0"
+                                        fontSize: .Nfont.n6_1_2
+                                        width: "0.08"
+                                    - type: label
+                                      dataKey: formData.beginningBalance
+                                      text=func: .builtIn.string.dollarFormat
+                                      style:
+                                        marginLeft: "0.01"
+                                        fontSize: .Nfont.n6_1_1
+                                        fontWeight: "500"
+                                        fontFamily: "Poppins"
+                                        width: "0.07"
+                                - type: view
+                                  style:
+                                    marginLeft: "0"
+                                    marginTop: "0.01"
+                                    width: "0.16"
+                                    height: "0.02"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Payments Received"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0"
+                                        fontSize: .Nfont.n6_1_2
+                                        width: "0.08"
+                                    - type: label
+                                      text: "$1,350.00"
+                                      dataKey: formData.totalReceived
+                                      text=func: .builtIn.string.dollarFormat
+                                      style:
+                                        marginLeft: "0.01"
+                                        fontSize: .Nfont.n6_1_1
+                                        fontWeight: "500"
+                                        fontFamily: "Poppins"
+                                        width: "0.07"
+                                - type: view
+                                  style:
+                                    marginLeft: "0"
+                                    marginTop: "0.01"
+                                    width: "0.16"
+                                    height: "0.02"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Refunded Amount"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0"
+                                        fontSize: .Nfont.n6_1_2
+                                        width: "0.08"
+                                    - type: label
+                                      text: "$50.76"
+                                      dataKey: formData.totalRefund
+                                      text=func: .builtIn.string.dollarFormat
+                                      style:
+                                        marginLeft: "0.01"
+                                        fontSize: .Nfont.n6_1_1
+                                        fontWeight: "500"
+                                        fontFamily: "Poppins"
+                                        width: "0.07"
+                                - type: view
+                                  style:
+                                    marginLeft: "0"
+                                    marginTop: "0.01"
+                                    width: "0.16"
+                                    height: "0.02"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Cash Out"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0"
+                                        fontSize: .Nfont.n6_1_2
+                                        width: "0.08"
+                                    - type: label
+                                      text: "$500.00"
+                                      dataKey: formData.totalCashout
+                                      text=func: .builtIn.string.dollarFormat
+                                      style:
+                                        marginLeft: "0.01"
+                                        fontSize: .Nfont.n6_1_1
+                                        fontWeight: "500"
+                                        fontFamily: "Poppins"
+                                        width: "0.07"
+                                - type: view
+                                  style:
+                                    marginLeft: "0"
+                                    marginTop: "0.01"
+                                    width: "0.16"
+                                    height: "0.02"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Ending Balance"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0"
+                                        fontSize: .Nfont.n6_1_2
+                                        width: "0.08"
+                                    - type: label
+                                      dataKey: formData.endingBalance
+                                      text=func: .builtIn.string.dollarFormat
+                                      style:
+                                        marginLeft: "0.01"
+                                        fontSize: .Nfont.n6_1_1
+                                        fontFamily: "Poppins"
+                                        width: "0.07"                                                                                           
+                        - type: view
+                          style:
+                            width: "0.766"
+                            height: "auto"
+                            marginTop: "0.015"
+                            marginLeft: "0.02"
+                          children:
+                            - type: label
+                              text: "Transactions Details"
+                              dataKey: 
+                              style:
+                                fontSize: .Nfont.n4_2_1
+                                fontWeight: "600"
+                                color: "0x0063A8"
+                                height: "0.04"
+                                border:
+                                  style: "2"
+                                borderWidth: "2"
+                                textIndent: "0.25em"
+                            - type: view
+                              style:
+                                width: "0.766"
+                                height: auto
+                                marginTop: "0.015"
+                                borderRadius: "5"
+                              children: 
+                                - type: view
+                                  style:
+                                    width: "0.766"
+                                    height: "0.035"
+                                    borderBottom: "2px solid #cccccc"
+                                    # border-top-left-radius: "5px"
+                                    # border-top-right-radius: "5px"                        
+                                  children:
+                                    - type: label
+                                      text: "Transaction Date"
+                                      style: 
+                                        # backgroundColor: "0x0fff0033"
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.205"
+                                        textIndent: "1em"
+                                    - type: label
+                                      text: "Payer"
+                                      style: 
+                                        # backgroundColor: "0x00ffff33"
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.235"
+                                        textIndent: "1em"
+                                    - type: label
+                                      text: "Reason for Payment"
+                                      style: 
+                                        # backgroundColor: "0xff000033"
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.25"
+                                        textIndent: "1em"
+                                    - type: label
+                                      text: "Amount"
+                                      style: 
+                                        # backgroundColor: "0x00fff033"
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.076"
+                                        textIndent: "1em"
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.transactionList
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.766"
+                                    margin: '0'
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        width: '0.766'
+                                        height: '0.03'
+                                        left: '0'
+                                        marginTop: ''
+                                        borderBottom: "2px solid #cccccc"
+                                        # backgroundColor: "0xf5f5f5"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.ctime
+                                          text=func: .builtIn.string.formatUnixtimeL_en
+                                          style:
+                                            width: "0.205"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                        - type: label
+                                          dataKey: itemObject.name.data.orderInfo.payer
+                                          style:
+                                            width: "0.235"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                        - type: label
+                                          dataKey: itemObject.name.data.appointmentInfo.reason
+                                          style:
+                                            width: "0.25"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                        - type: label
+                                          dataKey: itemObject.name.data.orderInfo.amount
+                                          text=func: .builtIn.string.dollarFormat
+                                          style:
+                                            width: "0.076"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                - type: view
+                                  style:
+                                    marginLeft: "0.64"
+                                    marginTop: "0.01"
+                                    width: auto
+                                    height: "0.03"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Total Amount"
+                                      dataKey: 
+                                      style:
+                                        display: inline-block
+                                        lineHeight: "0.03"
+                                        width: "0.06"
+                                        fontSize: .Nfont.n6_3
+                                        fontWeight: "700"
+                                    - type: label
+                                      dataKey: formData.totalAmount
+                                      text=func: .builtIn.string.dollarFormat
+                                      style:
+                                        display: inline-block
+                                        lineHeight: "0.03"
+                                        fontSize: .Nfont.n6_1_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                        - type: view
+                          style:
+                            # backgroundColor: "0xf0000f33"
+                            width: "0.766"
+                            height: "auto"
+                            marginTop: "0.045"
+                            marginLeft: "0.02"
+                          children:
+                            - type: label
+                              text: "Cash Out"
+                              dataKey: 
+                              style:
+                                fontSize: .Nfont.n4_2_1
+                                fontWeight: "600"
+                                color: "0x0063A8"
+                                height: "0.04"
+                                border:
+                                  style: "2"
+                                borderWidth: "2"
+                                textIndent: "0.25em"
+                            - type: view
+                              style:
+                                width: "0.766"
+                                height: auto
+                                marginTop: "0.015"
+                                borderRadius: "5"
+                              children: 
+                                - type: view
+                                  style:
+                                    width: "0.766"
+                                    height: "0.035"
+                                    borderBottom: "2px solid #cccccc"
+                                    # border-top-left-radius: "5px"s
+                                    # border-top-right-radius: "5px"     
+                                  children:
+                                    - type: label
+                                      text: "Date"
+                                      style: 
+                                        # backgroundColor: "0x0fff0033"
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.135"
+                                        textIndent: "1em"
+                                    - type: label
+                                      text: "Payer"
+                                      style: 
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.195"
+                                        textIndent: "1em"
+                                    - type: label
+                                      text: "ACH or Check No."
+                                      style: 
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.36"
+                                        textIndent: "1em"
+                                    - type: label
+                                      text: "Amount"
+                                      style: 
+                                        boxSizing: border-box
+                                        display: inline-block
+                                        lineHeight: "3.5vh"
+                                        textAlign:
+                                          y: center
+                                        color: "0x00000"
+                                        fontSize: .Nfont.n6_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins"
+                                        width: "0.076"
+                                        textIndent: "1em"
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.cashOutList
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.766"
+                                    margin: '0'
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        width: '0.766'
+                                        height: '0.03'
+                                        left: '0'
+                                        marginTop: ''
+                                        borderBottom: "2px solid #cccccc"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.ctime
+                                          text=func: .builtIn.string.formatUnixtimeL_en
+                                          style:
+                                            width: "0.135"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                        - type: label
+                                          dataKey: itemObject.name.data.orderInfo.payer
+                                          style:
+                                            width: "0.195"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                        - type: label
+                                          dataKey: itemObject.name.data.cashOutInfo.ACHorCheckNumber
+                                          style:
+                                            width: "0.36"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                        - type: label
+                                          dataKey: itemObject.name.data.cashOutInfo.lcoAmount
+                                          text=func: .builtIn.string.dollarFormat
+                                          style:
+                                            width: "0.076"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            display: inline-block
+                                            lineHeight: "3vh"
+                                            fontSize: .Nfont.n6_1_2
+                                            textIndent: "1.5em"
+                                - type: view
+                                  style:
+                                    marginLeft: "0.64"
+                                    marginTop: "0.01"
+                                    width: auto
+                                    height: "0.03"
+                                    textAlign:
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: "Total Payment"
+                                      dataKey: 
+                                      style:
+                                        display: inline-block
+                                        lineHeight: "0.03"
+                                        width: "0.06"
+                                        fontSize: .Nfont.n6_3
+                                        fontWeight: "700"
+                                    - type: label
+                                      dataKey: formData.totalPayment
+                                      text=func: .builtIn.string.dollarFormat
+                                      style:
+                                        display: inline-block
+                                        lineHeight: "0.03"
+                                        fontSize: .Nfont.n6_1_1
+                                        fontWeight: "700"
+                                        fontFamily: "Poppins" 
+                        - type: view
+                          style:
+                            # backgroundColor: "0xf0000f33"
+                            width: "0.766"
+                            height: "0.018"
+                            marginTop: "0.045"
+                            marginLeft: "0.02"                                                                                                                              

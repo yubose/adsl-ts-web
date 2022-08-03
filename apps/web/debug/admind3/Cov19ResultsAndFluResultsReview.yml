@@ -1,0 +1,758 @@
+Cov19ResultsAndFluResultsReview:
+  title: COVID-19 Results & Flu A&B Results
+  init:
+    #Page initialization
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq@: =.Global.formData.medicalRecords
+        - continue
+
+    # 判断antigenResults是否为空值
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.antigen.antigenResults
+              string2: ''
+        - actionType: evalObject
+          object:
+            - ..formData.isAntigenColor@: "0x333333"
+        - ..formData.isAntigenColor@: =..apiRequest.covResultAndFluResult.docReq.name.data.antigen.antigenResultsColor
+    # 判断Antigen lot /Expiration 是否为空
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.antigen.lot
+              string2: ""
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq.name.data.antigen.lot@: "--"
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.antigen.expiration
+              string2: ""
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq.name.data.antigen.expiration@: "--"
+        - continue
+    # 判断antibodylgGResults是否为空
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgGResults
+              string2: ''
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgGResults@: "--"
+            - ..formData.isAntibodyLgGColor@: "0x333333"
+        - ..formData.isAntibodyLgGColor@: =..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgGResultsColor
+    # 判断antibodylgMResults是否为空值
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgMResults
+              string2: ''
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgMResults@: "--"
+            - ..formData.isAntibodyLgMColor@: "0x333333"
+        - ..formData.isAntibodyLgMColor@: =..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgMResultsColor
+    # 判断 antibody lot/expiration 是否为空值
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.antibody.lot
+              string2: ""
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq.name.data.antibody.lot@: "--"
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.antibody.expiration
+              string2: ""
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq.name.data.antibody.expiration@: "--"
+        - continue
+    # 判断fluResults是否为空值
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.fluResults
+              string2: ""
+        - actionType: evalObject
+          object:
+            - ..apiRequest.covResultAndFluResult.docReq.name.data.fluResults@: "--"
+            - ..formData.isFluResultsColor@: "0x333333"
+        - ..formData.isFluResultsColor@: =..apiRequest.covResultAndFluResult.docReq.name.data.fluResultsColor
+
+    # 判断company address是否为空
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.covResultAndFluResult.docReq.name.data.isSelectAddress
+              string2: ""
+        - ..formData.isHiddenCompanyAddress@: true
+        - continue
+
+  formData:
+    isHiddenCompanyAddress: "false"
+    isAntigenColor: ""
+    isAntibodyLgGColor: ""
+    isAntibodyLgMColor: ""
+    isFluResultsColor: ""
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .DownLoadBtn:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                top: "0.1"
+                height: "0.74"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    top: "0"
+                    left: "0.117"
+                    height: "0.74"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - .FormsTypeTitle:
+                        - type: scrollView
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.614"
+                            overflow: scroll
+                          children:
+                            # admin info
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                height: "0.1"
+                              children:
+                                - .ProFormsBaseView:
+                                  style:
+                                    width: "0.135"
+                                    display: inline-block
+                                  children:
+                                    - type: image
+                                      path: "office-building.svg"
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.facilityAvatarID
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.025"
+                                        height: "0.04416"
+                                        display: inline-block
+                                    - type: view
+                                      style:
+                                        marginTop: "0"
+                                        marginLeft: "0.01"
+                                        width: "0.1"
+                                        display: inline-block
+                                      children:
+                                        - .ProFormsLabel:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.facilityName
+                                          style:
+                                            marginTop: "0"
+                                            fontSize: .Nfont.nf4
+                                        - .ProFormsLabel:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.address
+                                          style:
+                                            marginTop: "0.01"
+                                            fontSize: .Nfont.nf1
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0.035"
+                                    width: "0.12"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Email
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.email
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Website"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.website
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Main #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.phoneNumber
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Fax #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.fax
+                            # Company Address where test administered
+                            - .ProFormsBaseView:
+                              children:
+                                - type: label
+                                  text: Company Address where test administered
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontStyle: "bold"
+                                    height: "auto"
+                                    width: "0.39"
+                                - type: view
+                                  viewTag: companyAddressTag
+                                  style:
+                                    fontSize: .Nfont.nf1
+                                    height: "auto"
+                                    width: "0.39"
+                                    marginTop: "0.008"
+                                    display: "flex"
+                                    isHidden: ..formData.isHiddenCompanyAddress
+                                  children:
+                                    - type: image
+                                      path: selectBlue.png
+                                      style:
+                                        width: "0.008"
+                                        left: "0"
+                                        display: "inline-block"
+                                        vertical: middle
+                                    - type: label
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.companyAddress
+                                      style:
+                                        fontSize: .Nfont.nf1
+                                        vertical: middle
+                                        display: "inline-block"
+                                        marginLeft: "0.005"
+                            # patient profile start
+                            - .ProFormsBaseView:
+                              style:
+                                marginLeft: "0"
+                                width: "0.39"
+                                display: inline-block
+                                marginTop: "0.02"
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Exam Date
+                                    - .ProFormsLabelRight:
+                                      text=func: .builtIn.string.formatUnixtimeL_en
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.patientInfo.examDate
+
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Name
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.patientInfo.patientName
+
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date of Birth
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.patientInfo.dob
+
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Phone #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.patientInfo.phone
+
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.patientInfo.email
+
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Address
+
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.patientInfo.address
+                            - .ProFormsDivider:
+                            - .ProFormsBaseView:
+                              children:
+                                # OFFICE USE ONLY
+                                - type: label
+                                  text: "OFFICE USE ONLY"
+                                  dataKey:
+                                  style:
+                                    marginTop: "0.01"
+                                    height: "auto"
+                                    width: "0.39"
+                                    left: "0"
+                                    fontSize: .Nfont.nf1
+                                    fontWeight: "500"
+                                    color: "0x333333"
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                - type: view
+                                  style:
+                                    width: "0.39"
+                                    marginTop: "0.02"
+                                    display: "flex"
+                                    height: "0.06"
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.17"
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Date of Test
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.dateOfTest
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.027"
+                                        width: "0.39"
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Provider's Name"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.providerName
+                                # COVID-19 Rapid Antigen Test Results
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xdedede"
+                                    borderWeight: "3px"
+                                    boxSizing: border-box
+                                    height: "0.2"
+                                    width: "0.39"
+                                    display: "inline-block"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "COVID-19 Rapid Antigen Test Results"
+                                      dataKey:
+                                      style:
+                                        marginTop: "0.01"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                    # Antigen Test kit name/
+                                    - type: view
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.39"
+                                        display: "inline-block"
+                                      children:
+                                        - .Cov19ResultsText:
+                                          text: "Test kit name/Manufacture: "
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            display: "inline-block"
+                                            width: "auto"
+                                        - .Cov19ResultsText:
+                                          text: "Carestart COVID-19 Antigen Test"
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            marginLeft: "0.048"
+                                            display: "inline-block"
+                                            width: "0.15"
+                                            fontWeight: "500"
+                                    # Antigen  positive / negative
+                                    - type: view
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.39"
+                                        height: "0.06"
+                                      children:
+                                        - .Cov19ResultsText:
+                                          text: "Rapid COVID-19 Antigen Testing results"
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            fontWeight: "500"
+                                            display: "flex"
+                                        - type: label
+                                          text: "--"
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.antigen.antigenResults
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            color: ..formData.isAntigenColor
+                                            border:
+                                              style: "3"
+                                            borderColor: ..apiRequest.covResultAndFluResult.docReq.name.data.antigen.antigenResultsColor
+                                            width: "0.04"
+                                            height: "0.03"
+                                            marginTop: "0.01"
+                                            marginLeft: "0.02"
+                                            fontWeight: "600"
+                                            textAlign:
+                                              x: center
+                                              y: center
+
+                                    # Antigen  LOT#/Expiration
+                                    - type: view
+                                      style:
+                                        width: "0.39"
+                                        marginTop: "0.01"
+                                        display: "flex"
+                                      children:
+                                        - type: view
+                                          style:
+                                            display: "inline-block"
+                                            marginLeft: "0.02"
+                                          children:
+                                            - .ProFormsLabelLeft:
+                                              text: "LOT #"
+
+                                            - .ProFormsLabelRight:
+                                              dataKey: apiRequest.covResultAndFluResult.docReq.name.data.antigen.lot
+
+                                        - type: view
+                                          style:
+                                            marginLeft: "0.04"
+                                            display: "inline-block"
+                                          children:
+                                            - .ProFormsLabelLeft:
+                                              text: "Expiration"
+
+                                            - .ProFormsLabelRight:
+                                              dataKey: apiRequest.covResultAndFluResult.docReq.name.data.antigen.expiration
+                                # Covid-19 Rapid Antibody Test Results                                              
+                                - type: view
+                                  style:
+                                    marginTop: "0.03"
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xdedede"
+                                    borderWeight: "3px"
+                                    height: "0.26"
+                                    width: "0.39"
+                                    boxSizing: border-box
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "COVID-19 Rapid Antibody Test Results"
+                                      dataKey:
+                                      style:
+                                        marginTop: "0.01"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                    - type: view
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.39"
+                                        display: "inline-block"
+                                      children:
+                                        - .Cov19ResultsText:
+                                          text: "Test kit name/Manufacture: "
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            display: "inline-block"
+                                            width: "auto"
+                                        - .Cov19ResultsText:
+                                          text: "Healgen COVID-19 Antibody IgG/IgM Test"
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            marginLeft: "0.048"
+                                            fontWeight: "500"
+                                            width: "0.15"
+                                            display: "inline-block"
+                                    - type: view
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.39"
+                                        left: "0"
+                                        height: "0.05"
+                                      children:
+                                        - .Cov19ResultsText:
+                                          text: "Rapid COVID-19 Antibody lgG"
+                                          style:
+                                            display: "flex"
+                                            fontSize: .Nfont.nf1
+                                            fontWeight: "500"
+                                        - type: label
+                                          viewTag: antibodylgGView
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgGResults
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            color: ..formData.isAntibodyLgGColor
+                                            border:
+                                              style: "3"
+                                            borderColor: ..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgGResultsColor
+                                            width: "0.04"
+                                            height: "0.03"
+                                            fontWeight: "600"
+                                            marginTop: "0.01"
+                                            marginLeft: "0.02"
+                                            textAlign:
+                                              x: center
+                                              y: center
+
+                                    # Rapid COVID-19 Antibody lgM       
+                                    - type: view
+                                      style:
+                                        marginTop: "0.015"
+                                        width: "0.39"
+                                        height: "0.05"
+                                      children:
+                                        - .Cov19ResultsText:
+                                          text: "Rapid COVID-19 Antibody lgM"
+                                          style:
+                                            display: "flex"
+                                            fontSize: .Nfont.nf1
+                                            fontWeight: "500"
+                                        - type: label
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgMResults
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            color: ..formData.isAntibodyLgMColor
+                                            border:
+                                              style: "3"
+                                            borderColor: ..apiRequest.covResultAndFluResult.docReq.name.data.antibody.antibodylgMResultsColor
+                                            width: "0.04"
+                                            height: "0.03"
+                                            marginTop: "0.01"
+                                            fontWeight: "600"
+                                            marginLeft: "0.02"
+                                            textAlign:
+                                              x: center
+                                              y: center
+
+                                    # LGM Lot#/Expiration
+                                    - type: view
+                                      style:
+                                        width: "0.39"
+                                        marginTop: "0.02"
+                                        display: "flex"
+                                      children:
+                                        - type: view
+                                          style:
+                                            display: "inline-block"
+                                            marginLeft: "0.02"
+                                          children:
+                                            - .ProFormsLabelLeft:
+                                              text: "LOT #"
+                                            - .ProFormsLabelRight:
+                                              dataKey: apiRequest.covResultAndFluResult.docReq.name.data.antibody.lot
+
+                                        - type: view
+                                          style:
+                                            marginLeft: "0.04"
+                                            display: "inline-block"
+                                          children:
+                                            - .ProFormsLabelLeft:
+                                              text: "Expiration"
+                                            - .ProFormsLabelRight:
+                                              dataKey: apiRequest.covResultAndFluResult.docReq.name.data.antibody.expiration
+                                # FLU A&B Results
+                                - type: view
+                                  style:
+                                    marginTop: "0.03"
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xdedede"
+                                    borderWeight: "3px"
+                                    height: "0.125"
+                                    width: "0.39"
+                                    boxSizing: border-box
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "FLU A&B Results"
+                                      dataKey:
+                                      style:
+                                        marginTop: "0.01"
+                                        textAlign:
+                                          x: center
+                                          y: center
+
+                                    - type: view
+                                      style:
+                                        marginTop: "0.02"
+                                        width: "0.39"
+                                        left: "0"
+                                      children:
+                                        - .Cov19ResultsText:
+                                          text: "FLU A&B Test results"
+                                          style:
+                                            display: "flex"
+                                            fontSize: .Nfont.nf1
+                                            fontWeight: "500"
+                                        - type: label
+                                          viewTag: antigenView
+                                          dataKey: apiRequest.covResultAndFluResult.docReq.name.data.fluResults
+                                          style:
+                                            fontSize: .Nfont.nf1
+                                            color: ..formData.isFluResultsColor
+                                            border:
+                                              style: "3"
+                                            borderColor: ..apiRequest.covResultAndFluResult.docReq.name.data.fluResultsColor
+                                            width: "0.04"
+                                            height: "0.03"
+                                            marginTop: "0.01"
+                                            marginLeft: "0.02"
+                                            fontWeight: "600"
+                                            textAlign:
+                                              x: center
+                                              y: center
+                                          # FLU A&B Results END
+                                          # The undersigned
+                                - type: view
+                                  style:
+                                    width: "0.39"
+                                    marginTop: "0.03"
+                                    display: "inline-block"
+                                  children:
+                                    - type: label
+                                      text: The undersigned,
+                                      dataKey:
+                                      style:
+                                        fontSize: .Nfont.nf1
+                                        display: "inline-block"
+                                    - type: label
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.facilityInfo.facilityName
+                                      style:
+                                        fontSize: .Nfont.nf1
+                                        display: "inline-block"
+                                        color: "0x005795"
+                                        marginLeft: "0.002"
+                                        fontWeight: "500"
+                                    - type: label
+                                      text: MA has been notified and authorizes release of results.
+                                      dataKey:
+                                      style:
+                                        fontSize: .Nfont.nf1
+                                        display: "inline-block"
+                                        marginLeft: "0.002"
+
+                                # MA's Print Name
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "0.04"
+                                    width: "0.39"
+                                    display: "inline-block"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "MA's Print Name"
+
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.MAname
+                                # signature
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                    width: "0.275"
+                                    display: flex
+                                    justifyContent: space-between
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: MA's Signature
+                                      dataKey:
+                                      style:
+                                        display: inline-block
+                                - .SignAreaView:
+                                  style:
+                                    marginTop: "0.008"
+                                  children:
+                                    # 显示暂存的签名
+                                    - type: image
+                                      viewTag: signatureShowTag
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      # 传入签名文档的id
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.MAsignature
+                                      style:
+                                        left: "0"
+                                        width: "0.275"
+                                        top: "0"
+                                        height: "0.165"
+
+                                #签名时间
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text=func: .builtIn.string.formatUnixtime_en
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.name.data.signatureTime
+                                      style:
+                                        display: inline
+                                    - .ProFormsLabelLeft:
+                                      text: " Digitally Signed"
+                                      style:
+                                        marginLeft: "0.0046"
+                                        display: inline
+
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Date"
+                                      style:
+                                        display: inline
+                                    - .ProFormsLabelRight:
+                                      text=func: .builtIn.string.formatUnixtimeL_en
+                                      dataKey: apiRequest.covResultAndFluResult.docReq.ctime
+                                      style:
+                                        marginLeft: "0.0046"
+                                        display: inline
+                                - .ProFormsDivider:
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true

@@ -1,0 +1,254 @@
+PfizerVaccineFirDoseReviewPage1:
+  #xd page number: 1080
+  pageNumber: "450"
+
+  title: "Pfizer-BioNTech Vaccine - First Dose"
+
+  init:
+    #Page initialization
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.name.data
+        - .Global.formData.pifzerVaccineFirDoseForm@: =.Global.formData.medicalRecords
+        - continue
+
+  formData:
+    #Input data here
+    PifzerVaccineFirDoseForm: ""
+
+  formDataTemp:
+    # Input data temp here, datatemp should not mix with formData
+    isConsent:
+      - key: isConsent
+        value: "I consent above information is true and correct."
+        value1: true
+      - key: isConsent
+        value: "I agree to share my information with said provider."
+        value1: false
+    single:
+      - isConsent: true
+
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.815"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormRight:
+                  onClick:
+                    - goto: PfizerVaccineFirDoseReviewPage2
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - .PatientFormTitle:
+                      img: patForm5_1.svg
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.705"
+                        overflow: scroll
+                        # backgroundColor: "0xffff0033"
+                      children:
+                        ## CONTENT TITLE
+                        - .ProFormsLabel:
+                          text: "Patient Info"
+                          style:
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.nf4
+                            marginTop: "0.01"
+                        - .ProFormsLabel:
+                          text: "About"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.02"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "First Name"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.firstName
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Middle name"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.middleName
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Last name"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.lastName
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Date of Birth"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.dateOfBirth
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Gender"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.gender
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Patient Address"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.fullAddress
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Phone #"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.mainContact
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Alternate Phone #"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.alternativePhone
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Email"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.email
+                        - .ProFormsLabel:
+                          text: "Emergency Contact"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.03"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: "0.01"
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Name"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.name
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Relation"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.relation
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Phone #"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.phoneNumber
+                        - .ProFormsLabel:
+                          text: "Employment"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.03"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: "0.01"
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Employer"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.employer
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Occupation"
+                                - .ProFormsLabelRight:
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.occupation
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            width: "0.39"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.isConsent
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.39'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: '0.39'
+                                    left: '0'
+                                    marginTop: '0.01'
+                                  children:
+                                    - type: image
+                                      style:
+                                        width: "0.008"
+                                        display: inline-block
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.array.has:
+                                                    dataIn:
+                                                      object: =.Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.agreement
+                                                      value: $var.key
+                                                - selectBlue.png
+                                                - noSelectGray.png
+
+                                    - .ProFormsLabel:
+                                      dataKey: itemObject.value
+                                      style:
+                                        marginLeft: "0.005"
+                                        display: inline-block
+                                        fontWeight: "500"

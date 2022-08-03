@@ -1,0 +1,1034 @@
+AcceptedInsurance:
+  init:
+    - .SignInCheck
+    - =..apiRequest.AcceptedInsurance.docAPI.get: ""
+    - if:
+        - =..apiRequest.AcceptedInsurance.documentResp.doc.0.id
+        - actionType: evalObject
+          object:
+            - .AcceptedInsurance.apiRequest.AcceptedInsurance.docReq@: =..apiRequest.AcceptedInsurance.documentResp.doc.0
+            - ..formData.insuranceList@: =..apiRequest.AcceptedInsurance.documentResp.doc.0.name.data
+            - ..formData.UpdateAlls@: =..apiRequest.AcceptedInsurance.documentResp.doc.0.name.data
+        - continue
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..formData.insuranceList
+            dataOut: AcceptedInsurance.formData.insuranceListLength
+        - =.builtIn.string.concat:
+            dataIn:
+              - "All Accepted Insurance("
+              - =..formData.insuranceListLength
+              - ")"
+            dataOut: AcceptedInsurance.formData.insuranceListLength
+
+  formDataTemp:
+    insuranceTemp:
+      carrier: ""
+      plans: []
+    selectAll: false
+
+    insuranceListLength: ""
+    plansLength: ""
+    selectedPlansLength: ""
+  formData:
+    flag: ""
+    inputCarrier: ""
+    realInsurance: []
+    insuranceResponse: ""
+    Alls: []
+    Insurances: ""
+    selectedPlans: []
+    UpdateAllPlans:
+      carrier: ""
+      plans: []
+    UpdateAlls: []
+    insuranceList: []
+    planLength: ""
+    showCarriers: ""
+    insurancePlans: []
+    ReqeustAll: []
+    insuranceListLength: ""
+    allPlansLength: "1"
+    selectedPlansLength: "0"
+    judgeArray:
+  apiRequest:
+    AcceptedInsurance:
+      docResp: ""
+      documentResp: ""
+      docReq:
+        eid: .Global.fac_rootNotebook
+        type: .DocType.AcceptedInsurance
+        name:
+          data:
+      documentReq:
+        type: .DocType.AcceptedInsurance
+        id: .Global.fac_rootNotebook
+        xfname: eid
+        obfname: ctime
+        maxcount: "1"
+        _nonce: =.Global._nonce
+      docAPI:
+        store:
+          api: cd
+          dataIn: AcceptedInsurance.apiRequest.AcceptedInsurance.docReq
+          dataOut: AcceptedInsurance.apiRequest.AcceptedInsurance.docResp
+          subtype:
+            mediaType: "text/plain"
+        get:
+          api: rd
+          dataIn: AcceptedInsurance.apiRequest.AcceptedInsurance.documentReq
+          dataOut: AcceptedInsurance.apiRequest.AcceptedInsurance.documentResp
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: "auto"
+
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.925"
+            width: "0.838"
+            backgroundColor: "#f4f8fa"
+            padding: "1px"
+          children:
+            - type: scrollView
+              viewTag: mainContent
+              style:
+                width: "0.824"
+                height: "0.9"
+                margin: "auto"
+                marginTop: "0.015"
+                borderRadius: "5px"
+                backgroundColor: "#ffffff"
+                padding: "1px"
+              children:
+                - type: view
+                  style:
+                    height: "0.05"
+                    width: "0.76"
+                    margin: "auto"
+                    marginTop: "0.035"
+                  children:
+                    - type: label
+                      viewTag: lengthTag
+                      dataKey: formData.insuranceListLength
+                      style:
+                        color: "0x333333"
+                        fontSize: .Nfont.nf6
+                        left: "0.02"
+                        fontWeight: "500"
+                        width: "0.2"
+                - type: button
+                  style:
+                    top: "0.04"
+                    backgroundColor: "0x005795"
+                    width: "0.086"
+                    height: "0.05"
+                    borderRadius: "4px"
+                    left: "0.71"
+                    textAlign:
+                      x: "center"
+                      y: "center"
+                  onClick:
+                    - actionType: popUp
+                      popUpView: addAcceptedInsurance
+                  children:
+                    - type: image
+                      path: addCircle.svg
+                      style:
+                        height: "0.02"
+                    - type: label
+                      text: "Add New"
+                      style:
+                        color: "#ffffff"
+                        fontSize: .Nfont.nf2
+                        fontFamily: "Poppins"
+                        marginLeft: "0.005"
+
+                # some varible name has been changed,atention,rememeber to turn back
+                - type: list
+                  viewTag: insuranceListTag
+                  contentType: listObject
+                  listObject: ..formData.UpdateAlls
+                  iteratorVar: itemObject
+                  style:
+                    height: "0.7"
+                    margin: "auto"
+                    marginTop: "0.004"
+                    # backgroundColor: "#00579533"
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      style:
+                        margin: "auto"
+                        width: "0.24"
+                        height: "0.20"
+                        display: "inline-block"
+                        verticalAlign: "top"
+                        marginLeft: "0.025"
+                        marginTop: "0.03"
+                        boxSizing: "border-box"
+                        boxShadow: "0px 0px 2px 2px #d8d8d8"
+                        borderRadius: "5px"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.24"
+                            height: "0.20"
+                          children:
+                            - type: view
+                              style:
+                                display: "flex"
+                                marginTop: "0"
+                                height: "0.038"
+                                width: "0.24"
+                                borderBottom: "1px solid #dedede"
+                                textAlign:
+                                  y: center
+                              children:
+                                - type: label
+                                  dataKey: itemObject.carrier
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    color: "0x333333"
+                                    fontWeight: "700"
+                                    left: "0.02"
+                                    maxWidth: "0.13"
+                                    overflow: hidden
+                                    textOverflow: ellipsis
+                                    whiteSpace: nowrap
+                                - type: label
+                                  dataKey: itemObject.planLength
+                                  style:
+                                    fontSize: .Nfont.nf3
+                                    fontWeight: "600"
+                                    marginLeft: "0.02"
+                            - type: label
+                              text: Delete
+                              style:
+                                color: "0xe24445"
+                                fontSize: .Nfont.nf2
+                                top: "0"
+                                borderWidth: "1px"
+                                fontWeight: "500"
+                                textDecoration: underline
+                                left: "0.17"
+                                height: "0.038"
+                                # display: "inline-block"
+                                textAlign:
+                                  y: center
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..formData.showCarriers@: $var.carrier
+                                - actionType: popUp
+                                  popUpView: deleteTag
+                            - type: label
+                              text: "View All"
+                              style:
+                                color: "0x5584a5"
+                                fontSize: .Nfont.nf2
+                                # height: "0.02"
+                                textDecoration: underline
+                                borderWidth: "1px"
+                                fontWeight: "500"
+                                width: "0.05"
+                                left: "0.2"
+                                top: "0"
+                                height: "0.038"
+                                # display: "inline-block"
+                                textAlign:
+                                  y: center
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..formData.insurancePlans@: []
+                                      - ..formData.showCarriers@: ""
+                                      - ..formData.insurancePlans@: $var.plans
+                                      - ..formData.showCarriers@: $var.carrier
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: carrierView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: insurancePlansInViewAll
+                                - actionType: popUp
+                                  popUpView: viewAll
+
+                            - type: list
+                              contentType: listObject
+                              listObject: itemObject.plans
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.22"
+                                height: "0.14"
+                                marginTop: "0.002"
+                                overflow: hidden
+                                left: "0.02"
+                                # backgroundColor: "yellow"
+                              children:
+                                - type: listItem
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject
+                                      style:
+                                        display: "inline-block"
+                                        fontSize: .Nfont.nf2
+                                        fontFamily: "Poppins"
+                                        marginTop: "0.01"
+
+        - type: popUp
+          viewTag: addAcceptedInsurance
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: '0x00000033'
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                top: "0"
+                height: "1"
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  style:
+                    backgroundColor: "0x004a7e"
+                  children:
+                    - .CreateLabel:
+                      text: "Add Accepted Insurance"
+
+                    - .Closebutton:
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..formData.UpdateAllPlans.carrier@: ""
+                            - =.builtIn.array.clear:
+                                dataIn:
+                                  object: =..formData.UpdateAllPlans.plans
+                            - =.builtIn.array.clear:
+                                dataIn:
+                                  object: =..formData.realInsurance
+                            - =.builtIn.array.clear:
+                                dataIn:
+                                  object: =..formData.Alls
+                            - =.builtIn.array.clear:
+                                dataIn:
+                                  object: =..formData.selectedPlans
+                            - ..formData.inputCarrier@: ""
+                            - ..formData.selectAll@: false
+                        - actionType: popUpDismiss
+                          popUpView: addAcceptedInsurance
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectAllTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: allPlansTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: insurancePlans
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: carreirView
+                - type: view
+                  style:
+                    height: '0.84'
+                    width: '0.4'
+                    top: '0.08'
+                    backgroundColor: '0xffffff'
+                  children:
+                    - type: view
+                      style:
+                        width: "0.29"
+                        height: "0.75"
+                        margin: "auto"
+                      children:
+                        - type: lable
+                          text: "Medical Insurance Carrier"
+                          style:
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.02"
+                        - type: view
+                          style:
+                            width: "0.27"
+                            height: "0.04"
+                            border: "1px solid #CCCCCC"
+                            borderWidth: "1px"
+                            borderRadius: "5px"
+                            marginTop: "0.01"
+                            display: "flex"
+                            alignItems: "center"
+                          children:
+                            - type: image
+                              path: searchGray.svg
+                              style:
+                                width: "0.03"
+                                height: "0.02"
+                            - type: textField
+                              viewTag: carreirView
+                              placeholder: "Enter to search"
+                              debounce: 200
+                              dataKey: formData.inputCarrier
+                              style:
+                                width: "0.22"
+                                height: "0.03"
+                                border: "none"
+                              onInput:
+                                - actionType: evalObject
+                                  object:
+                                    - .AcceptedInsurance.formData.realInsurance@: []
+                                    - =.builtIn.search.queryIns:
+                                        dataIn:
+                                          ins: =..formData.inputCarrier
+                                        dataOut: AcceptedInsurance.formData.insuranceResponse
+                                    - ..formData.realInsurance@: =..formData.insuranceResponse.suggest.ins.0.options
+                                - actionType: popUp
+                                  popUpView: insuranceCarriers
+                                  dismissOnTouchOutside: true
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: newInsurance
+                                - actionType: popUp
+                                  popUpView: insurancePlans
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.search.queryInsurance:
+                                        dataIn:
+                                          id: "0"
+                                        dataOut: AcceptedInsurance.formData.Insurances
+                                    - =.builtIn.search.queryAllCarriers:
+                                        dataIn:
+                                          object: =..formData.Insurances.0._source.all
+                                        dataOut: AcceptedInsurance.formData.realInsurance
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: newInsurance
+                                - actionType: popUp
+                                  popUpView: insuranceCarriers
+                                  dismissOnTouchOutside: true
+                            - type: popUp
+                              viewTag: insuranceCarriers
+                              style:
+                                top: "0.043"
+                                width: "0.27"
+                                height: "0.2"
+                                backgroundColor: "#ffffff"
+                                zIndex: 1
+                                boxShadow: "0px 0px 1px 1px #cccccc"
+                              children:
+                                - type: scrollView
+                                  style:
+                                    width: "0.25"
+                                    height: "0.2"
+                                    margin: "auto"
+                                  children:
+                                    - type: list
+                                      viewTag: newInsurance
+                                      contentType: listObject
+                                      listObject: ..formData.realInsurance
+                                      iteratorVar: itemObject
+                                      children:
+                                        - type: listItem
+                                          style:
+                                            height: "0.02"
+                                            marginTop: "0.01"
+                                          hover:
+                                            backgroundColor: "0xffecf1cd"
+                                          onMouseEnter:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - ..formData.inputCarrier@: $var.text
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: carreirView
+                                          children:
+                                            - type: label
+                                              dataKey: itemObject.text
+                                              style:
+                                                fontSize: .Nfont.nf4
+                                                fontFamily: "Poppins"
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - ..formData.inputCarrier@: $var.text
+                                                - actionType: evalObject
+                                                  object:
+                                                    - ..formData.selectAll@: false
+                                                    - ..formData.selectedPlans@: []
+                                                    - ..formData.selectedPlansLength@: 0
+                                                    - =.builtIn.search.queryInsurance:
+                                                        dataIn:
+                                                          id: "0"
+                                                        dataOut: AcceptedInsurance.formData.Insurances
+                                                    - =.builtIn.search.ChooseCarrier:
+                                                        dataIn:
+                                                          object: =..formData.Insurances.0._source.all
+                                                          cond: =..formData.inputCarrier
+                                                        dataOut: AcceptedInsurance.formData.Alls
+                                                    - =.builtIn.array.getListLength:
+                                                        dataIn:
+                                                          object: =..formData.Alls
+                                                        dataOut: AcceptedInsurance.formData.allPlansLength
+                                                    - ..formData.selectAll@: false
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: selectAllTag
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: carreirView
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: selectAllTag
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: allPlansTag
+
+                        - type: lable
+                          text: "Medical Insurance Plans"
+                          style:
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.01"
+                        - type: view
+                          style:
+                            width: "0.29"
+                            height: "0.6"
+                            margin: "auto"
+                          children:
+                            - type: scrollView
+                              viewTag: insurancePlans
+                              style:
+                                width: "0.27"
+                                height: "0.6"
+                                marginTop: "0.01"
+                                # isHidden: true
+                              children:
+                                - type: view
+                                  viewTag: selectAllTag
+                                  children:
+                                    - type: image
+                                      path:
+                                        emit:
+                                          actions:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..formData.selectAll
+                                                      string2: true
+                                                - selectBlue.svg
+                                                - selectGray.svg
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.01"
+                                      onClick:
+                                        - actionType: evalObject
+                                          object:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..formData.allPlansLength
+                                                      string2: =..formData.selectedPlansLength
+                                                - ..formData.selectAll@: true
+                                                - ..formData.selectAll@: false
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: true
+                                                      string2: =..formData.selectAll
+                                                - actionType: evalObject
+                                                  object:
+                                                    - ..formData.selectAll@: false
+                                                    - ..formData.selectedPlansLength@: 0
+                                                    - ..formData.selectedPlans@: []
+                                                - actionType: evalObject
+                                                  object:
+                                                    - ..formData.selectAll@: true
+                                                    - ..formData.selectedPlans@: =..formData.Alls
+                                                    - ..formData.selectedPlansLength@: =..formData.allPlansLength
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: selectAllTag
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: allPlansTag
+                                    - type: label
+                                      text: "Select All"
+                                      style:
+                                        color: "0x004779"
+                                        fontSize: .Nfont.nf2
+                                        display: "inline-block"
+                                        marginLeft: "1vw"
+                                - type: list
+                                  viewTag: allPlansTag
+                                  contentType: listObject
+                                  listObject: ..formData.Alls
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.27"
+                                    marginTop: "0.005"
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        left: '0'
+                                        width: "0.27"
+                                        display: "inline-block"
+                                        marginTop: "0.01"
+                                      children:
+                                        - type: image
+                                          style:
+                                            float: left
+                                            width: "0.01"
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.array.has:
+                                                        dataIn:
+                                                          object: =..formData.selectedPlans
+                                                          value: $var
+                                                    - selectBlue.svg
+                                                    - selectGray.svg
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                      - =.builtIn.array.has:
+                                                          dataIn:
+                                                            object: =..formData.selectedPlans
+                                                            value: $var
+                                                      - =.builtIn.array.removeByValue:
+                                                          dataIn:
+                                                            object: =..formData.selectedPlans
+                                                            value: $var
+                                                      - =.builtIn.array.add:
+                                                          dataIn:
+                                                            object: =..formData.selectedPlans
+                                                            value: $var
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.array.getListLength:
+                                                    dataIn:
+                                                      object: =..formData.selectedPlans
+                                                    dataOut: AcceptedInsurance.formData.selectedPlansLength
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.allPlansLength
+                                                          string2: =..formData.selectedPlansLength
+                                                    - ..formData.selectAll@: true
+                                                    - ..formData.selectAll@: false
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: selectAllTag
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: allPlansTag
+                                        - type: label
+                                          dataKey: itemObject
+                                          style:
+                                            width: "0.25"
+                                            marginLeft: "1vw"
+                                            fontFamily: 'Poppins'
+                                            fontSize: .Nfont.nf2
+                                            color: "#425061"
+                                            float: left
+                    - type: view
+                      style:
+                        width: "0.4"
+                        height: "0.15"
+                        margin: "auto"
+                        boxShadow: "0px -5px 10px -5px #cccccc"
+                      children:
+                        - type: button
+                          text: "Add"
+                          style:
+                            fontSize: .Nfont.nf4
+                            marginTop: "0.05"
+                            left: "0.3"
+                            width: "0.075"
+                            height: "0.04"
+                            backgroundColor: "0x005795"
+                            color: "#ffffff"
+                            borderRadius: "5px"
+                            border: "none"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =..formData.selectedPlans.0
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: AddTag
+                                      wait: true
+                                - =.builtIn.search.jugeSame:
+                                    dataIn:
+                                      object: =..formData.UpdateAlls
+                                      cond: =..formData.inputCarrier
+                                      name: "carrier"
+                                    dataOut: AcceptedInsurance.formData.judgeArray
+                                - if:
+                                    - =..formData.judgeArray
+                                    - actionType: popUp
+                                      popUpView: AlreadyExistTag
+                                      wait: true
+                                    - continue
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.object.set:
+                                    dataIn:
+                                      object: =..formData.UpdateAllPlans
+                                      key: carrier
+                                      value: =..formData.inputCarrier
+                                - =.builtIn.object.set:
+                                    dataIn:
+                                      object: =..formData.UpdateAllPlans
+                                      key: plans
+                                      value: =..formData.selectedPlans
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.selectedPlans
+                                    dataOut: AcceptedInsurance.formData.planLength
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - "("
+                                      - =..formData.planLength
+                                      - ")"
+                                    dataOut: AcceptedInsurance.formData.planLength
+                                - =.builtIn.object.set:
+                                    dataIn:
+                                      object: =..formData.UpdateAllPlans
+                                      key: planLength
+                                      value: =..formData.planLength
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..formData.UpdateAlls
+                                      value: =..formData.UpdateAllPlans
+                                - ..formData.ReqeustAll@: =..formData.UpdateAlls
+                            - actionType: evalObject
+                              object:
+                                - =..apiRequest.AcceptedInsurance.docAPI.get: ""
+                                - if:
+                                    - =..apiRequest.AcceptedInsurance.documentResp.doc.0.id
+                                    - actionType: evalObject
+                                      object:
+                                        - .AcceptedInsurance.apiRequest.AcceptedInsurance.docReq@: =..apiRequest.AcceptedInsurance.documentResp.doc.0
+                                    - continue
+                                - ..apiRequest.AcceptedInsurance.docReq.name.data@: =..formData.ReqeustAll
+                                - =..apiRequest.AcceptedInsurance.docAPI.store: ""
+                                - ..formData.insuranceList@: =..apiRequest.AcceptedInsurance.docResp.doc.name.data
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.insuranceList
+                                    dataOut: AcceptedInsurance.formData.insuranceListLength
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - "All Accepted Insurance("
+                                      - =..formData.insuranceListLength
+                                      - ")"
+                                    dataOut: AcceptedInsurance.formData.insuranceListLength
+                            - actionType: evalObject
+                              object:
+                                - ..formData.UpdateAllPlans.carrier@: ""
+                                - =.builtIn.array.clear:
+                                    dataIn:
+                                      object: =..formData.UpdateAllPlans.plans
+                                - =.builtIn.array.clear:
+                                    dataIn:
+                                      object: =..formData.realInsurance
+                                - =.builtIn.array.clear:
+                                    dataIn:
+                                      object: =..formData.Alls
+                                - =.builtIn.array.clear:
+                                    dataIn:
+                                      object: =..formData.selectedPlans
+                                - ..formData.inputCarrier@: ""
+                                - ..formData.selectAll@: false
+                            - actionType: popUpDismiss
+                              popUpView: addAcceptedInsurance
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: insuranceListTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: selectAllTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: lengthTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: allPlansTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: insurancePlans
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: carreirView
+
+        - type: popUp
+          viewTag: viewAll
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: '0x00000033'
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                top: "0"
+                height: "1"
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'View All'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: viewAll
+                - type: view
+                  style:
+                    height: '0.84'
+                    width: '0.4'
+                    top: '0.08'
+                    backgroundColor: '0xffffff'
+                  children:
+                    - type: view
+                      style:
+                        width: "0.29"
+                        height: "0.75"
+                        margin: "auto"
+                      children:
+                        - type: label
+                          text: "Medical Insurance Carrier"
+                          style:
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.02"
+                        - type: label
+                          dataKey: formData.showCarriers
+                          viewTag: carrierView
+                          style:
+                            fontSize: .Nfont.nf3
+                            display: "inline-block"
+                            fontWeight: "600"
+                            marginTop: "0.02"
+                        - type: label
+                          text: "Medical Insurance plans"
+                          style:
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.02"
+                        - type: view
+                          style:
+                            width: "0.29"
+                            height: "0.6"
+                            margin: "auto"
+                          children:
+                            - type: scrollView
+                              style:
+                                width: "0.27"
+                                height: "0.6"
+                                marginTop: "0.005"
+                                backgroundColor: "#ffffff"
+                                # isHidden: true
+                              children:
+                                - type: list
+
+                                  contentType: listObject
+                                  listObject: =..formData.insurancePlans
+                                  iteratorVar: itemObject
+                                  viewTag: insurancePlansInViewAll
+                                  style:
+                                    width: "0.27"
+                                    height: "0.12"
+                                  children:
+                                    - type: listItem
+                                      style:
+                                        width: "0.27"
+                                        height: "auto"
+                                        marginTop: "0.015"
+                                        display: flex
+                                        justifyContent: space-between
+                                        alignItems: center
+                                      children:
+                                        - type: button
+                                          style:
+                                            width: "0.01"
+                                            float: left
+                                            border: none
+                                            backgroundColor: "#ffffff"
+                                          children:
+                                            - type: image
+                                              path: deletePhoto.svg
+                                              style:
+                                                width: "0.01"
+                                                float: left
+                                                display: flex
+                                                alignItems: center
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - =.builtIn.array.removeByValue:
+                                                      dataIn:
+                                                        object: =..formData.insurancePlans
+                                                        value: $var
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: insurancePlansInViewAll
+                                        - type: label
+                                          dataKey: itemObject
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            fontFamily: "Poppins"
+                                            float: left
+                                            width: "0.25"
+                                          onClick:
+
+
+                    - type: view
+                      style:
+                        width: "0.4"
+                        height: "0.15"
+                        margin: "auto"
+                        boxShadow: "0px -5px 10px -5px #cccccc"
+                      children:
+                        - type: button
+                          text: "Confirm"
+                          style:
+                            marginTop: "0.05"
+                            left: "0.3"
+                            width: "0.075"
+                            height: "0.04"
+                            backgroundColor: "0x005795"
+                            color: "#ffffff"
+                            borderRadius: "5px"
+                            fontSize: .Nfont.nf4
+                            border: "none"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.insurancePlans
+                                    dataOut: AcceptedInsurance.formData.planLength
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - "("
+                                      - =..formData.planLength
+                                      - ")"
+                                    dataOut: AcceptedInsurance.formData.planLength
+                                - =.builtIn.search.DeleteCarrier:
+                                    dataIn:
+                                      object: =..formData.UpdateAlls
+                                      carreir: =..formData.showCarriers
+                                      plans: =..formData.insurancePlans
+                                      len: =..formData.planLength
+                                    dataOut: AcceptedInsurance.formData.ReqeustAll
+                                - ..formData.UpdateAlls@: =..formData.ReqeustAll
+                                - ..apiRequest.AcceptedInsurance.docReq.name.data@: =..formData.UpdateAlls
+                                - =..apiRequest.AcceptedInsurance.docAPI.store: ""
+                                - ..formData.insuranceList@: =..apiRequest.AcceptedInsurance.docResp.doc.name.data
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.insuranceList
+                                    dataOut: AcceptedInsurance.formData.insuranceListLength
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - "All Accepted Insurance("
+                                      - =..formData.insuranceListLength
+                                      - ")"
+                                    dataOut: AcceptedInsurance.formData.insuranceListLength
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: insuranceListTag
+                            - actionType: popUpDismiss
+                              popUpView: viewAll
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: lengthTag
+        - .BaseJudgeView:
+          viewTag: deleteTag
+          children:
+            - .BaseJudgeInnerView:
+              children:
+                - .BaseJudgeCancelImg:
+                - .BaseJudgeTxt:
+                - .BaseJudgeButtonView:
+                  children:
+                    - .BaseJudgeButtonNo: # 可以重写
+                    - .BaseJudgeButtonYes: # 可以重写     
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.removeByName:
+                                dataIn:
+                                  object: =..formData.UpdateAlls
+                                  key: "carrier"
+                                  name: =..formData.showCarriers
+                            - ..formData.showCarriers@: ""
+                            - ..apiRequest.AcceptedInsurance.docReq.name.data@: =..formData.UpdateAlls
+                            - =..apiRequest.AcceptedInsurance.docAPI.store: ""
+                            - ..formData.insuranceList@: =..apiRequest.AcceptedInsurance.docResp.doc.name.data
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.insuranceList
+                                dataOut: AcceptedInsurance.formData.insuranceListLength
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "All Accepted Insurance("
+                                  - =..formData.insuranceListLength
+                                  - ")"
+                                dataOut: AcceptedInsurance.formData.insuranceListLength
+
+                        - actionType: popUp
+                          popUpView: saveSuccessfulTag
+                        - actionType: popUpDismiss
+                          popUpView: deleteTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: lengthTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: insuranceListTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: mainContent
+        - .BaseSuccessfulView:
+          viewTag: saveSuccessfulTag
+          msg: "Delete Successfully"
+        - .itemAlreadyExist:
+          viewTag: AlreadyExistTag
+        - .itemAlreadyExist:
+          viewTag: AddTag
+          msg2: "Please Add new Insurance"

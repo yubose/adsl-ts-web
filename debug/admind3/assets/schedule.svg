@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="15.512" height="15.138" viewBox="0 0 15.512 15.138">
-  <g id="canlendar" transform="translate(0.5 0.5)">
-    <path id="路径_7709" data-name="路径 7709" d="M6.112,6H17.4a1.523,1.523,0,0,1,1.612,1.414v9.9A1.523,1.523,0,0,1,17.4,18.724H6.112A1.523,1.523,0,0,1,4.5,17.31v-9.9A1.523,1.523,0,0,1,6.112,6Z" transform="translate(-4.5 -4.586)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
-    <path id="路径_7710" data-name="路径 7710" d="M24,3V5.828" transform="translate(-13.519 -3)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
-    <path id="路径_7711" data-name="路径 7711" d="M12,3V5.828" transform="translate(-7.969 -3)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
-    <path id="路径_7712" data-name="路径 7712" d="M4.5,15H19.012" transform="translate(-4.5 -9.345)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
-  </g>
-</svg>

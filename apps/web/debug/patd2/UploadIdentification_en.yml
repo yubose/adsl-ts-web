@@ -1,0 +1,1489 @@
+UploadIdentification:
+  title: Upload Identification Card
+  pageNumber:
+  init: #Page initialization
+    - .SignInCheck
+    - if:
+        - =.Global.editProfile
+        - actionType: evalObject
+          object:
+            - ..formData.isButtonShow@: true
+            - ..formData.isBackShow@: false
+        - actionType: evalObject
+          object:
+            - ..formData.isButtonShow@: false
+            - ..formData.isBackShow@: true
+
+    - actionType: evalObject #android use calendar init
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getShow
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: UploadIdentification.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: UploadIdentification.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: UploadIdentification.calendarDate.day
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.UploadIdentification.calendarDate.year
+              month: =.UploadIdentification.calendarDate.month
+              today: =.UploadIdentification.calendarDate.day
+            dataOut: UploadIdentification.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.UploadIdentification.calendarDate.month
+            dataOut: UploadIdentification.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.UploadIdentification.calendarDate.year
+              month: =.UploadIdentification.calendarDate.month
+              day: =.UploadIdentification.calendarDate.day
+              formatType: "M/D/Y"
+            dataOut: UploadIdentification.calendarDate.todayDate
+  formData: #Input data here
+    idCardShow: none
+    uploadShow: block
+    isBackShow: true
+    isButtonShow: true
+    attentionList:
+      - Use camera zoom to keep the ID one foot away to avoid unintended shadows.
+      - Avoid light sources that could blur the prints by glare.
+      - Avoid cropped corners, smudges scratches, and creases.
+    selectIdType:
+      - Drive License
+      - Passport
+      - Other ID
+    arrayIdType:
+      - PASSPORT FRONT
+      - DRIVER LICENSE FRONT
+    identification: ""
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    fileFormat: ""
+    gender:
+      - key: gender
+        value: Male
+      - key: gender
+        value: Female
+      - key: gender
+        value: Other
+  apiRequest: #Input data request here
+    identification:
+      docRes: ""
+      docCreateReq:
+        type: .DocType.F_IDCard
+        eid: .Global.rootNotebookID
+        name:
+          title: ""
+          type:
+          data: binFile
+      docAPI:
+        store:
+          api: cd
+          dataIn: UploadIdentification.apiRequest.identification.docCreateReq
+          dataOut: Global.formData.front_IDCard
+
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    monthName: ""
+    todayDate: ""
+    dayLable: []
+  ocrData:
+    DATE_OF_BIRTH: ""
+    FIRST_NAME: ""
+    LAST_NAME: ""
+    MIDDLE_NAME: ""
+    CITY_IN_ADDRESS: ""
+    COUNTY: ""
+    ADDRESS: ""
+    ADDRESS_SECOND_LINE: ""
+    STATE_IN_ADDRESS: ""
+    ZIP_CODE_IN_ADDRESS: ""
+    DOCUMENT_NUMBER: ""
+    ID_TYPE: ""
+  awsOCR:
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..apiRequest.identification.docRes.code
+              string2: 0
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..formData.idCardShow
+                      string2: none
+                - actionType: evalObject
+                  object:
+                    - ..formData.idCardShow@: block
+                    - ..formData.uploadShow@: none
+                - actionType: evalObject
+                  object:
+                    - ..formData.idCardShow@: block
+                    - ..formData.uploadShow@: none
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..formData.idCardShow
+                      string2: none
+                - actionType: evalObject
+                  object:
+                    - ..formData.idCardShow@: none
+                    - ..formData.uploadShow@: block
+                - actionType: evalObject
+                  object:
+                    - ..formData.idCardShow@: block
+                    - ..formData.uploadShow@: none
+            - actionType: popUpDismiss
+              popUpView: zhuanquanViewTag
+            - actionType: popUp
+              popUpView: errrUploading
+              wait: true
+    - if:
+        - =.builtIn.utils.AWSOCR:
+            dataIn:
+              image: =..apiRequest.identification.docRes.doc.name.data
+            dataOut: UploadIdentification.ocrData
+        - continue
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..formData.idCardShow
+                      string2: none
+                - actionType: evalObject
+                  object:
+                    - ..formData.idCardShow@: none
+                    - ..formData.uploadShow@: block
+                - actionType: evalObject
+                  object:
+                    - ..formData.idCardShow@: block
+                    - ..formData.uploadShow@: none
+            - actionType: popUpDismiss
+              popUpView: zhuanquanViewTag
+            - actionType: popUp
+              popUpView: errerOCR
+              wait: true
+    - ..ocrData.gender@: ""
+    - if:
+        - =.builtIn.array.has:
+            dataIn:
+              object: =..formData.arrayIdType
+              value: =.UploadIdentification.ocrData.ID_TYPE
+        - continue
+        - .UploadIdentification.ocrData.ID_TYPE@: Other ID
+    - .UploadIdentification.ocrData.ADDRESS_SECOND_LINE@: ""
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.UploadIdentification.ocrData.ID_TYPE
+              string2: "DRIVER LICENSE FRONT"
+        - .UploadIdentification.ocrData.ID_TYPE@: Drive License
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.UploadIdentification.ocrData.ID_TYPE
+              string2: "PASSPORT FRONT"
+        - .UploadIdentification.ocrData.ID_TYPE@: Passport
+        - continue
+    - ..formData.isButtonShow@: false
+  viewRedraw:
+    # 刷新组件
+    - actionType: popUpDismiss
+      popUpView: zhuanquanViewTag
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: identificationTag
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: idDataTag
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: buttonTag
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: textUpdate
+    - actionType: popUp
+      popUpView: successUploading
+      wait: 2000
+  components:
+    - type: view
+      style:
+        margin: "0"
+        padding: "0"
+        height: "auto"
+        width: "1"
+        overflow: hidden
+        boxSizing: border-box
+
+        color: "0x333333"
+        fontSize: .Nfont.h16
+      children:
+        - type: view
+          style:
+            height: "0.055" # 44.66px
+            width: "1"
+            margin: "0"
+            padding: "0"
+            backgroundColor: "0x2988e6"
+          children:
+            - type: view
+              style:
+                marginLeft: "0.04"
+                display: "inline-block"
+
+                verticalAlign: middle
+                height: "0.055"
+                boxSizing: border-box
+              children:
+                - type: image
+                  path: arrowLeftgrey.svg
+                  style:
+                    marginTop: "0.012"
+                    isHidden: ..formData.isBackShow
+                    height: "0.0295"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.uploadShow
+                                  string2: none
+                            - actionType: popUp
+                              popUpView: saveCheckView
+                            - goto: EditProfile
+            - type: label
+              text: =..title
+              dataKey:
+              style:
+                verticalAlign: middle
+                width: "0.8"
+                wordWrap: break-word
+                display: "inline-block"
+
+                fontSize: .Nfont.h16
+                fontWeight: "400"
+                color: "0xffffff"
+                textAlign:
+                  x: center
+    - type: scrollView
+      style:
+        height: "0.845"
+        width: "1"
+      children:
+        - type: label
+          text: "Uploaded ID, Tap it to upload again."
+          viewTag: textUpdate
+          style:
+            marginLeft: "0.04"
+            boxSizing: border-box
+            fontSize: .Nfont.h16
+            display: ..formData.idCardShow
+
+            fontWeight: "600"
+            color: "0x333333"
+            marginTop: "0.022"
+        - type: label
+          text: "Please upload your ID image"
+          viewTag: textUpdate
+          style:
+            marginLeft: "0.04"
+            boxSizing: border-box
+            fontSize: .Nfont.h16
+            display: ..formData.uploadShow
+
+            fontWeight: "600"
+            color: "0x333333"
+            marginTop: "0.022"
+        - type: view
+          viewTag: identificationTag
+          style:
+            marginTop: "0.016"
+            width: "0.68"
+            marginLeft: "0.04"
+            height: "0.198"
+            backgroundColor: "0xF0F2F4"
+            borderRadius: "13"
+            overflow: hidden
+            textAlign:
+              x: center
+              y: center
+          children:
+            - type: image
+              path: null.png
+              path=func: .builtIn.utils.prepareDocToPath
+              dataKey: apiRequest.identification.docRes.doc.id
+              style:
+                width: "0.68"
+                display: ..formData.idCardShow
+                height: "0.198"
+            - type: image
+              path: editTag.svg
+              style:
+                top: "0.153"
+                left: "0.581"
+                display: ..formData.idCardShow
+                width: "0.096"
+                height: "0.044"
+            - type: image
+              path: idUpload.svg
+              style:
+                height: "0.074"
+                # width: "0.136"
+                display: ..formData.uploadShow
+          onClick:
+            - actionType: popUp
+              popUpView: iDImage
+        - type: view
+          viewTag: idDataTag
+          style:
+            height: auto
+            width: auto
+          children:
+            - type: view
+              style:
+                height: auto
+                width: auto
+                display: ..formData.uploadShow
+              children:
+                - type: label
+                  text: Attention
+                  style:
+                    marginLeft: "0.04"
+                    boxSizing: border-box
+
+                    fontWeight: "600"
+                    fontSize: .Nfont.h16
+                    color: "0x333333"
+                    marginTop: "0.022"
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.attentionList
+                  iteratorVar: itemObject
+                  style:
+                    width: "auto"
+                    margin: "0"
+                    marginLeft: "0.04"
+                    marginTop: "0.022"
+                    height: auto
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        height: "auto"
+                        width: "auto"
+                        marginTop: "0"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.01"
+                            marginTop: "0.008"
+                            height: "1vw"
+                            backgroundColor: "0x333333"
+                            display: inline-block
+                            borderRadius: "50"
+                            lineHeight: "2.8vh"
+                        - type: label
+                          dataKey: itemObject
+                          style:
+                            boxSizing: border-box
+
+                            color: "0x333333"
+                            width: "0.9"
+                            lineHeight: "2.8vh"
+                            marginLeft: "0.01"
+                            fontSize: .Nfont.h14
+                            display: inline-block
+            - type: view
+              style:
+                height: "auto"
+                wdith: "0.92"
+                marginLeft: "0.04"
+                display: ..formData.idCardShow
+                overflow: hidden
+              children:
+                - type: view
+                  style:
+                    width: "0.92"
+                    marginTop: "0.015"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.28"
+                        display: inline-block
+                      children:
+                        - type: label
+                          text: First Name
+                          style:
+                            fontSize: .Nfont.h14
+                            fontWeight: "550"
+
+                        - type: textField
+                          placeholder: Enter here
+                          dataKey: ocrData.FIRST_NAME
+                          style:
+                            width: "0.28"
+                            border:
+                              style: 3
+                            borderColor: "0xdfdfdf"
+                            borderRadius: "5"
+                            textIndent: "1em"
+                            fontSize: .Nfont.h14
+                            boxSizing: "border-box"
+                            marginTop: "0.005"
+                            borderWidth: "1.5"
+
+                            height: "0.055"
+                    - type: view
+                      style:
+                        width: "0.28"
+                        marginLeft: "0.04"
+                        display: inline-block
+                      children:
+                        - type: label
+                          text: Middle Name
+                          style:
+                            fontSize: .Nfont.h14
+                            fontWeight: "550"
+
+                        - type: textField
+                          placeholder: Enter here
+                          dataKey: ocrData.MIDDLE_NAME
+                          style:
+                            width: "0.28"
+                            border:
+                              style: 3
+                            borderColor: "0xdfdfdf"
+                            borderRadius: "5"
+                            textIndent: "1em"
+
+                            boxSizing: "border-box"
+                            fontSize: .Nfont.h14
+                            marginTop: "0.005"
+                            borderWidth: "1.5"
+                            height: "0.055"
+                    - type: view
+                      style:
+                        width: "0.28"
+                        marginLeft: "0.04"
+                        display: inline-block
+                      children:
+                        - type: label
+                          text: Last Name
+                          style:
+                            fontSize: .Nfont.h14
+                            fontWeight: "550"
+
+                        - type: textField
+                          dataKey: ocrData.LAST_NAME
+                          placeholder: Enter here
+                          style:
+                            width: "0.28"
+                            border:
+                              style: 3
+                            borderColor: "0xdfdfdf"
+                            borderRadius: "5"
+                            textIndent: "1em"
+                            fontSize: .Nfont.h14
+
+                            boxSizing: "border-box"
+                            marginTop: "0.005"
+                            borderWidth: "1.5"
+                            height: "0.055"
+                - type: view
+                  style:
+                    width: "0.92"
+                    marginTop: "0.02"
+                    height: "0.055"
+                  children:
+                    - type: label
+                      text: Date of Birth
+                      style:
+                        display: inline-block
+                        verticalAlign: middle
+                        width: "0.32"
+                        fontSize: .Nfont.h14
+                        fontWeight: "550"
+
+                    - tye: view
+                      viewTag: birthTag
+                      style:
+                        width: "0.6"
+                        display: inline-block
+                        verticalAlign: middle
+                        fontSize: .Nfont.h14
+
+                        boxSizing: "border-box"
+                        border:
+                          style: 3
+                        borderColor: "0xdfdfdf"
+                        borderRadius: "5"
+                        borderWidth: "1.5"
+
+                      children:
+                        - type: textField
+                          placeholder: Select
+                          dataKey: ocrData.DATE_OF_BIRTH
+                          style:
+                            width: "0.53"
+                            height: "0.055"
+
+                            textIndent: "1em"
+                            display: inline-block
+                            fontSize: .Nfont.h14
+                            verticalAlign: middle
+                            borderRadius: "5"
+                            boxSizing: border-box
+                            border:
+                              style: "1"
+                          onClick:
+                            #弹出日历
+                            - actionType: popUp
+                              popUpView: birthDay
+                        - type: image
+                          path: dateImg.svg
+                          style:
+                            width: "0.053"
+                            display: inline-block
+                            verticalAlign: middle
+                - type: view
+                  style:
+                    width: "0.92"
+                    marginTop: "0.02"
+                    height: "0.055"
+                  children:
+                    - type: label
+                      text: ID Type
+                      style:
+                        display: inline-block
+                        verticalAlign: middle
+                        width: "0.32"
+                        fontSize: .Nfont.h14
+                        fontWeight: "550"
+
+                    - type: select
+                      viewTag: IDTypeTag
+                      dataKey: ocrData.ID_TYPE
+                      options: ..formData.selectIdType
+                      style:
+                        width: "0.6"
+                        display: inline-block
+                        borderWidth: "1.5"
+                        verticalAlign: middle
+                        boxSizing: "border-box"
+
+                        fontSize: .Nfont.h14
+                        height: "0.055"
+                        textIndent: "1em"
+                        borderColor: "0xdfdfdf"
+                        border:
+                          style: 3
+                        borderRadius: "5"
+
+                - type: view
+                  style:
+                    width: "0.92"
+                    marginTop: "0.02"
+                    height: "0.055"
+                  children:
+                    - type: label
+                      text: "ID #"
+                      style:
+                        display: inline-block
+                        verticalAlign: middle
+                        width: "0.32"
+                        fontSize: .Nfont.h14
+                        fontWeight: "550"
+
+                    - type: textField
+                      dataKey: ocrData.DOCUMENT_NUMBER
+                      placeholder: Enter here
+                      style:
+                        width: "0.6"
+                        display: inline-block
+
+                        verticalAlign: middle
+                        borderWidth: "1.5"
+                        fontSize: .Nfont.h14
+                        boxSizing: "border-box"
+                        height: "0.055"
+                        textIndent: "1em"
+                        borderColor: "0xdfdfdf"
+                        border:
+                          style: 3
+                        borderRadius: "5"
+                - type: view
+                  style:
+                    width: "0.92"
+                    marginTop: "0.02"
+                    height: "0.055"
+                  children:
+                    - type: label
+                      text: Gender
+                      style:
+                        display: inline-block
+                        verticalAlign: middle
+                        width: "0.28"
+                        fontSize: .Nfont.h14
+                        fontWeight: "550"
+
+                    - type: view
+                      style:
+                        width: "0.64"
+                        display: "inline-block"
+                        verticalAlign: middle
+                      children:
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formDataTemp.gender
+                          iteratorVar: itemObject
+                          viewTag: sexView
+                          style:
+                            margin: "0"
+                            marginTop: "0"
+                            width: "0.64"
+                            height: "auto"
+                            axis: horizontal
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                height: "auto"
+                                width: "auto"
+                              children:
+                                - type: image
+                                  style:
+                                    width: "0.05"
+                                    height: "0.03"
+                                    marginLeft: "0.04"
+                                    verticalAlign: middle
+                                    display: inline-block
+                                  path:
+                                    #根据gender来判断是否点亮单选框
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..ocrData.gender
+                                                  string2: $var.value
+                                            - radioOn.svg
+                                            - radioOff.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..ocrData.gender
+                                                    string2: $var.value
+                                              - =.builtIn.object.set:
+                                                  dataIn:
+                                                    object: =..ocrData
+                                                    key: $var.key
+                                                    value: ""
+                                              - =.builtIn.object.set:
+                                                  dataIn:
+                                                    object: =..ocrData
+                                                    key: $var.key
+                                                    value: $var.value
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: sexView
+                                - type: label
+                                  dataKey: itemObject.value
+                                  style:
+                                    display: inline-block
+                                    verticalAlign: middle
+
+                                    fontSize: .Nfont.h14
+                                    marginLeft: "0.015"
+                                    color: "0x333333"
+                - type: label
+                  text: Patient Address
+                  style:
+                    marginTop: "0.02"
+                    fontSize: .Nfont.h14
+                    fontWeight: "550"
+
+                - type: view
+                  style:
+                    width: "0.92"
+                  children:
+                    - type: textField
+                      placeholder: Address Line
+                      dataKey: ocrData.ADDRESS
+                      style:
+                        boxSizing: "border-box"
+                        height: "0.055"
+                        marginTop: "0.01"
+                        borderColor: "0xdfdfdf"
+                        textIndent: "1em"
+
+                        borderWidth: "1.5"
+                        fontSize: .Nfont.h14
+                        border:
+                          style: 3
+                        borderRadius: "5"
+                        width: "0.92"
+                    - type: textField
+                      placeholder: Address Second Line
+                      dataKey: ocrData.ADDRESS_SECOND_LINE
+                      style:
+                        boxSizing: "border-box"
+                        height: "0.055"
+                        borderWidth: "1.5"
+
+                        fontSize: .Nfont.h14
+                        marginTop: "0.01"
+                        borderColor: "0xdfdfdf"
+                        textIndent: "1em"
+                        border:
+                          style: 3
+                        borderRadius: "5"
+                        width: "0.92"
+                    - type: view
+                      style:
+                        width: "0.92"
+                      children:
+                        - type: textField
+                          placeholder: City
+                          dataKey: ocrData.CITY_IN_ADDRESS
+                          style:
+                            height: "0.055"
+                            display: inline-block
+                            width: "0.21"
+                            fontSize: .Nfont.h14
+                            boxSizing: "border-box"
+
+                            marginTop: "0.01"
+                            borderColor: "0xdfdfdf"
+                            textIndent: "1em"
+                            borderWidth: "1.5"
+                            border:
+                              style: 3
+                            borderRadius: "5"
+                        - type: textField
+                          placeholder: County
+                          dataKey: ocrData.COUNTY
+                          style:
+                            height: "0.055"
+                            marginLeft: "0.02"
+                            display: inline-block
+                            fontSize: .Nfont.h14
+                            borderWidth: "1.5"
+
+                            width: "0.22"
+                            boxSizing: "border-box"
+                            marginTop: "0.01"
+                            borderColor: "0xdfdfdf"
+                            textIndent: "1em"
+                            border:
+                              style: 3
+                            borderRadius: "5"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            marginLeft: "0.02"
+                            height: "0.055"
+                            width: "0.22"
+                            display: inline-block
+                          children:
+                            - type: select
+                              dataKey: ocrData.STATE_IN_ADDRESS
+                              style:
+                                height: "0.055"
+                                borderWidth: "1.5"
+
+                                width: "0.22"
+                                boxSizing: "border-box"
+                                fontSize: .Nfont.h14
+                                borderColor: "0xdfdfdf"
+                                textIndent: "1em"
+                                border:
+                                  style: 3
+                                borderRadius: "5"
+                              options: .SelectINformationDM.state
+                        - type: textField
+                          placeholder: Zip Code
+                          dataKey: ocrData.ZIP_CODE_IN_ADDRESS
+                          style:
+                            height: "0.055"
+                            borderWidth: "1.5"
+                            marginLeft: "0.02"
+                            display: inline-block
+                            width: "0.209"
+
+                            fontSize: .Nfont.h14
+                            boxSizing: "border-box"
+                            marginTop: "0.01"
+                            borderColor: "0xdfdfdf"
+                            textIndent: "1em"
+                            border:
+                              style: 3
+                            borderRadius: "5"
+    - type: view
+      viewTag: buttonTag
+      style:
+        height: "0.0972"
+        width: "1"
+        top: "0.9"
+        backgroundColor: "0xffffff"
+        boxSizing: border-box
+        isHidden: ..formData.isButtonShow
+
+        # boxShadow: "1px 1px 4px 1px #dededf"
+        overflow: hidden
+      children:
+        - type: button
+          text: Skip for Now
+          dataKey:
+          style:
+            marginTop: "0.0123"
+            height: "0.0443"
+
+            display: ..formData.uploadShow
+            width: "0.84"
+            marginLeft: "0.08"
+            border:
+              style: 1
+            borderRadius: "5"
+            backgroundColor: "#2988e6"
+            color: "#ffffff"
+            fontSize: .Nfont.h14
+            boxSizing: border-box
+            fontWeight: "600"
+            textAlign:
+              x: center
+          onClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.idCardShow
+                          string2: none
+                    - actionType: popUp
+                      popUpView: jumpCheckView
+                      wait: true
+                    - continue
+        - type: button
+          text: Confirm
+          style:
+            marginTop: "0.0123"
+            height: "0.0443"
+            width: "0.84"
+            display: ..formData.idCardShow
+            border:
+              style: 1
+            borderRadius: "5"
+            backgroundColor: "#2988e6"
+            color: "#ffffff"
+            marginLeft: "0.08"
+
+            fontSize: .Nfont.h14
+            boxSizing: border-box
+            fontWeight: "600"
+            textAlign:
+              x: center
+          onClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.DATE_OF_BIRTH
+                    - continue
+                    - .Global.Profile.name.data.basicInfo.dateOfBirth@: =..ocrData.DATE_OF_BIRTH
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.FIRST_NAME
+                    - continue
+                    - .Global.Profile.name.data.basicInfo.firstName@: =..ocrData.FIRST_NAME
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.LAST_NAME
+                    - continue
+                    - .Global.Profile.name.data.basicInfo.lastName@: =..ocrData.LAST_NAME
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.MIDDLE_NAME
+                    - continue
+                    - .Global.Profile.name.data.basicInfo.middleName@: =..ocrData.MIDDLE_NAME
+
+            - actionType: evalObject
+              object:
+                - =.builtIn.string.concatTrim:
+                    dataIn:
+                      - =..ocrData.FIRST_NAME
+                      - " "
+                      - =..ocrData.MIDDLE_NAME
+                      - " "
+                      - =..ocrData.LAST_NAME
+                    dataOut: Global.Profile.name.data.basicInfo.fullName
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.CITY_IN_ADDRESS
+                    - continue
+                    - .Global.Profile.name.data.contactInfo.address.city@: =..ocrData.CITY_IN_ADDRESS
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.COUNTY
+                    - continue
+                    - .Global.Profile.name.data.contactInfo.address.county@: =..ocrData.COUNTY
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.ADDRESS
+                    - continue
+                    - .Global.Profile.name.data.contactInfo.address.line@: =..ocrData.ADDRESS
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.ADDRESS_SECOND_LINE
+                    - continue
+                    - .Global.Profile.name.data.contactInfo.address.secondLine@: =..ocrData.ADDRESS_SECOND_LINE
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.STATE_IN_ADDRESS
+                    - continue
+                    - .Global.Profile.name.data.contactInfo.address.state@: =..ocrData.STATE_IN_ADDRESS
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.ZIP_CODE_IN_ADDRESS
+                    - continue
+                    - .Global.Profile.name.data.contactInfo.address.zipCode@: =..ocrData.ZIP_CODE_IN_ADDRESS
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..apiRequest.identification.docRes.doc.id
+                    - continue
+                    - .Global.Profile.name.data.identification.imageId@: =..apiRequest.identification.docRes.doc.id
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.DOCUMENT_NUMBER
+                    - continue
+                    - .Global.Profile.name.data.identification.id@: =..ocrData.DOCUMENT_NUMBER
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.ID_TYPE
+                    - continue
+                    - .Global.Profile.name.data.identification.type@: =..ocrData.ID_TYPE
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: ""
+                          string2: =..ocrData.gender
+                    - continue
+                    - .Global.Profile.name.data.basicInfo.gender@: =..ocrData.gender
+            - goto: EditProfile
+    #上传功能弹窗
+    - .ThreeChoices:
+      viewTag: "iDImage"
+      choice1Text: "Camera"
+      choice2Text: "Photo Library"
+      choice3Text: "Files"
+      lastChoiceText: "Cancel"
+      choice1Button:
+        - actionType: popUpDismiss
+          popUpView: iDImage
+        - actionType: openCamera
+          size: 20000
+          dataKey: UploadIdentification.apiRequest.identification.docCreateReq.name.data
+          dataObject: BLOB
+        - actionType: popUp
+          popUpView: zhuanquanViewTag
+        # 保存图片数据
+        - actionType: evalObject
+          object:
+            - =..apiRequest.identification.docAPI.store: ""
+            - ..apiRequest.identification.docRes@: =.Global.formData.front_IDCard
+        #上传失败处理
+        - actionType: evalObject
+          object: ..awsOCR
+        #刷新视图
+        - ..viewRedraw
+      choice2Button:
+        - actionType: popUpDismiss
+          popUpView: iDImage
+        - actionType: openPhotoLibrary
+          size: 20000
+          dataKey: UploadIdentification.apiRequest.identification.docCreateReq.name.data
+          fileFormat: UploadIdentification.formDataTemp.fileFormat
+          dataObject: BLOB
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.utils.isImageFile:
+                    dataIn:
+                      file: =..formDataTemp.fileFormat
+                - continue
+                - actionType: popUp
+                  popUpView: errrUploading
+                  wait: true
+        - actionType: popUp
+          popUpView: zhuanquanViewTag
+        # 保存图片数据
+        - actionType: evalObject
+          object:
+            - =..apiRequest.identification.docAPI.store: ""
+            - ..apiRequest.identification.docRes@: =.Global.formData.front_IDCard
+        #上传失败处理
+        - actionType: evalObject
+          object: ..awsOCR
+        #刷新视图
+        - ..viewRedraw
+      choice3Button:
+        - actionType: popUpDismiss
+          popUpView: iDImage
+        - actionType: openPhotoLibrary
+          dataKey: UploadIdentification.apiRequest.identification.docCreateReq.name.data
+          dataObject: BLOB
+        - actionType: popUp
+          popUpView: zhuanquanViewTag
+        # 保存图片数据
+        - actionType: evalObject
+          object:
+            - =..apiRequest.identification.docAPI.store: ""
+            - ..apiRequest.identification.docRes@: =.Global.formData.front_IDCard
+        #上传失败处理
+        - actionType: evalObject
+          object: ..awsOCR
+        #刷新视图
+        - ..viewRedraw
+
+      lastChoiceButton:
+        - actionType: popUpDismiss
+          popUpView: iDImage
+
+    #请求等待弹窗
+    - type: popUp
+      viewTag: zhuanquanViewTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333366"
+        top: "0"
+        textAlign:
+          x: center
+          y: center
+      children:
+        - type: view
+          style:
+            backgroundColor: "0xffffff"
+            height: "auto"
+            width: "0.4"
+            border:
+              style: ""
+            borderWidth: "1"
+            borderColor: ""
+            borderRadius: "10"
+            overflow: hidden
+            textAlign:
+              x: center
+              y: center
+          children:
+            - type: image
+              path: zhuanquan.gif
+              style:
+                width: "0.4"
+    #上传成功弹窗
+    - .SuccessfulOneLine:
+      style:
+        zIndex: "110"
+      viewTag: successUploading
+      message: "Successfully!"
+    #上传失败弹窗
+    - .SoftTips:
+      viewTag: errrUploading
+      message: "Upload failed! please try again"
+    #保存询问
+    - .Normal:
+      viewTag: saveCheckView
+      message: Save changed information？
+      leftText: "Cancel"
+      rightText: "Confirm"
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: saveCheckView
+        - goto: EditProfile
+      rightButton:
+        - actionType: popUpDismiss
+          popUpView: saveCheckView
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.DATE_OF_BIRTH
+                - continue
+                - .Global.Profile.name.data.basicInfo.dateOfBirth@: =..ocrData.DATE_OF_BIRTH
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.FIRST_NAME
+                - continue
+                - .Global.Profile.name.data.basicInfo.firstName@: =..ocrData.FIRST_NAME
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.LAST_NAME
+                - continue
+                - .Global.Profile.name.data.basicInfo.lastName@: =..ocrData.LAST_NAME
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.MIDDLE_NAME
+                - continue
+                - .Global.Profile.name.data.basicInfo.middleName@: =..ocrData.MIDDLE_NAME
+
+            - =.builtIn.string.concatTrim:
+                dataIn:
+                  - =..ocrData.FIRST_NAME
+                  - " "
+                  - =..ocrData.MIDDLE_NAME
+                  - " "
+                  - =..ocrData.LAST_NAME
+                dataOut: Global.Profile.name.data.basicInfo.fullName
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.CITY_IN_ADDRESS
+                - continue
+                - .Global.Profile.name.data.contactInfo.address.city@: =..ocrData.CITY_IN_ADDRESS
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.COUNTY
+                - continue
+                - .Global.Profile.name.data.contactInfo.address.county@: =..ocrData.COUNTY
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.ADDRESS
+                - continue
+                - .Global.Profile.name.data.contactInfo.address.line@: =..ocrData.ADDRESS
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.ADDRESS_SECOND_LINE
+                - continue
+                - .Global.Profile.name.data.contactInfo.address.secondLine@: =..ocrData.ADDRESS_SECOND_LINE
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.STATE_IN_ADDRESS
+                - continue
+                - .Global.Profile.name.data.contactInfo.address.state@: =..ocrData.STATE_IN_ADDRESS
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.ZIP_CODE_IN_ADDRESS
+                - continue
+                - .Global.Profile.name.data.contactInfo.address.zipCode@: =..ocrData.ZIP_CODE_IN_ADDRESS
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..apiRequest.identification.docRes.doc.id
+                - continue
+                - .Global.Profile.name.data.identification.imageId@: =..apiRequest.identification.docRes.doc.id
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.DOCUMENT_NUMBER
+                - continue
+                - .Global.Profile.name.data.identification.id@: =..ocrData.DOCUMENT_NUMBER
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.ID_TYPE
+                - continue
+                - .Global.Profile.name.data.identification.type@: =..ocrData.ID_TYPE
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: ""
+                      string2: =..ocrData.gender
+                - continue
+                - .Global.Profile.name.data.basicInfo.gender@: =..ocrData.gender
+        - goto: EditProfile
+    #跳过询问
+    - .Normal:
+      viewTag: jumpCheckView
+      message: If no ID, go to manual input
+      leftText: "No"
+      rightText: "Go"
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: jumpCheckView
+      rightButton:
+        - actionType: popUpDismiss
+          popUpView: jumpCheckView
+        - goto: EditProfile
+    #日历
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.86"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.object.set:
+                        dataIn:
+                          object: =..ocrData
+                          key: DATE_OF_BIRTH
+                          value: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: birthTag
+                - actionType: popUpDismiss
+                  popUpView: birthDay
+    #OCR解析失败或者错误弹窗
+    - type: popUp
+      viewTag: errerOCR
+      message: "Need to upload correct ID image"
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+        textAlign:
+          y: center
+      children:
+        - type: view
+          style:
+            width: "0.7"
+            marginLeft: "0.15"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                width: "0.7"
+                height: "auto"
+                backgroundColor: "0xd81e06"
+                borderRadius: "14px 14px 0 0"
+                overflow: hidden
+                paddingBottom: "1vh"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    width: "0.7"
+                    height: "auto"
+                    fontSize: "0"
+                  children:
+                    - type: image
+                      path: aboutWhite.svg
+                      style:
+                        display: inline-block
+                        verticalAlign: middle
+                        marginLeft: "0.23"
+                        width: "0.045"
+                    - type: label
+                      text: Attention
+                      style:
+                        fontSize: .Nfont.h14
+                        marginLeft: "0.02"
+                        color: "0xFFFFFF"
+                        display: inline-block
+                        verticalAlign: middle
+
+            - type: label
+              text: ___.message
+              style:
+                width: "0.576"
+                marginLeft: "0.062"
+                marginTop: "0.027"
+                fontSize: .Nfont.h14
+
+                textAlign:
+                  x: center
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.027"
+                width: "0.7"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+            - type: view
+              style:
+                width: "0.7"
+              children:
+                - type: button
+                  text: "Skip"
+                  style:
+                    color: "0x007AFF"
+                    display: inline-block
+                    width: "0.349"
+                    fontWeight: "850"
+                    borderRadius: "0 0 0 14px"
+                    height: "0.054"
+                    backgroundColor: "0xE6E6E6"
+                    border:
+                      style: "1"
+                  onClick:
+                    - goto: EditProfile
+                - type: view
+                  style:
+                    width: "0.002"
+                    backgroundColor: "0x919192"
+                    display: inline-block
+                    height: "0.054"
+                    zIndex: "50"
+                - type: button
+                  text: "Retake"
+                  style:
+                    color: "0x007AFF"
+                    fontWeight: "850"
+                    display: inline-block
+                    width: "0.349"
+                    borderRadius: "0 0 14px 0"
+                    height: "0.054"
+                    backgroundColor: "0xE6E6E6"
+                    border:
+                      style: "1"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: errerOCR
+                    - actionType: popUp
+                      popUpView: iDImage

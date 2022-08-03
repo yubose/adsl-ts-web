@@ -1,0 +1,1103 @@
+BaseDate:
+  # calendarDate:
+  # minidayLable: []
+  month:
+    - Jan
+    - Feb
+    - Mar
+    - Apr
+    - May
+    - Jun
+    - Jul
+    - Aug
+    - Sep
+    - Oct
+    - Nov
+    - Dec
+  showAllSplitTime:
+    morning: []
+    afternoon: []
+  schedule:
+    response: ""
+    scheduleList: ""
+    get:
+      api: re
+      dataIn: BaseDate.schedule.edge
+      dataOut: BaseDate.schedule.scheduleList
+    edge:
+      type: 40000
+      id: "" # - .Global.currentUser.vertex.id
+      sCondition: =.Global.scheduleScondition
+      xfname: "evid"
+      maxcount: "10000"
+      obfname: "ctime"
+      asc: true
+      _nonce: =.Global._nonce
+  getDate:
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.year@:
+          =.builtIn.date.getYear: ""
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.month@:
+          =.builtIn.date.getMonth: ""
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.day@:
+          =.builtIn.date.getDate: ""
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.todayDate@:
+          =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.BaseDate.calendarDate.year
+              month: =.BaseDate.calendarDate.month
+              day: =.BaseDate.calendarDate.day
+              formatType: "Y-M-D"
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.dayLable@:
+          =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.BaseDate.calendarDate.year
+              month: =.BaseDate.calendarDate.month
+              today: =.BaseDate.calendarDate.day
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.minidayLable@:
+          =.builtIn.date.miniWeeklyCalendarArray:
+            dataIn:
+              year: =.BaseDate.calendarDate.year
+              month: =.BaseDate.calendarDate.month
+              today: =.BaseDate.calendarDate.day
+              markDay: =.BaseDate.calendarDate.day
+              color: "0x000000"
+              backgroundColor: "0xFFFFFF6f"
+              todayColor: "0xffffff"
+              todayBackgroundColor: "0x2988E6"
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.monthName@:
+          =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.BaseDate.calendarDate.month
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.selectDate@:
+          =.builtIn.string.concat:
+            dataIn:
+              - =.BaseDate.calendarDate.month
+              - "/"
+              - =.BaseDate.calendarDate.day
+              - "/"
+              - =.BaseDate.calendarDate.year
+    # - =.builtIn.date.calendarArray:
+    #     dataIn:
+    #       year: =.BaseDate.calendarDate.year
+    #       month: =.BaseDate.calendarDate.month
+    #       today: =.BaseDate.calendarDate.day
+    #     dataOut: BaseDate.calendarDate.dayLable
+    # - =.builtIn.date.miniWeeklyCalendarArray:
+    #     dataIn:
+    #       year: =.BaseDate.calendarDate.year
+    #       month: =.BaseDate.calendarDate.month
+    #       today: =.BaseDate.calendarDate.day
+    #       markDay: =.BaseDate.calendarDate.day
+    #       color: "0x000000"
+    #       backgroundColor: "0xFFFFFF6f"
+    #       todayColor: "0xffffff"
+    #       todayBackgroundColor: "0x2988E6"
+    #     dataOut: BaseDate.calendarDate.minidayLable
+    # - =.builtIn.date.transformMonth:
+    #     dataIn:
+    #       month: =.BaseDate.calendarDate.month
+    #     dataOut: BaseDate.calendarDate.monthName
+    # - =.builtIn.date.ShowDateByNumber:
+    #     dataIn:
+    #       year: =.BaseDate.calendarDate.year
+    #       month: =.BaseDate.calendarDate.month
+    #       day: =.BaseDate.calendarDate.day
+    #       formatType: "Y-M-D"
+    #     dataOut: BaseDate.calendarDate.todayDate
+    # - =.builtIn.string.concat:
+    #     dataIn:
+    #       - =.BaseDate.calendarDate.month
+    #       - "/"
+    #       - =.BaseDate.calendarDate.day
+    #       - "/"
+    #       - =.BaseDate.calendarDate.year
+    #     dataOut: BaseDate.calendarDate.selectDate
+    - actionType: evalObject
+      object:
+        ..calendarDate@: =.BaseDate.calendarDate
+  calendar:
+    type: view
+    viewTag: calendarTag
+    style:
+      width: "0.3"
+      left: "0.43"
+      top: "0.268"
+      backgroundColor: "0xffffff"
+      height: "0.46"
+      border:
+        style: "3"
+      borderWidth: "1"
+      borderColor: "#d0d9df"
+      borderRadius: "8"
+  calendarTitle:
+    type: label
+    text: Select Date
+    style:
+      left: "0.03"
+      top: "0.027"
+      width: "0.2"
+      height: "0.05"
+      fontSize: .Nfont.nf4
+      fontWeight: "600"
+      fontFamily: Poppins
+  calendarCancel:
+    type: image
+    path: calendarCancel.svg
+    onClick:
+      - actionType: popUpDismiss
+        popUpView: ____.viewTag
+    style:
+      top: "0.02"
+      left: "0.275"
+      width: "0.01"
+  calendarHeader:
+    type: view
+    style:
+      top: "0.055"
+      left: "0.022"
+      width: "0.244"
+      height: "0.06"
+      border:
+        style: "2"
+      borderColor: "0xf0f0f0"
+      borderWidth: "2"
+  newMonthView:
+    type: view
+    style:
+      top: "0"
+      left: "0"
+      width: "0.06"
+      height: "0.05"
+    children:
+      - type: image
+        path: blueLeft.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                      step: -1
+                    dataOut: BaseDate.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                    dataOut: BaseDate.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: =.BaseDate.calendarDate.month
+                      today: 1
+                    dataOut: BaseDate.calendarDate.dayLable
+          - actionType: evalObject
+            object:
+              - ..calendarDate.monthName@: =.BaseDate.calendarDate.monthName
+              - .BaseDate.calendarDate.day@: 1
+              - =.builtIn.date.ShowDateByNumber:
+                  dataIn:
+                    year: =.BaseDate.calendarDate.year
+                    month: =.BaseDate.calendarDate.month
+                    day: =.BaseDate.calendarDate.day
+                    formatType: "Y-M-D" #elaine change order of date to us
+                  dataOut: BaseDate.calendarDate.todayDate
+              - =.builtIn.string.concat:
+                  dataIn:
+                    - =.BaseDate.calendarDate.month
+                    - "/"
+                    - =.BaseDate.calendarDate.day
+                    - "/"
+                    - =.BaseDate.calendarDate.year
+                  dataOut: BaseDate.calendarDate.selectDate
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0"
+          height: "0.015"
+          top: "0.014"
+      - type: select
+        dataKey: calendarDate.monthName
+        options: .BaseDate.month
+        onChange:
+          - actionType: evalObject
+            object:
+              - .BaseDate.calendarDate.monthName@: =..calendarDate.monthName
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseDate.calendarDate.monthName
+                    flag: 2
+                  dataOut: BaseDate.calendarDate.month
+              - =.builtIn.date.calendarArray:
+                  dataIn:
+                    year: =.BaseDate.calendarDate.year
+                    month: =.BaseDate.calendarDate.month
+                    today: 1
+                  dataOut: BaseDate.calendarDate.dayLable
+              - .BaseDate.calendarDate.day@: 1
+              - =.builtIn.date.ShowDateByNumber:
+                  dataIn:
+                    year: =.BaseDate.calendarDate.year
+                    month: =.BaseDate.calendarDate.month
+                    day: =.BaseDate.calendarDate.day
+                    formatType: "Y-M-D" #elaine change order of date to us
+                  dataOut: BaseDate.calendarDate.todayDate
+              - =.builtIn.string.concat:
+                  dataIn:
+                    - =.BaseDate.calendarDate.month
+                    - "/"
+                    - =.BaseDate.calendarDate.day
+                    - "/"
+                    - =.BaseDate.calendarDate.year
+                  dataOut: BaseDate.calendarDate.selectDate
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          width: "0.07"
+          height: "0.03"
+          left: "0.010"
+          top: "0.008"
+          fontSize: 0.86625vw
+          textIndent: "20px"
+          color: "0x333333"
+          textAlign:
+            x: center
+          backgroundColor: "0xffffff"
+          # backgroundColor: "#007acc33"
+          borderWidth: "2"
+          borderRadius: "3"
+          borderColor: "0xeaeaea"
+      - type: image
+        path: blackRight.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                      step: 1
+                    dataOut: BaseDate.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                    dataOut: BaseDate.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: =.BaseDate.calendarDate.month
+                      today: 1
+                    dataOut: BaseDate.calendarDate.dayLable
+          - actionType: evalObject
+            object:
+              - ..calendarDate.monthName@: =.BaseDate.calendarDate.monthName
+              - .BaseDate.calendarDate.day@: 1
+              - =.builtIn.date.ShowDateByNumber:
+                  dataIn:
+                    year: =.BaseDate.calendarDate.year
+                    month: =.BaseDate.calendarDate.month
+                    day: =.BaseDate.calendarDate.day
+                    formatType: "Y-M-D" #elaine change order of date to us
+                  dataOut: BaseDate.calendarDate.todayDate
+              - =.builtIn.string.concat:
+                  dataIn:
+                    - =.BaseDate.calendarDate.month
+                    - "/"
+                    - =.BaseDate.calendarDate.day
+                    - "/"
+                    - =.BaseDate.calendarDate.year
+                  dataOut: BaseDate.calendarDate.selectDate
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.085"
+          height: "0.015"
+          top: "0.014"
+
+  monthView:
+    type: view
+    style:
+      top: "0"
+      left: "0.04"
+      width: "0.06"
+      height: "0.05"
+    children:
+      - type: image
+        path: blueLeft.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                      step: -1
+                    dataOut: BaseDate.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                    dataOut: BaseDate.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: =.BaseDate.calendarDate.month
+                      today: 1
+                    dataOut: BaseDate.calendarDate.dayLable
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          height: "0.015"
+          top: "0.0175"
+      - type: label
+        dataKey: BaseDate.calendarDate.monthName
+        style:
+          width: "0.02"
+          height: "0.02"
+          left: "0.019"
+          top: "0.01"
+          fontSize: 0.86625vw
+          color: "0x003254"
+          textAlign:
+            x: center
+      - type: image
+        path: blackRight.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                      step: 1
+                    dataOut: BaseDate.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                    dataOut: BaseDate.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: =.BaseDate.calendarDate.month
+                      today: 1
+                    dataOut: BaseDate.calendarDate.dayLable
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.055"
+          height: "0.015"
+          top: "0.0175"
+  newYearView:
+    type: view
+    style:
+      top: "0"
+      left: "0.177"
+      width: "0.08"
+      height: "0.05"
+    children:
+      # - type: image
+      #   path: blueLeft.svg
+      #   onClick:
+      #     - emit:
+      #         actions:
+      #           - =.builtIn.number.Subtraction:
+      #               dataIn:
+      #                 num: =.BaseDate.calendarDate.year
+      #                 step: 1
+      #               dataOut: BaseDate.calendarDate.year
+      #           - =.builtIn.date.calendarArray:
+      #               dataIn:
+      #                 year: =.BaseDate.calendarDate.year
+      #                 month: 1
+      #                 today: 1
+      #               dataOut: BaseDate.calendarDate.dayLable
+      #     - actionType: evalObject
+      #       object: 
+      #         - .BaseDate.calendarDate.month@: 1
+
+      #     - actionType: evalObject
+      #       object:
+      #         - =.builtIn.date.transformMonth:
+      #             dataIn:
+      #               month: =.BaseDate.calendarDate.month
+      #             dataOut: BaseDate.calendarDate.monthName
+      #         - ..calendarDate.monthName@: =.BaseDate.calendarDate.monthName
+      #         - ..calendarDate.year@: =.BaseDate.calendarDate.year
+      #         - .BaseDate.calendarDate.day@: 1
+      #         - =.builtIn.date.ShowDateByNumber:
+      #               dataIn:
+      #                 year: =.BaseDate.calendarDate.year
+      #                 month: =.BaseDate.calendarDate.month
+      #                 day: =.BaseDate.calendarDate.day
+      #                 formatType: "Y-M-D" #elaine change order of date to us
+      #               dataOut: BaseDate.calendarDate.todayDate
+      #         - =.builtIn.string.concat:
+      #             dataIn:
+      #               - =.BaseDate.calendarDate.month
+      #               - "/"
+      #               - =.BaseDate.calendarDate.day
+      #               - "/"
+      #               - =.BaseDate.calendarDate.year
+      #             dataOut: BaseDate.calendarDate.selectDate                      
+      #     - actionType: builtIn
+      #       funcName: redraw
+      #       viewTag: calendarTag
+
+      #   style:
+      #     left: "0"
+      #     height: "0.015"
+      #     top: "0.012"
+      - type: select
+        dataKey: calendarDate.year
+        options: .BaseDate.year
+        onChange:
+          - actionType: evalObject
+            object:
+              # - .BaseDate.calendarDate.yearName@: =..calendarDate.yearName
+              - =.builtIn.date.transformYear:
+                  dataIn:
+                    year: =..calendarDate.year
+                  dataOut: BaseDate.calendarDate.year
+              - =.builtIn.date.calendarArray:
+                  dataIn:
+                    year: =.BaseDate.calendarDate.year
+                    month: 1
+                    today: 1
+                  dataOut: BaseDate.calendarDate.dayLable
+              - .BaseDate.calendarDate.month@: 1
+              - .BaseDate.calendarDate.day@: 1
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseDate.calendarDate.month
+                  dataOut: BaseDate.calendarDate.monthName
+              - ..calendarDate.monthName@: =.BaseDate.calendarDate.monthName
+              - ..calendarDate.year@: =.BaseDate.calendarDate.year
+              - =.builtIn.date.ShowDateByNumber:
+                  dataIn:
+                    year: =.BaseDate.calendarDate.year
+                    month: =.BaseDate.calendarDate.month
+                    day: =.BaseDate.calendarDate.day
+                    formatType: "Y-M-D" #elaine change order of date to us
+                  dataOut: BaseDate.calendarDate.todayDate
+              - =.builtIn.string.concat:
+                  dataIn:
+                    - =.BaseDate.calendarDate.month
+                    - "/"
+                    - =.BaseDate.calendarDate.day
+                    - "/"
+                    - =.BaseDate.calendarDate.year
+                  dataOut: BaseDate.calendarDate.selectDate
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          width: "0.054"
+          height: "0.03"
+          left: "0.01"
+          top: "0.008"
+          fontSize: 0.86625vw
+          textIndent: "20px"
+          color: "0x333333"
+          textAlign:
+            x: center
+          backgroundColor: "0xffffff"
+          borderWidth: "2"
+          borderRadius: "3"
+          borderColor: "0xeaeaea"
+      # - type: image
+      #   path: blackRight.svg
+      #   onClick:
+      #     - emit:
+      #         actions:
+      #           - =.builtIn.number.addition:
+      #               dataIn:
+      #                 num: =.BaseDate.calendarDate.year
+      #                 step: 1
+      #               dataOut: BaseDate.calendarDate.year
+      #           - =.builtIn.date.calendarArray:
+      #               dataIn:
+      #                 year: =.BaseDate.calendarDate.year
+      #                 month: 1
+      #                 today: 1
+      #               dataOut: BaseDate.calendarDate.dayLable
+      #     - actionType: evalObject
+      #       object: 
+      #         .BaseDate.calendarDate.month@: 1
+      #     - actionType: evalObject
+      #       object:
+      #         - =.builtIn.date.transformMonth:
+      #             dataIn:
+      #               month: =.BaseDate.calendarDate.month
+      #             dataOut: BaseDate.calendarDate.monthName
+      #         - ..calendarDate.monthName@: =.BaseDate.calendarDate.monthName
+      #         - ..calendarDate.year@: =.BaseDate.calendarDate.year
+      #         - .BaseDate.calendarDate.day@: 1
+      #         - =.builtIn.date.ShowDateByNumber:
+      #               dataIn:
+      #                 year: =.BaseDate.calendarDate.year
+      #                 month: =.BaseDate.calendarDate.month
+      #                 day: =.BaseDate.calendarDate.day
+      #                 formatType: "Y-M-D" #elaine change order of date to us
+      #               dataOut: BaseDate.calendarDate.todayDate
+      #         - =.builtIn.string.concat:
+      #             dataIn:
+      #               - =.BaseDate.calendarDate.month
+      #               - "/"
+      #               - =.BaseDate.calendarDate.day
+      #               - "/"
+      #               - =.BaseDate.calendarDate.year
+      #             dataOut: BaseDate.calendarDate.selectDate                      
+      #     - actionType: builtIn
+      #       funcName: redraw
+      #       viewTag: calendarTag
+      #   style:
+      #     left: "0.085"
+      #     height: "0.015"
+      #     top: "0.012"
+  yearView:
+    type: view
+    style:
+      top: "0"
+      left: "0.14"
+      width: "0.06"
+      height: "0.05"
+
+    children:
+      - type: image
+        path: blueLeft.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.number.Subtraction:
+                    dataIn:
+                      num: =.BaseDate.calendarDate.year
+                      step: 1
+                    dataOut: BaseDate.calendarDate.year
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: 1
+                      today: 1
+                    dataOut: BaseDate.calendarDate.dayLable
+          - actionType: evalObject
+            object:
+              - .BaseDate.calendarDate.month@: 1
+          - actionType: evalObject
+            object:
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseDate.calendarDate.month
+                  dataOut: BaseDate.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+
+        style:
+          height: "0.015"
+          top: "0.0175"
+      - type: label
+        dataKey: BaseDate.calendarDate.year
+        style:
+          width: "0.02"
+          height: "0.02"
+          left: "0.019"
+          top: "0.01"
+          fontSize: 0.86625vw
+          color: "0x003254"
+          textAlign:
+            x: center
+      - type: image
+        path: blackRight.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.number.addition:
+                    dataIn:
+                      num: =.BaseDate.calendarDate.year
+                      step: 1
+                    dataOut: BaseDate.calendarDate.year
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: 1
+                      today: 1
+                    dataOut: BaseDate.calendarDate.dayLable
+          - actionType: evalObject
+            object:
+              .BaseDate.calendarDate.month@: 1
+          - actionType: evalObject
+            object:
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseDate.calendarDate.month
+                  dataOut: BaseDate.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.055"
+          height: "0.015"
+          top: "0.0175"
+  weekView:
+    type: list
+    contentType: listObject
+    listObject:
+      - key: Sun
+      - key: Mon
+      - key: Tue
+      - key: Wed
+      - key: Thu
+      - key: Fri
+      - key: Sat
+    iteratorVar: itemObject
+    style:
+      top: "0.126"
+      width: "0.28"
+      left: "0.014"
+      height: "0.03"
+      justifyContent: "space-between"
+    children:
+      - type: listItem
+        itemObject: ""
+        style:
+          width: "0.038"
+          height: "0.03"
+          boxSizing: "border-box"
+          border: "none"
+          # padding: "0.08"
+          display: "inline-block"
+        children:
+          - type: label
+            dataKey: itemObject.key
+            style:
+              color: "0x333333"
+              width: "0.04"
+              height: "0.03"
+              fontWeight: "600"
+              fontSize: .Nfont.nf1
+              fontFamily: Poppins
+              backgroundColor: "0xffffff"
+              textAlign:
+                x: center
+                y: center
+  dayView:
+    type: list
+    contentType: listObject
+    listObject: =.BaseDate.calendarDate.dayLable
+    iteratorVar: itemObject
+    style:
+      top: "0.168"
+      left: "0.022"
+      width: "0.28"
+      height: "auto"
+      justifyContent: "space-between"
+    children:
+      - type: listItem
+        itemObject: ""
+        onClick:
+          - emit:
+              dataKey:
+                var: itemObject
+              actions:
+                - .BaseDate.flag@: $var.key
+                - if:
+                    - =.BaseDate.flag
+                    - .BaseDate.calendarDate.day@: $var.key
+                    - continue
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: =.BaseDate.calendarDate.month
+                      today: =.BaseDate.calendarDate.day
+                    dataOut: BaseDate.calendarDate.dayLable
+                - =.builtIn.date.ShowDateByNumber:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: =.BaseDate.calendarDate.month
+                      day: =.BaseDate.calendarDate.day
+                      formatType: "Y-M-D"
+                    dataOut: BaseDate.calendarDate.todayDate
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =.BaseDate.calendarDate.month
+                      - "/"
+                      - =.BaseDate.calendarDate.day
+                      - "/"
+                      - =.BaseDate.calendarDate.year
+                    dataOut: BaseDate.calendarDate.selectDate
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.key
+                          string2: ""
+                    - continue
+                    - =.builtIn.object.setProperty:
+                        dataIn:
+                          obj: =.BaseDate.calendarDate.dayLable
+                          label: "key"
+                          text: $var.key
+                          arr: [ "color", "backgroundColor" ]
+                          valueArr: [ "0x003d68", "0xd7e2ea" ]
+                          errorArr: [ "0x517086", "0xffffff" ]
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          width: "0.038"
+          height: "0.04"
+          padding: "0"
+          # marginLeft: "0.02"
+          display: "inline-block"
+        children:
+          - type: label
+            dataKey: itemObject.key
+            style:
+              top: "0"
+              left: "0"
+              width: "0.02"
+              height: "0.035"
+              color: "0x333333"
+              # backgroundColor: "#58ef7d33"
+              backgroundColor: itemObject.backgroundColor
+              borderRadius: "50"
+              fontWeight: "500"
+              fontFamily: "Roboto"
+              fontSize: 0.86625vw
+              textAlign:
+                x: center
+                y: center
+  leftWeek:
+    type: view
+    style:
+      top: "0.08"
+      # left: "0.5"
+      # left: "0.1"
+      width: "0.02"
+      height: "0.08"
+    children:
+      - type: image
+        path: blueLeft.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.LastWeek:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.minidayLable.0.year
+                      month: =.BaseDate.calendarDate.minidayLable.0.month
+                      day: =.BaseDate.calendarDate.minidayLable.0.day
+                    dataOut: BaseDate.calendarDate.tempDate
+                - =.builtIn.date.miniWeeklyCalendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.tempDate.year
+                      month: =.BaseDate.calendarDate.tempDate.month
+                      today: 32
+                      markDay: =.BaseDate.calendarDate.tempDate.day
+                      color: "0x000000"
+                      backgroundColor: "0xFFFFFF6f"
+                      todayColor: "0xffffff"
+                      todayBackgroundColor: "0x2988E6"
+                    dataOut: BaseDate.calendarDate.minidayLable
+          - actionType: evalObject
+            object:
+              - .BaseDate.calendarDate.year@: =.BaseDate.calendarDate.tempDate.year
+              - .BaseDate.calendarDate.month@: =.BaseDate.calendarDate.tempDate.month
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseDate.calendarDate.month
+                  dataOut: BaseDate.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          top: "0.02"
+          height: "0.015"
+  nextWeek:
+    type: view
+    style:
+      top: "0.03"
+      left: "0.23"
+      width: "0.02"
+      # height: "0.08"
+    children:
+      - type: image
+        path: blackRight.svg
+        style:
+          top: "0.07"
+          # left: "0.1"
+          height: "0.015"
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.NextWeek:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.minidayLable.6.year
+                      month: =.BaseDate.calendarDate.minidayLable.6.month
+                      day: =.BaseDate.calendarDate.minidayLable.6.day
+                    dataOut: BaseDate.calendarDate.tempDate
+                - =.builtIn.date.miniWeeklyCalendarArray:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.tempDate.year
+                      month: =.BaseDate.calendarDate.tempDate.month
+                      today: 32
+                      markDay: =.BaseDate.calendarDate.tempDate.day
+                      color: "0x000000"
+                      backgroundColor: "0xFFFFFF6f"
+                      todayColor: "0xffffff"
+                      todayBackgroundColor: "0x2988E6"
+                    dataOut: BaseDate.calendarDate.minidayLable
+          - actionType: evalObject
+            object:
+              - .BaseDate.calendarDate.year@: =.BaseDate.calendarDate.tempDate.year
+              - .BaseDate.calendarDate.month@: =.BaseDate.calendarDate.tempDate.month
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseDate.calendarDate.month
+                  dataOut: BaseDate.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+  minidayView:
+    type: list
+    contentType: listObject
+    listObject: =.BaseDate.calendarDate.minidayLable
+    iteratorVar: itemObject
+    style:
+      top: "0.06"
+      left: "0.015"
+      width: "0.21"
+      # height: "auto"
+      # justifyContent: "space-between"
+    children:
+      - type: listItem
+        itemObject: ""
+        onClick:
+          - emit:
+              dataKey:
+                var: itemObject
+              actions:
+                - =.builtIn.date.miniWeeklyCalendarArray:
+                    dataIn:
+                      year: $var.year
+                      month: $var.month
+                      today: $var.day
+                      markDay: $var.day
+                      color: "0x000000"
+                      backgroundColor: "0xFFFFFF6f"
+                      todayColor: "0xffffff"
+                      todayBackgroundColor: "0x2988E6"
+                    dataOut: BaseDate.calendarDate.minidayLable
+                - .BaseDate.calendarDate.year@: $var.year
+                - .BaseDate.calendarDate.month@: $var.month
+                - .BaseDate.calendarDate.day@: $var.day
+                - =.builtIn.date.ShowDateByNumber:
+                    dataIn:
+                      year: =.BaseDate.calendarDate.year
+                      month: =.BaseDate.calendarDate.month
+                      day: =.BaseDate.calendarDate.day
+                      formatType: "Y-M-D"
+                    dataOut: BaseDate.calendarDate.todayDate
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =.BaseDate.calendarDate.month
+                      - "/"
+                      - =.BaseDate.calendarDate.day
+                      - "/"
+                      - =.BaseDate.calendarDate.year
+                    dataOut: BaseDate.calendarDate.selectDate
+                - .BaseDate.showAllSplitTime.morning@: []
+                - .BaseDate.showAllSplitTime.afternoon@: []
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseDate.calendarDate.month
+                    dataOut: BaseDate.calendarDate.monthName
+                - =.builtIn.date.getTimeStampOfDate:
+                    dataIn:
+                      date: =.BaseDate.calendarDate.todayDate
+                    dataOut: BaseDate.calendarDate.todayStamp
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - "(stime<"
+                      - =.BaseDate.calendarDate.todayStamp.start
+                      - " AND "
+                      - "etime>"
+                      - =.BaseDate.calendarDate.todayStamp.start
+                      - " OR "
+                      - "stime>"
+                      - =.BaseDate.calendarDate.todayStamp.start
+                      - " AND "
+                      - "etime<"
+                      - =.BaseDate.calendarDate.todayStamp.end
+                      - " OR "
+                      - "stime<"
+                      - =.BaseDate.calendarDate.todayStamp.end
+                      - " AND "
+                      - "etime>"
+                      - =.BaseDate.calendarDate.todayStamp.end
+                      - ")"
+                      - " AND "
+                      - "subtype="
+                      - =.Global.currentSubtype
+                      # - " AND "
+                      # - "name like '%"
+                      # - =..selectData.reason
+                      # - "%'"
+                    dataOut: Global.scheduleScondition
+                # - =.builtIn.string.concat:
+                #     dataIn:
+                #       - "stime>"
+                #       - =.BaseDate.calendarDate.todayStamp.start
+                #       - " AND "
+                #       - "etime<"
+                #       - =.BaseDate.calendarDate.todayStamp.end
+                #       - " AND "
+                #       - "subtype="
+                #       - =.Global.currentSubtype
+                #     dataOut: Global.scheduleScondition
+          - actionType: evalObject
+            object:
+              - .BaseDate.schedule.scheduleList.edge@: []
+          - actionType: evalObject
+            object:
+              .Global._nonce@:
+                =.builtIn.math.random: ""
+          - actionType: evalObject
+            object:
+              - =..schedule.get: ""
+          - actionType: evalObject
+            object:
+              - =.builtIn.date.splitTime:
+                  dataIn:
+                    object2: =..schedule.scheduleList.edge
+                    timeSlot: =..formData.duration
+                    year: =.BaseDate.calendarDate.year
+                    month: =.BaseDate.calendarDate.month
+                    day: =.BaseDate.calendarDate.day
+                  dataOut: BaseDate.splitTime
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: DataTag
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: splitTimeTag
+        style:
+          width: "0.03"
+          height: "0.02"
+          # boxSizing: "border-box"
+          # border: "none"
+          padding: "0"
+          margin: "0"
+          display: "inline-block"
+          # flex: "auto"
+          marginTop: "0.02"
+        children:
+          - type: label
+            dataKey: itemObject.day
+            style:
+              top: "0"
+              width: "0.017"
+              height: "0.03"
+              color: itemObject.color
+              backgroundColor: itemObject.backgroundColor
+              borderRadius: "50"
+              fontSize: 0.77vw
+              textAlign:
+                x: center
+                y: center
+  addButton:
+    type: button
+    text: Confirm
+    style:
+      top: "0.41"
+      borderWidth: "0"
+      width: "0.052"
+      left: "0.219"
+      fontSize: .Nfont.nf2
+      fontWeight: "500"
+      fontFamily: Poppins
+      color: "0xffffff"
+      height: "0.0368"
+      backgroundColor: "0x0063a8"
+      borderRadius: "3"
+  cancelButton:
+    type: button
+    text: Cancel
+    style:
+      color: "0x005795"
+      textDecoration: underline
+      fontSize: .Nfont.nf4
+      fontWeight: "600"
+      border:
+        style: "1"
+      top: "0.41"
+      width: "0.052"
+      left: "0.155"
+      height: "0.045"
+      backgroundColor: "0xffffff"
+
+  getDateNoRegetDate:
+    - actionType: evalObject
+      object:
+        .BaseDate.calendarDate.todayDate@:
+          =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.BaseDate.calendarDate.year
+              month: =.BaseDate.calendarDate.month
+              day: =.BaseDate.calendarDate.day
+              formatType: "Y-M-D"
+    - =.builtIn.date.calendarArray:
+        dataIn:
+          year: =.BaseDate.calendarDate.year
+          month: =.BaseDate.calendarDate.month
+          today: =.BaseDate.calendarDate.day
+        dataOut: BaseDate.calendarDate.dayLable
+    - =.builtIn.date.miniWeeklyCalendarArray:
+        dataIn:
+          year: =.BaseDate.calendarDate.year
+          month: =.BaseDate.calendarDate.month
+          today: =.BaseDate.calendarDate.day
+          markDay: =.BaseDate.calendarDate.day
+          color: "0x000000"
+          backgroundColor: "0xFFFFFF6f"
+          todayColor: "0xffffff"
+          todayBackgroundColor: "0x2988E6"
+        dataOut: BaseDate.calendarDate.minidayLable
+    - =.builtIn.date.transformMonth:
+        dataIn:
+          month: =.BaseDate.calendarDate.month
+        dataOut: BaseDate.calendarDate.monthName
+    # - =.builtIn.date.ShowDateByNumber:
+    #     dataIn:
+    #       year: =.BaseDate.calendarDate.year
+    #       month: =.BaseDate.calendarDate.month
+    #       day: =.BaseDate.calendarDate.day
+    #       formatType: "Y-M-D"
+    #     dataOut: BaseDate.calendarDate.todayDate
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.BaseDate.calendarDate.month
+          - "/"
+          - =.BaseDate.calendarDate.day
+          - "/"
+          - =.BaseDate.calendarDate.year
+        dataOut: BaseDate.calendarDate.selectDate
+    - actionType: evalObject
+      object:
+        ..calendarDate@: =.BaseDate.calendarDate

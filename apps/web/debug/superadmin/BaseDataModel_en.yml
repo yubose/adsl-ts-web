@@ -1,0 +1,282 @@
+# BaseecosObj: # This is page name
+# root level object start with a upper case letter
+VoidObj: vVoOiIdD # {}
+EmptyObj: "" # {""} FALSE
+EcosObj : 
+  id : "" # base64 id
+  name : "" # JSON string
+  type : "0" # data type
+  ctime : "0" # Unix_TimeStamp when data created.
+Vertex: 
+  .EcosObj : "" # inherit an object value only, not the key
+  uid : ""
+  pk : ""
+  esk : ""
+  deat : ""
+# line 8,9 is equivelent to line 11 to 15
+#  id : "" # base64 id
+#  name : "" # JSON string
+#  type : "0" # data type
+#  ctime : "0" # Unix_TimeStamp when data created.
+#  uid : ""
+
+VertexAPI:
+  get :
+    api: rv
+  store:
+    api: cv
+Edge:
+  .EcosObj : ""
+  subtype : ""
+  bvid : ""
+  evid : ""
+  ctime : ""
+  tage : ""
+
+EdgeAPI:
+  get:
+    api: re
+    xfname: bvid
+    maxcount: "1"
+  store: # create or update
+    api: ce
+
+Document:
+  .EcosObj : ""
+  eid : "" #EDGE ID
+  fid : ""  # 
+  subtype:
+    isOnServer: "1" # 1 ECOS server and limited size after compression under 32k;  0  S3
+    isZipped: auto  # 0 not gziped  1  gziped
+    isBinary: "0" # 0 Base64       1  binary
+    isEncryped: "0"  #0 no         1  encryped
+    isExtraKeyNeeded: "0"  #0 no   1  yes
+    isEditable: "0"  #0  no        1  yes
+    isCached: "1"
+    applicationDataType: "0"   #0 data
+    mediaType: "0" # 0 others
+    size: auto  
+
+DocAPI:
+  get: 
+    api: rd
+    ids: "" # 
+    xfname: "" # default is "id", optional "eid", "fid"
+    type: "0" # 0 data application data type 0 - 1023
+    maxcount: "1" # default is 20, max 1000
+  store:
+    api: cd
+     
+
+Global: # name of an object
+  jwt:
+    edge:
+      .Edge: ""
+      type: 1030
+      bvid: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: Global.jwt.edge
+  menuBar:
+    listData: .SideMenuBarDM.ScheduleManagement
+  formData:  
+    stateStart: 
+      date: ""
+      stamp: ""
+    stateEndDate: 
+      date: ""
+      stamp: ""
+    currentFacility: {}   # 当前选中的facility(Statements页面) 
+    paymentSetting: {}   # 将获取到的当前的Facility的PaymentSetting带到其他页面
+    paymentEdgeID: ""    # 将AiTmed和当前Facility 之间的1113 id带到StatementAngle
+    judgeStatesOrTransfer: ""
+    appointment: ""    # 当前的会议，E2(PatientSummary和PatientSummaryRoom)
+    cancelAppointment: ""
+    currentProduct: {}
+    currentOrder: {}
+  newAccountFlag: "1"
+  phoneNumber: ""
+  acceptInfo: ""
+  currentDateTime : =.builtIn.currentDateTime # long integer of Unix_TimeStamp in millsecond
+  currentUser : 
+    dataCache : 
+      .DataCache: ""
+      expireTime : "2hr"
+    vertex: 
+      .Vertex: ""
+      name:
+        userName: ""
+        firstName: ""
+        lastName: ""
+        fullName: ""
+    JWT : ""
+#      .edge.get :       #override {"get":{"api":"re","type":"10002", "xfname":"bvid", "scondition":"subtype=1", "maxcount":"1000"}}
+  rootNotebookID: "" # Get Root Notebook Base64 formated ID
+  fac_rootNotebook: ""
+
+CountryCode:
+  - "+1" #US Canada
+  - "+52" #Mexico
+  - "+86" #China
+  - "+965" #Kuwait
+
+
+# document type
+DocType:
+  Profile:  257 #  0x101private, 1
+  CV: "1027" #4<<8+2  
+  Statement: "20000"
+  AiTmedOrderTotal: "20011"
+  AiTmedRefundTotal: "20021"
+  AiTmedCashOutTotal: "20031"
+  OrderTotal: "20010"   # Payment's order total 
+  RefundTotal: "20020"   # Payment's refund total 
+  CashOutTotal: "20030"   # Payment's cashout total   
+  DoctorProfile: "35841" #0x8c01 140<<8+1 # 140<<8+0 
+  DoctorPublicProfile: "35840" 
+  PatientProfile: 102401
+  UploadProfile: "258"
+  UploadFile: "1025" # 4<<8+1 4
+  CheckOrder: "2001" # patient's payment information
+  DEAPicture: "258561" # 1010<<8+1 
+  MedicalLicensePicture: "28901" #1020<<8+1
+  BusinessLogoPicture: "263680" #1030<<8
+  ProfilePicture: "266241" #1040<<8+1
+  Auth: "268801" #1050<<8+1
+  FacilityProfile: "271361" #1060<<8+1
+  CPTCode: "271617"     #0x42501 == 1061<<8+1
+  RoomProfile: "273921"     #1070<<8+1
+  InboxMessage: "1281" #5<<8+1
+  MeetingNote: "1537" # 6<<8+1 6 comment
+  EvaluationNote: "1793" # 7<<8+1 7
+  Prescription: "2049" # 8<<8+1 8
+  AbsentNote: "2305" # 9<<8+1 9
+  GroupBitAndTage: "10240" # 40<<8  tag of meeting room , can change tage of meeting room , AND calculate with tage
+  GroupBitOrTage: "10496" # 41<<8
+  UserAvatar: "40960" #0xA000 160<<8
+  VisitReason: "79360"    #310<<8+1
+  PatientChart: "25601" # 0x6401 100<<8+1
+  VitalSigns: "28161" # 0x6e01 110<<8+1
+  VisitQuestionnaire: "30721" # 0x7801 120<<8+1
+  MedicalRecord: "33281" # 0x8201  130<<8+1
+  LocationOfFacility: "38401" #   150<<8+1
+  DocumentSignature: "89601"
+  Intake3Signature: "53761" #210<<8+1
+  Cov19Chart: "92161" #360<<8+1
+  F_IDCard: "58881" #230<<8+1
+  Folder: "66560" # 260<<8       10001
+  Attachment: "66561"    #260<<8+1
+  MailFolder: "3328" #13<<8 0xD00   # get folder id:  
+  F_InsuranceCard: "71681" #280<<8+1
+  B_InsuranceCard: "74241" #290<<8+1
+  Covid19Questionnaire: "61441" # 0xf001 240<<8+1
+  Moderna: "84480"  #330<<8
+  PifzerBioNTech: "87040"  #340<<8
+  PatientForm: "94721"   #370<<8+1s
+  AcceptedInsurance: "97280"     #380
+  #virtual folder (1000~2000)<<8
+  PatientGeneralInfo:  "104961" #  0x410 public, 8+1
+  Cov19TestNewPatForm: "107521"    # 0x420  8+1         COVID-19 Testing Consent - New Patient
+  Cov19TestForm: "110081"  # 0x430 8+1                  COVID-19 Testing Consent Form
+  PifzerVaccineFirDoseForm: "112641"   # 0x440  8+1     Pifzer-BioNTech Vaccine - First Dose
+  PifzerVaccineSecDoseForm: "115201"   # 0x450  8+1     Pifzer-BioNTech Vaccine - Second Dose
+  ModernaVaccineFirDoseForm: "117761"   # 0x460  8+1    Moderna Vaccine Form - First Dose
+  ModernaVaccineSecDoseForm: "120321"
+  MailTag: "3584" # 0xE02
+  workStatusForm: "122881"  # 0x480 8+1  WorkStatusForm
+  pROne: "125441"  #0x490 8+1  PR-1
+  pRTwo: "128001" #0x500 8+1  PR-2
+  dWCFormRFA: "130561"  #0x510 8+1   DWCFormRFA 
+  surgeryForm: "133121"  #0x520  8+1  Surgery Authorization
+  InitEvalReport: "135681" #0x530<<8+1
+  covResultAndFluResult: "138241"    # 0x540 8+1   
+  ProgressReport: "140801" #0x550<<8+1
+  FluVaccinationConsentFormEnglish: "143361" #560<<8+1
+  FluVaccinationConsentFormSpanish: "145921" #570<<8+1
+  InsuranceCard: 148481 #580<<8+1
+  PatMedicalUpload: 153601 # 600<< 8+ 1  
+  PatientConsentForm: 156161  # 610<< 8+1
+  CheckPicture: "158721" # 620<< 8+ 1
+  PaymentSettings: "161281" # 630<< 8+ 1 Payment's personal information
+  AdminMedicalUpload: 163841 # 640<<8+ 1
+  CancelMeeting: 166401  # 650<<8+1 
+  Vendor: 194561 # 760<<8+1
+  Production: 197121 # 770<<8+1
+  Inventory: 199681 # 780<<8+1
+  MedicalRecommend: "204801" # 800<<8+1
+  ProductCoverImage: "207361" # 810<<8+1
+  ProductVideo: 209921 # 820<<8+1
+  ProductVideoImage: 212481 # 830<<8+1
+  ProductDetailImage: 215041 # 840<<8+1
+  OrderHistory: 217601 # # 850<<8+1
+  Order: 220161 # 860<<8+1
+  LabReferral: 222721 # 870 << 8+1
+EdgeType:
+  JWT: "1030"
+  Relation: "1100"
+  StaffToFacility: "1200"
+  InviteInfo: "1053"   # 添加好友最新逻辑
+  Invite: "1050"
+  Accept: "1060"
+  RootNotebook: "10000"
+  Email: "10002"  # 250<<8+1     10002
+  PubEmail: "10004" # the same as inbox=10002, the difference is that it can be created from sender without going through invite logic.
+  organization: "256001" # 1000<<8+1 3E801-->
+  WaitingRoom: "40000"
+  SquareCheckout: "1113"
+DocumentQuery:
+  ProviderAllMeetingDocuments: type NOT IN (102401,10496,10240,770)
+  PatientAllMeetingDocuments: type NOT IN (102401,10496,10240,770) AND type & 0xff = 1
+  AdminAllMeetingDocuments: type NOT IN (102401,10496,10240,770,25601,166401) # PatientChart是单独提出来的
+  meetingDocument: "type in (1025,1537,1793,2305,2049,30721,84480,87040,92161,94721,107521,110081,112641,115201,117761,120321,122881,125441,128001,130561,133121,135681,140801,143361,145921)"
+Duration: 
+  - 5 min 
+  - 10 min
+  - 15 min
+  - 20 min 
+  - 30 min
+  - 45 min
+  - 60 min
+  - 75 min
+  - 90 min 
+  - 120 min
+
+RoomSubtype: 
+  Telemedicine: "196611"    # 0x30003        3-> 0011
+  OfficeVisit: "131075"     # 0x20003        2-> 0010
+  Covid19Vaccine: "393219"  # 0x60003        6-> 0110
+  Covid19Testing: "655363"  # 0xa0003        a-> 1010
+  FluShot: "786435"         # 0xc0003        c-> 1100
+
+BusinessSubtype:
+# all of them v.type=20
+  facility: "1"
+  imageCenter: "2"
+  lab: "3"
+  pharmacy: "4"
+  employer: "5"
+  medicalSupplier: "6"
+  lawOffice: "7"
+
+# payment patient 支付Doc的结构
+OrderInfo:
+  name: 
+    data: 
+      orderInfo: 
+        squareID: ""
+        squareURL: ""
+        amount: ""
+        balance: ""
+        status: ""
+        processFee: ""    # 手续费
+        payer: ""
+      appointmentInfo: 
+        reason: ""
+        providerName: ""  
+        visitType: ""     # appointment type: egg.Telemedicine,Office Visit
+        appTime: ""       # appointment Date&TIme
+
+EInboxSubtype: # subtype pass from E1053(inviteToMeeting) to E10002(inbox)
+  PatientFacility: 131072 #2<<16 0x20000
+  ProviderFacility: 196608 #3<<16 0x30000

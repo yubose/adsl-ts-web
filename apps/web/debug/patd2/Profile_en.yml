@@ -1,0 +1,410 @@
+Profile:
+  pageNumber: "330"
+  title: "My Profile"
+  init:
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - .SignInCheck
+    - ..generalInfo.get
+    - ..profile.docAPI.get
+    - ..profilePic.docAPI.get
+    - actionType: evalObject
+      object:
+        .Profile.profileObject@: =..docResponse.doc.0
+    - actionType: evalObject
+      object:
+        .Global.DocProfile.document@: =..docProfile.doc.0
+    - actionType: evalObject
+      object:
+        .Profile.docDetail.document@: =.Global.DocProfile.document
+    - actionType: evalObject
+      object:
+        - .Global.Profile@: =..profileObject
+    - if:
+        - =.Profile.generalInfo.document.doc.0.id
+        - .Global.generalInfo@: =..generalInfo.document.doc.0
+        - continue
+    - if:
+        - =..docProfile.doc.0
+        - =.builtIn.utils.base64ToBlob:
+            dataIn:
+              data: =..docDetail.document.name.data
+              type: =..docDetail.document.name.type
+            dataOut: Profile.docDetail.document.name.data
+        - continue
+    - if:
+        - =..docProfile.doc.0
+        - ..tar@: ..docDetail.document.name.data
+        - ..tar@: drImg.png
+    - if:
+        - =..docProfile.doc.0
+        - .Global.currentUser.vertex.name.avatar@: ..docDetail.document.name.data
+        - continue
+    # - actionType: evalObject
+    #   object:
+    #     - ..avatar.showdocument@: =..avatar.docResponse.doc.0
+    # - actionType: evalObject
+    #   object:
+    #     - =.builtIn.utils.prepareDoc:
+    #         dataIn:
+    #           doc: =..avatar.showdocument
+    #         dataOut: Profile.avatar.showdocument
+    # - actionType: evalObject
+    #   object:
+    #     - ..avatar.url@: =..avatar.showdocument.name.data
+    #     - .Global.avatarUrl@: =..avatar.showdocument.name.data
+    # - if:
+    #     -
+    # - actionType: evalObject
+    #   object:
+    #     =.builtIn.string.concat:
+    #       dataIn:
+    #         - =..profileObject.name.data.Address.St
+    #         - " ,"
+    #         - =..profileObject.name.data.Address.line2
+    #         - " "
+    #         - =..profileObject.name.data.Address.city
+    #         - " ,"
+    #         - =..profileObject.name.data.Address.state
+    #         - " "
+    #         - =..profileObject.name.data.Address.zip
+    #       dataOut: Profile.profileObject.name.data.address
+  avatar:
+    url: patientImage.svg
+    showdocument:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.UserAvatar
+      name:
+        title: ""
+        type: ..avatar.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""
+      eid: .Global.rootNotebookID
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.UserAvatar
+      name:
+        title: ""
+        type: ..avatar.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""
+      eid: .Global.rootNotebookID
+    docResponse:
+      doc:
+        - type: .DocType.UserAvatar
+          eid: .Global.rootNotebookID
+          name: ""
+      error: ""
+      jwt: ""
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.UserAvatar
+        dataKey: avatar.docResponse
+        _nonce: .Global._nonce
+        maxcount: "1"
+        obfname: "mtime"
+  docDetail:
+    document: ""
+  tar: ""
+  generalInfo:
+    document:
+    get:
+      .DocAPI.get: ""
+      api: rd
+      ids:
+        - .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.PatientGeneralInfo #  type: "257"
+      obfname: "ctime"
+      maxcount: "1"
+      dataKey: generalInfo.document
+      _nonce: =.Global._nonce
+  profileObject:
+    .Document: ""
+    eid: .Global.rootNotebookID
+    type: .DocType.PatientProfile
+    name:
+      title: ""
+      type: "application/json"
+      data:
+        phone: ""
+        phone2: ""
+        avatarUrl: patientImage.svg
+        email: ""
+        firstName: ""
+        middleName: ""
+        lastName: ""
+        birth: ""
+        userName: ""
+        address: ""
+        # Address:
+        #   St: ""
+        #   city: ""
+        #   state: ""
+        #   line2: ""
+        #   zip: ""
+        name: ""
+        relation: ""
+  profile:
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        api: rd
+        ids:
+          - .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PatientProfile #  type: "257"
+        obfname: "ctime"
+        maxcount: "1"
+        dataKey: docResponse
+        _nonce: =.Global._nonce
+  docResponse:
+    doc:
+      - type: .DocType.PatientProfile # - type: "257" # private profile
+        eid: .Global.rootNotebookID
+        name: ""
+    error: ""
+    jwt: ""
+  profilePic:
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        ids:
+          - .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.UploadProfile
+        obfname: "mtime"
+        maxcount: "1"
+        dataKey: docProfile
+        _nonce: =.Global._nonce
+  docProfile:
+    doc:
+      - type: .DocType.UploadProfile
+        eid: .Global.rootNotebookID
+        name: ""
+    error: ""
+    jwt: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - goto: MenuBars
+    - .HeaderRightButton:
+      text: Edit
+      onClick:
+        - goto: EditProfile
+    - type: scrollView
+      style:
+        left: "0"
+        top: "0.1"
+        width: "1"
+        height: "0.9"
+        overflow: scroll
+      children:
+        - .ProfileTitleView:
+          style:
+            marginTop: "0"
+          children:
+            - .ProfileTitleText:
+        - type: view
+          style:
+            marginTop: "0"
+            height: "0.38"
+            width: "1"
+          children:
+            - type: view
+              top: "0"
+              height: "0.14"
+              width: "1"
+              children:
+                - .profileContentLeft:
+                  style:
+                    height: "0.14"
+                    textAlign:
+                      y: center
+                - .profilePhoto:
+                  path: patientImage.svg
+                  path=func: =.builtIn.utils.prepareDocToPath
+                  dataKey: Global.Profile.name.data.avatar
+                  # path:
+                  #   emit:
+                  #     actions:
+                  #       - if:
+                  #         - =.builtIn.string.equal:
+                  #             dataIn:
+                  #               string1: =..avatar.showdocument.name.data
+                  #               string2: binFile
+                  #         - patientImage.svg
+                  #         - ..avatar.url
+            - type: divider
+              style:
+                top: "0.12"
+                width: "0.99"
+                color: "#DEDEDF"
+            - .profileContentView:
+              style:
+                top: "0.15"
+              children:
+                - .profileContentLeft2:
+                  text: "First Name:"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.firstName
+            - .profileContentView:
+              style:
+                top: "0.19"
+              children:
+                - .profileContentLeft2:
+                  text: "Middle Name:"
+                  style:
+                    width: "0.3"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.middleName
+            - .profileContentView:
+              style:
+                top: "0.23"
+              children:
+                - .profileContentLeft2:
+                  text: "Last Name:"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.lastName
+            - .profileContentView:
+              style:
+                top: "0.27"
+              children:
+                - .profileContentLeft2:
+                  text: "Date of Birth:"
+                  style:
+                    width: "0.5"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.birth
+            - .profileContentView:
+              style:
+                top: "0.31"
+              children:
+                - .profileContentLeft2:
+                  text: "Username:"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.userName
+            - .profileContentView:
+              style:
+                top: "0.35"
+              children:
+                - .profileContentLeft2:
+                  text: "Gender:"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.gender
+        - .ProfileTitleView:
+          style:
+            marginTop: "0"
+          children:
+            - .ProfileTitleText:
+              text: "Contact"
+        - type: view
+          style:
+            marginTop: "0"
+            height: auto
+            width: "1"
+          children:
+            - .profileContentView:
+              style:
+                marginTop: "0.02"
+              children:
+                - .profileContentLeft2:
+                  text: "Phone Number:"
+                  style:
+                    width: "0.32"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.phone
+            - .profileContentView:
+              style:
+                marginTop: "0"
+              children:
+                - .profileContentLeft2:
+                  text: "Email:"
+                  style:
+                    width: "0.2"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.email
+            - .profileContentView:
+              style:
+                marginTop: "0"
+                height: "0.06"
+              children:
+                - .profileContentLeft2:
+                  text: "Address:"
+                  style:
+                    width: "0.2"
+                - type: textView
+                  isEditable: "false"
+                  style:
+                    top: "0"
+
+                    width: "0.67"
+                    height: "0.052"
+                    left: "0.28"
+                    fontSize: "13"
+                    fontWeight: "600"
+                    backgroundColor: "#ffffff"
+                    border:
+                      style: "1"
+                    textAlign:
+                      x: right
+                  dataKey: profileObject.name.data.address
+        - .ProfileTitleView:
+          style:
+            marginTop: "0"
+          children:
+            - .ProfileTitleText:
+              text: "Emergency Contact"
+        - type: view
+          style:
+            marginTop: "0"
+          children:
+            - .profileContentView:
+              style:
+                top: "0.02"
+              children:
+                - .profileContentLeft2:
+                  text: "Name:"
+                  style:
+                    width: "0.15"
+                - .profileContentRight2:
+                  # chenchen update 7.22 because i dont find the sdk in cadl
+                  # text=func: .builtIn.string.formatPhoneNumber_us
+                  dataKey: profileObject.name.data.name
+
+            - .profileContentView:
+              style:
+                top: "0.06"
+              children:
+                - .profileContentLeft2:
+                  text: "Relation: "
+                  style:
+                    width: "0.2"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.relation
+            - .profileContentView:
+              style:
+                top: "0.1"
+              children:
+                - .profileContentLeft2:
+                  text: "Phone Number:"
+                  style:
+                    width: "0.3"
+                - .profileContentRight2:
+                  dataKey: profileObject.name.data.phone2

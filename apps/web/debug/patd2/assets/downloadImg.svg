@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="86" height="30" viewBox="0 0 86 30">
+  <g id="组_7572" data-name="组 7572" transform="translate(-149.303 -688)">
+    <text id="Download" transform="translate(168.838 707.5)" fill="#2988e6" font-size="14" font-family="ProximaNova-Regular, Proxima Nova"><tspan x="0" y="0">Download</tspan></text>
+    <g id="矩形_18156" data-name="矩形 18156" transform="translate(149.303 688)" fill="none" stroke="#2988e6" stroke-width="1">
+      <rect width="86" height="30" rx="15" stroke="none"/>
+      <rect x="0.5" y="0.5" width="85" height="29" rx="14.5" fill="none"/>
+    </g>
+    <g id="download-2" data-name="download" transform="translate(155.768 698.49)">
+      <path id="路径_5731" data-name="路径 5731" d="M222.3,16.089l2.3,2.3a.828.828,0,0,0,1.169,0l2.3-2.3a.461.461,0,0,0-.652-.652l-1.773,1.773V12.228a.461.461,0,1,0-.922,0V17.21l-1.773-1.773a.461.461,0,0,0-.652.652Z" transform="translate(-219.85 -11.767)" fill="#2988e6"/>
+      <path id="路径_5732" data-name="路径 5732" d="M8.75,128.7a.461.461,0,1,0,0,.922,1,1,0,0,1,1,1v5.363a1,1,0,0,1-1,1H1.924a1,1,0,0,1-1-1v-5.363a1,1,0,0,1,1-1,.461.461,0,1,0,0-.922A1.926,1.926,0,0,0,0,130.624v5.363a1.926,1.926,0,0,0,1.924,1.924H8.75a1.926,1.926,0,0,0,1.924-1.924v-5.363A1.926,1.926,0,0,0,8.75,128.7Z" transform="translate(0 -127.482)" fill="#2988e6"/>
+    </g>
+  </g>
+</svg>

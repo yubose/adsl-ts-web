@@ -1,0 +1,822 @@
+OrderDetail: 
+  title:  Order Details
+  init:
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: "" 
+
+    - ..formData.currentOrder@: =.Global.formData.currentOrder
+    - =..apiRequest.orderHistory.docAPI.get: ""
+    - ..apiRequest.orderHistory.docStoreReq@: =..apiRequest.orderHistory.docResp.doc.0
+    - =..apiRequest.production.docAPI.get: ""
+    - ..formData.statusBackgroundColor@: =..formData.currentOrder.name.data.orderStatusColor
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.currentOrder.name.data.orderStatus
+            string2: 'Delivering'
+      - ..formData.statusBackgroundColor@: "#bedbf8"
+      - continue
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.currentOrder.name.data.orderStatus
+            string2: 'Undelivered'
+      - ..formData.statusBackgroundColor@: "#FFF4E0"
+      - continue
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.currentOrder.name.data.orderStatus
+            string2: 'Completed'
+      - ..formData.statusBackgroundColor@: "#cfedd7"
+      - continue
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.currentOrder.name.data.orderStatus
+            string2: 'Cancelled'
+      - ..formData.statusBackgroundColor@: "#f2cbcb"
+      - continue
+    - =.builtIn.utils.codeCompile: 
+        dataIn: 
+          param: 
+            - =..formData.currentOrder.name.data.amount
+            - =..formData.currentOrder.name.data.shippingCost
+          codeSnip: "return +(param[0]) + +(param[1])"
+        dataOut: OrderDetail.formData.totalMoney
+  
+  formData: 
+    totalMoney: ""
+    statusBackgroundColor: "0xFFF4E0"
+    currentOrder: {}
+    currentOrderHistory: {
+      ctime: "",
+      content: ""
+    }
+    statusHiddenOrShow: "0"
+    updateCondition: 
+      product: ""
+      vendorSelected: 
+        list: []
+      statusSelected:
+        list: []  
+    isStatusExpand: false
+        
+    tableData: [] # sdk 返回的数组,包括当前显示第几页的数据list 和 被切分成总共多少页面
+    tableList: [] # sdk 返回的数组的第一项，list真正打印的数据
+    tablePageNum: "1" # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: "" # goto 后面的文本显示
+    totalPageMore: "" # totalPage(tableData.1) + 1 
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    paymentList: 
+      - status: Paid    
+        subtotal: $324.49 (2 Items)
+        tax: $0.00
+        shippingCost: $10.00
+        total: $334.49
+    
+  apiRequest:
+    production: 
+      docResp: ""
+      docReq: 
+        id: ..formData.currentOrder.eid
+        xfname: eid
+        _nonce: =.Global._nonce
+        obfname: "ctime"
+        type: .DocType.Order
+      docAPI: 
+        get:
+          api: rd
+          dataIn: OrderDetail.apiRequest.production.docReq
+          dataOut: OrderDetail.apiRequest.production.docResp
+    orderHistory:
+      docResp: ""
+      docReq: 
+        id: ..formData.currentOrder.id
+        xfname: reid
+        _nonce: =.Global._nonce
+        obfname: "ctime"
+      docStoreResp: ""
+      docStoreReq:
+        eid: ..formData.currentOrder.eid
+        reid: ..formData.currentOrder.id
+        type: .DocType.OrderHistory
+        name: 
+          title: "" 
+          data: 
+            history: []
+      docAPI: 
+        store:
+          api: cd
+          dataIn: OrderDetail.apiRequest.orderHistory.docStoreReq
+          dataOut: OrderDetail.apiRequest.orderHistory.docStoreResp
+        get:
+          api: rd
+          dataIn: OrderDetail.apiRequest.orderHistory.docReq
+          dataOut: OrderDetail.apiRequest.orderHistory.docResp
+    orders:
+      docStoreResp: ""
+      docStoreReq:
+        id: ""
+      docAPI: 
+        store: 
+          api: cd
+          dataIn: OrderDetail.apiRequest.orders.docStoreReq
+          dataOut: OrderDetail.apiRequest.orders.docStoreResp
+  
+  event: 
+  style: #Input style fragment here
+    topBarBtn: 
+      type: button
+      text: Packaging Slip
+      style:
+        marginLeft: "0.015"
+        width: "0.07"
+        height: "0.037"
+        fontSize: .Nfont.nf2
+        color: "0x005795"
+        backgroundColor: "0xffffff"
+        fontFamily: ""
+        border: 
+          style: "3"
+        borderWidth: "1"
+        borderColor: "0x005795"
+        borderRadius: "4"
+        boxSizing: border-box
+    leftBarTitleView: 
+      type: view
+      style:
+        marginTop: "0.02"
+        left: "0.02"
+        width: "0.212"
+        height: "0.045"
+        border: 
+          style: "2"
+        borderWidth: "1"
+        borderColor: "0xf0f0f0"
+        display: flex
+        justifyContent: space-between
+        alignItems: center      
+    leftBarTitle: 
+      type: label
+      style:
+        fontSize: .Nfont.nf4
+        color: "0x333333"
+        fontWeight: "700" 
+    leftBarLabelView: 
+      type: view
+      style: 
+        marginTop: "0.007"
+        left: "0.02"
+        width: "0.212"
+        height: auto
+        display: flex
+        alignItems: center
+    leftBarLabel: 
+      type: label
+      style: 
+        fontSize: .Nfont.nf0
+        color: "0x666666"
+        fontWeight: 
+    leftBarLabelData: 
+      type: label
+      style: 
+        marginLeft: "0.005"
+        fontSize: .Nfont.nf1
+        color: "0x333333"
+        fontWeight: "600"
+    rightBarTitle: 
+      type: label
+      style:
+        marginTop: "0.01"
+        left: "0.05"
+        width: "0.458"        
+        height: "0.035" 
+        fontSize: .Nfont.nf4
+        color: "0x333333"
+        fontWeight: "700" 
+        border: 
+          style: "2"
+        borderWidth: "1"
+        borderColor: "0xf0f0f0"
+        textAlign: 
+          y: 
+    rightListTitle: 
+      type: label
+      style: 
+        fontSize: .Nfont.nf1
+        color: "0x333333"
+        fontWeight: "600"
+    rightLabelView: 
+      type: view
+      style: 
+        marginTop: "0.01"
+        # left: "0.05"
+        width: "0.458"
+        height: "0.03"
+        display: flex
+        justifyContent: flex-end
+        alignItems: center
+    rightLabel:   
+      type: label
+      style: 
+        color: "0x666666"
+        fontSize: .Nfont.nf0
+    rightLabelData: 
+      type: label
+      style: 
+        marginLeft: "0.005"
+        fontSize: .Nfont.nf1
+        color: "0x333333"
+        fontWeight: "600"
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+          children:
+            - .aitLogo:
+            - .MenuBar:        
+        - .TopBar: 
+        - .InnerBodyView:
+          children:
+            - .TransactionsAndMoneyView: 
+              style: 
+                width: "0.785"
+                justifyContent: space-between
+              children:
+                - .PageTitleLabelHasReceivedMoney:
+                - type: view
+                  style:
+                    width: "0.25"
+                    height: "0.08"
+                    display: flex
+                    justifyContent: flex-end
+                    alignItems: center
+                  children:
+                    - ..style.topBarBtn:
+                      onClick:
+                        - goto: PackagingSlip
+                    - ..style.topBarBtn:
+                      onClick: 
+                        - actionType: popUp
+                          popUpView: saveChangeTag
+                        # - goto: Orders
+                      text: "Cancel"
+                    - ..style.topBarBtn:
+                      text: Save
+                      onClick:
+                        - actionType: evalObject
+                          object: 
+                            - ..apiRequest.orders.docStoreReq@: =..formData.currentOrder
+                            - =..apiRequest.orders.docAPI.store: ""
+                            - =..apiRequest.orderHistory.docAPI.store: ""
+                            - goto: Orders
+                        - actionType: popUp
+                          popUpView: saveSuccessView
+                          wait: 2000
+                      style: 
+                        color: "0xffffff"
+                        backgroundColor: "0x005795"
+            - .ContentBar:
+              style: 
+                backgroundColor: ""
+                border: "none"
+              children:
+                # left bar
+                - type: view
+                  style:
+                    top: "0"
+                    left: "0"
+                    width: "0.252"
+                    height: "0.832"
+                    backgroundColor: "0xffffff"     
+                    borderRadius: "4"       
+                  children:
+                    - ..style.leftBarTitleView: 
+                      children:
+                        - ..style.leftBarTitle: 
+                          text: Customer
+                        - type: image
+                          path: Inbox.svg
+                          style:
+                            width: "0.01"
+                    - ..style.leftBarLabelView: 
+                      style: 
+                        marginTop: "0.015"
+                      children:   
+                        - ..style.leftBarLabel:                      
+                          text: Name
+                        - ..style.leftBarLabelData:                      
+                          dataKey: formData.currentOrder.name.data.customerName
+                    - ..style.leftBarLabelView: 
+                      children:   
+                        - ..style.leftBarLabel:                      
+                          text: Email
+                        - ..style.leftBarLabelData:                      
+                          dataKey: formData.currentOrder.name.data.contactInfomation.email
+                    - ..style.leftBarLabelView: 
+                      children:   
+                        - ..style.leftBarLabel:                      
+                          text: Phone
+                        - ..style.leftBarLabelData:                      
+                          dataKey: formData.currentOrder.name.data.contactInfomation.phone
+                    - ..style.leftBarTitleView: 
+                      style: 
+                        marginTop: "0.015"
+                      children:
+                        - ..style.leftBarTitle: 
+                          text: Shipping Address 
+                    - ..style.leftBarLabelView: 
+                      style: 
+                        marginTop: "0.015"
+                      children:   
+                        - ..style.leftBarLabel:                      
+                          text: Address
+                        - ..style.leftBarLabelData:   
+                          dataKey: formData.currentOrder.name.data.shippingAddress                   
+                    # - ..style.leftBarTitleView: 
+                    #   style: 
+                    #     marginTop: "0.015"
+                    #   children:
+                    #     - ..style.leftBarTitle: 
+                    #       text: Billing Address 
+                    # - ..style.leftBarLabelView: 
+                    #   style: 
+                    #     marginTop: "0.015"
+                    #   children:   
+                    #     - ..style.leftBarLabel:                      
+                    #       text: Address
+                    #     - ..style.leftBarLabelData:                      
+                    #       dataKey: formData.currentOrder.name.data.contactInfomation.address   
+                # right bar
+                - type: scrollView
+                  style:
+                    top: "0"
+                    left: "0.262"
+                    width: "0.558"
+                    height: "0.832"
+                    backgroundColor: "0xffffff"                    
+                    borderRadius: "4"   
+                  children:
+                    - type: view
+                      style:
+                        marginTop: "0.025"
+                        left: "0.05"
+                        width: "0.458" 
+                        height: "0.04"
+                        display: flex
+                        alignItems: center
+                        justifyContent: space-between
+                      children:
+                        - type: view
+                          viewTag: orderStatusTag
+                          style:
+                            height: "0.04"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - ..style.leftBarTitle:
+                              dataKey: formData.currentOrder.deat.squareID
+                              style: 
+                                fontSize: .Nfont.nf2
+                                width: "0.05"
+                                overflow: hidden
+                                textOverflow: ellipsis
+                                marginRight: "0.008"
+                            - type: label
+                              dataKey: formData.currentOrder.ctime
+                              text=func: .builtIn.string.formatUnixtimeSecond
+                              style:
+                                fontSize: .Nfont.nf1
+                                color: "0x333333"
+                                fontWeight: 
+                            - type: label
+                              
+                              dataKey: formData.currentOrder.name.data.orderStatus
+                              style:
+                                marginLeft: "0.01"
+                                padding: "2px"
+                                paddingLeft: "4px"
+                                paddingRight: "4px"
+                                fontSize: .Nfont.nf0
+                                color: ..formData.currentOrder.name.data.orderStatusColor
+                                fontWeight: "600"
+                                backgroundColor: ..formData.statusBackgroundColor
+                        - type: view
+                          style:
+                            width: "0.16"
+                            height: "0.04"
+                            display: flex
+                            alignItems: center      
+                          children:
+                            - type: label
+                              text: Status
+                              dataKey: 
+                              style:
+                                fontSize: .Nfont.nf4
+                                color: "0x333333"
+                                fontWeight:     
+                            - type: select
+                              dataKey: formData.currentOrder.name.data.orderStatus
+                              options: 
+                                - Delivering
+                                - Undelivered
+                                - Completed
+                                - Cancelled    
+                              onChange:
+                                - actionType: evalObject
+                                  object: 
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..formData.currentOrder.name.data.orderStatus
+                                            string2: 'Delivering'
+                                      - actionType: evalObject
+                                        object:
+                                          - ..formData.currentOrder.name.data.orderStatus@: 'Delivering'
+                                          - ..formData.currentOrder.name.data.orderStatusColor@: '#2988e6'
+                                          - ..formData.statusBackgroundColor@: "#bedbf8"
+                                      - continue
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..formData.currentOrder.name.data.orderStatus
+                                            string2: 'Undelivered'
+                                      - actionType: evalObject
+                                        object:
+                                          - ..formData.currentOrder.name.data.orderStatus@: 'Undelivered'
+                                          - ..formData.currentOrder.name.data.orderStatusColor@: '#f88f00'
+                                          - ..formData.statusBackgroundColor@: "#FFF4E0"
+                                      - continue
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..formData.currentOrder.name.data.orderStatus
+                                            string2: 'Completed'
+                                      - actionType: evalObject
+                                        object:
+                                          - ..formData.currentOrder.name.data.orderStatus@: 'Completed'
+                                          - ..formData.currentOrder.name.data.orderStatusColor@: '#2fb355'
+                                          - ..formData.statusBackgroundColor@: "#cfedd7"
+                                      - continue
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..formData.currentOrder.name.data.orderStatus
+                                            string2: 'Cancelled'
+                                      - actionType: evalObject
+                                        object:
+                                          - ..formData.currentOrder.name.data.orderStatus@: 'Cancelled'
+                                          - ..formData.currentOrder.name.data.orderStatusColor@: '#e24445'
+                                          - ..formData.statusBackgroundColor@: "#f2cbcb"
+                                      - continue
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: orderStatusTag
+                              style:
+                                marginLeft: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdedede"
+                                borderRadius: "4"              
+                    - ..style.rightBarTitle:     
+                      text: Items 
+                    - type: view
+                      style:
+                        marginTop: "0.01"
+                        left: "0.05"
+                        width: "0.458" 
+                      children:
+                        - type: view
+                          style:
+                            width: "0.458" 
+                            height: "0.03"
+                            display: flex
+                            alignItems: center  
+                          children:
+                            - ..style.rightListTitle:
+                              text: Image
+                              style: 
+                                width: "0.035"
+                            - ..style.rightListTitle:
+                              text: Name
+                              style: 
+                                width: "0.155"                    
+                            - ..style.rightListTitle:
+                              text: Vendor
+                              style: 
+                                width: "0.075"                       
+                            - ..style.rightListTitle:
+                              text: Price
+                              style: 
+                                width: "0.07"                       
+                            - ..style.rightListTitle:
+                              text: QTY
+                              style: 
+                                width: "0.055"                      
+                            - ..style.rightListTitle:
+                              text: Total
+                              style: 
+                                width: "0.065"                                
+                        - type: list
+                          contentType: listObject
+                          listObject: ..apiRequest.production.docResp.doc
+                          iteratorVar: itemObject
+                          style:
+                            width: '0.458'
+                            margin: '0'
+                            marginTop: "0.01"
+                            height: auto
+                            border: 
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0xf0f0f0"                            
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: '0.458'
+                                height: '0.03'
+                                left: '0'
+                                marginBottom: "0.025"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - type: view
+                                  style: 
+                                    width: "0.035"
+                                    height: "0.03"
+                                  children:
+                                    - type: image
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: itemObject.name.data.orderList.0.productionList.0.coverImgId
+                                      style:
+                                        width: "0.018"
+                                - ..style.rightListTitle:
+                                  dataKey: itemObject.name.data.orderList.0.productionList.0.title
+                                  style: 
+                                    width: "0.155"                    
+                                - ..style.rightListTitle:
+                                  dataKey: apiRequest.production.docResp.doc.0.name.data.orderList.0.inventorName
+                                  style: 
+                                    width: "0.075"                       
+                                - ..style.rightListTitle:
+                                  dataKey: itemObject.name.data.orderList.0.productionList.0.price
+                                  style: 
+                                    width: "0.07"                       
+                                - ..style.rightListTitle:
+                                  dataKey: itemObject.name.data.orderList.0.productionList.0.num
+                                  style: 
+                                    width: "0.055"                      
+                                - ..style.rightListTitle:
+                                  dataKey: itemObject.name.data.orderList.0.productionList.0.totalMoney
+                                  style: 
+                                    width: "0.065"       
+                        - ..style.rightLabelView:
+                          children:
+                            - ..style.rightLabel:
+                              text: Total
+                            - ..style.rightLabelData:
+                              dataKey: apiRequest.production.docResp.doc.0.name.data.orderList.0.productionList.0.totalMoney
+                    - ..style.rightBarTitle:     
+                      text: Payment 
+                    - type: view
+                      style:
+                        marginTop: "0.01"
+                        left: "0.05"
+                        width: "0.458" 
+                      children:
+                        - type: view
+                          style:
+                            width: "0.458" 
+                            height: "0.03"
+                            display: flex
+                            alignItems: center  
+                          children:
+                            - ..style.rightListTitle:
+                              text: Status
+                              style: 
+                                width: "0.085"
+                            - ..style.rightListTitle:
+                              text: Subtotal
+                              style: 
+                                width: "0.125"                    
+                            # - ..style.rightListTitle:
+                            #   text: Tax
+                            #   style: 
+                            #     width: "0.085"                       
+                            - ..style.rightListTitle:
+                              text: Shipping Cost
+                              style: 
+                                width: "0.113"                            
+                            - ..style.rightListTitle:
+                              text: Total
+                              style: 
+                                width: "0.05"                                
+                        - type: view
+                          style:
+                            width: '0.458'
+                            margin: '0'
+                            height: auto
+                            border: 
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0xf0f0f0"                            
+                          children:
+                            - type: view
+                              itemObject: 
+                              style:
+                                width: '0.458'
+                                height: '0.03'
+                                left: '0'
+                                marginBottom: "0.01"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - ..style.rightListTitle:
+                                  # dataKey: formData.currentOrder
+                                  text: Paid
+                                  # text=func: .builtIn.object.transformStatus
+                                  style: 
+                                    width: "0.085"
+                                    color: '#2fb8a0'
+                                - ..style.rightListTitle:
+                                  dataKey: formData.currentOrder.name.data.amount
+                                  style: 
+                                    width: "0.125"                      
+                                # - ..style.rightListTitle:
+                                #   text: "5"
+                                #   style: 
+                                #     width: "0.085"                       
+                                - ..style.rightListTitle:
+                                  dataKey: formData.currentOrder.name.data.shippingCost
+                                  style: 
+                                    width: "0.113"                        
+                                - ..style.rightListTitle:
+                                  dataKey: formData.totalMoney
+                                  text: "100"
+                                  style: 
+                                    width: "0.05"        
+                        - ..style.rightLabelView:
+                          children:
+                            - ..style.rightLabel:
+                              text: Paid by customer
+                            - ..style.rightLabelData:
+                              dataKey: formData.currentOrder.name.data.amount
+                    - ..style.rightBarTitle:     
+                      text: Order History 
+                    - type: view
+                      style:
+                        marginTop: "0.01"
+                        left: "0.05"
+                        width: "0.458" 
+                      children: 
+                        - type: label
+                          text: New note
+                          dataKey: 
+                          style:
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            fontWeight: "600"
+                        - type: textField
+                          placeholder: Enter here
+                          viewTag: contentTag
+                          dataKey: formData.currentOrderHistory.content
+                          style:
+                            marginTop: "0.01"
+                            paddingLeft: "10px"
+                            width: "0.458"
+                            height: "0.037"
+                            boxSizing: border-box
+                            border: 
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "0xdedede"
+                            borderRadius: "4"
+                        - type: view
+                          style:
+                            marginTop: "0.015"
+                            width: "0.458"
+                            display: flex
+                            justifyContent: flex-end
+                          children: 
+                            - type: button
+                              text: Add
+                              onClick: 
+                                - actionType: evalObject
+                                  object: 
+                                    - if: 
+                                      - =..formData.currentOrderHistory.content
+                                      - actionType: evalObject
+                                        object:
+                                          - =.builtIn.string.formatNowTime: 
+                                              dataIn: 
+                                              dataOut: OrderDetail.formData.currentOrderHistory.ctime 
+                                          - =.builtIn.array.push:
+                                              dataIn:
+                                                newMessage: =..formData.currentOrderHistory 
+                                                messages: =..apiRequest.orderHistory.docStoreReq.name.data.history
+                                              dataOut: OrderDetail.apiRequest.orderHistory.docStoreReq.name.data.history
+                                                
+                                          - ..formData.currentOrderHistory.content@: ""
+                                          - ..formData.currentOrderHistory.ctime@: ""
+                                      - continue
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: contentTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: historyTag
+                              style:
+                                width: "0.04"
+                                height: "0.025"
+                                border: none
+                                borderRadius: "4"
+                                fontSize: .Nfont.nf0
+                                color: "0xffffff"
+                                backgroundColor: "0x005795"
+                                textAlign:
+                                  x: center
+                                  y: center
+                        - type: scrollView
+                          style:
+                            height: "0.22"
+                            marginTop: "0.015"
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: ..apiRequest.orderHistory.docStoreReq.name.data.history
+                              iteratorVar: itemObject
+                              viewTag: historyTag
+                              style:
+                                width: '0.458'
+                                margin: '0'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '0.458'
+                                    height: 'auto'
+                                    left: '0'
+                                    marginTop: '0.01'
+                                    display: flex
+                                  children:
+                                    - type: label
+                                      text: ●
+                                      dataKey: 
+                                      style:
+                                        width: "0.015"
+                                        color: "0xc1c1c1"
+                                        fontSize: .Nfont.nf3
+                                        fontWeight: 
+                                    - type: label
+                                      dataKey: itemObject.ctime
+                                      # text=func: .builtIn.string.formatUnixtimeSecond
+                                      style:
+                                        width: "0.08"
+                                        color: "0x333333"
+                                        fontSize: .Nfont.nf1
+                                    - type: label
+                                      dataKey: itemObject.content
+                                      style:
+                                        width: "0.363"                                    
+                                        color: "0x333333"
+                                        fontSize: .Nfont.nf1
+                                        lineHeight: 2vh
+            
+        - .BaseJudgeView:
+          viewTag: saveChangeTag 
+          msg: Do you want to save changes?
+          children: 
+            - .BaseJudgeInnerView: 
+              children: 
+                - .BaseJudgeCancelImg: 
+                - .BaseJudgeTxt: 
+                - .BaseJudgeButtonView: 
+                  children: 
+                    - .BaseJudgeButtonNo:  
+                      onClick: 
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true   
+                      style: 
+                        textDecoration: underline
+                    - .BaseJudgeButtonYes:  # 可以重写       
+                      onClick: 
+                        - actionType: evalObject
+                          object: 
+                            - ..apiRequest.orders.docStoreReq@: =..formData.currentOrder
+                            - =..apiRequest.orders.docAPI.store: ""
+                            - =..apiRequest.orderHistory.docAPI.store: ""
+                            - goto: Orders                           
+        - .BaseSuccessfulView: 
+          viewTag: saveSuccessView
+          msg: Save Successfully!                    

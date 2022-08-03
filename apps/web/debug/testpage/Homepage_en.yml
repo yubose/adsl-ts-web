@@ -1,0 +1,17 @@
+Homepage:
+  title: Homepage
+  b: hello
+  concatResults: ''
+  init:
+    - =.builtIn.string.concat:
+        dataIn:
+          - .Homepage.b
+          - ..title
+        dataOut: Homepage.concatResults
+  components:
+    - type: label
+      text: ..b
+    - type: image
+      path: abc.png
+      onClick:
+        - goto: Dashboard

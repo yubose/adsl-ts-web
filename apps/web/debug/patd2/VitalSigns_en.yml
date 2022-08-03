@@ -1,0 +1,1278 @@
+#For Android Only
+VitalSigns:
+  title: "Vital Signs"
+  init:
+    # check
+    - .SignInCheck
+    - ..apiRequest.vital.docQueryResp.doc.0.name.data.statusTag.display@: none
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.vitalsInAppointment
+              string2: "false"
+        - actionType: evalObject
+          object:
+            - ..formData.shareBtn@: none
+            - ..formData.saveBtn@: block
+            # get local (10000) vital
+            - =..localDataRequest.vital.docAPI.get: ""
+            - if:
+                - =.builtIn.array.judgeListLength:
+                    dataIn:
+                      array: =..localDataRequest.vital.docQueryResp.doc
+                      len: 0
+                - continue
+                - .VitalSigns.tempVitalsData@: =.VitalSigns.localDataRequest.vital.docQueryResp.doc.0.name.data.vitals
+        - actionType: evalObject
+          object:
+            - ..formData.shareBtn@: block
+            - ..formData.saveBtn@: none
+            - =..apiRequest.vital.docAPI.get: ""
+            - if:
+                - =.builtIn.array.judgeListLength:
+                    dataIn:
+                      array: =..apiRequest.vital.docQueryResp.doc
+                      len: 0
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.vital.docQueryResp.doc.0.name.data.statusTag.display@: none
+                    # get local (10000) vital
+                    - =..localDataRequest.vital.docAPI.get: ""
+                    - if:
+                        - =.builtIn.array.judgeListLength:
+                            dataIn:
+                              array: =..localDataRequest.vital.docQueryResp.doc
+                              len: 0
+                        - continue
+                        - .VitalSigns.tempVitalsData@: =.VitalSigns.localDataRequest.vital.docQueryResp.doc.0.name.data.vitals
+                - .VitalSigns.tempVitalsData@: =.VitalSigns.apiRequest.vital.docQueryResp.doc.0.name.data.vitals
+    - ..copy@: =.VitalSigns.tempVitalsData
+    - .Global.vitalsData@: =.VitalSigns.tempVitalsData
+    # only show for android
+    - if:
+        - .builtIn.isAndroid
+        - ..formDataTemp.switchList@: =..formDataTemp.switchTemp1
+        - ..formDataTemp.switchList@: =..formDataTemp.switchTemp2
+    # - actionType: evalObject
+    #   object:
+    #     .Global._nonce@:
+    #       =.builtIn.math.random: ""
+
+    # redraw 1s
+    - actionType: builtIn
+      funcName: autoRefresh
+      viewTag: dataList
+      frequency: 1000
+  copy: ""
+  apiFormData:
+    vitalNum: "0"
+  formData:
+    vitalNum: "0"
+    shareBtn: none
+    saveBtn: none
+    switchFlag: "none"
+  formDataTemp:
+    switchList: []
+    switchTemp1:
+      - key: History
+        pageName: VitalHistoryList
+      - key: Bluetooth Devices
+        pageName: BluetoothDevices
+    switchTemp2:
+      - key: History
+        pageName: VitalHistoryList
+
+  isConnectedTemp: "false"
+  currentVital: ""
+  tempVitalsData:
+    - time: ""
+      id: "bp"
+      measurements: []
+      label1: "Blood Pressure"
+      label2: "Heart Rate"
+      unit1: "mmHg"
+      unit2: "bpm"
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeart.svg
+      btText: "connect"
+      bgcolor: "0xC1C1C1"
+      imgPath2: vitalsRate.svg
+    - time: ""
+      id: "resp"
+      measurements: []
+      label1: "Respiratory Rate"
+      unit1: "breaths/min"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsGeneric.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
+      id: "spo2"
+      measurements: []
+      label1: "Pulse Oximetry"
+      label2: "Heart Rate"
+      unit1: "O₂ %"
+      unit2: "bpm"
+      data1: ""
+      data2: ""
+      imgPath: vitalsOximetry.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: vitalsRate.svg
+    - time: ""
+      id: "temp"
+      measurements: []
+      label1: "Temperature"
+      unit1: "°F/°C"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsTemperature.svg
+      bgcolor: "0xC1C1C1" #"0x2988e6" #
+      btText: "connect"
+      imgPath2: null.png
+    - time: " "
+      id: "glucose"
+      measurements: []
+      label1: "Blood Glucose Levels"
+      unit1: "mmol/L"
+      data1: " "
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsGeneric.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
+      id: "height"
+      measurements: []
+      label1: "Height"
+      unit1: "ft."
+      unit2: "in."
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeight.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: " "
+      id: "weight"
+      measurements: []
+      label1: "Weight"
+      unit1: "lbs"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsWeight.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
+      id: "bmi"
+      measurements: []
+      label1: "Body Mass Index (BMI)"
+      unit1: "kg/m²"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsBMI.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+
+  VitalGoBackCheck:
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.0.data1
+                  string2: =..copy.0.data1
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.0.data2
+                  string2: =..copy.0.data2
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.1.data1
+                  string2: =..copy.1.data1
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.2.data1
+                  string2: =..copy.2.data1
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.2.data2
+                  string2: =..copy.2.data2
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.3.data1
+                  string2: =..copy.3.data1
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.4.data1
+                  string2: =..copy.4.data1
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.4.data2
+                  string2: =..copy.4.data2
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.5.data1
+                  string2: =..copy.5.data1
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.VitalSigns.tempVitalsData.6.data1
+                  string2: =..copy.6.data1
+            - continue
+            - actionType: popUp
+              popUpView: goBackPopup
+              wait: true
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+  localDataRequest: #10000
+    vital:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.rootNotebookID
+        xfname: "eid"
+        type: .DocType.VitalSigns
+        obfname: ctime
+        sCondition: "ctime>1650038400"
+        _nonce: =.Global._nonce
+      docCreateReq:
+        .Document: ""
+        type: .DocType.VitalSigns
+        eid: .Global.rootNotebookID
+        name:
+          data:
+            vitals: []
+            classTag:
+              name: Patient
+              fontColor: "0xf8ae29"
+              backgroundColor: "0xfff4e0"
+              display: block
+            statusTag:
+              display: none
+            title: .Global.Profile.name.data.basicInfo.fullName
+        _nonce: =.Global._nonce
+      docCreateResp: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: VitalSigns.localDataRequest.vital.docQueryReq
+          dataOut: VitalSigns.localDataRequest.vital.docQueryResp
+        store:
+          api: cd
+          dataIn: VitalSigns.localDataRequest.vital.docCreateReq
+          dataOut: VitalSigns.localDataRequest.vital.docCreateResp
+  apiRequest:
+    vital:
+      docQueryResp:
+        doc:
+          - name:
+              data:
+                statusTag:
+                  display: "none"
+      docQueryReq:
+        id: .Global.roomInfo.edge.id
+        xfname: "reid"
+        type: .DocType.VitalSigns
+        sCondition: "ctime>1650038400"
+        obfname: ctime
+        _nonce: =.Global._nonce
+      docCreateReq:
+        .Document: ""
+        type: .DocType.VitalSigns
+        eid: .Global.roomInfo.edge.id
+        reid: .Global.roomInfo.edge.id
+        name:
+          data:
+            vitals: [] #.VitalSigns.tempVitalsData
+            classTag:
+              name: Patient
+              fontColor: "0xf8ae29"
+              backgroundColor: "0xfff4e0"
+              display: block
+            statusTag:
+              display: none
+            title: .Global.Profile.name.data.basicInfo.fullName
+      docCreateResp: ""
+      docUpdateReq: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: VitalSigns.apiRequest.vital.docQueryReq
+          dataOut: VitalSigns.apiRequest.vital.docQueryResp
+        store:
+          api: cd
+          dataIn: VitalSigns.apiRequest.vital.docCreateReq
+          dataOut: VitalSigns.apiRequest.vital.docCreateResp
+        update:
+          api: cd
+          dataIn: VitalSigns.apiRequest.vital.docUpdateReq
+          # dataOut: VitalSigns.apiRequest.vital.docCreateResp
+  components:
+    - .BasePublicHeader: # height: "0.055" # 44.66px
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.0.data1
+                          string2: =..copy.0.data1
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.0.data2
+                          string2: =..copy.0.data2
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.1.data1
+                          string2: =..copy.1.data1
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.2.data1
+                          string2: =..copy.2.data1
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.2.data2
+                          string2: =..copy.2.data2
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.3.data1
+                          string2: =..copy.3.data1
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.4.data1
+                          string2: =..copy.4.data1
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.4.data2
+                          string2: =..copy.4.data2
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.5.data1
+                          string2: =..copy.5.data1
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.VitalSigns.tempVitalsData.6.data1
+                          string2: =..copy.6.data1
+                    - continue
+                    - actionType: popUp
+                      popUpView: goBackPopup
+                      wait: true
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+        - .BasePublicHeaderTitle:
+          style:
+            fontSize: .Nfont.h18
+        - type: view
+          style:
+            width: "auto"
+            display: inline-block
+            verticalAlign: middle
+            height: "auto"
+          children:
+            - .BasePublicHeaderRightIcon:
+              path: sideNav.svg
+              viewTag: tag_more
+              style:
+                height: "0.0344"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.switchFlag
+                              string2: "none"
+                        - actionType: evalObject
+                          object:
+                            - ..formData.switchFlag@: "block"
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: Showcontent
+
+                        - actionType: evalObject
+                          object:
+                            - ..formData.switchFlag@: "none"
+                            - actionType: builtIn
+                              funcName: hide
+                              viewTag: Showcontent
+    - type: view
+      style:
+        width: auto
+        height: auto
+      children:
+        - type: scrollView
+          style:
+            width: "1"
+            marginTop: "0.0148"
+            height: "0.845"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..tempVitalsData
+              iteratorVar: itemObject
+              viewTag: dataList
+              style:
+                margin: "0"
+                width: "1"
+                height: "auto"
+                isRefresh: true
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    marginLeft: "0.04"
+                    width: "0.92"
+                    marginTop: "0.01478"
+                    overflow: hidden
+                    backgroundColor: "0xffffff"
+                    borderRadius: "5"
+                    boxShadow: "0px 0px 5px #0000001a"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.7147"
+                        height: "0.1"
+                        display: inline-block
+                      children:
+                        - type: view
+                          style:
+                            display: inline-block
+                            verticalAlign: bottom
+                            minWidth: "0.3573"
+                            height: "0.1"
+                          children:
+                            - type: view
+                              style:
+                                width: auto
+                                marginTop: "0.0123"
+                                marginLeft: "0.032"
+                                fontSize: "0px"
+                                height: auto
+                              children:
+                                - type: image
+                                  path: itemObject.imgPath
+                                  style:
+                                    display: inline-block
+                                    width: "0.032"
+                                    height: "0.01478"
+                                    verticalAlign: middle
+                                - type: label
+                                  dataKey: itemObject.label1
+                                  style:
+                                    fontSize: .Nfont.h14
+                                    fontWeight: "400"
+
+                                    height: "0.02"
+                                    display: inline-block
+                                    verticalAlign: middle
+                                    marginLeft: "0.0106"
+                            - type: view
+                              style:
+                                width: auto
+                                fontSize: "0px"
+                                marginTop: "0.005"
+                                marginLeft: "0.032"
+                                height: auto
+                              children:
+                                - type: textField
+                                  dataKey: itemObject.data1
+                                  style:
+                                    width: "0.208"
+                                    height: "0.04"
+                                    display: inline-block
+                                    textIndent: 1em
+                                    boxSizing: "border-box"
+
+                                    fontSize: .Nfont.h14
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    verticalAlign: bottom
+                                    borderRadius: "5"
+                                    borderColor: "0xDEDEDF"
+                                  onChange:
+                                    - actionType: builtIn
+                                      funcName: calculateVital
+                                      id: bmi
+                                - type: label
+                                  dataKey: itemObject.unit1
+                                  style:
+                                    fontSize: .Nfont.h14
+                                    display: inline-block
+                                    marginLeft: "0.0053"
+
+                                    verticalAlign: bottom
+                                    color: "0x999999"
+                        - type: view
+                          style:
+                            display: inline-block
+                            marginLeft: "0.0266"
+                            height: "0.1"
+                            verticalAlign: bottom
+                          children:
+                            - type: view
+                              style:
+                                width: auto
+                                marginTop: "0.0123"
+                                fontSize: "0px"
+                                height: auto
+                              children:
+                                - type: image
+                                  path: itemObject.imgPath2
+                                  style:
+                                    display: inline-block
+                                    width: "0.032"
+                                    height: "0.01478"
+                                    verticalAlign: middle
+                                - type: label
+                                  dataKey: itemObject.label2
+                                  style:
+                                    fontSize: .Nfont.h14
+                                    fontWeight: "400"
+
+                                    height: "0.02"
+                                    display: inline-block
+                                    verticalAlign: middle
+                                    marginLeft: "0.0106"
+                            - type: view
+                              style:
+                                width: auto
+                                fontSize: "0px"
+                                marginTop: "0.005"
+                                height: auto
+                              children:
+                                - type: textField
+                                  dataKey: itemObject.data2
+                                  style:
+                                    width: "0.208"
+                                    height: "0.04"
+                                    display: inline-block
+                                    boxSizing: "border-box"
+
+                                    fontSize: .Nfont.h14
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    verticalAlign: bottom
+                                    borderRadius: "5"
+                                    textIndent: 1em
+                                    borderColor: "0xDEDEDF"
+                                  onChange:
+                                    - actionType: builtIn
+                                      funcName: calculateVital
+                                      id: bmi
+                                - type: label
+                                  dataKey: itemObject.unit2
+                                  style:
+                                    fontSize: .Nfont.h14
+                                    display: inline-block
+                                    marginLeft: "0.0053"
+
+                                    verticalAlign: bottom
+                                    color: "0x999999"
+                    - type: view
+                      style:
+                        height: "0.1"
+                        display: inline-block
+                      children:
+                        - type: button
+                          #text: Get Data
+                          text: Connect
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - actionType: evalObject
+                                    object:
+                                      - =.builtIn.object.get:
+                                          dataIn:
+                                            object: =.Global.isDeviceConnected
+                                            key: $var.id
+                                          dataOut: VitalSigns.isConnectedTemp
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =.VitalSigns.isConnectedTemp
+                                                string2: "false"
+                                          - if:
+                                              - .builtIn.isAndroid
+                                              - actionType: evalObject
+                                                object:
+                                                  - goto: BluetoothDevices
+                                              - continue
+                                          - actionType: builtIn
+                                            funcName: getBluetoothData
+                                            deviceType: $var.id
+                                  # btRedraw not working here dont know why
+                                  - actionType: builtIn
+                                    funcName: btRedraw
+                          style:
+                            #backgroundColor: "#2988e6"    #blue
+                            backgroundColor: "0xC1C1C1" #grey
+                            marginTop: "0.0443"
+                            height: "0.03"
+                            # borderRadius: "2"
+                            # display: inline-block
+                            # marginLeft: "0"
+
+                            width: "0.1653"
+                            color: "0xffffff"
+                            borderRadius: "3"
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.h12
+                    - type: label
+                      # text: 03/14/2022 03:04 pm
+                      dataKey: itemObject.time
+                      #viewTag: dataTag
+                      style:
+                        fontSize: .Nfont.h0
+                        top: "0.012"
+                        left: "0.6346"
+                        textAlign:
+                          x: right
+                        color: "0x999999"
+            - type: view
+              style:
+                marginTop: "0.03"
+        - type: view
+          style:
+            height: "0.085"
+            width: "1"
+            backgroundColor: "0xffffff"
+            boxSizing: border-box
+
+            boxShadow: "1px 1px 4px 1px #dededf"
+            overflow: hidden
+          children:
+            - type: button
+              text: Save
+              style:
+                width: "0.8"
+                marginLeft: "0.1"
+                marginTop: "0.0123"
+                height: "0.045"
+                display: ..formData.saveBtn
+                fontSize: .Nfont.n2
+                color: "0xffffff"
+                border:
+                  style: "3"
+                borderColor: "0x2988e6"
+                backgroundColor: "0x2988e6"
+                borderRadius: "3"
+                textAlign:
+                  x: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.judgeIsAllEmpty:
+                            dataIn:
+                              - =..tempVitalsData.0.data1
+                              - =..tempVitalsData.0.data2
+                              - =..tempVitalsData.1.data1
+                              - =..tempVitalsData.2.data1
+                              - =..tempVitalsData.2.data2
+                              - =..tempVitalsData.3.data1
+                              - =..tempVitalsData.4.data1
+                              - =..tempVitalsData.5.data1
+                              - =..tempVitalsData.5.data2
+                              - =..tempVitalsData.6.data1
+                              - =..tempVitalsData.7.data1
+                        # tips need add one
+                        - actionType: popUp
+                          popUpView: fillTips
+                          wait: true
+                        # Save local
+                        - actionType: evalObject
+                          object:
+                            - .VitalSigns.localDataRequest.vital.docCreateReq.name.data.vitals@: =.VitalSigns.tempVitalsData
+                            - =..localDataRequest.vital.docAPI.store: ""
+                            - ..copy@: =.VitalSigns.tempVitalsData
+                            - .Global.vitalsData@: =.VitalSigns.tempVitalsData
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: popUp
+                              popUpView: successfulPopUp
+                              wait: 2000
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+            - type: button
+              text: Share
+              style:
+                width: "0.8"
+                marginTop: "0.0275"
+                marginLeft: "0.1"
+                height: "0.045"
+                display: ..formData.shareBtn
+                fontSize: .Nfont.n2
+                color: "0xffffff"
+                border:
+                  style: "3"
+                borderColor: "0x2988e6"
+                backgroundColor: "0x2988e6"
+                borderRadius: "3"
+                textAlign:
+                  x: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.judgeIsAllEmpty:
+                            dataIn:
+                              - =..tempVitalsData.0.data1
+                              - =..tempVitalsData.0.data2
+                              - =..tempVitalsData.1.data1
+                              - =..tempVitalsData.2.data1
+                              - =..tempVitalsData.2.data2
+                              - =..tempVitalsData.3.data1
+                              - =..tempVitalsData.4.data1
+                              - =..tempVitalsData.5.data1
+                              - =..tempVitalsData.5.data2
+                              - =..tempVitalsData.6.data1
+                              - =..tempVitalsData.7.data1
+                        # tips need add one
+                        - actionType: popUp
+                          popUpView: fillTips
+                          wait: true
+                        # Save local
+                        - actionType: evalObject
+                          object:
+                            - actionType: popUp
+                              popUpView: uploading
+
+    - type: view
+      viewTag: Showcontent
+      style:
+        top: "0.05"
+        left: "0.506"
+        width: "auto"
+        borderWidth: "1"
+        borderRadius: "5"
+        borderColor: "0xdedede"
+        backgroundColor: "0xffffff"
+        border:
+          style: 3
+        # display: ..formData.switchFlag
+        display: none
+        zIndex: 200
+      children:
+        - type: list
+          scrollable: "false"
+          viewTag: Showcontent
+          contentType: listObject
+          listObject: ..formDataTemp.switchList
+          iteratorVar: itemObject
+          style:
+            width: "0.453"
+            marginTop: "0"
+            height: "auto"
+            boxSizing: "border-box"
+            borderRadius: "5"
+            backgroundColor: "0xffffff"
+
+            border:
+              style: 1
+            overflow: hidden
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                width: "0.453"
+                height: "0.054"
+                left: "0"
+                marginTop: "0"
+                borderWidth: "1px"
+                borderColor: "0xf0f0f0"
+                boxSizing: "border-box"
+                border:
+                  style: 2
+                overflow: hidden
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - actionType: evalObject
+                        object:
+                          - ..formData.switchFlag@: "none"
+                          - actionType: builtIn
+                            funcName: hide
+                            viewTag: Showcontent
+                      - goto: $var.pageName
+              children:
+                - type: view
+                  style:
+                    width: "0.453"
+                    height: "0.054"
+                    textAlign:
+                      y: center
+                  children:
+                    - type: view
+                      style:
+                        height: "auto"
+                        width: "auto"
+                      children:
+                        - type: label
+                          dataKey: itemObject.key
+                          style:
+                            marginLeft: "0.0533"
+                            display: "inline-block"
+                            width: "auto"
+                            height: "auto"
+
+                            wordWrap: break-word
+                            verticalAlign: middle
+                            fontSize: .Nfont.h14
+                            color: "0x333333"
+
+    # - type: popUp
+    #   viewTag: goBackPopup
+    #   style:
+    #     left: "0"
+    #     top: "0"
+    #     width: "1"
+    #     height: "1"
+    #     backgroundColor: "0x00000066"
+    #   children:
+    #     - type: view
+    #       style:
+    #         left: "0.1"
+    #         top: "0.4"
+    #         width: "0.8"
+    #         height: "0.2"
+    #         zIndex: "100"
+    #         backgroundColor: "0xeaeaea"
+    #         border:
+    #           style: "5"
+    #         borderRadius: "15"
+    #       children:
+    #         - type: label
+    #           text: "Do you want to save your vitals data?"
+    #           style:
+    #             .LabelStyle:
+    #               left: "0"
+    #               top: "0.04"
+    #               width: "0.8"
+    #               height: "0.049"
+    #               color: "0x000000"
+    #               fontSize: "19"
+    #               display: inline
+    #               # fontStyle: "bold"
+    #
+    #               textAlign:
+    #                 x: center
+    #                 y: center
+    #         - type: divider
+    #           style:
+    #             .DividerStyle:
+    #               left: "0"
+    #               top: "0.14"
+    #               width: "0.8"
+    #               height: "0.001"
+    #               backgroundColor: "0x00000088"
+    #         - type: button
+    #           onClick:
+    #             - actionType: popUpDismiss
+    #               popUpView: goBackPopup
+    #             - actionType: builtIn
+    #               funcName: goBack
+    #               reload: true
+    #           text: "Cancel"
+    #           style:
+    #             .LabelStyle:
+    #               left: "0"
+    #               top: "0.141"
+    #               width: "0.39"
+    #               height: "0.06812"
+    #               color: "0x007affff"
+    #               fontSize: "19"
+    #               display: inline
+    #               backgroundColor: "0xeaeaea"
+    #               textAlign:
+    #                 x: center
+    #                 y: center
+    #               border:
+    #                 style: "5"
+    #                 borderRadius: "15"
+    #         - type: button
+    #           onClick:
+    #             - actionType: evalObject
+    #               object:
+    #                 - .VitalSigns.localDataRequest.vital.docCreateReq.name.data.vitals@: =.VitalSigns.tempVitalsData   #Ensures that the data being sent is correct, in case page is not reloaded
+    #                 - =..localDataRequest.vital.docAPI.store: ""    #Store to local data #whenever you leave page, update rootnotebookID with my vitalsigns
+    #             - actionType: builtIn
+    #               funcName: goBack
+    #               reload: true
+    #           text: "Confirm"
+    #           style:
+    #             .LabelStyle:
+    #               left: "0.41"
+    #               top: "0.141"
+    #               width: "0.39"
+    #               height: "0.06812"
+    #               color: "0x007affff"
+    #               fontSize: "19"
+    #               display: inline
+    #               backgroundColor: "0xeaeaea"
+    #               textAlign:
+    #                 x: center
+    #                 y: center
+    #               border:
+    #                 style: "5"
+    #                 borderRadius: "15"
+    #         - type: divider
+    #           style:
+    #             .DividerStyle:
+    #               left: "0.4"
+    #               top: "0.14"
+    #               width: "0.002"
+    #               height: "0.08"
+    #               backgroundColor: "0x00000088"
+    - .Normal:
+      viewTag: goBackPopup
+      message: Do you want to save your vitals data?
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: goBackPopup
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+      rightButton:
+        - actionType: evalObject
+          object:
+            - .VitalSigns.localDataRequest.vital.docCreateReq.name.data.vitals@: =.VitalSigns.tempVitalsData #Ensures that the data being sent is correct, in case page is not reloaded
+            - =..localDataRequest.vital.docAPI.store: "" #Store to local data #whenever you leave page, update rootnotebookID with my vitalsigns
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+    - .SoftTips:
+      viewTag: fillTips
+      message: Please fill in at least one item of data
+    - .SoftTips:
+      type: view
+      style:
+        display: ..apiRequest.vital.docQueryResp.doc.0.name.data.statusTag.display
+      viewTag: otherUpdate
+      message: "Provider/admin update your vital signs data"
+      onClick:
+        - actionType: evalObject
+          object:
+            - .VitalSigns.apiRequest.vital.docUpdateReq@: =.VitalSigns.apiRequest.vital.docQueryResp.doc.0
+            - .VitalSigns.apiRequest.vital.docUpdateReq.name.data.statusTag.display@: "none"
+            - =..apiRequest.vital.docAPI.update: ""
+            - ..apiRequest.vital.docQueryResp.doc.0.name.data.statusTag.display@: "none"
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: otherUpdate
+        # - actionType: builtIn
+        #   funcName: hide
+        #   viewTag: otherUpdate
+    - .Normal:
+      viewTag: uploading
+      message: Share your vital signs data with the provider/facility you scheduled?
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: uploading
+      rightButton:
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: popUpDismiss
+          popUpView: uploading
+        - actionType: evalObject
+          object:
+            - .VitalSigns.localDataRequest.vital.docCreateReq.name.data.vitals@: =.VitalSigns.tempVitalsData #Ensures that the data being sent is correct, in case page is not reloaded
+            - =..localDataRequest.vital.docAPI.store: "" #Store to local data #whenever you leave page, update rootnotebookID with my vitalsigns
+            - .VitalSigns.apiRequest.vital.docCreateReq.name.data.vitals@: =.VitalSigns.tempVitalsData #Ensures that the data being sent is correct, in case page is not reloaded
+            - =..apiRequest.vital.docAPI.store: ""
+            - actionType: popUp
+              popUpView: successfulSharePopUp
+              wait: 2000
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+    - type: popUp
+      viewTag: vitalsLog
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.1"
+            width: "0.89333"
+            height: "0.8"
+            zIndex: "100"
+            backgroundColor: "0xeaeaea"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Measurement History"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0"
+                  width: "0.89333"
+                  height: "0.05"
+                  color: "0x000000"
+                  fontSize: "19"
+                  display: inline
+
+                  textAlign:
+                    x: center
+                    y: center
+            - type: scrollView
+              style:
+                left: "0"
+                width: "0.89333"
+                top: "0.05"
+                height: "0.75"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..currentVital.measurements
+                  iteratorVar: itemObject
+                  viewTag: dataList
+                  style:
+                    top: "0"
+                    margin: "0"
+                    left: "0"
+                    width: "0.89333"
+                    height: "0.75"
+                  children:
+                    - type: listItem
+                      style:
+                        left: "0"
+                        width: "0.89333"
+                        marginTop: "0.01"
+                        height: "0.1"
+                        border:
+                          style: "2"
+                        borderRadius: "5"
+                        backgroundColor: "0xffffff"
+                        boxShadow: "0px 0px 10px #dededf"
+                      children:
+                        - type: label
+                          dataKey: itemObject.label1
+                          style:
+                            top: "0.02"
+                            fontSize: "14"
+                            fontWeight: "550"
+                            #left: "0.1"
+                            left: "0.06"
+                        - type: label
+                          dataKey: itemObject.label2
+                          style:
+                            top: "0.02"
+                            fontSize: "14"
+                            fontWeight: "550"
+                            left: "0.43"
+                        - type: label
+                          dataKey: itemObject.data1
+                          style:
+                            top: "0.055"
+                            width: "0.21"
+                            fontSize: "20"
+                            fontWeight: "700"
+                            left: "0.06"
+                            textAlign:
+                              x: center
+                            padding: "0px"
+                            boxSizing: "border-box"
+                            border:
+                              style: "3"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            borderColor: "#DEDEDF"
+                        - type: label
+                          dataKey: itemObject.unit1
+                          style:
+                            top: "0.065"
+                            fontSize: "14"
+                            left: "0.30"
+                            color: "0x999999"
+                        - type: label
+                          dataKey: itemObject.time
+                          #viewTag: dataTag
+                          style:
+                            top: "0.02"
+                            fontSize: "15"
+                            width: "0.35"
+                            left: "0.51"
+                            textAlign:
+                              x: right
+                            color: "0x575757"
+                        - type: label
+                          dataKey: itemObject.data2
+                          style:
+                            top: "0.055"
+                            width: "0.16"
+                            fontSize: "20"
+                            fontWeight: "700"
+                            left: "0.43"
+                            textAlign:
+                              x: center
+                            padding: "0px"
+                            boxSizing: "border-box"
+                            border:
+                              style: "3"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            borderColor: "#DEDEDF"
+                        - type: label
+                          dataKey: itemObject.unit2
+                          style:
+                            top: "0.065"
+                            fontSize: "14"
+                            left: "0.63"
+                            color: "0x999999"
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.76"
+                  width: "0.89333"
+                  height: "0.001"
+                  backgroundColor: "0x00000088"
+            - type: button
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =..currentVital@: ""
+                - actionType: popUpDismiss
+                  popUpView: vitalsLog
+              text: "Close"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.75"
+                  width: "0.89333"
+                  height: "0.05"
+                  color: "0x007affff"
+                  fontSize: "19"
+                  display: inline
+                  backgroundColor: "0xeaeaea"
+                  textAlign:
+                    x: center
+                    y: center
+                  border:
+                    style: "5"
+                    borderRadius: "15"
+    - .SuccessfulOneLine:
+      message: "Save Successfully!"
+      viewTag: successfulPopUp
+    - .SuccessfulOneLine:
+      message: "Share Successfully!"
+      viewTag: successfulSharePopUp

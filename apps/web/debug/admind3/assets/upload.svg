@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="250" height="150" viewBox="0 0 250 150">
+  <defs>
+    <linearGradient id="linear-gradient" x1="0.5" x2="0.5" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.606" stop-color="#5ca4ed"/>
+      <stop offset="1" stop-color="#2988e7"/>
+    </linearGradient>
+  </defs>
+  <g id="组_8509" data-name="组 8509" transform="translate(-703 -781)">
+    <g id="组_8505" data-name="组 8505" transform="translate(703 781)">
+      <g id="矩形_18477" data-name="矩形 18477" fill="#fff" stroke="#dededf" stroke-width="1" stroke-dasharray="5">
+        <rect width="250" height="150" stroke="none"/>
+        <rect x="0.5" y="0.5" width="249" height="149" fill="none"/>
+      </g>
+    </g>
+    <text id="Click_here_to_upload" data-name="Click here to upload" transform="translate(716 880.19)" fill="#aaa" font-size="16" font-family="SegoeUI, Segoe UI"><tspan x="-70.785" y="17">Click here to upload</tspan></text>
+    <path id="shangchuan" d="M66.619,21.628S66.074,3.956,51.476.444,29.847,12.1,29.7,12.534s-.859.233-.859.233a10.567,10.567,0,0,0-11.717-.385,8.132,8.132,0,0,0-3.446,9.311s-8.005-.638-12.11,11.553S11.86,48.917,11.86,48.917H36.006V35.935H30.424V35.9a.5.5,0,0,1-.5-.5.475.475,0,0,1,.221-.409L40.037,24.73a.749.749,0,0,1,.561-.258.761.761,0,0,1,.581.282L51,34.937a.283.283,0,0,1,.053.045l.094.1h-.033a.524.524,0,0,1,.082.27.561.561,0,0,1-.565.557H45.288v13.01H67.2A15.5,15.5,0,0,0,78.573,35.694C79.5,25.049,66.619,21.628,66.619,21.628Z" transform="translate(788.273 817.479)" fill="url(#linear-gradient)"/>
+  </g>
+</svg>

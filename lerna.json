@@ -5,9 +5,13 @@
     }
   },
   "ignore": [],
-  "ignoreChanges": ["**/__tests__/**"],
+  "ignoreChanges": [
+    "**/__tests__/**"
+  ],
   "loglevel": "success",
-  "packages": ["apps/*"],
+  "packages": [
+    "apps/*"
+  ],
   "usxNx": true,
   "version": "independent"
 }

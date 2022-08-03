@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32.728" height="30.653" viewBox="0 0 32.728 30.653">
+  <g id="组_10730" data-name="组 10730" transform="translate(-62 -585)">
+    <g id="folder_1_" data-name="folder (1)" transform="translate(62 585)">
+      <path id="路径_4931" data-name="路径 4931" d="M357.665,348.832l3.95-10.391H351.458Z" transform="translate(-328.887 -318.179)" fill="#1071bc"/>
+      <rect id="矩形_6151" data-name="矩形 6151" width="19.75" height="23.899" transform="translate(7.336 4.676)" fill="#77c8d6"/>
+      <rect id="矩形_6152" data-name="矩形 6152" width="19.75" height="21.821" transform="translate(5.078 2.598)" fill="#f0f0f0"/>
+      <path id="路径_4932" data-name="路径 4932" d="M33.117,348.832,26.91,338.441H4.339l6.207,10.391Z" transform="translate(-4.339 -318.179)" fill="#4fabf7"/>
+      <path id="路径_4933" data-name="路径 4933" d="M111.3,6.235A1.63,1.63,0,0,1,109.6,4.676v-.52h1.129v.52a.566.566,0,0,0,1.129,0v-2.6a1.132,1.132,0,0,0-2.257,0V2.6h-1.129v-.52a2.265,2.265,0,0,1,4.514,0v2.6A1.63,1.63,0,0,1,111.3,6.235Z" transform="translate(-101.703)" fill="#1071bc"/>
+      <g id="组_6482" data-name="组 6482" transform="translate(2.257 2.078)">
+        <path id="路径_4934" data-name="路径 4934" d="M415.589,44.064H414.46V36.79a1.086,1.086,0,0,0-1.129-1.039H412.2V34.712h1.129a2.173,2.173,0,0,1,2.257,2.078Z" transform="translate(-387.939 -34.712)" fill="#4fabf7"/>
+        <rect id="矩形_6153" data-name="矩形 6153" width="1.129" height="1.039" transform="translate(26.521 10.391)" fill="#4fabf7"/>
+        <rect id="矩形_6154" data-name="矩形 6154" width="1.129" height="7.274" transform="translate(0 8.313)" fill="#4fabf7"/>
+        <rect id="矩形_6155" data-name="矩形 6155" width="1.129" height="1.039" transform="translate(0 6.234)" fill="#4fabf7"/>
+      </g>
+      <g id="组_6483" data-name="组 6483" transform="translate(7.336 4.676)">
+        <rect id="矩形_6156" data-name="矩形 6156" width="1.129" height="1.039" transform="translate(0 8.313)" fill="#999"/>
+        <rect id="矩形_6157" data-name="矩形 6157" width="11.85" height="1.039" transform="translate(2.257 8.313)" fill="#999"/>
+        <rect id="矩形_6158" data-name="矩形 6158" width="15.235" height="1.039" transform="translate(0 10.391)" fill="#999"/>
+        <rect id="矩形_6159" data-name="矩形 6159" width="12.978" height="1.039" transform="translate(0 12.469)" fill="#999"/>
+        <rect id="矩形_6160" data-name="矩形 6160" width="1.161" height="1.039" transform="translate(14.926)" fill="#999"/>
+        <rect id="矩形_6161" data-name="矩形 6161" width="1.129" height="1.039" transform="translate(14.926 2.078)" fill="#999"/>
+      </g>
+      <path id="联合_5" data-name="联合 5" d="M2.107,5.721a.2.2,0,0,1-.2-.2V3.814H.2a.2.2,0,0,1-.2-.2V2.107a.2.2,0,0,1,.2-.2H1.907V.2a.2.2,0,0,1,.2-.2H3.614a.2.2,0,0,1,.2.2V1.907H5.522a.2.2,0,0,1,.2.2V3.614a.2.2,0,0,1-.2.2H3.814V5.522a.2.2,0,0,1-.2.2Z" transform="translate(12.514 5.28)" fill="#1071bc"/>
+    </g>
+  </g>
+</svg>

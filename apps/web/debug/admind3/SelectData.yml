@@ -1,0 +1,423 @@
+SelectData:
+  state:
+    - Select
+    - AK
+    - AL
+    - AR
+    - AS
+    - AZ
+    - CA
+    - CO
+    - CT
+    - DC
+    - DE
+    - FL
+    - GA
+    - GU
+    - HI
+    - ID
+    - IL
+    - IN
+    - IA
+    - KS
+    - KY
+    - LA
+    - ME
+    - MD
+    - MA
+    - MI
+    - MN
+    - MS
+    - MO
+    - MP
+    - MT
+    - NE
+    - NV
+    - NH
+    - NJ
+    - NM
+    - NY
+    - NC
+    - ND
+    - OH
+    - OK
+    - OR
+    - PA
+    - PR
+    - RI
+    - SC
+    - SD
+    - TN
+    - TX
+    - UT
+    - VI
+    - VT
+    - VA
+    - WA
+    - WV
+    - WI
+    - WY
+
+  QRData:
+    - side: 8cm
+      distance: 0.5m
+      scale: 8
+    - side: 12cm
+      distance: 0.8m
+      scale: 12
+    - side: 15cm
+      distance: 1m
+      scale: 15
+    - side: 30cm
+      distance: 1.5m
+      scale: 30
+    - side: 50cm
+      distance: 2.5m
+      scale: 50
+  businessCat:
+    - name: Medical Facility
+      value: Medical Facility (M)
+      id: 10
+    - name: Pharmacy
+      value: Pharmacy (M)
+      id: 20
+    - name: Employer
+      value: Employer (B)
+      id: 30
+    - name: Medical Supplier
+      value: Medical Supplier (M)
+      id: 40
+    - name: Law Office
+      value: Law Office (B)
+      id: 50
+    - name: Image Center
+      value: Image Center (M)
+      id: 60
+    - name: Lab
+      value: Lab (M)
+      id: 70
+    - name: Insurance
+      value: Insurance (B)
+      id: 80
+    - name: Business General
+      value: Business General (B)
+      id: 0
+
+  placeOfService:
+    - Select
+    - 01 - PHARMACY
+    - 02 - TELEHEALTH
+    - 03 - SCHOOL BASED SITE
+    - 04 - HOMELESS SHELTER
+    - 05 - INDIAN HEALTH SERVICE FREE STA
+    - 06 - INDIAN HEALTH SERVICE PROVIDER
+    - 07 - TRIBAL 638 FREE STANDING FACIL
+    - 08 - TRIBAL 638 PROVIDER BASED FACIL
+    - 09 - PRISON/CORRECTIONAL FACILITY
+    - 11 - OFFICE
+    - 12 - HOME
+    - 13 - ASSISTED LIVING FACILITY
+    - 14 - GROUP HOME
+    - 15 - MOBILE UNIT
+    - 16 - TEMPORARY LODGING
+    - 17 - WALK-IN RETAIL HEALTH CLINIC
+    - 19 - OFF CAMPUS-OUTPATIENT HOSPITAL
+    - 20 - URGENT CARE CENTER
+    - 21 - INPATIENT HOSPITAL
+    - 22 - ON CAMPUS-OUTPATIENT HOSPITAL
+    - 23 - EMERGENCY ROOM HOSPITAL
+    - 24 - AMBULATORY SURGICAL CENTER
+    - 25 - BIRTHING CENTER
+    - 26 - MILITARY TREATMENT FACILITY
+    - 31 - SKILLED NURSING FACILITY
+    - 32 - NURSING FACILITY
+    - 33 - CUSTODIAL CARE FACILITY
+    - 34 - HOSPICE
+    - 41 - AMBULANCE - LAND
+    - 42 - AMBULANCE - AIR/WATER
+    - 49 - INDEPENDENT CLINIC
+    - 50 - FED QUALIFIED HEALTH CENTER
+    - 51 - INPATIENT PSYCH FACILITY
+    - 52 - PSYCH FACILITY PARTIAL HOSP.
+    - 53 - COMMUNITY MENTAL HEALTH CENTER
+    - 54 - INTERMED CARE - MENTAL RETARD.
+    - 55 - RESIDENTIAL SUBST. ABUSE TRMT
+    - 56 - PSYCH RESIDENTIAL TRMT CENTER
+    - 57 - NON-RES SUBST. ABUSE TRMT FAC
+    - 58 - NON-RES OPIOID TRMT FAC
+    - 60 - MASS IMMUNIZATION CENTER
+    - 61 - COMPREHENSIVE INPAT REHAB FAC
+    - 62 - COMPREHENSIVE OUTPAT REHAB FAC
+    - 65 - END STG RENAL DSE TRMT FAC
+    - 71 - STATE/LOCAL PUBLIC HEALTH CLINIC
+    - 72 - RURAL HEALTH CLINIC
+    - 81 - INDEPENDENT LABORATORY
+    - G - PRE-CERT INPT SURGERY
+    - R - RECUPERATIVE CARE
+
+  newPatientFormDM:
+    # New Patient Forms 的数据存储
+    classTag:
+      name: Document
+      fontColor: "0x30b354"
+      backgroundColor: "0xe4f5e9"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      firstName: " "
+      middleName: " "
+      lastName: " "
+      dateOfBirth: " "
+      gender: " "
+      address: " "
+      city: " "
+      state: " "
+      zipCode: " "
+      residence: " "
+      mainContact: " "
+      alternativePhone: " "
+      email: " "
+      employer: ""
+      occupation: " "
+      name: " "
+      relation: " "
+      phoneNumber: " "
+    signatureHippa:
+      signatureNewPatForm: ""
+      recipientName: ""
+      whetherSignature: ""
+    billingInfo:
+      medicalInsurance: " "
+      indentification:
+        membersID: " "
+        companyName: " "
+        insuredName: " "
+        relationship: " "
+        securityNumber: " "
+  cov19TestNewPatFormDM:
+    # COVID-19 Testing Consent - New Patient 的数据存储
+    classTag:
+      name: Document
+      fontColor: "0x30b354"
+      backgroundColor: "0xe4f5e9"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      firstName: " "
+      middleName: " "
+      lastName: " "
+      dateOfBirth: " "
+      gender: " "
+      address: " "
+      city: " "
+      state: " "
+      zipCode: " "
+      residence: " "
+      mainContact: " "
+      alternativePhone: " "
+      email: " "
+      employer: " "
+      occupation: " "
+      name: " "
+      relation: " "
+      phoneNumber: " "
+      isKnownShare: false
+      isKnownInfo: false
+    symptomProfile:
+      experience: []
+      remark: " "
+      problem1: " "
+      problem2: " "
+      problem3: " "
+      problem4: " "
+    billingInfo:
+      medicalInsurance: " "
+      indentification:
+        membersID: " "
+        companyName: " "
+        insuredName: " "
+        relationship: " "
+        securityNumber: " "
+  cov19TestFormDM:
+    classTag:
+      name: Document
+      fontColor: "0x30b354"
+      backgroundColor: "0xe4f5e9"
+      display: block
+    statusTag:
+      display: none
+    symptomProfile:
+      experience: []
+      remark: " "
+      problem1: " "
+      problem2: " "
+      problem3: " "
+      problem4: " "
+  pifzerVaccineFirDoseFormDM:
+    # Pfizer-BioNTech Vaccine - First Dose 的数据存储
+    classTag:
+      name: Document
+      fontColor: "0x30b354"
+      backgroundColor: "0xe4f5e9"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      firstName: " "
+      middleName: " "
+      lastName: " "
+      dateOfBirth: " "
+      gender: " "
+      address: " "
+      city: " "
+      state: " "
+      zipCode: " "
+      residence: " "
+      mainContact: " "
+      alternativePhone: " "
+      email: " "
+      employer: " "
+      occupation: " "
+      name: " "
+      relation: " "
+      phoneNumber: " "
+      isKnownShare: false
+      isKnownInfo: false
+    signatureHippa:
+      recipientName: ""
+      signaturePifzerVaccine1: ""
+      whetherSignature1: ""
+    screeningEligibility:
+      recevingDose: " "
+      ingredient: " "
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePifzerVaccine2: ""
+      whetherSignature2: ""
+    billingInfo:
+      medicalInsurance: " "
+      indentification:
+        membersID: " "
+        companyName: " "
+        insuredName: " "
+        relationship: " "
+        securityNumber: " "
+  modernaVaccineFirDoseFormDM:
+    # Moderna - First Dose 的数据存储
+    classTag:
+      name: Document
+      fontColor: "0x30b354"
+      backgroundColor: "0xe4f5e9"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      firstName: " "
+      middleName: " "
+      lastName: " "
+      dateOfBirth: " "
+      gender: " "
+      address: " "
+      city: " "
+      state: " "
+      zipCode: " "
+      residence: " "
+      mainContact: " "
+      alternativePhone: " "
+      email: " "
+      employer: " "
+      occupation: " "
+      name: " "
+      relation: " "
+      phoneNumber: " "
+      isKnownShare: false
+      isKnownInfo: false
+    screeningEligibility:
+      recevingDose: " "
+      ingredient: " "
+    billingInfo:
+      medicalInsurance: " "
+      indentification:
+        membersID: " "
+        companyName: " "
+        insuredName: " "
+        relationship: " "
+        securityNumber: " "
+
+  modernaVaccineSecDoseFormDM:
+    # Moderna Vaccine Form - Second Dose 的数据存储
+    classTag:
+      name: Document
+      fontColor: "0x30b354"
+      backgroundColor: "0xe4f5e9"
+      display: block
+    statusTag:
+      display: none
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+
+  TimeSpan:
+    - "Select"
+    - 00:00 AM
+    - 00:30 AM
+    - 01:00 AM
+    - 01:30 AM
+    - 02:00 AM
+    - 02:30 AM
+    - 03:00 AM
+    - 03:30 AM
+    - 04:00 AM
+    - 04:30 AM
+    - 05:00 AM
+    - 05:30 AM
+    - 06:00 AM
+    - 06:30 AM
+    - 07:00 AM
+    - 07:30 AM
+    - 08:00 AM
+    - 08:30 AM
+    - 09:00 AM
+    - 09:30 AM
+    - 10:00 AM
+    - 10:30 AM
+    - 11:00 AM
+    - 11:30 AM
+    - 12:00 AM
+    - 12:30 AM
+    - 01:00 PM
+    - 01:30 PM
+    - 02:00 PM
+    - 02:30 PM
+    - 03:00 PM
+    - 03:30 PM
+    - 04:00 PM
+    - 04:30 PM
+    - 05:00 PM
+    - 05:30 PM
+    - 06:00 PM
+    - 06:30 PM
+    - 07:00 PM
+    - 07:30 PM
+    - 08:00 PM
+    - 08:30 PM
+    - 09:00 PM
+    - 09:30 PM
+    - 10:00 PM
+    - 10:30 PM
+    - 11:00 PM
+    - 11:30 PM
+
+  Day:
+    - "Select"
+    - "Sunday"
+    - "Monday"
+    - "Tuesday"
+    - "Wedesday"
+    - "Thursday"
+    - "Friday"
+    - "Saturday"

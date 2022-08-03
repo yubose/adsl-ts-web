@@ -1,0 +1,250 @@
+Invite: # This is page name
+  module: meetingroom
+  title: "Invite"
+  pageNumber: "120 130"
+  init:
+    - .SignInCheck
+  save:
+    - =..inviteInfo.edgeAPI.store: ""
+    #test
+  inviteInfo:
+    edge:
+      .Edge: ""
+      name:
+        phoneNumber: ""
+        firstName: ""
+        lastName: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        type: "1053"
+        refid: .Global.waitingRoom.edge.id
+        bvid: .Global.currentUser.vertex.id
+        dataKey: inviteInfo.edge
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderRightButton:
+      text: Contacts
+      onClick: 
+        - goto: Contacts
+    - type: view
+      style:
+        left: "0"
+        top: "0.15"
+        width: "1"
+        height: "0.6"
+      children:
+        - type: label
+          text: "Phone#"
+          style:
+            left: "0.1333"
+            top: "0.05"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "14"
+        - type: textField
+          placeHolder: "Please enter the phoneNumber"
+          dataKey: inviteInfo.edge.name.phoneNumber
+          contentType: phone
+          style:
+            left: "0.1333"
+            top: "0.1"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "14"
+            border:
+              style: "2"
+              color: "0x0000007f"
+            borderWidth: "1"
+        - type: label
+          text: "First Name:"
+          style:
+            left: "0.1333"
+            top: "0.15"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "14"
+        - type: textField
+          placeHolder: "Please enter the first name"
+          dataKey: inviteInfo.edge.name.firstName
+          contentType: text
+          style:
+            left: "0.1333"
+            top: "0.2"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "14"
+            border:
+              style: "2"
+              color: "0x0000007f"
+            borderWidth: "1"
+        - type: label
+          text: "Last Name:"
+          style:
+            left: "0.1333"
+            top: "0.25"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "14"
+        - type: textField
+          placeHolder: "Please enter the last name"
+          dataKey: inviteInfo.edge.name.lastName
+          contentType: text
+          style:
+            left: "0.1333"
+            top: "0.3"
+            width: "0.72"
+            height: "0.03"
+            fontSize: "14"
+            border:
+              style: "2"
+              color: "0x0000007f"
+            borderWidth: "1"
+    - type: button
+      onClick:
+        - actionType: popUp
+          popUpView: confirmView
+      text: Invite
+      style:
+        left: "0.1"
+        top: "0.8"
+        width: "0.8"
+        height: "0.07"
+        color: "0xffffffff"
+        backgroundColor: "0x2988e6ff"
+        borderRadius: 2
+        textAlign:
+          x: center
+        border:
+          style: "1"
+    - type: popUp # view
+      viewTag: confirmView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1" 
+        backgroundColor: "0x00000066" 
+      children:
+        - type: view
+          style:
+            left: "0.1"
+            top: "0.4"
+            width: "0.8"
+            height: "0.3"
+            backgroundColor: "0xe9e9e9ff"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Send Invite Link"
+              style:
+                left: "0"
+                top: "0.04"
+                width: "0.8"
+                height: "0.027247"
+                color: "0x00000088"
+                fontSize: "20"
+                fontStyle: bold
+                display: inline
+                textAlign:
+                  x: center
+            - type: label
+              text: "Send invite link to"
+              style:
+                left: "0"
+                top: "0.1"
+                width: "0.8"
+                height: "0.04"
+                color: "0x00000088"
+                fontSize: "14"
+                display: inline
+                textAlign:
+                  x: center
+            - type: label
+              dataKey: inviteInfo.edge.name.firstName
+              style:
+                left: "0"
+                top: "0.15"
+                width: "0.3"
+                height: "0.027247"
+                color: "0x00000088"
+                fontSize: "14"
+                display: inline
+                textAlign:
+                  x: right
+            - type: label
+              dataKey: inviteInfo.edge.name.lastName
+              style:
+                left: "0.31"
+                top: "0.15"
+                width: "0.2"
+                height: "0.027247"
+                color: "0x00000088"
+                fontSize: "14"
+                display: inline
+                textAlign:
+                  x: center
+            - type: label
+              dataKey: inviteInfo.edge.name.phoneNumber
+              style:
+                left: "0.5"
+                top: "0.15"
+                width: "0.3"
+                height: "0.027247"
+                color: "0x00000088"
+                fontSize: "14"
+                display: inline
+                textAlign:
+                  x: left
+            - type: divider
+              style:
+                left: "0"
+                top: "0.22"
+                width: "0.795"
+                backgroundColor: "0x00000088"
+            - type: button
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: confirmView
+              text: Cancel
+              style:
+                left: "0.01"
+                top: "0.24"
+                width: "0.38"
+                height: "0.05"
+                color: "0x007affff"
+                backgroundColor: "0xe9e9e9"
+                fontSize: "17"
+                display: inline
+                border:
+                  style: 1
+            - type: button
+              onClick: 
+                - actionType: evalObject
+                  object: ..save
+                - goto: InviteSuccessful
+              text: Confirm
+              style:
+                left: "0.4"
+                top: "0.24"
+                width: "0.38"
+                height: "0.05"
+                color: "0x007affff"
+                fontSize: "17"
+                display: inline
+                backgroundColor: "0xe9e9e9"
+                borderRadius: 10
+                border:
+                  style: 1
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0.4"
+                  top: "0.22"
+                  width: "0.001"
+                  height: "0.065"
+                  backgroundColor: "0x00000088"

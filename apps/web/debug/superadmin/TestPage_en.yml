@@ -1,0 +1,148 @@
+TestPage:
+  pageNumber: "0"
+
+  title: "Test Page"
+
+  init:
+    - .SignInCheck
+    - ..apiRequest.fac_RootNotebook.edgeReq.id@: "P7a0cKFrT6g9I3gDxYGmcQ=="
+    - =..apiRequest.fac_RootNotebook.edgeAPI.get: ""
+    - ..apiRequest.facility.documentReq.id@: =..apiRequest.fac_RootNotebook.edge.edge.0.id
+  formData: 
+    csvRespData: []
+    csvData: [
+          "Handle", "Title",
+          "Standardized Product Type","Vendor",
+          "Product Status","Introduction",
+          "Image Src","Image Position","Price","Cost per item","MRSP","Tax","SKU","Barcode","Inventory Policy",
+          "Inventory Count","Requires Shipping","Length","Width",
+          "Height","Length Unit","Weight","Weight Unit","Option1 Name",
+          "Option1 Value","Option2 Name","Option2 Value","Option3 Name","Option3 Value",
+          "Option4 Name","Option4 Value","Variant Price","Variant Stock","Variant SKU",
+          "Variant Barcode"
+              ]
+    userList: []
+    searchByPhone: ""
+    popShow: "none"
+  apiRequest:
+    facility:
+      response: ""
+      documentReq:
+        id: ""
+        xfname: eid
+        type: .DocType.FacilityProfile
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: TestPage.apiRequest.facility.documentReq
+          dataOut: TestPage.apiRequest.facility.response
+    fac_RootNotebook:
+      edgeReq:
+        id: ""
+        xfname: bvid
+        type: .EdgeType.RootNotebook
+      edge: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: TestPage.apiRequest.fac_RootNotebook.edgeReq
+          dataOut: TestPage.apiRequest.fac_RootNotebook.edge
+    user: 
+      vertexIn: 
+        type: 1
+        xfname: none
+        sCondition: ""
+        maxcount: "500"
+      vertexResp:
+        vertex: []
+      vertexAPI:
+        get: 
+          api: rv
+          dataIn: TestPage.apiRequest.user.vertexIn
+          dataOut: TestPage.apiRequest.user.vertexResp
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+          children:
+            - .aitLogo:
+            - .MenuBar:   
+        - .TopBar:
+          style:
+            left: "0.16"
+            marginTop: "0"
+            height: "0.063"
+            width: "0.84"        
+        # - .InnerBodyView:
+        - type: view 
+          style:
+            backgroundColor: "0xf4f8fa"
+            width: "0.84"
+            height: "0.937"
+            left: "0.16"
+            top: "0.063"
+          children:
+            # - .PageTitleLabel: 
+            - type: label
+              text: ..title
+              style:
+                fontSize: .Nfont.nf6
+                fontFamily: "Roboto"            
+                fontWeight: "600"
+                left: "0.03328"
+                height: "0.06256"
+                textAlign:
+                  y: center
+            - .ContentBar:
+              style:
+                marginTop: "0"
+                backgroundColor: "0xffffff"
+                width: "0.82"
+                height: "0.85594"
+                # marginLeft: "0.01"
+                borderRadius: "6"
+                border: 
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
+              children:
+                - type: view
+                  style:
+                    height: "0.12236"
+                    width: "0.76544"
+                    marginTop: "0.04"
+                    left: "0.02288"
+                  children:
+                    - type: image
+                      viewTag: videoDefaultTag
+                      path: rectangle.svg
+                      dataOption: TestPage.formData.csvData
+                      style:
+                        width: "0.081"
+                        margin: auto
+                      onClick:
+                        - actionType: openPhotoLibrary
+                          dataObject: BLOB
+                          dataKey: TestPage.formData.csvRespData    
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.handleProductionCsvData:  
+                                dataIn:
+                                  originalArray: =..formData.csvRespData                                 
+                    - type: button
+                      text: Test
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.handleProductionCsvData:  
+                                dataIn:
+                                  originalArray: =..formData.csvRespData                      
+                      style:
+                        marginTop: "0.1"
+                        textAlign:
+                          x: center
+                          y: center 
+
+                                 
+                

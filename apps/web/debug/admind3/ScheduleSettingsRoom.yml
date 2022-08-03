@@ -1,0 +1,736 @@
+ScheduleSettingsRoom:
+  # xd page number64
+  pageNumber: "370"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - if:
+        - .Global.locationAll
+        - actionType: evalObject
+          object:
+            - ..formData.locationId@: =.Global.locationAll.0.id
+            - =.builtIn.array.selectOneToArr:
+                dataIn:
+                  arr: =.Global.locationAll
+                  key: "medicalFacilityName"
+                dataOut: ScheduleSettingsRoom.formData.addressAll
+            - ..formData.addressDisplay@: =..formData.addressAll.0
+            - ..roomList.docIn.ids.0@: =..formData.locationId
+            - .Global.locationId@: =..formData.locationId
+            - .Global.jwt.edge.bvid@: =..formData.locationId
+            - =.Global.jwt.edgeAPI.store: ""
+            - =..roomList.docAPI.get: ""
+            - ..formData.currentLocationRoomList@: =..roomList.docResp.doc
+        - continue
+  viewPort: top
+  title: "ScheduleSettingsRoom"
+  formData:
+    addressAll: ""
+    addressDisplay: ""
+    locationId: ""
+    currentLocationRoomList: []
+    reasonForVisit: []
+  roomList:
+    docIn:
+      ObjType: 12
+      ids:
+      xfname: "E.bvid"
+      maxcount: "100"
+      obfname: "ctime"
+      type: .DocType.RoomProfile
+      sCondition: E.type=1100
+      asc: true
+      _nonce: =.Global._nonce
+    docResp: ""
+    docAPI:
+      get:
+        api: rd
+        dataIn: ScheduleSettingsRoom.roomList.docIn
+        dataOut: ScheduleSettingsRoom.roomList.docResp
+  visitReason:
+    docResp: ""
+    docIn:
+      type: .DocType.VisitReason
+      id:
+      xfname: eid
+      obfname: "ctime"
+      _nonce: .Global._nonce
+      name:
+        data:
+          reasonForVisit: []
+    document:
+      type: .DocType.VisitReason
+      eid:
+      name:
+        data:
+          reasonForVisit: []
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: visitReason.document
+      get:
+        .DocAPI.get: ""
+        api: rd
+        dataIn: visitReason.docIn
+        dataOut: ScheduleSettingsRoom.visitReason.docResp
+  reasonObj:
+    reason: "COVID-19 Testing"
+    duration: "5 min"
+    document: []
+  doucment:
+    - title: PifzerBioNTech
+      pageName: PifzerBioNTech
+    - title: Moderna
+      pageName: Moderna
+    - title: COVID-19 Testing
+      pageName: PatientInfo1
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          children:
+            - type: view
+              style:
+                left: "0.03"
+                top: "0.015"
+                width: "0.8"
+                height: "0.06"
+              children:
+                - .BackLabel:
+                - .Addbutton:
+                  style:
+                    left: "0.69"
+                    top: "0"
+                    height: "0.045"
+                  children:
+                    - .Label1:
+                      text: 'New Room'
+                      onClick:
+                        - goto: RoomManagement
+                      style:
+                        fontSize: .Nfont.nf2
+                        top: '0.011'
+                        width: "0.09"
+                        left: '0.038'
+                        color: "0xffffff"
+                    - type: image
+                      path: addRoom.svg
+                      style:
+                        top: '0.01'
+                        width: "0.014"
+                        left: '0.015'
+                        # filter: invert(100%)
+
+
+        - .ContentView:
+          style:
+            height: "0.82"
+            left: "0.19"
+            top: "0.145"
+          children:
+            - type: scrollView
+              style:
+                left: "0"
+                width: "0.8"
+                top: "0"
+                height: "0.82"
+                overflow: scroll
+              children:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.8"
+                    height: "auto"
+                    left: "0"
+                  children:
+                    - type: view
+                      style:
+                        marginTop: "0"
+                        height: "0.13"
+                      children:
+                        - type: label
+                          text: Location
+                          style:
+                            color: '0x3f5978'
+                            fontFamily: 'Arial'
+                            top: '0.04'
+                            left: '0.03'
+                        - type: select
+                          # placeholder: "Select here"
+                          dataKey: formData.addressDisplay
+                          options: ..formData.addressAll
+                          onChange:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - ..roomList.docResp.doc@: []
+                                - =.builtIn.array.matchInArray:
+                                    dataIn:
+                                      arr: =.Global.locationAll
+                                      value: =..formData.addressDisplay
+                                      key: "medicalFacilityName"
+                                      key1: "id"
+                                    dataOut: ScheduleSettingsRoom.formData.locationId
+                                - ..roomList.docIn.ids.0@: =..formData.locationId
+                                - .Global.locationId@: =..formData.locationId
+                                - =..roomList.docAPI.get: ""
+                                - ..formData.currentLocationRoomList@: =..roomList.docResp.doc
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: roomView
+                          style:
+                            left: "0.02"
+                            top: "0.07"
+                            width: "0.4"
+                            height: "0.04"
+                            border:
+                              style: "3"
+                            borderWidth: "1"
+                            color: "#757575"
+                            borderColor: "0xf2f2f2"
+                            borderRadius: "4"
+                    - type: view
+                      style:
+                        left: '0'
+                        marginTop: "0.02"
+                      children:
+                        - type: list
+                          contentType: listObject
+                          listObject: =..formData.currentLocationRoomList
+                          iteratorVar: itemObject
+                          viewTag: roomView
+                          style:
+                            width: '0.8'
+                            height: "auto"
+                            margin: "0"
+                            # marginTop: "0.01"
+                            float: left
+                          children:
+                            - type: listItem
+                              # onClick:
+
+                              itemObject:
+                              style:
+                                display: inline-block
+                                width: '0.198'
+                                height: '0.29'
+                                left: '0'
+                              children:
+                                - .Scview:
+                                  children:
+                                    - type: label
+                                      text=func: .builtIn.string.getFirstChar
+                                      dataKey: itemObject.name.data.roomName
+                                      style:
+                                        left: "0.015"
+                                        top: "0.03"
+                                        height: "0.09"
+                                        width: "0.053"
+                                        backgroundColor: "0xc1c1c1"
+                                        fontSize: .Nfont.nf5
+                                        border:
+                                          style: "3"
+                                        borderColor: "0xc8c8c8"
+                                        borderWidth: "1"
+                                        borderRadius: "8"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                    # - type: image
+                                    #   path: itemObject.img
+                                    #   style:
+                                    #     width: "0.06"
+                                    #     left: "0.06"
+                                    #     top: "0.06"
+                                    #   dataKey: itemObject.type
+                                    - type: view
+                                      style:
+                                        backgroundColor: '0xc1c1c1'
+                                        height: '0.0001'
+                                        width: '0.1645'
+                                        top: '0.15'
+                                    - .ScLabel:
+                                      style:
+                                        fontFamily: 'Arial'
+                                      dataKey: itemObject.name.data.roomName
+                                    - .ScLabel0:
+                                      dataKey: itemObject.name.data.service
+                                      style:
+                                        fontFamily: 'Arial'
+                                    - .ScbuttonTwo:
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - .Global.acceptInfo@: ""
+                                              - .Global.acceptInfo@: $var
+                                        - actionType: evalObject
+                                          object:
+                                            .Global._nonce@:
+                                              =.builtIn.math.random: ""
+                                        - actionType: evalObject
+                                          object:
+                                            - ..visitReason.docResp.doc@: []
+                                            - ..visitReason.docIn.id@: []
+                                            - ..visitReason.docIn.id@: =.Global.acceptInfo.eid
+                                            - ..visitReason.document.eid@: =.Global.acceptInfo.eid
+                                            - =..visitReason.docAPI.get: ""
+                                            - ..formData.reasonForVisit@: []
+                                            - if:
+                                                - =..visitReason.docResp.doc.0
+                                                - actionType: evalObject
+                                                  object:
+                                                    - ..formData.reasonForVisit@: =..visitReason.docResp.doc.0.name.data.reasonForVisit
+                                                    - ..visitReason.document@: =..visitReason.docResp.doc.0
+                                                - continue
+
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: reasonViewRoom
+                                        - actionType: popUp
+                                          popUpView: reasonViewRoom
+                                    - .ScbuttonTwo:
+                                      text: 'Availability'
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - .Global.acceptInfo@: ""
+                                              - .Global.acceptInfo@: $var
+                                        - goto: SchduleSettingRoom
+                                      style:
+                                        left: '0.09'
+        - type: popUp
+          # - type: view
+          viewTag: reasonViewRoom
+          style:
+            width: "1"
+            top: "0"
+            left: "0"
+            height: "1"
+            backgroundColor: "0x00000033"
+            zIndex: "1000"
+          children:
+            - type: srollView
+              style:
+                left: "0.6"
+                top: "0"
+                width: "0.4"
+                height: "1"
+                overflow: sroll
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Reason For Visit"
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: reasonViewRoom
+                        - actionType: popUpDismiss
+                          popUpView: documentView
+                - type: textField
+                  placeholder: select
+                  dataKey: reasonObj.document
+                  viewTag: docFieldView
+                  # isEditable: false
+                  onClick:
+                    - actionType: popUp
+                      popUpView: documentView
+                  style:
+                    left: "0.275"
+                    top: "0.11"
+                    width: "0.1"
+                    height: "0.035"
+                    border:
+                      style: "3"
+                    borderColor: "0x00000066"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    zIndex: "100"
+                    textAlign:
+                      y: center
+                - type: view
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: documentView
+                  style:
+                    height: "0.92"
+                    width: "0.4"
+                    top: "0.08"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.15"
+                        backgroundColor: "0xffffff"
+                        zIndex: "10"
+                      children:
+                        - type: select
+                          placeholder: Enter Reson Here
+                          options:
+                            - COVID-19 Testing
+                            - COVID-19 Vaccine
+                          dataKey: reasonObj.reason
+                          style:
+                            left: "0.025"
+                            top: "0.03"
+                            width: "0.1"
+                            height: "0.03"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000066"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                        - type: select
+                          placeholder: Select
+                          dataKey: reasonObj.duration
+                          options: .Duration
+                          style:
+                            left: "0.15"
+                            top: "0.03"
+                            width: "0.1"
+                            height: "0.035"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000066"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                        - type: button
+                          text: Create new reason
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..formData.reasonForVisit
+                                      value: =..reasonObj
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: reasonTag
+                          style:
+                            left: "0.15"
+                            top: "0.1"
+                            width: "0.1"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            border:
+                              style: "3"
+                            borderColor: "0x005795"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            textAlign:
+                              x: center
+                    - type: button
+                      text: Save
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..visitReason.document.name.data.reasonForVisit@: =..formData.reasonForVisit
+                            - .Global.jwt.edge.bvid@: =.Global.acceptInfo.bsig
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =..visitReason.docAPI.store: ""
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: popUp
+                          popUpView: successView
+                        - actionType: popUpDismiss
+                          popUpView: reasonViewRoom
+                        # - actionType;
+                      style:
+                        left: "0.32"
+                        top: "0.22"
+                        width: "0.06"
+                        height: "0.035"
+                        color: "0xffffff"
+                        backgroundColor: "0x005795"
+                        border:
+                          style: "3"
+                        borderColor: "0x005795"
+                        borderWidth: "1"
+                        borderRadius: "5"
+                    - type: view
+                      style:
+                        left: "0"
+                        top: "0.26"
+                        width: "0.4"
+                        height: "0.05"
+                        border:
+                          style: "2"
+                        borderColor: "0x00000033"
+                        borderWidth: "1"
+                        # backgroundColor: "0xcdcdcd"
+                      children:
+                        - type: label
+                          text: Reason for Visit
+                          style:
+                            left: "0.025"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: label
+                          text: Duration
+                          style:
+                            left: "0.15"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: label
+                          text: Documents
+                          style:
+                            left: "0.275"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign:
+                              x: center
+                              y: center
+                    - type: view
+                      style:
+                        left: "0"
+                        top: "0.31"
+                        width: "0.4"
+                        height: "0.61"
+                        backgroundColor: "0xefefef"
+                      children:
+                        - type: view
+                          style:
+                            left: "0"
+                            top: "0.001"
+                            width: "0.4"
+                            height: "0.05"
+                            backgroundColor: "0xffffff"
+                          children:
+                            - type: label
+                              contentType: messageHidden
+                              text: No settings created
+                              style:
+                                top: "0.01"
+                                width: "0.4"
+                                height: "0.04"
+                                left: "0"
+                                textAlign:
+                                  x: center
+                                fontSize: .Nfont.nf2
+                                color: "0x00000088"
+                        - type: scrollView
+
+                          style:
+                            top: "0.001"
+                            width: "0.4"
+                            height: "0.6"
+                            overflow: scroll
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: =..formData.reasonForVisit
+                              iteratorVar: itemObject
+                              viewTag: reasonTag
+                              style:
+                                width: "0.4"
+                                height: "0.6"
+                                margin: "0"
+                                left: "0"
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    height: "0.05"
+                                    left: ""
+                                    width: "0.4"
+                                    border:
+                                      style: "2"
+                                    borderColor: "0x00000033"
+                                    borderWidth: "1"
+                                    backgroundColor: "0xffffff"
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.reason
+                                      style:
+                                        width: "0.1"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.025"
+                                        textAlign:
+                                          x: center
+                                    - type: label
+                                      dataKey: itemObject.duration
+                                      style:
+                                        width: "0.1"
+                                        height: "0.03"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.15"
+                                        textAlign:
+                                          x: center
+                                    - type: select
+                                      # dataKey: itemObject.document
+                                      options: itemObject.document
+                                      style:
+                                        width: "0.06"
+                                        height: "0.03"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.3"
+                                        border:
+                                          style: "3"
+                                        borderRadius: "3"
+                                        borderColor: "0x00000033"
+                                        textAlign:
+                                          x: center
+                                    - type: image
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - =.builtIn.array.removeByName:
+                                                  dataIn:
+                                                    object: =..visitReason.document.name.data.reasonForVisit
+                                                    key: "reason"
+                                                    name: $var.reason
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: reasonTag
+                                        # - actionType: refresh
+                                      path: delete.svg
+                                      style:
+                                        left: "0.37"
+                                        top: "0.015"
+                                        width: "0.01"
+        - type: popUp
+          viewTag: documentView
+          style:
+            left: "0.875"
+            width: "0.103"
+            height: "0.12"
+            top: "0.15"
+            backgroundColor: "0xffffff"
+            boxShadow: "1px 1px #f0f0f0"
+            zIndex: "1000"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..doucment
+              iteratorVar: itemObject
+              viewTag: docListView
+              style:
+                width: "0.1"
+                left: "0"
+                marginTop: "0"
+                height: "0.15"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    width: "0.1"
+                    left: "0"
+                    height: "0.035"
+                    boder:
+                      style: "1"
+                  children:
+                    - type: image
+                      viewTag: selectView
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.array.has:
+                                    dataIn:
+                                      object: =..reasonObj.document
+                                      value: $var.title
+                                - checkOn.svg
+                                - checkOff.svg
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - if:
+                                  - =.builtIn.array.has:
+                                      dataIn:
+                                        object: =..reasonObj.document
+                                        value: $var.title
+                                  - =.builtIn.array.removeByValue:
+                                      dataIn:
+                                        object: =..reasonObj.document
+                                        value: $var.title
+                                  - =.builtIn.array.add:
+                                      dataIn:
+                                        object: =..reasonObj.document
+                                        value: $var.title
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: docListView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: docFieldView
+                      style:
+                        top: "0.0075"
+                        left: "0.005"
+                        width: "0.011"
+                    - type: label
+                      dataKey: itemObject.title
+                      # onClick: 
+                      #   - emit: 
+                      #       dataKey: 
+                      #         var: itemObject
+                      #       actions: 
+                      #         - if: 
+                      #           - true
+                      #           - goto: $var.pageName
+                      #           - goto: $var.pageName
+                      style:
+                        top: "0"
+                        left: "0.024"
+                        width: "0.7"
+                        height: "0.035"
+                        fontFamily: "Raleway"
+                        fontSize: .Nfont.nf1
+                        textAlign:
+                          y: center

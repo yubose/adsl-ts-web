@@ -1,0 +1,370 @@
+MyOrders:
+  title: My Orders
+  pageNumber:
+  init:
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =..apiRequest.orderList.docAPI.get: ""
+    # 拿取出deat.state=Okay的成功订单
+    - =.builtIn.array.getSpecifiedObject:
+        dataIn:
+          objArr: =..apiRequest.orderList.docQueryResp.doc
+          path: deat.state
+          value: Okay
+        dataOut: MyOrders.apiRequest.orderList.docQueryResp.doc
+    - =.builtIn.object.extract:
+        dataIn:
+          array: =..apiRequest.orderList.docQueryResp.doc
+          field: name.data.orderList
+        dataOut: MyOrders.formData.orderList
+    - =.builtIn.array.mergeAttributes:
+        dataIn:
+          arr: =..formData.orderList
+          path: "inventorName"
+        dataOut: MyOrders.formData.orderListAfterClassification
+
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..formData.orderListAfterClassification
+              len: 0
+        - actionType: evalObject
+          object:
+            - ..formData.emptyFlag@: "block"
+            - ..formData.listDataFlag@: "none"
+        - actionType: evalObject
+          object:
+            - ..formData.emptyFlag@: "none"
+            - ..formData.listDataFlag@: "block"
+
+  formData:
+    listDataFlag: "none"
+    emptyFlag: "block"
+    orderList: []
+    orderListAfterClassification: []
+    order:
+      name:
+        data:
+          orderList: []
+    orderDetail:
+      inventorName: ""
+      productionList: []
+  formDataTemp: ""
+  apiRequest:
+    orderList:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 8
+        id: .Global.currentUser.vertex.id
+        type: .DocType.Order
+        sCondition: E.type = 2113
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: MyOrders.apiRequest.orderList.docQueryReq
+          dataOut: MyOrders.apiRequest.orderList.docQueryResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - goto: MenuBars
+          - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          viewTag: emptyAddressTag
+          style:
+            display: ..formData.emptyFlag
+            marginTop: "0.262315"
+            width: "1"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: emptyOrder.svg
+              style:
+                width: "0.586666"
+                margin: auto
+        - type: list
+          viewTag: orderTag
+          contentType: listObject
+          listObject: ..formData.orderListAfterClassification
+          iteratorVar: itemObject
+          style:
+            ..style.list:
+            display: ..formData.listDataFlag
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.listItem:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      dataKey: itemObject.inventorName
+                      style:
+                        ..style.titleRight:
+                    - type: label
+                      dataKey: itemObject.orderStatus.value
+                      style:
+                        ..style.titleValue:
+                - type: list
+                  contentType: listObject
+                  listObject: itemObject.productionList
+                  iteratorVar: itemObject
+                  style:
+                    ..style.secondList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.secondListItem:
+                      onClick:
+                        - ..event.itemClick
+                      children:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: image
+                              path: good.svg
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.coverImgId
+                              style:
+                                ..style.productAvatar:
+                            - type: view
+                              style:
+                                ..style.topBox:
+                              children:
+                                - type: label
+                                  dataKey: itemObject.title
+                                  style:
+                                    ..style.productTitle:
+                                - type: label
+                                  dataKey: itemObject.type
+                                  style:
+                                    ..style.productType:
+                                    display: block
+                                - type: view
+                                  style:
+                                    ..style.productInfoBox:
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.productInfo
+                                      style:
+                                        ..style.productInfo:
+                                    - type: view
+                                      viewTag: numTag
+                                      style:
+                                        ..style.numBox:
+                                      children:
+                                        - type: view
+                                          style:
+                                            width: auto
+                                            height: auto
+                                          children:
+                                            - type: label
+                                              textBoard:
+                                                - text: "x"
+                                                - text: "0"
+                                                  dataKey: itemObject.num
+                                              style:
+                                                ..style.productNum:
+                        - type: view
+                          style:
+                            marginTop: "0.0160098"
+                          children:
+                            - type: label
+                              text: Price
+                              style:
+                                ..style.priceLabel:
+                            - type: label
+                              dataKey: itemObject.displayPrice
+                              style:
+                                ..style.priceValue:
+
+  event:
+    itemClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - .Global.formData.currentOrder@: ""
+            - ..formData.orderDetail.inventorName@: $var.inventorName
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: $var
+                  messages: =..formData.orderDetail.productionList
+                dataOut: MyOrders.formData.orderDetail.productionList
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =..formData.orderDetail
+                  messages: =..formData.order.name.data.orderList
+                dataOut: MyOrders.formData.order.name.data.orderList
+            - .Global.formData.currentOrder@: =..formData.order
+      - goto: OrderDetails
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.945"
+      paddingBottom: "0.03"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#f5f5f5"
+    list:
+      width: "0.92"
+      margin: "0"
+      marginLeft: "0.04"
+      marginTop: "0.014778"
+      height: auto
+      boxSizing: border-box
+      backgroundColor: "0xffffff"
+      # paddingBottom: "0.0172413"
+      borderRadius: "4"
+    listItem:
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+    titleBox:
+      paddingTop: "0.0172413"
+      paddingLeft: "0.04"
+      paddingRight: "0.04"
+      paddingBottom: "0.0160098"
+      fontSize: .Nfont.h16
+      fontWeight: "600"
+      boxSizing: border-box
+      wordBreak: break-word
+    titleRight:
+      display: "inline-block"
+      verticalAlign: middle
+      width: "0.4"
+    titleValue:
+      marginLeft: "0.04"
+      display: "inline-block"
+      color: itemObject.orderStatus.color
+      fontSize: .Nfont.h14
+      verticalAlign: middle
+      width: "0.4"
+      textAlign:
+        x: right
+    secondList:
+      width: "0.92"
+      margin: "0"
+      height: auto
+      boxSizing: border-box
+    secondListItem:
+      width: "0.84"
+      height: "auto"
+      marginLeft: "0.04"
+      paddingBottom: "0.019704"
+      paddingTop: "0.019704"
+      boxSizing: border-box
+      borderTop: "1px solid #dedede"
+    blockBox:
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    productAvatar:
+      width: "0.1546666"
+      height: "0.0714285"
+      border: "1px solid #dedede"
+      boxSizing: border-box
+      borderRadius: "4"
+      verticalAlign: middle
+      display: "inline-block"
+    topBox:
+      display: "inline-block"
+      marginLeft: "0.02133333"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+      verticalAlign: middle
+    productTitle:
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      boxSizing: "border-box"
+      -webkit-line-clamp: 2
+      display: -webkit-box
+      -webkit-box-orient: vertical
+      overflow: hidden
+      text-overflow: ellipsis
+      wordBreak: break-word
+      width: "0.656"
+    productType:
+      display: "inline-block"
+      color: itemObject.typeColor
+      fontSize: .Nfont.h12
+      width: "0.656"
+      fontWeight: "600"
+      verticalAlign: middle
+    productInfoBox:
+      marginTop: "0.006157"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    productInfo:
+      display: "inline-block"
+      paddingLeft: "0.021333"
+      width: "0.37"
+      height: "0.033251"
+      backgroundColor: "#f8f8f8"
+      color: "#666666"
+      borderRadius: "4"
+      boxSizing: border-box
+      fontSize: .Nfont.h12
+      lineHeight: "3.3251vh"
+      overflow: hidden
+      textOverflow: ellipsis
+      whiteSpace: nowrap
+      verticalAlign: middle
+    numBox:
+      marginLeft: "0.032"
+      display: "inline-block"
+      width: "0.258"
+      height: "auto"
+      verticalAlign: middle
+      textAlign:
+        x: right
+    productNum:
+      marginLeft: "0.02133333"
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      color: "#333333"
+      boxSizing: border-box
+      border: "1px solid #c1c1c1"
+      borderRadius: "2"
+      padding: "2px 4px"
+      verticalAlign: middle
+    price:
+      marginTop: "0.01"
+      color: "#fb5051"
+      width: "0.45"
+      fontSize: .Nfont.h16
+      fontWeight: "700"
+    priceLabel:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.3"
+      boxSizing: border-box
+    priceValue:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.538"
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: right
+    auto:
+      width: auto
+      height: auto

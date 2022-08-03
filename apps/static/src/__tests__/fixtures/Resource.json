@@ -1,0 +1,167 @@
+{
+  "SignIncolor": [
+    {
+      "fontColor": "0xff0000",
+      "fontSize": "1.9vh",
+      "title": "Sign In"
+    }
+  ],
+  "baseHeaderData": [
+    {
+      "fontColor": "0x000000",
+      "fontSize": "2.28vh",
+      "fontWeight": "400",
+      "left": "0vw",
+      "marginLeft": "0",
+      "pageName": "AiTmedCare",
+      "textDecoration": "none",
+      "title": "Find My Care",
+      "val": "0xe8e8e8",
+      "width": "calc(7vw)"
+    },
+    {
+      "fontColor": "0x000000",
+      "fontSize": "2.28vh",
+      "fontWeight": "400",
+      "left": "2vw",
+      "marginLeft": "0",
+      "textDecoration": "none",
+      "title": "For Provider",
+      "width": "calc(7vw)"
+    },
+    {
+      "fontColor": "0x000000",
+      "fontSize": "2.28vh",
+      "fontWeight": "400",
+      "left": "3vw",
+      "marginLeft": "0.8vw",
+      "textDecoration": "none",
+      "title": "For Business",
+      "width": "calc(7vw)"
+    },
+    {
+      "fontColor": "0x000000",
+      "fontSize": "2.28vh",
+      "fontWeight": "400",
+      "left": "5vw",
+      "marginLeft": "0",
+      "textDecoration": "none",
+      "title": "Aitmed Care",
+      "width": "calc(7vw)"
+    },
+    {
+      "fontColor": "0x000000",
+      "fontSize": "2.28vh",
+      "fontWeight": "400",
+      "left": "11.7vw",
+      "marginLeft": "0",
+      "textDecoration": "underline",
+      "title": "Sign in / Sign up",
+      "width": "calc(9vw)"
+    }
+  ],
+  "baseHeaderData1": [
+    {
+      "fontColor": "0x333333",
+      "fontSize": "2.28vh",
+      "title": "Sign In"
+    }
+  ],
+  "baseHeaderData2": [
+    {
+      "fontColor": "0x000000",
+      "fontSize": "2.28vh",
+      "title": "Home"
+    },
+    {
+      "fontColor": "0x000000",
+      "fontSize": "2.28vh",
+      "title": "About"
+    },
+    {
+      "fontColor": "0x333333",
+      "fontSize": "2.28vh",
+      "title": "Products"
+    },
+    {
+      "fontColor": "0x333333",
+      "fontSize": "2.28vh",
+      "title": "Wellness"
+    }
+  ],
+  "baseProduct": [
+    {
+      "pageName": "AiTmedCare",
+      "title": "Care App",
+      "val": "0xe8e8e8"
+    },
+    {
+      "pageName": "HealthAll",
+      "title": "Health A-Z",
+      "val": "0xe8e8e8"
+    }
+  ],
+  "baseSignIn": [
+    {
+      "title": "Care",
+      "val": "0xe8e8e8"
+    },
+    {
+      "title": "Provider",
+      "val": "0xe8e8e8"
+    },
+    {
+      "title": "Admin",
+      "val": "0xffffff"
+    }
+  ],
+  "changeSignInColor": [
+    {
+      "fontColor": "0xff0000",
+      "fontSize": "1.9vh",
+      "title": "Sign In"
+    }
+  ],
+  "components": [],
+  "messageAitmed": [
+    {
+      "color": "0x333333",
+      "fontSize": "calc(15.98/1724.81*100vw)",
+      "hei": "calc(100.91/1724.81*100vw)",
+      "imagePath": "customizedSmall.png",
+      "imgName": "Customized Telehealth Platform"
+    },
+    {
+      "color": "0x333333",
+      "fontSize": "calc(15.98/1724.81*100vw)",
+      "hei": "calc(100.91/1724.81*100vw)",
+      "imagePath": "videoSmall.png",
+      "imgName": "HD Video"
+    },
+    {
+      "color": "0x000000",
+      "fontSize": "calc(25.24/1724.81*100vw)",
+      "fontWeight": "600",
+      "hei": "calc(168.19/1724.81*100vw)",
+      "imagePath": "storeBig.png",
+      "imgName": "E-Med Store"
+    },
+    {
+      "color": "0x333333",
+      "fontSize": "calc(15.98/1724.81*100vw)",
+      "hei": "calc(100.91/1724.81*100vw)",
+      "imagePath": "schdulingSmall.png",
+      "imgName": "Self-Schduling"
+    },
+    {
+      "color": "0x333333",
+      "fontSize": "calc(15.98/1724.81*100vw)",
+      "hei": "calc(100.91/1724.81*100vw)",
+      "imagePath": "presciptionSmall.png",
+      "imgName": "E-Prescription"
+    }
+  ],
+  "productFlag": "0",
+  "signInFlag": "0",
+  "wellnessFlag": "0"
+}
