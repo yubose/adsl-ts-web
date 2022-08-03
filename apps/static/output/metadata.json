@@ -1,0 +1,125 @@
+{
+  "appKey": "cadlEndpoint.yml",
+  "assetsUrl": "https://public.aitmed.com/cadl/www4.14/assets/",
+  "baseUrl": "https://public.aitmed.com/cadl/www4.14/",
+  "cacheDir": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl",
+  "configKey": "www",
+  "configUrl": "https://public.aitmed.com/config/www.yml",
+  "deviceType": "web",
+  "ecosEnv": "stable",
+  "loglevel": "debug",
+  "startPage": "HomePage",
+  "missingFiles": {
+    "assets": {
+      "customizedSmall.png": {
+        "url": "https://public.aitmed.com/cadl/www4.14/assets/customizedSmall.png",
+        "filepath": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\output\\www\\assets\\customizedSmall.png"
+      },
+      "storeBig.png": {
+        "url": "https://public.aitmed.com/cadl/www4.14/assets/storeBig.png",
+        "filepath": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\output\\www\\assets\\storeBig.png"
+      },
+      "schdulingSmall.png": {
+        "url": "https://public.aitmed.com/cadl/www4.14/assets/schdulingSmall.png",
+        "filepath": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\output\\www\\assets\\schdulingSmall.png"
+      },
+      "presciptionSmall.png": {
+        "url": "https://public.aitmed.com/cadl/www4.14/assets/presciptionSmall.png",
+        "filepath": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\output\\www\\assets\\presciptionSmall.png"
+      },
+      "AiTmed.png": {
+        "url": "https://public.aitmed.com/cadl/www4.14/assets/AiTmed.png",
+        "filepath": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\output\\www\\assets\\AiTmed.png"
+      },
+      "videoBack.png": {
+        "url": "https://public.aitmed.com/cadl/www4.14/assets/videoBack.png",
+        "filepath": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\output\\www\\assets\\videoBack.png"
+      }
+    },
+    "pages": {}
+  },
+  "paths": {
+    "cacheDir": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl",
+    "cacheFiles": {
+      "HaNauseaAndVomtingInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaNauseaAndVomtingInChild",
+      "HaNeckPain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaNeckPain",
+      "HaNumbnessOrTinglingInHands": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaNumbnessOrTinglingInHands",
+      "HaPelvicPainFemale": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaPelvicPainFemale",
+      "HaPelvicPainMale": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaPelvicPainMale",
+      "HaShortnessOfBreath": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaShortnessOfBreath",
+      "HaShoulderPain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaShoulderPain",
+      "HaSkinRashesInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaSkinRashesInChild",
+      "HaSoreThroat": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaSoreThroat",
+      "HaSoreThroatInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaSoreThroatInChild",
+      "HaUrinaryProblems": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaUrinaryProblems",
+      "HaWheezing": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaWheezing",
+      "HaWheezingInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaWheezingInChild",
+      "HealthAll": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HealthAll",
+      "PrivacyPolicy": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\PrivacyPolicy",
+      "AboutAiTmed": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AboutAiTmed",
+      "AiTmedAdmin": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AiTmedAdmin",
+      "AiTmedCare": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AiTmedCare",
+      "AiTmedContact": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AiTmedContact",
+      "AiTmedCustomizedTelehealthPlatform": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AiTmedCustomizedTelehealthPlatform",
+      "AiTmedDocumentation": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AiTmedDocumentation",
+      "AiTmedProvider": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AiTmedProvider",
+      "AitmedSearch": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AitmedSearch",
+      "AiTmedSelfScheduling": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\AiTmedSelfScheduling",
+      "Cloudwaitingroom": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\Cloudwaitingroom",
+      "HaAbdominalPain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaAbdominalPain",
+      "HaAbdominalPainInChildren": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaAbdominalPainInChildren",
+      "HaBloodInTheStool": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaBloodInTheStool",
+      "HaChestPain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaChestPain",
+      "HaConstipation": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaConstipation",
+      "HaConstipationInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaConstipationInChild",
+      "HaCough": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaCough",
+      "HaCoughInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaCoughInChild",
+      "HaDiarrheaInAdult": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaDiarrheaInAdult",
+      "HaDiarrheaInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaDiarrheaInChild",
+      "HaDifficultySwallowing": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaDifficultySwallowing",
+      "HaDizziness": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaDizziness",
+      "HaEaracheInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaEaracheInChild",
+      "HaEarProblemsInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaEarProblemsInChild",
+      "HaEyeDiscomfortAndRedness": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaEyeDiscomfortAndRedness",
+      "HaEyeDiscomfortAndRednessInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaEyeDiscomfortAndRednessInChild",
+      "HaEyeProblems": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaEyeProblems",
+      "HaEyeProblemsInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaEyeProblemsInChild",
+      "HaFeverInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaFeverInChild",
+      "HaFootPainOrAnklePain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaFootPainOrAnklePain",
+      "HaHeadacheInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaHeadacheInChild",
+      "HaHeadaches": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaHeadaches",
+      "HaHeartPalpitions": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaHeartPalpitions",
+      "HaHipPain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaHipPain",
+      "HaJointPainOrMusclePainInChild": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaJointPainOrMusclePainInChild",
+      "HaKneePain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaKneePain",
+      "HaLegOrFootSwelling": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaLegOrFootSwelling",
+      "HaLowBackPain": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaLowBackPain",
+      "HaMenopause": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaMenopause",
+      "HaNasalCongestion": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaNasalCongestion",
+      "HaNasalCongestionC": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaNasalCongestionC",
+      "HaNauseaAndVomting": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HaNauseaAndVomting",
+      "SignUp": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\SignUp",
+      "TermsOfService": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\TermsOfService",
+      "Resource": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\Resource",
+      "FAQ": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\FAQ",
+      "FAQQuestionOne": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\FAQQuestionOne",
+      "CreateNewAccount": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\CreateNewAccount",
+      "SignIn": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\SignIn",
+      "DownloadCare": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\DownloadCare",
+      "HomePage": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\.cache\\caches\\gatsby-plugin-noodl\\generated\\HomePage"
+    },
+    "cwd": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static",
+    "output": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static/output",
+    "resolvedAssetsDir": "C:/Users/Chris/aitmed-noodl-web/apps/static/output/www/assets",
+    "resolvedConfigsDir": "C:/Users/Chris/aitmed-noodl-web/apps/static/output/www/www.yml",
+    "resolvedAppConfigFile": "C:/Users/Chris/aitmed-noodl-web/apps/static/output/www/cadlEndpoint.yml",
+    "resolvedOutputNamespacedWithConfig": "C:/Users/Chris/aitmed-noodl-web/apps/static/output/www",
+    "src": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static/src",
+    "template": "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\src\\templates\\page.tsx"
+  },
+  "timestamp": "8/2/2022, 3:15:58 PM",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  }
+}

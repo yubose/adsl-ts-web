@@ -10,8 +10,8 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist",
-    "build": "npm run lib:build && webpack --mode=production",
+    "bootstrap": "lerna bootstrap --hoist --force-local",
+    "build": "webpack --mode=production",
     "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
     "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
     "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
@@ -26,12 +26,8 @@
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:static": "lerna exec --scope homepage npm run deploy",
-    "editor": "lerna exec --scope noodl-editor 'npm run start'",
-    "lib:build:development": "cross-env lerna run --scope noodl-ui --scope noodl-types build:development",
-    "lib:build": "cross-env lerna exec --scope noodl-ui --scope noodl-types \"npm run build\"",
-    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna exec --scope noodl-ui \"npm run start\"",
     "postinstall": "node scripts/postinstall",
-    "prebuild": "rm -rf dist build",
+    "prebuild": "rm -rf apps/web/dist apps/web/build",
     "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
     "serve:static": "lerna exec --scope homepage npm run serve",
     "start": "webpack serve --port 3000 --mode=development",
@@ -42,8 +38,6 @@
     "sync": "node scripts/op sync",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src",
-    "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
-    "test:nui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "dependencies": {
@@ -314,8 +308,5 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+  }
 }

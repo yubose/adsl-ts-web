@@ -1,0 +1,149 @@
+{
+  "assetsByChunkName": {
+    "app": [
+      "webpack-runtime-13180217606425ff85e0.js",
+      "framework-68cb2f8405387550d8e5.js",
+      "styles.693165be0281e28ea4a9.css",
+      "51c07a60-c95a8ec1a1bead377820.js",
+      "dc6a8720040df98778fe970bf6c000a41750d3ae-0186d17d0fbe9e35cb28.js",
+      "app-6b6d968fdc0287a46497.js"
+    ],
+    "component---src-pages-404-tsx": [
+      "component---src-pages-404-tsx-9f03625c20ad7c153005.js"
+    ],
+    "component---src-pages-index-tsx": [
+      "cfb9adb3994b7ed58674e5cdb26d0886a14db992-a08cef60d3bf0ae75b82.js",
+      "component---src-pages-index-tsx-f7681fee1460ac59d79b.js"
+    ],
+    "component---src-pages-introspection-tsx": [
+      "component---src-pages-introspection-tsx-627baf76a302154080c8.js"
+    ],
+    "component---src-templates-page-tsx": [
+      "cfb9adb3994b7ed58674e5cdb26d0886a14db992-a08cef60d3bf0ae75b82.js",
+      "component---src-templates-page-tsx-1a3a8152c77921833786.js"
+    ],
+    "polyfill": [
+      "webpack-runtime-13180217606425ff85e0.js",
+      "dc6a8720040df98778fe970bf6c000a41750d3ae-0186d17d0fbe9e35cb28.js",
+      "polyfill-ecf657a75cdfa04b7b96.js"
+    ]
+  },
+  "childAssetsByChunkName": {},
+  "name": "build-javascript",
+  "namedChunkGroups": {
+    "app": {
+      "assets": [
+        {
+          "name": "webpack-runtime-13180217606425ff85e0.js",
+          "size": 3912
+        },
+        {
+          "name": "framework-68cb2f8405387550d8e5.js",
+          "size": 130415
+        },
+        {
+          "name": "styles.693165be0281e28ea4a9.css",
+          "size": 21619
+        },
+        {
+          "name": "51c07a60-c95a8ec1a1bead377820.js",
+          "size": 232671
+        },
+        {
+          "name": "dc6a8720040df98778fe970bf6c000a41750d3ae-0186d17d0fbe9e35cb28.js",
+          "size": 12819
+        },
+        {
+          "name": "app-6b6d968fdc0287a46497.js",
+          "size": 306139
+        }
+      ],
+      "assetsSize": 707575,
+      "auxiliaryAssetsSize": 0,
+      "filteredAssets": 0,
+      "filteredAuxiliaryAssets": 0,
+      "name": "app"
+    },
+    "component---src-pages-404-tsx": {
+      "assets": [
+        {
+          "name": "component---src-pages-404-tsx-9f03625c20ad7c153005.js",
+          "size": 5084
+        }
+      ],
+      "assetsSize": 5084,
+      "auxiliaryAssetsSize": 0,
+      "filteredAssets": 0,
+      "filteredAuxiliaryAssets": 0,
+      "name": "component---src-pages-404-tsx"
+    },
+    "component---src-pages-index-tsx": {
+      "assets": [
+        {
+          "name": "cfb9adb3994b7ed58674e5cdb26d0886a14db992-a08cef60d3bf0ae75b82.js",
+          "size": 37586
+        },
+        {
+          "name": "component---src-pages-index-tsx-f7681fee1460ac59d79b.js",
+          "size": 408
+        }
+      ],
+      "assetsSize": 37994,
+      "auxiliaryAssetsSize": 0,
+      "filteredAssets": 0,
+      "filteredAuxiliaryAssets": 0,
+      "name": "component---src-pages-index-tsx"
+    },
+    "component---src-pages-introspection-tsx": {
+      "assets": [
+        {
+          "name": "component---src-pages-introspection-tsx-627baf76a302154080c8.js",
+          "size": 24003
+        }
+      ],
+      "assetsSize": 24003,
+      "auxiliaryAssetsSize": 0,
+      "filteredAssets": 0,
+      "filteredAuxiliaryAssets": 0,
+      "name": "component---src-pages-introspection-tsx"
+    },
+    "component---src-templates-page-tsx": {
+      "assets": [
+        {
+          "name": "cfb9adb3994b7ed58674e5cdb26d0886a14db992-a08cef60d3bf0ae75b82.js",
+          "size": 37586
+        },
+        {
+          "name": "component---src-templates-page-tsx-1a3a8152c77921833786.js",
+          "size": 465
+        }
+      ],
+      "assetsSize": 38051,
+      "auxiliaryAssetsSize": 0,
+      "filteredAssets": 0,
+      "filteredAuxiliaryAssets": 0,
+      "name": "component---src-templates-page-tsx"
+    },
+    "polyfill": {
+      "assets": [
+        {
+          "name": "webpack-runtime-13180217606425ff85e0.js",
+          "size": 3912
+        },
+        {
+          "name": "dc6a8720040df98778fe970bf6c000a41750d3ae-0186d17d0fbe9e35cb28.js",
+          "size": 12819
+        },
+        {
+          "name": "polyfill-ecf657a75cdfa04b7b96.js",
+          "size": 89008
+        }
+      ],
+      "assetsSize": 105739,
+      "auxiliaryAssetsSize": 0,
+      "filteredAssets": 0,
+      "filteredAuxiliaryAssets": 0,
+      "name": "polyfill"
+    }
+  }
+}

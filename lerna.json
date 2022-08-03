@@ -1,36 +1,13 @@
 {
   "command": {
     "bootstrap": {
-      "hoist": true,
-      "ignore": ["noodl-loader"]
-    },
-    "create": {
-      "license": "MIT"
-    },
-    "publish": {
-      "bump": "patch",
-      "ignore": ["noodl-ui-test-utils", "noodl-loader"],
-      "message": "Update"
+      "hoist": true
     }
   },
   "ignore": [],
   "ignoreChanges": ["**/__tests__/**"],
   "loglevel": "success",
-  "packages": [
-    "packages/homepage",
-    "packages/gatsby-plugin-noodl",
-    "packages/noodl-action-chain",
-    "packages/noodl-builder",
-    "packages/noodl-core",
-    "packages/noodl-yaml",
-    "packages/noodl-file",
-    "packages/noodl-pi",
-    "packages/noodl-types",
-    "packages/noodl-ui",
-    "packages/noodl-ui-test-utils",
-    "packages/noodl-utils"
-  ],
-  "registry": "https://registry.npmjs.org/",
-  "useWorkspaces": true,
+  "packages": ["apps/*"],
+  "usxNx": true,
   "version": "independent"
 }
