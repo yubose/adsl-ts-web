@@ -1004,17 +1004,24 @@ class App {
               let result: any
 
               if (/(dataValue|path|placeholder)/.test(trigger)) {
-                results = await actionChain?.execute?.()
-                result = results.find((val) => !!val?.result)?.result
+                if(trigger === 'path'){
+                  result = actionChain?.execute?.()
+                  // result = results.find((val) => !!val?.result)?.result
+                }else{
+                  results = await actionChain?.execute?.()
+                  result = results.find((val) => !!val?.result)?.result
+                } 
 
                 let datasetKey = ''
 
                 if (trigger === 'path') {
                   datasetKey = 'src'
                   if (!is.component.page(component)) {
-                    result = result
-                      ? resolveAssetUrl(result, this.nui.getAssetsUrl())
-                      : ''
+                    if (!result?.then){
+                      result = result
+                        ? resolveAssetUrl(result, this.nui.getAssetsUrl())
+                        : ''
+                    }    
                     component.edit({ src: result })
                     component.edit({ 'data-src': result })
                     component.emit('path', result)
