@@ -1,11 +1,3 @@
-require('jsdom-global')('', {
-  resources: 'usable',
-  runScripts: 'dangerously',
-  url: `https://127.0.0.1:3001`,
-  beforeParse: (win) => {
-    global.EventTarget = win.EventTarget
-  },
-})
 const u = require('@jsmanifest/utils')
 
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated

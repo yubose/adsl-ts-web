@@ -30,7 +30,7 @@
     "prebuild": "rm -rf apps/web/dist apps/web/build",
     "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
     "serve:static": "lerna exec --scope homepage npm run serve",
-    "start": "webpack serve --port 3000 --mode=development",
+    "start": "npx webpack serve --config apps/web/webpack.config.js --port 3000 --mode=development --env ECOS_ENV=test",
     "start:stable": "cross-env NODE_ENV=development HMR=true ECOS_ENV=stable USE_DEV_PATHS=true npm run start",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start -- --env ECOS_ENV=test",
     "start:static": "lerna exec --scope homepage npm start",
@@ -68,6 +68,9 @@
     "tslib": "^2.3.1",
     "type-fest": "^2.3.4",
     "typescript": "4.5",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3",
     "winston": "^3.8.1",
     "yaml": "^2.1.0"
   },

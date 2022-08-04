@@ -1,11 +1,8 @@
-const set = require('lodash/set')
 const u = require('@jsmanifest/utils')
-const { toJson, toYml } = require('noodl-yaml')
 const y = require('yaml')
 const path = require('path')
 const del = require('del')
 const fs = require('fs-extra')
-const fg = require('fast-glob')
 const webpack = require('webpack')
 const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
@@ -41,6 +38,8 @@ const paths = {
   },
   generated: getFilePath('../../generated'),
 }
+
+console.log(paths)
 
 /**
  * @type { Record<'name' | 'title' | 'description' | 'favicon' | 'keywords' | 'injectScripts', any> }
@@ -146,7 +145,11 @@ function getWebpackConfig(env) {
    */
   const webpackOptions = {
     entry: {
-      main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
+      main: [
+        process.env.SAMPLE
+          ? getFilePath('src/sample.ts')
+          : getFilePath('src/index.ts'),
+      ],
     },
     output: {
       // Using content hash when "watching" makes webpack save assets which might increase memory usage
@@ -230,8 +233,8 @@ function getWebpackConfig(env) {
     },
     plugins: [
       new WorkboxPlugin.InjectManifest({
-        swSrc: './src/firebase-messaging-sw.ts',
-        swDest: 'firebase-messaging-sw.js',
+        swSrc: getFilePath('src/firebase-messaging-sw.ts'),
+        swDest: getFilePath('firebase-messaging-sw.js'),
         maximumFileSizeToCacheInBytes: 500000000,
         mode: 'production',
         manifestTransforms: [
@@ -314,14 +317,17 @@ function getWebpackConfig(env) {
       new CopyPlugin({
         patterns: [
           {
-            from: 'public/piBackgroundWorker.js',
-            to: 'piBackgroundWorker.js',
+            from: getFilePath('public/piBackgroundWorker.js'),
+            to: getFilePath('piBackgroundWorker.js'),
           },
           {
-            from: 'public/jsstoreWorker.min.js',
-            to: 'jsstoreWorker.min.js',
+            from: getFilePath('public/jsstoreWorker.min.js'),
+            to: getFilePath('jsstoreWorker.min.js'),
           },
-          { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
+          {
+            from: getFilePath('public/sql-wasm.wasm'),
+            to: getFilePath('sql-wasm.wasm'),
+          },
         ],
       }),
       new webpack.ProgressPlugin({

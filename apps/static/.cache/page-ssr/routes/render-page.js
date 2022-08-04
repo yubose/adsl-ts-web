@@ -3290,7 +3290,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _theme_ui_core__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @theme-ui/core */ "./node_modules/@theme-ui/core/dist/theme-ui-core.esm.js");
-/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @theme-ui/css */ "../../node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
+/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @theme-ui/css */ "./node_modules/@theme-ui/color-modes/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
 /* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.esm.js");
 
 
@@ -3739,6 +3739,383 @@ const InitializeColorMode = () => (0,_theme_ui_core__WEBPACK_IMPORTED_MODULE_2__
 
 /***/ }),
 
+/***/ "./node_modules/@theme-ui/color-modes/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js":
+/*!************************************************************************************************!*\
+  !*** ./node_modules/@theme-ui/color-modes/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js ***!
+  \************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "THEME_UI_DEFAULT_KEY": () => (/* binding */ THEME_UI_DEFAULT_KEY),
+/* harmony export */   "css": () => (/* binding */ css),
+/* harmony export */   "defaultBreakpoints": () => (/* binding */ defaultBreakpoints),
+/* harmony export */   "get": () => (/* binding */ get),
+/* harmony export */   "getObjectWithVariants": () => (/* binding */ getObjectWithVariants),
+/* harmony export */   "multiples": () => (/* binding */ multiples),
+/* harmony export */   "scales": () => (/* binding */ scales)
+/* harmony export */ });
+/**
+ * Allows for nested scales with shorthand values
+ * @example
+ * {
+ *   colors: {
+ *     primary: { __default: '#00f', light: '#33f' }
+ *   }
+ * }
+ * css({ color: 'primary' }); // { color: '#00f' }
+ * css({ color: 'primary.light' }) // { color: '#33f' }
+ */
+
+const THEME_UI_DEFAULT_KEY = '__default';
+
+const hasDefault = x => {
+  return typeof x === 'object' && x !== null && THEME_UI_DEFAULT_KEY in x;
+};
+/**
+ * Extracts value under path from a deeply nested object.
+ * Used for Themes, variants and Theme UI style objects.
+ * Given a path to object with `__default` key, returns the value under that key.
+ *
+ * @param obj a theme, variant or style object
+ * @param path path separated with dots (`.`)
+ * @param fallback default value returned if get(obj, path) is not found
+ */
+
+
+function get(obj, path, fallback, p, undef) {
+  const pathArray = path && typeof path === 'string' ? path.split('.') : [path];
+
+  for (p = 0; p < pathArray.length; p++) {
+    obj = obj ? obj[pathArray[p]] : undef;
+  }
+
+  if (obj === undef) return fallback;
+  return hasDefault(obj) ? obj[THEME_UI_DEFAULT_KEY] : obj;
+}
+const getObjectWithVariants = (obj, theme) => {
+  if (obj && obj['variant']) {
+    let result = {};
+
+    for (const key in obj) {
+      const x = obj[key];
+
+      if (key === 'variant') {
+        const val = typeof x === 'function' ? x(theme) : x;
+        const variant = getObjectWithVariants(get(theme, val), theme);
+        result = { ...result,
+          ...variant
+        };
+      } else {
+        result[key] = x;
+      }
+    }
+
+    return result;
+  }
+
+  return obj;
+};
+const defaultBreakpoints = [40, 52, 64].map(n => n + 'em');
+const defaultTheme = {
+  space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
+  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72]
+};
+const aliases = {
+  bg: 'backgroundColor',
+  m: 'margin',
+  mt: 'marginTop',
+  mr: 'marginRight',
+  mb: 'marginBottom',
+  ml: 'marginLeft',
+  mx: 'marginX',
+  my: 'marginY',
+  p: 'padding',
+  pt: 'paddingTop',
+  pr: 'paddingRight',
+  pb: 'paddingBottom',
+  pl: 'paddingLeft',
+  px: 'paddingX',
+  py: 'paddingY'
+};
+const multiples = {
+  marginX: ['marginLeft', 'marginRight'],
+  marginY: ['marginTop', 'marginBottom'],
+  paddingX: ['paddingLeft', 'paddingRight'],
+  paddingY: ['paddingTop', 'paddingBottom'],
+  scrollMarginX: ['scrollMarginLeft', 'scrollMarginRight'],
+  scrollMarginY: ['scrollMarginTop', 'scrollMarginBottom'],
+  scrollPaddingX: ['scrollPaddingLeft', 'scrollPaddingRight'],
+  scrollPaddingY: ['scrollPaddingTop', 'scrollPaddingBottom'],
+  size: ['width', 'height']
+};
+const scales = {
+  color: 'colors',
+  background: 'colors',
+  backgroundColor: 'colors',
+  borderColor: 'colors',
+  caretColor: 'colors',
+  columnRuleColor: 'colors',
+  outlineColor: 'colors',
+  textDecorationColor: 'colors',
+  opacity: 'opacities',
+  transition: 'transitions',
+  margin: 'space',
+  marginTop: 'space',
+  marginRight: 'space',
+  marginBottom: 'space',
+  marginLeft: 'space',
+  marginX: 'space',
+  marginY: 'space',
+  marginBlock: 'space',
+  marginBlockEnd: 'space',
+  marginBlockStart: 'space',
+  marginInline: 'space',
+  marginInlineEnd: 'space',
+  marginInlineStart: 'space',
+  padding: 'space',
+  paddingTop: 'space',
+  paddingRight: 'space',
+  paddingBottom: 'space',
+  paddingLeft: 'space',
+  paddingX: 'space',
+  paddingY: 'space',
+  paddingBlock: 'space',
+  paddingBlockEnd: 'space',
+  paddingBlockStart: 'space',
+  paddingInline: 'space',
+  paddingInlineEnd: 'space',
+  paddingInlineStart: 'space',
+  scrollMargin: 'space',
+  scrollMarginTop: 'space',
+  scrollMarginRight: 'space',
+  scrollMarginBottom: 'space',
+  scrollMarginLeft: 'space',
+  scrollMarginX: 'space',
+  scrollMarginY: 'space',
+  scrollPadding: 'space',
+  scrollPaddingTop: 'space',
+  scrollPaddingRight: 'space',
+  scrollPaddingBottom: 'space',
+  scrollPaddingLeft: 'space',
+  scrollPaddingX: 'space',
+  scrollPaddingY: 'space',
+  inset: 'space',
+  insetBlock: 'space',
+  insetBlockEnd: 'space',
+  insetBlockStart: 'space',
+  insetInline: 'space',
+  insetInlineEnd: 'space',
+  insetInlineStart: 'space',
+  top: 'space',
+  right: 'space',
+  bottom: 'space',
+  left: 'space',
+  gridGap: 'space',
+  gridColumnGap: 'space',
+  gridRowGap: 'space',
+  gap: 'space',
+  columnGap: 'space',
+  rowGap: 'space',
+  fontFamily: 'fonts',
+  fontSize: 'fontSizes',
+  fontWeight: 'fontWeights',
+  lineHeight: 'lineHeights',
+  letterSpacing: 'letterSpacings',
+  border: 'borders',
+  borderTop: 'borders',
+  borderRight: 'borders',
+  borderBottom: 'borders',
+  borderLeft: 'borders',
+  borderWidth: 'borderWidths',
+  borderStyle: 'borderStyles',
+  borderRadius: 'radii',
+  borderTopRightRadius: 'radii',
+  borderTopLeftRadius: 'radii',
+  borderBottomRightRadius: 'radii',
+  borderBottomLeftRadius: 'radii',
+  borderTopWidth: 'borderWidths',
+  borderTopColor: 'colors',
+  borderTopStyle: 'borderStyles',
+  borderBottomWidth: 'borderWidths',
+  borderBottomColor: 'colors',
+  borderBottomStyle: 'borderStyles',
+  borderLeftWidth: 'borderWidths',
+  borderLeftColor: 'colors',
+  borderLeftStyle: 'borderStyles',
+  borderRightWidth: 'borderWidths',
+  borderRightColor: 'colors',
+  borderRightStyle: 'borderStyles',
+  borderBlock: 'borders',
+  borderBlockColor: 'colors',
+  borderBlockEnd: 'borders',
+  borderBlockEndColor: 'colors',
+  borderBlockEndStyle: 'borderStyles',
+  borderBlockEndWidth: 'borderWidths',
+  borderBlockStart: 'borders',
+  borderBlockStartColor: 'colors',
+  borderBlockStartStyle: 'borderStyles',
+  borderBlockStartWidth: 'borderWidths',
+  borderBlockStyle: 'borderStyles',
+  borderBlockWidth: 'borderWidths',
+  borderEndEndRadius: 'radii',
+  borderEndStartRadius: 'radii',
+  borderInline: 'borders',
+  borderInlineColor: 'colors',
+  borderInlineEnd: 'borders',
+  borderInlineEndColor: 'colors',
+  borderInlineEndStyle: 'borderStyles',
+  borderInlineEndWidth: 'borderWidths',
+  borderInlineStart: 'borders',
+  borderInlineStartColor: 'colors',
+  borderInlineStartStyle: 'borderStyles',
+  borderInlineStartWidth: 'borderWidths',
+  borderInlineStyle: 'borderStyles',
+  borderInlineWidth: 'borderWidths',
+  borderStartEndRadius: 'radii',
+  borderStartStartRadius: 'radii',
+  columnRuleWidth: 'borderWidths',
+  boxShadow: 'shadows',
+  textShadow: 'shadows',
+  zIndex: 'zIndices',
+  width: 'sizes',
+  minWidth: 'sizes',
+  maxWidth: 'sizes',
+  height: 'sizes',
+  minHeight: 'sizes',
+  maxHeight: 'sizes',
+  flexBasis: 'sizes',
+  size: 'sizes',
+  blockSize: 'sizes',
+  inlineSize: 'sizes',
+  maxBlockSize: 'sizes',
+  maxInlineSize: 'sizes',
+  minBlockSize: 'sizes',
+  minInlineSize: 'sizes',
+  columnWidth: 'sizes',
+  // svg
+  fill: 'colors',
+  stroke: 'colors'
+};
+
+const positiveOrNegative = (scale, value) => {
+  if (typeof value !== 'number' || value >= 0) {
+    if (typeof value === 'string' && value.startsWith('-')) {
+      const valueWithoutMinus = value.substring(1);
+      const n = get(scale, valueWithoutMinus, valueWithoutMinus);
+
+      if (typeof n === 'number') {
+        return n * -1;
+      }
+
+      return `-${n}`;
+    }
+
+    return get(scale, value, value);
+  }
+
+  const absolute = Math.abs(value);
+  const n = get(scale, absolute, absolute);
+  if (typeof n === 'string') return '-' + n;
+  return Number(n) * -1;
+};
+
+const transforms = ['margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginBlock', 'marginBlockEnd', 'marginBlockStart', 'marginInline', 'marginInlineEnd', 'marginInlineStart', 'top', 'bottom', 'left', 'right'].reduce((acc, curr) => ({ ...acc,
+  [curr]: positiveOrNegative
+}), {});
+
+const responsive = styles => theme => {
+  const next = {};
+  const breakpoints = theme && theme.breakpoints || defaultBreakpoints;
+  const mediaQueries = [null, ...breakpoints.map(n => n.includes('@media') ? n : `@media screen and (min-width: ${n})`)];
+
+  for (const k in styles) {
+    const key = k;
+    let value = styles[key];
+
+    if (typeof value === 'function') {
+      value = value(theme || {});
+    }
+
+    if (value === false || value == null) {
+      continue;
+    }
+
+    if (!Array.isArray(value)) {
+      next[key] = value;
+      continue;
+    }
+
+    for (let i = 0; i < value.slice(0, mediaQueries.length).length; i++) {
+      const media = mediaQueries[i];
+
+      if (!media) {
+        next[key] = value[i];
+        continue;
+      }
+
+      next[media] = next[media] || {};
+      if (value[i] == null) continue;
+      next[media][key] = value[i];
+    }
+  }
+
+  return next;
+};
+
+const css = (args = {}) => (props = {}) => {
+  const theme = { ...defaultTheme,
+    ...('theme' in props ? props.theme : props)
+  }; // insert variant props before responsive styles, so they can be merged
+  // we need to maintain order of the style props, so if a variant is place in the middle
+  // of other props, it will extends its props at that same location order.
+
+  const obj = getObjectWithVariants(typeof args === 'function' ? args(theme) : args, theme);
+  const styles = responsive(obj)(theme);
+  let result = {};
+
+  for (const key in styles) {
+    const x = styles[key];
+    const val = typeof x === 'function' ? x(theme) : x;
+
+    if (val && typeof val === 'object') {
+      if (hasDefault(val)) {
+        result[key] = val[THEME_UI_DEFAULT_KEY];
+        continue;
+      } // On type level, val can also be an array here,
+      // but we transform all arrays in `responsive` function.
+
+
+      result[key] = css(val)(theme);
+      continue;
+    }
+
+    const prop = key in aliases ? aliases[key] : key;
+    const scaleName = prop in scales ? scales[prop] : undefined;
+    const scale = scaleName ? theme == null ? void 0 : theme[scaleName] : get(theme, prop, {});
+    const transform = get(transforms, prop, get);
+    const value = transform(scale, val, val);
+
+    if (prop in multiples) {
+      const dirs = multiples[prop];
+
+      for (let i = 0; i < dirs.length; i++) {
+        result[dirs[i]] = value;
+      }
+    } else {
+      result[prop] = value;
+    }
+  }
+
+  return result;
+};
+
+
+
+
+/***/ }),
+
 /***/ "./node_modules/@theme-ui/components/dist/theme-ui-components.esm.js":
 /*!***************************************************************************!*\
   !*** ./node_modules/@theme-ui/components/dist/theme-ui-components.esm.js ***!
@@ -3791,7 +4168,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.esm.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @theme-ui/css */ "../../node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
+/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @theme-ui/css */ "./node_modules/@theme-ui/components/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
 
 
 
@@ -5061,6 +5438,383 @@ const MenuButton = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().for
 
 /***/ }),
 
+/***/ "./node_modules/@theme-ui/components/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js":
+/*!***********************************************************************************************!*\
+  !*** ./node_modules/@theme-ui/components/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js ***!
+  \***********************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "THEME_UI_DEFAULT_KEY": () => (/* binding */ THEME_UI_DEFAULT_KEY),
+/* harmony export */   "css": () => (/* binding */ css),
+/* harmony export */   "defaultBreakpoints": () => (/* binding */ defaultBreakpoints),
+/* harmony export */   "get": () => (/* binding */ get),
+/* harmony export */   "getObjectWithVariants": () => (/* binding */ getObjectWithVariants),
+/* harmony export */   "multiples": () => (/* binding */ multiples),
+/* harmony export */   "scales": () => (/* binding */ scales)
+/* harmony export */ });
+/**
+ * Allows for nested scales with shorthand values
+ * @example
+ * {
+ *   colors: {
+ *     primary: { __default: '#00f', light: '#33f' }
+ *   }
+ * }
+ * css({ color: 'primary' }); // { color: '#00f' }
+ * css({ color: 'primary.light' }) // { color: '#33f' }
+ */
+
+const THEME_UI_DEFAULT_KEY = '__default';
+
+const hasDefault = x => {
+  return typeof x === 'object' && x !== null && THEME_UI_DEFAULT_KEY in x;
+};
+/**
+ * Extracts value under path from a deeply nested object.
+ * Used for Themes, variants and Theme UI style objects.
+ * Given a path to object with `__default` key, returns the value under that key.
+ *
+ * @param obj a theme, variant or style object
+ * @param path path separated with dots (`.`)
+ * @param fallback default value returned if get(obj, path) is not found
+ */
+
+
+function get(obj, path, fallback, p, undef) {
+  const pathArray = path && typeof path === 'string' ? path.split('.') : [path];
+
+  for (p = 0; p < pathArray.length; p++) {
+    obj = obj ? obj[pathArray[p]] : undef;
+  }
+
+  if (obj === undef) return fallback;
+  return hasDefault(obj) ? obj[THEME_UI_DEFAULT_KEY] : obj;
+}
+const getObjectWithVariants = (obj, theme) => {
+  if (obj && obj['variant']) {
+    let result = {};
+
+    for (const key in obj) {
+      const x = obj[key];
+
+      if (key === 'variant') {
+        const val = typeof x === 'function' ? x(theme) : x;
+        const variant = getObjectWithVariants(get(theme, val), theme);
+        result = { ...result,
+          ...variant
+        };
+      } else {
+        result[key] = x;
+      }
+    }
+
+    return result;
+  }
+
+  return obj;
+};
+const defaultBreakpoints = [40, 52, 64].map(n => n + 'em');
+const defaultTheme = {
+  space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
+  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72]
+};
+const aliases = {
+  bg: 'backgroundColor',
+  m: 'margin',
+  mt: 'marginTop',
+  mr: 'marginRight',
+  mb: 'marginBottom',
+  ml: 'marginLeft',
+  mx: 'marginX',
+  my: 'marginY',
+  p: 'padding',
+  pt: 'paddingTop',
+  pr: 'paddingRight',
+  pb: 'paddingBottom',
+  pl: 'paddingLeft',
+  px: 'paddingX',
+  py: 'paddingY'
+};
+const multiples = {
+  marginX: ['marginLeft', 'marginRight'],
+  marginY: ['marginTop', 'marginBottom'],
+  paddingX: ['paddingLeft', 'paddingRight'],
+  paddingY: ['paddingTop', 'paddingBottom'],
+  scrollMarginX: ['scrollMarginLeft', 'scrollMarginRight'],
+  scrollMarginY: ['scrollMarginTop', 'scrollMarginBottom'],
+  scrollPaddingX: ['scrollPaddingLeft', 'scrollPaddingRight'],
+  scrollPaddingY: ['scrollPaddingTop', 'scrollPaddingBottom'],
+  size: ['width', 'height']
+};
+const scales = {
+  color: 'colors',
+  background: 'colors',
+  backgroundColor: 'colors',
+  borderColor: 'colors',
+  caretColor: 'colors',
+  columnRuleColor: 'colors',
+  outlineColor: 'colors',
+  textDecorationColor: 'colors',
+  opacity: 'opacities',
+  transition: 'transitions',
+  margin: 'space',
+  marginTop: 'space',
+  marginRight: 'space',
+  marginBottom: 'space',
+  marginLeft: 'space',
+  marginX: 'space',
+  marginY: 'space',
+  marginBlock: 'space',
+  marginBlockEnd: 'space',
+  marginBlockStart: 'space',
+  marginInline: 'space',
+  marginInlineEnd: 'space',
+  marginInlineStart: 'space',
+  padding: 'space',
+  paddingTop: 'space',
+  paddingRight: 'space',
+  paddingBottom: 'space',
+  paddingLeft: 'space',
+  paddingX: 'space',
+  paddingY: 'space',
+  paddingBlock: 'space',
+  paddingBlockEnd: 'space',
+  paddingBlockStart: 'space',
+  paddingInline: 'space',
+  paddingInlineEnd: 'space',
+  paddingInlineStart: 'space',
+  scrollMargin: 'space',
+  scrollMarginTop: 'space',
+  scrollMarginRight: 'space',
+  scrollMarginBottom: 'space',
+  scrollMarginLeft: 'space',
+  scrollMarginX: 'space',
+  scrollMarginY: 'space',
+  scrollPadding: 'space',
+  scrollPaddingTop: 'space',
+  scrollPaddingRight: 'space',
+  scrollPaddingBottom: 'space',
+  scrollPaddingLeft: 'space',
+  scrollPaddingX: 'space',
+  scrollPaddingY: 'space',
+  inset: 'space',
+  insetBlock: 'space',
+  insetBlockEnd: 'space',
+  insetBlockStart: 'space',
+  insetInline: 'space',
+  insetInlineEnd: 'space',
+  insetInlineStart: 'space',
+  top: 'space',
+  right: 'space',
+  bottom: 'space',
+  left: 'space',
+  gridGap: 'space',
+  gridColumnGap: 'space',
+  gridRowGap: 'space',
+  gap: 'space',
+  columnGap: 'space',
+  rowGap: 'space',
+  fontFamily: 'fonts',
+  fontSize: 'fontSizes',
+  fontWeight: 'fontWeights',
+  lineHeight: 'lineHeights',
+  letterSpacing: 'letterSpacings',
+  border: 'borders',
+  borderTop: 'borders',
+  borderRight: 'borders',
+  borderBottom: 'borders',
+  borderLeft: 'borders',
+  borderWidth: 'borderWidths',
+  borderStyle: 'borderStyles',
+  borderRadius: 'radii',
+  borderTopRightRadius: 'radii',
+  borderTopLeftRadius: 'radii',
+  borderBottomRightRadius: 'radii',
+  borderBottomLeftRadius: 'radii',
+  borderTopWidth: 'borderWidths',
+  borderTopColor: 'colors',
+  borderTopStyle: 'borderStyles',
+  borderBottomWidth: 'borderWidths',
+  borderBottomColor: 'colors',
+  borderBottomStyle: 'borderStyles',
+  borderLeftWidth: 'borderWidths',
+  borderLeftColor: 'colors',
+  borderLeftStyle: 'borderStyles',
+  borderRightWidth: 'borderWidths',
+  borderRightColor: 'colors',
+  borderRightStyle: 'borderStyles',
+  borderBlock: 'borders',
+  borderBlockColor: 'colors',
+  borderBlockEnd: 'borders',
+  borderBlockEndColor: 'colors',
+  borderBlockEndStyle: 'borderStyles',
+  borderBlockEndWidth: 'borderWidths',
+  borderBlockStart: 'borders',
+  borderBlockStartColor: 'colors',
+  borderBlockStartStyle: 'borderStyles',
+  borderBlockStartWidth: 'borderWidths',
+  borderBlockStyle: 'borderStyles',
+  borderBlockWidth: 'borderWidths',
+  borderEndEndRadius: 'radii',
+  borderEndStartRadius: 'radii',
+  borderInline: 'borders',
+  borderInlineColor: 'colors',
+  borderInlineEnd: 'borders',
+  borderInlineEndColor: 'colors',
+  borderInlineEndStyle: 'borderStyles',
+  borderInlineEndWidth: 'borderWidths',
+  borderInlineStart: 'borders',
+  borderInlineStartColor: 'colors',
+  borderInlineStartStyle: 'borderStyles',
+  borderInlineStartWidth: 'borderWidths',
+  borderInlineStyle: 'borderStyles',
+  borderInlineWidth: 'borderWidths',
+  borderStartEndRadius: 'radii',
+  borderStartStartRadius: 'radii',
+  columnRuleWidth: 'borderWidths',
+  boxShadow: 'shadows',
+  textShadow: 'shadows',
+  zIndex: 'zIndices',
+  width: 'sizes',
+  minWidth: 'sizes',
+  maxWidth: 'sizes',
+  height: 'sizes',
+  minHeight: 'sizes',
+  maxHeight: 'sizes',
+  flexBasis: 'sizes',
+  size: 'sizes',
+  blockSize: 'sizes',
+  inlineSize: 'sizes',
+  maxBlockSize: 'sizes',
+  maxInlineSize: 'sizes',
+  minBlockSize: 'sizes',
+  minInlineSize: 'sizes',
+  columnWidth: 'sizes',
+  // svg
+  fill: 'colors',
+  stroke: 'colors'
+};
+
+const positiveOrNegative = (scale, value) => {
+  if (typeof value !== 'number' || value >= 0) {
+    if (typeof value === 'string' && value.startsWith('-')) {
+      const valueWithoutMinus = value.substring(1);
+      const n = get(scale, valueWithoutMinus, valueWithoutMinus);
+
+      if (typeof n === 'number') {
+        return n * -1;
+      }
+
+      return `-${n}`;
+    }
+
+    return get(scale, value, value);
+  }
+
+  const absolute = Math.abs(value);
+  const n = get(scale, absolute, absolute);
+  if (typeof n === 'string') return '-' + n;
+  return Number(n) * -1;
+};
+
+const transforms = ['margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginBlock', 'marginBlockEnd', 'marginBlockStart', 'marginInline', 'marginInlineEnd', 'marginInlineStart', 'top', 'bottom', 'left', 'right'].reduce((acc, curr) => ({ ...acc,
+  [curr]: positiveOrNegative
+}), {});
+
+const responsive = styles => theme => {
+  const next = {};
+  const breakpoints = theme && theme.breakpoints || defaultBreakpoints;
+  const mediaQueries = [null, ...breakpoints.map(n => n.includes('@media') ? n : `@media screen and (min-width: ${n})`)];
+
+  for (const k in styles) {
+    const key = k;
+    let value = styles[key];
+
+    if (typeof value === 'function') {
+      value = value(theme || {});
+    }
+
+    if (value === false || value == null) {
+      continue;
+    }
+
+    if (!Array.isArray(value)) {
+      next[key] = value;
+      continue;
+    }
+
+    for (let i = 0; i < value.slice(0, mediaQueries.length).length; i++) {
+      const media = mediaQueries[i];
+
+      if (!media) {
+        next[key] = value[i];
+        continue;
+      }
+
+      next[media] = next[media] || {};
+      if (value[i] == null) continue;
+      next[media][key] = value[i];
+    }
+  }
+
+  return next;
+};
+
+const css = (args = {}) => (props = {}) => {
+  const theme = { ...defaultTheme,
+    ...('theme' in props ? props.theme : props)
+  }; // insert variant props before responsive styles, so they can be merged
+  // we need to maintain order of the style props, so if a variant is place in the middle
+  // of other props, it will extends its props at that same location order.
+
+  const obj = getObjectWithVariants(typeof args === 'function' ? args(theme) : args, theme);
+  const styles = responsive(obj)(theme);
+  let result = {};
+
+  for (const key in styles) {
+    const x = styles[key];
+    const val = typeof x === 'function' ? x(theme) : x;
+
+    if (val && typeof val === 'object') {
+      if (hasDefault(val)) {
+        result[key] = val[THEME_UI_DEFAULT_KEY];
+        continue;
+      } // On type level, val can also be an array here,
+      // but we transform all arrays in `responsive` function.
+
+
+      result[key] = css(val)(theme);
+      continue;
+    }
+
+    const prop = key in aliases ? aliases[key] : key;
+    const scaleName = prop in scales ? scales[prop] : undefined;
+    const scale = scaleName ? theme == null ? void 0 : theme[scaleName] : get(theme, prop, {});
+    const transform = get(transforms, prop, get);
+    const value = transform(scale, val, val);
+
+    if (prop in multiples) {
+      const dirs = multiples[prop];
+
+      for (let i = 0; i < dirs.length; i++) {
+        result[dirs[i]] = value;
+      }
+    } else {
+      result[prop] = value;
+    }
+  }
+
+  return result;
+};
+
+
+
+
+/***/ }),
+
 /***/ "./node_modules/@theme-ui/core/dist/theme-ui-core.esm.js":
 /*!***************************************************************!*\
   !*** ./node_modules/@theme-ui/core/dist/theme-ui-core.esm.js ***!
@@ -5191,7 +5945,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "themed": () => (/* binding */ themed)
 /* harmony export */ });
 /* harmony import */ var _theme_ui_core__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @theme-ui/core */ "./node_modules/@theme-ui/core/dist/theme-ui-core.esm.js");
-/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @theme-ui/css */ "../../node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
+/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @theme-ui/css */ "./node_modules/@theme-ui/mdx/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _mdx_js_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @mdx-js/react */ "./node_modules/@mdx-js/react/dist/esm.js");
@@ -5296,6 +6050,383 @@ const MDXProvider = ({
 
 /***/ }),
 
+/***/ "./node_modules/@theme-ui/mdx/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js":
+/*!****************************************************************************************!*\
+  !*** ./node_modules/@theme-ui/mdx/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js ***!
+  \****************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "THEME_UI_DEFAULT_KEY": () => (/* binding */ THEME_UI_DEFAULT_KEY),
+/* harmony export */   "css": () => (/* binding */ css),
+/* harmony export */   "defaultBreakpoints": () => (/* binding */ defaultBreakpoints),
+/* harmony export */   "get": () => (/* binding */ get),
+/* harmony export */   "getObjectWithVariants": () => (/* binding */ getObjectWithVariants),
+/* harmony export */   "multiples": () => (/* binding */ multiples),
+/* harmony export */   "scales": () => (/* binding */ scales)
+/* harmony export */ });
+/**
+ * Allows for nested scales with shorthand values
+ * @example
+ * {
+ *   colors: {
+ *     primary: { __default: '#00f', light: '#33f' }
+ *   }
+ * }
+ * css({ color: 'primary' }); // { color: '#00f' }
+ * css({ color: 'primary.light' }) // { color: '#33f' }
+ */
+
+const THEME_UI_DEFAULT_KEY = '__default';
+
+const hasDefault = x => {
+  return typeof x === 'object' && x !== null && THEME_UI_DEFAULT_KEY in x;
+};
+/**
+ * Extracts value under path from a deeply nested object.
+ * Used for Themes, variants and Theme UI style objects.
+ * Given a path to object with `__default` key, returns the value under that key.
+ *
+ * @param obj a theme, variant or style object
+ * @param path path separated with dots (`.`)
+ * @param fallback default value returned if get(obj, path) is not found
+ */
+
+
+function get(obj, path, fallback, p, undef) {
+  const pathArray = path && typeof path === 'string' ? path.split('.') : [path];
+
+  for (p = 0; p < pathArray.length; p++) {
+    obj = obj ? obj[pathArray[p]] : undef;
+  }
+
+  if (obj === undef) return fallback;
+  return hasDefault(obj) ? obj[THEME_UI_DEFAULT_KEY] : obj;
+}
+const getObjectWithVariants = (obj, theme) => {
+  if (obj && obj['variant']) {
+    let result = {};
+
+    for (const key in obj) {
+      const x = obj[key];
+
+      if (key === 'variant') {
+        const val = typeof x === 'function' ? x(theme) : x;
+        const variant = getObjectWithVariants(get(theme, val), theme);
+        result = { ...result,
+          ...variant
+        };
+      } else {
+        result[key] = x;
+      }
+    }
+
+    return result;
+  }
+
+  return obj;
+};
+const defaultBreakpoints = [40, 52, 64].map(n => n + 'em');
+const defaultTheme = {
+  space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
+  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72]
+};
+const aliases = {
+  bg: 'backgroundColor',
+  m: 'margin',
+  mt: 'marginTop',
+  mr: 'marginRight',
+  mb: 'marginBottom',
+  ml: 'marginLeft',
+  mx: 'marginX',
+  my: 'marginY',
+  p: 'padding',
+  pt: 'paddingTop',
+  pr: 'paddingRight',
+  pb: 'paddingBottom',
+  pl: 'paddingLeft',
+  px: 'paddingX',
+  py: 'paddingY'
+};
+const multiples = {
+  marginX: ['marginLeft', 'marginRight'],
+  marginY: ['marginTop', 'marginBottom'],
+  paddingX: ['paddingLeft', 'paddingRight'],
+  paddingY: ['paddingTop', 'paddingBottom'],
+  scrollMarginX: ['scrollMarginLeft', 'scrollMarginRight'],
+  scrollMarginY: ['scrollMarginTop', 'scrollMarginBottom'],
+  scrollPaddingX: ['scrollPaddingLeft', 'scrollPaddingRight'],
+  scrollPaddingY: ['scrollPaddingTop', 'scrollPaddingBottom'],
+  size: ['width', 'height']
+};
+const scales = {
+  color: 'colors',
+  background: 'colors',
+  backgroundColor: 'colors',
+  borderColor: 'colors',
+  caretColor: 'colors',
+  columnRuleColor: 'colors',
+  outlineColor: 'colors',
+  textDecorationColor: 'colors',
+  opacity: 'opacities',
+  transition: 'transitions',
+  margin: 'space',
+  marginTop: 'space',
+  marginRight: 'space',
+  marginBottom: 'space',
+  marginLeft: 'space',
+  marginX: 'space',
+  marginY: 'space',
+  marginBlock: 'space',
+  marginBlockEnd: 'space',
+  marginBlockStart: 'space',
+  marginInline: 'space',
+  marginInlineEnd: 'space',
+  marginInlineStart: 'space',
+  padding: 'space',
+  paddingTop: 'space',
+  paddingRight: 'space',
+  paddingBottom: 'space',
+  paddingLeft: 'space',
+  paddingX: 'space',
+  paddingY: 'space',
+  paddingBlock: 'space',
+  paddingBlockEnd: 'space',
+  paddingBlockStart: 'space',
+  paddingInline: 'space',
+  paddingInlineEnd: 'space',
+  paddingInlineStart: 'space',
+  scrollMargin: 'space',
+  scrollMarginTop: 'space',
+  scrollMarginRight: 'space',
+  scrollMarginBottom: 'space',
+  scrollMarginLeft: 'space',
+  scrollMarginX: 'space',
+  scrollMarginY: 'space',
+  scrollPadding: 'space',
+  scrollPaddingTop: 'space',
+  scrollPaddingRight: 'space',
+  scrollPaddingBottom: 'space',
+  scrollPaddingLeft: 'space',
+  scrollPaddingX: 'space',
+  scrollPaddingY: 'space',
+  inset: 'space',
+  insetBlock: 'space',
+  insetBlockEnd: 'space',
+  insetBlockStart: 'space',
+  insetInline: 'space',
+  insetInlineEnd: 'space',
+  insetInlineStart: 'space',
+  top: 'space',
+  right: 'space',
+  bottom: 'space',
+  left: 'space',
+  gridGap: 'space',
+  gridColumnGap: 'space',
+  gridRowGap: 'space',
+  gap: 'space',
+  columnGap: 'space',
+  rowGap: 'space',
+  fontFamily: 'fonts',
+  fontSize: 'fontSizes',
+  fontWeight: 'fontWeights',
+  lineHeight: 'lineHeights',
+  letterSpacing: 'letterSpacings',
+  border: 'borders',
+  borderTop: 'borders',
+  borderRight: 'borders',
+  borderBottom: 'borders',
+  borderLeft: 'borders',
+  borderWidth: 'borderWidths',
+  borderStyle: 'borderStyles',
+  borderRadius: 'radii',
+  borderTopRightRadius: 'radii',
+  borderTopLeftRadius: 'radii',
+  borderBottomRightRadius: 'radii',
+  borderBottomLeftRadius: 'radii',
+  borderTopWidth: 'borderWidths',
+  borderTopColor: 'colors',
+  borderTopStyle: 'borderStyles',
+  borderBottomWidth: 'borderWidths',
+  borderBottomColor: 'colors',
+  borderBottomStyle: 'borderStyles',
+  borderLeftWidth: 'borderWidths',
+  borderLeftColor: 'colors',
+  borderLeftStyle: 'borderStyles',
+  borderRightWidth: 'borderWidths',
+  borderRightColor: 'colors',
+  borderRightStyle: 'borderStyles',
+  borderBlock: 'borders',
+  borderBlockColor: 'colors',
+  borderBlockEnd: 'borders',
+  borderBlockEndColor: 'colors',
+  borderBlockEndStyle: 'borderStyles',
+  borderBlockEndWidth: 'borderWidths',
+  borderBlockStart: 'borders',
+  borderBlockStartColor: 'colors',
+  borderBlockStartStyle: 'borderStyles',
+  borderBlockStartWidth: 'borderWidths',
+  borderBlockStyle: 'borderStyles',
+  borderBlockWidth: 'borderWidths',
+  borderEndEndRadius: 'radii',
+  borderEndStartRadius: 'radii',
+  borderInline: 'borders',
+  borderInlineColor: 'colors',
+  borderInlineEnd: 'borders',
+  borderInlineEndColor: 'colors',
+  borderInlineEndStyle: 'borderStyles',
+  borderInlineEndWidth: 'borderWidths',
+  borderInlineStart: 'borders',
+  borderInlineStartColor: 'colors',
+  borderInlineStartStyle: 'borderStyles',
+  borderInlineStartWidth: 'borderWidths',
+  borderInlineStyle: 'borderStyles',
+  borderInlineWidth: 'borderWidths',
+  borderStartEndRadius: 'radii',
+  borderStartStartRadius: 'radii',
+  columnRuleWidth: 'borderWidths',
+  boxShadow: 'shadows',
+  textShadow: 'shadows',
+  zIndex: 'zIndices',
+  width: 'sizes',
+  minWidth: 'sizes',
+  maxWidth: 'sizes',
+  height: 'sizes',
+  minHeight: 'sizes',
+  maxHeight: 'sizes',
+  flexBasis: 'sizes',
+  size: 'sizes',
+  blockSize: 'sizes',
+  inlineSize: 'sizes',
+  maxBlockSize: 'sizes',
+  maxInlineSize: 'sizes',
+  minBlockSize: 'sizes',
+  minInlineSize: 'sizes',
+  columnWidth: 'sizes',
+  // svg
+  fill: 'colors',
+  stroke: 'colors'
+};
+
+const positiveOrNegative = (scale, value) => {
+  if (typeof value !== 'number' || value >= 0) {
+    if (typeof value === 'string' && value.startsWith('-')) {
+      const valueWithoutMinus = value.substring(1);
+      const n = get(scale, valueWithoutMinus, valueWithoutMinus);
+
+      if (typeof n === 'number') {
+        return n * -1;
+      }
+
+      return `-${n}`;
+    }
+
+    return get(scale, value, value);
+  }
+
+  const absolute = Math.abs(value);
+  const n = get(scale, absolute, absolute);
+  if (typeof n === 'string') return '-' + n;
+  return Number(n) * -1;
+};
+
+const transforms = ['margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginBlock', 'marginBlockEnd', 'marginBlockStart', 'marginInline', 'marginInlineEnd', 'marginInlineStart', 'top', 'bottom', 'left', 'right'].reduce((acc, curr) => ({ ...acc,
+  [curr]: positiveOrNegative
+}), {});
+
+const responsive = styles => theme => {
+  const next = {};
+  const breakpoints = theme && theme.breakpoints || defaultBreakpoints;
+  const mediaQueries = [null, ...breakpoints.map(n => n.includes('@media') ? n : `@media screen and (min-width: ${n})`)];
+
+  for (const k in styles) {
+    const key = k;
+    let value = styles[key];
+
+    if (typeof value === 'function') {
+      value = value(theme || {});
+    }
+
+    if (value === false || value == null) {
+      continue;
+    }
+
+    if (!Array.isArray(value)) {
+      next[key] = value;
+      continue;
+    }
+
+    for (let i = 0; i < value.slice(0, mediaQueries.length).length; i++) {
+      const media = mediaQueries[i];
+
+      if (!media) {
+        next[key] = value[i];
+        continue;
+      }
+
+      next[media] = next[media] || {};
+      if (value[i] == null) continue;
+      next[media][key] = value[i];
+    }
+  }
+
+  return next;
+};
+
+const css = (args = {}) => (props = {}) => {
+  const theme = { ...defaultTheme,
+    ...('theme' in props ? props.theme : props)
+  }; // insert variant props before responsive styles, so they can be merged
+  // we need to maintain order of the style props, so if a variant is place in the middle
+  // of other props, it will extends its props at that same location order.
+
+  const obj = getObjectWithVariants(typeof args === 'function' ? args(theme) : args, theme);
+  const styles = responsive(obj)(theme);
+  let result = {};
+
+  for (const key in styles) {
+    const x = styles[key];
+    const val = typeof x === 'function' ? x(theme) : x;
+
+    if (val && typeof val === 'object') {
+      if (hasDefault(val)) {
+        result[key] = val[THEME_UI_DEFAULT_KEY];
+        continue;
+      } // On type level, val can also be an array here,
+      // but we transform all arrays in `responsive` function.
+
+
+      result[key] = css(val)(theme);
+      continue;
+    }
+
+    const prop = key in aliases ? aliases[key] : key;
+    const scaleName = prop in scales ? scales[prop] : undefined;
+    const scale = scaleName ? theme == null ? void 0 : theme[scaleName] : get(theme, prop, {});
+    const transform = get(transforms, prop, get);
+    const value = transform(scale, val, val);
+
+    if (prop in multiples) {
+      const dirs = multiples[prop];
+
+      for (let i = 0; i < dirs.length; i++) {
+        result[dirs[i]] = value;
+      }
+    } else {
+      result[prop] = value;
+    }
+  }
+
+  return result;
+};
+
+
+
+
+/***/ }),
+
 /***/ "./node_modules/@theme-ui/parse-props/dist/theme-ui-parse-props.esm.js":
 /*!*****************************************************************************!*\
   !*** ./node_modules/@theme-ui/parse-props/dist/theme-ui-parse-props.esm.js ***!
@@ -5307,7 +6438,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @theme-ui/css */ "../../node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
+/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @theme-ui/css */ "./node_modules/@theme-ui/parse-props/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
 
 
 const getCSS = props => theme => {
@@ -5334,6 +6465,383 @@ const parseProps = props => {
 
 /***/ }),
 
+/***/ "./node_modules/@theme-ui/parse-props/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js":
+/*!************************************************************************************************!*\
+  !*** ./node_modules/@theme-ui/parse-props/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js ***!
+  \************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "THEME_UI_DEFAULT_KEY": () => (/* binding */ THEME_UI_DEFAULT_KEY),
+/* harmony export */   "css": () => (/* binding */ css),
+/* harmony export */   "defaultBreakpoints": () => (/* binding */ defaultBreakpoints),
+/* harmony export */   "get": () => (/* binding */ get),
+/* harmony export */   "getObjectWithVariants": () => (/* binding */ getObjectWithVariants),
+/* harmony export */   "multiples": () => (/* binding */ multiples),
+/* harmony export */   "scales": () => (/* binding */ scales)
+/* harmony export */ });
+/**
+ * Allows for nested scales with shorthand values
+ * @example
+ * {
+ *   colors: {
+ *     primary: { __default: '#00f', light: '#33f' }
+ *   }
+ * }
+ * css({ color: 'primary' }); // { color: '#00f' }
+ * css({ color: 'primary.light' }) // { color: '#33f' }
+ */
+
+const THEME_UI_DEFAULT_KEY = '__default';
+
+const hasDefault = x => {
+  return typeof x === 'object' && x !== null && THEME_UI_DEFAULT_KEY in x;
+};
+/**
+ * Extracts value under path from a deeply nested object.
+ * Used for Themes, variants and Theme UI style objects.
+ * Given a path to object with `__default` key, returns the value under that key.
+ *
+ * @param obj a theme, variant or style object
+ * @param path path separated with dots (`.`)
+ * @param fallback default value returned if get(obj, path) is not found
+ */
+
+
+function get(obj, path, fallback, p, undef) {
+  const pathArray = path && typeof path === 'string' ? path.split('.') : [path];
+
+  for (p = 0; p < pathArray.length; p++) {
+    obj = obj ? obj[pathArray[p]] : undef;
+  }
+
+  if (obj === undef) return fallback;
+  return hasDefault(obj) ? obj[THEME_UI_DEFAULT_KEY] : obj;
+}
+const getObjectWithVariants = (obj, theme) => {
+  if (obj && obj['variant']) {
+    let result = {};
+
+    for (const key in obj) {
+      const x = obj[key];
+
+      if (key === 'variant') {
+        const val = typeof x === 'function' ? x(theme) : x;
+        const variant = getObjectWithVariants(get(theme, val), theme);
+        result = { ...result,
+          ...variant
+        };
+      } else {
+        result[key] = x;
+      }
+    }
+
+    return result;
+  }
+
+  return obj;
+};
+const defaultBreakpoints = [40, 52, 64].map(n => n + 'em');
+const defaultTheme = {
+  space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
+  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72]
+};
+const aliases = {
+  bg: 'backgroundColor',
+  m: 'margin',
+  mt: 'marginTop',
+  mr: 'marginRight',
+  mb: 'marginBottom',
+  ml: 'marginLeft',
+  mx: 'marginX',
+  my: 'marginY',
+  p: 'padding',
+  pt: 'paddingTop',
+  pr: 'paddingRight',
+  pb: 'paddingBottom',
+  pl: 'paddingLeft',
+  px: 'paddingX',
+  py: 'paddingY'
+};
+const multiples = {
+  marginX: ['marginLeft', 'marginRight'],
+  marginY: ['marginTop', 'marginBottom'],
+  paddingX: ['paddingLeft', 'paddingRight'],
+  paddingY: ['paddingTop', 'paddingBottom'],
+  scrollMarginX: ['scrollMarginLeft', 'scrollMarginRight'],
+  scrollMarginY: ['scrollMarginTop', 'scrollMarginBottom'],
+  scrollPaddingX: ['scrollPaddingLeft', 'scrollPaddingRight'],
+  scrollPaddingY: ['scrollPaddingTop', 'scrollPaddingBottom'],
+  size: ['width', 'height']
+};
+const scales = {
+  color: 'colors',
+  background: 'colors',
+  backgroundColor: 'colors',
+  borderColor: 'colors',
+  caretColor: 'colors',
+  columnRuleColor: 'colors',
+  outlineColor: 'colors',
+  textDecorationColor: 'colors',
+  opacity: 'opacities',
+  transition: 'transitions',
+  margin: 'space',
+  marginTop: 'space',
+  marginRight: 'space',
+  marginBottom: 'space',
+  marginLeft: 'space',
+  marginX: 'space',
+  marginY: 'space',
+  marginBlock: 'space',
+  marginBlockEnd: 'space',
+  marginBlockStart: 'space',
+  marginInline: 'space',
+  marginInlineEnd: 'space',
+  marginInlineStart: 'space',
+  padding: 'space',
+  paddingTop: 'space',
+  paddingRight: 'space',
+  paddingBottom: 'space',
+  paddingLeft: 'space',
+  paddingX: 'space',
+  paddingY: 'space',
+  paddingBlock: 'space',
+  paddingBlockEnd: 'space',
+  paddingBlockStart: 'space',
+  paddingInline: 'space',
+  paddingInlineEnd: 'space',
+  paddingInlineStart: 'space',
+  scrollMargin: 'space',
+  scrollMarginTop: 'space',
+  scrollMarginRight: 'space',
+  scrollMarginBottom: 'space',
+  scrollMarginLeft: 'space',
+  scrollMarginX: 'space',
+  scrollMarginY: 'space',
+  scrollPadding: 'space',
+  scrollPaddingTop: 'space',
+  scrollPaddingRight: 'space',
+  scrollPaddingBottom: 'space',
+  scrollPaddingLeft: 'space',
+  scrollPaddingX: 'space',
+  scrollPaddingY: 'space',
+  inset: 'space',
+  insetBlock: 'space',
+  insetBlockEnd: 'space',
+  insetBlockStart: 'space',
+  insetInline: 'space',
+  insetInlineEnd: 'space',
+  insetInlineStart: 'space',
+  top: 'space',
+  right: 'space',
+  bottom: 'space',
+  left: 'space',
+  gridGap: 'space',
+  gridColumnGap: 'space',
+  gridRowGap: 'space',
+  gap: 'space',
+  columnGap: 'space',
+  rowGap: 'space',
+  fontFamily: 'fonts',
+  fontSize: 'fontSizes',
+  fontWeight: 'fontWeights',
+  lineHeight: 'lineHeights',
+  letterSpacing: 'letterSpacings',
+  border: 'borders',
+  borderTop: 'borders',
+  borderRight: 'borders',
+  borderBottom: 'borders',
+  borderLeft: 'borders',
+  borderWidth: 'borderWidths',
+  borderStyle: 'borderStyles',
+  borderRadius: 'radii',
+  borderTopRightRadius: 'radii',
+  borderTopLeftRadius: 'radii',
+  borderBottomRightRadius: 'radii',
+  borderBottomLeftRadius: 'radii',
+  borderTopWidth: 'borderWidths',
+  borderTopColor: 'colors',
+  borderTopStyle: 'borderStyles',
+  borderBottomWidth: 'borderWidths',
+  borderBottomColor: 'colors',
+  borderBottomStyle: 'borderStyles',
+  borderLeftWidth: 'borderWidths',
+  borderLeftColor: 'colors',
+  borderLeftStyle: 'borderStyles',
+  borderRightWidth: 'borderWidths',
+  borderRightColor: 'colors',
+  borderRightStyle: 'borderStyles',
+  borderBlock: 'borders',
+  borderBlockColor: 'colors',
+  borderBlockEnd: 'borders',
+  borderBlockEndColor: 'colors',
+  borderBlockEndStyle: 'borderStyles',
+  borderBlockEndWidth: 'borderWidths',
+  borderBlockStart: 'borders',
+  borderBlockStartColor: 'colors',
+  borderBlockStartStyle: 'borderStyles',
+  borderBlockStartWidth: 'borderWidths',
+  borderBlockStyle: 'borderStyles',
+  borderBlockWidth: 'borderWidths',
+  borderEndEndRadius: 'radii',
+  borderEndStartRadius: 'radii',
+  borderInline: 'borders',
+  borderInlineColor: 'colors',
+  borderInlineEnd: 'borders',
+  borderInlineEndColor: 'colors',
+  borderInlineEndStyle: 'borderStyles',
+  borderInlineEndWidth: 'borderWidths',
+  borderInlineStart: 'borders',
+  borderInlineStartColor: 'colors',
+  borderInlineStartStyle: 'borderStyles',
+  borderInlineStartWidth: 'borderWidths',
+  borderInlineStyle: 'borderStyles',
+  borderInlineWidth: 'borderWidths',
+  borderStartEndRadius: 'radii',
+  borderStartStartRadius: 'radii',
+  columnRuleWidth: 'borderWidths',
+  boxShadow: 'shadows',
+  textShadow: 'shadows',
+  zIndex: 'zIndices',
+  width: 'sizes',
+  minWidth: 'sizes',
+  maxWidth: 'sizes',
+  height: 'sizes',
+  minHeight: 'sizes',
+  maxHeight: 'sizes',
+  flexBasis: 'sizes',
+  size: 'sizes',
+  blockSize: 'sizes',
+  inlineSize: 'sizes',
+  maxBlockSize: 'sizes',
+  maxInlineSize: 'sizes',
+  minBlockSize: 'sizes',
+  minInlineSize: 'sizes',
+  columnWidth: 'sizes',
+  // svg
+  fill: 'colors',
+  stroke: 'colors'
+};
+
+const positiveOrNegative = (scale, value) => {
+  if (typeof value !== 'number' || value >= 0) {
+    if (typeof value === 'string' && value.startsWith('-')) {
+      const valueWithoutMinus = value.substring(1);
+      const n = get(scale, valueWithoutMinus, valueWithoutMinus);
+
+      if (typeof n === 'number') {
+        return n * -1;
+      }
+
+      return `-${n}`;
+    }
+
+    return get(scale, value, value);
+  }
+
+  const absolute = Math.abs(value);
+  const n = get(scale, absolute, absolute);
+  if (typeof n === 'string') return '-' + n;
+  return Number(n) * -1;
+};
+
+const transforms = ['margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginBlock', 'marginBlockEnd', 'marginBlockStart', 'marginInline', 'marginInlineEnd', 'marginInlineStart', 'top', 'bottom', 'left', 'right'].reduce((acc, curr) => ({ ...acc,
+  [curr]: positiveOrNegative
+}), {});
+
+const responsive = styles => theme => {
+  const next = {};
+  const breakpoints = theme && theme.breakpoints || defaultBreakpoints;
+  const mediaQueries = [null, ...breakpoints.map(n => n.includes('@media') ? n : `@media screen and (min-width: ${n})`)];
+
+  for (const k in styles) {
+    const key = k;
+    let value = styles[key];
+
+    if (typeof value === 'function') {
+      value = value(theme || {});
+    }
+
+    if (value === false || value == null) {
+      continue;
+    }
+
+    if (!Array.isArray(value)) {
+      next[key] = value;
+      continue;
+    }
+
+    for (let i = 0; i < value.slice(0, mediaQueries.length).length; i++) {
+      const media = mediaQueries[i];
+
+      if (!media) {
+        next[key] = value[i];
+        continue;
+      }
+
+      next[media] = next[media] || {};
+      if (value[i] == null) continue;
+      next[media][key] = value[i];
+    }
+  }
+
+  return next;
+};
+
+const css = (args = {}) => (props = {}) => {
+  const theme = { ...defaultTheme,
+    ...('theme' in props ? props.theme : props)
+  }; // insert variant props before responsive styles, so they can be merged
+  // we need to maintain order of the style props, so if a variant is place in the middle
+  // of other props, it will extends its props at that same location order.
+
+  const obj = getObjectWithVariants(typeof args === 'function' ? args(theme) : args, theme);
+  const styles = responsive(obj)(theme);
+  let result = {};
+
+  for (const key in styles) {
+    const x = styles[key];
+    const val = typeof x === 'function' ? x(theme) : x;
+
+    if (val && typeof val === 'object') {
+      if (hasDefault(val)) {
+        result[key] = val[THEME_UI_DEFAULT_KEY];
+        continue;
+      } // On type level, val can also be an array here,
+      // but we transform all arrays in `responsive` function.
+
+
+      result[key] = css(val)(theme);
+      continue;
+    }
+
+    const prop = key in aliases ? aliases[key] : key;
+    const scaleName = prop in scales ? scales[prop] : undefined;
+    const scale = scaleName ? theme == null ? void 0 : theme[scaleName] : get(theme, prop, {});
+    const transform = get(transforms, prop, get);
+    const value = transform(scale, val, val);
+
+    if (prop in multiples) {
+      const dirs = multiples[prop];
+
+      for (let i = 0; i < dirs.length; i++) {
+        result[dirs[i]] = value;
+      }
+    } else {
+      result[prop] = value;
+    }
+  }
+
+  return result;
+};
+
+
+
+
+/***/ }),
+
 /***/ "./node_modules/@theme-ui/theme-provider/dist/theme-ui-theme-provider.esm.js":
 /*!***********************************************************************************!*\
   !*** ./node_modules/@theme-ui/theme-provider/dist/theme-ui-theme-provider.esm.js ***!
@@ -5348,7 +6856,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _theme_ui_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @theme-ui/core */ "./node_modules/@theme-ui/core/dist/theme-ui-core.esm.js");
-/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @theme-ui/css */ "../../node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
+/* harmony import */ var _theme_ui_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @theme-ui/css */ "./node_modules/@theme-ui/theme-provider/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js");
 /* harmony import */ var _theme_ui_color_modes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @theme-ui/color-modes */ "./node_modules/@theme-ui/color-modes/dist/theme-ui-color-modes.esm.js");
 /* harmony import */ var _theme_ui_mdx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @theme-ui/mdx */ "./node_modules/@theme-ui/mdx/dist/theme-ui-mdx.esm.js");
 /* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.esm.js");
@@ -5399,6 +6907,383 @@ const ThemeProvider = ({
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_theme_ui_color_modes__WEBPACK_IMPORTED_MODULE_4__.ColorModeProvider, null, isTopLevel && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(RootStyles, null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_theme_ui_mdx__WEBPACK_IMPORTED_MODULE_5__.MDXProvider, {
     components: components
   }, children)));
+};
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@theme-ui/theme-provider/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js":
+/*!***************************************************************************************************!*\
+  !*** ./node_modules/@theme-ui/theme-provider/node_modules/@theme-ui/css/dist/theme-ui-css.esm.js ***!
+  \***************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "THEME_UI_DEFAULT_KEY": () => (/* binding */ THEME_UI_DEFAULT_KEY),
+/* harmony export */   "css": () => (/* binding */ css),
+/* harmony export */   "defaultBreakpoints": () => (/* binding */ defaultBreakpoints),
+/* harmony export */   "get": () => (/* binding */ get),
+/* harmony export */   "getObjectWithVariants": () => (/* binding */ getObjectWithVariants),
+/* harmony export */   "multiples": () => (/* binding */ multiples),
+/* harmony export */   "scales": () => (/* binding */ scales)
+/* harmony export */ });
+/**
+ * Allows for nested scales with shorthand values
+ * @example
+ * {
+ *   colors: {
+ *     primary: { __default: '#00f', light: '#33f' }
+ *   }
+ * }
+ * css({ color: 'primary' }); // { color: '#00f' }
+ * css({ color: 'primary.light' }) // { color: '#33f' }
+ */
+
+const THEME_UI_DEFAULT_KEY = '__default';
+
+const hasDefault = x => {
+  return typeof x === 'object' && x !== null && THEME_UI_DEFAULT_KEY in x;
+};
+/**
+ * Extracts value under path from a deeply nested object.
+ * Used for Themes, variants and Theme UI style objects.
+ * Given a path to object with `__default` key, returns the value under that key.
+ *
+ * @param obj a theme, variant or style object
+ * @param path path separated with dots (`.`)
+ * @param fallback default value returned if get(obj, path) is not found
+ */
+
+
+function get(obj, path, fallback, p, undef) {
+  const pathArray = path && typeof path === 'string' ? path.split('.') : [path];
+
+  for (p = 0; p < pathArray.length; p++) {
+    obj = obj ? obj[pathArray[p]] : undef;
+  }
+
+  if (obj === undef) return fallback;
+  return hasDefault(obj) ? obj[THEME_UI_DEFAULT_KEY] : obj;
+}
+const getObjectWithVariants = (obj, theme) => {
+  if (obj && obj['variant']) {
+    let result = {};
+
+    for (const key in obj) {
+      const x = obj[key];
+
+      if (key === 'variant') {
+        const val = typeof x === 'function' ? x(theme) : x;
+        const variant = getObjectWithVariants(get(theme, val), theme);
+        result = { ...result,
+          ...variant
+        };
+      } else {
+        result[key] = x;
+      }
+    }
+
+    return result;
+  }
+
+  return obj;
+};
+const defaultBreakpoints = [40, 52, 64].map(n => n + 'em');
+const defaultTheme = {
+  space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
+  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72]
+};
+const aliases = {
+  bg: 'backgroundColor',
+  m: 'margin',
+  mt: 'marginTop',
+  mr: 'marginRight',
+  mb: 'marginBottom',
+  ml: 'marginLeft',
+  mx: 'marginX',
+  my: 'marginY',
+  p: 'padding',
+  pt: 'paddingTop',
+  pr: 'paddingRight',
+  pb: 'paddingBottom',
+  pl: 'paddingLeft',
+  px: 'paddingX',
+  py: 'paddingY'
+};
+const multiples = {
+  marginX: ['marginLeft', 'marginRight'],
+  marginY: ['marginTop', 'marginBottom'],
+  paddingX: ['paddingLeft', 'paddingRight'],
+  paddingY: ['paddingTop', 'paddingBottom'],
+  scrollMarginX: ['scrollMarginLeft', 'scrollMarginRight'],
+  scrollMarginY: ['scrollMarginTop', 'scrollMarginBottom'],
+  scrollPaddingX: ['scrollPaddingLeft', 'scrollPaddingRight'],
+  scrollPaddingY: ['scrollPaddingTop', 'scrollPaddingBottom'],
+  size: ['width', 'height']
+};
+const scales = {
+  color: 'colors',
+  background: 'colors',
+  backgroundColor: 'colors',
+  borderColor: 'colors',
+  caretColor: 'colors',
+  columnRuleColor: 'colors',
+  outlineColor: 'colors',
+  textDecorationColor: 'colors',
+  opacity: 'opacities',
+  transition: 'transitions',
+  margin: 'space',
+  marginTop: 'space',
+  marginRight: 'space',
+  marginBottom: 'space',
+  marginLeft: 'space',
+  marginX: 'space',
+  marginY: 'space',
+  marginBlock: 'space',
+  marginBlockEnd: 'space',
+  marginBlockStart: 'space',
+  marginInline: 'space',
+  marginInlineEnd: 'space',
+  marginInlineStart: 'space',
+  padding: 'space',
+  paddingTop: 'space',
+  paddingRight: 'space',
+  paddingBottom: 'space',
+  paddingLeft: 'space',
+  paddingX: 'space',
+  paddingY: 'space',
+  paddingBlock: 'space',
+  paddingBlockEnd: 'space',
+  paddingBlockStart: 'space',
+  paddingInline: 'space',
+  paddingInlineEnd: 'space',
+  paddingInlineStart: 'space',
+  scrollMargin: 'space',
+  scrollMarginTop: 'space',
+  scrollMarginRight: 'space',
+  scrollMarginBottom: 'space',
+  scrollMarginLeft: 'space',
+  scrollMarginX: 'space',
+  scrollMarginY: 'space',
+  scrollPadding: 'space',
+  scrollPaddingTop: 'space',
+  scrollPaddingRight: 'space',
+  scrollPaddingBottom: 'space',
+  scrollPaddingLeft: 'space',
+  scrollPaddingX: 'space',
+  scrollPaddingY: 'space',
+  inset: 'space',
+  insetBlock: 'space',
+  insetBlockEnd: 'space',
+  insetBlockStart: 'space',
+  insetInline: 'space',
+  insetInlineEnd: 'space',
+  insetInlineStart: 'space',
+  top: 'space',
+  right: 'space',
+  bottom: 'space',
+  left: 'space',
+  gridGap: 'space',
+  gridColumnGap: 'space',
+  gridRowGap: 'space',
+  gap: 'space',
+  columnGap: 'space',
+  rowGap: 'space',
+  fontFamily: 'fonts',
+  fontSize: 'fontSizes',
+  fontWeight: 'fontWeights',
+  lineHeight: 'lineHeights',
+  letterSpacing: 'letterSpacings',
+  border: 'borders',
+  borderTop: 'borders',
+  borderRight: 'borders',
+  borderBottom: 'borders',
+  borderLeft: 'borders',
+  borderWidth: 'borderWidths',
+  borderStyle: 'borderStyles',
+  borderRadius: 'radii',
+  borderTopRightRadius: 'radii',
+  borderTopLeftRadius: 'radii',
+  borderBottomRightRadius: 'radii',
+  borderBottomLeftRadius: 'radii',
+  borderTopWidth: 'borderWidths',
+  borderTopColor: 'colors',
+  borderTopStyle: 'borderStyles',
+  borderBottomWidth: 'borderWidths',
+  borderBottomColor: 'colors',
+  borderBottomStyle: 'borderStyles',
+  borderLeftWidth: 'borderWidths',
+  borderLeftColor: 'colors',
+  borderLeftStyle: 'borderStyles',
+  borderRightWidth: 'borderWidths',
+  borderRightColor: 'colors',
+  borderRightStyle: 'borderStyles',
+  borderBlock: 'borders',
+  borderBlockColor: 'colors',
+  borderBlockEnd: 'borders',
+  borderBlockEndColor: 'colors',
+  borderBlockEndStyle: 'borderStyles',
+  borderBlockEndWidth: 'borderWidths',
+  borderBlockStart: 'borders',
+  borderBlockStartColor: 'colors',
+  borderBlockStartStyle: 'borderStyles',
+  borderBlockStartWidth: 'borderWidths',
+  borderBlockStyle: 'borderStyles',
+  borderBlockWidth: 'borderWidths',
+  borderEndEndRadius: 'radii',
+  borderEndStartRadius: 'radii',
+  borderInline: 'borders',
+  borderInlineColor: 'colors',
+  borderInlineEnd: 'borders',
+  borderInlineEndColor: 'colors',
+  borderInlineEndStyle: 'borderStyles',
+  borderInlineEndWidth: 'borderWidths',
+  borderInlineStart: 'borders',
+  borderInlineStartColor: 'colors',
+  borderInlineStartStyle: 'borderStyles',
+  borderInlineStartWidth: 'borderWidths',
+  borderInlineStyle: 'borderStyles',
+  borderInlineWidth: 'borderWidths',
+  borderStartEndRadius: 'radii',
+  borderStartStartRadius: 'radii',
+  columnRuleWidth: 'borderWidths',
+  boxShadow: 'shadows',
+  textShadow: 'shadows',
+  zIndex: 'zIndices',
+  width: 'sizes',
+  minWidth: 'sizes',
+  maxWidth: 'sizes',
+  height: 'sizes',
+  minHeight: 'sizes',
+  maxHeight: 'sizes',
+  flexBasis: 'sizes',
+  size: 'sizes',
+  blockSize: 'sizes',
+  inlineSize: 'sizes',
+  maxBlockSize: 'sizes',
+  maxInlineSize: 'sizes',
+  minBlockSize: 'sizes',
+  minInlineSize: 'sizes',
+  columnWidth: 'sizes',
+  // svg
+  fill: 'colors',
+  stroke: 'colors'
+};
+
+const positiveOrNegative = (scale, value) => {
+  if (typeof value !== 'number' || value >= 0) {
+    if (typeof value === 'string' && value.startsWith('-')) {
+      const valueWithoutMinus = value.substring(1);
+      const n = get(scale, valueWithoutMinus, valueWithoutMinus);
+
+      if (typeof n === 'number') {
+        return n * -1;
+      }
+
+      return `-${n}`;
+    }
+
+    return get(scale, value, value);
+  }
+
+  const absolute = Math.abs(value);
+  const n = get(scale, absolute, absolute);
+  if (typeof n === 'string') return '-' + n;
+  return Number(n) * -1;
+};
+
+const transforms = ['margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginBlock', 'marginBlockEnd', 'marginBlockStart', 'marginInline', 'marginInlineEnd', 'marginInlineStart', 'top', 'bottom', 'left', 'right'].reduce((acc, curr) => ({ ...acc,
+  [curr]: positiveOrNegative
+}), {});
+
+const responsive = styles => theme => {
+  const next = {};
+  const breakpoints = theme && theme.breakpoints || defaultBreakpoints;
+  const mediaQueries = [null, ...breakpoints.map(n => n.includes('@media') ? n : `@media screen and (min-width: ${n})`)];
+
+  for (const k in styles) {
+    const key = k;
+    let value = styles[key];
+
+    if (typeof value === 'function') {
+      value = value(theme || {});
+    }
+
+    if (value === false || value == null) {
+      continue;
+    }
+
+    if (!Array.isArray(value)) {
+      next[key] = value;
+      continue;
+    }
+
+    for (let i = 0; i < value.slice(0, mediaQueries.length).length; i++) {
+      const media = mediaQueries[i];
+
+      if (!media) {
+        next[key] = value[i];
+        continue;
+      }
+
+      next[media] = next[media] || {};
+      if (value[i] == null) continue;
+      next[media][key] = value[i];
+    }
+  }
+
+  return next;
+};
+
+const css = (args = {}) => (props = {}) => {
+  const theme = { ...defaultTheme,
+    ...('theme' in props ? props.theme : props)
+  }; // insert variant props before responsive styles, so they can be merged
+  // we need to maintain order of the style props, so if a variant is place in the middle
+  // of other props, it will extends its props at that same location order.
+
+  const obj = getObjectWithVariants(typeof args === 'function' ? args(theme) : args, theme);
+  const styles = responsive(obj)(theme);
+  let result = {};
+
+  for (const key in styles) {
+    const x = styles[key];
+    const val = typeof x === 'function' ? x(theme) : x;
+
+    if (val && typeof val === 'object') {
+      if (hasDefault(val)) {
+        result[key] = val[THEME_UI_DEFAULT_KEY];
+        continue;
+      } // On type level, val can also be an array here,
+      // but we transform all arrays in `responsive` function.
+
+
+      result[key] = css(val)(theme);
+      continue;
+    }
+
+    const prop = key in aliases ? aliases[key] : key;
+    const scaleName = prop in scales ? scales[prop] : undefined;
+    const scale = scaleName ? theme == null ? void 0 : theme[scaleName] : get(theme, prop, {});
+    const transform = get(transforms, prop, get);
+    const value = transform(scale, val, val);
+
+    if (prop in multiples) {
+      const dirs = multiples[prop];
+
+      for (let i = 0; i < dirs.length; i++) {
+        result[dirs[i]] = value;
+      }
+    } else {
+      result[prop] = value;
+    }
+  }
+
+  return result;
 };
 
 
@@ -58287,383 +60172,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "../../node_modules/@theme-ui/css/dist/theme-ui-css.esm.js":
-/*!*****************************************************************!*\
-  !*** ../../node_modules/@theme-ui/css/dist/theme-ui-css.esm.js ***!
-  \*****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "THEME_UI_DEFAULT_KEY": () => (/* binding */ THEME_UI_DEFAULT_KEY),
-/* harmony export */   "css": () => (/* binding */ css),
-/* harmony export */   "defaultBreakpoints": () => (/* binding */ defaultBreakpoints),
-/* harmony export */   "get": () => (/* binding */ get),
-/* harmony export */   "getObjectWithVariants": () => (/* binding */ getObjectWithVariants),
-/* harmony export */   "multiples": () => (/* binding */ multiples),
-/* harmony export */   "scales": () => (/* binding */ scales)
-/* harmony export */ });
-/**
- * Allows for nested scales with shorthand values
- * @example
- * {
- *   colors: {
- *     primary: { __default: '#00f', light: '#33f' }
- *   }
- * }
- * css({ color: 'primary' }); // { color: '#00f' }
- * css({ color: 'primary.light' }) // { color: '#33f' }
- */
-
-const THEME_UI_DEFAULT_KEY = '__default';
-
-const hasDefault = x => {
-  return typeof x === 'object' && x !== null && THEME_UI_DEFAULT_KEY in x;
-};
-/**
- * Extracts value under path from a deeply nested object.
- * Used for Themes, variants and Theme UI style objects.
- * Given a path to object with `__default` key, returns the value under that key.
- *
- * @param obj a theme, variant or style object
- * @param path path separated with dots (`.`)
- * @param fallback default value returned if get(obj, path) is not found
- */
-
-
-function get(obj, path, fallback, p, undef) {
-  const pathArray = path && typeof path === 'string' ? path.split('.') : [path];
-
-  for (p = 0; p < pathArray.length; p++) {
-    obj = obj ? obj[pathArray[p]] : undef;
-  }
-
-  if (obj === undef) return fallback;
-  return hasDefault(obj) ? obj[THEME_UI_DEFAULT_KEY] : obj;
-}
-const getObjectWithVariants = (obj, theme) => {
-  if (obj && obj['variant']) {
-    let result = {};
-
-    for (const key in obj) {
-      const x = obj[key];
-
-      if (key === 'variant') {
-        const val = typeof x === 'function' ? x(theme) : x;
-        const variant = getObjectWithVariants(get(theme, val), theme);
-        result = { ...result,
-          ...variant
-        };
-      } else {
-        result[key] = x;
-      }
-    }
-
-    return result;
-  }
-
-  return obj;
-};
-const defaultBreakpoints = [40, 52, 64].map(n => n + 'em');
-const defaultTheme = {
-  space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
-  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72]
-};
-const aliases = {
-  bg: 'backgroundColor',
-  m: 'margin',
-  mt: 'marginTop',
-  mr: 'marginRight',
-  mb: 'marginBottom',
-  ml: 'marginLeft',
-  mx: 'marginX',
-  my: 'marginY',
-  p: 'padding',
-  pt: 'paddingTop',
-  pr: 'paddingRight',
-  pb: 'paddingBottom',
-  pl: 'paddingLeft',
-  px: 'paddingX',
-  py: 'paddingY'
-};
-const multiples = {
-  marginX: ['marginLeft', 'marginRight'],
-  marginY: ['marginTop', 'marginBottom'],
-  paddingX: ['paddingLeft', 'paddingRight'],
-  paddingY: ['paddingTop', 'paddingBottom'],
-  scrollMarginX: ['scrollMarginLeft', 'scrollMarginRight'],
-  scrollMarginY: ['scrollMarginTop', 'scrollMarginBottom'],
-  scrollPaddingX: ['scrollPaddingLeft', 'scrollPaddingRight'],
-  scrollPaddingY: ['scrollPaddingTop', 'scrollPaddingBottom'],
-  size: ['width', 'height']
-};
-const scales = {
-  color: 'colors',
-  background: 'colors',
-  backgroundColor: 'colors',
-  borderColor: 'colors',
-  caretColor: 'colors',
-  columnRuleColor: 'colors',
-  outlineColor: 'colors',
-  textDecorationColor: 'colors',
-  opacity: 'opacities',
-  transition: 'transitions',
-  margin: 'space',
-  marginTop: 'space',
-  marginRight: 'space',
-  marginBottom: 'space',
-  marginLeft: 'space',
-  marginX: 'space',
-  marginY: 'space',
-  marginBlock: 'space',
-  marginBlockEnd: 'space',
-  marginBlockStart: 'space',
-  marginInline: 'space',
-  marginInlineEnd: 'space',
-  marginInlineStart: 'space',
-  padding: 'space',
-  paddingTop: 'space',
-  paddingRight: 'space',
-  paddingBottom: 'space',
-  paddingLeft: 'space',
-  paddingX: 'space',
-  paddingY: 'space',
-  paddingBlock: 'space',
-  paddingBlockEnd: 'space',
-  paddingBlockStart: 'space',
-  paddingInline: 'space',
-  paddingInlineEnd: 'space',
-  paddingInlineStart: 'space',
-  scrollMargin: 'space',
-  scrollMarginTop: 'space',
-  scrollMarginRight: 'space',
-  scrollMarginBottom: 'space',
-  scrollMarginLeft: 'space',
-  scrollMarginX: 'space',
-  scrollMarginY: 'space',
-  scrollPadding: 'space',
-  scrollPaddingTop: 'space',
-  scrollPaddingRight: 'space',
-  scrollPaddingBottom: 'space',
-  scrollPaddingLeft: 'space',
-  scrollPaddingX: 'space',
-  scrollPaddingY: 'space',
-  inset: 'space',
-  insetBlock: 'space',
-  insetBlockEnd: 'space',
-  insetBlockStart: 'space',
-  insetInline: 'space',
-  insetInlineEnd: 'space',
-  insetInlineStart: 'space',
-  top: 'space',
-  right: 'space',
-  bottom: 'space',
-  left: 'space',
-  gridGap: 'space',
-  gridColumnGap: 'space',
-  gridRowGap: 'space',
-  gap: 'space',
-  columnGap: 'space',
-  rowGap: 'space',
-  fontFamily: 'fonts',
-  fontSize: 'fontSizes',
-  fontWeight: 'fontWeights',
-  lineHeight: 'lineHeights',
-  letterSpacing: 'letterSpacings',
-  border: 'borders',
-  borderTop: 'borders',
-  borderRight: 'borders',
-  borderBottom: 'borders',
-  borderLeft: 'borders',
-  borderWidth: 'borderWidths',
-  borderStyle: 'borderStyles',
-  borderRadius: 'radii',
-  borderTopRightRadius: 'radii',
-  borderTopLeftRadius: 'radii',
-  borderBottomRightRadius: 'radii',
-  borderBottomLeftRadius: 'radii',
-  borderTopWidth: 'borderWidths',
-  borderTopColor: 'colors',
-  borderTopStyle: 'borderStyles',
-  borderBottomWidth: 'borderWidths',
-  borderBottomColor: 'colors',
-  borderBottomStyle: 'borderStyles',
-  borderLeftWidth: 'borderWidths',
-  borderLeftColor: 'colors',
-  borderLeftStyle: 'borderStyles',
-  borderRightWidth: 'borderWidths',
-  borderRightColor: 'colors',
-  borderRightStyle: 'borderStyles',
-  borderBlock: 'borders',
-  borderBlockColor: 'colors',
-  borderBlockEnd: 'borders',
-  borderBlockEndColor: 'colors',
-  borderBlockEndStyle: 'borderStyles',
-  borderBlockEndWidth: 'borderWidths',
-  borderBlockStart: 'borders',
-  borderBlockStartColor: 'colors',
-  borderBlockStartStyle: 'borderStyles',
-  borderBlockStartWidth: 'borderWidths',
-  borderBlockStyle: 'borderStyles',
-  borderBlockWidth: 'borderWidths',
-  borderEndEndRadius: 'radii',
-  borderEndStartRadius: 'radii',
-  borderInline: 'borders',
-  borderInlineColor: 'colors',
-  borderInlineEnd: 'borders',
-  borderInlineEndColor: 'colors',
-  borderInlineEndStyle: 'borderStyles',
-  borderInlineEndWidth: 'borderWidths',
-  borderInlineStart: 'borders',
-  borderInlineStartColor: 'colors',
-  borderInlineStartStyle: 'borderStyles',
-  borderInlineStartWidth: 'borderWidths',
-  borderInlineStyle: 'borderStyles',
-  borderInlineWidth: 'borderWidths',
-  borderStartEndRadius: 'radii',
-  borderStartStartRadius: 'radii',
-  columnRuleWidth: 'borderWidths',
-  boxShadow: 'shadows',
-  textShadow: 'shadows',
-  zIndex: 'zIndices',
-  width: 'sizes',
-  minWidth: 'sizes',
-  maxWidth: 'sizes',
-  height: 'sizes',
-  minHeight: 'sizes',
-  maxHeight: 'sizes',
-  flexBasis: 'sizes',
-  size: 'sizes',
-  blockSize: 'sizes',
-  inlineSize: 'sizes',
-  maxBlockSize: 'sizes',
-  maxInlineSize: 'sizes',
-  minBlockSize: 'sizes',
-  minInlineSize: 'sizes',
-  columnWidth: 'sizes',
-  // svg
-  fill: 'colors',
-  stroke: 'colors'
-};
-
-const positiveOrNegative = (scale, value) => {
-  if (typeof value !== 'number' || value >= 0) {
-    if (typeof value === 'string' && value.startsWith('-')) {
-      const valueWithoutMinus = value.substring(1);
-      const n = get(scale, valueWithoutMinus, valueWithoutMinus);
-
-      if (typeof n === 'number') {
-        return n * -1;
-      }
-
-      return `-${n}`;
-    }
-
-    return get(scale, value, value);
-  }
-
-  const absolute = Math.abs(value);
-  const n = get(scale, absolute, absolute);
-  if (typeof n === 'string') return '-' + n;
-  return Number(n) * -1;
-};
-
-const transforms = ['margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginBlock', 'marginBlockEnd', 'marginBlockStart', 'marginInline', 'marginInlineEnd', 'marginInlineStart', 'top', 'bottom', 'left', 'right'].reduce((acc, curr) => ({ ...acc,
-  [curr]: positiveOrNegative
-}), {});
-
-const responsive = styles => theme => {
-  const next = {};
-  const breakpoints = theme && theme.breakpoints || defaultBreakpoints;
-  const mediaQueries = [null, ...breakpoints.map(n => n.includes('@media') ? n : `@media screen and (min-width: ${n})`)];
-
-  for (const k in styles) {
-    const key = k;
-    let value = styles[key];
-
-    if (typeof value === 'function') {
-      value = value(theme || {});
-    }
-
-    if (value === false || value == null) {
-      continue;
-    }
-
-    if (!Array.isArray(value)) {
-      next[key] = value;
-      continue;
-    }
-
-    for (let i = 0; i < value.slice(0, mediaQueries.length).length; i++) {
-      const media = mediaQueries[i];
-
-      if (!media) {
-        next[key] = value[i];
-        continue;
-      }
-
-      next[media] = next[media] || {};
-      if (value[i] == null) continue;
-      next[media][key] = value[i];
-    }
-  }
-
-  return next;
-};
-
-const css = (args = {}) => (props = {}) => {
-  const theme = { ...defaultTheme,
-    ...('theme' in props ? props.theme : props)
-  }; // insert variant props before responsive styles, so they can be merged
-  // we need to maintain order of the style props, so if a variant is place in the middle
-  // of other props, it will extends its props at that same location order.
-
-  const obj = getObjectWithVariants(typeof args === 'function' ? args(theme) : args, theme);
-  const styles = responsive(obj)(theme);
-  let result = {};
-
-  for (const key in styles) {
-    const x = styles[key];
-    const val = typeof x === 'function' ? x(theme) : x;
-
-    if (val && typeof val === 'object') {
-      if (hasDefault(val)) {
-        result[key] = val[THEME_UI_DEFAULT_KEY];
-        continue;
-      } // On type level, val can also be an array here,
-      // but we transform all arrays in `responsive` function.
-
-
-      result[key] = css(val)(theme);
-      continue;
-    }
-
-    const prop = key in aliases ? aliases[key] : key;
-    const scaleName = prop in scales ? scales[prop] : undefined;
-    const scale = scaleName ? theme == null ? void 0 : theme[scaleName] : get(theme, prop, {});
-    const transform = get(transforms, prop, get);
-    const value = transform(scale, val, val);
-
-    if (prop in multiples) {
-      const dirs = multiples[prop];
-
-      for (let i = 0; i < dirs.length; i++) {
-        result[dirs[i]] = value;
-      }
-    } else {
-      result[prop] = value;
-    }
-  }
-
-  return result;
-};
-
-
-
-
-/***/ }),
-
 /***/ "../../node_modules/loglevel/lib/loglevel.js":
 /*!***************************************************!*\
   !*** ../../node_modules/loglevel/lib/loglevel.js ***!
@@ -60200,7 +61708,7 @@ module.exports = JSON.parse('{"name":"@emotion/react","version":"11.9.3","main":
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"data":{"allNoodlPage":{"nodes":[]}}}');
+module.exports = JSON.parse('{"data":{"allNoodlPage":{"nodes":[{"name":"HaNauseaAndVomtingInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaNauseaAndVomtingInChild/"},{"name":"HaNeckPain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaNeckPain/"},{"name":"HaNumbnessOrTinglingInHands","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaNumbnessOrTinglingInHands/"},{"name":"HaPelvicPainFemale","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaPelvicPainFemale/"},{"name":"HaPelvicPainMale","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaPelvicPainMale/"},{"name":"HaShortnessOfBreath","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaShortnessOfBreath/"},{"name":"HaShoulderPain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaShoulderPain/"},{"name":"HaSkinRashesInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaSkinRashesInChild/"},{"name":"HaSoreThroat","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaSoreThroat/"},{"name":"HaSoreThroatInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaSoreThroatInChild/"},{"name":"HaUrinaryProblems","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaUrinaryProblems/"},{"name":"HaWheezing","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaWheezing/"},{"name":"HaWheezingInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaWheezingInChild/"},{"name":"HealthAll","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HealthAll/"},{"name":"PrivacyPolicy","content":"{\\"viewPort\\":\\"top\\"}","slug":"/PrivacyPolicy/"},{"name":"AboutAiTmed","content":"{\\"viewPort\\":\\"top\\"}","slug":"/AboutAiTmed/"},{"name":"AiTmedAdmin","content":"{\\"viewPort\\":\\"top\\",\\"imgDefault\\":[{\\"number\\":\\"1\\",\\"path\\":\\"a_animation1.png\\"}],\\"img1\\":[{\\"number\\":\\"1\\",\\"path\\":\\"a_animation1.png\\"}],\\"img2\\":[{\\"number\\":\\"2\\",\\"path\\":\\"a_animation2.png\\"}],\\"img3\\":[{\\"number\\":\\"3\\",\\"path\\":\\"a_animation3.png\\"}],\\"patientCareList\\":{\\"First\\":[{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"20px\\",\\"number\\":\\"1\\",\\"top\\":\\"0px\\",\\"left\\":\\"0px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"2\\",\\"top\\":\\"2px\\",\\"left\\":\\"55px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"3\\",\\"top\\":\\"2px\\",\\"left\\":\\"100px\\"}],\\"Second\\":[{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"1\\",\\"top\\":\\"2px\\",\\"left\\":\\"5px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"20px\\",\\"number\\":\\"2\\",\\"top\\":\\"0px\\",\\"left\\":\\"50px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"3\\",\\"top\\":\\"2px\\",\\"left\\":\\"105px\\"}],\\"Third\\":[{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"1\\",\\"top\\":\\"2px\\",\\"left\\":\\"5px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"2\\",\\"top\\":\\"2px\\",\\"left\\":\\"50px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"20px\\",\\"number\\":\\"3\\",\\"top\\":\\"0px\\",\\"left\\":\\"95px\\"}]},\\"formData\\":{\\"show\\":[{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"20px\\",\\"number\\":\\"1\\",\\"top\\":\\"0px\\",\\"left\\":\\"0px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"2\\",\\"top\\":\\"2px\\",\\"left\\":\\"55px\\"},{\\"img\\":\\"ellipseBlackBig.png\\",\\"width\\":\\"12px\\",\\"number\\":\\"3\\",\\"top\\":\\"2px\\",\\"left\\":\\"100px\\"}]},\\"imgPath\\":\\"a_animation1.png\\"}","slug":"/AiTmedAdmin/"},{"name":"AiTmedCare","content":"{\\"viewPort\\":\\"top\\",\\"init\\":null,\\"patientCareList1\\":[{\\"img\\":\\"ture.png\\",\\"text\\":\\"Schedule a virtual or in-office appointment.\\"},{\\"img\\":\\"ture.png\\",\\"text\\":\\"Upload secure medical documents into your virtual appointment room.\\"},{\\"img\\":\\"ture.png\\",\\"text\\":\\"Check in to your appointment from anywhere.\\"},{\\"img\\":\\"ture.png\\",\\"text\\":\\"Create and share your visit concerns.\\"}],\\"patientCareList2\\":{\\"First\\":[{\\"img\\":\\"inCircle1.svg\\",\\"text\\":\\"Connect with your provider or medical facility\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Schedule your appointment at a time convenient for you\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Check in to your appointment virtually and see your physician.\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Share any medical documents with your provider at any time\\",\\"number\\":\\"4\\"}],\\"Second\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Connect with your provider or medical facility\\",\\"number\\":\\"1\\"},{\\"img\\":\\"inCircle2.svg\\",\\"text\\":\\"Schedule your appointment at a time convenient for you\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Check in to your appointment virtually and see your physician.\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Share any medical documents with your provider at any time\\",\\"number\\":\\"4\\"}],\\"Third\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Connect with your provider or medical facility\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Schedule your appointment at a time convenient for you\\",\\"number\\":\\"2\\"},{\\"img\\":\\"inCircle3.svg\\",\\"text\\":\\"Check in to your appointment virtually and see your physician.\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Share any medical documents with your provider at any time\\",\\"number\\":\\"4\\"}],\\"Fourst\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Connect with your provider or medical facility\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Schedule your appointment at a time convenient for you\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Check in to your appointment virtually and see your physician.\\",\\"number\\":\\"3\\"},{\\"img\\":\\"inCircle4.svg\\",\\"text\\":\\"Share any medical documents with your provider at any time\\",\\"number\\":\\"4\\"}]},\\"formData\\":{\\"show\\":[{\\"img\\":\\"inCircle1.svg\\",\\"text\\":\\"Connect with your provider or medical facility\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Schedule your appointment at a time convenient for you\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Check in to your appointment virtually and see your physician.\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Share any medical documents with your provider at any time\\",\\"number\\":\\"4\\"}]},\\"imgPath\\":\\"c_animation2.png\\"}","slug":"/AiTmedCare/"},{"name":"AiTmedContact","content":"{\\"viewPort\\":\\"top\\",\\"formDataTemp\\":{\\"ListData\\":[{\\"key\\":\\"1. Self- Scheduling\\"},{\\"key\\":\\"2. HD Video Call\\"},{\\"key\\":\\"3. Cloud Waiting/Exam Room\\"},{\\"key\\":\\"4. E-prescription\\"},{\\"key\\":\\"5. Encrypted Document Sharing\\"},{\\"key\\":\\"6. E-Referral\\"},{\\"key\\":\\"7. Customized Telehealth Platform\\"},{\\"key\\":\\"8. E-Med Store\\"}],\\"messageAitmed\\":[{\\"imagePath\\":\\"customizedSmall.svg\\",\\"imgName\\":\\"Customized Telehealth Platform\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"videoSmall.png\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"HD Video\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"storeBig.svg\\",\\"imgName\\":\\"E-Med Store\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"schdulingSmall.svg\\",\\"imgName\\":\\"Self-Schduling\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"presciptionSmall.svg\\",\\"imgName\\":\\"E-Prescription\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}]},\\"productAitmedZero\\":[{\\"imagePath\\":\\"customizedSmall.svg\\",\\"imgName\\":\\"Customized Telehealth Platform\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"videoSmall.png\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"HD Video\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"storeBig.svg\\",\\"imgName\\":\\"E-Med Store\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"schdulingSmall.svg\\",\\"imgName\\":\\"Self-Schduling\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"presciptionSmall.svg\\",\\"imgName\\":\\"E-Prescription\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"productAitmedOne\\":[{\\"imagePath\\":\\"referralSmall.png\\",\\"imgName\\":\\"E-Referral\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"customizedSmall.svg\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"Customized Telehealth Platform\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"videoBig.png\\",\\"imgName\\":\\"HD Video\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"storeSmall.svg\\",\\"imgName\\":\\"E-Med Store\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"schdulingSmall.svg\\",\\"imgName\\":\\"Self-Schduling\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"productAitmedTwo\\":[{\\"imagePath\\":\\"cloudSmall.png\\",\\"imgName\\":\\"Cloud Waiting Room\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"referralSmall.png\\",\\"imgName\\":\\"E-Referral\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"customizedBig.svg\\",\\"imgName\\":\\"Customized Telehealth Platform\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"videoSmall.png\\",\\"imgName\\":\\"HD Video\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"storeSmall.svg\\",\\"imgName\\":\\"E-Med Store\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"productAitmedThree\\":[{\\"imagePath\\":\\"documentSmall.png\\",\\"imgName\\":\\"Documentation\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"cloudSmall.png\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"Cloud Waiting Room\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"referralBig.png\\",\\"imgName\\":\\"E-Referral\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"customizedSmall.svg\\",\\"imgName\\":\\"Customized Telehealth Platform\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"videoSmall.png\\",\\"imgName\\":\\"HD Video\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"productAitmedFour\\":[{\\"imagePath\\":\\"presciptionSmall.svg\\",\\"imgName\\":\\"E-Prescription\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"documentSmall.png\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"Documentation\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"cloudBig.png\\",\\"imgName\\":\\"Cloud Waiting Room\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"referralSmall.png\\",\\"imgName\\":\\"E-Referral\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"customizedSmall.svg\\",\\"imgName\\":\\"Customized Telehealth Platform\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"productAitmedFive\\":[{\\"imagePath\\":\\"schdulingSmall.svg\\",\\"imgName\\":\\"Self-Schduling\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"presciptionSmall.svg\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"E-Prescription\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"documentBig.png\\",\\"imgName\\":\\"Documentation\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"cloudSmall.png\\",\\"imgName\\":\\"Cloud Waiting Room\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"referralSmall.png\\",\\"imgName\\":\\"E-Referral\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"productAitmedSix\\":[{\\"imagePath\\":\\"storeSmall.svg\\",\\"imgName\\":\\"E-Med Store\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"schdulingSmall.svg\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"Self-Schduling\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"presciptionBig.svg\\",\\"imgName\\":\\"E-Prescription\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"documentSmall.png\\",\\"imgName\\":\\"Documentation\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"cloudSmall.png\\",\\"imgName\\":\\"Cloud Waiting Room\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"productAitmedSeven\\":[{\\"imagePath\\":\\"videoSmall.png\\",\\"imgName\\":\\"HD Video\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"storeSmall.svg\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"E-Med Store\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"schdulingBig.svg\\",\\"imgName\\":\\"Self-Schduling\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"presciptionSmall.svg\\",\\"imgName\\":\\"E-Prescription\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"documentSmall.png\\",\\"imgName\\":\\"Documentation\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}],\\"flag\\":\\"1\\",\\"tar\\":true}","slug":"/AiTmedContact/"},{"name":"AiTmedCustomizedTelehealthPlatform","content":"{\\"viewPort\\":\\"top\\"}","slug":"/AiTmedCustomizedTelehealthPlatform/"},{"name":"AiTmedDocumentation","content":"{\\"viewPort\\":\\"top\\"}","slug":"/AiTmedDocumentation/"},{"name":"AiTmedProvider","content":"{\\"viewPort\\":\\"top\\",\\"init\\":null,\\"patientCareList2\\":{\\"First\\":[{\\"img\\":\\"inCircle1.svg\\",\\"text\\":\\"Create your own availability profile for both telemedicine and office visits\\",\\"number\\":\\"1\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Review secure medical records and upload new documents all in one area\\",\\"number\\":\\"2\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Blockchain-secure virtual visits\\",\\"number\\":\\"3\\",\\"top\\":\\"0.018\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"One click provider notes:evaluation notes, prescriptions, and others\\",\\"number\\":\\"4\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"5.svg\\",\\"text\\":\\"Personalized network of specialists and other professionals\\",\\"number\\":\\"5\\",\\"top\\":\\"0.01\\"}],\\"Second\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Create your own availability profile for both telemedicine and office visits\\",\\"number\\":\\"1\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"inCircle2.svg\\",\\"text\\":\\"Review secure medical records and upload new documents all in one area\\",\\"number\\":\\"2\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Blockchain-secure virtual visits\\",\\"number\\":\\"3\\",\\"top\\":\\"0.018\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"One click provider notes:evaluation notes, prescriptions, and others\\",\\"number\\":\\"4\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"5.svg\\",\\"text\\":\\"Personalized network of specialists and other professionals\\",\\"number\\":\\"5\\",\\"top\\":\\"0.01\\"}],\\"Third\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Create your own availability profile for both telemedicine and office visits\\",\\"number\\":\\"1\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Review secure medical records and upload new documents all in one area\\",\\"number\\":\\"2\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"inCircle3.svg\\",\\"text\\":\\"Blockchain-secure virtual visits\\",\\"number\\":\\"3\\",\\"top\\":\\"0.018\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"One click provider notes:evaluation notes, prescriptions, and others\\",\\"number\\":\\"4\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"5.svg\\",\\"text\\":\\"Personalized network of specialists and other professionals\\",\\"number\\":\\"5\\",\\"top\\":\\"0.01\\"}],\\"Fourth\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Create your own availability profile for both telemedicine and office visits\\",\\"number\\":\\"1\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Review secure medical records and upload new documents all in one area\\",\\"number\\":\\"2\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Blockchain-secure virtual visits\\",\\"number\\":\\"3\\",\\"top\\":\\"0.018\\"},{\\"img\\":\\"inCircle4.svg\\",\\"text\\":\\"One click provider notes:evaluation notes, prescriptions, and others\\",\\"number\\":\\"4\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"5.svg\\",\\"text\\":\\"Personalized network of specialists and other professionals\\",\\"number\\":\\"5\\",\\"top\\":\\"0.01\\"}],\\"Fifth\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Create your own availability profile for both telemedicine and office visits\\",\\"number\\":\\"1\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Review secure medical records and upload new documents all in one area\\",\\"number\\":\\"2\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Blockchain-secure virtual visits\\",\\"number\\":\\"3\\",\\"top\\":\\"0.018\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"One click provider notes:evaluation notes, prescriptions, and others\\",\\"number\\":\\"4\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"inCircle5.svg\\",\\"text\\":\\"Personalized network of specialists and other professionals\\",\\"number\\":\\"5\\",\\"top\\":\\"0.01\\"}]},\\"formData\\":{\\"show\\":[{\\"img\\":\\"inCircle1.svg\\",\\"text\\":\\"Create your own availability profile for both telemedicine and office visits\\",\\"number\\":\\"1\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Review secure medical records and upload new documents all in one area\\",\\"number\\":\\"2\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Blockchain-secure virtual visits\\",\\"number\\":\\"3\\",\\"top\\":\\"0.018\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"One click provider notes:evaluation notes, prescriptions, and others\\",\\"number\\":\\"4\\",\\"top\\":\\"0.01\\"},{\\"img\\":\\"5.svg\\",\\"text\\":\\"Personalized network of specialists and other professionals\\",\\"number\\":\\"5\\",\\"top\\":\\"0.01\\"}]},\\"imgPath\\":\\"p_animation1.png\\"}","slug":"/AiTmedProvider/"},{"name":"AitmedSearch","content":"{\\"viewPort\\":\\"top\\",\\"pageNumber\\":\\"5\\",\\"title\\":\\"Aitmed Search\\",\\"patientList\\":{\\"First\\":[{\\"img\\":\\"inCircle1.svg\\",\\"text\\":\\"Search for top-rated providers based on you or your patient’s needs including location, date, and insurance plan\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Choose a specialist that best works for you or your patient by matching the symptoms\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Make an appointment directly with the selected provider\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Create an AiTmed account to directly connect with the chosen provider\\",\\"number\\":\\"4\\"}],\\"Second\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Search for top-rated providers based on you or your patient’s needs including location, date, and insurance plan\\",\\"number\\":\\"1\\"},{\\"img\\":\\"inCircle2.svg\\",\\"text\\":\\"Choose a specialist that best works for you or your patient by matching the symptoms\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Make an appointment directly with the selected provider\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Create an AiTmed account to directly connect with the chosen provider\\",\\"number\\":\\"4\\"}],\\"Third\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Search for top-rated providers based on you or your patient’s needs including location, date, and insurance plan\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Choose a specialist that best works for you or your patient by matching the symptoms\\",\\"number\\":\\"2\\"},{\\"img\\":\\"inCircle3.svg\\",\\"text\\":\\"Make an appointment directly with the selected provider\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Create an AiTmed account to directly connect with the chosen provider\\",\\"number\\":\\"4\\"}],\\"Fourth\\":[{\\"img\\":\\"patientCaren1.svg\\",\\"text\\":\\"Search for top-rated providers based on you or your patient’s needs including location, date, and insurance plan\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Choose a specialist that best works for you or your patient by matching the symptoms\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Make an appointment directly with the selected provider\\",\\"number\\":\\"3\\"},{\\"img\\":\\"inCircle4.svg\\",\\"text\\":\\"Create an AiTmed account to directly connect with the chosen provider\\",\\"number\\":\\"4\\"}]},\\"formData\\":{\\"show\\":[{\\"img\\":\\"inCircle1.svg\\",\\"text\\":\\"Search for top-rated providers based on you or your patient’s needs including location, date, and insurance plan\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circle2.svg\\",\\"text\\":\\"Choose a specialist that best works for you or your patient by matching the symptoms\\",\\"number\\":\\"2\\"},{\\"img\\":\\"patientCaren3.svg\\",\\"text\\":\\"Make an appointment directly with the selected provider\\",\\"number\\":\\"3\\"},{\\"img\\":\\"patientCaren4.svg\\",\\"text\\":\\"Create an AiTmed account to directly connect with the chosen provider\\",\\"number\\":\\"4\\"}]},\\"imgPath\\":\\"how1.png\\"}","slug":"/AitmedSearch/"},{"name":"AiTmedSelfScheduling","content":"{\\"viewPort\\":\\"top\\"}","slug":"/AiTmedSelfScheduling/"},{"name":"Cloudwaitingroom","content":"{\\"viewPort\\":\\"top\\"}","slug":"/Cloudwaitingroom/"},{"name":"HaAbdominalPain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaAbdominalPain/"},{"name":"HaAbdominalPainInChildren","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaAbdominalPainInChildren/"},{"name":"HaBloodInTheStool","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaBloodInTheStool/"},{"name":"HaChestPain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaChestPain/"},{"name":"HaConstipation","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaConstipation/"},{"name":"HaConstipationInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaConstipationInChild/"},{"name":"HaCough","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaCough/"},{"name":"HaCoughInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaCoughInChild/"},{"name":"HaDiarrheaInAdult","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaDiarrheaInAdult/"},{"name":"HaDiarrheaInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaDiarrheaInChild/"},{"name":"HaDifficultySwallowing","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaDifficultySwallowing/"},{"name":"HaDizziness","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaDizziness/"},{"name":"HaEaracheInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaEaracheInChild/"},{"name":"HaEarProblemsInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaEarProblemsInChild/"},{"name":"HaEyeDiscomfortAndRedness","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaEyeDiscomfortAndRedness/"},{"name":"HaEyeDiscomfortAndRednessInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaEyeDiscomfortAndRednessInChild/"},{"name":"HaEyeProblems","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaEyeProblems/"},{"name":"HaEyeProblemsInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaEyeProblemsInChild/"},{"name":"HaFeverInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaFeverInChild/"},{"name":"HaFootPainOrAnklePain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaFootPainOrAnklePain/"},{"name":"HaHeadacheInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaHeadacheInChild/"},{"name":"HaHeadaches","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaHeadaches/"},{"name":"HaHeartPalpitions","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaHeartPalpitions/"},{"name":"HaHipPain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaHipPain/"},{"name":"HaJointPainOrMusclePainInChild","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaJointPainOrMusclePainInChild/"},{"name":"HaKneePain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaKneePain/"},{"name":"HaLegOrFootSwelling","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaLegOrFootSwelling/"},{"name":"HaLowBackPain","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaLowBackPain/"},{"name":"HaMenopause","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaMenopause/"},{"name":"HaNasalCongestion","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaNasalCongestion/"},{"name":"HaNasalCongestionC","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaNasalCongestionC/"},{"name":"HaNauseaAndVomting","content":"{\\"viewPort\\":\\"top\\"}","slug":"/HaNauseaAndVomting/"},{"name":"SignUp","content":"{\\"viewPort\\":\\"top\\",\\"module\\":\\"patient, provider, admin\\",\\"pageNumber\\":\\"20\\",\\"formData\\":{\\"countryCode\\":\\"+1\\",\\"phoneNumber\\":\\"\\",\\"code\\":\\"\\"},\\"apiData\\":{\\"phoneNumber\\":\\"\\"},\\"verificationCode\\":{\\"response\\":\\"\\",\\"edge\\":{\\"id\\":\\"\\",\\"name\\":{\\"phone_number\\":\\"=..apiData.phoneNumber\\"},\\"type\\":1010,\\"ctime\\":\\"\\",\\"subtype\\":\\"\\",\\"bvid\\":\\"\\",\\"evid\\":\\"\\",\\"tage\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Edge..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"}},\\"edgeAPI\\":{\\"store\\":[\\"SignUp.verificationCode.response.name\\",null]}},\\"rvCondition\\":\\"\\",\\"save\\":[{\\"=.builtIn.string.concat\\":{\\"dataIn\\":[\\"=.SignUp.formData.countryCode\\",\\" \\",\\"=.SignUp.formData.phoneNumber\\"],\\"dataOut\\":\\"SignUp.apiData.phoneNumber\\"}},{\\"=.SignUp.verificationCode.edgeAPI.store\\":\\"\\",\\"_key_\\":\\"=.SignUp.verificationCode.edgeAPI.store\\",\\"_path_\\":\\"SignUp.save[1].=.SignUp.verificationCode.edgeAPI.store\\",\\"_ref_\\":\\"=.SignUp.verificationCode.edgeAPI.store\\"}],\\"check\\":[{\\"=.SignUp.loginNewDevice.edgeAPI.store\\":\\"\\"},{\\"if\\":[{\\"=.builtIn.string.equal\\":{\\"dataIn\\":{\\"string1\\":\\"=..loginNewDevice.response.code\\",\\"string2\\":112}}},{\\"actionType\\":\\"popUp\\",\\"popUpView\\":\\"wrongCode\\",\\"wait\\":true},\\"continue\\"]}],\\"update\\":[{\\".Global.newAccountFlag@\\":\\"-1\\"}],\\"getVertex\\":{\\"response\\":\\"\\",\\"vertex\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":1,\\"ctime\\":\\"0\\",\\"uid\\":\\"\\",\\"pk\\":\\"\\",\\"esk\\":\\"\\",\\"deat\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Vertex..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"xfname\\":\\"none\\",\\"sCondition\\":\\"=..rvCondition\\"},\\"vertexAPI\\":{}},\\"loginNewDevice\\":{\\"response\\":\\"\\",\\"edge\\":{\\"id\\":\\"\\",\\"name\\":{\\"phone_number\\":\\"=..apiData.phoneNumber\\",\\"verification_code\\":\\"=..formData.code\\"},\\"type\\":1040,\\"ctime\\":\\"\\",\\"subtype\\":\\"\\",\\"bvid\\":\\"\\",\\"evid\\":\\"\\",\\"tage\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Edge..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"deat\\":{\\"UserId\\":\\"\\",\\"Pk\\":\\"\\",\\"Esk\\":\\"\\"}},\\"edgeAPI\\":{\\"store\\":[\\"SignUp.loginNewDevice.response.name\\",null]}},\\"loginUser\\":{\\"response\\":\\"\\",\\"edge\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":1030,\\"ctime\\":\\"\\",\\"subtype\\":\\"\\",\\"bvid\\":\\"=..loginNewDevice.response.edge.deat.user_id\\",\\"evid\\":\\"\\",\\"tage\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Edge..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"}},\\"edgeAPI\\":{\\"store\\":[\\"SignUp.loginUser.response.name\\",null]}}}","slug":"/SignUp/"},{"name":"TermsOfService","content":"{\\"pageNumber\\":\\"20\\",\\"title\\":\\"TermsOfService\\",\\"viewPort\\":\\"top\\"}","slug":"/TermsOfService/"},{"name":"Resource","content":"{\\"productFlag\\":\\"0\\",\\"wellnessFlag\\":\\"0\\",\\"signInFlag\\":\\"0\\",\\"changeSignInColor\\":[{\\"title\\":\\"Sign In\\",\\"fontColor\\":\\"0xff0000\\",\\"fontSize\\":\\"1.9vh\\"}],\\"SignIncolor\\":[{\\"title\\":\\"Sign In\\",\\"fontColor\\":\\"0xff0000\\",\\"fontSize\\":\\"1.9vh\\"}],\\"baseHeaderData\\":[{\\"title\\":\\"Find My Care\\",\\"pageName\\":\\"AiTmedCare\\",\\"val\\":\\"0xe8e8e8\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"0vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(7vw)\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"For Provider\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"2vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(7vw)\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"For Business\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"3vw\\",\\"width\\":\\"calc(7vw)\\",\\"marginLeft\\":\\"0.8vw\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"Aitmed Care\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"5vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(7vw)\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"FAQ\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"7vw\\",\\"width\\":\\"calc(7vw)\\",\\"marginLeft\\":\\"0.8vw\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"Sign in / Sign up\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"11.7vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(9vw)\\",\\"textDecoration\\":\\"underline\\",\\"fontWeight\\":\\"400\\"}],\\"baseHeaderData2\\":[{\\"title\\":\\"Home\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\"},{\\"title\\":\\"About\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\"},{\\"title\\":\\"Products\\",\\"fontColor\\":\\"0x333333\\",\\"fontSize\\":\\"2.28vh\\"},{\\"title\\":\\"Wellness\\",\\"fontColor\\":\\"0x333333\\",\\"fontSize\\":\\"2.28vh\\"}],\\"baseHeaderData1\\":[{\\"title\\":\\"Sign In\\",\\"fontColor\\":\\"0x333333\\",\\"fontSize\\":\\"2.28vh\\"}],\\"baseProduct\\":[{\\"title\\":\\"Care App\\",\\"pageName\\":\\"AiTmedCare\\",\\"val\\":\\"0xe8e8e8\\"},{\\"title\\":\\"Health A-Z\\",\\"pageName\\":\\"HealthAll\\",\\"val\\":\\"0xe8e8e8\\"}],\\"baseSignIn\\":[{\\"title\\":\\"Care\\",\\"val\\":\\"0xe8e8e8\\"},{\\"title\\":\\"Provider\\",\\"val\\":\\"0xe8e8e8\\"},{\\"title\\":\\"Admin\\",\\"val\\":\\"0xffffff\\"}],\\"messageAitmed\\":[{\\"imagePath\\":\\"customizedSmall.png\\",\\"imgName\\":\\"Customized Telehealth Platform\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"videoSmall.png\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"imgName\\":\\"HD Video\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"storeBig.png\\",\\"imgName\\":\\"E-Med Store\\",\\"hei\\":\\"calc(168.19/1724.81*100vw)\\",\\"fontSize\\":\\"calc(25.24/1724.81*100vw)\\",\\"color\\":\\"0x000000\\",\\"fontWeight\\":\\"600\\"},{\\"imagePath\\":\\"schdulingSmall.png\\",\\"imgName\\":\\"Self-Schduling\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"},{\\"imagePath\\":\\"presciptionSmall.png\\",\\"imgName\\":\\"E-Prescription\\",\\"fontSize\\":\\"calc(15.98/1724.81*100vw)\\",\\"hei\\":\\"calc(100.91/1724.81*100vw)\\",\\"color\\":\\"0x333333\\"}]}","slug":"/Resource/"},{"name":"FAQ","content":"{\\"viewPort\\":\\"top\\",\\"title\\":null,\\"pageNumber\\":null,\\"init\\":null,\\"formData\\":null,\\"formDataTemp\\":{\\"QuestionList\\":[{\\"key\\":\\"Q1.\\"}],\\"LabelList\\":[{\\"key\\":\\"Add A Patient With No Phone Number.\\"}]},\\"apiRequest\\":null,\\"style\\":null}","slug":"/FAQ/"},{"name":"FAQQuestionOne","content":"{\\"viewPort\\":\\"top\\",\\"title\\":null,\\"pageNumber\\":null,\\"init\\":null,\\"formData\\":null,\\"formDataTemp\\":null,\\"apiRequest\\":null,\\"style\\":null}","slug":"/FAQQuestionOne/"},{"name":"CreateNewAccount","content":"{\\"viewPort\\":\\"top\\",\\"module\\":\\"patient\\",\\"title\\":\\"Create New Account\\",\\"pageNumber\\":\\"45\\",\\"init\\":[{\\"if\\":[\\"..formData.vertex.name.phoneNumber\\",\\"continue\\",{\\"goto\\":\\"SignUp\\"}]}],\\"formData\\":{\\"response\\":\\"\\",\\"vertex\\":{\\"id\\":\\"\\",\\"name\\":{\\"countryCode\\":\\"+1\\",\\"phoneNumber\\":\\".Global.phoneNumber\\",\\"userName\\":\\"\\",\\"firstName\\":\\"\\",\\"lastName\\":\\"\\",\\"password\\":\\"\\",\\"confirmPassword\\":\\"\\",\\"avatar\\":\\"https://public.aitmed.com/avatar/JohnDoe.jpg\\",\\"verificationCode\\":\\"\\",\\"signature\\":\\"\\"},\\"type\\":\\".Global.newAccountFlag\\",\\"ctime\\":\\"0\\",\\"uid\\":\\"\\",\\"pk\\":\\"\\",\\"esk\\":\\"\\",\\"deat\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Vertex..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"}},\\"vertexAPI\\":{\\"store\\":[\\"formData.response.name\\",null]},\\"target\\":false,\\"tar\\":false,\\"confirm\\":\\"\\"},\\"rvCondition\\":\\"\\",\\"checkOk\\":\\"\\",\\"getVertex\\":{\\"response\\":\\"\\",\\"vertex\\":{\\"xfname\\":\\"none\\",\\"type\\":1,\\"sCondition\\":\\"=..rvCondition\\",\\"_nonce\\":\\"=.Global._nonce\\"},\\"vertexAPI\\":{}},\\"save\\":[[\\"formData.response.name\\",null]],\\"update\\":[{\\".Global.currentUser.vertex@\\":\\"=..formData.response.vertex\\"},{\\".Global.currentUser.vertex.name.firstName@\\":\\"=..formData.vertex.name.firstName\\"},{\\".Global.currentUser.vertex.name.lastName@\\":\\"=..formData.vertex.name.lastName\\"},{\\".Global.currentUser.JWT@\\":\\"=..formData.response.jwt\\"},{\\".Global.rootNotebookID@\\":\\"=.Global.currentUser.vertex.deat.rnb64ID\\"},{\\".Global.currentUser.dataCache.loadingDateTime@\\":\\"=.Global.currentDateTime\\"}]}","slug":"/CreateNewAccount/"},{"name":"SignIn","content":"{\\"viewPort\\":\\"top\\",\\"pageNumber\\":\\"30\\",\\"init\\":[{\\"if\\":[\\"=.Global.currentUser.vertex.sk\\",{\\"goto\\":\\"Overview\\"},\\"continue\\"]}],\\"save\\":[{\\"=.builtIn.eccNaCl.decryptAES\\":{\\"dataIn\\":{\\"key\\":\\"=..formData.password\\",\\"message\\":\\"=.Global.currentUser.vertex.esk\\"},\\"dataOut\\":\\"SignIn.formData.sk\\"}},{\\"=.builtIn.eccNaCl.skCheck\\":{\\"dataIn\\":{\\"pk\\":\\"=.Global.currentUser.vertex.pk\\",\\"sk\\":\\"=..formData.sk\\"},\\"dataOut\\":\\"SignIn.formData.pass\\"}},{\\"if\\":[\\"=..formData.pass\\",{\\".Global.currentUser.vertex.sk@\\":\\"=..formData.sk\\"},{\\"actionType\\":\\"popUp\\",\\"popUpView\\":\\"wrongPassword\\",\\"wait\\":true}]}],\\"check\\":[{\\"=.SignIn.loginNewDevice.edgeAPI.store\\":\\"\\"},{\\"actionType\\":\\"evalObject\\",\\"object\\":{\\".Global._nonce@\\":{\\"=.builtIn.math.random\\":\\"\\"}}},{\\"if\\":[{\\"=.builtIn.string.equal\\":{\\"dataIn\\":{\\"string1\\":\\"=..loginNewDevice.response.code\\",\\"string2\\":1020}}},{\\"actionType\\":\\"popUp\\",\\"popUpView\\":\\"userCannotfind\\",\\"wait\\":true},\\"continue\\"]},{\\"if\\":[{\\"=.builtIn.string.equal\\":{\\"dataIn\\":{\\"string1\\":\\"=..loginNewDevice.response.code\\",\\"string2\\":0}}},\\"continue\\",{\\"actionType\\":\\"popUp\\",\\"popUpView\\":\\"wrongCode\\",\\"wait\\":true}]}],\\"update\\":[{\\"=.SignIn.loginUser.edgeAPI.store\\":\\"\\"},{\\"=.SignIn.retrieveVertex.vertexAPI.get\\":\\"\\"},{\\".Global.currentUser.vertex@\\":\\"=..retrieveVertex.response.vertex.0\\"},{\\".Global.currentUser.JWT@\\":\\"=..loginUser.response.jwt\\"},{\\"=.builtIn.storeCredentials\\":{\\"dataIn\\":{\\"sk\\":\\"=.Global.currentUser.vertex.sk\\",\\"pk\\":\\"=.Global.currentUser.vertex.pk\\",\\"userId\\":\\"=.Global.currentUser.vertex.id\\",\\"esk\\":\\"=.Global.currentUser.vertex.esk\\"}}},{\\".Global.currentUser.dataCache.loadingDateTime@\\":\\"=.Global.currentDateTime\\"},{\\".Global.rootNotebookID@\\":\\"=.Global.currentUser.vertex.deat.rnb64ID\\"},{\\".Global.currentUser.dataCache.loadingDateTime@\\":\\"=.Global.currentDateTime\\"}],\\"formData\\":{\\"checkOk\\":\\"false\\",\\"checkMessage\\":\\"no message\\",\\"countryCode\\":\\"+1\\",\\"phoneNumber\\":\\"\\",\\"password\\":\\"\\",\\"code\\":\\"\\",\\"sk\\":\\"\\",\\"pass\\":\\"\\"},\\"retrieveVertex\\":{\\"response\\":\\"\\",\\"vertex\\":{\\"id\\":\\"=..loginNewDevice.response.edge.deat.user_id\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\",\\"uid\\":\\"\\",\\"pk\\":\\"\\",\\"esk\\":\\"\\",\\"deat\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Vertex..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"}},\\"vertexAPI\\":{}},\\"verificationCode\\":{\\"response\\":\\"\\",\\"edge\\":{\\"id\\":\\"\\",\\"name\\":{\\"phone_number\\":\\"=..apiData.phoneNumber\\"},\\"type\\":1010,\\"ctime\\":\\"\\",\\"subtype\\":\\"\\",\\"bvid\\":\\"\\",\\"evid\\":\\"\\",\\"tage\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Edge..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_nonce\\":\\"=.Global._nonce\\"},\\"edgeAPI\\":{\\"store\\":[\\"SignIn.verificationCode.response.name\\",null]}},\\"loginNewDevice\\":{\\"response\\":\\"\\",\\"edge\\":{\\"id\\":\\"\\",\\"name\\":{\\"phone_number\\":\\"=..apiData.phoneNumber\\",\\"verification_code\\":\\"=..formData.code\\"},\\"type\\":1040,\\"ctime\\":\\"\\",\\"subtype\\":\\"\\",\\"bvid\\":\\"\\",\\"evid\\":\\"\\",\\"tage\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Edge..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_nonce\\":\\"=.Global._nonce\\",\\"deat\\":{\\"UserId\\":\\"\\",\\"Pk\\":\\"\\",\\"Esk\\":\\"\\"}},\\"edgeAPI\\":{\\"store\\":[\\"SignIn.loginNewDevice.response.name\\",null]}},\\"loginUser\\":{\\"response\\":\\"\\",\\"edge\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":1030,\\"ctime\\":\\"\\",\\"subtype\\":\\"\\",\\"bvid\\":\\"=..loginNewDevice.response.edge.deat.user_id\\",\\"evid\\":\\"\\",\\"tage\\":\\"\\",\\"_key_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_path_\\":\\"Edge..EcosObj\\",\\"_ref_\\":{\\"id\\":\\"\\",\\"name\\":\\"\\",\\"type\\":\\"0\\",\\"ctime\\":\\"0\\"},\\"_nonce\\":\\"=.Global._nonce\\"},\\"edgeAPI\\":{\\"store\\":[\\"SignIn.loginUser.response.name\\",null]}},\\"apiData\\":{\\"phoneNumber\\":\\"\\"},\\"initFocus\\":\\"phoneNumberVT\\"}","slug":"/SignIn/"},{"name":"DownloadCare","content":"{\\"init\\":[{\\"if\\":[\\".builtIn.isIOS\\",{\\"goto\\":\\"https://apps.apple.com/us/app/aitmed-care/id1566010358\\"},\\"continue\\"]},{\\"if\\":[\\".builtIn.isAndroid\\",{\\"goto\\":\\"https://play.google.com/store/apps/details?id=com.aitmed.care&hl=en_US&gl=US\\"},\\"goto HomePage\\"]}]}","slug":"/DownloadCare/"},{"name":"HomePage","content":"{\\"init\\":[{\\"actionType\\":\\"evalObject\\",\\"object\\":[{\\"=.builtIn.object.setProperty\\":{\\"dataIn\\":{\\"obj\\":[{\\"title\\":\\"Find My Care\\",\\"pageName\\":\\"AiTmedCare\\",\\"val\\":\\"0xe8e8e8\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"0vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(7vw)\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"For Provider\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"2vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(7vw)\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"For Business\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"3vw\\",\\"width\\":\\"calc(7vw)\\",\\"marginLeft\\":\\"0.8vw\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"Aitmed Care\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"5vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(7vw)\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"FAQ\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"7vw\\",\\"width\\":\\"calc(7vw)\\",\\"marginLeft\\":\\"0.8vw\\",\\"textDecoration\\":\\"none\\",\\"fontWeight\\":\\"400\\"},{\\"title\\":\\"Sign in / Sign up\\",\\"fontColor\\":\\"0x000000\\",\\"fontSize\\":\\"2.28vh\\",\\"left\\":\\"11.7vw\\",\\"marginLeft\\":\\"0\\",\\"width\\":\\"calc(9vw)\\",\\"textDecoration\\":\\"underline\\",\\"fontWeight\\":\\"400\\"}],\\"label\\":\\"title\\",\\"text\\":\\"Home\\",\\"arr\\":[\\"fontSize\\",\\"fontWeight\\",\\"fontColor\\"],\\"valueArr\\":[\\"2.28vh\\",\\"600\\",\\"0x388fcd\\"],\\"errorArr\\":[\\"2.28vh\\",\\"400\\",\\"0x000000\\"]},\\"dataOut\\":\\"Resource.baseHeaderData\\"}}]},{\\"actionType\\":\\"builtIn\\",\\"funcName\\":\\"redraw\\",\\"viewTag\\":\\"headRightView\\"}],\\"title\\":\\"WebSite\\",\\"viewPort\\":\\"top\\",\\"imgData\\":[{\\"key\\":\\"partner/2.png\\",\\"url\\":\\"https://a1lawyer.aitmed.com/\\"},{\\"key\\":\\"partner/1.png\\",\\"url\\":\\"https://accare.aitmed.com/\\"},{\\"key\\":\\"partner/3.png\\",\\"url\\":\\"https://thespinepro.aitmed.com/\\"},{\\"key\\":\\"partner/34.png\\",\\"url\\":\\"https://anaheimclinic.aitmed.com/\\"},{\\"key\\":\\"partner/5.png\\",\\"url\\":\\"https://andallawgroup.aitmed.com/\\"},{\\"key\\":\\"partner/6.png\\",\\"url\\":\\"https://askhelen.aitmed.com/\\"},{\\"key\\":\\"partner/8.png\\",\\"url\\":\\"https://cerritosmedicalcenter.aitmed.com/\\"},{\\"key\\":\\"partner/7.png\\"},{\\"key\\":\\"partner/9.png\\",\\"url\\":\\"https://comsi.aitmed.com/\\"},{\\"key\\":\\"partner/10.png\\",\\"url\\":\\"https://dermanoor.aitmed.com/\\"},{\\"key\\":\\"partner/11.png\\",\\"url\\":\\"https://dislab.aitmed.com/\\"},{\\"key\\":\\"partner/33.png\\",\\"url\\":\\"https://georgesmeleka.aitmed.com/\\"}],\\"imgDataCopy\\":[{\\"key\\":\\"partner/2.png\\"},{\\"key\\":\\"partner/1.png\\"},{\\"key\\":\\"partner/3.png\\"},{\\"key\\":\\"partner/34.png\\"},{\\"key\\":\\"partner/5.png\\"},{\\"key\\":\\"partner/6.png\\"},{\\"key\\":\\"partner/8.png\\"},{\\"key\\":\\"partner/7.png\\"},{\\"key\\":\\"partner/9.png\\"},{\\"key\\":\\"partner/10.png\\"},{\\"key\\":\\"partner/11.png\\"},{\\"key\\":\\"partner/33.png\\"}],\\"imgDataNext\\":[{\\"key\\":\\"partner/13.png\\",\\"url\\":\\"https://gfattorney.aitmed.com/\\"},{\\"key\\":\\"partner/14.png\\",\\"url\\":\\"https://hanorthopaedics.aitmed.com/\\"},{\\"key\\":\\"partner/15.png\\",\\"url\\":\\"https://kensnyderlaw.aitmed.com/\\"},{\\"key\\":\\"partner/16.png\\",\\"url\\":\\"https://kidscare.aitmed.com/\\"},{\\"key\\":\\"partner/17.png\\"},{\\"key\\":\\"partner/19.png\\",\\"url\\":\\"https://mtmcc.aitmed.com/\\"},{\\"key\\":\\"partner/18.png\\",\\"url\\":\\"https://mosaiccare.aitmed.com/\\"},{\\"key\\":\\"partner/20.png\\",\\"url\\":\\"https://pathlab.aitmed.com/\\"},{\\"key\\":\\"partner/21.png\\",\\"url\\":\\"https://pathway.aitmed.com/\\"},{\\"key\\":\\"partner/22.png\\"},{\\"key\\":\\"partner/23.png\\",\\"url\\":\\"https://sanamedgroup.aitmed.com/\\"},{\\"key\\":\\"partner/24.png\\",\\"url\\":\\"https://purebio.aitmed.com/\\"}],\\"imgDataSecond\\":[{\\"key\\":\\"partner/12.png\\",\\"url\\":\\"https://slimnyoung.aitmed.com/\\"},{\\"key\\":\\"partner/26.png\\",\\"url\\":\\"https://socaluc.aitmed.com/\\"},{\\"key\\":\\"partner/27.png\\",\\"url\\":\\"https://statewidelaw.aitmed.com/\\"},{\\"key\\":\\"partner/28.png\\",\\"url\\":\\"https://sullivan.aitmed.com/\\"},{\\"key\\":\\"partner/29.png\\"},{\\"key\\":\\"partner/30.png\\",\\"url\\":\\"https://vahdatlaw.aitmed.com/\\"},{\\"key\\":\\"partner/31.png\\",\\"url\\":\\"https://vidaHealth.aitmed.com/\\"},{\\"key\\":\\"partner/32.png\\",\\"url\\":\\"https://walnutnatural.aitmed.com/\\"}],\\"flagIcon\\":\\"0\\",\\"productsData\\":[{\\"key\\":\\"aitmedCare.png\\",\\"name\\":\\"AiTmed Care\\"},{\\"key\\":\\"mockup.png\\",\\"name\\":\\"AiTmed Provider\\"},{\\"key\\":\\"laptoptdz.png\\",\\"name\\":\\"AiTmed Admin\\"},{\\"key\\":\\"laptopTwo.png\\",\\"name\\":\\"Search & Referral\\"}],\\"resource\\":[{\\"imgPath\\":\\"homeNew11.png\\",\\"filter\\":\\"blur(0px)\\"}],\\"HomeList\\":{\\"First\\":[{\\"img\\":\\"circleLight.png\\",\\"number\\":\\"1\\"},{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"2\\"},{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"3\\"}],\\"Second\\":[{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"1\\"},{\\"img\\":\\"circleLight.png\\",\\"number\\":\\"2\\"},{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"3\\"}],\\"Third\\":[{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"1\\"},{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"2\\"},{\\"img\\":\\"circleLight.png\\",\\"number\\":\\"3\\"}]},\\"formData\\":{\\"show\\":[{\\"img\\":\\"circleLight.png\\",\\"number\\":\\"1\\"},{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"2\\"},{\\"img\\":\\"ellipseBlack.png\\",\\"number\\":\\"3\\"}]}}","slug":"/HomePage/"}]}}}');
 
 /***/ })
 

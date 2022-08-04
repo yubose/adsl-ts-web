@@ -78,10 +78,10 @@ const getPath = (...s) => path.join(process.cwd(), ...s)
           for (const folder of folders) {
             const filepath = path.join(packagesDir, folder)
             log.info(`Removing ${u.yellow(filepath)}`)
-            // await fs.remove(filepath)
+            await fs.remove(filepath)
           }
 
-          // await fs.remove(packagesDir)
+          await fs.remove(packagesDir)
           log.info(`${u.yellow(packagesDir)} was removed`)
 
           u.newline()
@@ -133,6 +133,13 @@ const getPath = (...s) => path.join(process.cwd(), ...s)
               './apps/web',
             )} (or name of the package you specifically updated)`,
           )
+
+          if (fs.existsSync(getPath('build'))) {
+            try {
+              // Remove remnants for a fresh feel
+              await fs.remove(getPath('build'))
+            } catch (error) {}
+          }
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
           log.error(
