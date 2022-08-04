@@ -459,7 +459,7 @@ const NUI = (function () {
     let callback: t.ResolveComponentOptions<C, Context>['callback'] | undefined
     let on: t.ResolveComponentOptions<C, Context>['on'] | undefined
     let otherOpts = {} as { keepVpUnit?: boolean }
-
+    
     if (u.isArr(arg1)) {
       components = arg1
       if (isNuiPage(arg2)) {
@@ -584,6 +584,43 @@ const NUI = (function () {
 
     const componentsList = u.array(components)
     const numComponents = componentsList.length
+    let newComponentsList:any = []
+    for (let index = 0; index < numComponents; index++) {
+      newComponentsList.push({
+        c: componentsList[index],
+        page,
+      })
+    }
+    // await Promise.all(
+    //   newComponentsList.map(async(item:any)=>{
+    //     let componentObject = item['c']
+    //     const page = item['page']
+    //     if (u.isStr(componentObject) && nt.Identify.reference(componentObject)) {
+    //       componentObject = i.defaultResolveReference(
+    //         o.getRoot,
+    //         page.page,
+    //         componentObject,
+    //       )
+    //     }
+    //     // { components: [{ '.BaseHeader': '', style:{ shadow:'true' } }] }
+    //     if (u.isObj(componentObject) && !componentObject.type) {
+    //       const keys = u.keys(componentObject)
+    //       const refKey = keys.find((key) => nt.Identify.reference(key))
+    //       if (refKey) {
+    //         componentObject = i.defaultResolveReference(
+    //           o.getRoot,
+    //           page.page,
+    //           refKey as any,
+    //         )
+    //       }
+    //     }
+    //     const { component: resolvedComponent, options } = await xform(
+    //       o.createComponent(componentObject, page as NuiPage),
+    //       { callback, context, on, page, ...otherOpts },
+    //     )
+    //     resolvedComponents.push(resolvedComponent)
+    //   })
+    // )
 
     for (let index = 0; index < numComponents; index++) {
       let componentObject = componentsList[index]
