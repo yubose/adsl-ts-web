@@ -32,12 +32,14 @@ function WrappedAccordionItem({
   const stacktrace = _stackTrace.default.parse(error);
 
   const codeFrameInformation = (0, _utils.getCodeFrameInformation)(stacktrace);
-  const filePath = codeFrameInformation === null || codeFrameInformation === void 0 ? void 0 : codeFrameInformation.moduleId;
+  const modulePath = codeFrameInformation === null || codeFrameInformation === void 0 ? void 0 : codeFrameInformation.moduleId;
   const lineNumber = codeFrameInformation === null || codeFrameInformation === void 0 ? void 0 : codeFrameInformation.lineNumber;
   const columnNumber = codeFrameInformation === null || codeFrameInformation === void 0 ? void 0 : codeFrameInformation.columnNumber;
-  const name = codeFrameInformation === null || codeFrameInformation === void 0 ? void 0 : codeFrameInformation.functionName;
+  const name = codeFrameInformation === null || codeFrameInformation === void 0 ? void 0 : codeFrameInformation.functionName; // With the introduction of Metadata management the modulePath can have a resourceQuery that needs to be removed first
+
+  const filePath = modulePath.replace(/\?export=(default|head)$/, ``);
   const res = (0, _hooks.useStackFrame)({
-    moduleId: filePath,
+    moduleId: modulePath,
     lineNumber,
     columnNumber
   });
@@ -74,7 +76,20 @@ function RuntimeErrors({
   errors,
   dismiss
 }) {
-  const deduplicatedErrors = React.useMemo(() => Array.from(new Set(errors)), [errors]);
+  const deduplicatedErrors = React.useMemo(() => {
+    const errorCache = new Set();
+    const errorList = [];
+    errors.forEach(error => {
+      // Second line contains the exact location
+      const secondLine = error.stack.split(`\n`)[1];
+
+      if (!errorCache.has(secondLine)) {
+        errorList.push(error);
+        errorCache.add(secondLine);
+      }
+    });
+    return errorList;
+  }, [errors]);
   const hasMultipleErrors = deduplicatedErrors.length > 1;
   return /*#__PURE__*/React.createElement(_overlay.Overlay, null, /*#__PURE__*/React.createElement(_overlay.Header, {
     "data-gatsby-error-type": "runtime-error"
@@ -82,7 +97,7 @@ function RuntimeErrors({
     "data-gatsby-overlay": "header__cause-file"
   }, /*#__PURE__*/React.createElement("h1", {
     id: "gatsby-overlay-labelledby"
-  }, hasMultipleErrors ? `${errors.length} Unhandled Runtime Errors` : `Unhandled Runtime Error`)), /*#__PURE__*/React.createElement(_overlay.HeaderOpenClose, {
+  }, hasMultipleErrors ? `${deduplicatedErrors.length} Unhandled Runtime Errors` : `Unhandled Runtime Error`)), /*#__PURE__*/React.createElement(_overlay.HeaderOpenClose, {
     dismiss: dismiss
   })), /*#__PURE__*/React.createElement(_overlay.Body, null, /*#__PURE__*/React.createElement("p", {
     "data-gatsby-overlay": "body__describedby",

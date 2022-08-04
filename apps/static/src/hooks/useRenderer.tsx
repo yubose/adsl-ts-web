@@ -3,7 +3,7 @@ import produce from 'immer'
 import * as nt from 'noodl-types'
 import { deref, triggers, resolveAssetUrl } from 'noodl-ui'
 import type { NUITrigger } from 'noodl-ui'
-import { excludeIteratorVar, evalIf, trimReference } from 'noodl-utils'
+import { excludeIteratorVar, trimReference } from 'noodl-utils'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import useActionChain from '@/hooks/useActionChain'
@@ -12,6 +12,7 @@ import getTagName from '@/utils/getTagName'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import useCtx from '@/useCtx'
+import trimVarReference from '@/utils/trimVarReference'
 // import deref from '@/utils/deref'
 import { getCurrent } from '@/utils/immer'
 import { usePageCtx } from '@/components/PageContext'
@@ -20,7 +21,7 @@ import type * as t from '@/types'
 interface CreateElementProps<Props = any> {
   key?: string
   type: string
-  children?: string | number | (string | number | CreateElementProps<Props>)[]
+  children?: (CreateElementProps<Props> | number | string)[] | number | string
   style?: React.CSSProperties
   [key: string]: any
 }
@@ -54,7 +55,7 @@ function useRenderer() {
 
   const render = React.useCallback(
     (
-      component: string | t.StaticComponentObject,
+      component: t.StaticComponentObject | string,
       componentPath: t.ComponentPath,
     ) => {
       if (u.isStr(component)) {
@@ -128,31 +129,50 @@ function useRenderer() {
               rootKey: name,
               iteratorVar,
             })
-            props.src =
-              u.isStr(component.path) && component.path.startsWith(iteratorVar)
-                ? get(
-                    dataObject,
-                    excludeIteratorVar(component.path, iteratorVar),
-                  )
-                : is.folds.emit(component.path)
-                ? builtInFns.builtIns['=.builtIn.object.resolveEmit']({
-                    dataIn: { emit: component.path.emit, trigger: 'path' },
-                    dataObject,
-                    iteratorVar,
-                    root,
-                    rootKey: name,
-                  })
-                : value
-            props['data-src'] = props.src
-            if (u.isObj(component.path)) {
-              console.log({
+
+            if (
+              u.isStr(component.path) &&
+              component.path.startsWith(iteratorVar)
+            ) {
+              props.src = get(
                 dataObject,
-                component,
-                props,
-                src: props.src,
+                excludeIteratorVar(component.path, iteratorVar),
+              )
+              if (
+                props.src &&
+                u.isStr(props.src) &&
+                !props.src.startsWith('http')
+              ) {
+                props.src = assetsUrl + props.src
+              }
+
+              if (
+                props.src ===
+                'https://public.aitmed.com/cadl/www4.14/assets/partner/13.png'
+              ) {
+                // debugger
+              }
+            } else if (is.folds.emit(component.path)) {
+              props.src = builtInFns.builtIns['=.builtIn.object.resolveEmit']({
+                dataIn: { emit: component.path.emit, trigger: 'path' },
+                dataObject,
+                iteratorVar,
+                root,
+                rootKey: name,
               })
-              // debugger
+            } else {
+              props.src = value
             }
+
+            if (is.varReference(props.src)) {
+              const refValue = get(dataObject, trimVarReference(props.src))
+              props.src =
+                u.isStr(refValue) && refValue.startsWith('http')
+                  ? refValue
+                  : `${assetsUrl}${refValue}`
+            }
+
+            props['data-src'] = props.src
           } else {
             props.src = value
           }
@@ -266,6 +286,10 @@ function useRenderer() {
         }
       }
 
+      if (props['data-src']) {
+        props.src = props['data-src']
+      }
+
       return renderElement({ children, componentPath, ...props })
     },
     [assetsUrl, getDataObject, root],
@@ -294,8 +318,13 @@ function useRenderer() {
             </React.Fragment>,
           )
         } else {
+          if (u.isStr(cprops) && cprops.includes('&nbsp;')) {
+            cprops = React.createElement('span', {
+              dangerouslySetInnerHTML: { __html: cprops },
+            }) as any
+          }
           _children.push(
-            <React.Fragment key={renderKey}>{cprops}</React.Fragment>,
+            <React.Fragment key={renderKey}>{cprops as any}</React.Fragment>,
           )
         }
         _index++

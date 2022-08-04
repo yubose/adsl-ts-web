@@ -73,14 +73,14 @@ describe.only(`actions`, () => {
     }
 
     type CarouselKey =
-      | 'customTelePlatform'
-      | 'hdVideo'
-      | 'store'
-      | 'selfScheduling'
-      | 'ePrescription'
-      | 'referral'
       | 'cloud'
+      | 'customTelePlatform'
       | 'documentation'
+      | 'ePrescription'
+      | 'hdVideo'
+      | 'referral'
+      | 'selfScheduling'
+      | 'store'
 
     function getMessageAitmedListObject(
       sm1: CarouselKey,

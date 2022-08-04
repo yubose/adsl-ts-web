@@ -4,7 +4,7 @@ import is from '@/utils/is'
 import { deref } from 'noodl-ui'
 import * as t from '@/types'
 
-export type IdOrComponentArg = string | t.StaticComponentObject
+export type IdOrComponentArg = t.StaticComponentObject | string
 
 function useContextLists(listsMap: t.PageContext['lists']) {
   const lists = React.useMemo(() => Object.values(listsMap || {}), [listsMap])
@@ -39,11 +39,12 @@ function useContextLists(listsMap: t.PageContext['lists']) {
 
       if (u.isStr(listObject)) {
         if (is.reference(listObject)) {
-          listObject = deref({
+          const derefedListObject = deref({
             root,
             ref: listObject,
             rootKey: is.localReference(listObject) ? pageName : '',
           })
+          if (derefedListObject) listObject = derefedListObject
         }
       }
 
@@ -61,6 +62,7 @@ function useContextLists(listsMap: t.PageContext['lists']) {
         ids.includes(id as string),
       )
       if (listObject) return listObject[index]
+
       return null
     },
     [getId, getCtxObject, getListObject],

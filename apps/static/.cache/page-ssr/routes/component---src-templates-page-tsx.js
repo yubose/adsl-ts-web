@@ -1,224 +1,53 @@
-exports.id = "component---src-templates-page-tsx";
-exports.ids = ["component---src-templates-page-tsx"];
+exports.id = 895;
+exports.ids = [895];
 exports.modules = {
 
-/***/ "./src/components/PageContext.tsx":
-/*!****************************************!*\
-  !*** ./src/components/PageContext.tsx ***!
-  \****************************************/
+/***/ 3339:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   "usePageCtx": () => (/* binding */ usePageCtx)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _utils_createCtx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/utils/createCtx */ "./src/utils/createCtx.tsx");
-/* harmony import */ var _hooks_useContextLists__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/hooks/useContextLists */ "./src/hooks/useContextLists.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.esm.js");
 
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  "Z": () => (/* binding */ components_PageContext),
+  "b": () => (/* binding */ usePageCtx)
+});
 
-
-
-const [usePageCtx, Provider] = (0,_utils_createCtx__WEBPACK_IMPORTED_MODULE_1__["default"])();
-
-function PageContext({
-  assetsUrl,
-  baseUrl,
-  children,
-  lists: listsMap,
-  name,
-  components,
-  refs,
-  slug
-}) {
-  const {
-    getCtxObject,
-    getDataObject,
-    getId,
-    getIteratorVar,
-    getListObject,
-    isCtxObj,
-    isListConsumer,
-    lists
-  } = (0,_hooks_useContextLists__WEBPACK_IMPORTED_MODULE_2__["default"])(listsMap);
-  const ctx = {
-    assetsUrl,
-    baseUrl,
-    getId,
-    getCtxObject,
-    getIteratorVar,
-    getListObject,
-    getDataObject,
-    isCtxObj,
-    isListConsumer,
-    lists,
-    name,
-    components,
-    refs,
-    slug
-  };
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Provider, {
-    value: ctx,
-    children: children
-  });
-}
-
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PageContext);
+// EXTERNAL MODULE: ./src/utils/createCtx.tsx
+var createCtx = __webpack_require__(408);
+// EXTERNAL MODULE: external "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\node_modules\\react\\index.js"
+var external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_ = __webpack_require__(1962);
+var external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default = /*#__PURE__*/__webpack_require__.n(external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_);
+// EXTERNAL MODULE: ../../node_modules/@jsmanifest/utils/dist/index.js
+var dist = __webpack_require__(636);
+// EXTERNAL MODULE: ./src/utils/is.ts
+var is = __webpack_require__(8071);
+// EXTERNAL MODULE: ./node_modules/noodl-ui/dist/index.js
+var noodl_ui_dist = __webpack_require__(7631);
+;// CONCATENATED MODULE: ./src/hooks/useContextLists.tsx
+function useContextLists(listsMap){const lists=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useMemo(()=>Object.values(listsMap||{}),[listsMap]);const getId=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback(id=>{return dist.isStr(id)?id:(id===null||id===void 0?void 0:id.id)||'';},[]);const getIteratorVar=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback(id=>{var _lists$find;if(dist.isObj(id)&&is/* default.component.list */.ZP.component.list(id))return id.iteratorVar;id=getId(id);return((_lists$find=lists.find(obj=>isCtxObj(obj,id)))===null||_lists$find===void 0?void 0:_lists$find.iteratorVar)||'';},[getId,lists]);const getCtxObject=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback(id=>{id=getId(id);return id?lists.find(obj=>isCtxObj(obj,id)):null;},[getId,lists]);const getListObject=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback((id,root,pageName)=>{let ctxObj=getCtxObject(id);let listObject=(ctxObj===null||ctxObj===void 0?void 0:ctxObj.listObject)||null;if(dist.isStr(listObject)){if(is/* default.reference */.ZP.reference(listObject)){const derefedListObject=(0,noodl_ui_dist.deref)({root,ref:listObject,rootKey:is/* default.localReference */.ZP.localReference(listObject)?pageName:''});if(derefedListObject)listObject=derefedListObject;}}return listObject;},[getCtxObject,lists]);const getDataObject=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback((id,root,pageName)=>{var _listObj$children;id=getId(id);const listObj=getCtxObject(id);const listObject=getListObject(id,root,pageName);const index=listObj===null||listObj===void 0?void 0:(_listObj$children=listObj.children)===null||_listObj$children===void 0?void 0:_listObj$children.findIndex(ids=>ids.includes(id));if(listObject)return listObject[index];return null;},[getId,getCtxObject,getListObject]);const isCtxObj=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback((obj,id)=>{id=getId(id);return!!id&&(obj.id===id||dist.array(obj.children).some(ids=>ids.includes(id)));},[getId]);const isListConsumer=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback(id=>lists.some(obj=>isCtxObj(obj,getId(id))),[getId,lists,isCtxObj]);return{lists,getId,getCtxObject,getListObject,getDataObject,getIteratorVar,isCtxObj,isListConsumer};}/* harmony default export */ const hooks_useContextLists = (useContextLists);
+// EXTERNAL MODULE: ./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.esm.js
+var emotion_react_jsx_runtime_esm = __webpack_require__(8847);
+;// CONCATENATED MODULE: ./src/components/PageContext.tsx
+const[usePageCtx,Provider]=(0,createCtx/* default */.Z)();function PageContext({assetsUrl,baseUrl,children,lists:listsMap,name,components,refs,slug}){const{getCtxObject,getDataObject,getId,getIteratorVar,getListObject,isCtxObj,isListConsumer,lists}=hooks_useContextLists(listsMap);const ctx={assetsUrl,baseUrl,getId,getCtxObject,getIteratorVar,getListObject,getDataObject,isCtxObj,isListConsumer,lists,name,components,refs,slug};return (0,emotion_react_jsx_runtime_esm/* jsx */.tZ)(Provider,{value:ctx,children:children});}/* harmony default export */ const components_PageContext = (PageContext);
 
 /***/ }),
 
-/***/ "./src/components/Seo.tsx":
-/*!********************************!*\
-  !*** ./src/components/Seo.tsx ***!
-  \********************************/
+/***/ 3904:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   "Z": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _public_page_data_sq_d_2582528629_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../public/page-data/sq/d/2582528629.json */ "./public/page-data/sq/d/2582528629.json");
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @jsmanifest/utils */ "../../node_modules/@jsmanifest/utils/dist/index.js");
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var react_helmet__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-helmet */ "./node_modules/react-helmet/es/Helmet.js");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.esm.js");
-
-
+/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(636);
+/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_helmet__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4593);
+/* harmony import */ var gatsby__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9572);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8847);
 /**
  * https://www.gatsbyjs.com/docs/use-static-query/
- */
-
-
-
-
-
-
-const socialMedia = {
-  facebook: 'https://www.facebook.com/AITMEDinc',
-  pinterest: 'https://www.pinterest.com/aitmedinc/_created/',
-  linkedin: 'https://www.linkedin.com/company/aitmed',
-  twitter: 'https://www.twitter.com/AITmedInc',
-  tiktok: 'https://www.tiktok.com/@aitmedinc?lang=en',
-  youtube: 'https://www.youtube.com/channel/UC1su9VCcj8-Ml02W9g35kpw'
-};
-
-function renderMediaMetaTag(type = 'og', assetType, value) {
-  const prefix = type === 'twitter' ? 'twitter' : 'og';
-  const property = `${prefix}:${assetType}`;
-
-  if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__.isStr(value)) {
-    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      property: property,
-      content: value
-    });
-  }
-
-  if (value && _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__.isObj(value)) {
-    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
-      children: [assetType === 'image' && value.alt && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-        property: "og:image:alt",
-        content: String(value.alt)
-      }) || null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-        property: `${property}:width`,
-        content: String(value.width)
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-        property: `${property}:height`,
-        content: String(value.height)
-      })]
-    });
-  }
-
-  return null;
-}
-
-function Seo({
-  title = '',
-  description = '',
-  canonical = '',
-  lang = 'en',
-  og = {},
-  twitter = {},
-  url = '',
-  allowIndex = true,
-  allowFollow = true
-}) {
-  const {
-    site: {
-      siteMetadata: {
-        siteName,
-        siteTitle,
-        siteDescription,
-        siteLogo,
-        siteUrl,
-        siteVideo
-      }
-    }
-  } = _public_page_data_sq_d_2582528629_json__WEBPACK_IMPORTED_MODULE_0__.data;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(react_helmet__WEBPACK_IMPORTED_MODULE_3__.Helmet, {
-    htmlAttributes: {
-      lang
-    },
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("title", {
-      children: title || siteTitle
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "description",
-      content: description || siteDescription
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "keywords",
-      content: [].join(',')
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "image",
-      content: siteLogo
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "robots",
-      content: `${allowIndex ? 'index' : 'noindex'}, ${allowFollow ? 'follow' : 'nofollow'}`
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      property: "og:title",
-      content: og.title || title || siteTitle
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      property: "og:description",
-      content: og.description || description || siteDescription
-    }), renderMediaMetaTag('og', 'image', og.image), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      property: "og:locale",
-      content: og.locale || 'en_US'
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      property: "og:site_name",
-      content: og.siteName || siteName
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      property: "og:type",
-      content: og.type || 'website'
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      property: "og:url",
-      content: og.url || url || siteUrl
-    }), renderMediaMetaTag('og', 'video', og.video || siteVideo), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "twitter:card",
-      content: twitter.card || 'app'
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "twitter:creator",
-      content: twitter.creator || 'AITmedInc'
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "twitter:site",
-      content: twitter.site || siteName
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "twitter:title",
-      content: twitter.title || title
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("meta", {
-      name: "twitter:description",
-      content: twitter.description || description
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("link", {
-      rel: "canonical",
-      href: canonical || siteUrl
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("script", {
-      type: "application/ld+json",
-      children: `
+ */const socialMedia={facebook:'https://www.facebook.com/AITMEDinc',pinterest:'https://www.pinterest.com/aitmedinc/_created/',linkedin:'https://www.linkedin.com/company/aitmed',twitter:'https://www.twitter.com/AITmedInc',tiktok:'https://www.tiktok.com/@aitmedinc?lang=en',youtube:'https://www.youtube.com/channel/UC1su9VCcj8-Ml02W9g35kpw'};function renderMediaMetaTag(type='og',assetType,value){const prefix=type==='twitter'?'twitter':'og';const property=`${prefix}:${assetType}`;if(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(value)){return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:property,content:value});}if(value&&_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(value)){return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsxs */ .BX)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .Fragment */ .HY,{children:[assetType==='image'&&value.alt&&(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:"og:image:alt",content:String(value.alt)})||null,(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:`${property}:width`,content:String(value.width)}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:`${property}:height`,content:String(value.height)})]});}return null;}function Seo({title='',description='',canonical='',lang='en',og={},twitter={},url='',allowIndex=true,allowFollow=true}){const{site:{siteMetadata:{siteName,siteTitle,siteDescription,siteLogo,siteUrl,siteVideo}}}=(0,gatsby__WEBPACK_IMPORTED_MODULE_2__.useStaticQuery)("2582528629");return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsxs */ .BX)(react_helmet__WEBPACK_IMPORTED_MODULE_1__.Helmet,{htmlAttributes:{lang},children:[(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("title",{children:title||siteTitle}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"description",content:description||siteDescription}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"keywords",content:[].join(',')}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"image",content:siteLogo}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"robots",content:`${allowIndex?'index':'noindex'}, ${allowFollow?'follow':'nofollow'}`}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:"og:title",content:og.title||title||siteTitle}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:"og:description",content:og.description||description||siteDescription}),renderMediaMetaTag('og','image',og.image),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:"og:locale",content:og.locale||'en_US'}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:"og:site_name",content:og.siteName||siteName}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:"og:type",content:og.type||'website'}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{property:"og:url",content:og.url||url||siteUrl}),renderMediaMetaTag('og','video',og.video||siteVideo),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"twitter:card",content:twitter.card||'app'}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"twitter:creator",content:twitter.creator||'AITmedInc'}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"twitter:site",content:twitter.site||siteName}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"twitter:title",content:twitter.title||title}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("meta",{name:"twitter:description",content:twitter.description||description}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("link",{rel:"canonical",href:canonical||siteUrl}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("script",{type:"application/ld+json",children:`
           {
             "@context": "http://www.schema.org",
             "@type": "Corporation",
@@ -244,20 +73,14 @@ function Seo({
             },
             "hasMap": "https://www.google.com/maps/place/1000+S+Anaheim+Blvd,+Anaheim,+CA+92805/@33.8207313,-117.9108458,17z/data=!3m1!4b1!4m5!3m4!1s0x80dcd7cc94f51025:0x29eea80f7e954c82!8m2!3d33.8207269!4d-117.9086518"
           }
-        `
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("script", {
-      type: "application/ld+json",
-      children: `{
+        `}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("script",{type:"application/ld+json",children:`{
             "@context" : "https://schema.org",
             "@type" : "Organization",
             "name" : "${siteName}",
             "url" : "${siteUrl}",
-            "sameAs" : [${_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__.values(socialMedia).map(s => `${s}`)}]
+            "sameAs" : [${_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.values(socialMedia).map(s=>`${s}`)}]
           }
-        `
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("script", {
-      type: "application/ld+json",
-      children: `{
+        `}),(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__/* .jsx */ .tZ)("script",{type:"application/ld+json",children:`{
             "@context": "https://schema.org",
             "@type": "VideoObject",
             "name": "What is ${siteName}? Welcome to the only organic Telehealth platform",
@@ -268,49 +91,66 @@ function Seo({
             "contentUrl": "${siteVideo}",
             "embedUrl": "https://www.youtube.com/embed/75IblRuw3ow",
             "interactionCount": "9231"
-        }`
-    })]
-  });
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Seo);
+        }`})]});}/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Seo);
 
 /***/ }),
 
-/***/ "./src/hooks/useActionChain.tsx":
-/*!**************************************!*\
-  !*** ./src/hooks/useActionChain.tsx ***!
-  \**************************************/
+/***/ 6823:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @jsmanifest/utils */ "../../node_modules/@jsmanifest/utils/dist/index.js");
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lodash_get__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! lodash/get */ "./node_modules/lodash/get.js");
-/* harmony import */ var lodash_get__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lodash_get__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var lodash_set__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! lodash/set */ "./node_modules/lodash/set.js");
-/* harmony import */ var lodash_set__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(lodash_set__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var lodash_partial__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! lodash/partial */ "./node_modules/lodash/partial.js");
-/* harmony import */ var lodash_partial__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(lodash_partial__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var gatsby__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! gatsby */ "./.cache/gatsby-browser-entry.js");
-/* harmony import */ var noodl_utils__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! noodl-utils */ "./node_modules/noodl-utils/dist/index.js");
-/* harmony import */ var noodl_utils__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(noodl_utils__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! noodl-ui */ "./node_modules/noodl-ui/dist/index.js");
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(noodl_ui__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _utils_is__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @/utils/is */ "./src/utils/is.ts");
-/* harmony import */ var _utils_isBuiltInEvalFn__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @/utils/isBuiltInEvalFn */ "./src/utils/isBuiltInEvalFn.ts");
-/* harmony import */ var _utils_log__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @/utils/log */ "./src/utils/log.ts");
-/* harmony import */ var _hooks_useBuiltInFns__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @/hooks/useBuiltInFns */ "./src/hooks/useBuiltInFns.tsx");
-/* harmony import */ var _useCtx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @/useCtx */ "./src/useCtx.tsx");
-/* harmony import */ var _utils_immer__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @/utils/immer */ "./src/utils/immer.ts");
-/* harmony import */ var _components_PageContext__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @/components/PageContext */ "./src/components/PageContext.tsx");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../constants */ "./src/constants.ts");
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  "Z": () => (/* binding */ hooks_usePage)
+});
+
+// EXTERNAL MODULE: ../../node_modules/@jsmanifest/utils/dist/index.js
+var dist = __webpack_require__(636);
+// EXTERNAL MODULE: external "C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static\\node_modules\\react\\index.js"
+var external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_ = __webpack_require__(1962);
+var external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default = /*#__PURE__*/__webpack_require__.n(external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_);
+// EXTERNAL MODULE: ./node_modules/immer/dist/immer.esm.js
+var immer_esm = __webpack_require__(8172);
+// EXTERNAL MODULE: ./node_modules/noodl-types/dist/index.js
+var noodl_types_dist = __webpack_require__(3671);
+// EXTERNAL MODULE: ./node_modules/noodl-ui/dist/index.js
+var noodl_ui_dist = __webpack_require__(7631);
+// EXTERNAL MODULE: ./node_modules/noodl-utils/dist/index.js
+var noodl_utils_dist = __webpack_require__(8604);
+// EXTERNAL MODULE: ./node_modules/lodash/get.js
+var get = __webpack_require__(7361);
+var get_default = /*#__PURE__*/__webpack_require__.n(get);
+// EXTERNAL MODULE: ./node_modules/lodash/set.js
+var set = __webpack_require__(6968);
+var set_default = /*#__PURE__*/__webpack_require__.n(set);
+// EXTERNAL MODULE: ./node_modules/lodash/partial.js
+var partial = __webpack_require__(3131);
+var partial_default = /*#__PURE__*/__webpack_require__.n(partial);
+// EXTERNAL MODULE: ./.cache/gatsby-browser-entry.js + 5 modules
+var gatsby_browser_entry = __webpack_require__(9572);
+;// CONCATENATED MODULE: ./src/utils/actionUtils.ts
+async function handleSamePageScroll(navigate,destination){// TODO - Handle goto scrolls when navigating to a different page
+let scrollingTo=destination;if(destination.startsWith('^')){scrollingTo=destination.substring(1);destination=destination.substring(1);}const scrollToElem=document.querySelector(`[data-viewtag=${scrollingTo}]`);if(scrollToElem){scrollToElem.id=scrollingTo;scrollToElem.scrollIntoView({behavior:'smooth',inline:'center'});}else{await navigate(`/${destination}/index.html`);}}
+// EXTERNAL MODULE: ./src/utils/is.ts
+var is = __webpack_require__(8071);
+;// CONCATENATED MODULE: ./src/utils/isBuiltInEvalFn.ts
+function isBuiltInEvalFn(value){for(const key of Object.keys(value)){if(key.startsWith('=.builtIn'))return true;}return false;}
+// EXTERNAL MODULE: ./src/utils/log.ts
+var log = __webpack_require__(5031);
+// EXTERNAL MODULE: ./src/useCtx.tsx
+var useCtx = __webpack_require__(3136);
+// EXTERNAL MODULE: ./src/components/PageContext.tsx + 1 modules
+var PageContext = __webpack_require__(3339);
+;// CONCATENATED MODULE: ./src/hooks/useBuiltInFns.tsx
+// Using for TypeScript to pick up the args
+const createFn=(options,fn)=>opts=>fn({...opts,dataIn:purgeDataIn({...options,...opts})});function purgeDataIn({actionChain,getR,name:pageName,dataObject,dataIn}){for(const[key,value]of dist.entries(dataIn)){if(dist.isStr(value)){if(value.startsWith('$')){const paths=value.split('.').slice(1);dataIn[key]=get_default()(dataObject,paths);}else if(is/* default.reference */.ZP.reference(value)){var _actionChain$data;let paths=[];if(is/* default.localReference */.ZP.localReference(value))pageName&&paths.push(pageName);paths=paths.concat((0,noodl_utils_dist.trimReference)(value).split('.'));dataIn[key]=getR(actionChain===null||actionChain===void 0?void 0:(_actionChain$data=actionChain.data)===null||_actionChain$data===void 0?void 0:_actionChain$data.get('rootDraft'),paths.join('.'),pageName);}else{// dataIn[key] = value
+}}}return dataIn;}function getBuiltInFns(options){const builtInFns={[`=.builtIn.string.equal`]:({dataIn})=>{const str1=String(dataIn===null||dataIn===void 0?void 0:dataIn.string1);const str2=String(dataIn===null||dataIn===void 0?void 0:dataIn.string2);const isEqual=str1===str2;log/* default.debug */.Z.debug(`%c[=.builtIn] Comparing: ${str1===''?"''":`'${str1}'`} === ${str2===''?"''":`'${str2}'`}: ${isEqual}`,'color:rgb(98, 143, 42)');return isEqual;},// Branched from lvl3
+[`=.builtIn.object.setProperty`]:({dataIn})=>{const arr=dist.array(dataIn.obj).filter(Boolean);const numItems=arr.length;for(let index=0;index<numItems;index++){if(dist.isArr(dataIn.arr)){dataIn.arr.forEach((item,i)=>{var _arr$index;if((arr===null||arr===void 0?void 0:(_arr$index=arr[index])===null||_arr$index===void 0?void 0:_arr$index[dataIn.label])===dataIn.text){arr[index][item]=dataIn.valueArr[i];}else{arr[index][item]=dataIn.errorArr[i];}});}else{log/* default.error */.Z.error(`Expected 'arr' in dataIn to be an array but it was ${typeof dataIn.arr}`);}}return dataIn;},['=.builtIn.object.resolveEmit']:({dataIn:{emit:{dataKey,actions},trigger},dataObject,iteratorVar='',root={},rootKey=''})=>{var _actions$,_actions$$if,_actions$2,_actions$2$if,_actions$3,_actions$3$if,_actions$4,_actions$4$if,_actions$5,_actions$5$if;dataKey=(0,noodl_utils_dist.createEmitDataKey)(dataKey,dataObject,{iteratorVar});const cond=is/* default.reference */.ZP.reference((_actions$=actions[0])===null||_actions$===void 0?void 0:(_actions$$if=_actions$.if)===null||_actions$$if===void 0?void 0:_actions$$if[0])?(0,noodl_ui_dist.deref)({dataObject,iteratorVar,ref:(_actions$2=actions[0])===null||_actions$2===void 0?void 0:(_actions$2$if=_actions$2.if)===null||_actions$2$if===void 0?void 0:_actions$2$if[0],root,rootKey}):(_actions$3=actions[0])===null||_actions$3===void 0?void 0:(_actions$3$if=_actions$3.if)===null||_actions$3$if===void 0?void 0:_actions$3$if[0];const result=cond?(_actions$4=actions[0])===null||_actions$4===void 0?void 0:(_actions$4$if=_actions$4.if)===null||_actions$4$if===void 0?void 0:_actions$4$if[1]:(_actions$5=actions[0])===null||_actions$5===void 0?void 0:(_actions$5$if=_actions$5.if)===null||_actions$5$if===void 0?void 0:_actions$5$if[2];return is/* default.reference */.ZP.reference(result)?(0,noodl_ui_dist.deref)({dataObject,iteratorVar,ref:result,root,rootKey}):result;}};return dist.entries(builtInFns).reduce((acc,[builtInFnName,builtInFn])=>{acc[builtInFnName]=createFn(options,builtInFn);return acc;},{});}function useBuiltInFns(){const ctx=(0,useCtx/* default */.Z)();const pageCtx=(0,PageContext/* usePageCtx */.b)();const builtIns=getBuiltInFns({...ctx,...pageCtx});const handleBuiltInFn=external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback((key='',args)=>{const fn=builtIns[key];if(dist.isFnc(fn)){return fn(args);}else{log/* default.error */.Z.error(`%cYou are missing the builtIn implementation for "${key}"`,`color:#ec0000;`);}},[ctx,pageCtx]);return{builtIns,handleBuiltInFn};}/* harmony default export */ const hooks_useBuiltInFns = (useBuiltInFns);
+// EXTERNAL MODULE: ./src/constants.ts
+var constants = __webpack_require__(3706);
+;// CONCATENATED MODULE: ./src/hooks/useActionChain.tsx
+
 
 
 
@@ -333,76 +173,40 @@ function useActionChain() {
     root,
     getR,
     setR
-  } = (0,_useCtx__WEBPACK_IMPORTED_MODULE_12__["default"])();
-  const pageCtx = (0,_components_PageContext__WEBPACK_IMPORTED_MODULE_14__.usePageCtx)();
+  } = (0,useCtx/* default */.Z)();
+  const pageCtx = (0,PageContext/* usePageCtx */.b)();
   const {
     handleBuiltInFn
-  } = (0,_hooks_useBuiltInFns__WEBPACK_IMPORTED_MODULE_11__["default"])();
-  const getRootDraftOrRoot = react__WEBPACK_IMPORTED_MODULE_1___default().useCallback(actionChain => {
+  } = hooks_useBuiltInFns();
+  const getRootDraftOrRoot = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback(actionChain => {
     var _actionChain$data, _actionChain$data$get;
 
-    return (actionChain === null || actionChain === void 0 ? void 0 : (_actionChain$data = actionChain.data) === null || _actionChain$data === void 0 ? void 0 : (_actionChain$data$get = _actionChain$data.get) === null || _actionChain$data$get === void 0 ? void 0 : _actionChain$data$get.call(_actionChain$data, _constants__WEBPACK_IMPORTED_MODULE_15__.ROOT_DRAFT)) || root;
+    return (actionChain === null || actionChain === void 0 ? void 0 : (_actionChain$data = actionChain.data) === null || _actionChain$data === void 0 ? void 0 : (_actionChain$data$get = _actionChain$data.get) === null || _actionChain$data$get === void 0 ? void 0 : _actionChain$data$get.call(_actionChain$data, constants/* ROOT_DRAFT */.ND)) || root;
   }, [root]);
 
   const executeStr = async (value, args) => {
     try {
-      var _value, _value$startsWith;
+      if (is/* default.reference */.ZP.reference(value)) {
+        if (value === '.WebsitePathSearch') {
+          return window.location.href = 'https://search.aitmed.com';
+        }
 
-      let scrollingTo = '';
-
-      if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(value)) {
-        value = value === '.WebsitePathSearch' ? // Temp hard code for now
-        'https://search.aitmed.com' : (0,noodl_ui__WEBPACK_IMPORTED_MODULE_7__.deref)({
+        value = (0,noodl_ui_dist.deref)({
           root: getRootDraftOrRoot(args.actionChain),
           ref: value,
           rootKey: pageCtx.name
-        });
-      } // These are values coming from an if object evaluation since we are also using this function for if object strings
+        }); // These are values coming from an if object evaluation since we are also using this function for if object strings
 
-
-      if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].isBoolean(value)) return _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].isBooleanTrue(value);
-
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(value)) {// debugger
-      } else if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(value)) {
-        if (value.startsWith('^')) {
-          // TODO - Handle goto scrolls when navigating to a different page
-          scrollingTo = value.substring(1);
-          value = value.replace('^', '');
-        } else if (pageCtx.isListConsumer(args.component)) {
-          const iteratorVar = pageCtx.getIteratorVar(args.component);
-          const dataObject = pageCtx.getDataObject(args.component, getRootDraftOrRoot(args.actionChain), pageCtx.name);
-
-          if (iteratorVar && value.startsWith(iteratorVar)) {
-            value = lodash_get__WEBPACK_IMPORTED_MODULE_2___default()(dataObject, (0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.excludeIteratorVar)(value, iteratorVar));
-          }
-        }
+        if (is/* default.isBoolean */.ZP.isBoolean(value)) return is/* default.isBooleanTrue */.ZP.isBooleanTrue(value);
+        if (dist.isObj(value)) log/* default.error */.Z.error(`REMINDER: LOOK INTO THIS PART`);
       }
 
-      if (!((_value = value) !== null && _value !== void 0 && (_value$startsWith = _value.startsWith) !== null && _value$startsWith !== void 0 && _value$startsWith.call(_value, 'http')) && (value || scrollingTo)) {
-        let scrollingToElem;
-        let prevId = '';
-
-        if (scrollingTo) {
-          scrollingToElem = document.querySelector(`[data-viewtag=${scrollingTo}]`);
-
-          if (scrollingToElem) {
-            prevId = scrollingToElem.id;
-            scrollingToElem.id = scrollingTo;
-          } else {
-            _utils_log__WEBPACK_IMPORTED_MODULE_10__["default"].error(`Tried to find an element of viewTag "${scrollingTo}" but it did not exist`);
-          }
-        }
-
-        if (scrollingToElem && prevId) {
-          scrollingToElem.scrollIntoView({
-            behavior: 'smooth',
-            inline: 'center'
-          });
-        } else {
-          await (0,gatsby__WEBPACK_IMPORTED_MODULE_5__.navigate)(`/${value}/index.html`);
-        }
-      } else {
+      if (value.startsWith('http')) {
         window.location.href = value;
+      } else if (value.startsWith('^')) {
+        await handleSamePageScroll(gatsby_browser_entry.navigate, value);
+      } else {
+        await (0,gatsby_browser_entry.navigate)(`/${value}/index.html`);
       } // This can get picked up if evalObject is returning a goto
 
 
@@ -430,30 +234,30 @@ function useActionChain() {
   const executeEvalObject = async (value, args) => {
     try {
       const results = [];
-      const objs = _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.array(value.object);
+      const objs = dist.array(value.object);
       const numObjs = objs.length;
 
       for (let index = 0; index < numObjs; index++) {
         const object = objs[index];
 
-        if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(object)) {
-          const objKeys = _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.keys(object);
+        if (dist.isObj(object)) {
+          const objKeys = dist.keys(object);
           const isSingleProperty = objKeys.length === 1;
 
           if (isSingleProperty) {
             const property = objKeys[0];
             const propValue = object[property];
 
-            if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].awaitReference(property)) {
-              let datapath = (0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.toDataPath)((0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.trimReference)(property));
+            if (is/* default.awaitReference */.ZP.awaitReference(property)) {
+              let datapath = (0,noodl_utils_dist.toDataPath)((0,noodl_utils_dist.trimReference)(property));
               let datavalue;
 
-              if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].localReference(property)) {
+              if (is/* default.localReference */.ZP.localReference(property)) {
                 datapath.unshift(pageCtx.name);
               }
 
-              if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(propValue)) {
-                datavalue = _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(propValue) ? (0,noodl_ui__WEBPACK_IMPORTED_MODULE_7__.deref)({
+              if (dist.isStr(propValue)) {
+                datavalue = is/* default.reference */.ZP.reference(propValue) ? (0,noodl_ui_dist.deref)({
                   root: getRootDraftOrRoot(args.actionChain),
                   rootKey: pageCtx.name,
                   ref: propValue
@@ -462,16 +266,16 @@ function useActionChain() {
                 datavalue = propValue;
               }
 
-              if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].action.evalObject(datavalue)) {
+              if (is/* default.action.evalObject */.ZP.action.evalObject(datavalue)) {
                 const result = await execute({ ...args,
                   action: datavalue
                 });
 
                 if (result !== undefined) {
-                  lodash_set__WEBPACK_IMPORTED_MODULE_3___default()(getRootDraftOrRoot(args.actionChain), datapath, result);
+                  set_default()(getRootDraftOrRoot(args.actionChain), datapath, result);
                 }
               } else {
-                lodash_set__WEBPACK_IMPORTED_MODULE_3___default()(getRootDraftOrRoot(args.actionChain), datapath, datavalue);
+                set_default()(getRootDraftOrRoot(args.actionChain), datapath, datavalue);
               }
 
               continue;
@@ -493,19 +297,23 @@ function useActionChain() {
     }
   };
 
-  const executeIf = react__WEBPACK_IMPORTED_MODULE_1___default().useCallback(async (ifObject, args) => {
+  const executeIf = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback(async (ifObject, args) => {
     try {
       let [cond, truthy, falsy] = ifObject.if || [];
       let value;
 
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(cond)) {
-        value = await (executeStr === null || executeStr === void 0 ? void 0 : executeStr(cond, { ...args,
-          action: cond
-        }));
+      if (dist.isStr(cond)) {
+        if (is/* default.reference */.ZP.reference(cond)) {
+          value = await (executeStr === null || executeStr === void 0 ? void 0 : executeStr(cond, { ...args,
+            action: cond
+          }));
+        } else {
+          value = cond;
+        }
       }
 
-      if ((0,_utils_isBuiltInEvalFn__WEBPACK_IMPORTED_MODULE_9__["default"])(cond)) {
-        const key = _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.keys(cond)[0];
+      if (isBuiltInEvalFn(cond)) {
+        const key = dist.keys(cond)[0];
         const result = await executeEvalBuiltIn(key, { ...args,
           ...cond[key]
         });
@@ -514,30 +322,47 @@ function useActionChain() {
 
       if (value === 'continue') {
         return value;
-      } else if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(value)) {
-        if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(value)) {
+      } else if (dist.isStr(value)) {
+        if (is/* default.reference */.ZP.reference(value)) {
           value = await (executeStr === null || executeStr === void 0 ? void 0 : executeStr(value, { ...args,
             action: value
           }));
         }
-      } else if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isBool(value)) {
+      } else if (dist.isBool(value)) {
         value = value ? truthy : falsy;
       }
 
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(value)) {
+      if (dist.isObj(value)) {
+        // TODO - Replace requiresDynamicHandling with is.dynamicAction
         if (args.requiresDynamicHandling(value)) {
-          for (const [k, v] of _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.entries(value)) {
-            if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(k)) {
+          for (let [k, v] of dist.entries(value)) {
+            if (is/* default.reference */.ZP.reference(v)) {
+              const rootDraft = getRootDraftOrRoot(args.actionChain);
+
+              if (is/* default.localReference */.ZP.localReference(v)) {
+                v = get_default()(rootDraft[pageCtx.name], (0,noodl_utils_dist.trimReference)(v));
+              } else {
+                v = get_default()(rootDraft, (0,noodl_utils_dist.trimReference)(v));
+              }
+            }
+
+            if (is/* default.reference */.ZP.reference(k)) {
+              // { k: '..imgData@', v: '=..imgDataNext' }
               if (k.endsWith('@')) {
-                const keyDataPath = (0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.trimReference)(k);
+                const keyDataPath = (0,noodl_utils_dist.trimReference)(k);
                 const rootDraft = getRootDraftOrRoot(args.actionChain);
 
-                if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].localReference(k)) {
-                  lodash_set__WEBPACK_IMPORTED_MODULE_3___default()(rootDraft[pageCtx.name], keyDataPath, v);
+                if (is/* default.localReference */.ZP.localReference(k)) {
+                  set_default()(rootDraft[pageCtx.name], keyDataPath, v);
                 } else {
-                  lodash_set__WEBPACK_IMPORTED_MODULE_3___default()(rootDraft, keyDataPath, v);
+                  set_default()(rootDraft, keyDataPath, v);
                 }
+              } else {
+                console.error(`REMINDER: LOOK INTO THIS IMPLEMENTATION`);
               }
+            } else {
+              const rootDraft = getRootDraftOrRoot(args.actionChain);
+              set_default()(rootDraft, k, v);
             }
           }
         } else {
@@ -553,21 +378,21 @@ function useActionChain() {
       throw err;
     }
   }, []);
-  const createEmit = react__WEBPACK_IMPORTED_MODULE_1___default().useCallback((actionChain, component, trigger, emitObject) => {
+  const createEmit = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback((actionChain, component, trigger, emitObject) => {
     {
-      const action = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_7__.createAction)({
+      const action = (0,noodl_ui_dist.createAction)({
         action: emitObject,
         trigger
       });
       const dataObject = pageCtx.getDataObject(component, getRootDraftOrRoot(actionChain), pageCtx.name) || {};
 
       if (dataObject) {
-        if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(action.dataKey)) {
+        if (dist.isStr(action.dataKey)) {
           action.dataKey = dataObject;
-        } else if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(action.dataKey)) {
+        } else if (dist.isObj(action.dataKey)) {
           const iteratorVar = pageCtx.getIteratorVar(component);
-          action.dataKey = _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.entries(action.dataKey).reduce((acc, [key, value]) => _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.assign(acc, {
-            [key]: iteratorVar ? value === iteratorVar ? dataObject : lodash_get__WEBPACK_IMPORTED_MODULE_2___default()(iteratorVar, `${(0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.excludeIteratorVar)(value, iteratorVar)}`) : lodash_get__WEBPACK_IMPORTED_MODULE_2___default()(dataObject, value)
+          action.dataKey = dist.entries(action.dataKey).reduce((acc, [key, value]) => dist.assign(acc, {
+            [key]: iteratorVar ? value === iteratorVar ? dataObject : get_default()(iteratorVar, `${(0,noodl_utils_dist.excludeIteratorVar)(value, iteratorVar)}`) : get_default()(dataObject, value)
           }), {});
         }
         /**
@@ -576,15 +401,15 @@ function useActionChain() {
 
 
         action.executor = function (actions = [], dataObject) {
-          return async function onExecuteEmitAction(event) {
+          return async function onExecuteEmitAction() {
             let draftedActionObject;
             let results = [];
 
             try {
               for (const actionObject of actions) {
-                draftedActionObject = (0,_utils_immer__WEBPACK_IMPORTED_MODULE_13__.createDraft)(actionObject);
+                draftedActionObject = (0,immer_esm/* createDraft */.P2)(actionObject);
                 const result = await execute({
-                  action: (0,noodl_ui__WEBPACK_IMPORTED_MODULE_7__.deref)({
+                  action: (0,noodl_ui_dist.deref)({
                     dataObject,
                     iteratorVar: component === null || component === void 0 ? void 0 : component.iteratorVar,
                     ref: draftedActionObject,
@@ -596,7 +421,7 @@ function useActionChain() {
                   dataObject,
                   trigger
                 });
-                (0,_utils_immer__WEBPACK_IMPORTED_MODULE_13__.finishDraft)(draftedActionObject);
+                (0,immer_esm/* finishDraft */._x)(draftedActionObject);
                 draftedActionObject = undefined;
 
                 if (result === 'abort') {
@@ -609,9 +434,9 @@ function useActionChain() {
 
               return results;
             } catch (error) {
-              _utils_log__WEBPACK_IMPORTED_MODULE_10__["default"].error(error instanceof Error ? error : new Error(String(error)));
+              log/* default.error */.Z.error(error instanceof Error ? error : new Error(String(error)));
             } finally {
-              if (draftedActionObject) (0,_utils_immer__WEBPACK_IMPORTED_MODULE_13__.finishDraft)(draftedActionObject);
+              if (draftedActionObject) (0,immer_esm/* finishDraft */._x)(draftedActionObject);
             }
           };
         }(emitObject.emit.actions, dataObject);
@@ -625,17 +450,17 @@ function useActionChain() {
    * Wraps and provides helpers to the execute function as the 2nd argument
    */
 
-  const wrapWithHelpers = react__WEBPACK_IMPORTED_MODULE_1___default().useMemo(() => fn => {
+  const wrapWithHelpers = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useMemo(() => fn => {
     return async function (args) {
       return fn(args, {
         requiresDynamicHandling: obj => {
-          return _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(obj) && [_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].folds.emit, _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].folds.goto, _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].folds["if"], _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].action.any].every(pred => !pred(obj));
+          return dist.isObj(obj) && [is/* default.folds.emit */.ZP.folds.emit, is/* default.folds.goto */.ZP.folds.goto, is/* default.folds.if */.ZP.folds["if"], is/* default.action.any */.ZP.action.any].every(pred => !pred(obj));
         }
       });
     };
   }, []);
-  const execute = react__WEBPACK_IMPORTED_MODULE_1___default().useMemo(() => wrapWithHelpers(async function onExecuteAction(options, utils) {
-    const {
+  const execute = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useMemo(() => wrapWithHelpers(async function onExecuteAction(options, utils) {
+    let {
       action: obj,
       actionChain,
       dataObject
@@ -647,15 +472,15 @@ function useActionChain() {
 
     try {
       // TEMP sharing goto destinations and some strings as args
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(obj)) {
+      if (dist.isStr(obj)) {
         return executeStr(obj, args);
-      } else if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(obj)) {
+      } else if (dist.isObj(obj)) {
         // { goto: "SignIn" }
-        if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].goto(obj)) {
+        if (is/* default.goto */.ZP.goto(obj)) {
           let destination = obj.goto;
-          if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isObj(destination)) destination = destination.goto;
+          if (dist.isObj(destination)) destination = destination.goto;
 
-          if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(destination)) {
+          if (dist.isStr(destination)) {
             return executeStr(destination, { ...args,
               action: destination
             });
@@ -663,33 +488,34 @@ function useActionChain() {
             throw new Error(`Goto destination was not a string`);
           }
         } // { actionType: 'builtIn', funcName: 'redraw' }
-        else if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].action.builtIn(obj)) {
+        else if (is/* default.action.builtIn */.ZP.action.builtIn(obj)) {
           const funcName = obj.funcName;
-          _utils_log__WEBPACK_IMPORTED_MODULE_10__["default"].debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj);
+          log/* default.debug */.Z.debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj);
         } // { emit: { dataKey: {...}, actions: [...] } }
-        else if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].folds.emit(obj)) {// debugger
+        else if (is/* default.folds.emit */.ZP.folds.emit(obj)) {
+          log/* default.error */.Z.error(`REMINDER: IMPLEMENT EXECUTE EMIT OBJECT`);
         } // { actionType: 'evalObject', object: [...] }
-        else if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].action.evalObject(obj)) {
+        else if (is/* default.action.evalObject */.ZP.action.evalObject(obj)) {
           return executeEvalObject(obj, args);
         } // { if: [...] }
-        else if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].folds["if"](obj)) {
+        else if (is/* default.folds.if */.ZP.folds["if"](obj)) {
           // @ts-expect-error
           return executeIf(obj, args);
         } // { actionType: 'popUp', popUpView: 'myPopUp', wait: true }
-        else if ([_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].action.popUp, _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].action.popUpDismiss].some(fn => fn(obj))) {
+        else if ([is/* default.action.popUp */.ZP.action.popUp, is/* default.action.popUpDismiss */.ZP.action.popUpDismiss].some(fn => fn(obj))) {
           const el = document.querySelector(`[data-viewtag=${obj.popUpView}]`);
 
           if (el) {
             el.style.visibility = obj.actionType === 'popUpDismiss' ? 'hidden' : 'visible';
           } else {
-            _utils_log__WEBPACK_IMPORTED_MODULE_10__["default"].error(`The popUp component with popUpView "${obj.popUpView}" is not in the DOM`, obj);
+            log/* default.error */.Z.error(`The popUp component with popUpView "${obj.popUpView}" is not in the DOM`, obj);
           } // TODO - See if we need to move this logic elsewhere
           // 'abort' is returned so evalObject can abort if it returns popups
 
 
           return 'wait' in obj ? 'abort' : undefined;
         } else {
-          let keys = _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.keys(obj);
+          let keys = dist.keys(obj);
           let isAwaiting = false;
           let result;
           let args = {
@@ -700,7 +526,7 @@ function useActionChain() {
           if (keys.length === 1) {
             const key = keys[0]; // { "=.builtIn.string.equal": { ...} }
 
-            if ((0,_utils_isBuiltInEvalFn__WEBPACK_IMPORTED_MODULE_9__["default"])(obj)) {
+            if (isBuiltInEvalFn(obj)) {
               result = await handleBuiltInFn(key, { ...args,
                 ...obj[key]
               });
@@ -710,54 +536,54 @@ function useActionChain() {
               let value = obj[key];
               let rootDraft = getRootDraftOrRoot(actionChain);
 
-              if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(key)) {
-                isLocal = _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].localReference(key);
-                isAwaiting = _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].awaitReference(key);
+              if (is/* default.reference */.ZP.reference(key)) {
+                isLocal = is/* default.localReference */.ZP.localReference(key);
+                isAwaiting = is/* default.awaitReference */.ZP.awaitReference(key);
                 if (isAwaiting) awaitKey = key;
               }
 
-              if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(value) && _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(value)) {
-                const dataPath = (0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.toDataPath)((0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.trimReference)(value));
-                if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].localReference(value)) dataPath.unshift(pageCtx.name);
-                value = lodash_get__WEBPACK_IMPORTED_MODULE_2___default()(rootDraft, dataPath);
+              if (dist.isStr(value) && is/* default.reference */.ZP.reference(value)) {
+                const dataPath = (0,noodl_utils_dist.toDataPath)((0,noodl_utils_dist.trimReference)(value));
+                if (is/* default.localReference */.ZP.localReference(value)) dataPath.unshift(pageCtx.name);
+                value = get_default()(rootDraft, dataPath);
               }
 
               if (isAwaiting) {
-                const path = (0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.toDataPath)((0,noodl_utils__WEBPACK_IMPORTED_MODULE_6__.trimReference)(key)).filter(Boolean);
+                const path = (0,noodl_utils_dist.toDataPath)((0,noodl_utils_dist.trimReference)(key)).filter(Boolean);
 
                 if (isLocal) {
                   if (pageCtx.name && path[0] !== pageCtx.name) {
                     path.unshift(pageCtx.name);
                   }
 
-                  const valueAwaiting = _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(obj[key]) ? lodash_get__WEBPACK_IMPORTED_MODULE_2___default()(rootDraft, path.join('.')) : obj[key];
-                  lodash_set__WEBPACK_IMPORTED_MODULE_3___default()(rootDraft, path, valueAwaiting);
+                  const valueAwaiting = is/* default.reference */.ZP.reference(obj[key]) ? get_default()(rootDraft, path.join('.')) : obj[key];
+                  set_default()(rootDraft, path, valueAwaiting);
                 }
               } else {
                 result = value;
               }
             }
           } else {
-            _utils_log__WEBPACK_IMPORTED_MODULE_10__["default"].error(`%cAn action in an action chain is not being handled`, `color:#ec0000;`, obj);
+            log/* default.error */.Z.error(`%cAn action in an action chain is not being handled`, `color:#ec0000;`, obj);
           }
 
           return result;
         }
       }
     } catch (error) {
-      _utils_log__WEBPACK_IMPORTED_MODULE_10__["default"].error(error instanceof Error ? error : new Error(String(error)));
+      log/* default.error */.Z.error(error instanceof Error ? error : new Error(String(error)));
     }
-  }), [handleBuiltInFn, _utils_isBuiltInEvalFn__WEBPACK_IMPORTED_MODULE_9__["default"], getR, setR, pageCtx, root]);
-  const createActionChain = react__WEBPACK_IMPORTED_MODULE_1___default().useCallback((component, trigger, actions) => {
+  }), [handleBuiltInFn, isBuiltInEvalFn, getR, setR, pageCtx, root]);
+  const createActionChain = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback((component, trigger, actions) => {
     {
-      if (!_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isArr(actions)) actions = [actions];
+      if (!dist.isArr(actions)) actions = [actions];
 
       const loadActions = (component, actionObjects) => actionObjects.map(obj => {
-        if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].folds.emit(obj)) {
+        if (is/* default.folds.emit */.ZP.folds.emit(obj)) {
           return createEmit(actionChain, component, trigger, obj);
         }
 
-        const nuiAction = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_7__.createAction)({
+        const nuiAction = (0,noodl_ui_dist.createAction)({
           action: obj,
           trigger
         });
@@ -770,7 +596,7 @@ function useActionChain() {
         return nuiAction;
       });
 
-      const actionChain = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_7__.createActionChain)(trigger, actions, lodash_partial__WEBPACK_IMPORTED_MODULE_4___default()(loadActions, component));
+      const actionChain = (0,noodl_ui_dist.createActionChain)(trigger, actions, partial_default()(loadActions, component));
       actionChain.loadQueue();
       return actionChain;
     }
@@ -787,344 +613,18 @@ function useActionChain() {
   };
 }
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (useActionChain);
+/* harmony default export */ const hooks_useActionChain = (useActionChain);
+;// CONCATENATED MODULE: ./src/utils/getTagName.ts
+function getTagName(type){return{span:'span',br:'br',button:'button',canvas:'canvas',chart:'div',date:'input',dateSelect:'input',divider:'hr',ecosDoc:'div',footer:'div',header:'div',searchBar:'input',textField:'input',image:'img',label:'div',list:'ul',listItem:'li',map:'div',page:'iframe',popUp:'div',plugin:'div',pluginHead:'script',pluginBodyTail:'script',register:'div',scrollView:'div',select:'select',textView:'textarea',video:'video',view:'div'}[type];}/* harmony default export */ const utils_getTagName = (getTagName);
+;// CONCATENATED MODULE: ./src/utils/trimVarReference.ts
+// TODO - Implement in noodl-types
+function trimVarReference(ref){if(ref.startsWith('$'))ref=ref.substring(1);return ref.split('.').slice(1).join();}/* harmony default export */ const utils_trimVarReference = (trimVarReference);
+// EXTERNAL MODULE: ./src/utils/immer.ts
+var immer = __webpack_require__(3835);
+// EXTERNAL MODULE: ./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.esm.js
+var emotion_react_jsx_runtime_esm = __webpack_require__(8847);
+;// CONCATENATED MODULE: ./src/hooks/useRenderer.tsx
 
-/***/ }),
-
-/***/ "./src/hooks/useBuiltInFns.tsx":
-/*!*************************************!*\
-  !*** ./src/hooks/useBuiltInFns.tsx ***!
-  \*************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @jsmanifest/utils */ "../../node_modules/@jsmanifest/utils/dist/index.js");
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var noodl_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! noodl-utils */ "./node_modules/noodl-utils/dist/index.js");
-/* harmony import */ var noodl_utils__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(noodl_utils__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! noodl-ui */ "./node_modules/noodl-ui/dist/index.js");
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(noodl_ui__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var lodash_get__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! lodash/get */ "./node_modules/lodash/get.js");
-/* harmony import */ var lodash_get__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(lodash_get__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _useCtx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @/useCtx */ "./src/useCtx.tsx");
-/* harmony import */ var _components_PageContext__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @/components/PageContext */ "./src/components/PageContext.tsx");
-/* harmony import */ var _utils_log__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @/utils/log */ "./src/utils/log.ts");
-/* harmony import */ var _utils_is__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @/utils/is */ "./src/utils/is.ts");
-
-
-
-
-
-
-
-
-
-
-// Using for TypeScript to pick up the args
-const createFn = (options, fn) => opts => fn({ ...opts,
-  dataIn: purgeDataIn({ ...options,
-    ...opts
-  })
-});
-
-function purgeDataIn({
-  actionChain,
-  getR,
-  name: pageName,
-  dataObject,
-  dataIn
-}) {
-  for (const [key, value] of _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.entries(dataIn)) {
-    if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(value)) {
-      if (value.startsWith('$')) {
-        const paths = value.split('.').slice(1);
-        dataIn[key] = lodash_get__WEBPACK_IMPORTED_MODULE_4___default()(dataObject, paths);
-      } else if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(value)) {
-        var _actionChain$data;
-
-        let paths = [];
-        if (_utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].localReference(value)) pageName && paths.push(pageName);
-        paths = paths.concat((0,noodl_utils__WEBPACK_IMPORTED_MODULE_1__.trimReference)(value).split('.'));
-        dataIn[key] = getR(actionChain === null || actionChain === void 0 ? void 0 : (_actionChain$data = actionChain.data) === null || _actionChain$data === void 0 ? void 0 : _actionChain$data.get('rootDraft'), paths.join('.'), pageName);
-      } else {// dataIn[key] = value
-      }
-    }
-  }
-
-  return dataIn;
-}
-
-function getBuiltInFns(options) {
-  const builtInFns = {
-    [`=.builtIn.string.equal`]: ({
-      dataIn
-    }) => {
-      const str1 = String(dataIn === null || dataIn === void 0 ? void 0 : dataIn.string1);
-      const str2 = String(dataIn === null || dataIn === void 0 ? void 0 : dataIn.string2);
-      const isEqual = str1 === str2;
-      _utils_log__WEBPACK_IMPORTED_MODULE_7__["default"].debug(`%c[=.builtIn] Comparing: ${str1 === '' ? "''" : `'${str1}'`} === ${str2 === '' ? "''" : `'${str2}'`}: ${isEqual}`, 'color:rgb(98, 143, 42)');
-      return isEqual;
-    },
-    // Branched from lvl3
-    [`=.builtIn.object.setProperty`]: ({
-      dataIn
-    }) => {
-      const arr = _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.array(dataIn.obj).filter(Boolean);
-      const numItems = arr.length;
-
-      for (let index = 0; index < numItems; index++) {
-        if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isArr(dataIn.arr)) {
-          dataIn.arr.forEach((item, i) => {
-            var _arr$index;
-
-            if ((arr === null || arr === void 0 ? void 0 : (_arr$index = arr[index]) === null || _arr$index === void 0 ? void 0 : _arr$index[dataIn.label]) === dataIn.text) {
-              arr[index][item] = dataIn.valueArr[i];
-            } else {
-              arr[index][item] = dataIn.errorArr[i];
-            }
-          });
-        } else {
-          _utils_log__WEBPACK_IMPORTED_MODULE_7__["default"].error(`Expected 'arr' in dataIn to be an array but it was ${typeof dataIn.arr}`);
-        }
-      }
-
-      return dataIn;
-    },
-    ['=.builtIn.object.resolveEmit']: ({
-      dataIn: {
-        emit: {
-          dataKey,
-          actions
-        },
-        trigger
-      },
-      dataObject,
-      iteratorVar = '',
-      root = {},
-      rootKey = ''
-    }) => {
-      var _actions$, _actions$$if, _actions$2, _actions$2$if, _actions$3, _actions$3$if, _actions$4, _actions$4$if, _actions$5, _actions$5$if;
-
-      dataKey = (0,noodl_utils__WEBPACK_IMPORTED_MODULE_1__.createEmitDataKey)(dataKey, dataObject, {
-        iteratorVar
-      });
-      const cond = _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference((_actions$ = actions[0]) === null || _actions$ === void 0 ? void 0 : (_actions$$if = _actions$.if) === null || _actions$$if === void 0 ? void 0 : _actions$$if[0]) ? (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.deref)({
-        dataObject,
-        iteratorVar,
-        ref: (_actions$2 = actions[0]) === null || _actions$2 === void 0 ? void 0 : (_actions$2$if = _actions$2.if) === null || _actions$2$if === void 0 ? void 0 : _actions$2$if[0],
-        root,
-        rootKey
-      }) : (_actions$3 = actions[0]) === null || _actions$3 === void 0 ? void 0 : (_actions$3$if = _actions$3.if) === null || _actions$3$if === void 0 ? void 0 : _actions$3$if[0];
-      const result = cond ? (_actions$4 = actions[0]) === null || _actions$4 === void 0 ? void 0 : (_actions$4$if = _actions$4.if) === null || _actions$4$if === void 0 ? void 0 : _actions$4$if[1] : (_actions$5 = actions[0]) === null || _actions$5 === void 0 ? void 0 : (_actions$5$if = _actions$5.if) === null || _actions$5$if === void 0 ? void 0 : _actions$5$if[2];
-      return _utils_is__WEBPACK_IMPORTED_MODULE_8__["default"].reference(result) ? (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.deref)({
-        dataObject,
-        iteratorVar,
-        ref: result,
-        root,
-        rootKey
-      }) : result;
-    }
-  };
-  return _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.entries(builtInFns).reduce((acc, [builtInFnName, builtInFn]) => {
-    acc[builtInFnName] = createFn(options, builtInFn);
-    return acc;
-  }, {});
-}
-
-function useBuiltInFns() {
-  const ctx = (0,_useCtx__WEBPACK_IMPORTED_MODULE_5__["default"])();
-  const pageCtx = (0,_components_PageContext__WEBPACK_IMPORTED_MODULE_6__.usePageCtx)();
-  const builtIns = getBuiltInFns({ ...ctx,
-    ...pageCtx
-  });
-  const handleBuiltInFn = react__WEBPACK_IMPORTED_MODULE_3___default().useCallback((key = '', args) => {
-    const fn = builtIns[key];
-
-    if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isFnc(fn)) {
-      return fn(args);
-    } else {
-      _utils_log__WEBPACK_IMPORTED_MODULE_7__["default"].error(`%cYou are missing the builtIn implementation for "${key}"`, `color:#ec0000;`);
-    }
-  }, [ctx, pageCtx]);
-  return {
-    builtIns,
-    handleBuiltInFn
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (useBuiltInFns);
-
-/***/ }),
-
-/***/ "./src/hooks/useContextLists.tsx":
-/*!***************************************!*\
-  !*** ./src/hooks/useContextLists.tsx ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @jsmanifest/utils */ "../../node_modules/@jsmanifest/utils/dist/index.js");
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utils_is__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/utils/is */ "./src/utils/is.ts");
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! noodl-ui */ "./node_modules/noodl-ui/dist/index.js");
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(noodl_ui__WEBPACK_IMPORTED_MODULE_3__);
-
-
-
-
-
-function useContextLists(listsMap) {
-  const lists = react__WEBPACK_IMPORTED_MODULE_0___default().useMemo(() => Object.values(listsMap || {}), [listsMap]);
-  const getId = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(id => {
-    return _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__.isStr(id) ? id : (id === null || id === void 0 ? void 0 : id.id) || '';
-  }, []);
-  const getIteratorVar = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(id => {
-    var _lists$find;
-
-    if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__.isObj(id) && _utils_is__WEBPACK_IMPORTED_MODULE_2__["default"].component.list(id)) return id.iteratorVar;
-    id = getId(id);
-    return ((_lists$find = lists.find(obj => isCtxObj(obj, id))) === null || _lists$find === void 0 ? void 0 : _lists$find.iteratorVar) || '';
-  }, [getId, lists]);
-  const getCtxObject = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(id => {
-    id = getId(id);
-    return id ? lists.find(obj => isCtxObj(obj, id)) : null;
-  }, [getId, lists]);
-  const getListObject = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback((id, root, pageName) => {
-    let ctxObj = getCtxObject(id);
-    let listObject = (ctxObj === null || ctxObj === void 0 ? void 0 : ctxObj.listObject) || null;
-
-    if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__.isStr(listObject)) {
-      if (_utils_is__WEBPACK_IMPORTED_MODULE_2__["default"].reference(listObject)) {
-        listObject = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_3__.deref)({
-          root,
-          ref: listObject,
-          rootKey: _utils_is__WEBPACK_IMPORTED_MODULE_2__["default"].localReference(listObject) ? pageName : ''
-        });
-      }
-    }
-
-    return listObject;
-  }, [getCtxObject, lists]);
-  const getDataObject = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback((id, root, pageName) => {
-    var _listObj$children;
-
-    id = getId(id);
-    const listObj = getCtxObject(id);
-    const listObject = getListObject(id, root, pageName);
-    const index = listObj === null || listObj === void 0 ? void 0 : (_listObj$children = listObj.children) === null || _listObj$children === void 0 ? void 0 : _listObj$children.findIndex(ids => ids.includes(id));
-    if (listObject) return listObject[index];
-    return null;
-  }, [getId, getCtxObject, getListObject]);
-  const isCtxObj = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback((obj, id) => {
-    id = getId(id);
-    return !!id && (obj.id === id || _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_1__.array(obj.children).some(ids => ids.includes(id)));
-  }, [getId]);
-  const isListConsumer = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(id => lists.some(obj => isCtxObj(obj, getId(id))), [getId, lists, isCtxObj]);
-  return {
-    lists,
-    getId,
-    getCtxObject,
-    getListObject,
-    getDataObject,
-    getIteratorVar,
-    isCtxObj,
-    isListConsumer
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (useContextLists);
-
-/***/ }),
-
-/***/ "./src/hooks/usePage.tsx":
-/*!*******************************!*\
-  !*** ./src/hooks/usePage.tsx ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @jsmanifest/utils */ "../../node_modules/@jsmanifest/utils/dist/index.js");
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _useRenderer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./useRenderer */ "./src/hooks/useRenderer.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.esm.js");
-
-
-
-
-
-function usePage({
-  pageContext
-}) {
-  const renderer = (0,_useRenderer__WEBPACK_IMPORTED_MODULE_2__["default"])();
-
-  const render = (c, index) => {
-    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)((react__WEBPACK_IMPORTED_MODULE_1___default().Fragment), {
-      children: renderer(c, [(pageContext === null || pageContext === void 0 ? void 0 : pageContext.name) || 'HomePage', 'components', index])
-    }, _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_0__.isStr(c) ? c : (c === null || c === void 0 ? void 0 : c.id) || (c === null || c === void 0 ? void 0 : c.dataKey) || index);
-  };
-
-  return {
-    components: (pageContext === null || pageContext === void 0 ? void 0 : pageContext.components) || [],
-    render
-  };
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (usePage);
-
-/***/ }),
-
-/***/ "./src/hooks/useRenderer.tsx":
-/*!***********************************!*\
-  !*** ./src/hooks/useRenderer.tsx ***!
-  \***********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   "noodlKeysToStrip": () => (/* binding */ noodlKeysToStrip)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var immer__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! immer */ "./node_modules/immer/dist/immer.esm.js");
-/* harmony import */ var noodl_types__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! noodl-types */ "./node_modules/noodl-types/dist/index.js");
-/* harmony import */ var noodl_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(noodl_types__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! noodl-ui */ "./node_modules/noodl-ui/dist/index.js");
-/* harmony import */ var noodl_ui__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(noodl_ui__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var noodl_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! noodl-utils */ "./node_modules/noodl-utils/dist/index.js");
-/* harmony import */ var noodl_utils__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(noodl_utils__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var lodash_get__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! lodash/get */ "./node_modules/lodash/get.js");
-/* harmony import */ var lodash_get__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(lodash_get__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @jsmanifest/utils */ "../../node_modules/@jsmanifest/utils/dist/index.js");
-/* harmony import */ var _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _hooks_useActionChain__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @/hooks/useActionChain */ "./src/hooks/useActionChain.tsx");
-/* harmony import */ var _hooks_useBuiltInFns__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @/hooks/useBuiltInFns */ "./src/hooks/useBuiltInFns.tsx");
-/* harmony import */ var _utils_getTagName__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @/utils/getTagName */ "./src/utils/getTagName.ts");
-/* harmony import */ var _utils_log__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @/utils/log */ "./src/utils/log.ts");
-/* harmony import */ var _utils_is__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @/utils/is */ "./src/utils/is.ts");
-/* harmony import */ var _useCtx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @/useCtx */ "./src/useCtx.tsx");
-/* harmony import */ var _utils_immer__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @/utils/immer */ "./src/utils/immer.ts");
-/* harmony import */ var _components_PageContext__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @/components/PageContext */ "./src/components/PageContext.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.esm.js");
 
 
 
@@ -1141,37 +641,37 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+ // TODO - Find out a better way to do this
 
-// TODO - Find out a better way to do this
 const noodlKeysToStrip = ['contentType', 'image', 'iteratorVar', 'itemObject', 'listObject', 'parentId', 'popUpView', 'textBoard', 'type', 'viewTag', 'videoFormat'];
 const keysToStrip = noodlKeysToStrip.concat('index');
 const keysToStripRegex = new RegExp(`(${keysToStrip.join('|')})`, 'i');
 
 function useRenderer() {
   // Used to prevent infinite loops when dereferencing references
-  const refsRef = react__WEBPACK_IMPORTED_MODULE_0___default().useRef({});
+  const refsRef = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useRef({});
   const {
     getR,
     root,
     setR
-  } = (0,_useCtx__WEBPACK_IMPORTED_MODULE_11__["default"])();
+  } = (0,useCtx/* default */.Z)();
   const {
     createActionChain
-  } = (0,_hooks_useActionChain__WEBPACK_IMPORTED_MODULE_6__["default"])();
-  const builtInFns = (0,_hooks_useBuiltInFns__WEBPACK_IMPORTED_MODULE_7__["default"])();
+  } = hooks_useActionChain();
+  const builtInFns = hooks_useBuiltInFns();
   const {
     assetsUrl,
     getDataObject,
     getIteratorVar,
     isListConsumer,
     name
-  } = (0,_components_PageContext__WEBPACK_IMPORTED_MODULE_13__.usePageCtx)();
-  const render = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback((component, componentPath) => {
-    if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isStr(component)) {
-      if (_utils_is__WEBPACK_IMPORTED_MODULE_10__["default"].reference(component)) {
+  } = (0,PageContext/* usePageCtx */.b)();
+  const render = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback((component, componentPath) => {
+    if (dist.isStr(component)) {
+      if (is/* default.reference */.ZP.reference(component)) {
         if (refsRef.current !== component) {
           refsRef.current = component;
-          return render((0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.deref)({
+          return render((0,noodl_ui_dist.deref)({
             ref: component,
             rootKey: name,
             root
@@ -1185,11 +685,11 @@ function useRenderer() {
       };
     }
 
-    if (_utils_is__WEBPACK_IMPORTED_MODULE_10__["default"].componentByReference(component)) {
-      return render(_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.keys(component)[0], componentPath);
+    if (is/* default.componentByReference */.ZP.componentByReference(component)) {
+      return render(dist.keys(component)[0], componentPath);
     }
 
-    if (!_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isObj(component)) return null;
+    if (!dist.isObj(component)) return null;
     let {
       dataKey,
       id,
@@ -1197,22 +697,22 @@ function useRenderer() {
     } = component;
     let children = [];
     let iteratorVar = getIteratorVar === null || getIteratorVar === void 0 ? void 0 : getIteratorVar(component);
-    let elementType = (0,_utils_getTagName__WEBPACK_IMPORTED_MODULE_8__["default"])(type) || 'div';
+    let elementType = utils_getTagName(type) || 'div';
     id = id || dataKey;
     let props = {
       type: elementType,
       key: id
     };
 
-    for (let [key, value] of _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.entries(component)) {
+    for (let [key, value] of dist.entries(component)) {
       if (key.startsWith('data-')) props[key] = value;
 
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isStr(value)) {
-        if (_utils_is__WEBPACK_IMPORTED_MODULE_10__["default"].reference(value)) {
+      if (dist.isStr(value)) {
+        if (is/* default.reference */.ZP.reference(value)) {
           if (key === 'dataKey') {
-            value = (0,noodl_utils__WEBPACK_IMPORTED_MODULE_3__.trimReference)(value);
+            value = (0,noodl_utils_dist.trimReference)(value);
           } else {
-            props[key] = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.deref)({
+            props[key] = (0,noodl_ui_dist.deref)({
               ref: value,
               root,
               rootKey: name
@@ -1223,7 +723,7 @@ function useRenderer() {
       }
 
       if (key === 'children') {
-        _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.array(value).forEach((child, index) => children.push(render(child, componentPath.concat('children', index))));
+        dist.array(value).forEach((child, index) => children.push(render(child, componentPath.concat('children', index))));
       } else if (/popUpView\/viewTag/.test(key)) {
         props['data-viewtag'] = value;
       } else if (key === 'data-value') {
@@ -1234,54 +734,65 @@ function useRenderer() {
         }
       } else if (key === 'data-src' || key === 'path' && /(image|video)/i.test(type)) {
         if (isListConsumer(component)) {
-          const dataObject = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.deref)({
+          const dataObject = (0,noodl_ui_dist.deref)({
             ref: getDataObject(component.id, root, name),
             root,
             rootKey: name,
             iteratorVar
           });
-          props.src = _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isStr(component.path) && component.path.startsWith(iteratorVar) ? lodash_get__WEBPACK_IMPORTED_MODULE_4___default()(dataObject, (0,noodl_utils__WEBPACK_IMPORTED_MODULE_3__.excludeIteratorVar)(component.path, iteratorVar)) : _utils_is__WEBPACK_IMPORTED_MODULE_10__["default"].folds.emit(component.path) ? builtInFns.builtIns['=.builtIn.object.resolveEmit']({
-            dataIn: {
-              emit: component.path.emit,
-              trigger: 'path'
-            },
-            dataObject,
-            iteratorVar,
-            root,
-            rootKey: name
-          }) : value;
-          props['data-src'] = props.src;
 
-          if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isObj(component.path)) {
-            console.log({
+          if (dist.isStr(component.path) && component.path.startsWith(iteratorVar)) {
+            props.src = get_default()(dataObject, (0,noodl_utils_dist.excludeIteratorVar)(component.path, iteratorVar));
+
+            if (props.src && dist.isStr(props.src) && !props.src.startsWith('http')) {
+              props.src = assetsUrl + props.src;
+            }
+
+            if (props.src === 'https://public.aitmed.com/cadl/www4.14/assets/partner/13.png') {// debugger
+            }
+          } else if (is/* default.folds.emit */.ZP.folds.emit(component.path)) {
+            props.src = builtInFns.builtIns['=.builtIn.object.resolveEmit']({
+              dataIn: {
+                emit: component.path.emit,
+                trigger: 'path'
+              },
               dataObject,
-              component,
-              props,
-              src: props.src
-            }); // debugger
+              iteratorVar,
+              root,
+              rootKey: name
+            });
+          } else {
+            props.src = value;
           }
+
+          if (is/* default.varReference */.ZP.varReference(props.src)) {
+            const refValue = get_default()(dataObject, utils_trimVarReference(props.src));
+            props.src = dist.isStr(refValue) && refValue.startsWith('http') ? refValue : `${assetsUrl}${refValue}`;
+          }
+
+          props['data-src'] = props.src;
         } else {
           props.src = value;
         }
       } else if (key === 'style') {
-        if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isObj(value)) {
+        if (dist.isObj(value)) {
           if (!props.style) props.style = {};
 
-          for (let [styleKey, styleValue] of _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.entries(value)) {
-            if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isStr(styleKey) && styleKey.includes('-')) {
-              props.style[_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.camelCase(styleKey)] = styleValue;
+          for (let [styleKey, styleValue] of dist.entries(value)) {
+            if (dist.isStr(styleKey) && styleKey.includes('-')) {
+              props.style[dist.camelCase(styleKey)] = styleValue;
             } else {
               props.style[styleKey] = styleValue;
             }
           }
         } else {
-          _utils_log__WEBPACK_IMPORTED_MODULE_9__["default"].error(`%cA value for style was received but it was not an object`, `color:#ec0000;`, component);
+          log/* default.error */.Z.error(`%cA value for style was received but it was not an object`, `color:#ec0000;`, component);
           props.style = {};
         }
       } else if (key === 'text' && !component['data-value']) {
-        value && children.push(_utils_is__WEBPACK_IMPORTED_MODULE_10__["default"].reference(value) ? getR(value, name) : value);
-      } else if (noodl_ui__WEBPACK_IMPORTED_MODULE_2__.triggers.includes(key)) {
-        if (noodl_types__WEBPACK_IMPORTED_MODULE_1__.userEvent.includes(key)) {
+        value && children.push(is/* default.reference */.ZP.reference(value) ? getR(value, name) : value);
+      } else if (noodl_ui_dist.triggers.includes(key)) {
+        if (noodl_types_dist.userEvent.includes(key)) {
           const obj = value;
           const actions = (obj === null || obj === void 0 ? void 0 : obj.actions) || [];
           const trigger = key;
@@ -1289,16 +800,16 @@ function useRenderer() {
 
           props[trigger] = async function onExecuteActionChain(evt) {
             let results;
-            let nextRoot = await (0,immer__WEBPACK_IMPORTED_MODULE_14__["default"])(root, async draft => {
+            let nextRoot = await (0,immer_esm/* default */.ZP)(root, async draft => {
               try {
                 actionChain === null || actionChain === void 0 ? void 0 : actionChain.data.set('rootDraft', draft);
                 results = await (actionChain === null || actionChain === void 0 ? void 0 : actionChain.execute(evt));
               } catch (error) {
-                _utils_log__WEBPACK_IMPORTED_MODULE_9__["default"].error(error instanceof Error ? error : new Error(String(error)));
+                log/* default.error */.Z.error(error instanceof Error ? error : new Error(String(error)));
               }
             });
             actionChain === null || actionChain === void 0 ? void 0 : actionChain.data.delete('rootDraft');
-            setR((0,_utils_immer__WEBPACK_IMPORTED_MODULE_12__.getCurrent)(nextRoot));
+            setR((0,immer/* getCurrent */.TE)(nextRoot));
             return results;
           };
         }
@@ -1306,9 +817,9 @@ function useRenderer() {
         if (!keysToStripRegex.test(key)) props[key] = value;
       }
 
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isStr(value)) {
-        if (_utils_is__WEBPACK_IMPORTED_MODULE_10__["default"].reference(value)) {
-          props[key] = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.deref)({
+      if (dist.isStr(value)) {
+        if (is/* default.reference */.ZP.reference(value)) {
+          props[key] = (0,noodl_ui_dist.deref)({
             ref: value,
             root,
             rootKey: name
@@ -1322,21 +833,21 @@ function useRenderer() {
     if (children.length) props.children = children;
 
     if (props._path_) {
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isStr(props._path_) && iteratorVar) {
+      if (dist.isStr(props._path_) && iteratorVar) {
         if (props.type === 'img') {
           const dataObject = getDataObject(props.id, root, name);
 
           if (!dataObject) {// debugger
           } else {
-            const datapath = (0,noodl_utils__WEBPACK_IMPORTED_MODULE_3__.excludeIteratorVar)(props._path_, iteratorVar);
-            const src = lodash_get__WEBPACK_IMPORTED_MODULE_4___default()(dataObject, datapath);
-            if (src) props.src = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.resolveAssetUrl)(src, assetsUrl);
+            const datapath = (0,noodl_utils_dist.excludeIteratorVar)(props._path_, iteratorVar);
+            const src = get_default()(dataObject, datapath);
+            if (src) props.src = (0,noodl_ui_dist.resolveAssetUrl)(src, assetsUrl);
           }
         }
-      } else if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isObj(props._path_)) {
-        if (_utils_is__WEBPACK_IMPORTED_MODULE_10__["default"].folds.emit(props._path_)) {
+      } else if (dist.isObj(props._path_)) {
+        if (is/* default.folds.emit */.ZP.folds.emit(props._path_)) {
           const dataObject = getDataObject(component.id, root, name);
-          const emitObject = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.deref)({
+          const emitObject = (0,noodl_ui_dist.deref)({
             dataObject,
             iteratorVar,
             ref: props._path_,
@@ -1352,16 +863,20 @@ function useRenderer() {
             rootKey: name
           });
 
-          if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isStr(result) && result.startsWith('$')) {
+          if (dist.isStr(result) && result.startsWith('$')) {
             result = result.replace('$var.', '');
-            result = lodash_get__WEBPACK_IMPORTED_MODULE_4___default()(dataObject, result, '');
+            result = get_default()(dataObject, result, '');
           }
 
           if (result != undefined) {
-            props.src = (0,noodl_ui__WEBPACK_IMPORTED_MODULE_2__.resolveAssetUrl)(result, assetsUrl);
+            props.src = (0,noodl_ui_dist.resolveAssetUrl)(result, assetsUrl);
           }
         }
       }
+    }
+
+    if (props['data-src']) {
+      props.src = props['data-src'];
     }
 
     return renderElement({
@@ -1370,7 +885,7 @@ function useRenderer() {
       ...props
     });
   }, [assetsUrl, getDataObject, root]);
-  const renderElement = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(({
+  const renderElement = external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().useCallback(({
     componentPath,
     type,
     key,
@@ -1379,40 +894,47 @@ function useRenderer() {
   }) => {
     let _children = [];
     let _index = 0;
-    _jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.array(children).forEach(cprops => {
+    dist.array(children).forEach(cprops => {
       const _path = (componentPath || []).concat('children', _index);
 
       const renderKey = _path.join('.');
 
-      if (_jsmanifest_utils__WEBPACK_IMPORTED_MODULE_5__.isObj(cprops)) {
+      if (dist.isObj(cprops)) {
         const props = { ...cprops,
           componentPath: _path
         };
 
-        _children.push((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
-          children: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().isValidElement(props) ? props : renderElement(props)
+        _children.push((0,emotion_react_jsx_runtime_esm/* jsx */.tZ)((external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default()).Fragment, {
+          children: /*#__PURE__*/ /*#__PURE__*/external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().isValidElement(props) ? props : renderElement(props)
         }, renderKey));
       } else {
-        _children.push((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
+        if (dist.isStr(cprops) && cprops.includes('&nbsp;')) {
+          cprops = /*#__PURE__*/external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().createElement('span', {
+            dangerouslySetInnerHTML: {
+              __html: cprops
+            }
+          });
+        }
+
+        _children.push((0,emotion_react_jsx_runtime_esm/* jsx */.tZ)((external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default()).Fragment, {
           children: cprops
         }, renderKey));
       }
 
       _index++;
     });
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(type, rest, /img|input|textarea/.test(type) ? undefined : _children.length ? _children : undefined);
+    return /*#__PURE__*/external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default().createElement(type, rest, /img|input|textarea/.test(type) ? undefined : _children.length ? _children : undefined);
   }, [render, root]);
   return render;
 }
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (useRenderer);
+/* harmony default export */ const hooks_useRenderer = (useRenderer);
+;// CONCATENATED MODULE: ./src/hooks/usePage.tsx
+function usePage({pageContext}){const renderer=hooks_useRenderer();const render=(c,index)=>{return (0,emotion_react_jsx_runtime_esm/* jsx */.tZ)((external_C_Users_Chris_aitmed_noodl_web_apps_static_node_modules_react_index_js_default()).Fragment,{children:renderer(c,[(pageContext===null||pageContext===void 0?void 0:pageContext.name)||'HomePage','components',index])},dist.isStr(c)?c:(c===null||c===void 0?void 0:c.id)||(c===null||c===void 0?void 0:c.dataKey)||index);};return{components:(pageContext===null||pageContext===void 0?void 0:pageContext.components)||[],render};}/* harmony default export */ const hooks_usePage = (usePage);
 
 /***/ }),
 
-/***/ "./src/templates/page.tsx":
-/*!********************************!*\
-  !*** ./src/templates/page.tsx ***!
-  \********************************/
+/***/ 3965:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1420,12 +942,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1962);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _components_Seo__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/components/Seo */ "./src/components/Seo.tsx");
-/* harmony import */ var _components_PageContext__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/components/PageContext */ "./src/components/PageContext.tsx");
-/* harmony import */ var _hooks_usePage__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/hooks/usePage */ "./src/hooks/usePage.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.esm.js");
+/* harmony import */ var _components_Seo__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3904);
+/* harmony import */ var _components_PageContext__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3339);
+/* harmony import */ var _hooks_usePage__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6823);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8847);
 
 
 
@@ -1435,102 +957,29 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function NoodlPageTemplate(props) {
-  const page = (0,_hooks_usePage__WEBPACK_IMPORTED_MODULE_3__["default"])(props);
+  const page = (0,_hooks_usePage__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .Z)(props);
   react__WEBPACK_IMPORTED_MODULE_0___default().useEffect(() => {
     console.log(props);
   }, []);
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__/* .jsx */ .tZ)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__/* .Fragment */ .HY, {
     children: page.components.map(page.render)
   });
 }
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (props => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
-  children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_components_Seo__WEBPACK_IMPORTED_MODULE_1__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_components_PageContext__WEBPACK_IMPORTED_MODULE_2__["default"], { ...props.pageContext,
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(NoodlPageTemplate, { ...props
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (props => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__/* .jsxs */ .BX)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__/* .Fragment */ .HY, {
+  children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__/* .jsx */ .tZ)(_components_Seo__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .Z, {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__/* .jsx */ .tZ)(_components_PageContext__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .Z, { ...props.pageContext,
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__/* .jsx */ .tZ)(NoodlPageTemplate, { ...props
     })
   })]
 }));
 
 /***/ }),
 
-/***/ "./src/utils/getTagName.ts":
-/*!*********************************!*\
-  !*** ./src/utils/getTagName.ts ***!
-  \*********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-function getTagName(type) {
-  return {
-    span: 'span',
-    br: 'br',
-    button: 'button',
-    canvas: 'canvas',
-    chart: 'div',
-    date: 'input',
-    dateSelect: 'input',
-    divider: 'hr',
-    ecosDoc: 'div',
-    footer: 'div',
-    header: 'div',
-    searchBar: 'input',
-    textField: 'input',
-    image: 'img',
-    label: 'div',
-    list: 'ul',
-    listItem: 'li',
-    map: 'div',
-    page: 'iframe',
-    popUp: 'div',
-    plugin: 'div',
-    pluginHead: 'script',
-    pluginBodyTail: 'script',
-    register: 'div',
-    scrollView: 'div',
-    select: 'select',
-    textView: 'textarea',
-    video: 'video',
-    view: 'div'
-  }[type];
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (getTagName);
-
-/***/ }),
-
-/***/ "./src/utils/isBuiltInEvalFn.ts":
-/*!**************************************!*\
-  !*** ./src/utils/isBuiltInEvalFn.ts ***!
-  \**************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ isBuiltInEvalFn)
-/* harmony export */ });
-function isBuiltInEvalFn(value) {
-  for (const key of Object.keys(value)) {
-    if (key.startsWith('=.builtIn')) return true;
-  }
-
-  return false;
-}
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_LazyWrapper.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_LazyWrapper.js ***!
-  \*********************************************/
+/***/ 6425:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseCreate = __webpack_require__(/*! ./_baseCreate */ "./node_modules/lodash/_baseCreate.js"),
-    baseLodash = __webpack_require__(/*! ./_baseLodash */ "./node_modules/lodash/_baseLodash.js");
+var baseCreate = __webpack_require__(3118),
+    baseLodash = __webpack_require__(9435);
 
 /** Used as references for the maximum length and index of an array. */
 var MAX_ARRAY_LENGTH = 4294967295;
@@ -1561,14 +1010,11 @@ module.exports = LazyWrapper;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_LodashWrapper.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_LodashWrapper.js ***!
-  \***********************************************/
+/***/ 7548:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseCreate = __webpack_require__(/*! ./_baseCreate */ "./node_modules/lodash/_baseCreate.js"),
-    baseLodash = __webpack_require__(/*! ./_baseLodash */ "./node_modules/lodash/_baseLodash.js");
+var baseCreate = __webpack_require__(3118),
+    baseLodash = __webpack_require__(9435);
 
 /**
  * The base constructor for creating `lodash` wrapper objects.
@@ -1593,14 +1039,11 @@ module.exports = LodashWrapper;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_WeakMap.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_WeakMap.js ***!
-  \*****************************************/
+/***/ 577:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js"),
-    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+var getNative = __webpack_require__(852),
+    root = __webpack_require__(5639);
 
 /* Built-in method references that are verified to be native. */
 var WeakMap = getNative(root, 'WeakMap');
@@ -1610,10 +1053,35 @@ module.exports = WeakMap;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_arrayEach.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_arrayEach.js ***!
-  \*******************************************/
+/***/ 6874:
+/***/ ((module) => {
+
+/**
+ * A faster alternative to `Function#apply`, this function invokes `func`
+ * with the `this` binding of `thisArg` and the arguments of `args`.
+ *
+ * @private
+ * @param {Function} func The function to invoke.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {Array} args The arguments to invoke `func` with.
+ * @returns {*} Returns the result of `func`.
+ */
+function apply(func, thisArg, args) {
+  switch (args.length) {
+    case 0: return func.call(thisArg);
+    case 1: return func.call(thisArg, args[0]);
+    case 2: return func.call(thisArg, args[0], args[1]);
+    case 3: return func.call(thisArg, args[0], args[1], args[2]);
+  }
+  return func.apply(thisArg, args);
+}
+
+module.exports = apply;
+
+
+/***/ }),
+
+/***/ 7412:
 /***/ ((module) => {
 
 /**
@@ -1642,13 +1110,10 @@ module.exports = arrayEach;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_arrayIncludes.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_arrayIncludes.js ***!
-  \***********************************************/
+/***/ 7443:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseIndexOf = __webpack_require__(/*! ./_baseIndexOf */ "./node_modules/lodash/_baseIndexOf.js");
+var baseIndexOf = __webpack_require__(2118);
 
 /**
  * A specialized version of `_.includes` for arrays without support for
@@ -1669,10 +1134,111 @@ module.exports = arrayIncludes;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseFindIndex.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_baseFindIndex.js ***!
-  \***********************************************/
+/***/ 4865:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseAssignValue = __webpack_require__(9465),
+    eq = __webpack_require__(7813);
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Assigns `value` to `key` of `object` if the existing value is not equivalent
+ * using [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+ * for equality comparisons.
+ *
+ * @private
+ * @param {Object} object The object to modify.
+ * @param {string} key The key of the property to assign.
+ * @param {*} value The value to assign.
+ */
+function assignValue(object, key, value) {
+  var objValue = object[key];
+  if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) ||
+      (value === undefined && !(key in object))) {
+    baseAssignValue(object, key, value);
+  }
+}
+
+module.exports = assignValue;
+
+
+/***/ }),
+
+/***/ 9465:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var defineProperty = __webpack_require__(8777);
+
+/**
+ * The base implementation of `assignValue` and `assignMergeValue` without
+ * value checks.
+ *
+ * @private
+ * @param {Object} object The object to modify.
+ * @param {string} key The key of the property to assign.
+ * @param {*} value The value to assign.
+ */
+function baseAssignValue(object, key, value) {
+  if (key == '__proto__' && defineProperty) {
+    defineProperty(object, key, {
+      'configurable': true,
+      'enumerable': true,
+      'value': value,
+      'writable': true
+    });
+  } else {
+    object[key] = value;
+  }
+}
+
+module.exports = baseAssignValue;
+
+
+/***/ }),
+
+/***/ 3118:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isObject = __webpack_require__(3218);
+
+/** Built-in value references. */
+var objectCreate = Object.create;
+
+/**
+ * The base implementation of `_.create` without support for assigning
+ * properties to the created object.
+ *
+ * @private
+ * @param {Object} proto The object to inherit from.
+ * @returns {Object} Returns the new object.
+ */
+var baseCreate = (function() {
+  function object() {}
+  return function(proto) {
+    if (!isObject(proto)) {
+      return {};
+    }
+    if (objectCreate) {
+      return objectCreate(proto);
+    }
+    object.prototype = proto;
+    var result = new object;
+    object.prototype = undefined;
+    return result;
+  };
+}());
+
+module.exports = baseCreate;
+
+
+/***/ }),
+
+/***/ 1848:
 /***/ ((module) => {
 
 /**
@@ -1703,15 +1269,12 @@ module.exports = baseFindIndex;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseIndexOf.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_baseIndexOf.js ***!
-  \*********************************************/
+/***/ 2118:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseFindIndex = __webpack_require__(/*! ./_baseFindIndex */ "./node_modules/lodash/_baseFindIndex.js"),
-    baseIsNaN = __webpack_require__(/*! ./_baseIsNaN */ "./node_modules/lodash/_baseIsNaN.js"),
-    strictIndexOf = __webpack_require__(/*! ./_strictIndexOf */ "./node_modules/lodash/_strictIndexOf.js");
+var baseFindIndex = __webpack_require__(1848),
+    baseIsNaN = __webpack_require__(2722),
+    strictIndexOf = __webpack_require__(2351);
 
 /**
  * The base implementation of `_.indexOf` without `fromIndex` bounds checks.
@@ -1733,10 +1296,7 @@ module.exports = baseIndexOf;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseIsNaN.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseIsNaN.js ***!
-  \*******************************************/
+/***/ 2722:
 /***/ ((module) => {
 
 /**
@@ -1755,10 +1315,7 @@ module.exports = baseIsNaN;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseLodash.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_baseLodash.js ***!
-  \********************************************/
+/***/ 9435:
 /***/ ((module) => {
 
 /**
@@ -1775,17 +1332,38 @@ module.exports = baseLodash;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseSet.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_baseSet.js ***!
-  \*****************************************/
+/***/ 5976:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var assignValue = __webpack_require__(/*! ./_assignValue */ "./node_modules/lodash/_assignValue.js"),
-    castPath = __webpack_require__(/*! ./_castPath */ "./node_modules/lodash/_castPath.js"),
-    isIndex = __webpack_require__(/*! ./_isIndex */ "./node_modules/lodash/_isIndex.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    toKey = __webpack_require__(/*! ./_toKey */ "./node_modules/lodash/_toKey.js");
+var identity = __webpack_require__(6557),
+    overRest = __webpack_require__(5357),
+    setToString = __webpack_require__(61);
+
+/**
+ * The base implementation of `_.rest` which doesn't validate or coerce arguments.
+ *
+ * @private
+ * @param {Function} func The function to apply a rest parameter to.
+ * @param {number} [start=func.length-1] The start position of the rest parameter.
+ * @returns {Function} Returns the new function.
+ */
+function baseRest(func, start) {
+  return setToString(overRest(func, start, identity), func + '');
+}
+
+module.exports = baseRest;
+
+
+/***/ }),
+
+/***/ 2491:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var assignValue = __webpack_require__(4865),
+    castPath = __webpack_require__(1811),
+    isIndex = __webpack_require__(5776),
+    isObject = __webpack_require__(3218),
+    toKey = __webpack_require__(327);
 
 /**
  * The base implementation of `_.set`.
@@ -1836,14 +1414,11 @@ module.exports = baseSet;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseSetData.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_baseSetData.js ***!
-  \*********************************************/
+/***/ 8045:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var identity = __webpack_require__(/*! ./identity */ "./node_modules/lodash/identity.js"),
-    metaMap = __webpack_require__(/*! ./_metaMap */ "./node_modules/lodash/_metaMap.js");
+var identity = __webpack_require__(6557),
+    metaMap = __webpack_require__(9250);
 
 /**
  * The base implementation of `setData` without support for hot loop shorting.
@@ -1863,13 +1438,39 @@ module.exports = baseSetData;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_baseTrim.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_baseTrim.js ***!
-  \******************************************/
+/***/ 6560:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var trimmedEndIndex = __webpack_require__(/*! ./_trimmedEndIndex */ "./node_modules/lodash/_trimmedEndIndex.js");
+var constant = __webpack_require__(5703),
+    defineProperty = __webpack_require__(8777),
+    identity = __webpack_require__(6557);
+
+/**
+ * The base implementation of `setToString` without support for hot loop shorting.
+ *
+ * @private
+ * @param {Function} func The function to modify.
+ * @param {Function} string The `toString` result.
+ * @returns {Function} Returns `func`.
+ */
+var baseSetToString = !defineProperty ? identity : function(func, string) {
+  return defineProperty(func, 'toString', {
+    'configurable': true,
+    'enumerable': false,
+    'value': constant(string),
+    'writable': true
+  });
+};
+
+module.exports = baseSetToString;
+
+
+/***/ }),
+
+/***/ 7561:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var trimmedEndIndex = __webpack_require__(7990);
 
 /** Used to match leading whitespace. */
 var reTrimStart = /^\s+/;
@@ -1892,10 +1493,7 @@ module.exports = baseTrim;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_composeArgs.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_composeArgs.js ***!
-  \*********************************************/
+/***/ 2157:
 /***/ ((module) => {
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
@@ -1941,10 +1539,7 @@ module.exports = composeArgs;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_composeArgsRight.js":
-/*!**************************************************!*\
-  !*** ./node_modules/lodash/_composeArgsRight.js ***!
-  \**************************************************/
+/***/ 4054:
 /***/ ((module) => {
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
@@ -1992,10 +1587,34 @@ module.exports = composeArgsRight;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_countHolders.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_countHolders.js ***!
-  \**********************************************/
+/***/ 278:
+/***/ ((module) => {
+
+/**
+ * Copies the values of `source` to `array`.
+ *
+ * @private
+ * @param {Array} source The array to copy values from.
+ * @param {Array} [array=[]] The array to copy values to.
+ * @returns {Array} Returns `array`.
+ */
+function copyArray(source, array) {
+  var index = -1,
+      length = source.length;
+
+  array || (array = Array(length));
+  while (++index < length) {
+    array[index] = source[index];
+  }
+  return array;
+}
+
+module.exports = copyArray;
+
+
+/***/ }),
+
+/***/ 7991:
 /***/ ((module) => {
 
 /**
@@ -2023,14 +1642,11 @@ module.exports = countHolders;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_createBind.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_createBind.js ***!
-  \********************************************/
+/***/ 2402:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var createCtor = __webpack_require__(/*! ./_createCtor */ "./node_modules/lodash/_createCtor.js"),
-    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+var createCtor = __webpack_require__(1774),
+    root = __webpack_require__(5639);
 
 /** Used to compose bitmasks for function metadata. */
 var WRAP_BIND_FLAG = 1;
@@ -2061,14 +1677,11 @@ module.exports = createBind;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_createCtor.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_createCtor.js ***!
-  \********************************************/
+/***/ 1774:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseCreate = __webpack_require__(/*! ./_baseCreate */ "./node_modules/lodash/_baseCreate.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js");
+var baseCreate = __webpack_require__(3118),
+    isObject = __webpack_require__(3218);
 
 /**
  * Creates a function that produces an instance of `Ctor` regardless of
@@ -2108,19 +1721,16 @@ module.exports = createCtor;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_createCurry.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_createCurry.js ***!
-  \*********************************************/
+/***/ 6347:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var apply = __webpack_require__(/*! ./_apply */ "./node_modules/lodash/_apply.js"),
-    createCtor = __webpack_require__(/*! ./_createCtor */ "./node_modules/lodash/_createCtor.js"),
-    createHybrid = __webpack_require__(/*! ./_createHybrid */ "./node_modules/lodash/_createHybrid.js"),
-    createRecurry = __webpack_require__(/*! ./_createRecurry */ "./node_modules/lodash/_createRecurry.js"),
-    getHolder = __webpack_require__(/*! ./_getHolder */ "./node_modules/lodash/_getHolder.js"),
-    replaceHolders = __webpack_require__(/*! ./_replaceHolders */ "./node_modules/lodash/_replaceHolders.js"),
-    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+var apply = __webpack_require__(6874),
+    createCtor = __webpack_require__(1774),
+    createHybrid = __webpack_require__(6935),
+    createRecurry = __webpack_require__(4487),
+    getHolder = __webpack_require__(893),
+    replaceHolders = __webpack_require__(6460),
+    root = __webpack_require__(5639);
 
 /**
  * Creates a function that wraps `func` to enable currying.
@@ -2164,21 +1774,18 @@ module.exports = createCurry;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_createHybrid.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_createHybrid.js ***!
-  \**********************************************/
+/***/ 6935:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var composeArgs = __webpack_require__(/*! ./_composeArgs */ "./node_modules/lodash/_composeArgs.js"),
-    composeArgsRight = __webpack_require__(/*! ./_composeArgsRight */ "./node_modules/lodash/_composeArgsRight.js"),
-    countHolders = __webpack_require__(/*! ./_countHolders */ "./node_modules/lodash/_countHolders.js"),
-    createCtor = __webpack_require__(/*! ./_createCtor */ "./node_modules/lodash/_createCtor.js"),
-    createRecurry = __webpack_require__(/*! ./_createRecurry */ "./node_modules/lodash/_createRecurry.js"),
-    getHolder = __webpack_require__(/*! ./_getHolder */ "./node_modules/lodash/_getHolder.js"),
-    reorder = __webpack_require__(/*! ./_reorder */ "./node_modules/lodash/_reorder.js"),
-    replaceHolders = __webpack_require__(/*! ./_replaceHolders */ "./node_modules/lodash/_replaceHolders.js"),
-    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+var composeArgs = __webpack_require__(2157),
+    composeArgsRight = __webpack_require__(4054),
+    countHolders = __webpack_require__(7991),
+    createCtor = __webpack_require__(1774),
+    createRecurry = __webpack_require__(4487),
+    getHolder = __webpack_require__(893),
+    reorder = __webpack_require__(451),
+    replaceHolders = __webpack_require__(6460),
+    root = __webpack_require__(5639);
 
 /** Used to compose bitmasks for function metadata. */
 var WRAP_BIND_FLAG = 1,
@@ -2266,15 +1873,12 @@ module.exports = createHybrid;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_createPartial.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_createPartial.js ***!
-  \***********************************************/
+/***/ 4375:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var apply = __webpack_require__(/*! ./_apply */ "./node_modules/lodash/_apply.js"),
-    createCtor = __webpack_require__(/*! ./_createCtor */ "./node_modules/lodash/_createCtor.js"),
-    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
+var apply = __webpack_require__(6874),
+    createCtor = __webpack_require__(1774),
+    root = __webpack_require__(5639);
 
 /** Used to compose bitmasks for function metadata. */
 var WRAP_BIND_FLAG = 1;
@@ -2319,15 +1923,12 @@ module.exports = createPartial;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_createRecurry.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_createRecurry.js ***!
-  \***********************************************/
+/***/ 4487:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var isLaziable = __webpack_require__(/*! ./_isLaziable */ "./node_modules/lodash/_isLaziable.js"),
-    setData = __webpack_require__(/*! ./_setData */ "./node_modules/lodash/_setData.js"),
-    setWrapToString = __webpack_require__(/*! ./_setWrapToString */ "./node_modules/lodash/_setWrapToString.js");
+var isLaziable = __webpack_require__(6528),
+    setData = __webpack_require__(258),
+    setWrapToString = __webpack_require__(9255);
 
 /** Used to compose bitmasks for function metadata. */
 var WRAP_BIND_FLAG = 1,
@@ -2385,22 +1986,19 @@ module.exports = createRecurry;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_createWrap.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_createWrap.js ***!
-  \********************************************/
+/***/ 7727:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseSetData = __webpack_require__(/*! ./_baseSetData */ "./node_modules/lodash/_baseSetData.js"),
-    createBind = __webpack_require__(/*! ./_createBind */ "./node_modules/lodash/_createBind.js"),
-    createCurry = __webpack_require__(/*! ./_createCurry */ "./node_modules/lodash/_createCurry.js"),
-    createHybrid = __webpack_require__(/*! ./_createHybrid */ "./node_modules/lodash/_createHybrid.js"),
-    createPartial = __webpack_require__(/*! ./_createPartial */ "./node_modules/lodash/_createPartial.js"),
-    getData = __webpack_require__(/*! ./_getData */ "./node_modules/lodash/_getData.js"),
-    mergeData = __webpack_require__(/*! ./_mergeData */ "./node_modules/lodash/_mergeData.js"),
-    setData = __webpack_require__(/*! ./_setData */ "./node_modules/lodash/_setData.js"),
-    setWrapToString = __webpack_require__(/*! ./_setWrapToString */ "./node_modules/lodash/_setWrapToString.js"),
-    toInteger = __webpack_require__(/*! ./toInteger */ "./node_modules/lodash/toInteger.js");
+var baseSetData = __webpack_require__(8045),
+    createBind = __webpack_require__(2402),
+    createCurry = __webpack_require__(6347),
+    createHybrid = __webpack_require__(6935),
+    createPartial = __webpack_require__(4375),
+    getData = __webpack_require__(6833),
+    mergeData = __webpack_require__(3833),
+    setData = __webpack_require__(258),
+    setWrapToString = __webpack_require__(9255),
+    toInteger = __webpack_require__(554);
 
 /** Error message constants. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -2501,14 +2099,29 @@ module.exports = createWrap;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_getData.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_getData.js ***!
-  \*****************************************/
+/***/ 8777:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var metaMap = __webpack_require__(/*! ./_metaMap */ "./node_modules/lodash/_metaMap.js"),
-    noop = __webpack_require__(/*! ./noop */ "./node_modules/lodash/noop.js");
+var getNative = __webpack_require__(852);
+
+var defineProperty = (function() {
+  try {
+    var func = getNative(Object, 'defineProperty');
+    func({}, '', {});
+    return func;
+  } catch (e) {}
+}());
+
+module.exports = defineProperty;
+
+
+/***/ }),
+
+/***/ 6833:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var metaMap = __webpack_require__(9250),
+    noop = __webpack_require__(308);
 
 /**
  * Gets metadata for `func`.
@@ -2526,13 +2139,10 @@ module.exports = getData;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_getFuncName.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_getFuncName.js ***!
-  \*********************************************/
+/***/ 7658:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var realNames = __webpack_require__(/*! ./_realNames */ "./node_modules/lodash/_realNames.js");
+var realNames = __webpack_require__(2060);
 
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
@@ -2567,10 +2177,7 @@ module.exports = getFuncName;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_getHolder.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_getHolder.js ***!
-  \*******************************************/
+/***/ 893:
 /***/ ((module) => {
 
 /**
@@ -2590,10 +2197,7 @@ module.exports = getHolder;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_getWrapDetails.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_getWrapDetails.js ***!
-  \************************************************/
+/***/ 8775:
 /***/ ((module) => {
 
 /** Used to match wrap detail comments. */
@@ -2617,10 +2221,7 @@ module.exports = getWrapDetails;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_insertWrapDetails.js":
-/*!***************************************************!*\
-  !*** ./node_modules/lodash/_insertWrapDetails.js ***!
-  \***************************************************/
+/***/ 3112:
 /***/ ((module) => {
 
 /** Used to match wrap detail comments. */
@@ -2650,16 +2251,13 @@ module.exports = insertWrapDetails;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_isLaziable.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_isLaziable.js ***!
-  \********************************************/
+/***/ 6528:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var LazyWrapper = __webpack_require__(/*! ./_LazyWrapper */ "./node_modules/lodash/_LazyWrapper.js"),
-    getData = __webpack_require__(/*! ./_getData */ "./node_modules/lodash/_getData.js"),
-    getFuncName = __webpack_require__(/*! ./_getFuncName */ "./node_modules/lodash/_getFuncName.js"),
-    lodash = __webpack_require__(/*! ./wrapperLodash */ "./node_modules/lodash/wrapperLodash.js");
+var LazyWrapper = __webpack_require__(6425),
+    getData = __webpack_require__(6833),
+    getFuncName = __webpack_require__(7658),
+    lodash = __webpack_require__(8111);
 
 /**
  * Checks if `func` has a lazy counterpart.
@@ -2688,15 +2286,12 @@ module.exports = isLaziable;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_mergeData.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_mergeData.js ***!
-  \*******************************************/
+/***/ 3833:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var composeArgs = __webpack_require__(/*! ./_composeArgs */ "./node_modules/lodash/_composeArgs.js"),
-    composeArgsRight = __webpack_require__(/*! ./_composeArgsRight */ "./node_modules/lodash/_composeArgsRight.js"),
-    replaceHolders = __webpack_require__(/*! ./_replaceHolders */ "./node_modules/lodash/_replaceHolders.js");
+var composeArgs = __webpack_require__(2157),
+    composeArgsRight = __webpack_require__(4054),
+    replaceHolders = __webpack_require__(6460);
 
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
@@ -2788,13 +2383,10 @@ module.exports = mergeData;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_metaMap.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_metaMap.js ***!
-  \*****************************************/
+/***/ 9250:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var WeakMap = __webpack_require__(/*! ./_WeakMap */ "./node_modules/lodash/_WeakMap.js");
+var WeakMap = __webpack_require__(577);
 
 /** Used to store function metadata. */
 var metaMap = WeakMap && new WeakMap;
@@ -2804,10 +2396,50 @@ module.exports = metaMap;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_realNames.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_realNames.js ***!
-  \*******************************************/
+/***/ 5357:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var apply = __webpack_require__(6874);
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * A specialized version of `baseRest` which transforms the rest array.
+ *
+ * @private
+ * @param {Function} func The function to apply a rest parameter to.
+ * @param {number} [start=func.length-1] The start position of the rest parameter.
+ * @param {Function} transform The rest array transform.
+ * @returns {Function} Returns the new function.
+ */
+function overRest(func, start, transform) {
+  start = nativeMax(start === undefined ? (func.length - 1) : start, 0);
+  return function() {
+    var args = arguments,
+        index = -1,
+        length = nativeMax(args.length - start, 0),
+        array = Array(length);
+
+    while (++index < length) {
+      array[index] = args[start + index];
+    }
+    index = -1;
+    var otherArgs = Array(start + 1);
+    while (++index < start) {
+      otherArgs[index] = args[index];
+    }
+    otherArgs[start] = transform(array);
+    return apply(func, this, otherArgs);
+  };
+}
+
+module.exports = overRest;
+
+
+/***/ }),
+
+/***/ 2060:
 /***/ ((module) => {
 
 /** Used to lookup unminified function names. */
@@ -2818,14 +2450,11 @@ module.exports = realNames;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_reorder.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_reorder.js ***!
-  \*****************************************/
+/***/ 451:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var copyArray = __webpack_require__(/*! ./_copyArray */ "./node_modules/lodash/_copyArray.js"),
-    isIndex = __webpack_require__(/*! ./_isIndex */ "./node_modules/lodash/_isIndex.js");
+var copyArray = __webpack_require__(278),
+    isIndex = __webpack_require__(5776);
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -2857,10 +2486,7 @@ module.exports = reorder;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_replaceHolders.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_replaceHolders.js ***!
-  \************************************************/
+/***/ 6460:
 /***/ ((module) => {
 
 /** Used as the internal argument placeholder. */
@@ -2896,14 +2522,11 @@ module.exports = replaceHolders;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_setData.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_setData.js ***!
-  \*****************************************/
+/***/ 258:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseSetData = __webpack_require__(/*! ./_baseSetData */ "./node_modules/lodash/_baseSetData.js"),
-    shortOut = __webpack_require__(/*! ./_shortOut */ "./node_modules/lodash/_shortOut.js");
+var baseSetData = __webpack_require__(8045),
+    shortOut = __webpack_require__(1275);
 
 /**
  * Sets metadata for `func`.
@@ -2926,16 +2549,34 @@ module.exports = setData;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_setWrapToString.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_setWrapToString.js ***!
-  \*************************************************/
+/***/ 61:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var getWrapDetails = __webpack_require__(/*! ./_getWrapDetails */ "./node_modules/lodash/_getWrapDetails.js"),
-    insertWrapDetails = __webpack_require__(/*! ./_insertWrapDetails */ "./node_modules/lodash/_insertWrapDetails.js"),
-    setToString = __webpack_require__(/*! ./_setToString */ "./node_modules/lodash/_setToString.js"),
-    updateWrapDetails = __webpack_require__(/*! ./_updateWrapDetails */ "./node_modules/lodash/_updateWrapDetails.js");
+var baseSetToString = __webpack_require__(6560),
+    shortOut = __webpack_require__(1275);
+
+/**
+ * Sets the `toString` method of `func` to return `string`.
+ *
+ * @private
+ * @param {Function} func The function to modify.
+ * @param {Function} string The `toString` result.
+ * @returns {Function} Returns `func`.
+ */
+var setToString = shortOut(baseSetToString);
+
+module.exports = setToString;
+
+
+/***/ }),
+
+/***/ 9255:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getWrapDetails = __webpack_require__(8775),
+    insertWrapDetails = __webpack_require__(3112),
+    setToString = __webpack_require__(61),
+    updateWrapDetails = __webpack_require__(7241);
 
 /**
  * Sets the `toString` method of `wrapper` to mimic the source of `reference`
@@ -2957,10 +2598,51 @@ module.exports = setWrapToString;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_strictIndexOf.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_strictIndexOf.js ***!
-  \***********************************************/
+/***/ 1275:
+/***/ ((module) => {
+
+/** Used to detect hot functions by number of calls within a span of milliseconds. */
+var HOT_COUNT = 800,
+    HOT_SPAN = 16;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeNow = Date.now;
+
+/**
+ * Creates a function that'll short out and invoke `identity` instead
+ * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
+ * milliseconds.
+ *
+ * @private
+ * @param {Function} func The function to restrict.
+ * @returns {Function} Returns the new shortable function.
+ */
+function shortOut(func) {
+  var count = 0,
+      lastCalled = 0;
+
+  return function() {
+    var stamp = nativeNow(),
+        remaining = HOT_SPAN - (stamp - lastCalled);
+
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT) {
+        return arguments[0];
+      }
+    } else {
+      count = 0;
+    }
+    return func.apply(undefined, arguments);
+  };
+}
+
+module.exports = shortOut;
+
+
+/***/ }),
+
+/***/ 2351:
 /***/ ((module) => {
 
 /**
@@ -2990,10 +2672,7 @@ module.exports = strictIndexOf;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_trimmedEndIndex.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_trimmedEndIndex.js ***!
-  \*************************************************/
+/***/ 7990:
 /***/ ((module) => {
 
 /** Used to match a single whitespace character. */
@@ -3019,14 +2698,11 @@ module.exports = trimmedEndIndex;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_updateWrapDetails.js":
-/*!***************************************************!*\
-  !*** ./node_modules/lodash/_updateWrapDetails.js ***!
-  \***************************************************/
+/***/ 7241:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var arrayEach = __webpack_require__(/*! ./_arrayEach */ "./node_modules/lodash/_arrayEach.js"),
-    arrayIncludes = __webpack_require__(/*! ./_arrayIncludes */ "./node_modules/lodash/_arrayIncludes.js");
+var arrayEach = __webpack_require__(7412),
+    arrayIncludes = __webpack_require__(7443);
 
 /** Used to compose bitmasks for function metadata. */
 var WRAP_BIND_FLAG = 1,
@@ -3075,15 +2751,12 @@ module.exports = updateWrapDetails;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_wrapperClone.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_wrapperClone.js ***!
-  \**********************************************/
+/***/ 1913:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var LazyWrapper = __webpack_require__(/*! ./_LazyWrapper */ "./node_modules/lodash/_LazyWrapper.js"),
-    LodashWrapper = __webpack_require__(/*! ./_LodashWrapper */ "./node_modules/lodash/_LodashWrapper.js"),
-    copyArray = __webpack_require__(/*! ./_copyArray */ "./node_modules/lodash/_copyArray.js");
+var LazyWrapper = __webpack_require__(6425),
+    LodashWrapper = __webpack_require__(7548),
+    copyArray = __webpack_require__(278);
 
 /**
  * Creates a clone of `wrapper`.
@@ -3108,10 +2781,68 @@ module.exports = wrapperClone;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/noop.js":
-/*!*************************************!*\
-  !*** ./node_modules/lodash/noop.js ***!
-  \*************************************/
+/***/ 5703:
+/***/ ((module) => {
+
+/**
+ * Creates a function that returns `value`.
+ *
+ * @static
+ * @memberOf _
+ * @since 2.4.0
+ * @category Util
+ * @param {*} value The value to return from the new function.
+ * @returns {Function} Returns the new constant function.
+ * @example
+ *
+ * var objects = _.times(2, _.constant({ 'a': 1 }));
+ *
+ * console.log(objects);
+ * // => [{ 'a': 1 }, { 'a': 1 }]
+ *
+ * console.log(objects[0] === objects[1]);
+ * // => true
+ */
+function constant(value) {
+  return function() {
+    return value;
+  };
+}
+
+module.exports = constant;
+
+
+/***/ }),
+
+/***/ 6557:
+/***/ ((module) => {
+
+/**
+ * This method returns the first argument it receives.
+ *
+ * @static
+ * @since 0.1.0
+ * @memberOf _
+ * @category Util
+ * @param {*} value Any value.
+ * @returns {*} Returns `value`.
+ * @example
+ *
+ * var object = { 'a': 1 };
+ *
+ * console.log(_.identity(object) === object);
+ * // => true
+ */
+function identity(value) {
+  return value;
+}
+
+module.exports = identity;
+
+
+/***/ }),
+
+/***/ 308:
 /***/ ((module) => {
 
 /**
@@ -3135,16 +2866,13 @@ module.exports = noop;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/partial.js":
-/*!****************************************!*\
-  !*** ./node_modules/lodash/partial.js ***!
-  \****************************************/
+/***/ 3131:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseRest = __webpack_require__(/*! ./_baseRest */ "./node_modules/lodash/_baseRest.js"),
-    createWrap = __webpack_require__(/*! ./_createWrap */ "./node_modules/lodash/_createWrap.js"),
-    getHolder = __webpack_require__(/*! ./_getHolder */ "./node_modules/lodash/_getHolder.js"),
-    replaceHolders = __webpack_require__(/*! ./_replaceHolders */ "./node_modules/lodash/_replaceHolders.js");
+var baseRest = __webpack_require__(5976),
+    createWrap = __webpack_require__(7727),
+    getHolder = __webpack_require__(893),
+    replaceHolders = __webpack_require__(6460);
 
 /** Used to compose bitmasks for function metadata. */
 var WRAP_PARTIAL_FLAG = 32;
@@ -3195,13 +2923,10 @@ module.exports = partial;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/set.js":
-/*!************************************!*\
-  !*** ./node_modules/lodash/set.js ***!
-  \************************************/
+/***/ 6968:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseSet = __webpack_require__(/*! ./_baseSet */ "./node_modules/lodash/_baseSet.js");
+var baseSet = __webpack_require__(2491);
 
 /**
  * Sets the value at `path` of `object`. If a portion of `path` doesn't exist,
@@ -3240,13 +2965,10 @@ module.exports = set;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/toFinite.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/toFinite.js ***!
-  \*****************************************/
+/***/ 8601:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var toNumber = __webpack_require__(/*! ./toNumber */ "./node_modules/lodash/toNumber.js");
+var toNumber = __webpack_require__(4841);
 
 /** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0,
@@ -3292,13 +3014,10 @@ module.exports = toFinite;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/toInteger.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/toInteger.js ***!
-  \******************************************/
+/***/ 554:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var toFinite = __webpack_require__(/*! ./toFinite */ "./node_modules/lodash/toFinite.js");
+var toFinite = __webpack_require__(8601);
 
 /**
  * Converts `value` to an integer.
@@ -3338,15 +3057,12 @@ module.exports = toInteger;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/toNumber.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/toNumber.js ***!
-  \*****************************************/
+/***/ 4841:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseTrim = __webpack_require__(/*! ./_baseTrim */ "./node_modules/lodash/_baseTrim.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    isSymbol = __webpack_require__(/*! ./isSymbol */ "./node_modules/lodash/isSymbol.js");
+var baseTrim = __webpack_require__(7561),
+    isObject = __webpack_require__(3218),
+    isSymbol = __webpack_require__(3448);
 
 /** Used as references for various `Number` constants. */
 var NAN = 0 / 0;
@@ -3412,18 +3128,15 @@ module.exports = toNumber;
 
 /***/ }),
 
-/***/ "./node_modules/lodash/wrapperLodash.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/wrapperLodash.js ***!
-  \**********************************************/
+/***/ 8111:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var LazyWrapper = __webpack_require__(/*! ./_LazyWrapper */ "./node_modules/lodash/_LazyWrapper.js"),
-    LodashWrapper = __webpack_require__(/*! ./_LodashWrapper */ "./node_modules/lodash/_LodashWrapper.js"),
-    baseLodash = __webpack_require__(/*! ./_baseLodash */ "./node_modules/lodash/_baseLodash.js"),
-    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js"),
-    wrapperClone = __webpack_require__(/*! ./_wrapperClone */ "./node_modules/lodash/_wrapperClone.js");
+var LazyWrapper = __webpack_require__(6425),
+    LodashWrapper = __webpack_require__(7548),
+    baseLodash = __webpack_require__(9435),
+    isArray = __webpack_require__(1469),
+    isObjectLike = __webpack_require__(7005),
+    wrapperClone = __webpack_require__(1913);
 
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
@@ -3566,17 +3279,6 @@ lodash.prototype.constructor = lodash;
 
 module.exports = lodash;
 
-
-/***/ }),
-
-/***/ "./public/page-data/sq/d/2582528629.json":
-/*!***********************************************!*\
-  !*** ./public/page-data/sq/d/2582528629.json ***!
-  \***********************************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = JSON.parse('{"data":{"site":{"siteMetadata":{"siteName":"AiTmed","siteTitle":"AiTmed | Start your E-health Journey Anywhere, Anytime","siteDescription":"Anyone, Anywhere, Anytime Start Your E-health Journey With Us","siteLogo":"https://public.aitmed.com/cadl/www3.83/assets/aitmedLogo.png","siteUrl":"https://aitmed.com","siteVideo":"https://public.aitmed.com/commonRes/video/aitmed228FromBlair11192020.mp4"}}}}');
 
 /***/ })
 

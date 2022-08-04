@@ -12,12 +12,13 @@ import {
   deref,
 } from 'noodl-ui'
 import type { NUIActionObject, NUIActionChain, NUITrigger } from 'noodl-ui'
+import { handleSamePageScroll } from '@/utils/actionUtils'
 import is from '@/utils/is'
 import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
 import log from '@/utils/log'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
 import useCtx from '@/useCtx'
-import { createDraft, finishDraft } from '@/utils/immer'
+import { createDraft, finishDraft, isDraft, toCurrent } from '@/utils/immer'
 import { usePageCtx } from '@/components/PageContext'
 import * as c from '../constants'
 import * as t from '@/types'
@@ -60,71 +61,28 @@ function useActionChain() {
       },
   ) => {
     try {
-      let scrollingTo = ''
-
       if (is.reference(value)) {
-        value =
-          value === '.WebsitePathSearch'
-            ? // Temp hard code for now
-              'https://search.aitmed.com'
-            : deref({
-                root: getRootDraftOrRoot(args.actionChain),
-                ref: value,
-                rootKey: pageCtx.name,
-              })
+        if (value === '.WebsitePathSearch') {
+          return (window.location.href = 'https://search.aitmed.com')
+        }
+        value = deref({
+          root: getRootDraftOrRoot(args.actionChain),
+          ref: value,
+          rootKey: pageCtx.name,
+        })
+        // These are values coming from an if object evaluation since we are also using this function for if object strings
+        if (is.isBoolean(value)) return is.isBooleanTrue(value)
+        if (u.isObj(value)) log.error(`REMINDER: LOOK INTO THIS PART`)
       }
 
-      // These are values coming from an if object evaluation since we are also using this function for if object strings
-      if (is.isBoolean(value)) return is.isBooleanTrue(value)
-
-      if (u.isObj(value)) {
-        // debugger
-      } else if (u.isStr(value)) {
-        if (value.startsWith('^')) {
-          // TODO - Handle goto scrolls when navigating to a different page
-          scrollingTo = value.substring(1)
-          value = value.replace('^', '')
-        } else if (pageCtx.isListConsumer(args.component)) {
-          const iteratorVar = pageCtx.getIteratorVar(args.component)
-          const dataObject = pageCtx.getDataObject(
-            args.component,
-            getRootDraftOrRoot(args.actionChain),
-            pageCtx.name,
-          )
-          if (iteratorVar && value.startsWith(iteratorVar)) {
-            value = get(dataObject, excludeIteratorVar(value, iteratorVar))
-          }
-        }
-      }
-
-      if (!value?.startsWith?.('http') && (value || scrollingTo)) {
-        let scrollingToElem: HTMLElement | undefined
-        let prevId = ''
-        if (scrollingTo) {
-          scrollingToElem = document.querySelector(
-            `[data-viewtag=${scrollingTo}]`,
-          )
-          if (scrollingToElem) {
-            prevId = scrollingToElem.id
-            scrollingToElem.id = scrollingTo
-          } else {
-            log.error(
-              `Tried to find an element of viewTag "${scrollingTo}" but it did not exist`,
-            )
-          }
-        }
-
-        if (scrollingToElem && prevId) {
-          scrollingToElem.scrollIntoView({
-            behavior: 'smooth',
-            inline: 'center',
-          })
-        } else {
-          await navigate(`/${value}/index.html`)
-        }
-      } else {
+      if (value.startsWith('http')) {
         window.location.href = value
+      } else if (value.startsWith('^')) {
+        await handleSamePageScroll(navigate, value)
+      } else {
+        await navigate(`/${value}/index.html`)
       }
+
       // This can get picked up if evalObject is returning a goto
       return 'abort'
     } catch (error) {
@@ -246,7 +204,11 @@ function useActionChain() {
         let value: any
 
         if (u.isStr(cond)) {
-          value = await executeStr?.(cond, { ...args, action: cond })
+          if (is.reference(cond)) {
+            value = await executeStr?.(cond, { ...args, action: cond })
+          } else {
+            value = cond
+          }
         }
 
         if (isBuiltInEvalFn(cond)) {
@@ -269,9 +231,19 @@ function useActionChain() {
         }
 
         if (u.isObj(value)) {
+          // TODO - Replace requiresDynamicHandling with is.dynamicAction
           if (args.requiresDynamicHandling(value)) {
-            for (const [k, v] of u.entries(value)) {
+            for (let [k, v] of u.entries(value)) {
+              if (is.reference(v)) {
+                const rootDraft = getRootDraftOrRoot(args.actionChain)
+                if (is.localReference(v)) {
+                  v = get(rootDraft[pageCtx.name], trimReference(v))
+                } else {
+                  v = get(rootDraft, trimReference(v))
+                }
+              }
               if (is.reference(k)) {
+                // { k: '..imgData@', v: '=..imgDataNext' }
                 if (k.endsWith('@')) {
                   const keyDataPath = trimReference(k)
                   const rootDraft = getRootDraftOrRoot(args.actionChain)
@@ -280,7 +252,12 @@ function useActionChain() {
                   } else {
                     set(rootDraft, keyDataPath, v)
                   }
+                } else {
+                  console.error(`REMINDER: LOOK INTO THIS IMPLEMENTATION`)
                 }
+              } else {
+                const rootDraft = getRootDraftOrRoot(args.actionChain)
+                set(rootDraft, k, v)
               }
             }
           } else {
@@ -341,9 +318,7 @@ function useActionChain() {
            * Beginning of actionChain.execute()
            */
           action.executor = (function (actions: any[] = [], dataObject) {
-            return async function onExecuteEmitAction(
-              event: React.SyntheticEvent,
-            ) {
+            return async function onExecuteEmitAction() {
               let draftedActionObject: any
               let results = [] as any[]
 
@@ -417,7 +392,7 @@ function useActionChain() {
   const execute = React.useMemo(
     () =>
       wrapWithHelpers(async function onExecuteAction(options, utils) {
-        const { action: obj, actionChain, dataObject } = options
+        let { action: obj, actionChain, dataObject } = options
         const args = { ...options, ...utils, onExecuteAction }
 
         try {
@@ -442,7 +417,7 @@ function useActionChain() {
             }
             // { emit: { dataKey: {...}, actions: [...] } }
             else if (is.folds.emit(obj)) {
-              // debugger
+              log.error(`REMINDER: IMPLEMENT EXECUTE EMIT OBJECT`)
             }
             // { actionType: 'evalObject', object: [...] }
             else if (is.action.evalObject(obj)) {

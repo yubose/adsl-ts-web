@@ -8,8 +8,6 @@ var _apiRunnerBrowser = require("./api-runner-browser");
 
 var _react = _interopRequireDefault(require("react"));
 
-var _reactDom = _interopRequireDefault(require("react-dom"));
-
 var _reachRouter = require("@gatsbyjs/reach-router");
 
 var _gatsbyReactRouterScroll = require("gatsby-react-router-scroll");
@@ -32,10 +30,16 @@ var _stripPrefix = _interopRequireDefault(require("./strip-prefix"));
 
 var _matchPaths = _interopRequireDefault(require("$virtual/match-paths.json"));
 
+var _reactDomUtils = require("./react-dom-utils");
+
 // Generated during bootstrap
 const loader = new _loader.ProdLoader(_asyncRequires.default, _matchPaths.default, window.pageData);
 (0, _loader.setLoader)(loader);
 loader.setApiRunner(_apiRunnerBrowser.apiRunner);
+const {
+  render,
+  hydrate
+} = (0, _reactDomUtils.reactDOMUtils)();
 window.asyncRequires = _asyncRequires.default;
 window.___emitter = _emitter.default;
 window.___loader = _loader.publicLoader;
@@ -218,16 +222,20 @@ const reloadStorageKey = `gatsby-reload-compilation-hash-match`;
       return /*#__PURE__*/_react.default.createElement(GatsbyRoot, null, SiteRoot);
     };
 
-    const renderer = (0, _apiRunnerBrowser.apiRunner)(`replaceHydrateFunction`, undefined, _reactDom.default.hydrateRoot ? _reactDom.default.hydrateRoot : _reactDom.default.hydrate)[0];
+    const focusEl = document.getElementById(`gatsby-focus-wrapper`); // Client only pages have any empty body so we just do a normal
+    // render to avoid React complaining about hydration mis-matches.
+
+    let defaultRenderer = render;
+
+    if (focusEl && focusEl.children.length) {
+      defaultRenderer = hydrate;
+    }
+
+    const renderer = (0, _apiRunnerBrowser.apiRunner)(`replaceHydrateFunction`, undefined, defaultRenderer)[0];
 
     function runRender() {
       const rootElement = typeof window !== `undefined` ? document.getElementById(`___gatsby`) : null;
-
-      if (renderer === _reactDom.default.hydrateRoot) {
-        renderer(rootElement, /*#__PURE__*/_react.default.createElement(App, null));
-      } else {
-        renderer( /*#__PURE__*/_react.default.createElement(App, null), rootElement);
-      }
+      renderer( /*#__PURE__*/_react.default.createElement(App, null), rootElement);
     } // https://github.com/madrobby/zepto/blob/b5ed8d607f67724788ec9ff492be297f64d47dfc/src/zepto.js#L439-L450
     // TODO remove IE 10 support
 
