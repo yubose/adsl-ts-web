@@ -39,7 +39,7 @@ const paths = {
   generated: getFilePath('../../generated'),
 }
 
-console.log(paths)
+// console.log(paths)
 
 /**
  * @type { Record<'name' | 'title' | 'description' | 'favicon' | 'keywords' | 'injectScripts', any> }
@@ -91,7 +91,7 @@ function getWebpackConfig(env) {
   const devServerOptions = { onAfterSetupMiddleware: [], static: staticPaths }
   const environmentPluginOptions = {}
 
-  if (env.APP || env.DEBUG) {
+  if (env.APP || env.DEBUG || env.DEBUG_APP) {
     // TODO - env.APP is broken. Pass in env.DEBUG instead
     if (env.APP) {
       environmentPluginOptions.ANALYSIS_APP = env.APP
@@ -113,8 +113,8 @@ function getWebpackConfig(env) {
         },
       )
     } else {
-      const basedir = path.join(paths.debug, env.DEBUG)
-      environmentPluginOptions.DEBUG_APP = env.DEBUG
+      const basedir = path.join(paths.debug, env.DEBUG_APP || env.DEBUG)
+      environmentPluginOptions.DEBUG_APP = env.DEBUG_APP || env.DEBUG
       devServerOptions.static.push(basedir)
       devServerOptions.onAfterSetupMiddleware.push(
         /**
@@ -123,7 +123,7 @@ function getWebpackConfig(env) {
         function onAfterSetupMiddleware(devServer) {
           const createAppDebugger = require('../../scripts/createAppDebugger')
           const appDebugger = createAppDebugger({
-            app: env.DEBUG,
+            app: env.DEBUG_APP || env.DEBUG,
             basedir,
             devServer,
             env,

@@ -1,3 +1,4 @@
+const chalk = require('chalk')
 const fs = require('fs-extra')
 const path = require('path')
 const readline = require('readline')
@@ -37,12 +38,13 @@ const ask = (question) =>
  */
 const exec = (cmd, o) => spawnSync(cmd, { shell: true, stdio: 'inherit', ...o })
 const getPath = (...s) => path.join(process.cwd(), ...s)
+const aqua = chalk.keyword('aquamarine')
+const coolGold = chalk.keyword('navajowhite')
 
+//
 ;(async function () {
   try {
     u.newline()
-
-    log.info(`Running post install script`)
 
     const packagesDir = getPath('packages')
 
@@ -151,7 +153,25 @@ const getPath = (...s) => path.join(process.cwd(), ...s)
       } else {
         process.exit(0)
       }
+
+      u.newline()
     }
+
+    log.info(
+      `Running ${coolGold('npm install')} in ${u.yellow('./apps/static')}`,
+    )
+
+    u.newline()
+
+    exec(`cd apps/static && npm install -f`)
+
+    u.newline()
+
+    log.info(`Running ${coolGold('npm install')} in ${u.yellow('./apps/web')}`)
+
+    u.newline()
+
+    exec(`cd apps/web && npm install -f`)
 
     u.newline()
 

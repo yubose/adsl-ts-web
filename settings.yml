@@ -1,8 +1,8 @@
 name: AiTmed
 title: AiTmed | Start your E-health Journey Anywhere, Anytime
 description: Anyone, Anywhere, Anytime Start Your E-health Journey With Us
-favicon: ./public/favicon.ico
-injectScripts: ./public/libs.html
+favicon: ./public/favicon.ico # Relative path starting from ./apps/web
+injectScripts: ./public/libs.html # Relative path starting from ./apps/web
 keywords:
   - accommodate
   - account

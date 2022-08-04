@@ -249,3 +249,8 @@ NUI.emit({
 ## Todos
 
 - Generic data-view-model input type checking (04/26/22)
+
+- fixed some list item images not displaying their images
+- improved redirect speed when clicking "Find My Care"
+- fixed other images not displaying images (our logo on the bottom left of homepage)
+- fixed rendering `&nbsp;`
