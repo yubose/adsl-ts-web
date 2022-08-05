@@ -9,7 +9,7 @@ import App from './App'
 import { getWindowDebugUtils } from './utils/windowDebugUtils'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
-import 'vercel-toast/dist/vercel-toast.css'
+import 'vercel-toast/css'
 import './spinner/three-dots.css'
 import './styles.css'
 
@@ -151,7 +151,6 @@ window.addEventListener('load', async (e) => {
   }
 
   try {
-    window.appName = process.env.APP
     window.build = process.env.BUILD
     window.local = process.env.LOCAL_INFO
     window.ac = []
@@ -231,42 +230,42 @@ window.addEventListener('load', async (e) => {
     }
   }
 })
-if(localStorage.getItem("config")?.includes("admin")){
-  window.addEventListener("load",()=>{
-    const setTimeBoard = (time)=>{
-      let userTime = time*60;
-      let body = document.querySelector('body');
+if (localStorage.getItem('config')?.includes('admin')) {
+  window.addEventListener('load', () => {
+    const setTimeBoard = (time) => {
+      let userTime = time * 60
+      let body = document.querySelector('body')
       let objTime = {
         init: 0,
-        addEvents: function(){
-          body?.addEventListener("click",objTime.eventFun);
-          body?.addEventListener("keydown",objTime.eventFun);
-          body?.addEventListener("mousemove",objTime.eventFun);
-          body?.addEventListener("mousewheel",objTime.eventFun);
-          window?.addEventListener("resize",objTime.eventFun);
-          body?.addEventListener("scroll",objTime.eventFun);
+        addEvents: function () {
+          body?.addEventListener('click', objTime.eventFun)
+          body?.addEventListener('keydown', objTime.eventFun)
+          body?.addEventListener('mousemove', objTime.eventFun)
+          body?.addEventListener('mousewheel', objTime.eventFun)
+          window?.addEventListener('resize', objTime.eventFun)
+          body?.addEventListener('scroll', objTime.eventFun)
         },
-        removeEvents:function(){
-          body?.removeEventListener("click",objTime.eventFun);
-          body?.removeEventListener("keydown",objTime.eventFun);
-          body?.removeEventListener("mousemove",objTime.eventFun);
-          body?.removeEventListener("mousewheel",objTime.eventFun);
-          body?.removeEventListener("scroll",objTime.eventFun);
-          window?.removeEventListener("resize",objTime.eventFun);
+        removeEvents: function () {
+          body?.removeEventListener('click', objTime.eventFun)
+          body?.removeEventListener('keydown', objTime.eventFun)
+          body?.removeEventListener('mousemove', objTime.eventFun)
+          body?.removeEventListener('mousewheel', objTime.eventFun)
+          body?.removeEventListener('scroll', objTime.eventFun)
+          window?.removeEventListener('resize', objTime.eventFun)
         },
-        time: function(){
-          objTime.init+=1;
-          if(objTime.init==userTime){
-              let kun = document.createElement("div");
-              let kunBtn = document.createElement("div");
-              let kunImg = document.createElement("img");
-              let kunText = document.createElement("div");
-              kun.style.cssText = `width:100%;height:100%;background-color: #00000077;
+        time: function () {
+          objTime.init += 1
+          if (objTime.init == userTime) {
+            let kun = document.createElement('div')
+            let kunBtn = document.createElement('div')
+            let kunImg = document.createElement('img')
+            let kunText = document.createElement('div')
+            kun.style.cssText = `width:100%;height:100%;background-color: #00000077;
               position: absolute;z-index:10000000;
               display:flex;
               justify-content: center;
               align-items: center; `
-              kunBtn.style.cssText = `
+            kunBtn.style.cssText = `
               width:25%;
               height:30%;
               background-color: #fff;
@@ -282,33 +281,37 @@ if(localStorage.getItem("config")?.includes("admin")){
               font-family: Roboto;
               flex-direction: column;
               `
-              kunImg.src = "warningRed.svg";
-              kunText.style.textAlign = "center";
-              kunText.textContent = `Timeout of 30 minutes is the operation platform, and the screen is automatically locked`
-              kunBtn.append(kunImg)
-              kunBtn.append(kunText)
-              kun.append(kunBtn)
-              document.body.append(kun);
-              kun.addEventListener("click",()=>{
-                kun.remove();
-                clearInterval(testUser);
+            kunImg.src = 'warningRed.svg'
+            kunText.style.textAlign = 'center'
+            kunText.textContent = `Timeout of 30 minutes is the operation platform, and the screen is automatically locked`
+            kunBtn.append(kunImg)
+            kunBtn.append(kunText)
+            kun.append(kunBtn)
+            document.body.append(kun)
+            kun.addEventListener(
+              'click',
+              () => {
+                kun.remove()
+                clearInterval(testUser)
                 objTime.addEvents()
-              },false)
-              clearInterval(testUser);
-              objTime.removeEvents();
-              log.grey('Timeout pop-up display [index.ts]')
+              },
+              false,
+            )
+            clearInterval(testUser)
+            objTime.removeEvents()
+            log.grey('Timeout pop-up display [index.ts]')
           }
         },
-        eventFun:function(){
-          clearInterval(testUser);
-          objTime.init = 0;
-          testUser = setInterval(objTime.time,1000);
-        }
+        eventFun: function () {
+          clearInterval(testUser)
+          objTime.init = 0
+          testUser = setInterval(objTime.time, 1000)
+        },
       }
-      let testUser = setInterval(objTime.time,1000);
+      let testUser = setInterval(objTime.time, 1000)
       objTime.addEvents()
-    };
-    setTimeBoard(30);
+    }
+    setTimeBoard(30)
   })
 }
 

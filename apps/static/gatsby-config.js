@@ -74,10 +74,10 @@ module.exports = {
       resolve: 'gatsby-transformer-sharp',
     },
     {
-      // resolve: 'gatsby-plugin-noodl',
-      resolve: require.resolve(
-        '../../../aitmed-noodl-lib/packages/gatsby-plugin-noodl',
-      ),
+      resolve: 'gatsby-plugin-noodl',
+      // resolve: require.resolve(
+      //   '../../../aitmed-noodl-lib/packages/gatsby-plugin-noodl',
+      // ),
       options: {
         // Defaults to "aitmed"
         config: configKey,
