@@ -1004,7 +1004,7 @@ class App {
               let result: any
 
               if (/(dataValue|path|placeholder)/.test(trigger)) {
-                if(trigger === 'path'){
+                if(trigger === 'path' && component.type === 'image'){
                   result = actionChain?.execute?.()
                   // result = results.find((val) => !!val?.result)?.result
                 }else{
@@ -1022,7 +1022,7 @@ class App {
                         ? resolveAssetUrl(result, this.nui.getAssetsUrl())
                         : ''
                     }    
-                    component.edit({ src: result })
+                    component.edit({ 'src': result })
                     component.edit({ 'data-src': result })
                     component.emit('path', result)
                   }
