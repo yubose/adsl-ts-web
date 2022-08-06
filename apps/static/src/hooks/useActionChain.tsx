@@ -413,11 +413,20 @@ function useActionChain() {
             // { actionType: 'builtIn', funcName: 'redraw' }
             else if (is.action.builtIn(obj)) {
               const funcName = obj.funcName
-              log.debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj)
+              // log.debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj)
             }
             // { emit: { dataKey: {...}, actions: [...] } }
             else if (is.folds.emit(obj)) {
               log.error(`REMINDER: IMPLEMENT EXECUTE EMIT OBJECT`)
+              for (const action of u.array(obj.emit.actions)) {
+                if (is.folds.if(action)) {
+                  await executeIf(action, {
+                    ...args,
+                    ...utils,
+                    onExecuteAction,
+                  })
+                }
+              }
             }
             // { actionType: 'evalObject', object: [...] }
             else if (is.action.evalObject(obj)) {
