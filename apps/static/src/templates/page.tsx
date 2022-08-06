@@ -12,9 +12,9 @@ interface NoodlPageTemplateProps extends PageProps {
 function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   const page = usePage(props)
 
-  React.useEffect(() => {
-    console.log(props)
-  }, [])
+  // React.useEffect(() => {
+  //   console.log(props)
+  // }, [])
 
   return <>{page.components.map(page.render)}</>
 }

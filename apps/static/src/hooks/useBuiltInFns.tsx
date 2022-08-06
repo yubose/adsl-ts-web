@@ -12,7 +12,7 @@ import is from '@/utils/is'
 import * as t from '@/types'
 
 interface CommonRenderComponentHelpers
-  extends Pick<t.AppContext, 'root' | 'getR' | 'setR'> {
+  extends Pick<t.AppContext, 'getR' | 'root' | 'setR'> {
   name: string
 }
 
@@ -35,7 +35,7 @@ function purgeDataIn({
   name: pageName,
   dataObject,
   dataIn,
-}: Pick<CommonRenderComponentHelpers, 'getR' | 'name'> & BuiltInFnProps) {
+}: BuiltInFnProps & Pick<CommonRenderComponentHelpers, 'getR' | 'name'>) {
   for (const [key, value] of u.entries(dataIn)) {
     if (u.isStr(value)) {
       if (value.startsWith('$')) {
@@ -65,12 +65,12 @@ function getBuiltInFns(options: CommonRenderComponentHelpers) {
       const str1 = String(dataIn?.string1)
       const str2 = String(dataIn?.string2)
       const isEqual = str1 === str2
-      log.debug(
-        `%c[=.builtIn] Comparing: ${str1 === '' ? "''" : `'${str1}'`} === ${
-          str2 === '' ? "''" : `'${str2}'`
-        }: ${isEqual}`,
-        'color:rgb(98, 143, 42)',
-      )
+      // log.debug(
+      //   `%c[=.builtIn] Comparing: ${str1 === '' ? "''" : `'${str1}'`} === ${
+      //     str2 === '' ? "''" : `'${str2}'`
+      //   }: ${isEqual}`,
+      //   'color:rgb(98, 143, 42)',
+      // )
       return isEqual
     },
     // Branched from lvl3

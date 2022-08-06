@@ -17,6 +17,7 @@ import trimVarReference from '@/utils/trimVarReference'
 import { getCurrent } from '@/utils/immer'
 import { usePageCtx } from '@/components/PageContext'
 import type * as t from '@/types'
+import { handleIfObject } from '@/utils/actionUtils'
 
 interface CreateElementProps<Props = any> {
   key?: string
@@ -48,7 +49,7 @@ function useRenderer() {
   // Used to prevent infinite loops when dereferencing references
   const refsRef = React.useRef<Record<string, any>>({})
   const { getR, root, setR } = useCtx()
-  const { createActionChain } = useActionChain()
+  const { createActionChain, execute, executeIf } = useActionChain()
   const builtInFns = useBuiltInFns()
   const { assetsUrl, getDataObject, getIteratorVar, isListConsumer, name } =
     usePageCtx()
@@ -145,13 +146,6 @@ function useRenderer() {
               ) {
                 props.src = assetsUrl + props.src
               }
-
-              if (
-                props.src ===
-                'https://public.aitmed.com/cadl/www4.14/assets/partner/13.png'
-              ) {
-                // debugger
-              }
             } else if (is.folds.emit(component.path)) {
               props.src = builtInFns.builtIns['=.builtIn.object.resolveEmit']({
                 dataIn: { emit: component.path.emit, trigger: 'path' },
@@ -174,7 +168,44 @@ function useRenderer() {
 
             props['data-src'] = props.src
           } else {
-            props.src = value
+            if (is.folds.emit(component.path)) {
+              const emitObject = component.path
+              Promise.resolve().then(async () => {
+                const results = [] as any[]
+
+                for (const action of u.array(emitObject.emit.actions)) {
+                  if (is.folds.if(action)) {
+                    const ifResult = await handleIfObject(action, {
+                      use: {
+                        ref: (ref) => getR(root, trimReference(ref), name),
+                      },
+                    })
+                    if (u.isStr(ifResult)) {
+                      const src = `${assetsUrl}${ifResult}`
+                      results.push(src)
+                    }
+                  }
+                }
+
+                if (results.length) {
+                  if (results.length === 1) {
+                    props.src = results[0]
+                    if (typeof window !== 'undefined') {
+                      const el = document.getElementById(
+                        component.id,
+                      ) as HTMLImageElement
+                      if (el) el.src = props.src
+                    }
+                  } else {
+                    log.error(
+                      `REMINDER: IMPLEMENT MORE INTO THIS EMIT PATH RENDERING`,
+                    )
+                  }
+                }
+              })
+            } else {
+              props.src = value
+            }
           }
         } else if (key === 'style') {
           if (u.isObj(value)) {

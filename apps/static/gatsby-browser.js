@@ -3,108 +3,63 @@ enablePatches()
 import 'react-toastify/dist/ReactToastify.css'
 import wrapWithProviders from './wrapWithProviders'
 
-export function onClientEntry() {
-  console.log(`[onClientEntry]`)
-}
-
-// export function registerServiceWorker({
-//   getResourceURLsForPathname,
-//   loadPage,
-//   loadPageSync,
-// }) {
-//   if (typeof window === 'undefined') return
-//   console.log('[registerServiceWorker]', {
-//     urlResourcesForCurrentPathname: getResourceURLsForPathname(
-//       window.location?.pathname || '',
-//     ),
-//   })
-// }
+export function onClientEntry() {}
 
 /**
  * @param { import('gatsby').RouteUpdateArgs } param0
  */
-export function onPreRouteUpdate({ location, prevLocation }) {
-  const from = prevLocation?.pathname || ''
-  const to = location.pathname || ''
-  console.log(
-    `[onPreRouteUpdate] Gatsby started to change the location from ${from} to ${to}`,
-  )
-}
+export function onPreRouteUpdate({ location, prevLocation }) {}
 
 /**
  * @param { import('gatsby').RouteUpdateArgs } param0
  */
-export function onRouteUpdate({ location, prevLocation }) {
-  const from = prevLocation?.pathname || ''
-  const to = location.pathname || ''
-  console.log(`[onRouteUpdate] Gatsby changed location from ${from} to ${to}`)
-}
+export function onRouteUpdate({ location, prevLocation }) {}
 
 /**
  * @param { import('gatsby').ShouldUpdateScrollArgs } args
  */
-export function shouldUpdateScroll(args) {
-  console.log(`[shouldUpdateScroll]`, args)
-}
+export function shouldUpdateScroll(args) {}
 
-export function onInitialClientRender() {
-  console.log(`[onInitialClientRender]`)
-}
+export function onInitialClientRender() {}
 
 /**
  * @param { import('gatsby').PrefetchPathnameArgs } args
  */
-export function onPrefetchPathname(args) {
-  console.log(`[onPrefetchPathname]`, args)
-}
+export function onPrefetchPathname(args) {}
 
 /**
  * @param { import('gatsby').PrefetchPathnameArgs } args
  */
-export function onPostPrefetchPathname(args) {
-  console.log(`[onPostPrefetchPathname]`, args)
-}
+export function onPostPrefetchPathname(args) {}
 
 /**
  * @param { import('gatsby').RouteUpdateDelayedArgs } args
  */
-export function onRouteUpdateDelayed(args) {
-  console.log('[onRouteUpdateDelayed]', args)
-}
+export function onRouteUpdateDelayed(args) {}
 
 /**
  * @param { import('gatsby').ServiceWorkerArgs } args
  */
-export function onServiceWorkerInstalled(args) {
-  console.log('[onServiceWorkerInstalled]', args)
-}
+export function onServiceWorkerInstalled(args) {}
 
 /**
  * @param { import('gatsby').ServiceWorkerArgs } args
  */
-export function onServiceWorkerActive(args) {
-  console.log('[onServiceWorkerActive]', args)
-}
+export function onServiceWorkerActive(args) {}
 
 /**
  * @param { import('gatsby').ServiceWorkerArgs } args
  */
-export function onServiceWorkerRedundant(args) {
-  console.log('[onServiceWorkerRedundant]', args)
-}
+export function onServiceWorkerRedundant(args) {}
 
 /**
  * @param { import('gatsby').ServiceWorkerArgs } args
  */
-export function onServiceWorkerUpdateFound(args) {
-  console.log('[onServiceWorkerUpdateFound]', args)
-}
+export function onServiceWorkerUpdateFound(args) {}
 /**
  * @param { import('gatsby').ServiceWorkerArgs } args
  */
-export function onServiceWorkerUpdateReady(args) {
-  console.log('[onServiceWorkerUpdateReady]', args)
-}
+export function onServiceWorkerUpdateReady(args) {}
 
 // export function replaceHydrateFunction() {
 //   return (element, container, callback) => {
