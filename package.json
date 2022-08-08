@@ -182,5 +182,8 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
+  },
+  "dependencies": {
+    "noodl-ui": "^0.1.150"
   }
 }
