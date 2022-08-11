@@ -767,7 +767,7 @@ class App {
                       setTimeout(()=>{
                         let lockPageName = localStorage.getItem("lockPageName") as string;
                         if(!(window.location.href.slice(-(lockPageName?.length))===lockPageName)){
-                          localStorage.setItem("lockPreUrl",window.location.href);
+                          localStorage.setItem("lockPreUrl",JSON.stringify(window.location.href.split("?")[1].split("-")));
                           window.location.href =
                           window.location.href.indexOf(lockPageName)>0?
                           window.location.href.slice(0,window.location.href.indexOf(lockPageName))+lockPageName:window.location.href+`-${lockPageName}`;
