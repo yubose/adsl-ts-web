@@ -1003,14 +1003,14 @@ class App {
               >[] = []
               let result: any
 
-              if (/(dataValue|path|placeholder)/.test(trigger)) {
+              if (/(dataValue|path|placeholder|style)/.test(trigger)) {
                 if(trigger === 'path' && component.type === 'image'){
                   result = actionChain?.execute?.()
                   // result = results.find((val) => !!val?.result)?.result
                 }else{
                   results = await actionChain?.execute?.()
                   result = results.find((val) => !!val?.result)?.result
-                } 
+                }
 
                 let datasetKey = ''
 
@@ -1028,7 +1028,14 @@ class App {
                   }
                 } else if (trigger === 'dataValue') {
                   datasetKey = 'value'
-                } else {
+                }else if(trigger === 'style') {
+                  let original:any = component.blueprint || {}
+                  if (result) {
+                    for (const k of Object.keys(result)) {
+                      original.style[k] = result[k]
+                    }
+                  }
+                }else {
                   datasetKey = trigger.toLowerCase()
                 }
                 component.edit({ [`data-${datasetKey}`]: result })
