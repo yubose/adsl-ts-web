@@ -1,15 +1,13 @@
 ## Building the Static Web App (Homepage) - _Last Updated 05/03/22_
 
-If `npm install -f` was never run (or if packages was not installed) you can _skip to_ _Step 2_
-
-0. `git checkout dev2`
-1. `lerna exec --scope homepage npx gatsby clean && lerna clean && rm -rf node_modules package-lock.json`
-2. `npm install -f`
-3. `lerna exec --scope homepage npm run build` (or go to the folder by doing `cd packages/homepage && npm run build`)
-4. The static app will be built to: `./packages/homepage/public`. The files in this folder are the files we upload to an s3 bucket
-5. To upload to s3 go to the `public` folder (`cd packages/homepage/public` or `cd ./public` if you are in the homepage folder)
-6. Run `aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/`
-7. Go to AWS CloudFront and update the resource path
+1. `git clone http://gitlab.aitmed.com/frontend/aitmed-noodl-web.git`
+2. `cd aitmed-noodl-web`
+3. `git checkout dev2`
+4. `npm install -f`
+5. The static app will be built to: `./packages/homepage/public`. The files in this folder are the files we upload to an s3 bucket
+6. To upload to s3 go to the `public` folder (`cd packages/homepage/public` or `cd ./public` if you are in the homepage folder)
+7. Run `aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/`
+8. Go to AWS CloudFront and update the resource path
 
 The app will be built using config `www` by default. To build with a different config like `mob.yml` pass `CONFIG=mob` to env variables when running `npm run build`
 
@@ -251,3 +249,8 @@ NUI.emit({
 ## Todos
 
 - Generic data-view-model input type checking (04/26/22)
+
+- fixed some list item images not displaying their images
+- improved redirect speed when clicking "Find My Care"
+- fixed other images not displaying images (our logo on the bottom left of homepage)
+- fixed rendering `&nbsp;`

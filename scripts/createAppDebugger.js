@@ -79,25 +79,25 @@ function createAppDebugger({
       try {
         devServer?.app?.get(`/assets/:filename`, (req, res) => {
           let { filename } = req.params
-          log(`Requesting asset: ${coolGold(filename)}`)
+          // log(`Requesting asset: ${coolGold(filename)}`)
           const filepath = path.join(basedir, 'assets', filename)
-          log(`Filepath: ${coolGold(filepath)}`)
+          // log(`Filepath: ${coolGold(filepath)}`)
           if (filepath) res.sendFile(filepath)
           else res.status(500).json({ error: `File "${filename}" not found` })
         })
 
         devServer?.app?.get(`/:appname/:filename`, (req, res, next) => {
           let { filename } = req.params
-          log(`Requesting file: ${aqua(filename)}`)
+          // log(`Requesting file: ${aqua(filename)}`)
           if (filename.includes('_en')) filename = filename.replace('_en', '')
           if (filename.endsWith('.yml')) filename = filename.replace('.yml', '')
-          log(`Formatted filename: ${u.yellow(filename)}`)
+          // log(`Formatted filename: ${u.yellow(filename)}`)
           const glob = '**/*.yml'
-          log(`Glob: ${u.yellow(glob)}`)
+          // log(`Glob: ${u.yellow(glob)}`)
           const filepaths = fg.sync(glob, { cwd: basedir })
-          log(`Finding within ${u.yellow(filepaths.length)} possible matches`)
+          // log(`Finding within ${u.yellow(filepaths.length)} possible matches`)
           const filepath = _findMatchingFileName(filepaths, filename)
-          log(`Matching filepath: ${u.yellow(filepath)}`)
+          // log(`Matching filepath: ${u.yellow(filepath)}`)
           const fileyml = loadAsYml(filepath)
           if (!fileyml) return next()
           res.status(200).json(fileyml)
@@ -164,7 +164,7 @@ function createAppDebugger({
             path: filepath,
             ext: path.extname(filepath),
           }
-          log(routeObject)
+          // log(routeObject)
           routeFilePaths.push(routeObject)
           if (!fs.existsSync(routeObject.path)) {
             log(
@@ -182,8 +182,8 @@ function createAppDebugger({
           const route = obj.ext
             ? new RegExp(`(${trimmedName})(_en)?(${obj.ext})$`)
             : new RegExp(`${trimmedName}(_en)?`)
-          log(`Registering route ${u.yellow(trimmedName)}`)
-          log(obj)
+          log(`Registering route ${u.yellow(route.source)}`)
+          // log(obj)
           devServer.app.get(route, (req, res) => {
             res.status(200).sendFile(obj.path)
           })
