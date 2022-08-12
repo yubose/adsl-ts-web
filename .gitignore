@@ -1,5 +1,7 @@
+.cache
 .env
 **/*/package-lock.json
+apps/static/public
 build
 dist
 docs
@@ -7,6 +9,7 @@ generated
 lib
 noodl.yml
 node_modules
+output
 public/admin
 public/aitmed
 server
