@@ -610,6 +610,7 @@ class App {
   }
 
   async getPageObject(page: NDOMPage): Promise<{ aborted: true } | void> {
+
     if (!this.getState().spinner.active) {
       this.enableSpinner({ target: page?.node || this.mainPage?.node })
     }
@@ -644,7 +645,6 @@ class App {
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
-
       if (page.previous === page.requesting) page.previous = page.page
 
       isAbortedFromSDK = (
@@ -653,7 +653,11 @@ class App {
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
             log.func('onBeforeInit')
+            // console.log(localStorage.getItem("keepingLockState"))
             log.grey('', { init, page: pageRequesting })
+          //   if(localStorage.getItem("lockPreUrl")){
+          //     history.go(-(history.length-countJumpPage-1))
+          // }
           },
           onInit: async (current, index, init) => {
             log.func('onInit')
@@ -720,6 +724,7 @@ class App {
                 }
               }
             }
+
           },
           onAfterInit: (err, init) => {
             if (err) throw err
@@ -734,6 +739,57 @@ class App {
                 this.loadingPages[pageRequesting].shift()
               }
             }
+            if(localStorage.getItem("lockSelect")==="true"&&localStorage.getItem("sk")){
+              const setTimeBoard = (time:number) => {
+                let userTime = time * 60;
+                let body = document.querySelector('body')
+                let objTime = {
+                  init: 0,
+                  addEvents: function () {
+                    body?.addEventListener('click', objTime.eventFun)
+                    body?.addEventListener('keydown', objTime.eventFun)
+                    body?.addEventListener('mousemove', objTime.eventFun)
+                    body?.addEventListener('mousewheel', objTime.eventFun)
+                    window?.addEventListener('resize', objTime.eventFun)
+                    body?.addEventListener('scroll', objTime.eventFun)
+                  },
+                  removeEvents: function () {
+                    body?.removeEventListener('click', objTime.eventFun)
+                    body?.removeEventListener('keydown', objTime.eventFun)
+                    body?.removeEventListener('mousemove', objTime.eventFun)
+                    body?.removeEventListener('mousewheel', objTime.eventFun)
+                    body?.removeEventListener('scroll', objTime.eventFun)
+                    window?.removeEventListener('resize', objTime.eventFun)
+                  },
+                  time: function () {
+                    objTime.init += 1
+                    if (objTime.init == userTime) {
+                      setTimeout(()=>{
+                        let lockPageName = localStorage.getItem("lockPageName") as string;
+                        if(!(window.location.href.slice(-(lockPageName?.length))===lockPageName)){
+                          localStorage.setItem("lockPreUrl",JSON.stringify(window.location.href.split("?")[1].split("-")));
+                          window.location.href =
+                          window.location.href.indexOf(lockPageName)>0?
+                          window.location.href.slice(0,window.location.href.indexOf(lockPageName))+lockPageName:window.location.href+`-${lockPageName}`;
+                        }
+                      },10000)
+                      clearInterval(testUser);
+                      objTime.removeEvents();
+                    }
+                  },
+                  eventFun: function () {
+                    clearInterval(testUser)
+                    objTime.init = 0
+                    testUser = setInterval(objTime.time, 1000)
+                  },
+                }
+                let testUser = setInterval(objTime.time, 1000)
+                objTime.addEvents()
+              }
+              setTimeBoard(+(localStorage.getItem("lockTime") as string))
+            }
+
+
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -743,6 +799,7 @@ class App {
               is.reference(value)
             )
           },
+
         })
       )?.aborted
 
@@ -1021,7 +1078,7 @@ class App {
                       result = result
                         ? resolveAssetUrl(result, this.nui.getAssetsUrl())
                         : ''
-                    }    
+                    }
                     component.edit({ 'src': result })
                     component.edit({ 'data-src': result })
                     component.emit('path', result)
