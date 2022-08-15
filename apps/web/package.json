@@ -31,7 +31,7 @@
     "sql.js": "^1.6.2",
     "tippy.js": "^6.3.1",
     "util": "^0.12.3",
-    "vercel-toast": "^1.5.3"
+    "vercel-toast": "^1.6.1"
   },
   "description": "",
   "devDependencies": {
