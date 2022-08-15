@@ -746,46 +746,55 @@ class App {
                 let objTime = {
                   init: 0,
                   addEvents: function () {
-                    body?.addEventListener('click', objTime.eventFun)
-                    body?.addEventListener('keydown', objTime.eventFun)
-                    body?.addEventListener('mousemove', objTime.eventFun)
-                    body?.addEventListener('mousewheel', objTime.eventFun)
-                    window?.addEventListener('resize', objTime.eventFun)
-                    body?.addEventListener('scroll', objTime.eventFun)
+                    body?.addEventListener('click', objTime.eventEnterFun)
+                    body?.addEventListener('keydown', objTime.eventEnterFun)
+                    body?.addEventListener('mousemove', objTime.eventEnterFun)
+                    body?.addEventListener('mousewheel', objTime.eventEnterFun)
+                    window?.addEventListener('resize', objTime.eventEnterFun)
+                    body?.addEventListener('scroll', objTime.eventEnterFun)
                   },
-                  removeEvents: function () {
-                    body?.removeEventListener('click', objTime.eventFun)
-                    body?.removeEventListener('keydown', objTime.eventFun)
-                    body?.removeEventListener('mousemove', objTime.eventFun)
-                    body?.removeEventListener('mousewheel', objTime.eventFun)
-                    body?.removeEventListener('scroll', objTime.eventFun)
-                    window?.removeEventListener('resize', objTime.eventFun)
-                  },
+                  // removeEvents: function () {
+                  //   body?.removeEventListener('click', objTime.eventLeaveFun)
+                  //   body?.removeEventListener('keydown', objTime.eventLeaveFun)
+                  //   body?.removeEventListener('mousemove', objTime.eventLeaveFun)
+                  //   body?.removeEventListener('mousewheel', objTime.eventLeaveFun)
+                  //   body?.removeEventListener('scroll', objTime.eventLeaveFun)
+                  //   window?.removeEventListener('resize', objTime.eventLeaveFun)
+                  // },
                   time: function () {
+                    if(!localStorage.getItem("sk")){
+                      clearInterval(testUser as NodeJS.Timer)
+                    }
                     objTime.init += 1
                     if (objTime.init == userTime) {
-                      setTimeout(()=>{
                         let lockPageName = localStorage.getItem("lockPageName") as string;
                         if(!(window.location.href.slice(-(lockPageName?.length))===lockPageName)){
+                          clearInterval(testUser as NodeJS.Timer)
                           localStorage.setItem("lockPreUrl",JSON.stringify(window.location.href.split("?")[1].split("-")));
                           window.location.href =
                           window.location.href.indexOf(lockPageName)>0?
                           window.location.href.slice(0,window.location.href.indexOf(lockPageName))+lockPageName:window.location.href+`-${lockPageName}`;
+                        }else{
+                          clearInterval(testUser as NodeJS.Timer)
+                          return;
                         }
-                      },10000)
-                      clearInterval(testUser);
-                      objTime.removeEvents();
                     }
                   },
-                  eventFun: function () {
-                    clearInterval(testUser)
-                    objTime.init = 0
-                    testUser = setInterval(objTime.time, 1000)
+                  eventEnterFun: function () {
+                    clearInterval(testUser as NodeJS.Timer);
+                    objTime.init = 0;
+                    testUser = setInterval(objTime.time, 1000);
                   },
+                  // eventLeaveFun: function () {
+                  //   testUser&&clearInterval(testUser as NodeJS.Timer);
+                  //   objTime.init = 0;
+                  //   testUser = setInterval(objTime.time, 1000);
+                  // },
                 }
-                let testUser = setInterval(objTime.time, 1000)
-                objTime.addEvents()
+                let testUser:NodeJS.Timer|null = setInterval(objTime.time, 1000)
+                objTime.addEvents();
               }
+              // setTimeBoard(0.2)
               setTimeBoard(+(localStorage.getItem("lockTime") as string))
             }
 
