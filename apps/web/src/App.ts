@@ -1086,12 +1086,14 @@ class App {
                 } else if (trigger === 'dataValue') {
                   datasetKey = 'value'
                 }else if(trigger === 'style') {
-                  let original:any = component.blueprint || {}
+                  let style:any = cloneDeep(component.blueprint.style || {})
                   if (result) {
                     for (const k of Object.keys(result)) {
-                      original.style[k] = result[k]
+                      style[k] = result[k]
                     }
                   }
+                  component.blueprint.style = style
+                  component.edit('style',style)
                 }else {
                   datasetKey = trigger.toLowerCase()
                 }
