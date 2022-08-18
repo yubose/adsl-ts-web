@@ -1,0 +1,1718 @@
+MobileContacts:
+  title: "Create Appointment"
+  init:
+    - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.middleInformation.PatientVisitInfo
+      dataObject: .EmptyObj
+
+    #暂时注释，待新reason逻辑跑通后如果没问题则删除
+    # - ..formData.clockTime@: =.Global.clock
+
+    # 将Global.clock置空以免旧数据影响后续流程
+    - actionType: updateObject
+      dataKey: Global.clock
+      dataObject: .EmptyObj
+    # 初始化日历
+    - actionType: evalObject
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+        # 获取当年年份
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: MobileContacts.calendarDate.year
+    # 清除缓存
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        # 获取provider和admin之间的10002 edge
+        - =..apiRequest.relation.edgeAPI.get: ""
+        # 用获取到10002 edge的id来查询挂在该边上的VisitReason
+        - ..visitReason.docQueryReq.id@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+        - =..visitReason.docAPI.get: ""
+        - ..visitReason.document@: =..visitReason.response.doc.0
+        - ..currentId@: =.Global.currentFacility.id
+        # 拿取用户之前的Visit type数据
+        - if:
+            - =.Global.formData.appointment.visitType
+            - ..visitType@: =.Global.formData.appointment.visitType
+            - continue
+        # 置空以防止旧数据影响
+        - ..formData.reasonList@: []
+        # 根据visit type类型赋值以便后续Global.scheduleScondition2查询及获取对应reason列表
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..visitType
+                  string2: Telemedicine
+            - actionType: evalObject
+              object:
+                - ..formData.currentSubtype@: 196609
+                - ..formData.reasonList@: =..visitReason.document.name.data.reasonForVisit.Telemedicine
+            - actionType: evalObject
+              object:
+                - ..formData.currentSubtype@: 131073
+                - ..formData.reasonList@: =..visitReason.document.name.data.reasonForVisit.OfficeVisits
+
+        #暂时注释，待新reason逻辑跑通后如果没问题则删除
+        # - .Global.middleInformation.PatientVisitInfo.phoneNumber@: []
+
+        #获取当前时间的unix时间戳
+        - =.builtIn.date.getNowLocalUnixTime:
+            dataIn:
+            dataOut: MobileContacts.formData.currentLocalTime
+        #设置可预约时间的scondition
+        - =.builtIn.string.concat:
+            dataIn:
+              - "etime>"
+              - =..formData.currentLocalTime
+              - " AND "
+              - "subtype="
+              - =..formData.currentSubtype
+            dataOut: Global.scheduleScondition2
+        - =.MobileContacts.apiRequest.getFirstAvail.edgeAPI.get: ""
+        - if:
+            - =..apiRequest.getFirstAvail.response.edge.0.id
+            #如果有可预约时间，跳转到可预约时间那日
+            - actionType: evalObject
+              object:
+                - =.builtIn.date.stampToDay:
+                    dataIn:
+                      timeStamp: =..apiRequest.getFirstAvail.response.edge.0.stime
+                    dataOut: MobileContacts.formData.adjacentEdgeTime
+                - .MobileContacts.calendarDate.year@: =.MobileContacts.formData.adjacentEdgeTime.year
+                - .MobileContacts.calendarDate.month@: =.MobileContacts.formData.adjacentEdgeTime.month
+                - .MobileContacts.calendarDate.day@: =.MobileContacts.formData.adjacentEdgeTime.day
+            #如果没有可预约时间，仍然跳转当日时间
+            - actionType: evalObject
+              object:
+                - =.builtIn.date.getMonth:
+                    dataIn: ""
+                    dataOut: MobileContacts.calendarDate.month
+                - =.builtIn.date.getYear:
+                    dataIn: ""
+                    dataOut: MobileContacts.calendarDate.year
+                - =.builtIn.date.getDate:
+                    dataIn: ""
+                    dataOut: MobileContacts.calendarDate.day
+    # 此处必须有evalObject以防止异步问题
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - =.MobileContacts.calendarDate.year
+              - "-"
+              - =.MobileContacts.calendarDate.month
+              - "-"
+              - =.MobileContacts.calendarDate.day
+            dataOut: MobileContacts.calendarDate.todayDate
+        # 获取当日时间戳
+        - =.builtIn.date.getTimeStampOfDate:
+            dataIn:
+              date: =.MobileContacts.calendarDate.todayDate
+            dataOut: MobileContacts.calendarDate.todayStamp
+        - =.builtIn.string.concat:
+            dataIn:
+              - "(stime<="
+              - =.MobileContacts.calendarDate.todayStamp.start
+              - " AND "
+              - "etime>="
+              - =.MobileContacts.calendarDate.todayStamp.start
+              - " OR "
+              - "stime>="
+              - =.MobileContacts.calendarDate.todayStamp.start
+              - " AND "
+              - "etime<="
+              - =.MobileContacts.calendarDate.todayStamp.end
+              - " OR "
+              - "stime<="
+              - =.MobileContacts.calendarDate.todayStamp.end
+              - " AND "
+              - "etime>="
+              - =.MobileContacts.calendarDate.todayStamp.end
+              - ")"
+              - " AND "
+              - "subtype="
+              - =..formData.currentSubtype
+            dataOut: Global.scheduleScondition
+    # 此处必须有evalObject以防止异步问题
+    - actionType: evalObject
+      object:
+        # 获取当日可预约时间E1
+        - =..schedule.get: ""
+        # 拼接当日日期
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.MobileContacts.calendarDate.year
+              month: =.MobileContacts.calendarDate.month
+              day: =.MobileContacts.calendarDate.day
+            dataOut: MobileContacts.selectDate
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.MobileContacts.calendarDate.month
+            dataOut: MobileContacts.calendarDate.monthName
+        # 初始化日期列表
+        - =.builtIn.date.miniWeeklyCalendarArray:
+            dataIn:
+              year: =.MobileContacts.calendarDate.year
+              month: =.MobileContacts.calendarDate.month
+              today: =.MobileContacts.calendarDate.day
+              currentDateTime: =..calendarDate.todayDate
+              markDay: =.MobileContacts.calendarDate.day
+              color: "0x4b4b4b"
+              backgroundColor: "0xffffff00"
+              todayColor: "0xffffff"
+              todayBackgroundColor: "0x2988e6"
+              pastTimeColor: "0xbababa"
+            dataOut: MobileContacts.calendarDate.dayLable
+    - .Global.E2Subtype@: 196610 #0x30002
+    # 将原因列表转换成单元素列表以方便展示
+    - =.builtIn.array.convertToList:
+        dataIn:
+          array: =..formData.reasonList
+          key: reason
+        dataOut: MobileContacts.reasonForVisit
+
+    # 暂时注释，待新reason逻辑跑通后如果没问题则删除
+    # - if:
+    #     - ..checkData.get
+    #     - continue
+    #     - =.builtIn.checkField:
+    #         dataIn:
+    #           contentType: messageHidden
+    #           wait: 100
+
+    - =.builtIn.date.getTime:
+        dataIn:
+        dataOut: MobileContacts.nowTimeStamp
+    # 判断之前是否选择过reason，如果有，则复现之前的选择
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.appointment.selectData.reason
+              string2: ""
+        - ..selectData.reason@: =..formData.reasonList.0.reason
+        - ..selectData.reason@: =.Global.formData.appointment.selectData.reason
+    # 根据reason获取对应的duration
+    - =.builtIn.array.getByKey:
+        dataIn:
+          array: =..formData.reasonList
+          key1: reason
+          value: =..selectData.reason
+          key2: duration
+        dataOut: MobileContacts.selectData.duration
+    # 将duration转换成数字，如 5 min -> 5
+    - =.builtIn.string.retainNumber:
+        dataIn:
+          value: =..selectData.duration
+        dataOut: MobileContacts.selectData.duration
+    - ..formData.duration@: =..selectData.duration
+    # 获取与当前reason对应的docu列表
+    - =.builtIn.array.getByKey:
+        dataIn:
+          array: =..formData.reasonList
+          key1: reason
+          value: =..selectData.reason
+          key2: document
+        dataOut: MobileContacts.selectData.docu
+    # 切分时间片
+    - =.builtIn.date.splitTime:
+        dataIn:
+          object2: =..schedule.scheduleList.edge
+          timeSlot: =..selectData.duration
+          year: =.MobileContacts.calendarDate.year
+          month: =.MobileContacts.calendarDate.month
+          day: =.MobileContacts.calendarDate.day
+          isSplitCurrent: true
+        dataOut: MobileContacts.splitTime
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.currentUser.vertex.id
+              string2: =.MobileContacts.currentId
+        - continue
+        - actionType: evalObject
+          object:
+            - .MobileContacts.currentId@: =.Global.currentFacility.id
+            # 获取facility的rootNotebook
+            - ..fac_RootNotebook.edgeReq.id@: =.Global.currentFacility.id
+            - =..fac_RootNotebook.edgeAPI.get: ""
+            # 获取facility的所有location
+            - =..locationAll.docAPI.get: ""
+            # 将location中的name提取出来
+            - =.builtIn.array.selectOneToArr:
+                dataIn:
+                  arr: =..locationAll.docResp.doc.0.name.data.allLocation
+                  key: "medicalFacilityName"
+                dataOut: MobileContacts.addressName
+            # 提取location id
+            - =.builtIn.array.matchInArray:
+                dataIn:
+                  arr: =..locationAll.docResp.doc.0.name.data.allLocation
+                  value: =..addressName.0
+                  key: medicalFacilityName
+                  key1: "id"
+                dataOut: MobileContacts.locationId
+            # 提取location地址
+            - =.builtIn.array.matchInArray:
+                dataIn:
+                  arr: =..locationAll.docResp.doc.0.name.data.allLocation
+                  value: =..addressName.0
+                  key: medicalFacilityName
+                  key1: "medicalFacilityName"
+                dataOut: MobileContacts.formData.addressName
+    # 查看之前是不是已经填过信息
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.appointment.status
+              string2: "0"
+        - continue
+        - actionType: evalObject
+          object:
+            - ..formData.appointment@: =.Global.formData.appointment
+            - ..selectData@: =..formData.appointment.selectData
+            - ..visitType@: =..formData.appointment.visitType
+            - ..formData.addressName@: =..formData.appointment.addressName
+            - ..locationId@: =..formData.appointment.locationId
+            - ..splitTime@: =..formData.appointment.selectTime
+            - ..clock@: =..formData.clockTime
+            - ..formData.duration@: ""
+            # 将duration转换成数字，如 5 min -> 5
+            - =.builtIn.string.retainNumber:
+                dataIn:
+                  value: =..selectData.duration
+                dataOut: MobileContacts.formData.duration
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..visitType
+              string2: "Office Visit"
+        - actionType: evalObject
+          object:
+            - ..formData.splitTimeHeight@: "0.355"
+            - ..formData.flag@: "block"
+        - actionType: evalObject
+          object:
+            - ..formData.splitTimeHeight@: "0.41"
+            - ..formData.flag@: "none"
+    # 控制next按钮状态
+    - if:
+        - =..clock.bvid
+        - ..formData.nextBtnColor@: "0x2988e6"
+        - ..formData.nextBtnColor@: "0xc1c1c1"
+    #切换location后获取新location的信息
+    - if:
+        - =..locationId
+        - actionType: evalObject
+          object:
+            - ..apiRequest.location.vertexQueryReq.id@: =..locationId
+            - =..apiRequest.location.vertexAPI.get: ""
+            - .Global.formData.location@: ""
+            - .Global.formData.location@: =..apiRequest.location.vertexQueryResp.vertex.0
+        - continue
+  # 存储当前所选的locationId
+  locationId: ""
+  formData:
+    # 存储对应的reason列表
+    reasonList: []
+    # 存储与当前reason对应的document
+    clockTime: ""
+    temporarySplitTime: []
+    flag: "none"
+    appointment: ""
+    nextBtnColor: "0xc1c1c1"
+    duration: ""
+    currentLocalTime: ""
+    #默认是telemedicine的E1
+    currentSubtype: "196609"
+    adjacentEdgeTime:
+      day: ""
+      month: ""
+      year: ""
+    splitTimeHeight: "0.41"
+    addressName: ""
+  splitTime:
+    morning: []
+    afternoon: []
+  # 存储 reason名字数组
+  reasonForVisit: []
+  temporaryInfo: ""
+  selectData:
+    reason: ""
+    duration: ""
+    docu: []
+  selectDate: ""
+  nowTimeStamp: ""
+  visitType: "Telemedicine"
+  fac_RootNotebook:
+    edgeReq:
+      id: .MobileContacts.currentId
+      xfname: bvid
+      type: 10000
+      _nonce: =.Global._nonce
+    edge: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: MobileContacts.fac_RootNotebook.edgeReq
+        dataOut: MobileContacts.fac_RootNotebook.edge
+  locationAll: # 把所有的location 信息，在schedule那边显示
+    docResp: "" # get到的值
+    docIn: # for geting all of the location
+      type: .DocType.LocationOfFacility
+      id: =.MobileContacts.fac_RootNotebook.edge.edge.0.id
+      xfname: eid
+      obfname: mtime
+      _nonce: =.Global._nonce
+      maxcount: "1"
+      name:
+        data:
+          allLocation:
+    docAPI:
+      .DocAPI: ""
+      get:
+        api: rd
+        dataIn: MobileContacts.locationAll.docIn
+        dataOut: MobileContacts.locationAll.docResp
+  clock: ""
+  visitReason:
+    response: ""
+    docQueryReq:
+      type: .DocType.VisitReason
+      id: ""
+      _nonce: =.Global._nonce
+      xfname: eid
+      obfname: mtime
+      maxcount: "1"
+    document:
+      type: .DocType.VisitReason
+      name:
+        data:
+          reasonForVisit: []
+      eid: .Global.rootNotebookID
+    docAPI:
+      store:
+        api: cd
+        dataKey: visitReason.document
+      get:
+        api: rd
+        dataIn: MobileContacts.visitReason.docQueryReq
+        dataOut: MobileContacts.visitReason.response
+  schedule:
+    response: ""
+    scheduleList: ""
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: schedule.edge
+      dataOut: MobileContacts.schedule.scheduleList
+    edge:
+      type: 40000
+      id:
+        - =.MobileContacts.currentId
+        - =.Global.currentUser.vertex.id
+      sCondition: "=.Global.scheduleScondition"
+      maxcount: "10000"
+      xfname: "bvid,evid"
+      asc: true
+      obfname: "stime"
+      _nonce: =.Global._nonce
+  checkData:
+    check:
+      edge: ""
+    get:
+      edgeAPI.get: ""
+      api: re
+      dataKey: checkData.check
+      ids:
+        - .MobileContacts.currentId
+        - .Global.currentUser.vertex.id
+      xfname: "evid & bvid"
+      type: 40000
+      sCondition: "subtype=1"
+      _nonce: =.Global._nonce
+  todaySchedule: ""
+  addressName: ""
+  calendarDate:
+    dayLable: ""
+    month: ""
+    year: ""
+    day: ""
+    # dayLable: []
+    weekLabel:
+      - key: SU
+      - key: MO
+      - key: TU
+      - key: WE
+      - key: TH
+      - key: FR
+      - key: SA
+    todayDate: "YYYY-MM-DD"
+    Scondition: ""
+    todayStamp:
+      start: ""
+      end: ""
+    monthName: ""
+    tempDate: ""
+  apiRequest:
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - =.Global.currentUser.vertex.id
+          - =.Global.currentFacility.id
+        xfname: Bvid,Evid
+        type: 10002
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: MobileContacts.apiRequest.relation.edgeQueryReq
+          dataOut: MobileContacts.apiRequest.relation.edgeQueryResp
+    #获取当前选择的location的facility
+    location:
+      vertexQueryResp: ""
+      vertexQueryReq:
+        id: ""
+        _nonce: =.Global._nonce
+      vertexAPI:
+        get:
+          api: rv
+          dataIn: MobileContacts.apiRequest.location.vertexQueryReq
+          dataOut: MobileContacts.apiRequest.location.vertexQueryResp
+    #获取最近可预约时间段
+    getFirstAvail:
+      response: ""
+      edge:
+        type: 40000
+        id:
+          - =.MobileContacts.currentId
+          - =.Global.currentUser.vertex.id
+        sCondition: "=.Global.scheduleScondition2"
+        maxcount: "1"
+        xfname: "bvid,evid"
+        obfname: "stime"
+        asc: true
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          .EdgeAPI.get: ""
+          api: re
+          dataIn: MobileContacts.apiRequest.getFirstAvail.edge
+          dataOut: MobileContacts.apiRequest.getFirstAvail.response
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        top: "0.1"
+        left: "0"
+        height: "0.8"
+        width: "1"
+      children:
+        - type: view
+          style:
+            height: "auto"
+            width: "0.9"
+            marginLeft: "0.05"
+            # backgroundColor: "yellow"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.02"
+                width: "0.9"
+                height: "auto"
+              children:
+                - type: label
+                  text: Appointment Type
+                  style:
+                    fontFamily: "Arial"
+                    height: "auto"
+                    width: "0.9"
+                    color: "0x474747"
+                    fontSize: .Nfont.h15
+                # Appointment Type 下拉框
+                - type: select
+                  options: .SelectINformationDM.VisitType
+                  dataKey: visitType
+                  style:
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "0.04"
+                    boxSizing: "border-box"
+                    border:
+                      style: 3
+                    borderColor: "0xdededf"
+                    borderRadius: "5"
+                    borderWidth: "1"
+                    backgroundColor: "0xffffff"
+                    textIndent: "8px"
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        # 置空以防止旧数据影响
+                        - ..formData.reasonList@: []
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..visitType
+                                  string2: "Telemedicine"
+                            - actionType: evalObject
+                              object:
+                                - .Global.E2Subtype@: 196610 #0x30002
+                                - .MobileContacts.formData.currentSubtype@: "196609"
+                                - ..currentId@: =.Global.currentFacility.id
+                                - ..formData.reasonList@: =..visitReason.document.name.data.reasonForVisit.Telemedicine
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..visitType
+                                  string2: "Office Visits"
+                            - actionType: evalObject
+                              object:
+                                - .Global.E2Subtype@: 131074 #0x20002
+                                - .MobileContacts.formData.currentSubtype@: "131073"
+                                - ..currentId@: =..locationId
+                                - ..formData.reasonList@: =..visitReason.document.name.data.reasonForVisit.OfficeVisits
+                            - continue
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - "(stime<="
+                              - =.MobileContacts.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime>="
+                              - =.MobileContacts.calendarDate.todayStamp.start
+                              - " OR "
+                              - "stime>="
+                              - =.MobileContacts.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime<="
+                              - =.MobileContacts.calendarDate.todayStamp.end
+                              - " OR "
+                              - "stime<="
+                              - =.MobileContacts.calendarDate.todayStamp.end
+                              - " AND "
+                              - "etime>="
+                              - =.MobileContacts.calendarDate.todayStamp.end
+                              - ")"
+                              - " AND "
+                              - "subtype="
+                              - =..formData.currentSubtype
+                            dataOut: Global.scheduleScondition
+                        # 置空数据以防止旧数据造成影响
+                        - .MobileContacts.splitTime@: []
+                        - ..schedule.scheduleList.edge@: []
+                        - ..selectData.docu@: []
+                        - ..selectData.reason@: ""
+                        - ..selectData.duration@: ""
+                        - ..formData.duration@: ""
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        # 切换appointment type后再次获取schedule
+                        - =..schedule.get: ""
+                        - ..selectData.reason@: =..formData.reasonList.0.reason
+                        # 将原因列表转换成单元素列表以方便展示
+                        - =.builtIn.array.convertToList:
+                            dataIn:
+                              array: =..formData.reasonList
+                              key: reason
+                            dataOut: MobileContacts.reasonForVisit
+                        # 根据reason获取对应的duration
+                        - =.builtIn.array.getByKey:
+                            dataIn:
+                              array: =..formData.reasonList
+                              key1: reason
+                              value: =..selectData.reason
+                              key2: duration
+                            dataOut: MobileContacts.selectData.duration
+                    - actionType: evalObject
+                      object:
+                        # 将duration转换成数字，如 5 min -> 5
+                        - =.builtIn.string.retainNumber:
+                            dataIn:
+                              value: =..selectData.duration
+                            dataOut: MobileContacts.formData.duration
+                        # 获取与当前reason对应的docu列表
+                        - =.builtIn.array.getByKey:
+                            dataIn:
+                              array: =..formData.reasonList
+                              key1: reason
+                              value: =..selectData.reason
+                              key2: document
+                            dataOut: MobileContacts.selectData.docu
+                          # 切分时间片
+                        - =.builtIn.date.splitTime:
+                            dataIn:
+                              object2: =..schedule.scheduleList.edge
+                              timeSlot: =..formData.duration
+                              year: =.MobileContacts.calendarDate.year
+                              month: =.MobileContacts.calendarDate.month
+                              day: =.MobileContacts.calendarDate.day
+                              isSplitCurrent: true
+                            dataOut: MobileContacts.splitTime
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.currentUser.vertex.id
+                                  string2: =.MobileContacts.currentId
+                            - continue
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..visitType
+                                          string2: "Office Visits"
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.splitTimeHeight@: "0.355"
+                                        - ..formData.flag@: "block"
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.splitTimeHeight@: "0.41"
+                                        - ..formData.flag@: "none"
+                                # - .Global.createjwt.edge.bvid@: =.MobileContacts.currentId
+                                # - =.Global.createjwt.edgeAPI.store: ""
+                        - ..clock.bvid@: ""
+                        - ..formData.nextBtnColor@: "0xc1c1c1"
+                    # 刷新location下拉框控件
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: locationTag
+                    # 刷新时间片控件
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: splitTimeTag
+                    # 刷新next按钮控件
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: nextBtn
+                    # 刷新reason下拉框列表
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: reasonList
+            - type: view
+              viewTag: locationTag
+              style:
+                marginTop: "0.02"
+                width: "0.9"
+                height: "auto"
+                display: ..formData.flag
+              children:
+                - type: select
+                  dataKey: formData.addressName
+                  options: ..addressName
+                  style:
+                    width: "0.9"
+                    height: "0.04"
+                    boxSizing: "border-box"
+                    border:
+                      style: 3
+                    borderColor: "0xdededf"
+                    borderRadius: "5"
+                    textIndent: "8px"
+                    borderWidth: "1"
+                    backgroundColor: "0xffffff"
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.matchInArray:
+                            dataIn:
+                              arr: =..locationAll.docResp.doc.0.name.data.allLocation
+                              value: =..formData.addressName
+                              key: medicalFacilityName
+                              key1: "id"
+                            dataOut: MobileContacts.locationId
+                        # - ..currentId@: =..locationId
+                    - actionType: evalObject
+                      object:
+                        - .MobileContacts.currentId@: =..locationId
+                    - actionType: evalObject
+                      object:
+                        # - .Global.createjwt.edge.bvid@: =.MobileContacts.currentId
+                        # - =.Global.createjwt.edgeAPI.store: ""
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - "(stime<="
+                              - =.MobileContacts.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime>="
+                              - =.MobileContacts.calendarDate.todayStamp.start
+                              - " OR "
+                              - "stime>="
+                              - =.MobileContacts.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime<="
+                              - =.MobileContacts.calendarDate.todayStamp.end
+                              - " OR "
+                              - "stime<="
+                              - =.MobileContacts.calendarDate.todayStamp.end
+                              - " AND "
+                              - "etime>="
+                              - =.MobileContacts.calendarDate.todayStamp.end
+                              - ")"
+                              - " AND "
+                              - "subtype="
+                              - =..formData.currentSubtype
+                            dataOut: Global.scheduleScondition
+                        - .MobileContacts.splitTime@: []
+                        - ..schedule.scheduleList.edge@: []
+                        - .Global._nonce@:
+                            =.builtIn.math.random: ""
+                        - =..schedule.get: ""
+                        - =.builtIn.string.retainNumber:
+                            dataIn:
+                              value: =..selectData.duration
+                            dataOut: MobileContacts.formData.duration
+                        - =.builtIn.date.splitTime:
+                            dataIn:
+                              object2: =..schedule.scheduleList.edge
+                              timeSlot: =..formData.duration
+                              year: =.MobileContacts.calendarDate.year
+                              month: =.MobileContacts.calendarDate.month
+                              day: =.MobileContacts.calendarDate.day
+                              isSplitCurrent: true
+                            dataOut: MobileContacts.splitTime
+                        - ..clock.bvid@: ""
+                        - if:
+                            - =..clock.bvid
+                            - ..formData.nextBtnColor@: "0x2988e6"
+                            - ..formData.nextBtnColor@: "0xc1c1c1"
+                        #切换location后获取新location的信息
+                        - if:
+                            - =..locationId
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.location.vertexQueryReq.id@: =..locationId
+                                - =..apiRequest.location.vertexAPI.get: ""
+                                - .Global.formData.location@: ""
+                                - .Global.formData.location@: =..apiRequest.location.vertexQueryResp.vertex.0
+                            - continue
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: splitTimeTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule2
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: nextBtn
+            - type: view
+              viewTag: reasonList
+              style:
+                marginTop: "0.02"
+                width: "0.9"
+                height: "auto"
+              children:
+                - type: view
+                  style:
+                    display: "inline-block"
+                    width: "0.44"
+                    height: "auto"
+                  children:
+                    - type: label
+                      text: Reason for visit
+                      style:
+                        fontFamily: "Arial"
+                        height: "auto"
+                        width: "0.44"
+                        color: "0x474747"
+                        fontSize: .Nfont.h15
+                    - type: select
+                      dataKey: selectData.reason
+                      options: ..reasonForVisit
+                      style:
+                        marginTop: "0.01"
+                        width: "0.44"
+                        height: "0.04"
+                        boxSizing: "border-box"
+                        border:
+                          style: 3
+                        borderColor: "0xdededf"
+                        borderRadius: "5"
+                        borderWidth: "1"
+                        backgroundColor: "0xffffff"
+                        textIndent: "8px"
+                      onChange:
+                        - actionType: evalObject
+                          object:
+                            - .MobileContacts.selectData.docu@: []
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..visitType
+                                      string2: "Telemedicine"
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.getByKey:
+                                        dataIn:
+                                          array: =..visitReason.document.name.data.reasonForVisit.Telemedicine
+                                          key1: reason
+                                          value: =..selectData.reason
+                                          key2: duration
+                                        dataOut: MobileContacts.selectData.duration
+                                    - =.builtIn.array.getByKey:
+                                        dataIn:
+                                          array: =..visitReason.document.name.data.reasonForVisit.Telemedicine
+                                          key1: reason
+                                          value: =..selectData.reason
+                                          key2: document
+                                        dataOut: MobileContacts.selectData.docu
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.getByKey:
+                                        dataIn:
+                                          array: =..visitReason.document.name.data.reasonForVisit.OfficeVisits
+                                          key1: reason
+                                          value: =..selectData.reason
+                                          key2: duration
+                                        dataOut: MobileContacts.selectData.duration
+                                    - =.builtIn.array.getByKey:
+                                        dataIn:
+                                          array: =..visitReason.document.name.data.reasonForVisit.OfficeVisits
+                                          key1: reason
+                                          value: =..selectData.reason
+                                          key2: document
+                                        dataOut: MobileContacts.selectData.docu
+                            - =.builtIn.string.retainNumber:
+                                dataIn:
+                                  value: =..selectData.duration
+                                dataOut: MobileContacts.formData.duration
+                            - .MobileContacts.splitTime@: []
+                            - =.builtIn.date.splitTime:
+                                dataIn:
+                                  object2: =..schedule.scheduleList.edge
+                                  timeSlot: =..formData.duration
+                                  year: =.MobileContacts.calendarDate.year
+                                  month: =.MobileContacts.calendarDate.month
+                                  day: =.MobileContacts.calendarDate.day
+                                  isSplitCurrent: true
+                                dataOut: MobileContacts.splitTime
+                            - ..clock.bvid@: ""
+                            - if:
+                                - =..clock.bvid
+                                - ..formData.nextBtnColor@: "0x2988e6"
+                                - ..formData.nextBtnColor@: "0xc1c1c1"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: durationTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: splitTimeTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: nextBtn
+                - type: view
+                  style:
+                    marginLeft: "0.03"
+                    display: "inline-block"
+                    width: "0.3"
+                    height: "auto"
+                  children:
+                    - type: label
+                      text: Duration
+                      style:
+                        fontFamily: "Arial"
+                        height: "auto"
+                        width: "0.3"
+                        color: "0x474747"
+                        fontSize: .Nfont.h15
+                    - type: label
+                      isEditable: "false"
+                      textBoard:
+                        - text:
+                          dataKey: MobileContacts.formData.duration
+                        - text: "&nbsp;min"
+                      viewTag: durationTag
+                      style:
+                        marginTop: "0.01"
+                        width: "0.3"
+                        height: "0.04"
+                        boxSizing: "border-box"
+                        border:
+                          style: 3
+                        borderColor: "0xdededf"
+                        borderWidth: "1"
+                        borderRadius: "5"
+                        backgroundColor: "0xfafafa"
+                        color: "0x4d4d4d"
+                        textAlign:
+                          x: center
+                          y: center
+                - type: view
+                  style:
+                    marginLeft: "0.03"
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    overflow: hidden
+                  children:
+                    - type: label
+                      text: Files
+                      style:
+                        marginTop: "0.04"
+                        fontFamily: "Arial"
+                        height: "auto"
+                        width: "auto"
+                        color: "0x2988e6"
+                        fontSize: .Nfont.h15
+                        textDecoration: underline
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            #  udpate status
+                            - .Global.formData.appointment.status@: "1"
+                            #  visitType
+                            - .Global.formData.appointment.visitType@: =.MobileContacts.visitType
+                            # addressName
+                            - .Global.formData.appointment.addressName@: =.MobileContacts.formData.addressName
+                            - .Global.formData.appointment.locationId@: =.MobileContacts.locationId
+                            #  Reason for visit
+                            - .Global.formData.appointment.selectData.docu@: []
+                            - .Global.formData.appointment.selectData@: =.MobileContacts.selectData
+                            #  splitTime
+                            - .Global.formData.appointment.selectTime@: =..splitTime
+                            - goto: FileForms
+            - type: view
+              style:
+                marginTop: "0.02"
+
+        - type: view
+          viewTag: setSchedule2
+          style:
+            marginTop: "0.01"
+            height: "auto"
+            width: "1"
+            backgroundColor: "0xe9f2fc"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.01"
+                marginLeft: "0.05"
+                height: "0.04"
+                width: "0.9"
+              children:
+                - type: select
+                  dataKey: calendarDate.monthName
+                  options: .BaseComponents.month
+                  style:
+                    verticalAlign: "middle"
+                    display: "inline-block"
+                    width: "0.15"
+                    height: "0.03"
+                    boxSizing: "border-box"
+                    border:
+                      style: 1
+                    color: "0x474747"
+                    fontSize: .Nfont.h1
+                    backgroundColor: "0xe9f2fc"
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        - .BaseComponents.calendarDate.monthName@: =..calendarDate.monthName
+                        - .BaseComponents.calendarDate.year@: =..calendarDate.year
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =.BaseComponents.calendarDate.monthName
+                              flag: 2
+                            dataOut: MobileContacts.calendarDate.month
+                        - .BaseComponents.calendarDate.day@: 1
+                        - =.builtIn.date.miniWeeklyCalendarArray:
+                            dataIn:
+                              year: =..calendarDate.year
+                              month: =..calendarDate.month
+                              today: 33
+                              markDay: 1
+                              color: "0x4b4b4b"
+                              backgroundColor: "0xffffff00"
+                              todayColor: "0xffffff"
+                              todayBackgroundColor: "0x2988e6"
+                              currentDateTime: =.MobileContacts.calendarDate.todayDate
+                              pastTimeColor: "0xbababa"
+                            dataOut: MobileContacts.calendarDate.dayLable
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule2
+                - type: select
+                  dataKey: calendarDate.year
+                  options: .BaseComponents.year
+                  style:
+                    verticalAlign: "middle"
+                    display: "inline-block"
+                    marginLeft: "0.02"
+                    width: "0.15"
+                    height: "0.03"
+                    boxSizing: "border-box"
+                    border:
+                      style: 1
+                    color: "0x474747"
+                    fontSize: .Nfont.h1
+                    backgroundColor: "0xe9f2fc"
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        - .BaseComponents.calendarDate.year@: =..calendarDate.year
+                        - =.builtIn.date.transformYear:
+                            dataIn:
+                              year: =..calendarDate.year
+                            dataOut: MobileContacts.calendarDate.year
+                        - =.builtIn.date.miniWeeklyCalendarArray:
+                            dataIn:
+                              year: =..BaseComponents.calendarDate.year
+                              month: 1
+                              today: 33
+                              markDay: 1
+                              color: "0x4b4b4b"
+                              backgroundColor: "0xffffff00"
+                              todayColor: "0xffffff"
+                              todayBackgroundColor: "0x2988e6"
+                              currentDateTime: =..calendarDate.todayDate
+                              pastTimeColor: "0xbababa"
+                            dataOut: MobileContacts.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        - .MobileContacts.calendarDate.month@: 1
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: MobileContacts.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule2
+                - type: label
+                  dataKey: MobileContacts.selectDate
+                  style:
+                    verticalAlign: "middle"
+                    display: "inline-block"
+                    fontFamily: "Arial"
+                    height: "auto"
+                    width: "0.57"
+                    color: "0x474747"
+                    fontSize: .Nfont.h1
+                    textAlign:
+                      x: right
+
+            - type: view
+              style:
+                marginTop: "0.01"
+                height: "auto"
+                width: "1"
+              children:
+                - type: view
+                  style:
+                    display: "inline-block"
+                    height: "0.08"
+                    width: "0.08"
+                    textAlign:
+                      x: center
+                    boxSizing: "border-box"
+                  children:
+                    - type: image
+                      path: leftDate.svg
+                      style:
+                        top: "0.02"
+                        left: "0"
+                        height: "0.05"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.date.LastWeek:
+                                dataIn:
+                                  year: =.MobileContacts.calendarDate.dayLable.0.year
+                                  month: =.MobileContacts.calendarDate.dayLable.0.month
+                                  day: =.MobileContacts.calendarDate.dayLable.0.day
+                                dataOut: MobileContacts.calendarDate.tempDate
+                            - =.builtIn.date.miniWeeklyCalendarArray:
+                                dataIn:
+                                  year: =.MobileContacts.calendarDate.tempDate.year
+                                  month: =.MobileContacts.calendarDate.tempDate.month
+                                  today: =.MobileContacts.calendarDate.day
+                                  currentDateTime: =..calendarDate.todayDate
+                                  markDay: =.MobileContacts.calendarDate.tempDate.day
+                                  color: "0x4b4b4b"
+                                  backgroundColor: "0xffffff00"
+                                  todayColor: "0xffffff"
+                                  todayBackgroundColor: "0x2988e6"
+                                  pastTimeColor: "0xbababa"
+                                dataOut: MobileContacts.calendarDate.dayLable
+                        - actionType: evalObject
+                          object:
+                            - .MobileContacts.calendarDate.year@: =.MobileContacts.calendarDate.tempDate.year
+                            - .MobileContacts.calendarDate.month@: =.MobileContacts.calendarDate.tempDate.month
+                            - =.builtIn.date.transformMonth:
+                                dataIn:
+                                  month: =.MobileContacts.calendarDate.month
+                                dataOut: MobileContacts.calendarDate.monthName
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: setSchedule3
+                - type: view
+                  style:
+                    display: "inline-block"
+                    height: "0.08"
+                    width: "0.84"
+                    boxSizing: "border-box"
+                    # backgroundColor: "pink"
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..calendarDate.dayLable
+                      iteratorVar: itemObject
+                      viewTag: setSchedule3
+                      style:
+                        axis: horizontal
+                        width: "0.823"
+                        height: "0.08"
+                        boxSizing: "border-box"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            marginLeft: "0.01"
+                            width: "0.1115"
+                            height: "0.08"
+                            boxSizing: "border-box"
+                            backgroundColor: itemObject.backgroundColor
+                            borderRadius: "22px 22px 22px 22px"
+                            overflow: hidden
+                          children:
+                            - type: label
+                              dataKey: itemObject.weekDay
+                              style:
+                                marginTop: "0.01"
+                                width: "0.1115"
+                                color: itemObject.color
+                                fontSize: .Nfont.h1
+                                textAlign:
+                                  x: center
+                            - type: label
+                              dataKey: itemObject.day
+                              style:
+                                marginTop: "0.01"
+                                width: "0.1115"
+                                height: "0.045"
+                                color: itemObject.color
+                                fontSize: .Nfont.h2
+                                borderRadius: "80"
+                                textAlign:
+                                  x: center
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..temporaryInfo@: =..calendarDate
+                                - ..formData.temporarySplitTime@: =..splitTime
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - .MobileContacts.splitTime@: []
+                                  - .MobileContacts.calendarDate.year@: $var.year
+                                  - .MobileContacts.calendarDate.month@: $var.month
+                                  - .MobileContacts.calendarDate.day@: $var.day
+                                  - =.builtIn.date.ShowDateByNumber:
+                                      dataIn:
+                                        year: =.MobileContacts.calendarDate.year
+                                        month: =.MobileContacts.calendarDate.month
+                                        day: =.MobileContacts.calendarDate.day
+                                      dataOut: MobileContacts.selectDate
+                                  - =.builtIn.date.transformMonth:
+                                      dataIn:
+                                        month: =.MobileContacts.calendarDate.month
+                                      dataOut: MobileContacts.calendarDate.monthName
+                                  - =.builtIn.string.concat:
+                                      dataIn:
+                                        - =.MobileContacts.calendarDate.year
+                                        - "-"
+                                        - =.MobileContacts.calendarDate.month
+                                        - "-"
+                                        - $var.day
+                                      dataOut: MobileContacts.calendarDate.todayDate
+                                  - =.builtIn.date.miniWeeklyCalendarArray:
+                                      dataIn:
+                                        year: $var.year
+                                        month: $var.month
+                                        today: $var.day
+                                        markDay: $var.day
+                                        color: "0x4b4b4b"
+                                        backgroundColor: "0xffffff00"
+                                        todayColor: "0xffffff"
+                                        todayBackgroundColor: "0x2988e6"
+                                        currentDateTime: =..calendarDate.todayDate
+                                        pastTimeColor: "0xbababa"
+                                      dataOut: MobileContacts.calendarDate.dayLable
+                                  - =.builtIn.date.getTimeStampOfDate:
+                                      dataIn:
+                                        date: =.MobileContacts.calendarDate.todayDate
+                                      dataOut: MobileContacts.calendarDate.todayStamp
+                                  - =.builtIn.string.concat:
+                                      dataIn:
+                                        - "(stime<="
+                                        - =.MobileContacts.calendarDate.todayStamp.start
+                                        - " AND "
+                                        - "etime>="
+                                        - =.MobileContacts.calendarDate.todayStamp.start
+                                        - " OR "
+                                        - "stime>="
+                                        - =.MobileContacts.calendarDate.todayStamp.start
+                                        - " AND "
+                                        - "etime<="
+                                        - =.MobileContacts.calendarDate.todayStamp.end
+                                        - " OR "
+                                        - "stime<="
+                                        - =.MobileContacts.calendarDate.todayStamp.end
+                                        - " AND "
+                                        - "etime>="
+                                        - =.MobileContacts.calendarDate.todayStamp.end
+                                        - ")"
+                                        - " AND "
+                                        - "subtype="
+                                        - =..formData.currentSubtype
+                                      dataOut: Global.scheduleScondition
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.math.greater:
+                                        dataIn:
+                                          num1: =.MobileContacts.calendarDate.todayStamp.end
+                                          num2: =.MobileContacts.nowTimeStamp
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: dateCheck
+                                      wait: true
+                                - ..schedule.scheduleList.edge@: []
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =..schedule.get: ""
+                            - actionType: evalObject
+                              object:
+                                - .MobileContacts.splitTime@: []
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.string.retainNumber:
+                                    dataIn:
+                                      value: =..selectData.duration
+                                    dataOut: MobileContacts.formData.duration
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.date.splitTime:
+                                    dataIn:
+                                      object2: =..schedule.scheduleList.edge
+                                      timeSlot: =..formData.duration
+                                      year: =.MobileContacts.calendarDate.year
+                                      month: =.MobileContacts.calendarDate.month
+                                      day: =.MobileContacts.calendarDate.day
+                                      isSplitCurrent: true
+                                    dataOut: MobileContacts.splitTime
+                                - if:
+                                    - =.MobileContacts.splitTime.0.stime
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: noAvailableTag
+                                      wait: true
+                            - actionType: evalObject
+                              object:
+                                - ..clock.bvid@: ""
+                                - if:
+                                    - =..clock.bvid
+                                    - ..formData.nextBtnColor@: "0x2988e6"
+                                    - ..formData.nextBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: splitTimeTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: setSchedule2
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: nextBtn
+
+                - type: view
+                  style:
+                    display: "inline-block"
+                    height: "0.08"
+                    width: "0.08"
+                    textAlign:
+                      x: center
+                    boxSizing: "border-box"
+                  children:
+                    - type: image
+                      path: rightDate.svg
+                      style:
+                        top: "0.02"
+                        right: "0"
+                        height: "0.05"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.date.NextWeek:
+                                dataIn:
+                                  year: =.MobileContacts.calendarDate.dayLable.6.year
+                                  month: =.MobileContacts.calendarDate.dayLable.6.month
+                                  day: =.MobileContacts.calendarDate.dayLable.6.day
+                                dataOut: MobileContacts.calendarDate.tempDate
+                            - =.builtIn.date.miniWeeklyCalendarArray:
+                                dataIn:
+                                  year: =.MobileContacts.calendarDate.tempDate.year
+                                  month: =.MobileContacts.calendarDate.tempDate.month
+                                  today: =.MobileContacts.calendarDate.day
+                                  markDay: =.MobileContacts.calendarDate.tempDate.day
+                                  color: "0x4b4b4b"
+                                  backgroundColor: "0xffffff00"
+                                  todayColor: "0xffffff"
+                                  todayBackgroundColor: "0x2988e6"
+                                  currentDateTime: =..calendarDate.todayDate
+                                  pastTimeColor: "0xbababa"
+                                dataOut: MobileContacts.calendarDate.dayLable
+                        - actionType: evalObject
+                          object:
+                            - .MobileContacts.calendarDate.year@: =.MobileContacts.calendarDate.tempDate.year
+                            - .MobileContacts.calendarDate.month@: =.MobileContacts.calendarDate.tempDate.month
+                            - =.builtIn.date.transformMonth:
+                                dataIn:
+                                  month: =.MobileContacts.calendarDate.month
+                                dataOut: MobileContacts.calendarDate.monthName
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: setSchedule3
+            - type: view
+              style:
+                marginTop: "0.02"
+
+        - type: view
+          # viewTag: splitTimeTag
+          style:
+            marginLeft: "0.035"
+            width: "0.95"
+            # height: "0.43"
+            # height: "0.355"
+            height: ..formData.splitTimeHeight
+            backgroundColor: "0xffffff"
+            boxSizing: "border-box"
+            overflow: scroll
+          children:
+            - type: list
+              viewTag: splitTimeTag
+              androidGrid: true
+              contentType: listObject
+              listObject: ..splitTime
+              iteratorVar: itemObject
+              style:
+                width: "0.95"
+                margin: "0"
+                height: ..formData.splitTimeHeight
+                # overflow: scroll
+                boxSizing: "border-box"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    marginLeft: "0.015"
+                    display: "inline-block"
+                    width: "0.28"
+                    height: "auto"
+                    # marginTop: "0.015"
+                  children:
+                    - type: label
+                      dataKey: itemObject.showTime
+                      style:
+                        width: "0.28"
+                        height: "0.05"
+                        marginTop: "0.015"
+                        lineHeight: "5vh"
+                        boxSizing: "border-box"
+                        border:
+                          style: 3
+                        borderColor: "0xdededf"
+                        borderRadius: "5"
+                        borderWidth: "1"
+                        color: itemObject.fontColor
+                        fontSize: .Nfont.h15
+                        backgroundColor: itemObject.backgroundColor
+                        textAlign:
+                          x: center
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - ..clock@: $var
+                              - .Global.clock@: $var
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.date.getTime:
+                                dataIn:
+                                dataOut: MobileContacts.nowTimeStamp
+                            - if:
+                                - =.builtIn.math.greater:
+                                    dataIn:
+                                      num1: =..clock.stime
+                                      num2: =..nowTimeStamp
+                                - continue
+                                - actionType: popUp
+                                  popUpView: check
+                                  wait: true
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.object.setProperty:
+                                dataIn:
+                                  obj: =..splitTime
+                                  label: "showTime"
+                                  text: =..clock.showTime
+                                  arr: ["backgroundColor", "fontColor"]
+                                  valueArr: ["0x2988e6", "0xffffff"]
+                                  errorArr: ["0xffffff", "0x474747"]
+                                dataOut: MobileContacts.splitTime
+                            - .Global.formData.appointment.selectTime@: =.MobileContacts.splitTime
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =..clock.bvid
+                                - ..formData.nextBtnColor@: "0x2988e6"
+                                - ..formData.nextBtnColor@: "0xc1c1c1"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: splitTimeTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: nextBtn
+    - .NextButtonView:
+      style:
+        boxShadow: "0px 1px 10px #dbdfe3"
+        overflow: hidden
+      children:
+        - type: button
+          text: Next
+          viewTag: nextBtn
+          style:
+            marginTop: "0.025"
+            marginLeft: "0.2"
+            width: "0.6"
+            height: "0.04"
+            backgroundColor: ..formData.nextBtnColor
+            border:
+              style: 3
+            borderColor: ..formData.nextBtnColor
+            borderRadius: "2"
+            borderWidth: "1"
+            fontFamily: "Arial"
+            fontSize: .Nfont.h15
+            color: "0xffffff"
+            textAlign:
+              x: center
+          onClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.date.getTime:
+                    dataIn:
+                    dataOut: MobileContacts.nowTimeStamp
+                - if:
+                    - =.builtIn.math.greater:
+                        dataIn:
+                          num1: =..clock.stime
+                          num2: =..nowTimeStamp
+                    - continue
+                    - actionType: popUp
+                      popUpView: check
+                      wait: true
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..clock.bvid
+                    - continue
+                    - actionType: popUp
+                      popUpView: timeWarning
+                      wait: true
+            - actionType: evalObject
+              object:
+                - .Global.formData.appointment.visitType@: =..visitType
+                - .Global.formData.appointment.selectDate@: =..selectDate
+                - .Global.formData.appointment.selectData@: =..selectData
+                - .Global.formData.appointment.addressName@: =.MobileContacts.formData.addressName
+            - goto: CreateAppointment
+
+    - .BackgroundColorGray:
+      viewTag: timeWarning
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: timeWarning
+      children:
+        - type: view
+          style:
+            width: "0.4"
+            height: "0.14"
+            backgroundColor: "0xe5e5e5"
+            borderRadius: "12"
+            top: "0.43"
+            left: "0.3"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                width: "0.105"
+                marginTop: "0.025"
+            - type: label
+              text: "Please select an appointment time"
+              dataKey:
+              style:
+                color: "0x555555"
+                fontSize: .Nfont.h12
+                fontFamily: "Arial"
+                width: "0.35"
+                marginLeft: "0.025"
+                marginTop: "0.009"
+                textAlign:
+                  x: center
+
+    - .BackgroundColorGray:
+      viewTag: noAvailableTag
+      onClick:
+        - actionType: evalObject
+          object:
+            - ..calendarDate@: =..temporaryInfo
+            - ..temporaryInfo@: ""
+            - =.builtIn.date.ShowDateByNumber:
+                dataIn:
+                  year: =..calendarDate.year
+                  month: =..calendarDate.month
+                  day: =..calendarDate.day
+                dataOut: MobileContacts.selectDate
+            - ..splitTime@: =..formData.temporarySplitTime
+            - ..formData.temporarySplitTime@: []
+        - actionType: popUpDismiss
+          popUpView: noAvailableTag
+      children:
+        - type: view
+          style:
+            width: "0.51"
+            height: auto
+            backgroundColor: "0xe5e5e5"
+            borderRadius: "12"
+            top: "0.41"
+            left: "0.24"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                width: "0.105"
+                marginTop: "0.03"
+                textAlign:
+                  x: center
+            - type: label
+              text: "There is no appointment available"
+              dataKey:
+              style:
+                color: "0x555555"
+                fontSize: .Nfont.h1
+                width: "0.43"
+                height: auto
+                marginLeft: "0.04"
+                fontFamily: "Arial"
+                # margin: auto
+                word-break: break-word
+                marginTop: "0.01"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                width: "0.01"
+                height: "0.015"
+
+    - .BackgroundColorGray:
+      viewTag: dateCheck
+      onClick:
+        - actionType: evalObject
+          object:
+            - ..calendarDate@: =..temporaryInfo
+            - ..temporaryInfo@: ""
+            - =.builtIn.date.ShowDateByNumber:
+                dataIn:
+                  year: =..calendarDate.year
+                  month: =..calendarDate.month
+                  day: =..calendarDate.day
+                dataOut: MobileContacts.selectDate
+            - ..splitTime@: =..formData.temporarySplitTime
+            - ..formData.temporarySplitTime@: []
+        - actionType: popUpDismiss
+          popUpView: dateCheck
+      children:
+        - type: view
+          style:
+            width: "0.51"
+            height: auto
+            backgroundColor: "0xe5e5e5"
+            borderRadius: "12"
+            top: "0.41"
+            left: "0.24"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                width: "0.105"
+                marginTop: "0.03"
+                textAlign:
+                  x: center
+            - type: label
+              text: "Please don't choose the past time"
+              dataKey:
+              style:
+                color: "0x555555"
+                fontSize: .Nfont.h1
+                width: "0.43"
+                height: auto
+                fontFamily: "Arial"
+                marginLeft: "0.04"
+                textAlign:
+                  x: center
+                word-break: break-word
+                marginTop: "0.01"
+            - type: view
+              style:
+                width: "0.01"
+                height: "0.015"
+
+    - .SoftTips:
+      message: Please don't select the past time
+      viewTag: check

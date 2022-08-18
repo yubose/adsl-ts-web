@@ -1,0 +1,9 @@
+RightPage2:
+  components:
+    - type: image
+      path: dateImg.png
+      style:
+        left: "0"
+        width: "1"
+        height: "1"
+        top: "0"

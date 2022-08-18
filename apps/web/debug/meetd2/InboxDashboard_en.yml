@@ -1,0 +1,310 @@
+InboxDashboard:
+  pageNumber: "90"
+  title: "Inbox"
+  init: 
+    - .SignInCheck
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: ""
+    - ..emailList.get
+    # - ..emailListNumber.get
+    - if:
+        - =..emailList.email.doc.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
+  emailList: 
+    email: 
+      doc: ""          
+    get:
+      ObjType: 8
+      id: .Global.currentUser.vertex.id
+      xfname: "(E.bvid|E.evid)&!(D.ovid)"
+      type: .DocType.InboxMessage
+      obfname : "mtime" 
+      maxcount : "50"  
+      sCondition: "E.type=10002"      
+      api: rd 
+      .DocAPI.get : ""       
+      dataKey: emailList.email
+      _nonce: =.Global._nonce
+  components:
+    # - type: view
+    #   style: 
+    #     left: "0"
+    #     width: "1"
+    #     height: "1"
+    #     top: "0"
+    #     position: fixed
+      # children: 
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+    - .HeaderRightImg:
+      path: sideNav3.png
+      # onClick:
+      #   - goto: InboxMenu
+    - type: view
+      style:
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.08"
+        border: 
+          style: "2"
+        borderColor: "0x00000033"
+        backgroundColor: "0x388eccff"
+        borderWidth: "1"
+        zIndex: "10"
+      children:
+        - type: textField
+          placeholder: Search
+          dataKey: ..formData.serachInfo
+          style:
+            top: "0.02"
+            width: "0.7"
+            left: "0.05"
+            height: "0.035"
+            backgroundColor: "0xffffff"
+            borderRadius: "5"
+            paddingLeft: "20px"
+            borderWidth: "0"
+        - type: label
+          text: Contacts
+          onClick:
+            - goto: InboxContacts
+          style:
+            top: "0.025"
+            left: "0.83"
+            height: "0.035"
+            width: "0.15"
+            fontSize: "17"
+            color: "0xffffff"
+            fontWeight: 400
+            textAlign: 
+              x: center
+    - type: scrollView
+      style: 
+        left: "0"
+        width: "1"
+        top: "0.18"
+        height: "0.7"
+        overflow: scroll
+      children: 
+        - type: label
+          contentType: messageHidden
+          text: "No email to receive"
+          style:
+            left: "0.31"
+            top: "0.25"
+            width: "0.4"
+            height: "0.04"
+            color: "0x000058"
+            fontSize: "16"
+            isHidden: "true"
+            zIndex: 1000
+        - type: list
+          contentType: listObject
+          listObject: ..emailList.email.doc
+          iteratorVar: itemObject
+          viewTag: emailList
+          style: 
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "0.7"
+            backgroundColor: "0xffffff"
+          children:   
+            - type: listItem
+              itemObject: ""
+              style: 
+                left: "0"
+                width: "1"
+                height: "0.09"
+                backgroundColor: "0xffffffff"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                  color: "0xdcdcdc" 
+                # backgroundColor: "0x2988e6"
+              children: 
+                - type: view
+                  onClick:
+                    - actionType: updateObject
+                      dataKey: Global.email.document
+                      dataObject: itemObject
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""  
+                    - goto: Message1
+                  style: 
+                    left: "0"
+                    top: "0"
+                    height: "0.09"
+                    width: "0.8"
+                  children: 
+                    - type: image
+                      path: 
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: 20
+                                    string2: $var.subtype
+                              - dot.png
+                              - white.png 
+                      style:
+                        left: "0"
+                        top: "0.024"
+                        height: "0.04"
+                    - type: label
+                      text=func: .builtIn.string.getFirstChar
+                      dataKey: itemObject.name.user
+                      style:  
+                        left: "0.075"
+                        top: "0.015"
+                        width: "0.1"
+                        height: "0.06"
+                        fontSize: "18"
+                        color: "#2988e6"
+                        textIndent: "18px"
+                        textAlign: 
+                          y: center
+                        backgroundColor: "#b2d1ff"
+                    - type: label
+                      # text: "Tonimarie Munoz"
+                      dataKey: itemObject.name.user
+                      style:  
+                        left: "0.25"
+                        top: "0.012"
+                        width: "0.45"
+                        height: "0.022"
+                        fontSize: "15"
+                        fontFamily: Poppins
+                        color: "0x707070"
+                        textAlign: 
+                          x: left
+                    - type: label
+                      # text: "Phase 2 Design"
+                      dataKey: itemObject.name.title
+                      style:  
+                        left: "0.25"
+                        top: "0.034"
+                        width: "0.45"
+                        height: "0.022"
+                        fontSize: "13"
+                        color: "0x707070"
+                        textAlign: 
+                          x: left
+                    # - type: label
+                    #   text: "Hey!Had a question about"
+                    #   dataKey: itemObject.name.message
+                    #   style:  
+                    #     left: "0.25"
+                    #     top: "0.056"
+                    #     width: "0.6"
+                    #     height: "0.022"
+                    #     fontWeight: "300"
+                    #     fontSize: "12"
+                    #     textAlign: 
+                    #       x: left
+                    #     fontFamily: PMingLiU
+                    
+                    - type: label
+                      # text: 1:30 PM
+                      text=func: .builtIn.string.formatUnixtime_en
+                      dataKey: itemObject.ctime
+                      style: 
+                        left: "0.25"
+                        top: "0.056"
+                        width: "0.5"
+                        height: "0.02"
+                        fontSize: "12"
+                        color: "0x00000099"
+                        textAlign: 
+                          x: left
+                        fontFamily: PMingLiU
+                - type: image
+                  viewTag: select
+                  path:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      actions:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: 40
+                                string2: $var.subtype
+                          - https://public.aitmed.com/commonRes/providerOn.png
+                          - https://public.aitmed.com/commonRes/providerOff.png
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: 40
+                                  string2: $var.subtype
+                            - =.builtIn.object.set:
+                                dataIn:
+                                  object: $var
+                                  key: subtype
+                                  value: 30
+                            - =.builtIn.object.set:
+                                dataIn:
+                                  object: $var
+                                  key: subtype
+                                  value: 40
+                    - actionType: updateObject
+                      dataKey: Global.email.document
+                      dataObject: itemObject
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: "" 
+                    - actionType: evalObject
+                      object: 
+                        - =..emailInfo.edgeAPI.store: ""
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: emailList
+                  style:
+                    left: "0.88"
+                    top: "0.02"
+                    height: "0.033"
+                    zIndex: "1000"
+    - type: button
+      text: Compose
+      onClick: 
+        - actionType: evalObject
+          object:       
+            - .Global.inboxContact.id@: =.EmptyObj
+            - .Global.email.id@: =.EmptyObj
+            - .Global.inboxContact.name.firstName@: ""
+        - goto: NewMessage
+      style: 
+        left: "0.65"
+        top: "0.9"
+        width: "0.25"
+        height: "0.05"
+        zIndex: "2000"
+        fontSize: "16"
+        fontStyle: "bold"
+        color: "0xffffff"
+        backgroundColor: "0x388eccff"
+        border: 
+          style: "3"
+          width: "1"
+        borderColor: "0x388eccff"
+        borderRadius: "15"
+        textAlign: 
+          x: center

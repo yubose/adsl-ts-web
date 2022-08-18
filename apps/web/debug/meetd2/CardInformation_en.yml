@@ -1,0 +1,304 @@
+CardInformation: # This is page name
+  module: Subscript
+  pageNumber: "50" #xd page 51
+  title: Payment Method
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          path: sideNav2.png
+          onClick:
+            - goto: SideMenuBar
+        - type: button
+          text: "Add Credit Card"
+          style:
+            width: "1"
+            top: "0.1"
+            height: "0.06"
+            fontSize: "22"
+            fontWeight: "600"
+            backgroundColor: "0xffffff"
+        - type: view
+          style:
+            width: "1"
+            height: "0.8"
+            top: "0.16"
+            left: "0"
+          children:
+            - type: view
+              style:
+                width: "1"
+                top: "0"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "Payment information"
+                  style:
+                    width: "0.9"
+                    top: "0"
+                    left: "0.05"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: image
+                  path: visa.png
+                  style:
+                    top: "0.05"
+                    width: "0.05"
+                    left: "0.06"
+                - type: image
+                  path: visa.png
+                  style:
+                    top: "0.05"
+                    width: "0.05"
+                    left: "0.12"
+                - type: image
+                  path: visa.png
+                  style:
+                    top: "0.05"
+                    width: "0.05"
+                    left: "0.18"
+                - type: image
+                  path: visa.png
+                  style:
+                    top: "0.05"
+                    width: "0.05"
+                    left: "0.24"
+            - type: view
+              style:
+                width: "1"
+                top: "0.08"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "Payment information"
+                  style:
+                    width: "0.9"
+                    top: "0"
+                    left: "0.05"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.9"
+                    left: "0.05"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "0.4"
+                top: "0.16"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "EXP"
+                  style:
+                    width: "0.4"
+                    top: "0"
+                    left: "0.05"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.4"
+                    left: "0.05"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "0.4"
+                top: "0.16"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "CVV"
+                  style:
+                    width: "0.4"
+                    top: "0"
+                    left: "0.55"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.4"
+                    left: "0.55"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "1"
+                top: "0.24"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "NAME ON CARD"
+                  style:
+                    width: "0.9"
+                    top: "0"
+                    left: "0.05"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.9"
+                    left: "0.05"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "1"
+                top: "0.32"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "ADDRESS"
+                  style:
+                    width: "0.9"
+                    top: "0"
+                    left: "0.05"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.9"
+                    left: "0.05"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "1"
+                top: "0.4"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "CITY"
+                  style:
+                    width: "0.9"
+                    top: "0"
+                    left: "0.05"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.9"
+                    left: "0.05"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "0.4"
+                top: "0.48"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "STATE"
+                  style:
+                    width: "0.4"
+                    top: "0"
+                    left: "0.05"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.4"
+                    left: "0.05"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "0.4"
+                top: "0.48"
+                height: "0.07"
+              children:
+                - type: label
+                  text: "ZIP CODE"
+                  style:
+                    width: "0.4"
+                    top: "0"
+                    left: "0.55"
+                    height: "0.03"
+                    fontSize: "18"
+                - type: textField
+                  style:
+                    width: "0.4"
+                    left: "0.55"
+                    height: "0.03"
+                    top: "0.035"
+                    border:
+                      style: "0"
+                    borderWidth: "1"
+            - type: view
+              style:
+                width: "1"
+                top: "0.56"
+                height: "0.05"
+              children:
+                - type: image
+                  path: selectOff.png
+                  style:
+                    height: "0.03"
+                    top: "0.01"
+                    left: "0.05"
+                - type: label
+                  text: "Make this my primary card"
+                  style:
+                    height: "0.05"
+                    left: "0.15"
+                    width: "0.5"
+                    fontSize: "15"
+                    textAlign:
+                      y: center
+            - type: button
+              text: Save
+              onClick:  
+                - goto: SubsciptionDetails
+              style:
+                width: "0.6"
+                left: "0.2"
+                height: "0.05"
+                color: "0xffffff"
+                top: "0.62"
+                backgroundColor: "0x388ecc"
+            - type: button
+              text: Delete
+              onClick: 
+                - goto: ActiveMonthlySubscription
+              style:
+                width: "0.4"
+                left: "0.3"
+                height: "0.05"
+                color: "0xffffff"
+                top: "0.7"
+                backgroundColor: "0xd53c42"
+
+
+
+                
+              
+
+

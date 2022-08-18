@@ -1,0 +1,304 @@
+TestPage:
+  title: TestPage
+  init: #Page initialization
+
+  dataTemp: #Input data temp here
+
+  formData: #Input data here
+    typePatient: Type
+    patientData: []
+    patient:
+      # - patient:
+      #   typePatient: Type
+      #   fontColor: "0x045795"
+      #   typePatientWidth: "1vw"
+      - typePatient: All
+        fontColor: "0x000000"
+        backgroundColor: ""
+        typePatientWidth: "4vw"
+      - typePatient: Telemedicine
+        fontColor: "0x7eb559"
+        typePatientWidth: "5vw"
+        backgroundColor: ""
+      - typePatient: Office Visit
+        typePatientWidth: "5vw"
+        backgroundColor: ""
+        fontColor: "0xee8a46"
+      - typePatient: COVID-19 Testing
+        typePatientWidth: "7vw"
+        backgroundColor: ""
+        fontColor: "0xbf0000"
+      - typePatient: COVID-19 Vaccine
+        fontColor: "0xbf0000"
+        backgroundColor: ""
+        typePatientWidth: "8vw"
+    tableTitle: History
+    tableNum: [1,1,1,1,1,1]
+    tableData: [tableTitle,tableTitle,tableTitle,tableTitle,tableTitle,tableTitle,tableTitle]           # sdk 返回的数组,包括当前显示第几页的数据list 和 被切分成总共多少页面
+    tableListOne: [tableCurrentPage,tableCurrentPage,tableCurrentPage]
+    tableListTwo: 
+      [tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage,tableCurrentPage] # sdk 返回的数组的第一项，list真正打印的数据
+    tablePageNum: "1"     # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: ""       # goto 后面的文本显示
+    totalPageMore: ""     #totalPage(tableData .1) + 1 
+  serverRequest: #Input data request here
+
+  style: #Input style fragment here
+  components: 
+    - .TotalView: 
+      children: 
+        # loading
+        - .loading: ""
+        # SideBar
+        - .SideMenuBar: ""
+
+        - type: view
+          style:
+            width: '0.84'
+            display: flex
+            flexWrap: wrap
+          children:
+            - .TopBar: 
+            - .InnerBodyView:
+              children:
+                - .PageTitle:
+                - .ContentView:
+                  children:
+                    - type: view
+                      viewTag: tableView
+                      style: 
+                        display: flex
+                        flexWrap: wrap
+                        justifyContent: center
+                        alignItems: center
+                      children: 
+                        - type: view
+                          style: 
+                            width: "0.75"
+                            marginTop: "2vw"
+                            display: flex
+                            justifyContent: space-between
+                          children:
+                            - type: view
+                              style:
+                                width: "0.37"
+                                height: '0.04'
+                              children:
+                                - type: textField
+                                  style:
+                                    width: "0.37"
+                                    height: '0.04'
+                                    boxSizing: border-box
+                                    border: 
+                                      style: "3"
+                                    borderWidth: "2"
+                                    borderColor: "0xe0e0e0"
+                                    borderRadius: "5px"
+                            - type: view
+                              style:
+                                
+                                width: "0.37"
+                                margin: '0'
+                                boxSizing: border-box
+                                height: '0.04'
+                                border: 
+                                  style: "3"
+                                borderWidth: "2"
+                                borderColor: "0xe0e0e0"
+                                borderRadius: "5px"
+                                axis: horizontal
+                              children:
+                                - type: view
+                                  style:
+                                    width: "5vw"
+                                    height: "0.035"
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                  children:
+                                    - type: image
+                                      path: awesomeType.svg
+                                      style:
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                        width: "1vw"
+                                    - type: label
+                                      text: ..formData.typePatient
+                                      style:
+                                        width: "2vw"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                        color: "0x045795"
+                                - type: list
+                                  viewTag: titleView
+                                  contentType: listObject
+                                  listObject: ..formData.patient
+                                  iteratorVar: itemObject
+                                  style:
+                                    axis: horizontal
+                                    width: "0.37"
+                                    margin: '0'
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        display: "flex"
+                                        justifyContent: center
+                                        width: itemObject.typePatientWidth
+                                        height: "0.035"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.typePatient
+                                          style:
+                                            backgroundColor: itemObject.backgroundColor
+                                            color: itemObject.fontColor 
+                                            border: 
+                                              style: ""
+                                            borderWidth: "1"
+                                            borderColor: ""
+                                            borderRadius: "5"
+                                            fontSize: "0.6vw"
+                                            width: itemObject.typePatientWidth
+                                            textAlign:
+                                              x: center
+                                              y: center
+                                          onClick: 
+                                            - emit:
+                                                dataKey: 
+                                                  var: itemObject
+                                                actions:
+                                                  - =.builtIn.object.setProperty: 
+                                                      dataIn: 
+                                                        obj: =..formData.patient
+                                                        label: "typePatient"
+                                                        text: $var.typePatient
+                                                        arr: ["backgroundColor","color"]
+                                                        valueArr: ["0x045795","0xffffff"]
+                                                        errorArr: ["",""]
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: titleView
+                        #TableTitle
+                        - type: label
+                          viewTag: tableTitle
+                          text: ..formData.tableTitle
+                          style:  
+                            marginTop: 1vw
+                            paddingLeft: "2vw"
+                            width:  "0.75"
+                            height:  "0.03"
+                            backgroundColor: "0x014c82" 
+                            fontSize: "1vw" 
+                            fontWeight: "500" 
+                            boxSizing: "border-box" 
+                            color: "0xffffff" 
+                            textAlign:
+                              y: "center" 
+                        #TableHeader
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.tableData
+                          iteratorVar: itemObject
+                          style:
+                            width: "0.75"
+                            margin: '0'
+                            axis: horizontal
+                            backgroundColor: "0xefefef"
+                            justifyContent: center
+                            alignItems: center
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                display: flex
+                                flex: "1"
+                                height: "0.05"
+                                justifyContent: center
+                                alignItems: center
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xe2e8eb"
+                                borderRadius: ""
+                              children:
+                                - type: label
+                                  dataKey: itemObject
+                                  style: 
+                                    marginRight: "2vw"
+                                    display: flex
+                                    fontSize: "1vw"
+                                    justifyContent: center
+                                    alignItems: center
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.tableListOne
+                          iteratorVar: itemObject
+                          style:
+                            margin: '0'
+                            height: auto
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.tableListTwo
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.75"
+                                    axis: horizontal
+                                    margin: '0'
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        display: flex
+                                        flex: "1"
+                                        height: "0.05"
+                                        justifyContent: center
+                                        alignItems: center
+                                        border: 
+                                          style: "3"
+                                        borderWidth: "1"
+                                        borderColor: "0xe2e8eb"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject
+                                          style: 
+                                            # marginRight: "2vw"
+                                            display: flex
+                                            # flex: "1"
+                                            fontSize: "1vw"
+                                            alignItems: center
+                            # - type: list
+                            #   contentType: listObject
+                            #   listObject: ..formData.tableList
+                            #   iteratorVar: itemObject
+                            #   style:
+                            #     # width: '1'
+                            #     axis: vertical
+                            #     # margin: '0'
+                            #     justifyContent: center
+                            #     alignItems: center
+                            #     height: auto
+                            #   children:
+                            #     - type: listItem
+                            #       itemObject: 
+                            #       style:
+                            #         # width: '1'
+                            #         height: ''
+                            #         marginTop: ''
+                            #       children:
+                            #         - type: label
+                            #           style:
+                            #             display: flex
+                            #             justifyContent: center
+                            #             alignItems: center
+
+                                            

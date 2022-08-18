@@ -1,0 +1,3390 @@
+ProviderDetailEdit:  
+  pageNumber: "110"
+  init:
+    # - =..providerProfile.docAPI.get: ""
+    - actionType: evalObject  
+      object: 
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 80
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject 
+      object: 
+        .BaseComponents.getDate
+    - actionType: evalObject
+      object: 
+        .BaseComponents.getShow
+    - actionType: evalObject #IOS use calendar init
+      object: 
+        - =.builtIn.date.getMonth:
+            dataIn: 
+            dataOut: ProviderDetailEdit.calendarDate.month
+        - =.builtIn.date.getYear: 
+            dataIn: 
+            dataOut: ProviderDetailEdit.calendarDate.year
+        - =.builtIn.date.getDate: 
+            dataIn: 
+            dataOut: ProviderDetailEdit.calendarDate.day   
+    - actionType: evalObject  
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.ProviderDetailEdit.calendarDate.year
+              month: =.ProviderDetailEdit.calendarDate.month
+              today: =.ProviderDetailEdit.calendarDate.day
+            dataOut: ProviderDetailEdit.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.ProviderDetailEdit.calendarDate.month
+            dataOut: ProviderDetailEdit.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.ProviderDetailEdit.calendarDate.year
+              month: =.ProviderDetailEdit.calendarDate.month
+              day: =.ProviderDetailEdit.calendarDate.day
+              formatType: "Y-M-D"
+            dataOut: ProviderDetailEdit.calendarDate.todayDate
+    - actionType: evalObject
+      object:
+        - if: 
+          - =.Global.MyProfile.name.data.cv
+          - ..apiRequest.cv.docReq.id@: =.Global.MyProfile.name.data.cv
+          - continue
+        - ..selectSpecialty.document.name.data.specialty@: =.Global.MyProfile.name.data.specialty
+        - ..selectedMedicalLicense.document.name.data.MedicalLicense@: =.Global.MyProfile.name.data.MedicalLicense
+        - ..selectLanguage.document.name.data.languages@: =.Global.MyProfile.name.data.languages
+        - ..specialtyObj.specialty@: =..SpShow
+        - ..medicalLicenseObj.state@: =..StShow
+        - ..LanguageObj@: =..LanShow
+        - ..publicProfile.document@: =.Global.MyPubProfile
+    - =.builtIn.array.convertToList:
+        dataIn:
+          array: =..selectSpecialty.document.name.data.specialty
+          key: specialty
+        dataOut: selected
+    
+    - if:
+      - =..formData.providerInfo.name.data.cv
+      - ..formData.deleteShow@: "block"
+      - ..formData.deleteShow@: "none"
+ 
+  
+  specialties: []
+  medicalLicenses: []
+  selectSpecialty: 
+    document:
+      name:
+        data:
+          specialty: []
+  specialtyObj:
+    boardCertified: ""
+    specialty: ""
+  selectedMedicalLicense: 
+    document:
+      name:
+        data:
+          MedicalLicense: []
+  medicalLicenseObj:
+    state: ""
+    medicalLicense: ""
+    expiration: ""
+  selectLanguage: 
+    document:
+      name:
+        data:
+          languages: []
+  LanguageObj: ""
+  
+  suggestAddress: []
+  
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    trainingExplanation: 
+      - text: "DDS: Doctor of Dental Surgery"
+      - text: "DMD: Docto of medical Dentist"
+      - text: "PhD-BCP: board certified pharmacist"
+      - text: "PTC: Physical therapist"
+      - text: "OTC: certified occupational therapist"
+      - text: "RTC: licensed respiratory therapist"
+      - text: "OD: optometrist doctor"
+      - text: "CNMs: Certified Nurse Midwifes"
+      - text: "CMS: Certified Midwifes"
+      - text: "RD/RDN:  Registrated Dietetion/Nutritionist"
+      - text: "PsyD: Doctor of psychologist"
+      - text: "LMFT: Licensed Marriage Therapist"
+      - text: "LCSW: Licensed Clinical Social Worker"
+    languagesList:
+      - text: AfghanPersian
+      - text: Afrikaans
+      - text: Albanian
+      - text: Amharic
+      - text: Arabic
+      - text: Armenian 
+      - text: Azerbaidzhan
+      - text: Belarusian
+      - text: Bengali
+      - text: Bosnian
+      - text: Bulgarian
+      - text: Burmese
+      - text: Byelorussian
+      - text: Catalan
+      - text: Chinese
+      - text: Croatian
+      - text: Czech
+      - text: Danish
+      - text: Dari
+      - text: Dutch
+      - text: Dzongkha
+      - text: English
+      - text: Estonian
+      - text: Finnish
+      - text: Flemish
+      - text: French
+      - text: Gaelic
+      - text: Georgian
+      - text: German
+      - text: Greek
+      - text: Gujarati
+      - text: Hebrew
+      - text: Hindi
+      - text: Hungarian
+      - text: Icelandic
+      - text: Indonesian
+      - text: Italian
+      - text: Japanese
+      - text: Kazakh
+      - text: Khmer
+      - text: Kirgiz
+      - text: Kirundi
+      - text: Kiswahili
+      - text: Korean
+      - text: Lao
+      - text: Latvian
+      - text: Lithuanian
+      - text: Malagasy
+      - text: Malay
+      - text: Maltese
+      - text: Mongolian
+      - text: Nepali
+      - text: Norwegian
+      - text: Panjabi
+      - text: Pashto
+      - text: Persian
+      - text: Polish
+      - text: Portuguese
+      - text: Romanian
+      - text: Russian
+      - text: Serbian
+      - text: Serbo-Croatian
+      - text: Setswana
+      - text: Sinhalese
+      - text: Slovak
+      - text: Somali
+      - text: Spanish
+      - text: Swahili
+      - text: Tadzhik
+      - text: Tagalog
+      - text: Thai
+      - text: Tongan
+      - text: Turkhmen
+      - text: Turkish
+      - text: Ukrainian
+      - text: Urdu
+      - text: Uzbek
+      - text: Vitenamese        
+    popularLanguage: 
+      - text: English
+      - text: Spanish
+      - text: Portuguese
+      - text: Chinese
+      - text: Korean
+      - text: German
+      - text: French
+      - text: Japanese
+      - text: Russian
+    
+    addColor: "0xffffff"
+    fontColor: "0x004779"
+
+  formData:
+    providerInfo: .Global.MyProfile
+    providerList: "" 
+    address: ""
+    addressDetail: ""  
+    deleteShow: block
+    specialtyTag: "none"
+    errorArr: []
+  apiRequest: #Input data request here
+    cv:
+      docResp: ""
+      deleteReq:
+        id: ""
+      docReq:
+        eid: .Global.rootNotebookID
+        name:
+          data: binFile
+          type: ..cv.docAPI.store.subtype.mediaType
+        type: .DocType.CV
+      docAPI:
+        store:
+          api: cd
+          dataIn: ProviderDetailEdit.apiRequest.cv.docReq
+          dataOut: ProviderDetailEdit.apiRequest.cv.docResp
+          subtype:
+            mediaType: ""
+        delete: 
+          api: dx
+          dataIn: apiRequest.cv.deleteReq
+  
+  privateProfile: 
+    docResponse: ""
+    document: 
+      .Global.MyProfile: ""
+      eid: .Global.rootNotebookID
+      
+    docAPI: 
+      store: 
+        api: cd
+        dataIn: privateProfile.document
+        dataOut: privateProfile.docResponse
+        subtype:
+          mediaType: "application/json"
+  publicProfile: 
+    docResponse: ""
+    document: 
+      eid: .Global.rootNotebookID
+      name:
+        data:
+          firstName: ""
+          middleName: ""
+          lastName: ""
+          title: ""  #Title/Training
+          userName: ""
+          phone: ""
+          fullName: "" 
+          specialty: []
+          selectedSpecialty: []
+          avatar: ""
+          cv: ""
+          
+          address: ""
+          Address:
+            St: ""
+            city: ""
+            state: ""
+            line2: ""
+            zip: ""
+
+          
+    docAPI: 
+      store: 
+        api: cd
+        dataKey: publicProfile.document
+        subtype:
+          mediaType: "application/json"
+  AddImage:
+    url: ava.png
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "0"
+        isOnServer: "0"
+      type: .DocType.UserAvatar
+      name:
+        title: ""
+        type: ..AddImage.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    resp: ""
+    docIn: 
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.UserAvatar
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI: 
+      store:
+        api: cd
+        dataIn: AddImage.document
+        dataOut: AddImage.resp
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: "" 
+        dataIn: AddImage.docIn
+        dataOut: ProviderDetailEdit.AddImage.resp
+  SpShow: "Allergy and Immunology"
+  StShow: "AK"
+  LanShow: "English"
+  style: #Input style fragment here  
+    infoTextStyle: 
+      type: label
+      style: 
+        fontSize: "0.85vw"
+        fontFamily: "sans-serif"
+        # fontWeight: "600"
+        color: "0x333333"
+        top: "0"   
+  components:
+    - type: view
+      style:
+        width : "1"
+        height: "1"
+        margin: auto
+      children:
+        - type: view
+          style:
+            background-image: 'linear-gradient(#0063a8, #004371)'   
+            height: "1"
+            width: "0.16"
+          children:
+            - .aitLogo:
+            - .Menu:
+        - .TopBar:
+        - type: view
+          viewTag: mainView
+          style:
+            width: "0.84"
+            left: "0.16"
+            height: '0.92'
+            top: "0.08"
+            backgroundColor: "0xf4f8fa"
+          children:
+            - type: view
+              style:
+                width: "0.8"
+                height: "0.86"
+                margin: "auto"
+                marginTop: "0.03"
+                backgroundColor: "0xffffff"
+                borderRadius: "10px"
+              children:
+                - .ViewColumn:
+                  style:
+                    width: "0.68"
+                    height: 10vw
+                    marginTop: "0.01"
+                    marginLeft: "0.058"
+                    borderBottom: "solid 2px #EAEAEA"
+                    borderWidth: 2px
+                  children:
+                    - .ViewRow:
+                      style:
+                        height: 6vw
+                        justifyContent: flex-start
+                      children:
+                        - type: view
+                          viewTag: pictureView
+                          style:
+                            height: 6vw
+                            width: 7vw
+                          children:
+                            - type: image
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: privateProfile.document.name.data.avatar
+                              path: yisheng copy.svg
+                              contentType: file
+                              onClick:
+                                - actionType: updateObject
+                                  dataObject: BLOB
+                                  dataKey: ProviderDetailEdit.AddImage.document.name.data
+                                - actionType: popUp
+                                  popUpView: uploading
+                                - actionType: evalObject
+                                  object:
+                                    - =..AddImage.docAPI.store: ""
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.utils.prepareDoc:
+                                        dataIn:
+                                          doc: =..AddImage.resp.doc
+                                        dataOut: ProviderDetailEdit.AddImage.resp
+                                - actionType: evalObject
+                                  object:
+                                    - ..AddImage.url@: =..AddImage.resp.name.data
+                                    - ..privateProfile.document.name.data.avatar@: =..AddImage.resp.id
+                                    # - .Global.ProviderImage@: =..AddImage.resp.id
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: pictureView
+                              style: 
+                                width: 7vw
+                                borderRadius: "5px"
+                                height: 6vw
+                            - type: image
+                              path: doctorsBg.png
+                              style: 
+                                width: 3.5vw
+                                height: 3vw
+                                top: 3vw
+                                left: 3.7vw 
+                            - type: image
+                              path: phone.png
+                              style: 
+                                width: 1.2vw
+                                height: 1.2vw
+                                top: 4.5vw
+                                left: 5.5vw
+                        - .ViewColumn:
+                          style:
+                            marginLeft: 3vw
+                            width: 70vw
+                            height: 6vw
+                            justifyContent: space-between
+                            alignItems: flex-start
+                          children:
+                            - type: label
+                              dataKey: privateProfile.document.name.data.fullName
+                              style: 
+                                fontSize: 1.2vw
+                                fontWeight: 550
+                            - .ViewRow:
+                              children:
+                                - type: label
+                                  text: "User Name"
+                                  style: 
+                                    width: 4vw
+                                    fontSize: 0.7vw
+                                    color: "#A6B1C2"
+                                    fontFamily: "Poppins"
+                                - type: label
+                                  dataKey: privateProfile.document.name.data.userName
+                                  style: 
+                                    marginLeft: 0.5vw
+                                    fontSize: 0.7vw
+                                    color: "#333333"
+                                    fontFamily: "Poppins"
+                            - .ViewRow:
+                              style:
+                                justifyContent: space-start 
+
+                              children:        
+                                - type: label
+                                  text: "Phone #"
+                                  style: 
+                                    width: 4.4vw
+                                    fontSize: 0.7vw
+                                    color: "#A6B1C2"
+                                    fontFamily: "Poppins"
+                                - type: label
+                                  dataKey: privateProfile.document.name.data.phone
+                                  style: 
+                                    marginLeft: 0vw
+                                    fontSize: 0.7vw
+                                    color: "#333333"
+                                    fontFamily: "Poppins"
+                        - type: view
+                          style: 
+                            width: 7.5vw
+                            height: 2.5vw
+                            backgroundColor: "#005795"
+                            borderRadius: "5px"
+                          children:
+                            - type: image
+                              path: saveImage.svg
+                              style:
+                                marginLeft: 1vw
+                                width: "0.01"
+                                marginTop: "0.7vw"
+                            - type: Button
+                              text: "Save"
+                              style: 
+                                width: 3vw
+                                height: 2.5vw
+                                fontSize: 1vw
+                                color: "0xffffff"
+                                backgroundColor: "#005795"
+                                borderRadius: "5px"
+                                float: right
+                                marginRight: "0.5vw"
+                                textAlign:
+                                  x: center
+                                  y: center
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+                                    - =.Global.jwt.edgeAPI.store: ""
+                                    - if: 
+                                      - =.builtIn.string.judgeFillinAll:
+                                          dataIn:
+                                            - =..privateProfile.document.name.data.firstName
+                                            - =..privateProfile.document.name.data.title
+                                            - =..privateProfile.document.name.data.lastName
+                                            - =..selectSpecialty.document.name.data.specialty
+                                            - =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                      - =.builtIn.array.judgeKeyAndReturnValue:         
+                                          dataIn:
+                                            objArr: 
+                                              - key: "First Name"
+                                                value: =..privateProfile.document.name.data.firstName
+                                              - key: "Title/Training"
+                                                value: =..privateProfile.document.name.data.title
+                                              - key: "Last Name"
+                                                value: =..privateProfile.document.name.data.lastName
+                                              - key: "Specialty & Board Certified"
+                                                value: =..selectSpecialty.document.name.data.specialty
+                                              - key: "Medical Licence"
+                                                value: =..selectedMedicalLicense.document.name.data.MedicalLicense                         
+                                            pathKey: "key"
+                                            pathValue: "value"
+                                            valueArr: ["","Select"]
+                                          dataOut:  ProviderDetailEdit.formData.errorArr
+                                      - continue   
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: errorView
+                                - actionType: evalObject
+                                  object:
+                                    - if: 
+                                      - =.builtIn.string.judgeFillinAll:
+                                          dataIn:
+                                            - =..privateProfile.document.name.data.firstName
+                                            - =..privateProfile.document.name.data.title
+                                            - =..privateProfile.document.name.data.lastName
+                                            - =..selectSpecialty.document.name.data.specialty
+                                            - =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                      - actionType: popUp
+                                        popUpView: errorView
+                                        wait: true
+                                      - continue
+                                - actionType: popUp
+                                  popUpView: upLoading
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.string.concat:
+                                      dataIn:
+                                        - =..privateProfile.document.name.data.firstName
+                                        - " "
+                                        - =..privateProfile.document.name.data.middleName
+                                        - " "
+                                        - =..privateProfile.document.name.data.lastName
+                                      dataOut: ProviderDetailEdit.privateProfile.document.name.data.fullName
+                                    - ..privateProfile.document.name.data.languages@: =..selectLanguage.document.name.data.languages
+                                    - ..privateProfile.document.name.data.specialty@: =..selectSpecialty.document.name.data.specialty
+                                    - ..privateProfile.document.name.data.MedicalLicense@: =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                    - =..privateProfile.docAPI.store: ""
+                                    - ..publicProfile.document.name.data.firstName@: =..privateProfile.docResponse.doc.name.data.firstName
+                                    - ..publicProfile.document.name.data.middleName@: =..privateProfile.docResponse.doc.name.data.middleName
+                                    - ..publicProfile.document.name.data.lastName@: =..privateProfile.docResponse.doc.name.data.lastName
+                                    - ..publicProfile.document.name.data.title@: =..privateProfile.docResponse.doc.name.data.title
+                                    - ..publicProfile.document.name.data.userName@: =..privateProfile.docResponse.doc.name.data.userName
+                                    - ..publicProfile.document.name.data.phone@: =..privateProfile.docResponse.doc.name.data.phone
+                                    - ..publicProfile.document.name.data.fullName@: =..privateProfile.docResponse.doc.name.data.fullName
+                                    - ..publicProfile.document.name.data.specialty@: =..privateProfile.docResponse.doc.name.data.specialty
+                                    - ..publicProfile.document.name.data.MedicalLicense@: =..privateProfile.docResponse.doc.name.data.MedicalLicense
+                                    - ..publicProfile.document.name.data.selectedSpecialty@: =..privateProfile.docResponse.doc.name.data.selectedSpecialty
+                                    - ..publicProfile.document.name.data.avatar@: =..privateProfile.docResponse.doc.name.data.avatar
+                                    - ..publicProfile.document.name.data.cv@: =..privateProfile.docResponse.doc.name.data.cv
+                                    - .Global.MyProfile@: =..privateProfile.docResponse.doc
+                                    - =..publicProfile.docAPI.store: ""
+                                    - =.builtIn.search.updateEsData:
+                                        dataIn:
+                                          id: =.Global.currentUser.vertex.id
+                                          type: '35841'
+                                        dataOut: ProviderDetailEdit.res
+                                - actionType: popUpDismiss
+                                  popUpView: upLoading
+                                - goto: ProviderDetail
+                - type: label
+                  text: "Basic Info"
+                  style:
+                    marginTop: 1.5vw
+                    color: "#333333"
+                    fontSize: 1.2vw
+                    marginLeft: "0.058"
+                    fontWeight: 450
+                - .ViewRow:
+                  style:
+                    width: "0.68"
+                    height: "0.07"
+                    marginTop: "0.005"
+                    marginLeft: '0.058'
+                    fontSize: 0.9vw
+                    justifyContent: space-between
+                  children: 
+                    - .ViewColumn: 
+                      children:
+                        - .PDETitle: 
+                          children:
+                            - type: label
+                              text: First Name
+                            - type: label
+                              text: "*"
+                              style:
+                                color: "0xEF3B3B"
+                        - .PDETextField:
+                          dataKey: privateProfile.document.name.data.firstName
+                          style:
+                            fontSize: 0.8vw
+                    - .ViewColumn: 
+                      children:
+                        - .PDETitle: 
+                          children:
+                            - type: label
+                              text: Middle Name
+                        - .PDETextField:
+                          dataKey: privateProfile.document.name.data.middleName
+                          style:
+                            fontSize: 0.8vw
+                    - .ViewColumn: 
+                      children:
+                        - .PDETitle: 
+                          children:
+                            - type: label
+                              text: Last Name
+                            - type: label
+                              text: "*"
+                              style:
+                                color: "0xEF3B3B"
+                        - .PDETextField:
+                          dataKey: privateProfile.document.name.data.lastName
+                          style:
+                            fontSize: 0.8vw
+                    - .ViewColumn: 
+                      style:
+                        height: 4vw
+                      children:
+                        - .PDETitle: 
+                          children:
+                            - type: label
+                              text: Title/ Training
+                            - type: label
+                              text: "*"
+                              style:
+                                color: "0xEF3B3B"
+                            - type: image
+                              path: question.svg
+                              onClick: 
+                                - actionType: popUp
+                                  popUpView: trainingView
+                              style:
+                                width: "0.01"
+                                display: inline-block
+                                marginLeft: "0.007" 
+                        - .TimeSelect:
+                          style:
+                            marginTop: "0.5vw"
+                            height: 2vw
+                            width: 10vw
+                            fontSize: 0.8vw
+                            border: "1px solid #DFDFE0"
+                            borderWidth: 1px
+                            borderRadius: 5px
+                            textIndent: 0.5em
+                            textAlign: 
+                              y: center
+                          dataKey: privateProfile.document.name.data.title
+                          options: 
+                            .title
+                    
+                    - .ViewColumn: 
+                      children:
+                        - .PDETitle:
+                          text: Email
+                        - .PDETextField:
+                          dataKey: privateProfile.document.name.data.email
+                          style:
+                            width: 10vw
+                            fontSize: 0.8vw
+                    - .ViewColumn: 
+                      children:
+                        - .PDETitle:
+                          text: "Fax #"
+                        - .PDETextField:
+                          dataKey: privateProfile.document.name.data.fax
+                          style:
+                            width: 10vw
+                            fontSize: 0.8vw
+                - .ViewRow:
+                  style:
+                    width: "0.68"
+                    height: "0.06"
+                    marginTop: "0.015"
+                    marginLeft: "0.058"
+                    fontSize: 0.9vw
+                    justifyContent: flex-start
+                  children: 
+                    - .ViewColumn: 
+                      children:
+                        - .PDETitle: 
+                          children:
+                            - type: label
+                              text: Gender
+                        - .ViewRow:
+                          style:
+                            marginTop: "0.5vw"
+                            width: 13vw
+                            height: 2.4vw
+                            justifyContent: flex-start
+                          children:
+                            - type: image
+                              viewTag: genderTag
+                              path:
+                                emit:
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: "Male"
+                                              string2: =..privateProfile.document.name.data.gender
+                                        - selectOnblue.svg
+                                        - selectBlack.svg
+                              onClick:
+                                - emit:
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: "Male"
+                                                string2: =..privateProfile.document.name.data.gender
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..privateProfile.document.name.data
+                                                key: gender
+                                                value:  ""
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..privateProfile.document.name.data
+                                                key: gender
+                                                value: "Male"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: genderTag
+                              style:
+                                height: 1.2vw
+                                width: 1vw
+                            - PDETitle:
+                              text: "Male"
+                              style:
+                                marginLeft: "0.5vw"
+                                fontSize: "0.7vw"
+                                x: 0.6vw
+                            - type: image
+                              viewTag: genderTag
+                              path:
+                                emit:
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: "Female"
+                                              string2: =..privateProfile.document.name.data.gender
+                                        - selectOnblue.svg
+                                        - selectBlack.svg
+                              onClick:
+                                - emit:
+                                    actions:
+                                      - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: "Female"
+                                              string2: =..privateProfile.document.name.data.gender
+                                        - =.builtIn.object.set:
+                                            dataIn:
+                                              object: =..privateProfile.document.name.data
+                                              key: gender
+                                              value:  ""
+                                        - =.builtIn.object.set:
+                                            dataIn:
+                                              object: =..privateProfile.document.name.data
+                                              key: gender
+                                              value: "Female"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: genderTag
+                              style:
+                                height: 1vw
+                                width: 1vw
+                                marginLeft: 2.5vw
+                            - .PDETitle:
+                              text: "Female"
+                              style: 
+                                marginLeft: "0.5vw"
+                                fontSize: "0.7vw"
+                                x: 0.6vw
+                            - type: image
+                              viewTag: genderTag
+                              path:
+                                emit:
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: "Others"
+                                              string2: =..privateProfile.document.name.data.gender
+                                        - selectOnblue.svg
+                                        - selectBlack.svg
+                              onClick:
+                                - emit:
+                                    actions:
+                                      - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: "Others"
+                                              string2: =..privateProfile.document.name.data.gender
+                                        - =.builtIn.object.set:
+                                            dataIn:
+                                              object: =..privateProfile.document.name.data
+                                              key: gender
+                                              value:  ""
+                                        - =.builtIn.object.set:
+                                            dataIn:
+                                              object: =..privateProfile.document.name.data
+                                              key: gender
+                                              value: "Others"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: genderTag
+                              style:
+                                height: 1vw
+                                width: 1vw
+                                marginLeft: 2.5vw
+                            - .PDETitle:
+                              text: "Others"
+                              style:
+                                marginLeft: "0.5vw"
+                                fontSize: "0.7vw"
+                                x: 0.6vw
+                    - .ViewColumn: 
+                      style: 
+                        marginLeft: "11vw"
+                      children:
+                        - .ViewRow:
+                          style:
+                            marginTop: "0.7vw"
+                            justifyContent: flex-start
+                          children:
+                            - .PDETitle:
+                              text: Languages spoken
+                            - .PDETitle:
+                              text: Edit
+                              style:
+                                marginLeft: "1vw"
+                                color: "0x003254"
+                                fontWeight: 600
+                              onClick:
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: SpecialtyTag3
+                                - actionType: popUp
+                                  popUpView: SpecialtyTag3
+                        - type: list
+                          viewTag: languageTag
+                          contentType: listObject
+                          listObject: ..selectLanguage.document.name.data.languages
+                          iteratorVar: itemObject
+                          style:
+                            width: 10vw
+                            flexDirection: row
+                            justifyContent: flex-start
+                            alignItems: center
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                # width: 
+                                height: 1.5vw 
+                                display: "inline-block"
+                                marginTop: 0.5vw
+                                marginRight: "0.5vw"
+                              children:    
+                                - type: label
+                                  dataKey: itemObject
+                                  style: 
+                                    # marginLeft: 1vw
+                                    height: 1.5vw
+                                    fontSize: 0.7vw
+                                    textAlign: 
+                                      y: center
+                - type: label
+                  text: "Credentials"
+                  style:
+                    marginTop: 1.4vw
+                    color: "#333333"
+                    fontSize: 1.2vw
+                    marginLeft: "0.058"
+                    fontWeight: 450
+                - .ViewRow:
+                  style:
+                    width: "0.68"
+                    height: "0.06"
+                    marginTop: "0.005"
+                    marginLeft: "0.058"
+                    justifyContent: space-between 
+                  children:
+                    - .ViewColumn: 
+                      style:
+                        width: "17vw"
+                        height: 7vw
+                      children: 
+                        - .ViewRow:
+                          style:
+                            top: "0.1vw"
+                            itemItems: flex-start
+                            justifyContent: flex-start
+                          children:
+                            - .PDETitle: 
+                              children:
+                                - type: label
+                                  text: "Specialty & Board Certified"
+                                - type: label
+                                  text: "*"
+                                  style:
+                                    color: "0xEF3B3B"
+                            - .PDETitle:
+                              text: Edit
+                              style:
+                                marginLeft: "1.5vw"
+                                color: "0x003254"
+                                fontWeight: 600
+                              onClick:
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: SpecialtyTag1 # 对edit弹出的框进行刷新
+                                - actionType: popUp
+                                  popUpView: SpecialtyTag1
+                        # - type: scrollView
+                        #   style:  
+                        #     width: 17vw
+                        #     height: 7.5vw
+                        #     overflowY: scroll
+                        #   children:
+                        - type: list
+                          viewTag: specialtyTag1
+                          contentType: listObject
+                          listObject: ..selectSpecialty.document.name.data.specialty
+                          iteratorVar: itemObject
+                          style:
+                            marginTop: "2vw"
+                            width: 17vw
+                            height: 7.5vw
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: 17vw
+                                height: 1.5vw
+                                display: flex
+                                flexDirection: row
+                                justifyContent: flex-start
+                                alignItems: center
+                                marginTop: 0.3vw
+                              children:    
+                                    # - type: image
+                                    #   path: deletePhoto.svg
+                                    #   style:
+                                    #     width: 1vw
+                                    #     height: 1.5vw
+                                    #   onClick:
+                                    #     - emit:
+                                    #         dataKey:
+                                    #           var: itemObject
+                                    #         actions:
+                                    #           - =.builtIn.array.removeByName:
+                                    #               dataIn:
+                                    #                 object: =..selectSpecialty.document.name.data.specialty
+                                    #                 key: "specialty"
+                                    #                 name: $var.specialty
+                                    #           - =.builtIn.array.removeByValue:
+                                    #               dataIn:
+                                    #                 object: =..specialties
+                                    #                 value: $var.specialty
+                                    #     - actionType: evalObject
+                                    #       object: 
+                                    #         - ..privateProfile.document.name.data.specialty@: =..selectSpecialty.document.name.data.specialty                          
+                                    #     - actionType: builtIn
+                                    #       funcName: redraw
+                                    #       viewTag: specialtyTag
+                                    - type: label
+                                      dataKey: itemObject.specialty
+                                      style: 
+                                        height: 1.5vw
+                                        fontSize: 0.7vw
+                                        textAlign: 
+                                          y: center
+                                    - type: label
+                                      text: "|"
+                                      style:
+                                        marginLeft: "0.7vw"
+                                        fontSize: "0.7vw"
+                                    - type: label
+                                      dataKey: itemObject.boardCertified
+                                      style: 
+                                        height: 1.5vw
+                                        fontSize: 0.7vw
+                                        marginLeft: 0.7vw
+                                        textAlign:
+                                          y: center
+                    #     - .ViewRow:
+                    #       style:
+                    #         width: 23vw
+                    #         height: 2vw
+                    #         border: "1px solid #d0d0d0"
+                    #         borderWidth: 1px
+                    #         borderRadius: 5px
+                    #       children:
+                    #         - .PDETextField:
+                    #           viewTag: specialtyshow
+                    #           dataKey: Global.specialty
+                    #           style:
+                    #             width: 21vw
+                    #             height: 1.7vw
+                    #             borderColor: "#ffffff"
+                    #             disabled: disabled
+                    #           onClick:
+                    #             - actionType: builtIn
+                    #               funcName: redraw
+                    #               viewTag: SpecialtyAndBor
+                    #             - actionType: popUp
+                    #               popUpView: blueInvertedTriangle
+                    #               dismissOnTouchOutside: true
+                    #             - actionType: popUp
+                    #               popUpView: SpecialtyAndBor
+                    #               dismissOnTouchOutside: true #弹出下拉框
+                    #             - actionType: popUp
+                    #               popUpView: blueInvertedTriangle1
+                    #               dismissOnTouchOutside: true
+                    #         - type: view
+                    #           style:
+                    #             width: 2vw
+                    #             height: 2vw
+                    #             borderRadius: "4px"
+                    #             backgroundColor: "#f3f3f3"
+                    #           children:
+                    #             - type: image
+                    #               path: triangle.png
+                    #               style:
+                    #                 top: 0.3vw
+                    #                 left: 0.3vw
+                    #                 width: 1.5vw
+                    #                 height: 1.5vw
+                    #                 backgroundColor: "#f3f3f3"
+                    #               onClick:
+                    #                 - actionType: builtIn
+                    #                   funcName: redraw
+                    #                   viewTag: SpecialtyAndBor
+                    #                 - actionType: popUp
+                    #                   popUpView: SpecialtyAndBor
+                    #                   dismissOnTouchOutside: true
+                    #                 - actionType: popUp
+                    #                   popUpView: blueInvertedTriangle1
+                    #                   dismissOnTouchOutside: true
+                    #             - type: image
+                    #               viewTag: blueInvertedTriangle1
+                    #               path: blue_inverted_triangle.png
+                    #               style:
+                    #                 top: 0.3vw
+                    #                 left: 0.3vw
+                    #                 width: 1.5vw
+                    #                 height: 1.5vw
+                    #                 isHidden: true
+                    #                 backgroundColor: "#f3f3f3"
+                    #               onClick:
+                    #                 - actionType: popUpDismiss
+                    #                   popUpView: blueInvertedTriangle1
+                    #         - type: popUp
+                    #           viewTag: SpecialtyAndBor
+                    #           style:  
+                    #             width: 23vw
+                    #             top: 2vw
+                    #             height: 13.5vw
+                    #             backgroundColor: "#e2e1e1"
+                    #             zIndex: 1
+                    #           children:
+                    #             - type: scrollView
+                    #               style:  
+                    #                 width: 23vw
+                    #                 height: 13.5vw
+                    #                 backgroundColor: "#e2e1e1"
+                    #                 overflowY: scroll
+                    #               children:
+                    #                 - .ViewRow:
+                    #                   style:
+                    #                     width: 21vw
+                    #                     marginLeft: 0.5vw
+                    #                     justifyContent: space-between
+                    #                     borderBottom: "1px solid #e2e1e1"
+                    #                     borderWidth: 1px
+                    #                   children:
+                    #                     - type: label
+                    #                       text: Specialty
+                    #                       style:
+                    #                         height: 1vw
+                    #                         fontSize: 0.8vw
+                    #                         color: "0x003254"
+                    #                         fontWeight: 600
+                    #                     - type: label
+                    #                       text: Board Certified
+                    #                       style:
+                    #                         height: 1vw
+                    #                         fontSize: 0.8vw
+                    #                         color: "0x003254"
+                    #                         fontWeight: 600
+                    #                 - type: list
+                    #                   viewTag: showSC
+                    #                   contentType: listObject
+                    #                   listObject: ..privateProfile.document.name.data.specialty
+                    #                   iteratorVar: itemObject
+                    #                   style:
+                    #                     width: 21vw
+                    #                     marginTop: 0
+                    #                     marginLeft: 0.5vw
+                    #                   children:
+                    #                     - type: listItem
+                    #                       itemObject: 
+                    #                       style:
+                    #                         width: 21vw
+                    #                         height: 2vw
+                    #                         marginTop: 0.1vw
+                    #                         backgroundColor: "#eaeaea"
+                    #                         display: flex
+                    #                         flexDirection: row
+                    #                         justifyContent: space-between
+                    #                         alignItems: center
+                    #                       children:    
+                    #                         - type: label
+                    #                           dataKey: itemObject.specialty
+                    #                           style: 
+                    #                             fontSize: 0.8vw
+                    #                         - type: label
+                    #                           dataKey: itemObject.boardCertified
+                    #                           style: 
+                    #                             fontSize: 0.8vw
+                    #               # options: ..SpecialtyBoard
+                    
+                    - .ViewColumn: 
+                      style:
+                        width: "17vw"
+                        height: 7vw
+                      children: 
+                        - .ViewRow:
+                          style:
+                            top: "0.1vw" 
+                            justifyContent: flex-start 
+                            itemItems: flex-start
+                            marginLeft: "6vw"
+                          children:
+                            - .PDETitle: 
+                              children:
+                                - type: label
+                                  text: "Medical License" 
+                                - type: label
+                                  text: "*"
+                                  style:
+                                    color: "0xEF3B3B"
+                            - .PDETitle:
+                              text: Edit
+                              style:
+                                marginLeft: "2vw"
+                                color: "0x003254"
+                                fontWeight: 600
+                              onClick:
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: SpecialtyTag2
+                                - actionType: popUp
+                                  popUpView: SpecialtyTag2
+                        - type: list
+                          viewTag: specialtyTags2
+                          contentType: listObject
+                          listObject: ..selectedMedicalLicense.document.name.data.MedicalLicense
+                          iteratorVar: itemObject
+                          style:
+                            marginTop: "2vw"
+                            height: 7.5vw
+                            width: 17vw
+                            marginLeft: "6vw"
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: 17vw
+                                height: 1.5vw
+                                display: flex
+                                flexDirection: row
+                                justifyContent: flex-start
+                                alignItems: center
+                                marginTop: 0.5vw
+                                fontSize: 0.7vw
+                              children:    
+                                # - type: image
+                                #   path: deletePhoto.svg
+                                #   style:
+                                #     width: 3vw
+                                #     height: 1vw
+                                #   onClick:
+                                #     - emit:
+                                #         dataKey:
+                                #           var: itemObject
+                                #         actions:
+                                #           - =.builtIn.array.removeByName:
+                                #               dataIn:
+                                #                 object: =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                #                 key: "medicalLicense"
+                                #                 name: $var.medicalLicense
+                                #           - =.builtIn.array.removeByValue:
+                                #               dataIn:
+                                #                 object: =..medicalLicenses
+                                #                 value: $var.medicalLicense
+                                #     - actionType: evalObject
+                                #       object: 
+                                #         - ..privateProfile.document.name.data.MedicalLicense@: =..selectedMedicalLicense.document.name.data.MedicalLicense                        
+                                #     - actionType: builtIn
+                                #       funcName: redraw
+                                #       viewTag: specialtyTags
+                                - type: label
+                                  dataKey: itemObject.medicalLicense
+                                  style: 
+                                    # width: 6vw
+                                    height: 2vw  
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                - type: label
+                                  text: "|"
+                                  style:
+                                    marginLeft: "0.7vw"
+                                    fontSize: "0.7vw"
+                                - type: label
+                                  dataKey: itemObject.state
+                                  style: 
+                                    # width: 6vw
+                                    height: 2vw
+                                    marginLeft: 0.5vw
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                - type: label
+                                  text: "|"
+                                  style:
+                                    marginLeft: "0.7vw"
+                                    fontSize: "0.7vw"
+                                - type: label
+                                  dataKey: itemObject.expiration
+                                  style: 
+                                    # width: 6vw
+                                    height: 2vw   
+                                    marginLeft: 0.5vw
+                                    textAlign:
+                                      x: center
+                                      y: center
+                    #     - .ViewRow:
+                    #       style:
+                    #         width: 23vw
+                    #         height: 2vw
+                    #         border: "1px solid #d0d0d0"
+                    #         borderWidth: 1px
+                    #         borderRadius: 5px
+                    #       children:
+                    #         - .PDETextField:
+                    #           viewTag: medicalshow
+                    #           dataKey: Global.medicalLicense
+                    #           style:
+                    #             width: 21vw
+                    #             height: 1.7vw
+                    #             borderColor: "#ffffff"
+                    #             disabled: disabled
+                    #           onClick:
+                    #             - actionType: builtIn
+                    #               funcName: redraw
+                    #               viewTag: MedicalL
+                    #             - actionType: popUp
+                    #               popUpView: MedicalL
+                    #               dismissOnTouchOutside: true
+                    #             - actionType: popUp
+                    #               popUpView: blueInvertedTriangle2
+                    #               dismissOnTouchOutside: true
+                    #         - type: view
+                    #           style:
+                    #             width: 2vw
+                    #             height: 2vw
+                    #             borderRadius: "4px"
+                    #             backgroundColor: "#f3f3f3"
+                    #           children: 
+                    #             - type: image
+                    #               path:  triangle.png
+                    #               style:
+                    #                 top: 0.3vw
+                    #                 left: 0.3vw
+                    #                 width: 1.5vw
+                    #                 height: 1.5vw
+                    #                 backgroundColor: "#f3f3f3"
+                    #               onClick:
+                    #                 - actionType: builtIn
+                    #                   funcName: redraw
+                    #                   viewTag: MedicalL
+                    #                 - actionType: popUp
+                    #                   popUpView: MedicalL
+                    #                   dismissOnTouchOutside: true
+                    #                 - actionType: popUp
+                    #                   popUpView: blueInvertedTriangle2
+                    #                   dismissOnTouchOutside: true
+                    #             - type: image
+                    #               viewTag: blueInvertedTriangle2
+                    #               path: blue_inverted_triangle.png
+                    #               style:
+                    #                 top: 0.3vw
+                    #                 left: 0.3vw
+                    #                 width: 1.5vw
+                    #                 height: 1.5vw
+                    #                 isHidden: true
+                    #                 backgroundColor: "#f3f3f3"
+                    #               onClick:
+                    #                 - actionType: popUpDismiss
+                    #                   popUpView: blueInvertedTriangle2
+                    
+                    #         - type: popUp
+                    #           viewTag: MedicalL
+                    #           style:  
+                    #             width: 23vw
+                    #             top: 2vw
+                    #             height: 13.5vw
+                    #             backgroundColor: "#e2e1e1"
+                    #             zIndex: 1
+                    #           children:
+                    #             - type: scrollView
+                    #               style:  
+                    #                 width: 23vw
+                    #                 height: 13.5vw
+                    #                 backgroundColor: "#e2e1e1"
+                    #                 overflowY: scroll
+                    #               children:
+                    #                 - .ViewRow:
+                    #                   style:
+                    #                     width: 21vw
+                    #                     marginLeft: 0.5vw
+                    #                     justifyContent: space-between
+                    #                     borderBottom: "1px solid #e2e1e1"
+                    #                     borderWidth: 1px
+                    #                   children:
+                    #                     - type: label
+                    #                       text: Medical License
+                    #                       style:
+                    #                         height: 1vw
+                    #                         fontSize: 0.8vw
+                    #                         color: "0x003254"
+                    #                         fontWeight: 600
+                    #                     - type: label
+                    #                       text: State
+                    #                       style:
+                    #                         height: 1vw
+                    #                         fontSize: 0.8vw
+                    #                         color: "0x003254"
+                    #                         fontWeight: 600
+                    #                     - type: label
+                    #                       text: Medical License
+                    #                       style:
+                    #                         height: 1vw
+                    #                         fontSize: 0.8vw
+                    #                         color: "0x003254"
+                    #                         fontWeight: 600
+                    #                 - type: list
+                    #                   viewTag: showML
+                    #                   contentType: listObject
+                    #                   listObject: ..privateProfile.document.name.data.MedicalLicense
+                    #                   iteratorVar: itemObject
+                    #                   style:
+                    #                     width: 21vw
+                    #                     marginTop: 0
+                    #                     marginLeft: 0.5vw
+                    #                   children:
+                    #                     - type: listItem
+                    #                       itemObject: 
+                    #                       style:
+                    #                         width: 21vw
+                    #                         height: 2vw
+                    #                         marginTop: 0.1vw
+                    #                         backgroundColor: "#eaeaea"
+                    #                         display: flex
+                    #                         flexDirection: row
+                    #                         justifyContent: space-between
+                    #                         alignItems: center
+                    #                       children:    
+                    #                         - type: label
+                    #                           dataKey: itemObject.medicalLicense
+                    #                           style: 
+                    #                             fontSize: 0.8vw
+                    #                         - type: label
+                    #                           dataKey: itemObject.state
+                    #                           style: 
+                    #                             fontSize: 0.8vw
+                    #                         - type: label
+                    #                           dataKey: itemObject.expiration
+                    #                           style: 
+                    #                             fontSize: 0.8vw
+                    - .ViewColumn: 
+                      style:
+                        marginLeft: "9.5vw"
+                        height: "4vw" 
+                      children:   
+                        - .PDETitle:
+                          text: "NPI #"
+                        - .PDETextField:
+                          style:
+                            marginTop: "0.3vw"
+                            fontSize: 0.8vw
+                          dataKey: privateProfile.document.name.data.NPI
+                    - .ViewColumn: 
+                      style:
+                        height: "4vw" 
+                      children: 
+                        - .PDETitle:
+                          text: "DEA #"
+                        - .PDETextField:
+                          style:
+                            marginTop: "0.3vw"
+                            fontSize: 0.8vw
+                          dataKey: privateProfile.document.name.data.DEA
+                - .ViewRow:
+                  style:
+                    width: "0.68"
+                    height: "0.1"
+                    marginTop: "0.09"
+                    marginLeft: "0.058"
+                    justifyContent: space-between
+                  children:
+                    - .ViewColumn: 
+                      children: 
+                        - .PDETitle:
+                          text: Description
+                        - type: textView
+                          dataKey: privateProfile.document.name.data.description 
+                          style:
+                            marginTop: "0.5vw"
+                            width: "0.33"
+                            height: 4vw
+                            borderRadius: "4px"
+                            borderWidth: 1px
+                            fontSize: 0.8vw
+                            borderColor: "#eaeaea"
+                            wordWrap: "false"
+                            wordBreak: break-all
+                    - .ViewColumn: 
+                      children: 
+                        - .PDETitle:
+                          text: Education and training
+                        - type: textView
+                          dataKey: privateProfile.document.name.data.education
+                          style:
+                            marginTop: "0.5vw"
+                            width: "0.33"
+                            height: 4vw
+                            fontSize: 0.8vw
+                            borderRadius: "4px"
+                            borderWidth: 1px
+                            borderColor: "#eaeaea"
+                            backgroundColor: "#ffffff"
+                            wordBreak: break-all
+                          placeholder: "ex. Medical School - University of California, San Francisco, Doctor of Medicine"
+                    
+                # CV
+                - type: view
+                  style:
+                    height: "auto"
+                    marginTop: "0.02"
+                    marginLeft: "0.058"
+                    width: "0.3"   
+                  children: 
+                    - ..style.infoTextStyle:
+                      text: CV
+                    - ..style.infoTextStyle:
+                      text: Upload
+                      onClick: 
+                        - actionType: openPhotoLibrary
+                          dataObject: BLOB
+                          dataKey: ProviderDetailEdit.apiRequest.cv.docReq.name.data
+                        - actionType: evalObject
+                          object:
+                            - =..apiRequest.cv.docAPI.store: ""
+                            - ..formData.providerInfo.name.data.cv@: =..apiRequest.cv.docResp.doc.id  
+                            - ..privateProfile.document.name.data.cv@: =..apiRequest.cv.docResp.doc.id
+                            - if:
+                              - =..formData.providerInfo.name.data.cv
+                              - ..formData.deleteShow@: "block"
+                              - ..formData.deleteShow@: "none"
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""                    
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: cvTag   
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: deleteTag                              
+                      style: 
+                        left: "0.03"
+                        textDecoration: underline
+                        color: "0x004779"
+                        fontSize: .Nfont.h0 
+                    - type: image
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: formData.providerInfo.name.data.cv
+                      path: squareDefaultPicture.svg
+                      onClick: 
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: cvDetailView
+                        - actionType: popUp
+                          popUpView: cvDetailView
+                      viewTag: cvTag   
+                      style:
+                        top: "0.03"
+                        width: "0.05"
+                        height: "0.08"
+                    - type: image
+                      viewTag: deleteTag
+                      path: deletePhoto.svg
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.cv.deleteReq.id@: =..formData.providerInfo.name.data.cv
+                            - .Global.jwt.edge.bvid@: =.formData.providerInfo.bsig
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =..apiRequest.cv.docAPI.delete: ""
+                            - ..apiRequest.cv.docReq.id@: ""
+                            - ..formData.providerInfo.name.data.cv@: ""
+                            - .Global.MyProfile.name.data.cv@: ""
+                            - ..privateProfile.document.name.data.cv@: ""
+                            - if:
+                              - =..formData.providerInfo.name.data.cv
+                              - ..formData.deleteShow@: "block"
+                              - ..formData.deleteShow@: "none"
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""            
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: cvTag  
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: deleteTag                                      
+                      style:
+                        left: "0.043"
+                        top: "0.027"
+                        width: "0.01"
+                        display: ..formData.deleteShow
+
+        - type: popUp
+          viewTag: SpecialtyTag1
+          style: 
+            backgroundColor: "0x1e1e1e20"
+            width: "1"
+            height: "1"
+            top: 0
+            left: 0
+          children:
+            - type: view
+              style:
+                height: '1'
+                width: 40vw
+                float: right
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  style:
+                    display: flex
+                    flexDirection: row
+                    width: 40vw
+                    justifyContent: space-between
+                    alignItems: center
+                  children:
+                    - .CreateLabel:
+                      text: 'specialties and checkboard certified'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUp
+                          popUpView: languageConfirmView1
+                        - actionType: popUpDismiss
+                          popUpView: specialtyAlreadyAdd
+                - type: view
+                  viewTag: SPList
+                  style:
+                    height: "0.9"
+                    width: 40vw
+                    marginTop: 0
+                    backgroundColor: '0xffffff'
+                    padding: "1px"
+                  children:
+                    - type: view
+                      viewTag: specialtyAlreadyAdd
+                      style:
+                        backgroundColor: "#FFE3E3"
+                        width: 40vw
+                        height: 2.5vw
+                        display: ..formData.specialtyTag
+                      children:
+                        - .ViewRow:
+                          style:
+                            height: "2.5vw"
+                            marginLeft: "10vw"
+                            justifyContent: flex-start
+                            alignItems: center
+                          children:
+                            - type: image
+                              path: redWarning.svg
+                              style:
+                                height: "1vw"
+                            - type: label
+                              text: "The option has been selected" 
+                              style:
+                                color: "#E24445"
+                                fontSize: "0.8vw"
+                                marginLeft: "1.5vw"
+                                textAlign:
+                                  x: center
+                                  y: center
+                    
+                    - type: view
+                      style:
+                        width: 30vw
+                        height: 35vw 
+                        marginLeft: "4vw"
+                        padding: 0.1vw
+                        # alignItems: center
+                        justifyContent: flex-start
+                      children:
+                        - type: view
+                          style: 
+                            width: 27vw
+                            marginTop: 0.5vw
+                          children:
+                            - type: label
+                              text: Specialities
+                              style:
+                                marginTop: 1vw
+                                width: 9vw
+                                height: 1.5vw
+                                fontWeight: "500"
+                                fontSize: .Nfont.h0
+                            - .TimeSelect:
+                              options: ..SpecialtyList  
+                              style:
+                                width: 30vw
+                                height: 2.3vw
+                                marginTop: "0.5vw"
+                              dataKey: specialtyObj.specialty
+                              onClick:
+                                # - actionType: popUpDismiss
+                                #   popUpView: specialtyAlreadyAdd
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.specialtyTag@: "none"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: specialtyAlreadyAdd
+                        - type: view
+                          style: 
+                            width: 27vw
+                            marginTop: 0.5vw
+                          children:
+                            - type: label
+                              text: Board certified?
+                              style:
+                                width: 9vw
+                                height: 1.5vw
+                                fontSize: .Nfont.h0
+                                fontWeight: "500"
+                                textAlign: 
+                                  y: center
+                            - .ViewRow:
+                              style:
+                                marginTop: "0.7vw"
+                                width: 18vw
+                                height: 1.5vw
+                                justifyContent: flex-start
+                              children:
+                                - type: image
+                                  viewTag: boardCertifiedTag
+                                  path:
+                                    emit:
+                                      actions:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: "Yes"
+                                                string2: =..specialtyObj.boardCertified
+                                          - selectOnblue.svg
+                                          - selectBlack.svg
+                                  onClick:
+                                    - emit:
+                                        actions:
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: "Yes"
+                                                  string2: =..specialtyObj.boardCertified
+                                            - =.builtIn.object.set:
+                                                dataIn:
+                                                  object: =..specialtyObj
+                                                  key: boardCertified
+                                                  value:  ""
+                                            - =.builtIn.object.set:
+                                                dataIn:
+                                                  object: =..specialtyObj
+                                                  key: boardCertified
+                                                  value: "Yes"
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..specialtyObj.boardCertified
+                                                  string2: ""
+                                            - ..formDataTemp.addColor@: "0xffffff"
+                                            - ..formDataTemp.addColor@: "0x005795"   
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..specialtyObj.boardCertified
+                                                  string2: ""
+                                            - ..formDataTemp.fontColor@: "0x004779"
+                                            - ..formDataTemp.fontColor@: "0xffffff"
+                                          
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: boardCertifiedTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: addColor
+                                  style:
+                                    height: 1vw
+                                    width: 1vw
+                                - type: label
+                                  text: "Yes"
+                                  style:
+                                    fontWeight: "600"
+                                    fontSize: 0.7vw
+                                    marginLeft: "0.5vw"
+                                    textAlign:
+                                      x: left
+                                - type: image
+                                  viewTag: boardCertifiedTag
+                                  path:
+                                    emit:
+                                      actions:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: "No"
+                                                string2: =..specialtyObj.boardCertified
+                                          - selectOnblue.svg
+                                          - selectBlack.svg
+                                  onClick:
+                                    - emit:
+                                        actions:
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: "No"
+                                                  string2: =..specialtyObj.boardCertified
+                                            - =.builtIn.object.set:
+                                                dataIn:
+                                                  object: =..specialtyObj
+                                                  key: boardCertified
+                                                  value:  ""
+                                            - =.builtIn.object.set:
+                                                dataIn:
+                                                  object: =..specialtyObj
+                                                  key: boardCertified
+                                                  value: "No"
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..specialtyObj.boardCertified
+                                                string2: ""
+                                          - ..formDataTemp.addColor@: "0xffffff"
+                                          - ..formDataTemp.addColor@: "#005795"   
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..specialtyObj.boardCertified
+                                                string2: ""
+                                          - ..formDataTemp.fontColor@: "0x004779"
+                                          - ..formDataTemp.fontColor@: "#ffffff"
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: boardCertifiedTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: addColor
+                                  style:
+                                    height: 1vw
+                                    width: 1vw
+                                    marginLeft: 3vw
+                                - type: label
+                                  text: "No"
+                                  style:
+                                    marginLeft: "0.5vw"
+                                    fontWeight: "600"
+                                    fontSize: 0.7vw
+                                    textAlign:
+                                      x: left
+                        - type: button
+                          viewTag: addColor
+                          style:
+                            marginTop: "1vw"
+                            width: 11vw
+                            height: 2.5vw
+                            border:
+                              style: "3"
+                            borderColor: "#004779"
+                            borderWidth: "1"
+                            borderRadius: "5px"
+                            color: =..formDataTemp.fontColor
+                            backgroundColor: ..formDataTemp.addColor
+                          text: "+ Add Specialities"
+                          onClick: 
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.search.jugeSame:
+                                      dataIn:
+                                        object: =..selectSpecialty.document.name.data.specialty
+                                        cond: =..specialtyObj.specialty
+                                        name: "specialty"
+                                  - actionType: evalObject
+                                    object:
+                                      - ..formData.specialtyTag@: "block"
+                                      - actionType: popUp
+                                        popUpView: pleaseInputBoardCertified
+                                        wait: true
+                                  - continue
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..specialtyObj.boardCertified
+                                        string2: ""
+                                  - actionType: popUp
+                                    popUpView: pleaseInputBoardCertified
+                                    wait: true
+                                  - continue
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..selectSpecialty.document.name.data.specialty
+                                      value: =..specialtyObj 
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..specialties
+                                      value: =..specialtyObj.specialty 
+                            - actionType: evalObject
+                              object: 
+                                - ..privateProfile.document.name.data.specialty@: =..selectSpecialty.document.name.data.specialty
+                                - ..specialtyObj.specialty@: "Allergy and Immunology"
+                                - ..specialtyObj.boardCertified@: ""
+                                - ..formDataTemp.addColor@: "0xffffff"
+                                - ..formDataTemp.fontColor@: "0x004779"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: addColor
+                            - actionType: evalObject
+                              object: 
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: SPList
+                            - actionType: evalObject
+                              object: 
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: specialtyTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: specialtyAlreadyAdd
+                        - type: view
+                          style:
+                            width: 30vw
+                            height: 1.5vw
+                            backgroundColor: "#ffffff"
+                            borderBottom: "solid 1px #EAEAEA"
+                            borderWidth: 1.5px
+                        - type: view
+                          style:
+                            width: 25vw
+                            height: 1.5vw
+                            marginLeft: "1.5vw"
+                            marginTop: 1vw
+                          children: 
+                            - type: label
+                              text: Your Specialities
+                              style:
+                                height: 1.5vw
+                                float: left
+                                fontSize: "0.8vw"
+                            - type: label
+                              text: Board certified?
+                              style:
+                                height: 1.5vw
+                                float: right
+                                fontSize: "0.8vw"
+                        - type: list
+                          viewTag: specialtyTag
+                          contentType: listObject
+                          listObject: ..selectSpecialty.document.name.data.specialty
+                          iteratorVar: itemObject
+                          style:
+                            width: 25vw
+                            marginTop: "0vw"
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: 25vw
+                                height: 1.5vw
+                                marginTop: 0.5vw
+                                
+                              children:    
+                                - type: image
+                                  path: deletePhoto.svg
+                                  style:
+                                    width: 1vw
+                                    height: 1.5vw
+                                    float: left
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - =.builtIn.array.removeByName:
+                                              dataIn:
+                                                object: =..selectSpecialty.document.name.data.specialty
+                                                key: "specialty"
+                                                name: $var.specialty
+                                          - =.builtIn.array.removeByValue:
+                                              dataIn:
+                                                object: =..specialties
+                                                value: $var.specialty
+                                    - actionType: evalObject
+                                      object: 
+                                        - ..privateProfile.document.name.data.specialty@: =..selectSpecialty.document.name.data.specialty                          
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: specialtyTag
+                                - type: label
+                                  dataKey: itemObject.specialty
+                                  style: 
+                                    height: 1.5vw
+                                    fontSize: 0.8vw
+                                    lineHeight: 1.5vw
+                                    float: left
+                                    marginLeft: "0.5vw"
+                                - type: label
+                                  dataKey: itemObject.boardCertified
+                                  style: 
+                                    height: 1.5vw
+                                    fontSize: 0.8vw
+                                    float: right
+                                    lineHeight: 1.5vw
+                        - type: button
+                          text: Confirm
+                          style: 
+                            width: "9vw"
+                            height: "2.5vw"
+                            marginTop: "20vw"
+                            marginLeft: "20vw"
+                            borderRadius: "5px"
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            fontSize: .Nfont.h1
+                            textAlign:
+                              x: center
+                              y: center
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: SpecialtyTag1
+                            - actionType: evalObject
+                              object:
+                                - ..formData.specialtyTag@: "none"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: specialtyAlreadyAdd
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: specialtyTag1
+                            # - actionType: builtIn
+                            #   funcName: redraw
+                            #   viewTag: showSC #对specialty的下拉list中的数据进行刷新，当进行数据增删时可以看到
+                            # - actionType: builtIn
+                            #   funcName: redraw
+                            #   viewTag: specialtyshow #刷新框内内容，在初始框内没有内容时起作用，或者删除框内内容时也可以看到效果
+                            
+        - type: popUp
+          viewTag: SpecialtyTag2
+          style: 
+            backgroundColor: "0x1e1e1e20"
+            width: "1"
+            height: "1"
+            top: 0
+            left: 0
+          children:
+            - type: view
+              style:
+                height: "1"
+                width: 40vw
+                float: right
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  style:
+                    display: flex
+                    flexDirection: row
+                    width: 40vw
+                    justifyContent: space-between
+                    alignItems: center
+                  children:
+                    - .CreateLabel:
+                      text: 'Medical License'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUp
+                          popUpView: languageConfirmView2
+                        - actionType: popUpDismiss
+                          popUpView: medicalLicenseAlreadyAdd
+                        # - actionType: popUpDismiss
+                        #   popUpView: SpecialtyTag2
+                        # - actionType: builtIn
+                        #   funcName: redraw
+                        #   viewTag: showML
+                        # - actionType: builtIn
+                        #   funcName: redraw
+                        #   viewTag: medicalshow
+                - type: view
+                  viewTag: MLList
+                  style:
+                    width: 40vw
+                    marginTop: 0
+                    backgroundColor: '0xffffff'
+                    padding: "1px"
+                  children:
+                    - type: view
+                      style:
+                        width: 30vw
+                        height: 40vw
+                        marginLeft: "4vw"
+                        marginTop: 1vw
+                        padding: "0.1vw"
+                        # alignItems: center
+                        justifyContent: flex-start
+                      children:
+                        - type: view
+                          style: 
+                            width: 30vw
+                            justifyContent: space-between
+                          children:
+                            - .ViewColumn:
+                              children:
+                                - type: label
+                                  text: "Medical License #"
+                                  style:
+                                    width: 9vw
+                                    height: 1.5vw
+                                    fontSize: .Nfont.h0
+                                    fontWeight: "500"
+                                - .TextField1:
+                                  style:
+                                    width: 26vw
+                                    height: 2vw
+                                    fontSize:  0.7vw
+                                    marginTop: "0.5vw"
+                                    borderRadius: 5px
+                                    border:
+                                      style: 3
+                                    borderWidth: 2
+                                    borderColor: "#DEDEDE"
+                                  dataKey: medicalLicenseObj.medicalLicense 
+                                  onInput:
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..medicalLicenseObj.medicalLicense
+                                                string2: ""
+                                          - ..formDataTemp.addColor@: "0xffffff"
+                                          - ..formDataTemp.addColor@: "#005795"
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..medicalLicenseObj.medicalLicense
+                                                string2: ""
+                                          - ..formDataTemp.fontColor@: "0x004779"
+                                          - ..formDataTemp.fontColor@: "#ffffff"
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: addColor      
+                                  onClick:
+                                    - actionType: popUpDismiss
+                                      popUpView: medicalLicenseAlreadyAdd
+                                    
+                            - .ViewColumn:
+                              style:
+                                marginTop: "0.5vw"
+                              children:
+                                - type: label
+                                  text: State
+                                  style:
+                                    width: 9vw
+                                    height: 1.5vw
+                                    fontSize: .Nfont.h0
+                                    fontWeight: "500"
+                                - .TimeSelect:
+                                  options: .SelectData.state
+                                  style:
+                                    width: 26.2vw
+                                    height: 2.2vw
+                                    marginTop: "0.5vw"
+                                    fontSize:  0.7vw
+                                    textIndent: 0.5em
+                                    borderRadius: 5px
+                                  dataKey: medicalLicenseObj.state  
+                            
+                        - type: view
+                          style:  
+                            width: 27vw
+                            height: 2.5vw
+                            marginTop: 1vw
+                            justifyContent: space-between
+                          children:
+                            - type: label
+                              text: "License Expiration :"
+                              style:
+                                width: 9vw
+                                height: 2vw
+                                fontSize: .Nfont.h0
+                                fontWeight: "500"
+                            - type: view
+                              style:
+                                width: "26vw"
+                                height: "2vw"
+                              children:
+                                - type: label
+                                  viewTag: LicenceExpiration
+                                  dataKey: medicalLicenseObj.expiration
+                                  style:
+                                    width: "24vw"
+                                    height: "2vw"
+                                    border:
+                                      style: 3
+                                    borderWidth: 2
+                                    borderColor: "#DEDEDE"
+                                    borderRadius: 5px
+                                    fontSize: "0.7vw"
+                                    textAlign:
+                                      y: center
+                                    lineHeight: 2vw
+                                    display: "inline-block"
+                                    textIndent: 0.5em
+                                  isEditable: false
+                                  onClick: 
+                                    - actionType: popUp
+                                      popUpView: birthDay
+                                      # dismissOnTouchOutside: true
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: boardCertifiedTag
+                                - type: image
+                                  path: calendarImage.svg
+                                  style:
+                                    float: right
+                                    width: 1.3vw
+                                    marginTop: 0.4vw
+                                  onClick:
+                                    - actionType: evalObject 
+                                      object: 
+                                        .BaseComponents.getDate
+                                    - actionType: evalObject
+                                      object: 
+                                        - =.builtIn.date.ShowDateByNumber:
+                                            dataIn:
+                                              year: =.BaseComponents.calendarDate.year
+                                              month: =.BaseComponents.calendarDate.month
+                                              day: =.BaseComponents.calendarDate.day
+                                              formatType: "Y-M-D"
+                                            dataOut: BaseComponents.calendarDate.todayDate
+                                        - ..medicalLicenseObj.expiration@: =.BaseComponents.calendarDate.todayDate
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: LicenceExpiration
+                        - type: button
+                          viewTag: addColor
+                          style:
+                            width: 11vw
+                            marginTop: 3vw
+                            height: 2.5vw
+                            border:
+                              style: "3"
+                            borderColor: "#004779"
+                            borderWidth: "1"
+                            # color: "#ffffff"
+                            color: =..formDataTemp.fontColor
+                            borderRadius: 5px
+                            backgroundColor: ..formDataTemp.addColor
+                            # backgroundColor: "#004779"
+                            fontSize: 0.8vw
+                          text: "+ Medical License"
+                          onClick: 
+                            - actionType: evalObject
+                              object:
+                                - ..formDataTemp.addColor@: "0xffffff"
+                                - ..formDataTemp.fontColor@: "0x004779"   
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..medicalLicenseObj.medicalLicense
+                                        string2: ""
+                                  - actionType: popUp
+                                    popUpView: pleaseInputMedicalLicense
+                                    wait: true
+                                  - continue
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..medicalLicenseObj.expiration
+                                        string2: ""
+                                  - actionType: popUp
+                                    popUpView: pleaseInputLicenseExpiration
+                                    wait: true
+                                  - continue     
+                            - actionType: evalObject
+                              object:  
+                                - if:
+                                  - =.builtIn.search.jugeSame:
+                                      dataIn:
+                                        object: =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                        cond: =..medicalLicenseObj.medicalLicense
+                                        name: "medicalLicense"
+                                  - actionType: popUp
+                                    popUpView: medicalLicenseAlreadyAdd
+                                    wait: true
+                                  - continue
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                      value: =..medicalLicenseObj 
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..medicalLicenses
+                                      value: =..medicalLicenseObj.medicalLicense
+                            - actionType: evalObject
+                              object: 
+                                - ..privateProfile.document.name.data.MedicalLicense@: =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                - ..medicalLicenseObj.medicalLicense@: ""
+                                - ..medicalLicenseObj.state@: ""
+                                - ..medicalLicenseObj.expiration@: ""
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: MLList
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: specialtyTags
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: addColor
+                        - type: view
+                          style:
+                            width: 26vw
+                            height: 1.5vw
+                            backgroundColor: "#ffffff"
+                            borderBottom: "solid 1px #EAEAEA"
+                            borderWidth: 1.5px
+                        - .ViewRow:
+                          style:
+                            marginTop: 1vw
+                            width: 27vw
+                            height: 1.5vw
+                            fontSize: 0.8vw
+                            justifyContent: flex-end
+                          children: 
+                            - type: label
+                              text: "Medical License #"
+                              style:
+                                height: 1.5vw
+                                width: 8vw
+                                textAlign: 
+                                  x: center
+                                  y: center
+                            - type: label
+                              text: state
+                              style:
+                                height: 1.5vw
+                                width: 8vw
+                                marginLeft: 0
+                                textAlign: 
+                                  x: center
+                                  y: center
+                            - type: label
+                              text: Expiration
+                              style:
+                                height: 1.5vw
+                                width: 8vw     
+                                textAlign: 
+                                  x: center
+                                  y: center
+                        - type: list
+                          viewTag: specialtyTags
+                          contentType: listObject
+                          listObject: ..selectedMedicalLicense.document.name.data.MedicalLicense
+                          iteratorVar: itemObject
+                          style:
+                            width: 27vw
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: 27vw
+                                height: 1.5vw
+                                display: flex
+                                flexDirection: row
+                                justifyContent: space-between
+                                alignItems: center
+                                marginTop: 0.5vw
+                                fontSize: 0.8vw
+                              children:    
+                                - type: image
+                                  path: deletePhoto.svg
+                                  style:
+                                    width: 3vw
+                                    height: 1vw
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - =.builtIn.array.removeByName:
+                                              dataIn:
+                                                object: =..selectedMedicalLicense.document.name.data.MedicalLicense
+                                                key: "medicalLicense"
+                                                name: $var.medicalLicense
+                                          - =.builtIn.array.removeByValue:
+                                              dataIn:
+                                                object: =..medicalLicenses
+                                                value: $var.medicalLicense
+                                    - actionType: evalObject
+                                      object: 
+                                        - ..privateProfile.document.name.data.MedicalLicense@: =..selectedMedicalLicense.document.name.data.MedicalLicense                        
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: specialtyTags
+                                - type: label
+                                  dataKey: itemObject.medicalLicense
+                                  style: 
+                                    width: 8vw
+                                    height: 2vw    
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                - type: label
+                                  dataKey: itemObject.state
+                                  style: 
+                                    width: 8vw
+                                    height: 2vw
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                - type: label
+                                  dataKey: itemObject.expiration
+                                  style: 
+                                    width: 8vw
+                                    height: 2vw   
+                                    textAlign:
+                                      x: center
+                                      y: center
+                        - type: button
+                          text: Confirm
+                          style: 
+                            width: "9vw"
+                            height: "2.5vw"
+                            marginTop: "16.5vw"
+                            marginLeft: "20vw"
+                            borderRadius: "5px"
+                            color: "0xffffff"
+                            fontSize: .Nfont.h1
+                            backgroundColor: "0x005795"
+                            textAlign:
+                              x: center
+                              y: center
+                          onClick:
+                            
+                            - actionType: popUpDismiss
+                              popUpView: SpecialtyTag2
+                            - actionType: popUpDismiss
+                              popUpView: medicalLicenseAlreadyAdd
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: specialtyTags2
+                            
+                            # - actionType: builtIn
+                            #   funcName: redraw
+                            #   viewTag: showML
+                            # - actionType: builtIn
+                            #   funcName: redraw
+                            #   viewTag: medicalshow
+        # title/Training 的解释
+        - type: popUp
+          viewTag: trainingView
+          style: 
+            margin: auto
+            backgroundColor: "0x1e1e1e20"
+            width: "1"
+            height: "1"
+            top: 0
+            left: 0
+          children:
+            - type: view
+              style:
+                height: "1"
+                width: 40vw
+                float: right
+                backgroundColor: '0xffffff'
+              children:
+                - .PopUphead:
+                  style:
+                    display: flex
+                    flexDirection: row
+                    justifyContent: space-between
+                    alignItems: center
+                  children:
+                    - .CreateLabel:
+                      text: "Title/Training"
+                    - .Closebutton:          
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: trainingView 
+                - type: view
+                  style:
+                    height: "0.90"
+                    width: 40vw
+                    marginTop: "0.02"
+                    backgroundColor: '0xffffff'
+                  children:     
+                    - type: label
+                      text: Explanation
+                      style: 
+                        left: "0.05"
+                        width: 30vw
+                        fontSize: .Nfont.h1
+                        fontFamily: "sans-serif"
+                        fontWeight: "550"
+                        color: "0x333333"  
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.trainingExplanation
+                      iteratorVar: itemObject
+                      style:
+                        left: "0.05"
+                        width: 30vw
+                        margin: '0'
+                        marginTop: "0.02"
+                        height: auto
+                      children:
+                        - type: listItem
+                          itemObject: 
+                          style:
+                            width: 30vw
+                            height: '0.035'
+                            left: '0'
+                            marginTop: ''
+                          children:     
+                            - type: label
+                              text: 
+                              dataKey: itemObject.text
+                              style:
+                                width: "30vw"
+                                height: "0.035"
+                                fontSize: .Nfont.h0
+                                fontFamily: "Roboto"
+                                # fontWeight: "600"
+                                color: "0x333333"                           
+                      
+        - type: popUp
+          viewTag: SpecialtyTag3
+          style: 
+            margin: auto
+            backgroundColor: "0x1e1e1e20"
+            width: "1"
+            height: "1"
+            top: 0
+            left: 0
+          children:
+            - type: view
+              style:
+                height: "1"
+                width: 40vw
+                float: right
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  style:
+                    display: flex
+                    flexDirection: row
+                    width: 40vw
+                    justifyContent: space-between
+                    alignItems: center
+                  children:
+                    - .CreateLabel:
+                      text: 'Languages Spoken'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUp
+                          popUpView: languageConfirmView3
+                - type: view
+                  viewTag: LanList
+                  style:
+                    height: "0.92"
+                    width: 40vw
+                    marginTop: 0
+                    backgroundColor: '0xffffff'
+                  children:
+                    - type: label
+                      textBoard:
+                        - text: Please select all your languages
+                      style: 
+                        marginTop: 0
+                        marginLeft: "4vw"
+                        width: 24vw
+                        fontSize: 1vw
+                        height: 3vw
+                        fontFamily: Roboto
+                        textAlign:
+                          # x: center
+                          y: center
+                        # border:
+                        #   style: 2
+                        # borderWidth: "2"
+                        # borderColor: "#DEDEDF"
+                    - type: label
+                      text: Popular Languages
+                      style: 
+                        marginLeft: "4vw"
+                        width: "30vw"
+                        marginTop: "0.02vw"
+                        fontSize: "0.8vw"
+                        fontFamily: "Roboto"
+                        color: "0x333333"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.popularLanguage
+                      iteratorVar: itemObject
+                      viewTag: popularLanguageView
+                      style:
+                        width: '34vw'
+                        marginTop: "1vw"
+                        marginLeft: "4vw"
+                        border: 
+                          style: "2"
+                        borderWidth: "1"
+                        borderColor: "0xdededf"
+                        height: "6vw"
+                      children:
+                        - type: listItem
+                          itemObject: 
+                          style:
+                            width: '10vw'
+                            height: '2vw'
+                            marginTop: ''
+                            display: inline-block
+                            float: left                            
+                          children:
+                            - type: image
+                              # viewTag: languagesView  
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:                        
+                                    - if:
+                                      - =.builtIn.array.has:
+                                          dataIn:
+                                            object: =..selectLanguage.document.name.data.languages
+                                            value: $var.text
+                                      - selectOnblue.svg
+                                      - selectBlack.svg 
+                              onClick: 
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:                        
+                                      - if:
+                                        - =.builtIn.array.has:
+                                            dataIn:
+                                              object: =..selectLanguage.document.name.data.languages
+                                              value: $var.text                                  
+                                        - =.builtIn.array.removeByValue:
+                                            dataIn:
+                                              object: =..selectLanguage.document.name.data.languages
+                                              value: $var.text
+                                        - =.builtIn.array.add:
+                                            dataIn:
+                                              object: =..selectLanguage.document.name.data.languages
+                                              value: $var.text                                              
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: popularLanguageView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: editLanguageView
+                              style:
+                                marginTop: "0.1vw"
+                                marginLeft: "0.05vw"
+                                height: 1vw    
+                                float: left                      
+                            - type: label
+                              text: 
+                              dataKey: itemObject.text
+                              style:
+                                marginTop: "0.15vw"
+                                marginLeft: "0.5vw"
+                                width: "6vw"
+                                fontFamily: "Roboto"
+                                fontSize: 0.7vw
+                                color: "0x333333"
+                                float: left
+                                textAlign:
+                                  y: center
+
+                    - type: scrollView
+                      style:
+                        width: 40vw
+                        marginTop: 0 
+                        height: 34vw
+                        
+                      children:
+                        - type: list
+                          viewTag: editLanguageView
+                          contentType: listObject
+                          listObject: ..formDataTemp.languagesList
+                          iteratorVar: itemObject
+                          style:
+                            width: "34vw"
+                            marginLeft: "4vw"
+                            height: 34vw
+                            overflowY: scroll
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: "30vw"
+                                height: 1.5vw 
+                                # display: inline-block
+                                flexDirection: row
+                                marginTop: 0.5vw
+                              children:
+                                - type: image
+                                  path: 
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - if:
+                                          - =.builtIn.array.has:
+                                              dataIn:
+                                                object: =..selectLanguage.document.name.data.languages
+                                                value: $var.text
+                                          - selectOnblue.svg
+                                          - selectBlack.svg 
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions: 
+                                          - if:
+                                            - =.builtIn.array.has:
+                                                dataIn:
+                                                  object: =..selectLanguage.document.name.data.languages
+                                                  value: $var.text
+                                            - =.builtIn.array.removeByValue:
+                                                dataIn:
+                                                  object: =..selectLanguage.document.name.data.languages
+                                                  value: $var.text
+                                            - =.builtIn.array.add:
+                                                dataIn:
+                                                  object: =..selectLanguage.document.name.data.languages
+                                                  value: $var.text 
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: popularLanguageView   
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: editLanguageView
+                                  style:
+                                    height: 1vw
+                                    float: left
+                                    marginTop: "0.5vw" 
+                                    display: inline-block
+
+                                - type: label
+                                  dataKey: itemObject.text
+                                  style:
+                                    marginLeft: 0.5vw
+                                    float: left
+                                    fontSize: "0.7vw"
+                                    marginTop: "0.5vw" 
+                                    display: inline-block
+                    - type: button
+                      text: Confirm
+                      style: 
+                        width: "9vw"
+                        height: "2.5vw"
+                        marginTop: 2.5vw
+                        marginLeft: "28vw"
+                        borderRadius: "5px"
+                        color: "0xffffff"
+                        fontSize: .Nfont.h1
+                        backgroundColor: "0x005795"
+                        textAlign:
+                          x: center
+                          y: center
+                      onClick: 
+                        - actionType: evalObject
+                          object: 
+                            - =.builtIn.array.getListLength:  
+                                dataIn: 
+                                  object: =..selectLanguage.document.name.data.languages
+                                dataOut: SelectLanguage.checkArray
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.string.equal:  
+                                  dataIn:
+                                    string1: =..checkArray
+                                    string2: "0"
+                              - actionType: popUp
+                                popUpView: checkEmptyView
+                                wait: true
+                              - continue
+                        - actionType: evalObject
+                          object:
+                            - .Global.MyProfile.name.data.languages@: =..selectLanguage.document.name.data.languages
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: ""    
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: mainView
+                        - actionType: popUpDismiss
+                          popUpView: SpecialtyTag3 
+                    # - .ViewColumn:
+                    #   style:
+                    #     width: 40vw
+                    #     height: 40vw
+                    #     marginTop: 0
+                    #     alignItems: center
+                    #     justifyContent: flex-start
+                    #   children:
+                    #     - .ViewRow:
+                    #       style: 
+                    #         width: 27vw
+                    #         marginTop: 0.5vw
+                    #       children:
+                    #         - type: label
+                    #           text: Your Languages
+                    #           style:
+                    #             width: 9vw
+                    #             height: 1.5vw
+                    #             fontSize:  0.8vw
+                    #         - .TimeSelect:
+                    #           options: .languages 
+                    #           style:
+                    #             width: 18vw
+                    #             height: 1.5vw
+                    #           dataKey: LanguageObj
+                    #     - type: button
+                    #       style:
+                    #         width: 27vw
+                    #         marginTop: 0.5vw
+                    #         height: 2.5vw
+                    #         border:
+                    #           style: "3"
+                    #         borderColor: "#2988e6"
+                    #         borderWidth: "1"
+                    #         backgroundColor: '0xffffff'
+                    #       text: "+ Add Languages"
+                    #       onClick: 
+                    #         - actionType: evalObject
+                    #           object:
+                    #             - if:
+                    #               - =.builtIn.array.has:
+                    #                   dataIn:
+                    #                     object: =..selectLanguage.document.name.data.languages
+                    #                     value: =..LanguageObj
+                    #               - actionType: popUp
+                    #                 popUpView: languageAlreadyAdd
+                    #                 wait: true
+                    #               - continue
+                    #         - actionType: evalObject
+                    #           object:
+                    #             - =.builtIn.array.add:
+                    #                 dataIn:
+                    #                   object: =..selectLanguage.document.name.data.languages
+                    #                   value: =..LanguageObj 
+                    #         - actionType: evalObject
+                    #           object: 
+                    #             - ..privateProfile.document.name.data.languages@: =..selectLanguage.document.name.data.languages
+                    #             - ..LanguageObj@: "English"
+                    #         - actionType: evalObject
+                    #           object: 
+                    #             - actionType: builtIn
+                    #               funcName: redraw
+                    #               viewTag: showLan
+                    #             - actionType: builtIn
+                    #               funcName: redraw
+                    #               viewTag: LanList
+                    #         - actionType: evalObject
+                    #           object: 
+                    #             - actionType: builtIn
+                    #               funcName: redraw
+                    #               viewTag: languageTag
+                    #     - type: view
+                    #       style:
+                    #         marginTop: 1vw
+                    #         width: 27vw
+                    #         height: 1.5vw
+                    #       children: 
+                    #         - type: label
+                    #           text: Your Languages
+                    #           style:
+                    #             marginLeft: 9vw
+                    #             height: 1.5vw
+                    #             width: 9vw
+                    #     - type: list
+                    #       viewTag: languageTag
+                    #       contentType: listObject
+                    #       listObject: ..selectLanguage.document.name.data.languages
+                    #       iteratorVar: itemObject
+                    #       style:
+                    #         width: 27vw
+                    #       children:
+                    #         - type: listItem
+                    #           itemObject: 
+                    #           style:
+                    #             width: 27vw
+                    #             height: 1.5vw
+                    #             display: flex
+                    #             flexDirection: row
+                    #             justifyContent: flex-start
+                    #             alignItems: center
+                    #             marginTop: 0.5vw
+                    #           children:    
+                    #             - type: image
+                    #               path: deletePhoto.svg
+                    #               style:
+                    #                 width: 1vw
+                    #                 height: 1.5vw
+                    #               onClick:
+                    #                 - emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - =.builtIn.array.removeByValue:
+                    #                           dataIn:
+                    #                             object: =..selectLanguage.document.name.data.languages
+                    #                             value: $var
+                    #                 - actionType: evalObject
+                    #                   object: 
+                    #                     - ..privateProfile.document.name.data.languages@: =..selectLanguage.document.name.data.languages                          
+                    #                 - actionType: builtIn
+                    #                   funcName: redraw
+                    #                   viewTag: languageTag
+                    #             - type: label
+                    #               dataKey: itemObject
+                    #               style: 
+                    #                 marginLeft: 8vw
+                    #                 height: 1.5vw
+                    #                 fontSize: 0.8vw
+                    #                 textAlign: 
+                    #                   y: center
+        - type: popUp
+          viewTag: languageAlreadyAdd
+          style:
+            backgroundColor: "0x1e1e1e20"
+            width: "1"
+            height: "1"
+            top: 0
+            left: 0
+          children:
+            - type: view
+              style: 
+                margin: "auto"
+                marginTop: "15vw"
+                width: 30vw
+                height: 20vw
+              children:
+                - .ViewRow:
+                  style:
+                    width: 30vw
+                    height: 3vw
+                    alignItems: center
+                    justifyContent: space-between
+                    backgroundColor: "0x005795"
+                  children:
+                    - type: label
+                      text: Warning
+                      style:
+                        color: "0xffffff"
+                        fontSize: 1.2vw
+                        marginLeft: 1vw
+                        fontWeight: 500
+                        textAlign:
+                          y: center
+                          x: left
+                - .ViewColumn:
+                  style:
+                    alignItems: center
+                    width: 30vw
+                    height: 17vw
+                    backgroundColor: "0xffffff"
+                  children: 
+                    - type: image
+                      path: popUpAlert.png
+                      style:
+                        width: 8vw
+                        marginTop: 1vw
+                    - .VQFirstTitle:
+                      text: "This language has been chosen!"
+                      style:
+                        marginTop: 0
+                    - type: button
+                      text: OK
+                      style:
+                        color: "0x005795"
+                        fontSize: 1vw
+                        fontWeight: 500
+                        width: 10vw
+                        height: 2vw
+                        border: "2px solid #005795"
+                        borderWidth: 2px
+                        borderRadius: 3px
+                        textAlign: 
+                          x: center
+                          y: center
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: languageAlreadyAdd
+        
+        - .BaseWarningViewOne:
+          viewTag: pleaseInputBoardCertified
+          msg2: "Please input Board certified?"
+          style:
+            width: "1"
+            height: "1"
+        - .BaseWarningViewOne:
+          viewTag: pleaseInputMedicalLicense
+          msg2: "Please input Medical License!"
+          style:
+            width: "1"
+            height: "1"
+        - .BaseWarningViewOne:
+          viewTag: pleaseInputLicenseExpiration
+          msg2: "Please input License Expiration!"
+          style:
+            width: "1"
+            height: "1"
+        - type: popUp
+          viewTag: locationTag
+          onMouseLeave:
+            - actionType: popUpDismiss
+              popUpView: locationTag
+          style:
+            width: '25vw'
+            top: "0.445"   
+            height: "0.18"
+            left: '0.205'
+            fontFamily: "Arial"
+            border: "1px solid #eeeeee"  
+            borderWidth: "1px" 
+            zIndex: 100
+            backgroundColor: 'white'
+            isHidden: "false"
+          children:
+            - type: scrollView
+              style:
+                width: '25vw'
+                top: "0"   
+                height: "0.15"
+                left: '0'
+              children:
+                - .SearchProviderView: 
+                  viewTag: adressListTag
+                  children: 
+                    - type: list
+                      contentType: listObject
+                      listObject: =..suggestAddress
+                      iteratorVar: itemObject
+                      style:
+                        width: '25vw'     
+                        left: '0'
+                        height: "auto"
+                        margin: "0"
+                        marginTop: "0"
+                      children: 
+                        - type: listItem
+                          itemObject: ''
+                          hover:
+                            backgroundColor: "0xffecf1cd"
+                          onMouseEnter:
+                            - emit: 
+                                dataKey: 
+                                  var: itemObject
+                                actions: 
+                                  - ..formData.addressDetail@: $var.place_name
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: ContentTag
+                          onClick: 
+                            - actionType: evalObject
+                              object:
+                                - ..privateProfile.document.name.data.address@: =..formData.addressDetail
+                          style: 
+                            backgroundColor: "0xffffff"
+                            width: '25vw'
+                            height: '0.022'
+                          children:
+                            - .Alllabel:
+                              children:
+                                - type: label
+                                  dataKey: itemObject.place_name
+                                  style:
+                                    height: '0.02'
+                                    fontFamily: "Arial"
+                                    color: "0x143459"
+                              onClick: 
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - =.builtIn.string.getAddress:
+                                          dataIn:
+                                            object: $var
+                                          dataOut: formData.address
+                                      - ..privateProfile.document.name.data.address@: =..formData.address.location
+                                      - ..privateProfile.document.name.data.Address.city@: =..formData.address.city
+                                      - ..privateProfile.document.name.data.Address.state@: =..formData.address.state
+                                      - ..privateProfile.document.name.data.Address.zip@: =..formData.address.zipCode
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: ContentTag
+                                - actionType: popUpDismiss
+                                  popUpView: locationTag
+                              style:
+                                width: '25vw'
+                                textIndent: 20px 
+                                textAlign: 
+                                  x: left
+                                  y: center
+                                height: '0.02'
+                                fontSize: "1.7vh"
+                                color: '0x143459'     
+        # cv show
+        - type: popUp
+          viewTag: cvDetailView
+          style:
+            left: "0"
+            width: "1"
+            height: "1"
+            top: "0"
+            zIndex: "10"
+            backgroundColor: "0x00000040"
+          children: 
+            - type: view
+              style: 
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"   
+              children: 
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.08"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children: 
+                    - type: image
+                      path: close.svg
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children: 
+                    - type: image
+                      path: null.png
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      dataKey: formData.providerInfo.name.data.cv
+                      viewTag: imgView
+                      style: 
+                        width: "0.28"      
+                        height: "0.3"        
+        - .BaseJudgeView: 
+          viewTag: languageConfirmView1
+          msg: Do you want to save your changes?
+          style:
+            width: "1"
+            height: "1"
+          children: 
+            - .BaseJudgeInnerView: 
+              children: 
+                - .BaseJudgeCancelImg: 
+                - .BaseJudgeTxt: 
+                - .BaseJudgeButtonView: 
+                  children: 
+                    - .BaseJudgeButtonNo:   # 可以重写
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: languageConfirmView1
+                        - actionType: popUpDismiss
+                          popUpView: SpecialtyTag1
+                    - .BaseJudgeButtonYes:  # 可以重写   
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - .Global.MyProfile.name.data.specialty@: =..selectSpecialty.document.name.data.specialty
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: ""
+                        - actionType: popUp
+                          popUpView: successView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: mainView
+                        - actionType: popUpDismiss
+                          popUpView: languageConfirmView1
+                        - actionType: popUpDismiss
+                          popUpView: SpecialtyTag1
+
+        - .BaseJudgeView: 
+          viewTag: languageConfirmView2
+          msg: Do you want to save your changes?
+          style:
+            width: "1"
+            height: "1"
+          children: 
+            - .BaseJudgeInnerView: 
+              children: 
+                - .BaseJudgeCancelImg: 
+                - .BaseJudgeTxt: 
+                - .BaseJudgeButtonView: 
+                  children: 
+                    - .BaseJudgeButtonNo:   # 可以重写
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: languageConfirmView2
+                        - actionType: popUpDismiss
+                          popUpView: SpecialtyTag2
+                    - .BaseJudgeButtonYes:  # 可以重写   
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - .Global.MyProfile.name.data.MedicalLicense@: =..selectedMedicalLicense.document.name.data.MedicalLicense
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: ""
+                        - actionType: popUp
+                          popUpView: successView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: mainView
+                        - actionType: popUpDismiss
+                          popUpView: languageConfirmView2
+                        - actionType: popUpDismiss
+                          popUpView: SpecialtyTag2
+        - .BaseJudgeView: 
+          viewTag: languageConfirmView3
+          msg: Do you want to save your changes?
+          style:
+            width: "1"
+            height: "1"
+          children: 
+            - .BaseJudgeInnerView: 
+              children: 
+                - .BaseJudgeCancelImg: 
+                - .BaseJudgeTxt: 
+                - .BaseJudgeButtonView: 
+                  children: 
+                    - .BaseJudgeButtonNo:   # 可以重写
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: languageConfirmView3
+                        - actionType: popUpDismiss
+                          popUpView: SpecialtyTag3
+                    - .BaseJudgeButtonYes:  # 可以重写   
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - .Global.MyProfile.name.data.languages@: =..selectLanguage.document.name.data.languages
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: ""
+                        - actionType: popUp
+                          popUpView: successView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: mainView
+                        - actionType: popUpDismiss
+                          popUpView: languageConfirmView3
+                        - actionType: popUpDismiss
+                          popUpView: SpecialtyTag3
+        
+        - .BaseSuccessfulView:
+          style:
+            width: "1"
+            height: "1"
+        - type: popUp
+          msg1: Warning
+          msg2: Please complete the required items.
+          viewTag: errorView
+          onClick: 
+            - actionType: popUpDismiss
+              popUpView: __.viewTag
+          style: 
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children: 
+            - type: view
+              style: 
+                left: "0.44"
+                width: "0.28"
+                top: "0.3"
+                height: "auto"
+                boxShadow: "0px 2px 2px 1px #b7b7b7"
+                borderRadius: "5"
+                backgroundColor: "0xffffff"
+              children: 
+                - type: view
+                  style:
+                    marginTop: "0"
+                    left: "0"
+                    width: "0.28"
+                    height: "0.013"
+                    backgroundColor: "0xe24445"
+                    border-top-left-radius: "5px"
+                    border-top-right-radius: "5px"
+                - type: view
+                  style: 
+                    marginTop: "0"
+                    width: "0.28"
+                    left: "0"
+                    height: "auto"
+                  children: 
+                    - type: image
+                      path: warningRed.svg
+                      style: 
+                        left: "0.12"
+                        width: "0.04"
+                        marginTop: "0.04"
+                    - type: label
+                      text: ____.msg1
+                      style:
+                        left: "0.05"
+                        width: "0.18"
+                        fontSize: .Nfont.h1
+                        color: "0x171725"
+                        fontWeight: "500"
+                        marginTop: "0.02"
+                        textAlign: 
+                          x: center
+                    - type: label
+                      text: ____.msg2
+                      style:
+                        left: "0.02"
+                        width: "0.24"
+                        marginTop: "0.02"
+                        fontSize: .Nfont.h0_0
+                        color: "0x333333"
+                        textAlign: 
+                          x: center
+                    - type: label
+                      text: =..formData.errorArr
+                      style:
+                        left: "0.02"
+                        width: "0.24"
+                        marginTop: "0.02"
+                        marginBottom: "0.03"
+                        fontSize: .Nfont.h0_0
+                        color: "0x999999"
+                        textAlign: 
+                          x: center   
+        - .WaitView:
+          viewTag: upLoading
+          style:
+            width: "1"
+            height: "1"
+            zIndex: 1
+        - .BaseWarningViewOne:
+          viewTag: medicalLicenseAlreadyAdd
+          msg2: "Please set medical license differently"
+          style:
+            width: "1"
+            height: "1"
+        - type: popUp
+          viewTag: birthDay
+          style:
+            top: "0"
+            backgroundColor: "0x1e1e1e20"
+            height: "1"
+            width: "1"
+            zIndex: "1000"
+          children:
+            - .BaseComponents.calendar:
+              children:
+                - .BaseComponents.calendarHeader:
+                - .BaseComponents.weekView:
+                - .BaseComponents.dayView:
+                - .BaseComponents.addButton:
+                  text: "Add"
+                  onClick:
+                    - actionType: evalObject
+                      object: 
+                        - ..medicalLicenseObj.expiration@: =.BaseComponents.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: LicenceExpiration
+                    - actionType: popUpDismiss
+                      popUpView: birthDay

@@ -1,0 +1,2214 @@
+MedicalFacility1: #xd page number 8
+  pageNumber: "80"
+  init: 
+    - .SignInCheck
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: ""
+    - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+    - =.Global.jwt.edgeAPI.store: ""              
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListByKey:
+            dataIn:
+              array: =.SelectData.businessCat
+              keyId: name
+            dataOut: MedicalFacility1.businessCatName  
+    - actionType: updateObject
+      dataKey: Global.formData.facility
+      dataObject: {}
+    - ..medicalFacility.vertex.name.basicInfo.licenseExpirationDate@: ""
+
+    - actionType: updateObject
+      dataKey: Global.formData.facilityPhoto.profilePhoto
+      dataObject: {}
+    - actionType: updateObject
+      dataKey: Global.formData.facilityPhoto.dea
+      dataObject: {}
+    - actionType: updateObject
+      dataKey: Global.formData.facilityPhoto.medicalLicense
+      dataObject: {}
+    
+
+  
+  businessCatName: []
+  suggestAddress: []
+  medicalFacility: 
+    vertex: 
+      .Vertex: ""
+      type: "20"
+      subtype: ""
+      name: 
+        basicInfo:
+          medicalFacilityName: ""
+          locationID: ""
+          businessType: "Medical Facility"
+          phoneNumber: ""
+          email: ""
+          website: ""
+          location: ""
+          addressFirstLine: ""
+          addressSecondLine: ""
+          city: ""
+          county: ""
+          state: "AK"
+          zipCode: ""
+          businessLicense: ""
+          businessLicenseCity: ""
+          businessLicenseState: "AK"
+          licenseExpirationDate: ""
+          NPI: ""
+          DEANumber: ""
+          fax: ""
+          businessHours: []
+          introduction: ""
+          specialty: ""
+          fullAddress: ""
+          geoCode: ""
+          fullInfo: ""
+          # DEA: ""
+      uid: ""
+      jwt: ""
+      pk: "VW/ceBN733d2oAki+muUeSAaKZBaE9SIbRJu5gBz40c="
+      esk: "2f8J1+aRIftJkKL+VxLb00qYjW3hWfQwLIBGumdwum/NHXlv6VChfmPIhj0bTOaUK4VscRwwa4soTqJ8x0a1jsOBoDDZz5aR"
+    vertexAPI:
+      .VertexAPI: ""
+      store:
+        api: cv
+        dataIn: MedicalFacility1.medicalFacility.vertex
+        dataOut: Global.formData.facility
+  facilityIDFlag: "0"
+  location:       # when create a facility ,at the same time create a location that the location's info is same as facility
+    resp: ""
+    vertex: 
+      .Vertex: ""
+      type: "21"
+      name: 
+      uid: ""
+      jwt: ""
+    vertexAPI:
+      .VertexAPI: ""
+      store: 
+        api: cv
+        dataIn: MedicalFacility1.location.vertex
+        dataOut: MedicalFacility1.location.resp
+  relation:
+    edgeStore: ""
+    edge: ""
+    edgeReq:
+      id: []
+      xfname: bvid,evid
+      type: 1100
+      _nonce: .Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: MedicalFacility1.relation.edgeReq
+        dataOut: MedicalFacility1.relation.edge
+      store:
+        api: ce
+        dataIn: MedicalFacility1.relation.edgeStore
+  auth:
+    documentReq:
+      name:
+        data:
+          auth: ""
+      eid: ""
+      type: .DocType.Auth
+    docAPI:
+      store:
+        api: cd
+        dataIn: StaffManagement.auth.documentReq
+  formData:
+    auth:
+      MFI:
+        create: false
+        edit: false
+        review: false
+      TDT:
+        create: false
+        edit: false
+        review: false
+      staff:
+        create: false
+        edit: false
+        review: false
+      patient:
+        create: false
+        edit: false
+        review: false
+      provider:
+        create: false
+        edit: false
+        review: false
+      scheduleInfo:
+        create: false
+        edit: false
+        review: false
+      PAT:
+        create: false
+        edit: false
+        review: false
+    countryCode: "+1"
+    number: ""
+    flag: "false"
+    fileSize: ""
+    addressDetail: ""
+    businessType: "Medical Facility"
+    bussinessHoursResult: []
+    Date:
+      FromDay: ""
+      ToDay: ""
+      FromHour: ""
+      ToHour: ""
+      dayConcat: ""
+      HourConcat: ""
+      concat: ""
+      # result: ""
+    isCheckoutColor: false
+    specBtnColor: "0xc1c1c1"
+    bussinessHours: []
+  facilityProfile:
+    # url: camera.svg
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.BusinessLogoPicture
+      name:
+        title: ""
+        type: ..facilityProfile.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    resp: ""
+    docIn: 
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.BusinessLogoPicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI: 
+      store:
+        api: cd
+        dataIn: facilityProfile.document
+        dataOut: MedicalFacility1.facilityProfile.resp
+        subtype:
+          mediaType: ""
+      # get:
+      #   .DocAPI.get: "" 
+      #   dataIn: facilityProfile.docIn
+      #   dataOut: MedicalFacility1.facilityProfile.resp
+  DEA:
+    documentIn:
+      .Document: ""
+      subtype:
+        isEncrypted: "0"
+        isOnServer: "0"
+      type: .DocType.DEAPicture
+      name:
+        title: ""
+        type: ..DEA.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "0"
+        isOnServer: "0"
+      type: .DocType.DEAPicture
+      name:
+        title: ""
+        type: ..DEA.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    resp: ""
+    getRes: ""
+    docIn: 
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.DEAPicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    deleteId:
+      id: ""
+    docAPI: 
+      store:
+        api: cd
+        dataIn: DEA.document
+        dataOut: MedicalFacility1.DEA.resp
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: "" 
+        dataIn: DEA.docIn
+        dataOut: MedicalFacility1.DEA.getRes
+      delete:
+        api: dx
+        dataIn: MedicalFacility1.DEA.deleteId
+  medicalLicense:
+    # url: MedicalLicensePicture.svg
+    getRes: ""
+    documentIn:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.MedicalLicensePicture
+      name:
+        title: ""
+        type: ..medicalLicense.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.MedicalLicensePicture
+      name:
+        title: ""
+        type: ..medicalLicense.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    docIn: 
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.MedicalLicensePicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    deleteId:
+      id: ""
+    docAPI: 
+      store:
+        api: cd
+        dataIn: medicalLicense.document
+        dataOut: MedicalFacility1.medicalLicense.resp
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: "" 
+        dataIn: medicalLicense.docIn
+        dataOut: MedicalFacility1.medicalLicense.getRes
+      delete:
+        api: dx
+        dataIn: MedicalFacility1.medicalLicense.deleteId
+
+  components:
+    - .MainView:
+      children:        
+        - .LeftDivider:
+          style:
+            height: "0.86"
+            left: "0.177"
+        - .Head0:
+        - type: label
+          text: 'LogOut'
+          onClick:
+            - goto: LogOut
+          style:
+            width: '0.08'
+            height: '0.06'
+            fontSize: .Nfont.nf3
+            fontWeight: '500'
+            color: "#235591"
+            left: '0.9'
+            top: '0'
+            textAlign:
+              x: center
+              y: center
+        - .CenterView: 
+          style:
+            height: "0.91"
+            left: "0.008"
+            width: "0.984"
+            top: "0.075"
+          viewTag: ContentTag
+          children:
+            - .LeftLabel:
+              text: "Please complete facility basic info, you can always edit in account setting if needed."
+            - .LeftImage:
+              path: "surgeryCenterColor.svg"
+            - type: view
+              style:
+                left: '0.17'
+                width: '0.68'
+                height: '0.85'
+                top: "0"
+                # backgroundColor: "0xcdcdcd"
+              children:
+                - .BackLabel:
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                        - =.Global.jwt.edgeAPI.store: ""    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true                    
+                  style:
+                    left: "0.01" 
+                    width: "0.05"
+                    top: "0.02"
+                    fontSize: .Nfont.nf3
+                    fontWeight: '500'
+  
+                - type: label
+                  text: "Basic Info"
+                  style:
+                    width: "0.5"
+                    # height: "0.02"
+                    fontSize: .Nfont.nf5
+                    left: "0.02"
+                    marginTop: "0.06"
+                - type: view
+                  style: 
+                    left: "0.02"
+                    width: "0.78"
+                    marginTop: "0.02"
+                  children: 
+                    - type: view
+                      viewTag: facilityProView
+                      style:
+                        left: "0"
+                        top: "0"
+                        width: "0.15"
+                      children:
+                        - .AddFacilityLabel:
+                          text: Profile Photo
+                        - type: image
+                          path: squareDefaultPicture.svg
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: facilityProfile.document.id
+                          style:
+                            left: "0"
+                            height: "0.09"
+                            width: "0.05"
+                            top: "0.035"
+                          contentType: file
+                          onClick:                                                                      
+                            - actionType: openPhotoLibrary
+                              dataObject: BLOB
+                              dataKey: MedicalFacility1.facilityProfile.document.name.data                           
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.math.lessthanSize:
+                                      dataIn:
+                                        object: =..facilityProfile.document.name.data # object
+                                        key: 2  #mb
+                                  - ..formData.flag@: false
+                                  - actionType: evalObject
+                                    object:
+                                      - =.builtIn.utils.getFileSize:
+                                          dataIn:
+                                            object: =..facilityProfile.document.name.data
+                                            units: mb
+                                          dataOut: MedicalFacility1.formData.fileSize 
+                                      - =.builtIn.string.concat:
+                                          dataIn:
+                                            - "Your file size:"
+                                            - =..formData.fileSize
+                                            - "Mb"
+                                          dataOut: Global.formData.fileSize 
+                                      - ..formData.flag@: true
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: overSize
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =..formData.flag
+                                  - actionType: popUp
+                                    popUpView: overSize
+                                    wait: true
+                                  - continue                               
+                            - actionType: popUp
+                              popUpView: uploading
+                            - actionType: evalObject
+                              object:
+                                - =..facilityProfile.docAPI.store: ""
+                                - ..facilityProfile.document@: =..facilityProfile.resp.doc
+                                - .Global.formData.facilityPhoto.profilePhoto@: =..facilityProfile.resp.doc
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: popUpDismiss
+                              popUpView: uploading 
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: facilityProView
+                    - type: view
+                      style:
+                        left: "0.062"
+                        width: "0.3"
+                        top: "0.05"
+                        height: auto
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Medical Facility Name"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style: 
+                            left: "0"
+                            top: "0"
+                        - .AddFacilityTextField: 
+                          dataKey: medicalFacility.vertex.name.basicInfo.medicalFacilityName
+                          onTextChange:
+                            - actionType: evalObject
+                              object:  
+                                - =.builtIn.string.generateID:
+                                    dataIn: 
+                                      facilityID: =..medicalFacility.vertex.name.basicInfo.medicalFacilityName
+                                      locationID: ""
+                                      roomID: ""
+                                    dataOut: MedicalFacility1.medicalFacility.vertex.name.basicInfo.locationID
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: facilityIDView
+                          style: 
+                            left: "0"
+                            top: "0.03"
+                            width: "0.1"
+                    ## Facility ID
+                    - type: view
+                      style:
+                        left: "0.18"
+                        width: "0.3"
+                        top: "0.05"
+                        height: auto
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Facility ID"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style: 
+                            left: "0"
+                            top: "0"
+                        - .AddFacilityTextField: 
+                          viewTag: facilityIDView
+
+                          dataKey: medicalFacility.vertex.name.basicInfo.locationID
+                          style: 
+                            left: "0"
+                            top: "0.03"
+                            width: "0.1"
+                    # Bussiness
+                    - type: view
+                      style: 
+                        left: "0.299"
+                        width: "0.3"
+                        height: auto
+                        top: "0.049"
+                        fontSize: .Nfont.nf3
+                        fontWeight: '500'
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Business Category"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                            left: "0"
+                        - type: select
+                          dataKey: medicalFacility.vertex.name.basicInfo.businessType
+                          options:
+                            .MedicalFacility1.businessCatName
+                          required: "true"
+                          style:
+                            width: "0.10"
+                            left: "0"
+                            top: "0.03"
+                            height: "0.044"
+                            backgroundColor: "0xffffff"
+                            borderWidth: "1"
+                            border:
+                              style: "3"
+                              color: "0xdededf"  
+                            borderRadius: "3" 
+                    ## Main Number
+                    - type: view
+                      style:
+                        left: "0.419"
+                        width: "0.3"
+                        top: "0.05"
+                        height: auto
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Main #"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style: 
+                            left: "0"
+                            top: "0"
+                        # - type: select
+                        #   contentType: countryCode
+                        #   placeholder: ..formData.countryCode
+                        #   dataKey: formData.countryCode # formData.countryCode : inputValue
+                        #   options:
+                        #     .CountryCode
+                        #   required: "true"
+                        #   style:
+                        #     width: "0.03"
+                        #     left: "0.195"
+                        #     top: "0.08"
+                        #     height: "0.044"
+                        #     placeholder: "US +1"
+                        #     backgroundColor: "0xffffff"
+                        #     borderWidth: "1"
+                        #     border:
+                        #       style: "3"
+                        #       color: "0xdededf"  
+                        #     borderRadius: "3"
+                            # boxShadow: "0px 0px  3px 1px"
+                        - .AddFacilityTextField: 
+                          dataKey: medicalFacility.vertex.name.basicInfo.phoneNumber 
+                          style: 
+                            left: "0"
+                            top: "0.0295"
+                            width: "0.108"
+                    ## Email
+                    - type: view
+                      style:
+                        left: "0.547"
+                        width: "0.3"
+                        top: "0.05"
+                        height: auto
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Email"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style: 
+                            top: "0"
+                        - .AddFacilityTextField: 
+                          dataKey: medicalFacility.vertex.name.basicInfo.email
+                          style: 
+                            top: "0.03"
+                            width: "0.10"
+                    # website
+                    - type: view
+                      style:
+                        left: "0.667"
+                        width: "auto"
+                        top: "0.05"
+                        height: auto
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Website"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style: 
+                            top: "0"
+                        - .AddFacilityTextField: 
+                          dataKey: medicalFacility.vertex.name.basicInfo.website
+                          style: 
+                            top: "0.03"
+                            width: "0.10"
+                            
+                # - type: view
+                #   viewTag: "locationGrayTag"
+                #   style:
+                #     left: "0.02"
+                #     width: "0.78"
+                #     marginTop: "0.16"
+                #     height: "0.03"
+                #   children:
+                    ## Address
+                    # - .AddFacilityLabel:
+                    #   textBoard: 
+                    #     - text: "Address"
+                    #     - text: "&nbsp;*"
+                    #       color: "0xff0000"
+                    #   style:
+                    #     top: "0"
+                    # - type: image
+                    #   path: searchGray.svg
+                    #   style:
+                    #     top: "0.008"
+                    #     left: "0.002"
+                    #     zIndex: "100"
+                    # - .AddFacilityTextField:
+                    #   placeholder: Address Search
+                    #   dataKey: medicalFacility.vertex.name.basicInfo.location
+                    #   style:
+                    #     # top: "0.03"
+                    #     width: "0.77"
+                    #     height: "0.035"
+                    #     textIndent: "2em"
+                    #     border: 
+                    #       style: "2"
+                    #   onInput:
+                    #     - actionType: evalObject
+                    #       object:
+                    #         - .SearchProvider.suggestAddress@: []
+                    #         - =.builtIn.search.suggestAddress:
+                    #             dataIn:
+                    #               query: =..medicalFacility.vertex.name.basicInfo.location
+                    #             dataOut: MedicalFacility1.suggestAddress
+                    #     - actionType: builtIn
+                    #       funcName: redraw
+                    #       viewTag: locationTag
+                    #     - actionType: builtIn
+                    #       funcName: redraw
+                    #       viewTag: adressListTag
+                    #     - actionType: popUp
+                    #       popUpView: locationTag
+                    #       dismissOnTouchOutside: true
+                - type: view
+                  style:
+                    left: "0.02"
+                    width: "0.78"
+                    marginTop: "0.16"
+                    height: "0.075"
+                  children:
+                    ## Street
+                    - type: view
+                      style:
+                        width: "0.15"
+                        height: auto
+                        left: "0"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Address Line"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.addressFirstLine
+                          style:
+                            top: "0.03"
+                            width: "0.18" 
+                    - type: view
+                      style:
+                        width: "0.15"
+                        height: auto
+                        left: "0.045"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Address Second Line"
+                          style:
+                            left: "0.15"
+                            width: "0.12"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.addressSecondLine
+                          style:
+                            top: "0.03"
+                            left: "0.15"
+                            width: "0.18"
+                    
+                    ## City
+                    - type: view
+                      style:
+                        width: "0.15"
+                        height: auto
+                        left: "0.392"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "City"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.city
+                          style:
+                            top: "0.03"
+                            width: "0.08"
+                    ## County
+                    - type: view
+                      style:
+                        width: "0.15"
+                        height: 'auto'
+                        left: "0.49"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "County"
+                            # - text: "&nbsp;*"
+                            #   color: "0xff0000"
+                          style:
+                            top: "0"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.county
+                          style:
+                            top: "0.03"
+                            width: "0.08"
+                    ## State
+                    - type: view
+                      style:  
+                        width: "0.15"
+                        height: 'auto'
+                        left: "0.587"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "State"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                        # - .AddFacilityTextField:
+                        #   dataKey: medicalFacility.vertex.name.basicInfo.state
+                        #   required: "true"
+                        #   style:
+                        #     top: "0.03"
+                        #     width: "0.08"
+                        - type: select
+                          dataKey: medicalFacility.vertex.name.basicInfo.state # formData.countryCode : inputValue
+                          options:
+                            .SelectData.state
+                          required: "true"
+                          style:
+                            width: "0.08"
+                            top: "0.03"
+                            height: "0.044"
+                            # placeholder: "US +1"
+                            backgroundColor: "0xffffff"
+                            borderWidth: "1"
+                            border:
+                              style: "3"
+                              color: "0xdededf"  
+                            borderRadius: "3"   
+                    ## Zip Code
+                    - type: view
+                      style:  
+                        width: "0.15"
+                        height: 'auto'
+                        left: "0.6865"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Zip Code"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.zipCode
+                          style:
+                            top: "0.03"
+                            width: "0.08"                                                                       
+                
+                - type: view
+                  style:
+                    left: "0.02"
+                    width: "0.6"
+                    height: "0.075"
+                    marginTop: "0.015"
+                  children:
+                    ## Business License
+                    - type: view
+                      style:
+                        width: "0.11"
+                        height: "0.075"
+                        top: "0"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Business License #"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.businessLicense
+                          style:
+                            top: "0.03"
+                            width: "0.18" 
+                            # left: "0.118"
+                    ## city #
+                    - type: view
+                      style:
+                        width: "0.11"
+                        height: "0.075"
+                        top: "0"
+                        left: "0.195"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "City"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.businessLicenseCity
+                          style:
+                            top: "0.03"
+                            width: "0.18" 
+                    ## State
+                    - type: view
+                      style:
+                        width: "0.11"
+                        height: "0.075"
+                        top: "0"
+                        left: "0.392"
+                      children:                                            
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "State"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - type: select
+                          # contentType: 
+                          dataKey: medicalFacility.vertex.name.basicInfo.businessLicenseState # formData.countryCode : inputValue
+                          options:
+                            .SelectData.state
+                          required: "true"
+                          style:
+                            width: "0.18"
+                            top: "0.03"
+                            height: "0.044"
+                            # placeholder: "US +1"
+                            backgroundColor: "0xffffff"
+                            borderWidth: "1"
+                            border:
+                              style: "3"
+                              color: "0xdededf"  
+                            borderRadius: "3"   
+                    ## License Expiration Date
+                    - type: view
+                      viewTag: selectStartAndEndTag
+                      style:
+                        width: "0.11"
+                        height: "0.075"
+                        top: "0"
+                        left: "0.588"
+                      onClick: 
+                        - actionType: popUp
+                          popUpView: startDateTag
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "License Expiration Date"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - type: image
+                          path: calendarBlue.svg
+                          style:
+                            width: "0.01"
+                            left: "0.16"
+                            top: "0.043"
+                            zIndex: "100"
+
+                        - .AddFacilityTextField:
+                          isEditable: false
+                          placeholder: "Select"
+                          dataKey: medicalFacility.vertex.name.basicInfo.licenseExpirationDate
+                          style:
+                            top: "0.03"
+                            width: "0.18"
+                            backgroundColor: "0xffffff"                                                              
+                - type: view
+                  style:
+                    left: "0.02"
+                    width: "0.6"
+                    height: "0.075"
+                    marginTop: "0.015"
+                  children:
+                    ## NPI #
+                    - type: view
+                      style:
+                        width: "0.11"
+                        height: "0.075"
+                        top: "0"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "NPI #"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.NPI
+                          style:
+                            top: "0.03"
+                            width: "0.09" 
+                    # DEA #
+                    - type: view
+                      style:
+                        width: "0.11"
+                        height: "0.075"
+                        top: "0"
+                        left: "0.106"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "DEA #"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - .AddFacilityTextField:
+                          # contentType: 
+                          dataKey: medicalFacility.vertex.name.basicInfo.DEANumber # formData.countryCode : inputValue
+                          style:
+                            width: "0.09"
+                            top: "0.03"
+                            height: "0.044"
+                            # placeholder: "US +1"
+                            backgroundColor: "0xffffff"
+                            borderWidth: "1"
+                            border:
+                              style: "3"
+                              color: "0xdededf"  
+                            borderRadius: "3" 
+                    # fax
+                    - type: view
+                      style:
+                        width: "0.11"
+                        height: "0.075"
+                        top: "0"
+                        left: "0.212"
+                      children:                                            
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Fax #"
+                            - text: "&nbsp;*"
+                              color: "0xff0000"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - .AddFacilityTextField:
+                          dataKey: medicalFacility.vertex.name.basicInfo.fax
+                          style:
+                            top: "0.03"
+                            width: "0.09"
+                    # Business Hours
+                    - type: view
+                      viewTag: businessHoursTag
+                      style:
+                        width: "0.448"
+                        height: "0.075"
+                        top: "0"
+                        left: "0.32"
+                      children:
+                        - .AddFacilityLabel:
+                          textBoard: 
+                            - text: "Business Hours"
+                          style:
+                            top: "0"
+                            width: "0.1"
+                        - type: view
+                          style:
+                            height: "0.05"
+                            width: "0.448"
+                          onClick:
+                            - actionType: popUp
+                              popUpView: businessHourTag
+                          children:
+                            - type: image
+                              path: circleClock.svg
+                              style:
+                                width: "0.012"
+                                left: "0.42"
+                                zIndex: "100"
+                                top: "0.042"
+                            - .AddFacilityTextField:
+                              isEditable: false
+                              dataKey: medicalFacility.vertex.name.basicInfo.businessHours
+                              style:
+                                top: "0.03"
+                                width: "0.448"
+                                backgroundColor: "0xffffff"
+                                paddingRight: "65px"
+                            
+
+                - type: view
+                  style:
+                    left: "0.02"
+                    width: "0.77"
+                    marginTop: "0.015"
+                    height: "0.13"
+                  children:
+                    ## Introduction
+                    - .AddFacilityLabel:
+                      textBoard: 
+                        - text: "Introduction"
+                      style:
+                        top: "0"
+                    - type: textView
+                      placeholder: Enter introduction here
+                      dataKey: medicalFacility.vertex.name.basicInfo.introduction
+                      style:
+                        top: "0.03"
+                        width: "0.768"
+                        height: "0.1"
+                        textIndent: "1em"
+                        fontSize: .Nfont.nf1
+                        fontFamily: Poppins
+                        boxSizing: border-box
+                        border: 
+                          style: "3"
+                        borderWidth: "1.5"
+                        borderColor: "0xeaeaea"
+                        borderRadius: "3"
+                - .AddFacilityLabel:
+                  text: "Uploads"
+                  style:
+                    left: "0.02"
+                    top: "0.67"
+                    fontSize: .Nfont.nf1
+                    fontWeight: "500"
+                - type: view
+                  style:
+                    width: "0.45"
+                    marginTop: "0.02"
+                  children:
+                    - type: image 
+                      viewTag: deaDeleteTag
+                      path: # deletePhoto.svg
+                        emit: 
+                          actions:
+                            - if:
+                              - ..DEA.resp.doc.id
+                              - deletePhoto.svg
+                              - null.png
+                      style:
+                        left: "0.11"
+                        top: "0.024"
+                        width: "0.0099"
+                      onClick:
+                        - actionType: popUp
+                          popUpView: deletePhotoTag
+                    - type: image
+                      viewTag: medicalLicenseDeleteTag
+                      path: #deletePhoto.svg
+                        emit: 
+                          actions:
+                            - if:
+                              - ..medicalLicense.resp.doc.id
+                              - deletePhoto.svg
+                              - null.png
+                      style:
+                        left: "0.246"
+                        top: "0.024"
+                        width: "0.0099"
+                      onClick:
+                        - actionType: popUp
+                          popUpView: deletePhotoTagBussiness
+
+                    - type: view
+                      viewTag: deaPhotoViewTag
+                      style:
+                        display: inline-block
+                        marginLeft: "0.015"
+                        marginTop: "0.04"
+                      children:
+                        - .AddFacilityLabel:
+                          text: "DEA #"
+                          style:
+                            top: "0.11"
+                            left: "0.043"
+                        - type: image
+                          path: defaultPicture.svg
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: DEA.document.id
+                          contentType: file
+                          style:
+                            height: "0.1"
+                            width: "0.1"
+                          onClick:      
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""       
+                            - actionType: openPhotoLibrary
+                              dataObject: BLOB
+                              dataKey: MedicalFacility1.DEA.document.name.data                           
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.math.lessthanSize:
+                                      dataIn:
+                                        object: =..DEA.document.name.data # object
+                                        key: 2  #mb
+                                  - ..formData.flag@: false
+                                  - actionType: evalObject
+                                    object:
+                                      - =.builtIn.utils.getFileSize:
+                                          dataIn:
+                                            object: =..DEA.document.name.data
+                                            units: mb
+                                          dataOut: MedicalFacility1.formData.fileSize 
+                                      - =.builtIn.string.concat:
+                                          dataIn:
+                                            - "Your file size:"
+                                            - =..formData.fileSize
+                                            - "Mb"
+                                          dataOut: Global.formData.fileSize 
+                                      - ..formData.flag@: true
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: overSize
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =..formData.flag
+                                  - actionType: popUp
+                                    popUpView: overSize
+                                    wait: true
+                                  - continue                          
+                            - actionType: popUp
+                              popUpView: uploading
+                            - actionType: evalObject
+                              object:
+                                - =..DEA.docAPI.store: ""
+                                # - =..DEA.docAPI.get: ""
+
+                            - actionType: evalObject
+                              object:
+                                - ..DEA.document@: =..DEA.resp.doc
+                                - .Global.formData.facilityPhoto.dea@: =..DEA.resp.doc
+
+                            - actionType: popUpDismiss
+                              popUpView: uploading 
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: deaPhotoViewTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: deaDeleteTag
+                    - type: view
+                      viewTag: medicalLicensePhotoViewTag
+                      style:
+                        display: inline-block
+                        marginTop: "0.04"
+                        marginLeft: "0.036"
+                      children:
+                        - .AddFacilityLabel:
+                          text: Business License
+                          style:
+                            width: "0.06"
+                            top: "0.11"
+                            left: "0.025"
+                        - type: image
+                          path: defaultPicture.svg
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: medicalLicense.document.id
+                          contentType: file
+                          style:
+                            height: "0.1"
+                            width: "0.1"                        
+                          onClick:                     
+                            - actionType: openPhotoLibrary # 更新图片
+                              dataObject: BLOB
+                              dataKey: MedicalFacility1.medicalLicense.document.name.data                           
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.math.lessthanSize:
+                                      dataIn:
+                                        object: =..medicalLicense.document.name.data # object
+                                        key: 2  #mb
+                                  - ..formData.flag@: false
+                                  - actionType: evalObject
+                                    object:
+                                      - =.builtIn.utils.getFileSize:
+                                          dataIn:
+                                            object: =..medicalLicense.document.name.data
+                                            units: mb
+                                          dataOut: MedicalFacility1.formData.fileSize 
+                                      - =.builtIn.string.concat:
+                                          dataIn:
+                                            - "Your file size:"
+                                            - =..formData.fileSize
+                                            - "Mb"
+                                          dataOut: Global.formData.fileSize 
+                                      - ..formData.flag@: true
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: overSize
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =..formData.flag
+                                  - actionType: popUp
+                                    popUpView: overSize
+                                    wait: true
+                                  - continue 
+                            - actionType: popUp
+                              popUpView: uploading 
+                            - actionType: evalObject
+                              object:
+                                - =..medicalLicense.docAPI.store: ""
+                                # - =..medicalLicense.docAPI.get: ""
+                                - .Global.formData.facilityPhoto.medicalLicense@: =..medicalLicense.resp.doc
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject # 用于第一次获取图片的id
+                              object:
+                                - ..medicalLicense.document@: =..medicalLicense.resp.doc
+                            - actionType: popUpDismiss
+                              popUpView: uploading 
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: medicalLicensePhotoViewTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: medicalLicenseDeleteTag
+                - .BottomButton:
+                  text: "Next"
+                  style:
+                    top: "0.82"
+                    backgroundColor: "#235591"
+                    color: "#ffffff"
+                    left: "0.69"
+                    fontSize: .Nfont.nf4
+                  onClick:
+                    - actionType: popUp
+                      popUpView: uploading1  
+                    - actionType: evalObject
+                      object:
+                        - ..formData.businessType@: =..medicalFacility.vertex.name.basicInfo.businessType
+                        - =.builtIn.array.getByKey:
+                            dataIn:
+                              array: =.SelectData.businessCat
+                              key1: "name"
+                              value: =..formData.businessType
+                              key2: "id"
+                            dataOut: MedicalFacility1.medicalFacility.vertex.subtype
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..medicalFacility.vertex.name.basicInfo.addressFirstLine
+                              - ", "
+                              - =..medicalFacility.vertex.name.basicInfo.city
+                              - ", "
+                              - =..medicalFacility.vertex.name.basicInfo.state
+                              - " "
+                              - =..medicalFacility.vertex.name.basicInfo.zipCode
+                            dataOut: MedicalFacility1.formData.location
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..medicalFacility.vertex.name.basicInfo.addressSecondLine
+                                string2: ""
+                          - =.builtIn.string.concat:
+                              dataIn:
+                                - =..medicalFacility.vertex.name.basicInfo.addressFirstLine
+                                - ", "
+                                - =..medicalFacility.vertex.name.basicInfo.city
+                                - ", "
+                                - =..medicalFacility.vertex.name.basicInfo.state
+                                - " "
+                                - =..medicalFacility.vertex.name.basicInfo.zipCode
+                              dataOut: MedicalFacility1.medicalFacility.vertex.name.basicInfo.location
+                          - =.builtIn.string.concat:
+                              dataIn:
+                                - =..medicalFacility.vertex.name.basicInfo.addressFirstLine
+                                - ", "
+                                - =..medicalFacility.vertex.name.basicInfo.addressSecondLine
+                                - ", "
+                                - =..medicalFacility.vertex.name.basicInfo.city
+                                - ", "
+                                - =..medicalFacility.vertex.name.basicInfo.state
+                                - " "
+                                - =..medicalFacility.vertex.name.basicInfo.zipCode
+                              dataOut: MedicalFacility1.medicalFacility.vertex.name.basicInfo.location
+                        
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..medicalFacility.vertex.name.basicInfo.medicalFacilityName
+                              - "-"
+                              - =..medicalFacility.vertex.name.basicInfo.location
+                            dataOut: MedicalFacility1.medicalFacility.vertex.name.basicInfo.fullInfo
+                        # - =.builtIn.string.concat:
+                        #     dataIn:
+                        #       - =..formData.countryCode
+                        #       - " "
+                        #       - =..formData.number
+                        #     dataOut: MedicalFacility1.medicalFacility.vertex.name.basicInfo.phoneNumber 
+                    - actionType: evalObject
+                      object: 
+                        - if: 
+                          - =.builtIn.string.judgeFillinAll:
+                              dataIn:
+                                - =..formData.number
+                                - =..medicalFacility.vertex.name.basicInfo.medicalFacilityName
+                                - =..medicalFacility.vertex.name.basicInfo.locationID
+                                - =..medicalFacility.vertex.name.basicInfo.businessType
+                                - =..medicalFacility.vertex.name.basicInfo.phoneNumber
+                                - =..medicalFacility.vertex.name.basicInfo.email
+                                - =..medicalFacility.vertex.name.basicInfo.website
+                                - =..medicalFacility.vertex.name.basicInfo.addressFirstLine
+                                - =..medicalFacility.vertex.name.basicInfo.city
+                                - =..medicalFacility.vertex.name.basicInfo.state
+                                - =..medicalFacility.vertex.name.basicInfo.zipCode
+                                - =..medicalFacility.vertex.name.basicInfo.businessLicense
+                                - =..medicalFacility.vertex.name.basicInfo.businessLicenseCity
+                                - =..medicalFacility.vertex.name.basicInfo.businessLicenseState
+                                - =..medicalFacility.vertex.name.basicInfo.NPI
+                                - =..medicalFacility.vertex.name.basicInfo.fax
+                          - actionType: popUpDismiss
+                            popUpView: uploading1                          
+                          - continue                         
+                    - actionType: evalObject
+                      object: 
+                        - if: 
+                          - =.builtIn.string.judgeFillinAll:
+                              dataIn:
+                                - =..medicalFacility.vertex.name.basicInfo.medicalFacilityName
+                                - =..medicalFacility.vertex.name.basicInfo.locationID
+                                - =..medicalFacility.vertex.name.basicInfo.businessType
+                                - =..medicalFacility.vertex.name.basicInfo.phoneNumber
+                                - =..medicalFacility.vertex.name.basicInfo.email
+                                - =..medicalFacility.vertex.name.basicInfo.website
+                                - =..medicalFacility.vertex.name.basicInfo.addressFirstLine
+                                - =..medicalFacility.vertex.name.basicInfo.city
+                                - =..medicalFacility.vertex.name.basicInfo.state
+                                - =..medicalFacility.vertex.name.basicInfo.zipCode
+                                - =..medicalFacility.vertex.name.basicInfo.businessLicense
+                                - =..medicalFacility.vertex.name.basicInfo.businessLicenseCity
+                                - =..medicalFacility.vertex.name.basicInfo.businessLicenseState
+                                - =..medicalFacility.vertex.name.basicInfo.NPI
+                                - =..medicalFacility.vertex.name.basicInfo.fax
+                          - actionType: popUp
+                            popUpView: errorView
+                            wait: true
+                          - continue                 
+                        - =.builtIn.search.transformGeo:
+                            dataIn:
+                              query: =..formData.location
+                            dataOut: MedicalFacility1.medicalFacility.vertex.name.basicInfo.geoCode
+                        - ..medicalFacility.vertex.uid@: =..medicalFacility.vertex.name.basicInfo.locationID 
+                        - =.builtIn.string.generateID:
+                            dataIn:
+                              facilityID: =..medicalFacility.vertex.name.basicInfo.locationID 
+                              locationID: =..medicalFacility.vertex.name.basicInfo.locationID 
+                              roomID: "" 
+                            dataOut: MedicalFacility1.formData.locationUid
+                        
+                        - ..location.vertex.name@: =..medicalFacility.vertex.name
+                        - ..location.vertex.uid@: =..formData.locationUid
+                        - ..location.vertex.name.basicInfo.locationID@: =..formData.locationUid
+                        - =.MedicalFacility1.medicalFacility.vertexAPI.store: ""
+                        # - .Global.formData.facility@: =..medicalFacility.vertexResp.data.vertex
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =.Global.formData.facility.code
+                                string2: -1
+                          - actionType: popUpDismiss
+                            popUpView: uploading1
+                          - continue
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =.Global.formData.facility.code
+                                string2: -1
+                          - actionType: popUp
+                            popUpView: facilityIDTag
+                            wait: true
+                          - continue
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.add:
+                            dataIn: 
+                              object: =..relation.edgeReq.id
+                              value: =.Global.currentUser.vertex.id
+                        - =.builtIn.array.add:
+                            dataIn: 
+                              object: =..relation.edgeReq.id
+                              value: =.Global.formData.facility.data.vertex.id
+                        - =..relation.edgeAPI.get: ""
+                        - ..relation.edgeStore@: =..relation.edge.edge.0
+                        - =.builtIn.object.setAuthAllTrue:
+                            dataIn:
+                              object: =..formData.auth
+                            dataOut: MedicalFacility1.relation.edgeStore.name.auth
+                        - =..relation.edgeAPI.store: ""
+                        - .Global.jwt.edge.bvid@: =.Global.formData.facility.data.vertex.id
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..location.vertexAPI.store: ""
+                        - .Global.signInLocationId@: =..location.resp.data.vertex.id
+                        - .Global.signInLocationRootId@: =..location.resp.data.vertex.deat.rnb64ID
+                        - .Global.formData.medicalFacility@: =..medicalFacility.vertex   
+                        - goto: SignInSuccessful
+        - .LoadingView: ""
+          style:
+            left: '0.38'
+          message: "loading ..."
+          viewTag: uploading        
+        - type: popUp
+          viewTag: locationTag
+          onMouseLeave:
+            - actionType: popUpDismiss
+              popUpView: locationTag
+          style:
+            width: '0.768'
+            top: "0.35"   
+            height: "0.18"
+            left: '0.198'
+            fontFamily: 'Poppins'
+            border: "1px solid #eeeeee"  
+            borderWidth: "1px" 
+            zIndex: 100
+            backgroundColor: 'white'
+            isHidden: "false"
+          children:
+            - type: scrollView
+              style:
+                width: '0.768'
+                top: "0"   
+                height: "0.15"
+                left: '0'
+              children:
+                - .SearchProviderView: 
+                  viewTag: adressListTag
+                  children: 
+                    - type: list
+                      contentType: listObject
+                      listObject: ..suggestAddress
+                      iteratorVar: itemObject
+                      style:
+                        width: '0.768'     
+                        left: '0'
+                        height: "auto"
+                        margin: "0"
+                        marginTop: "0"
+                      children: 
+                        - type: listItem
+                          itemObject: ''
+                          hover:
+                            backgroundColor: "0xffecf1cd"
+                          onMouseEnter:
+                            - emit: 
+                                dataKey: 
+                                  var: itemObject
+                                actions: 
+                                  - ..formData.addressDetail@: $var.place_name
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: ContentTag
+                          onClick: 
+                            - actionType: evalObject
+                              object:
+                                - ..medicalFacility.vertex.name.basicInfo.location@: ..formData.addressDetail
+                          style: 
+                            backgroundColor: "0xffffff"
+                            width: '0.768'
+                            height: '0.022'
+                          children:
+                            - .Alllabel:
+                              children:
+                                - type: label
+                                  dataKey: itemObject.place_name
+                                  style:
+                                    height: '0.02'
+                                    fontFamily: 'Poppins'
+                                    color: "0x143459"
+                              onClick: 
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - =.builtIn.string.getAddress:
+                                          dataIn:
+                                            object: $var
+                                          dataOut: MedicalFacility1.formData.address
+                                      - ..medicalFacility.vertex.name.basicInfo.location@: =..formData.address.location
+                                      - ..medicalFacility.vertex.name.basicInfo.city@: =..formData.address.city
+                                      - ..medicalFacility.vertex.name.basicInfo.county@: =..formData.address.county
+                                      - ..medicalFacility.vertex.name.basicInfo.state@: =..formData.address.state
+                                      - ..medicalFacility.vertex.name.basicInfo.zipCode@: =..formData.address.zipCode
+                                      - ..medicalFacility.vertex.name.basicInfo.geoCode@: =..formData.address.geoCode
+                                      - ..medicalFacility.vertex.name.basicInfo.addressFirstLine@: =..formData.address.firsLine
+                                      - ..medicalFacility.vertex.name.basicInfo.addressSecondLine@: =..formData.address.SecondLine
+                                      - ..medicalFacility.vertex.name.basicInfo.location@: ""
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: ContentTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: locationGrayTag
+                                - actionType: popUpDismiss
+                                  popUpView: locationTag
+                              style:
+                                width: '0.4'
+                                textIndent: 20px 
+                                textAlign: 
+                                  x: left
+                                  y: center
+                                height: '0.02'
+                                fontSize: "1.7vh"
+                                color: '0x143459'
+        - .LoadingView: ""
+          message: "loading ..."
+          viewTag: uploading1
+        - .BaseCheckView: ""
+          message: "FacilityID cannot be repeated!"
+          viewTag: facilityIDTag
+        - .BaseWarningView: ""  
+          viewTag: errorView
+          style:
+            zIndex: "1000"
+        # - .BaseCheckView: ""
+        #   message: "Please complete all the required info to continue"
+        #   viewTag: errorView
+        #   style:
+        #     zIndex: "1000"
+        - .BaseOverSizeView: ""         
+          
+
+        - type: popUp
+          viewTag: startDateTag
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1" 
+            backgroundColor: "0x00000033"
+            zIndex: "1000000"
+          children:
+            - .BaseDate.calendar:
+              children:
+                - .BaseDate.calendarTitle:
+                - .BaseDate.calendarCancel:
+                - .BaseDate.calendarHeader:
+                  children:
+                    - .BaseDate.newMonthView:
+                    - .BaseDate.newYearView:
+                - .BaseDate.weekView:
+                - .BaseDate.dayView:
+                - .BaseDate.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..medicalFacility.vertex.name.basicInfo.licenseExpirationDate@: =.BaseDate.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: selectStartAndEndTag
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+                - .BaseDate.cancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+
+        - .BasePopUp:
+          style:
+            top: "0"
+            left: "0"
+            height: "1"
+            width: "1"
+            zIndex: "1000"
+          viewTag: businessHourTag
+          children:
+            - .PopUphead:
+              style:
+                left: '0.6'
+              children:
+                - .CreateLabel:
+                  text: "Business Hours"
+                - .Closebutton:
+                  onClick:
+                    - .BaseDate.calendarDate.minidayLable@: []
+                    - actionType: popUpDismiss
+                      popUpView: businessHourTag
+            - type: view
+              style:
+                height: '0.92'
+                width: '0.4'
+                top: '0.08'
+                left: '0.6'
+                backgroundColor: '0xffffff'
+              viewTag: DataTag
+              children:
+                - type: view
+                  style:
+                    width: "0.28"
+                    height: "0.1"
+                    left: "0.06"
+                  children:
+                    - type: label
+                      text: Day
+                      style:
+                        width: "0.28"
+                        left: '0'
+                        marginTop: '0.03'
+                        fontSize: .Nfont.nf2
+                        fontWeight: "600"
+                        color: "0x333333"
+                    - type: view
+                      style:
+                        marginTop: "0.01"
+                        width: "0.28"
+                        height: "0.046"
+                        left: "0"
+                      children:
+                        - type: select
+                          options:
+                            .SelectData.Day
+                          dataKey: formData.Date.FromDay
+                          style:
+                            left: '0'
+                            top: '0'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede" 
+                            width: '0.125'
+                            borderRadius: "4"
+                            border:
+                              style: "3"
+                            height: '0.0405'
+                            textIndent: '0.5em'
+                          onChange:
+                            - actionType: evalObject
+                              object: 
+                                .Global._nonce@: 
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn: 
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: MedicalFacility1.formData.isCheckoutColor
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.isCheckoutColor
+                                        string2: true
+                                  - ..formData.specBtnColor@: "0x235591"
+                                  - ..formData.specBtnColor@: "0xc1c1c1"
+                                    
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                        - type: label
+                          text: "to"
+                          dataKey: 
+                          style:
+                            top: '0'
+                            marginLeft: '0.125'
+                            width: "0.03"
+                            height: '0.0405'
+                            fontSize: .Nfont.nf2
+                            fontWeight: "600"
+                            color: "0x333333"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: select
+                          viewTag: typeView
+                          options: 
+                            .SelectData.Day
+                          dataKey: formData.Date.ToDay
+                          onChange:
+                            - actionType: evalObject
+                              object: 
+                                .Global._nonce@: 
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn: 
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: MedicalFacility1.formData.isCheckoutColor
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.isCheckoutColor
+                                        string2: true
+                                  - ..formData.specBtnColor@: "0x235591"
+                                  - ..formData.specBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                          style:
+                            top: '0'
+                            marginLeft: '0.155'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede"  
+                            width: '0.125'
+                            height: '0.0405'
+                            borderRadius: "5"
+                            border:
+                              style: "3"
+                            textIndent: '0.5em'
+                    - type: label
+                      text: "Hour"
+                      style:
+                        width: "0.28"
+                        left: '0'
+                        marginTop: '0.01'
+                        fontSize: .Nfont.nf2
+                        fontWeight: "600"
+                        color: "0x333333"
+                    - type: view
+                      style:
+                        marginTop: "0.005"
+                        width: "0.28"
+                        height: "auto"
+                        left: "0"     
+                      children:          
+                        - type: select
+                          viewTag: reasonView
+                          dataKey: formData.Date.FromHour
+                          options:
+                            .SelectData.TimeSpan
+                          style:
+                            left: '0'
+                            top: '0'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede" 
+                            width: '0.125'
+                            borderRadius: "5"
+                            border:
+                              style: "3"
+                            height: '0.0405'
+                            textIndent: '0.5em'
+                          onChange:
+                            - actionType: evalObject
+                              object: 
+                                .Global._nonce@: 
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn: 
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: MedicalFacility1.formData.isCheckoutColor
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.isCheckoutColor
+                                        string2: true
+                                  - ..formData.specBtnColor@: "0x235591"
+                                  - ..formData.specBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                        - type: label
+                          text: "to"
+                          dataKey: 
+                          style:
+                            top: '0'
+                            marginLeft: '0.125'
+                            width: "0.03"
+                            height: '0.0405'
+                            fontSize: .Nfont.nf2
+                            fontWeight: "600"
+                            color: "0x333333"
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: select
+                          dataKey: formData.Date.ToHour
+                          options:
+                            .SelectData.TimeSpan
+                          onChange:
+                            - actionType: evalObject
+                              object: 
+                                .Global._nonce@: 
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.allComplete:
+                                    dataIn: 
+                                      - =..formData.Date.FromDay
+                                      - =..formData.Date.ToDay
+                                      - =..formData.Date.FromHour
+                                      - =..formData.Date.ToHour
+                                    dataOut: MedicalFacility1.formData.isCheckoutColor
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.isCheckoutColor
+                                        string2: true
+                                  - ..formData.specBtnColor@: "0x235591"
+                                  - ..formData.specBtnColor@: "0xc1c1c1"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                          style:
+                            top: '0'
+                            marginLeft: '0.155'
+                            fontSize: .Nfont.nf1
+                            color: "0x333333"
+                            borderColor: "0xdedede" 
+                            width: '0.125'
+                            height: '0.0405'
+                            borderRadius: "5"
+                            border:
+                              style: "3"
+                            textIndent: '0.5em'
+                    - .StandBtnWithImg:
+                      viewTag: btnView
+                      btnImg: addCircle.svg
+                      btnText: "Add Business Hours"
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.Date.FromDay
+                                  - " - "
+                                  - =..formData.Date.ToDay
+                                dataOut: MedicalFacility1.formData.Date.dayConcat
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.Date.FromHour
+                                  - " - "
+                                  - =..formData.Date.ToHour
+                                dataOut: MedicalFacility1.formData.Date.HourConcat
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - =..formData.Date.dayConcat
+                                  - ", "
+                                  - =..formData.Date.HourConcat
+                                dataOut: MedicalFacility1.formData.Date.concat
+                            - if: 
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.specBtnColor
+                                    string2: "0x235591" 
+                              - =.builtIn.array.add: 
+                                  dataIn: 
+                                    object: =..formData.bussinessHours
+                                    value: =..formData.Date
+                              - continue
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: bussinessHoursTag
+                      style:
+                        marginTop: "0.065"
+                        width: "0.12"
+                        fontSize: .Nfont.nf1
+                        backgroundColor: ..formData.specBtnColor
+                      children:
+                        - type: image
+                          path: __.btnImg
+                          style:
+                            height: "0.01656"
+                            width: "0.00936"
+                        - type: label
+                          text: __.btnText
+                          style:
+                            marginLeft: "0.004"
+                            color: "0xffffff"
+                            # fontFamily: "Proxima Nova"
+                            fontWeight: "600"                        
+                    - type: view
+                      style:
+                        width: "0.28"
+                        height: "0.004"
+                        backgroundColor: "0xeaeaea"
+                        marginTop: "0.028"
+                    - type: view
+                      style:
+                        width: "0.28"
+                        height: "auto"
+                        marginTop: "0.018"
+                      children:
+                        - type: label
+                          text: "Day"
+                          dataKey: 
+                          style:
+                            top: "0"
+                            left: "0.017"
+                            fontSize: .Nfont.nf2
+                            color: "0x333333"
+                            fontWeight: "600"
+                        - type: label
+                          text: "Hour"
+                          dataKey: 
+                          style:
+                            left: "0.155"
+                            top: "0"
+                            fontSize: .Nfont.nf2
+                            color: "0x333333"
+                            fontWeight: "600"
+                        - type: scrollView
+                          style:
+                            top: "0.035"
+                            height: "0.45"
+                            width: "0.28"
+                          children:
+                            - type: list
+                              viewTag: bussinessHoursTag
+                              contentType: listObject
+                              listObject: ..formData.bussinessHours
+                              iteratorVar: itemObject
+                              style:
+                                margin: "0"
+                                width: '0.28'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '0.28'
+                                    left: '0'
+                                    height: "0.03"
+                                  children:
+                                    - type: image
+                                      path: deletePhoto.svg
+                                      style:
+                                        width: "0.009"
+                                        top: "0.001"
+                                      onClick:
+                                        - emit: 
+                                            dataKey: 
+                                              var: itemObject
+                                            actions: 
+                                              - =.builtIn.array.removeByName: 
+                                                  dataIn: 
+                                                    object: =..formData.bussinessHours
+                                                    key: "dayConcat"
+                                                    name: $var.dayConcat
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: bussinessHoursTag
+                                    - type: label
+                                      dataKey: itemObject.dayConcat
+                                      style:
+                                        fontSize: .Nfont.nf1
+                                        color: "0x333333"
+                                        left: "0.017"
+                                        top: "0"
+                                    - type: label
+                                      dataKey: itemObject.HourConcat
+                                      style:
+                                        width: "0.1"
+                                        fontSize: .Nfont.nf1
+                                        color: "0x333333"
+                                        left: "0.155"
+                - type: view
+                  style:
+                    top: "0.82"
+                    width: "0.4"
+                    boxShadow: "0px -2px 8px -8px #707070"
+                    height: "0.1"
+                  children:
+                    - .StandBtn:
+                      btnText: "Confirm"
+                      style:
+                        left: "0.265"
+                        marginTop: "0.02975"
+                        width: "0.0754"
+                      onClick:
+                        - actionType: evalObject
+                          object: 
+                            - =.builtIn.array.selectOneToArr:
+                                dataIn:
+                                  arr: =..formData.bussinessHours
+                                  key: "concat"
+                                dataOut: MedicalFacility1.formData.bussinessHoursResult
+                            
+                            - ..medicalFacility.vertex.name.basicInfo.businessHours@: =..formData.bussinessHoursResult
+                            - .Global.formData.facilityInfo.tempDate@: =..formData.bussinessHours
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.Date.FromDay
+                                    string2: ""
+                              - actionType: popUp
+                                popUpView: timeErrorViewDay
+                                wait: true
+                              - continue
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.Date.FromDay
+                                    string2: "select"
+                              - actionType: popUp
+                                popUpView: timeErrorViewDay
+                                wait: true
+                              - continue
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.Date.ToDay
+                                    string2: ""
+                              - actionType: popUp
+                                popUpView: timeErrorViewDay
+                                wait: true
+                              - continue
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.Date.ToDay
+                                    string2: "select"
+                              - actionType: popUp
+                                popUpView: timeErrorViewDay
+                                wait: true
+                              - continue
+                            - if:
+                              - =.builtIn.date.DateCompare:
+                                  dataIn:
+                                    startTime: =..formData.Date.FromHour
+                                    endTime: =..formData.Date.ToHour
+                              - continue
+                              - actionType: popUp
+                                popUpView: timeErrorView
+                                wait: true
+                        - actionType: popUpDismiss
+                          popUpView: businessHourTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessHoursTag
+                    
+                
+        
+        
+        - .BaseCheckView: 
+          message: "Please select or change appropriate start & end Hour"
+          viewTag: timeErrorView
+        - .BaseCheckView: 
+          message: "Please select Day"
+          viewTag: timeErrorViewDay
+
+        - .BaseJudgeView: 
+          viewTag: deletePhotoTag 
+          style:
+            zIndex: "250"
+          children: 
+            - .BaseJudgeInnerView: 
+              children: 
+                - .BaseJudgeCancelImg: 
+                - .BaseJudgeTxt: 
+                - .BaseJudgeButtonView: 
+                  children: 
+                    - .BaseJudgeButtonNo:   # 可以重写
+                    - .BaseJudgeButtonYes:  # 可以重写
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: "" 
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - ..DEA.resp.doc.id
+                              - ..DEA.deleteId.id@: =..DEA.resp.doc.id
+                              - continue
+                            - =..DEA.docAPI.delete: ""
+                        - actionType: updateObject
+                          dataKey: MedicalFacility1.DEA.resp.doc
+                          dataObject: {}    
+                        - actionType: updateObject
+                          dataKey: MedicalFacility1.DEA.document
+                          dataObject: {}     
+                        - actionType: evalObject
+                          object:                       
+                            - ..DEA.document@: =..DEA.documentIn
+                            - ..DEA.document.id@: ""
+                            
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: deaPhotoViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: deaDeleteTag
+                        - actionType: popUpDismiss
+                          popUpView: deletePhotoTag
+
+        - .BaseJudgeView: 
+          viewTag: deletePhotoTagBussiness 
+          style:
+            zIndex: "250"
+          children: 
+            - .BaseJudgeInnerView: 
+              children: 
+                - .BaseJudgeCancelImg: 
+                - .BaseJudgeTxt: 
+                - .BaseJudgeButtonView: 
+                  children: 
+                    - .BaseJudgeButtonNo:   # 可以重写
+                    - .BaseJudgeButtonYes:  # 可以重写
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: "" 
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - ..medicalLicense.resp.doc.id
+                              - ..medicalLicense.deleteId.id@: =..medicalLicense.resp.doc.id
+                              - continue
+                            - =..medicalLicense.docAPI.delete: ""
+                        - actionType: updateObject
+                          dataKey: MedicalFacility1.medicalLicense.document
+                          dataObject: {}  
+                        - actionType: updateObject
+                          dataKey: MedicalFacility1.medicalLicense.resp.doc
+                          dataObject: {}   
+                        - actionType: evalObject
+                          object:  
+                            - ..medicalLicense.document@: =..medicalLicense.documentIn
+                            - ..medicalLicense.document.id@: ""
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: medicalLicensePhotoViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: medicalLicenseDeleteTag
+                        - actionType: popUpDismiss
+                          popUpView: deletePhotoTagBussiness               
+
+
+

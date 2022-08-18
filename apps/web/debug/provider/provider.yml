@@ -1,0 +1,28 @@
+apiHost: ecosapip1.aitmed.io
+apiPort: '443'
+webApiHost: apiHost
+appApiHost: apiHost
+connectiontimeout: '5'
+loadingLevel: 1
+debug: console_log_api
+syncHost: https://sync.aitmed.io:443
+elasticClient: https://elastic.aitmed.io
+isGetPosition: false
+viewWidthHeightRatio:
+    min: 0.45
+    max: 0.5
+web:
+  cadlVersion :
+    stable: 8.35.4
+    test : 8.35.4
+ios:
+  cadlVersion:
+    stable: 8.35.4
+    test : 8.35.4
+android:
+  cadlVersion:
+    stable : 8.35.4
+    test : 8.35.4
+cadlBaseUrl: http://127.0.0.1:3000/
+cadlMain: cadlEndpoint.yml
+timestamp: 03242022PDT

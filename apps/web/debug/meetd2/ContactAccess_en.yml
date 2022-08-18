@@ -1,0 +1,130 @@
+ContactAccess: 
+  title: Invite
+  components:
+    - .BaseHeader3:
+    - .HeaderRightButton:
+      text: Cancel
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - type: view
+      style: 
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+      children: 
+        - type: view
+          style: 
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "0.08"
+            border: 
+              style: "2"
+            borderColor: "0x00000033"
+            borderWidth: "0.0001px"
+          children: 
+            - type: image
+              path: "addressBook.png"
+              style: 
+                left: "0.05"
+                width: "0.09"
+                top: "0.02"
+            - type: label
+              text: "Sync contact from phone"
+              style: 
+                left: "0.18"
+                top: "0.01"
+                width: "0.7"
+                height: "0.04"
+                textAlign: 
+                  x: left
+                fontSize: "18"
+            - type: label
+              text: "Add contacts from your phone"
+              style: 
+                left: "0.18"
+                top: "0.04"
+                width: "0.7"
+                height: "0.02"
+                color: "0x00000066"
+                textAlign: 
+                  x: left
+                fontSize: "15"
+        - type: view
+          style: 
+            left: "0"
+            top: "0.08"
+            width: "1"
+            height: "0.08"
+            border: 
+              style: "2"
+            borderColor: "0x00000033"
+            borderWidth: "0.0001px"
+          children: 
+            - type: image
+              path: "QRcode.png"
+              style: 
+                left: "0.05"
+                width: "0.09"
+                top: "0.02"
+            - type: label
+              text: "Add with QR code"
+              style: 
+                left: "0.18"
+                top: "0.01"
+                width: "0.7"
+                height: "0.04"
+                textAlign: 
+                  x: left
+                fontSize: "18"
+            - type: label
+              text: "Scan a friends QR code"
+              style: 
+                left: "0.18"
+                top: "0.04"
+                width: "0.7"
+                height: "0.02"
+                color: "0x00000066"
+                textAlign: 
+                  x: left
+                fontSize: "15"
+        - type: view
+          style: 
+            left: "0"
+            top: "0.16"
+            width: "1"
+            height: "0.08"
+            border: 
+              style: "2"
+            borderColor: "0x00000033"
+            borderWidth: "0.0001px"
+          children: 
+            - type: image
+              path: "invite.png"
+              style: 
+                left: "0.05"
+                width: "0.1"
+                top: "0.03"
+            - type: label
+              text: "Invite a friend to AiTmed"
+              style: 
+                left: "0.18"
+                top: "0.01"
+                width: "0.7"
+                height: "0.04"
+                textAlign: 
+                  x: left
+                fontSize: "18"
+            - type: label
+              text: "Invite your friends to AiTmed"
+              style: 
+                left: "0.18"
+                top: "0.04"
+                width: "0.7"
+                height: "0.02"
+                color: "0x00000066"
+                textAlign: 
+                  x: left
+                fontSize: "15"

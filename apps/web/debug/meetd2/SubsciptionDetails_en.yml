@@ -1,0 +1,477 @@
+SubsciptionDetails:
+  title: "My Subscription Details"
+  pageNumber: "" # xd page 47
+  viewPort: "top"
+  init:
+    - .SignInCheck
+    - ..listData.get
+  listData:
+    planVertex:
+      vertex:
+        #orangfization bvid
+        id: bvid
+    get:
+      .VertexAPI.get: ""
+      api: rv
+      dataKey: listData.planVertex
+      ObjType: 100
+      ids:
+        - .Global.rootSubscriptionID
+      type: .VertexType.UploadFile # all the uploaded documents
+      xfname: eid
+      #xfname: refid
+      obfname: "mtime"
+      maxcount: "20"
+# Needs add modify/cancel
+  components: 
+    - type: view
+      style: 
+        top: "0"
+        width: "1"
+        height: "0.13"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          onClick:
+            - goto: SideMenuBar
+        - type: button
+          text: "ACTIVE"
+          style: 
+            top: "0.1"
+            height: "0.05"
+            width: "1"
+            color: "0xffffff"
+            fontSize: "18"
+            fontStyle: "bold"
+            backgroundColor: "0x2fb355"
+    - .MonthlyCard:
+      style: 
+        top: "0.18"
+    - type: label
+      text: "Subsciption details"
+      style: 
+        top: "0.42"
+        height: "0.05"
+        width: "1"
+        fontSize: "20"
+        fontStyle: "bold"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: center
+    - type: label
+      text: "Last payment on:"
+      style: 
+        top: "0.47"
+        height: "0.03"
+        width: "0.48"
+        fontSize: "16"
+        # backgroundColor: "0xcdcdcd"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: right      
+    - type: textField
+      placeholder: "10/20/2020"
+      style: 
+        top: "0.47"
+        left: "0.52"
+        height: "0.03"
+        fontSize: "16"
+        color: "0x000000"
+        fontFamily: "sans-serif"
+        width: "0.4"
+        textAlign:
+          x: left
+        border: 
+          style: "1"   
+    - type: label
+      text: "Subscription length:"
+      style: 
+        top: "0.52"
+        height: "0.03"
+        width: "0.48"
+        fontSize: "16"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: right      
+    - type: textField
+      placeholder: "1 month"
+      style: 
+        top: "0.517"
+        left: "0.52"
+        width: "0.4"
+        height: "0.03"
+        fontSize: "16"
+        color: "0x000000"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: left
+        border: 
+          style: "1"  
+    - type: label
+      text: "Ends on:"
+      style: 
+        top: "0.57"
+        height: "0.03"
+        width: "0.48"
+        fontSize: "16"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: right      
+    - type: textField
+      placeholder: "11/20/2020"
+      style: 
+        top: "0.567"
+        left: "0.52"
+        width: "0.4"
+        height: "0.03"
+        fontSize: "16"
+        color: "0xd53c42"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: left
+        border: 
+          style: "1"  
+    - type: label
+      text: "Renewal amount:"
+      style: 
+        top: "0.62"
+        height: "0.03"
+        width: "0.48"
+        fontSize: "16"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: right      
+    - type: textField
+      placeholder: "＄ 35.95"
+      style: 
+        top: "0.617"
+        left: "0.52"
+        width: "0.4"
+        height: "0.03"
+        fontSize: "16"
+        color: "0x000000"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: left
+        border: 
+          style: "1"  
+    - type: label
+      text: "Renewal date:"
+      style: 
+        top: "0.67"
+        height: "0.03"
+        width: "0.48"
+        fontSize: "16"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: right      
+    - type: textField
+      placeholder: "11/21/2020"
+      style: 
+        top: "0.667"
+        left: "0.52"
+        height: "0.03"
+        fontSize: "16"
+        width: "0.4"
+        color: "0x000000"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: left
+        border: 
+          style: "1"  
+    - type: label
+      text: "Payment method:"
+      style: 
+        top: "0.72"
+        height: "0.03"
+        width: "0.48"
+        fontSize: "16"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: right      
+    - type: textField
+      placeholder: "×4444"
+      style: 
+        top: "0.717"
+        left: "0.52"
+        height: "0.03"
+        width: "0.4"
+        fontSize: "16"
+        color: "0x000000"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: left
+        border: 
+          style: "1"  
+    - type: label
+      text: "Change"
+      onClick: 
+        - goto: AddPaymentMethod
+      style: 
+        top: "0.72"
+        left: "0.8"
+        width: "0.2"
+        height: "0.03"
+        fontSize: "12"
+        color: "0x388ecc"
+        fontFamily: "sans-serif"
+        textAlign:
+          x: left
+        border: 
+          style: "1"  
+
+    - type: button
+      text: "Change subscription"
+      onClick: 
+        - goto: Subscriptions
+      style: 
+        left: "0.05"
+        width: "0.44"
+        top: "0.85"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0x388ecc"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0x388ecc"
+        borderRadius: "3"
+    - type: button
+      text: "Pay now"
+      style: 
+        left: "0.55"
+        width: "0.4"
+        top: "0.85"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0x2fb355"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0x2fb355"
+        borderRadius: "3"
+    - type: button
+      text: "Cancel my subscription"
+      onClick:
+        - actionType: popUp
+          popUpView: cancelView
+      style: 
+        left: "0.25"
+        width: "0.5"
+        top: "0.91"
+        height: "0.045"
+        color: "0xffffff"
+        backgroundColor: "0xd53c42"
+        fontSize: "16"
+        border: 
+          style: "3"
+        borderColor: "0xd53c42"
+        borderRadius: "3"
+    - type: popUp
+      viewTag: cancelView
+      style: 
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0xa9a9a966"
+      children: 
+        - type: view
+          style: 
+            left: "0.15"
+            width: "0.7"
+            top: "0.2"
+            height: "0.53"
+            backgroundColor: "0xe9e9e9"
+            borderRadius: "10"
+          children: 
+            - type: label
+              text: "Cancel Subscription"
+              style: 
+                top: "0.03"
+                width: "0.7"
+                height: "0.05"
+                fontSize: "18"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: label
+              text: "Are you sure you would like to cancel your subscription"
+              style: 
+                top: "0.08"
+                width: "0.7"
+                height: "0.05"
+                fontSize: "14"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: label
+              textBoard:
+                - text: "You will no longer be able to"
+                - br: 
+                - text: "'Create a Meeting'"
+              style: 
+                top: "0.16"
+                width: "0.7"
+                height: "0.03"
+                fontSize: "14"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: label
+              textBoard:
+                - text: "You will no longer be able to"
+                - br: 
+                - text: "Share blockchain-secured documents"
+              style: 
+                top: "0.235"
+                width: "0.7"
+                height: "0.03"
+                fontSize: "14"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: label
+              textBoard:
+                - text: "You will no longer be"
+                - br: 
+                - text: "Expanding your business to "
+                - br: 
+                - text: "telecommunications"
+              style: 
+                top: "0.32"
+                width: "0.7"
+                height: "0.03"
+                fontSize: "14"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: label
+              text: "Click 'Continue' to cancel subsciption"
+              style: 
+                top: "0.42"
+                width: "0.7"
+                height: "0.03"
+                fontSize: "14"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: divider
+              style: 
+                width: "0.7"
+                top: "0.45"
+                height: "0.001"
+                backgroundColor: "0xb7b7b7"
+            - type: button 
+              text: Cancel
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: cancelView
+              style: 
+                top: "0.48"
+                left: "0.04"
+                fontSize: "16"
+                width: "0.28"
+                height: "0.03"
+                color: "0x007aff"
+                backgroundColor: "0xe9e9e9"
+            - type: divider
+              style: 
+                left: "0.349"
+                width: "0.001"
+                top: "0.45"
+                height: "0.07"
+                backgroundColor: "0xb7b7b7"
+            - type: button 
+              text: Continue
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: cancelView
+                - actionType: popUp
+                  popUpView: continueView
+              style: 
+                top: "0.48"
+                left: "0.37"
+                width: "0.28"
+                fontSize: "16"
+                height: "0.03"
+                color: "0x007aff"
+                backgroundColor: "0xe9e9e9"
+    - type: popUp
+      viewTag: continueView
+      style: 
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0xa9a9a966"
+      children: 
+        - type: view
+          style: 
+            left: "0.15"
+            width: "0.7"
+            top: "0.4"
+            height: "0.2"
+            backgroundColor: "0xe9e9e9"
+            borderRadius: "10"
+          children: 
+            - type: label
+              text: "Cancel Subscription"
+              style: 
+                top: "0.03"
+                width: "0.7"
+                height: "0.05"
+                fontSize: "18"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: label
+              text: "Are you sure you would like to cancel your subscription"
+              style: 
+                left: "0.07"
+                top: "0.09"
+                width: "0.56"
+                height: "0.05"
+                fontSize: "14"
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: divider
+              style: 
+                width: "0.7"
+                top: "0.14"
+                height: "0.001"
+                backgroundColor: "0xb7b7b7"
+            - type: button 
+              text: Cancel
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: cancelView
+              style: 
+                top: "0.16"
+                left: "0.04"
+                fontSize: "16"
+                width: "0.28"
+                height: "0.03"
+                color: "0x007aff"
+                backgroundColor: "0xe9e9e9"
+            - type: divider
+              style: 
+                left: "0.349"
+                width: "0.001"
+                top: "0.14"
+                height: "0.05"
+                backgroundColor: "0xb7b7b7"
+            - type: button 
+              text: Continue
+              onClick: 
+                - goto: UnSubscriptionSucccess
+              style: 
+                top: "0.16"
+                left: "0.37"
+                width: "0.28"
+                fontSize: "16"
+                height: "0.03"
+                color: "0x007aff"
+                backgroundColor: "0xe9e9e9"

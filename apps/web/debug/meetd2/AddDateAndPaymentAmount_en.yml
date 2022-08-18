@@ -1,0 +1,236 @@
+AddDateAndPaymentAmount:
+  module: Subscriptions
+  pageNumber: "60" #xd   
+  title: Subscriptions
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          path: sideNav2.png
+          onClick:
+            - goto: SideMenuBar
+        - type: label
+          text: "Subscription summary:"
+          style: 
+            left: "0.05"
+            width: "0.9"
+            top: "0.11"
+            height: "0.05"
+            fontStyle: "bold"
+            color: "0x000000"
+            fontSize: "22"
+            textAlign: 
+              x: center
+        - type: view
+          style:
+            width: "1"
+            top: "0.16"
+          children:
+            - .MonthlyCard:
+        - type: view
+          style:
+            width: "1"
+            height: "0.04"
+            top: "0.39"
+          children:
+            - type: label
+              text: "Enter number of months you like to sunscribe for"
+              style:
+                top: "0.02"
+                height: "0.04"
+                width: "1"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                width: "1"
+                top: "0.06"
+                height: "0.05"
+              children:
+                - type: label
+                  text: "Subscription months"
+                  style:
+                    width: "0.5"
+                    height: "0.04"
+                    left: "0.1"
+                    top: "0"
+                    fontSize: "20"
+                    textAlign:
+                      y: center
+                - type: textField
+                  style:
+                    height: "0.04"
+                    left: "0.65"
+                    width: "0.1"
+                    border:
+                      style: "3"
+                    borderColor: "0x6693b0"
+                    textAlign:
+                      x: center
+            - type: view
+              style:
+                width: "1"
+                top: "0.12"
+                height: "0.06"
+              children:
+                - type: label
+                  text: "Total due:"
+                  style:
+                    left: "0.1"
+                    height: "0.04"
+                    width: "0.3"
+                    fontSize: "20"
+                    textAlign:
+                      y: center
+                - type: label
+                  text: "$35.95"
+                  style:
+                    width: "0.3"
+                    left: "0.45"
+                    fontSize: "24"
+                    height: '0.04'
+                    fontWeight: "500"
+                    textAlign:
+                      y: center
+
+        - type: view
+          style:
+            width: "1"
+            height: "0.04"
+            top: "0.55"
+            border:
+              style: "2"
+            borderWidth: "1"
+        - type: view
+          style: 
+            top: "0.6"
+            height: "0.11"
+          children: 
+            - type: label
+              text: "Did someone refer you to AiTmed?"
+              style: 
+                height: "0.03"
+                fontFamily: "sans-serif"
+                textAlign: 
+                  x: center
+            - type: label
+              text: "Give them one month free!"
+              style: 
+                top: "0.035"
+                fontFamily: "sans-serif"
+                height: "0.05"
+                textAlign: 
+                  x: center
+            - type: textField
+              placeholder: "Enter referral phone number"
+              style: 
+                left: "0.2"
+                top: "0.075"
+                width: "0.6"
+                height: "0.03"
+                border: 
+                  style: "3"
+                borderColor: "0x388ecc"
+                borderRadius: "5"
+        - type: view
+          style:
+            width: "1"
+            height: "0.04"
+            top: "0.7"
+            border:
+              style: "2"
+            borderWidth: "1"
+
+        - type: view
+          style:
+            width: "1"
+            top: "0.75"
+            height: "0.4"
+          children:
+            - type: text
+              text: "Payment details"
+              style:
+                textAlign:
+                  x: center
+                top: "0"
+                fontSize: "25"
+                fontWeight: 600""
+                width: "1"
+                height: "0.04"
+            - type: label
+              text: "Enter amount you wish to pay below"
+              style:
+                width: "1"
+                top: "0.05"
+                height: "0.04"
+                textAlign:
+                  x: center
+                color: "0x797979"
+            - type: view
+              style:
+                width: "1"
+                top: "0.1"
+                height: "0.05"
+              children:
+                - type: label
+                  text: "Payment amount:"
+                  style:
+                    width: "0.5"
+                    height: "0.04"
+                    left: "0.1"
+                    top: "0"
+                    fontSize: "20"
+                    textAlign:
+                      y: center
+                - type: textField
+                  placeholder: "$ 35.95"
+                  style:
+                    height: "0.035"
+                    left: "0.65"
+                    width: "0.2"
+                    border:
+                      style: "3"
+                    borderColor: "0x6693b0"
+                    textAlign:
+                      x: center
+                    borderRadius: "5"
+            - type: button
+              text: "Continue"
+              onClick:
+                - goto: SelectPayment
+              style:
+                width: "0.3"
+                left: "0.35"
+                height: "0.04"
+                backgroundColor: "0x388ecc"
+                color: "0xffffff"
+                top: "0.2"
+              # onClick:
+              #   - goto: MonthlySubscriptSummary
+            - type: label
+              text: "Your payment will be processed with"
+              style: 
+                width: "1"
+                height: "0.04"
+                textAlign:
+                  x: center
+                fontSize: "20"
+                fontWeight: "600"
+                top: "0.26"
+            - type: image
+              path: stripe.png
+              style: 
+                width: "0.2"
+                left: "0.4"
+                top: "0.32"
+
+                  
+                
+              
+
+

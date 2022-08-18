@@ -1,0 +1,170 @@
+PaymentMethod: # This is page name
+  module: Subscriptions
+  pageNumber: "62" #xd   
+  title: Payment Method
+  init:
+    - .SignInCheck
+    - ..listData.get
+  listData:
+    response:
+      edge:
+    edge:
+      .Edge: ""
+      id: .Global.currentUser.vertex.id
+      type: 1095
+      xfname: bvid
+      maxcount: "5"
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: listData.edge
+      dataOut: listData.response
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderRightImg:
+      path: sideNav2.png
+      onClick:
+        - goto: SideMenuBar
+    - type: view
+      style:
+        height: "0.1"
+      children:
+        - type: button
+          text: "Select from the payment options below:"
+          style:
+            height: "0.06"
+            width: "1"
+            color: "0xB1B1B1"
+            # fontWeight: "6"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            top: "0.1"
+            border:
+              style: "2"
+            borderWidth: "1"
+            borderColor: "0x000000"
+    - type: view
+      style:
+        width: "1"
+        top: "0.17"
+        height: "0.3"
+      children:
+      - type: view
+        onClick: 
+          - goto: ConfirmSubscription
+        style:
+          width: "1"
+          top: "0"
+          height: "0.1"
+          border:
+            style: "2"
+          borderWidth: "2"
+          borderColor: "0xefefef"
+        children:
+        - type: image
+          path: "visa.png"
+          style: 
+            left: "0.05"
+            height: "0.04"
+            top: "0.03"
+        - type: view
+          style:
+            height: "0.1"
+          onClick:
+            - goto: ConfirmSubscription
+          children:
+            - type: label
+              text: Card ending in 4444
+              style:
+                left: "0.25"
+                height: "0.02"
+                top: "0.012"
+                fontSize: "10"
+                width: "0.4"
+                fontWeight: "700"
+            # - br:
+            - type: label
+              text: Exp 12/2020
+              style:
+                left: "0.25"
+                fontSize: "10"
+                height: "0.02"
+                width: "0.4"
+                top: "0.037"
+            # - br:
+            - type: label
+              text: Last used on 10/19/2020
+              style:
+                left: "0.25"
+                fontSize: "10"
+                height: "0.02"
+                width: "0.4"
+                top: "0.062"
+      - type: view
+        style:
+          width: "1"
+          top: "0.11"
+          height: "0.1"
+          border:
+            style: "2"
+          borderWidth: "2"
+          borderColor: "0xefefef"
+        children:
+        - type: image
+          path: "mastercard.png"
+          style: 
+            left: "0.05"
+            height: "0.04"
+            top: "0.03"
+        - type: view
+          style:
+            height: "0.1"
+          children:
+            - type: label
+              text: Card ending in 4444
+              style:
+                left: "0.25"
+                height: "0.025"
+                top: "0.012"
+                width: "0.4"
+                fontSize: "10"
+                fontWeight: "700"
+            # - br:
+            - type: label
+              text: Exp 12/2020
+              style:
+                left: "0.25"
+                fontSize: "10"
+                width: "0.4"
+                height: "0.025"
+                top: "0.037"
+            # - br:
+            - type: label
+              text: Last used on 10/19/2020
+              style:
+                left: "0.25"
+                fontSize: "10"
+                width: "0.4"
+                height: "0.025"
+                top: "0.062"
+    - type: button
+      text: Use Credit Card
+      onClick: 
+        - goto: ConfirmSubscription
+      style:
+        top: "0.45"
+        left: "0.15"
+        color: "0xffffff"
+        backgroundColor: "0x388eccff"
+        width: "0.7"
+        height: "0.05"
+        display: inline
+        textAlign:
+          x: center
+          y: center
+        onClick:
+          - goto:
+
+

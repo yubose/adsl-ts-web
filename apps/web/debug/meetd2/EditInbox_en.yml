@@ -1,0 +1,571 @@
+EditInbox:
+  pageNumber: "170"
+  title: "Edit Inbox"
+  init:
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =.Global.emailNumber
+            string2: "0"
+      - .Global.inboxHidden@: "true"
+      - .Global.inboxHidden@: "false"
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =.Global.requestListNum
+            string2: "0"
+      - ..requestListHidden@: true
+      - ..requestListHidden@: false
+  requestListHidden: "true"
+  Move:
+    - key: Business Team
+    - key: Engineers
+  Mark:
+    - key: Unred
+    - key: Read
+  # init:
+  #   - if:
+  #     - builtIn.SignInOk
+  #     - continue
+  #     - goto: SignIn
+  #   - ..listData.get
+  listData: 
+    medicalRecords:
+      - .Edge:
+        .Global.medicalRecord.document.name: ""
+      # - .Edge:
+      #   .Global.medicalRecord.document.name: ""
+    get:
+      .EdgeAPI.get : ""
+      id: .Global.currentUser.vertex.id
+      xfname: "bvid"
+      type: 80000
+      maxcount: 20
+      dataKey: listData.medicalRecords
+  components:
+    - .BaseHeader:
+    - .HeaderLeftImg: 
+      path: email.png
+      onClick:
+        - goto: InboxMenu
+    - .HeaderRightImg:
+      path: sideNav2.png 
+      onClick:
+        - goto: InboxDashboard
+    - type: view
+      style: 
+        top: "0.1"
+        width: "1"
+        left: "0"
+        height: "0.075"
+        # backgroundColor: "0xcdcdcd"
+        zIndex: "10"
+        border: 
+          style: "2"
+        borderColor: "0x00000066"
+        borderWidth: "1"
+      children: 
+        - type: button
+          text: Trash
+          onClick:
+            - goto: Trash
+          style:
+            left: "0.15"
+            width: "0.18"
+            top: "0.02"
+            height: "0.035"
+            fontSize: "16"
+            color: "0xd10101"
+            border: 
+              style: "3"
+            borderColor: "0xd10101"
+            borderWidth: "1"
+            borderRadius: "20"
+            textAlign: 
+              x: center
+            backgroundColor: "0xffffff"
+        - type: button
+          text: Move
+          onClick:
+            - actionType: popUp
+              popUpView: moveView
+            - actionType: popUpDismiss
+              popUpView: markView
+          style:
+            left: "0.41"
+            width: "0.18"
+            top: "0.02"
+            height: "0.035"
+            fontSize: "16"
+            color: "0xffffff"
+            border: 
+              style: "3"
+            borderColor: "0x2988e6"
+            borderWidth: "1"
+            borderRadius: "20"
+            textAlign: 
+              x: center
+            backgroundColor: "0x2988e6"
+        - type: button
+          text: Mark
+          onClick:
+            - actionType: popUp
+              popUpView: markView
+            - actionType: popUpDismiss
+              popUpView: moveView
+          style:
+            left: "0.67"
+            width: "0.18"
+            top: "0.02"
+            height: "0.035"
+            fontSize: "16"
+            color: "0x2988e6"
+            border: 
+              style: "3"
+            borderColor: "0x2988e6"
+            borderWidth: "1"
+            borderRadius: "20"
+            textAlign: 
+              x: center
+            backgroundColor: "0xffffff"
+        - type: popUp
+          viewTag: moveView
+          style: 
+            left: "0.35"
+            width: "0.29"
+            top: "0.075"
+            height: "0.08"
+            backgroundColor: "0x2988e6"
+            border: 
+              style: "3"
+            borderColor: "0x2988e6"
+            borderWidth: "1"
+            borderRadius: "10"
+          children: 
+            - type: list
+              contentType: listObject
+              listObject: ..Move
+              iteratorVar: itemObject
+              style:
+                top: "0"
+                width: "0.29"
+                height: "0.8"
+                left: "0"
+                marginTop: "0"
+              children: 
+                - type: listItem
+                  itemObject: ""
+                  style: 
+                    left: "0"
+                    width: "0.29"
+                    height: "0.04"
+                    border: 
+                      style: "2"
+                    borderColor: "0xffffff"
+                    borderWidth: "0.001px"
+                  children: 
+                    - type: label
+                      dataKey: itemObject.key
+                      style: 
+                        left: "0"
+                        height: "0.04"
+                        width: "0.29"
+                        fontSize: '16'
+                        # lineHeight: '8'
+                        color: "0xffffff"
+                        textAlign: 
+                          x: center
+        - type: popUp
+          viewTag: markView
+          style: 
+            left: "0.61"
+            width: "0.29"
+            marginTop: "0.075"
+            height: "0.08"
+            backgroundColor: "0x2988e6"
+            border: 
+              style: "3"
+            borderColor: "0x2988e6"
+            borderWidth: "1"
+            borderRadius: "10"
+          children: 
+            - type: list
+              contentType: listObject
+              listObject: ..Mark
+              iteratorVar: itemObject
+              style:
+                
+                width: "0.29"
+                height: "0.8"
+                left: "0"
+                marginTop: "0"
+              children: 
+                - type: listItem
+                  itemObject: ""
+                  style: 
+                    left: "0"
+                    width: "0.29"
+                    height: "0.04"
+                    border: 
+                      style: "2"
+                    borderColor: "0xffffff"
+                    borderWidth: "0.001px"
+                  children: 
+                    - type: label
+                      dataKey: itemObject.key
+                      style: 
+                        left: "0"
+                        height: "0.04"
+                        top: "0.005"
+                        width: "0.29"
+                        color: "0xffffff"
+                        fontSize: '16'
+                        # lineHeight: '1'
+                        textAlign: 
+                          x: center              
+    # - type: view
+    #   style:
+    #     left: "0"
+    #     width: "1"
+    #     top: "0.1"
+    #     height: "0.1"
+    #   children:
+    #     - type: textField
+    #       placeholder: serach in mail
+    #       style:
+    #         top: "0.025"
+    #         width: "0.75"
+    #         left: "0.05"
+    #         height: "0.05"
+    #         backgroundColor: "0xE4E4E5"
+    #         borderRadius: "20"
+    #         paddingLeft: "20px"
+    #         borderWidth: "0"
+    #     - type: label
+    #       text: Cancel
+    #       onClick:
+    #         - goto: InboxDashboard
+    #       style:
+    #         top: "0.025"
+    #         left: "0.81"
+    #         width: "0.15"
+    #         fontSize: "20"
+    #         color: "0x519DD3"
+    #         fontWeight: 400
+    #         textAlign: 
+    #           x: center
+    - type: view
+      style: 
+        left: "0"
+        width: "1"
+        top: "0.175"
+        height: "0.75"
+      children: 
+        - type: list
+          contentType: listObject
+          listObject: ..listData.medicalRecords
+          iteratorVar: itemObject
+          style: 
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "0.75"
+            backgroundColor: "0xffffff"
+          children:   
+            - type: listItem
+              itemObject: ""
+              style: 
+                left: "0"
+                width: "1"
+                height: "0.16"
+                backgroundColor: "0xffffffff"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                  color: "0x939393" 
+                # backgroundColor: "0x2988e6"
+              children: 
+                - type: image
+                  path: dot.png
+                  style:
+                    left: "0"
+                    top: "0.04"
+                    height: "0.04"
+                - type: image
+                  viewTag: select
+                  onClick:
+                    - actionType: builtIn
+                      funcName: toogleSelectOnOff
+                  path: selectOff.png
+                  pathSelected: selectOn.png
+                  style:
+                    top: "0.08"
+                    left: "0.02"
+                    width: "0.05"
+                - type: image
+                  path: square.png
+                  style:
+                    left: "0.075"
+                    top: "0.045"
+                    height: "0.07"
+                    # borderRadius: "50"
+                - type: label
+                  # text: ..itemObject.recordName
+                  text: "Tonimarie Munoz"
+                  style:  
+                    left: "0.25"
+                    top: "0.03"
+                    width: "0.45"
+                    height: "0.03"
+                    fontWeight: "700"
+                    fontSize: "18"
+                    color: "0x707070"
+                    textAlign: 
+                      x: left
+                - type: label
+                  # text: ..itemObject.recordName
+                  text: "Phase 2 Design"
+                  style:  
+                    left: "0.25"
+                    top: "0.07"
+                    width: "0.45"
+                    fontWeight: 500
+                    height: "0.03"
+                    fontSize: "16"
+                    color: "0x707090"
+                    textAlign: 
+                      x: left
+                - type: label
+                  # text: August 12,2020
+                  text: "Hey!Had a question about"
+                  style:  
+                    left: "0.25"
+                    top: "0.10"
+                    width: "0.6"
+                    height: "0.02"
+                    fontWeight: "300"
+                    fontSize: "16"
+                    color: '0x939393'
+                    textAlign: 
+                      x: left
+                    fontFamily: PMingLiU
+                
+                - type: label
+                  text: 1:30 PM
+                  # dataKey: itemObject.name.time
+                  style: 
+                    left: "0.85"
+                    top: "0.03"
+                    width: "0.15"
+                    height: "0.02"
+                    fontSize: "13"
+                    color: '0x939393'
+                    textAlign: 
+                      x: left
+                    fontFamily: PMingLiU
+                - type: image
+                  path: pin.png
+                  style:
+                    left: "0.8"
+                    top: "0.03"
+                    height: "0.02"
+                - type: image
+                  viewTag: select
+                  onClick:
+                    - actionType: builtIn
+                      funcName: toogleSelectOnOff
+                  path: providerOff.png
+                  pathSelected: providerOn.png
+                  style:
+                    left: "0.88"
+                    top: "0.06"
+                    height: "0.04"
+    # - .DashboardFooter0:
+    #   style: 
+    #     top: "0.9"
+    #   children:
+    #     - .DashboardFooterView:
+    #       onClick: 
+    #         - goto: "Dashboard"
+    #       children: 
+    #         - .DashboardBox:
+    #           children:
+    #             - .DashboardFooterImg:
+    #               path: dashboard.png 
+    #         - .DashboardFooterTxt:  
+    #     - .DashboardFooterView:
+    #       style: 
+    #         left: "0.25"
+    #       onClick: 
+    #         - goto: "InboxDashboard"
+    #       children: 
+    #         - .DashboardBox:
+    #           children:
+    #             - .DashboardFooterImg:
+    #               path: inboxYellow.png
+    #         - .DashboardFooterTxt: 
+    #           text: "Inbox"
+    #         - type: label
+    #           dataKey: Global.emailNumber
+    #           style: 
+    #             left: "0.145"
+    #             top: "0.01"
+    #             width: "0.05"
+    #             height: "0.024"
+    #             zIndex: "2"
+    #             fontSize: "12"
+    #             backgroundColor: "#ff3a41"
+    #             border:
+    #               style: "5"
+    #             borderRadius: "50"
+    #             color: "0xffffff"
+    #             isHidden: .Global.inboxHidden
+    #             textAlign: 
+    #               x: center
+    #     - .DashboardFooterView:
+    #       style: 
+    #         left: "0.5"
+    #       onClick: 
+    #         - goto: AppointmentSchedule
+    #       children: 
+    #         - .DashboardBox:
+    #           children:
+    #             - .DashboardFooterImg:
+    #               path: schedule0.png
+    #             - type: label
+    #               dataKey: Global.requestListNum
+    #               style: 
+    #                 left: "0.145"
+    #                 top: "0.01"
+    #                 width: "0.05"
+    #                 height: "0.024"
+    #                 zIndex: "2"
+    #                 fontSize: "12"
+    #                 backgroundColor: "#ff3a41"
+    #                 border:
+    #                   style: "5"
+    #                 borderRadius: "50"
+    #                 color: "0xffffff"
+    #                 isHidden: ..requestListHidden
+    #                 textAlign: 
+    #                   x: center     
+    #         - .DashboardFooterTxt: 
+    #           text: "Schedule"
+    #     - .DashboardFooterView:
+    #       style: 
+    #         left: "0.75"
+    #       onClick: 
+    #         - goto: MenuBars
+    #       children: 
+    #         - .DashboardBox:
+    #           children:
+    #             - .DashboardFooterImg:
+    #               path: me.png
+    #         - .DashboardFooterTxt: 
+    #           text: "Me"
+    # - type: view
+    #   style:
+    #     top: "0.9"
+    #     width: "1"
+    #     height: "0.1"
+    #     backgroundColor: "0x2988e6"
+    #   children:
+    #     - type: image
+    #       path: trash.png
+    #       style:
+    #         # height: "0.04"
+    #         width: "0.1"
+    #         top: "0.02"
+    #         left: "0.12"
+    #     - type: image
+    #       onClick:
+    #         - actionType: popUp
+    #           popUpView: addfileview
+    #       path: addfile.png
+    #       style:
+    #         # height: "0.04"
+    #         width: "0.1"
+    #         top: "0.02"
+    #         left: "0.34"
+    #     - type: image
+    #       onClick:
+    #         - actionType: popUp
+    #           popUpView: emailview
+    #       path: email.png
+    #       style:
+    #         # height: "0.04"
+    #         width: "0.1"
+    #         top: "0.03"
+    #         left: "0.56"
+    #     - type: image
+    #       onClick: 
+    #         - goto: NewMessage
+    #       path: draft.png
+    #       style:
+    #         height: "0.04"
+    #         top: "0.03"
+    #         left: "0.78"
+
+    # - type: popUp # view
+    #   viewTag: addfileview
+    #   style:
+    #     left: "0.25"
+    #     top: "0.83"
+    #     width: "0.3"
+    #     height: "0.08" 
+    #     borderRadius: "20"
+    #     backgroundColor: "0xF2F2F2"
+    #   children:
+    #     - type: button
+    #       text: Bussiness Team
+    #       style:
+    #         width: "0.3"
+    #         height: "0.04"
+    #         color: "0x909090"
+    #         borderRadius: "2"
+    #         border:
+    #           style: 3
+    #           color: "0x727272"
+    #     - type: button
+    #       text: Enginners
+    #       style:
+    #         top: "0.04"
+    #         width: "0.3"
+    #         color: "0x909090"
+    #         height: "0.04"
+    #         borderRadius: "2"
+    #         border:
+    #           style: 3
+    #           color: "0x727272"
+    # - type: popUp # view
+    #   viewTag: emailview
+    #   style:
+    #     left: "0.45"
+    #     top: "0.83"
+    #     width: "0.3"
+    #     height: "0.08" 
+    #     borderRadius: "20"
+    #     backgroundColor: "0xF2F2F2"
+    #   children:
+    #     - type: button
+    #       text: Mark as Unread
+    #       style:
+    #         width: "0.3"
+    #         height: "0.04"
+    #         color: "0x909090"
+    #         borderRadius: "2"
+    #         border:
+    #           style: 3
+    #           color: "0x727272"
+    #     - type: button
+    #       text: Mark as read
+    #       style:
+    #         top: "0.04"
+    #         width: "0.3"
+    #         color: "0x909090"
+    #         height: "0.04"
+    #         borderRadius: "2"
+    #         border:
+    #           style: 3
+    #           color: "0x727272"
+

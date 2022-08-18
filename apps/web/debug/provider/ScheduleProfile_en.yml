@@ -1,0 +1,162 @@
+ScheduleProfile: #xdpage:8
+  title: "Schedule"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    # 清空状态
+    - actionType: updateObject
+      dataKey: Global.formData.currentTabStatus
+      dataObject: .EmptyObj
+    - ..apiRequest.visitReason.docAPI.get
+    - actionType: evalObject
+      object:
+        ..apiRequest.visitReason.document@: =..apiRequest.visitReason.response.doc.0
+    - .Global.ReasonformData.visitReason@: =..apiRequest.visitReason.document
+    - .Global.reasonObj.duration@: "5 min"
+    - .Global.reasonObj.reason@: ""
+    - .DocumentForReason.selectDocument@: []
+    - .Global.formData.reasonForVisit.OfficeVisits@: []
+    - .Global.formData.reasonForVisit.Telemedicine@: []
+    - .Global.ReasonForVisitReason@: true
+  apiRequest: #Input data request here
+    visitReason:
+      response: ""
+      document:
+        type: .DocType.VisitReason
+        name:
+          data:
+            reasonForVisit: []
+        eid: .Global.rootNotebookID
+      docAPI:
+        .DocAPI: ""
+        get:
+          .DocAPI.get: ""
+          api: rd
+          dataKey: apiRequest.visitReason.response
+          type: .DocType.VisitReason
+          id: .Global.rootNotebookID
+          xfname: "eid"
+          obfname: "ctime"
+          _nonce: .Global._nonce
+
+  formData:
+
+  formDataTemp:
+    dataTemp:
+      - title: Reason for Visit
+        pageName: ReasonForVisit
+      - title: Availability Profile
+        pageName: AvailableProfileTelemedicine
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: list
+      contentType: listObject
+      listObject: ..formDataTemp.dataTemp
+      iteratorVar: itemObject
+      style:
+        margin: "0"
+        marginTop: "0.1"
+        width: "1"
+        height: "0.88"
+        overflow: scroll
+        fontFamily: "Arial"
+      children:
+        - type: listItem
+          itemObject:
+          style:
+            marginTop: "0.0246"
+            width: "0.92"
+            marginLeft: "0.04"
+            height: "auto"
+          children:
+            - type: label
+              dataKey: itemObject.title
+              style:
+                height: "0.136"
+                width: "0.92"
+                fontSize: .Nfont.h18
+                boxShadow: "2px 2px 3px #DEDEDF"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xDEDEDF"
+                borderRadius: "5"
+                color: "0x4b4b4b"
+                fontWeight: "600"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - if:
+                          - true
+                          - goto: $var.pageName
+                          - goto: $var.pageName
+
+    # # - .HeaderRightImg:
+    # #   onClick:
+    # #     - goto: MenuBars
+    # #   path: sideNav.svg
+    # - type: view
+    #   style:
+    #     top: "0.1"
+    #     width: "0.86"
+    #     left: "0.05"
+    #     height: "0.9"
+    #   children:
+    #     - type: list
+    #       contentType: listObject
+    #       listObject: ..scheduleMenuBar
+    #       iteratorVar: itemObject
+    #       style:
+    #         width: "0.84"
+    #         height: "0.55"
+    #         left: "0.02"
+    #         top: "0.02"
+    #         # margin: "0"
+    #       children:
+    #         - type: listItem
+    #           itemObject: ""
+    #           style:
+    #             width: "0.84"
+    #             marginTop: "0"
+    #             height: "0.15"
+    #             # left: "0"
+    #             # border:
+    #             #   style: "3"
+    #             # borderWidth: '1'
+    #             # borderColor: "0xdededf"
+    #           onClick:
+    #             emit:
+    #               dataKey:
+    #                 var: itemObject
+    #               actions:
+    #                 - if:
+    #                   - true
+    #                   - goto: $var.pageName
+    #                   - goto: $var.pageName
+    #                   # - goto: $var.pageName
+    #           children:
+    #             - type: label
+    #               dataKey: itemObject.title
+    #               style:
+    #                 fontSize: "20"
+    #                 width: "0.84"
+    #                 top: "0.01"
+    #                 left: "0"
+    #                 height: "0.13"
+    #                 color: "0x000000"
+    #                 border:
+    #                   color: "0xdededf"
+    #                   style: "3"
+    #                 backgroundColor: "0xffffff"
+    #                 textAlign:
+    #                   x: center
+    #                   y: center

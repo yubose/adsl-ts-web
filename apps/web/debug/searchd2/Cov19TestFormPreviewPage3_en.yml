@@ -1,0 +1,440 @@
+Cov19TestFormPreviewPage3:
+  viewPort: top
+  title: Cov19TestFormPreviewPage3
+  init: 
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: "1"
+        margin: "auto"
+        overflow: "hidden"
+      children: 
+        - type: view
+          style: 
+            position: fixed
+            height: 6vw
+            width: "100%"
+            zIndex: 100
+            right: 0
+          children: 
+            - type: view
+              style:
+                width: 89.8vw
+                height: "6vw"
+                marginTop: '0'
+                color: "#143459"
+                margin: 'auto'
+                backgroundColor: "0xffffff"
+                boxShadow: "0px 20px 20px -20px #5e5e5e"
+                display: flex
+                flexDirection: row
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    height:  "6vw"
+                    width: 20vw
+                    display: flex
+                    flexDirection: row
+                  children:
+                    - type: image
+                      path: aitmedLogo3.png
+                      style:
+                        width: '3.5vw'
+                        marginTop: '1vw'
+                        marginLeft: 5vw
+                    - type: label
+                      text: AiTmed   
+                      style:
+                        width: "15vw"
+                        height: "2.5vw"
+                        marginLeft: "1vw"
+                        marginTop: "2vw"
+                        fontFamily: "Arial"
+                        fontSize: "1.5vw"
+                        fontWeight: 650
+                        textAlign: 
+                          y: center
+        - .ViewRow:
+          style: 
+            width: 90vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+            right: 0
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1         
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "Covid-19 Testing Consent"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "3/3"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: scrollView
+              style:
+                width: 89.8vw
+                height: 39vw
+                marginTop: 0.5vw
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - type: view
+                      style:
+                        width: 40vw
+                        backgroundColor: "#ffffff"
+                        marginTop: 0.1vw
+                        justifyContent: flex-start
+                      children:
+                        - .NewFirstTitle:
+                          text: Agreement For Self-Isolation
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h1
+                            textAlign: 
+                                x: center
+                                y: center
+                        - type: label
+                          text: The local health jurisdiction has determined that if you are under suspicion for having COVID-19 due to symptoms and testing request, that it is necessary to be placed in isolation in order to prevent the transmission of this infection. It is important for you to comply with this Isolation Agreement in order to protect the public’s health. Thank you for agreeing to cooperate.
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: "Please carefully read the following informed consent:"
+                          style:
+                            marginTop: "0.025"
+                            fontSize: .Nfont.h0_1
+                            fontWeight: "550"
+                            color: "#333333"
+                        - type: label
+                          text: a. I understand that I may be infected with the virus causing COVID-19 and that I meet criteria for isolation.
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: b. I agree that while I wait for my COVID-19 test results, I will remain in self-isolation. 
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: c. I agree that if my COVID-19 test results are positive, I will remain isolated for 7 days from this day of testing OR until at least 72 hours after my symptoms have resolved, whichever is longer. 
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: d. I agree that if my COVID-19 test results are negative, I will remain isolated until at least 72 hours after my symptoms have resolved.
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: e. I understand that if I am not isolated while ill, I could pose a substantial threat to the health of other persons. 
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: f. I agree that I will not come into contact with any other person who is not isolated or ill due to potential COVID- 19 infection.  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: g. I understand that if I test positive for IgM antibody, I may need to take a COVID-19 swab test for active virus confirmation.  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: h. I understand that testing positive for antibody does not mean immunity to COVID-19.  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          textBoard:
+                            - text: "I, the undersigned, have been informed about the test purpose, procedures, possible benefits and risks, and I have received a copy of this Informed consent. I have been given the opportunity to ask questions before I sign, and I have been told that I can ask other questions at any time. I voluntarily agree to antibody screening and/or testing for COVID-19 and to self-isolation.  If "
+                            - text: "A&C Urgent Care"
+                              dataKey: Global.FacilityInfos.name.data.basicInfo.medicalFacilityName
+                            - text: " Urgent Care does not accept my insurance I consent to being financially responsible for the testing. If my insurance denies covering the cost of the testing I consent to being financially responsible for the testing."   
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                    - type: view
+                      style:
+                        marginTop: 1vw
+                        width: 29vw
+                        height: "3.5vw"
+                      children:
+                        - type: label
+                          text: "Name of Recipient/Healthcare Proxy"
+                          style:
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "#333333"
+                            fontWeight: 550
+                        - type: textField
+                          dataKey: recipientName
+                          placeholder: " Enter here"
+                          isEditable: false
+                          style: 
+                            height: "2.5vw"
+                            width: 20vw
+                            fontSize: .Nfont.h0_1
+                            border: 
+                              style: "3"
+                            borderRadius: "5"
+                            borderColor: "#DEDEDE"
+                    - type: view
+                      style:
+                       # left: "0.085"
+                        marginTop: 1vw
+                        width: "40vw"
+                        border:
+                          style: "1"
+                          width: "1"
+                          color: "#DEDEDE"
+                        # backgroundColor: "red"
+                      children:
+                        - .VQSecondTitle:
+                          text: Signature
+                          style: 
+                            marginTop: 2vw
+                            fontSize: .Nfont.h0_1
+                            color: "#333333"
+                            fontWeight: 550
+                        - .ViewRow:
+                          style:
+                            justifyContent: space-between
+                            alignItems: center
+                            width: "30vw"
+                          children:
+                            - .VQSecondTitle:
+                              text: "Click on the signature box below to finger sign"
+                              style: 
+                                marginTop: 0.5vw
+                            - type: label
+                              text: "Clear"
+                              style:
+                                marginTop: 0.5vw
+                                width: "4vw"
+                                fontSize: .Nfont.h0_1
+                                height: '1vw'
+                                color: "#E24445"
+                                border: 'none'
+                                borderRadius: "2"
+                                backgroundColor: '0xffffff'
+                                textAlign:
+                                  y: center
+                                  x: center
+                                      
+                              
+                        - type: view
+                          style: 
+                            marginTop: "0.01"
+                            width: "28.9vw"
+                            height: "0.2"
+                            border:
+                              style: "4"
+                              width: "1.5"
+                              color: "0xDEDEDE"
+                          children:
+                            - .ViewRow:
+                              style:
+                                margin: "auto"
+                                marginTop: "0.16"
+                                width: "24vw"
+                              children:
+                                - type: label
+                                  text: "x"
+                                  style:
+                                    height: "1vw"
+                                - type: label
+                                  style:
+                                    height: "1vw"
+                                    width: "24vw"
+                                    borderBottom: "1px solid #666666"
+                                    borderWidth: "1px"
+                            
+                            
+                            
+                        - .ViewColumn:
+                          style:
+                            marginTop: 1vw
+                            width: 29vw
+                          children:
+                            - .ViewRow:
+                              style:
+                                justifyContent: flex-start
+                              children:
+                                - .VQSecondTitle: 
+                                  text: "Patient Name:"
+                                - .VQSecondTitle:
+                                  style:
+                                    color: "#333333"
+                                    marginLeft: 1vw
+                            - .ViewRow:
+                              style: 
+                                marginTop: 1vw
+                                justifyContent: flex-start
+                                marginBottom: 1vw
+                              children:
+                                - .VQSecondTitle: 
+                                  text: "Date:"
+                                - .VQSecondTitle:
+                                  
+                                  style:
+                                    color: "#333333"
+                                    marginLeft: 1vw
+            - type: view
+              style:
+                height: 2.3vw
+                left: 15.5vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Leftbutton.svg
+                  style:
+                    height: 3vw
+                  onClick: 
+                    
+                    - goto: Cov19TestFormPreviewPage2
+            - type: view
+              style:
+                width: "90vw"
+                height: 4.5vw
+                borderTop: "2px solid #E3E3E3"
+                borderWidth: 2px
+                margin: auto
+              children:
+                - type: button
+                  text: Done
+                  style:
+                    width: 12.3vw
+                    height: 2.3vw
+                    margin: auto
+                    marginTop: 1.5vw
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h1
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    
+                    - goto: ProviderAvailability

@@ -608,7 +608,7 @@ function waitUntil(event, asyncFn) {
 
 // @ts-ignore
 try {
-    self['workbox:core:6.5.3'] && _();
+    self['workbox:core:6.5.2'] && _();
 }
 catch (e) { }
 
@@ -1567,23 +1567,15 @@ class PrecacheStrategy extends workbox_strategies_Strategy_js__WEBPACK_IMPORTED_
             const integrityInManifest = params.integrity;
             const integrityInRequest = request.integrity;
             const noIntegrityConflict = !integrityInRequest || integrityInRequest === integrityInManifest;
-            // Do not add integrity if the original request is no-cors
-            // See https://github.com/GoogleChrome/workbox/issues/3096
             response = await handler.fetch(new Request(request, {
-                integrity: request.mode !== 'no-cors'
-                    ? integrityInRequest || integrityInManifest
-                    : undefined,
+                integrity: integrityInRequest || integrityInManifest,
             }));
             // It's only "safe" to repair the cache if we're using SRI to guarantee
             // that the response matches the precache manifest's expectations,
             // and there's either a) no integrity property in the incoming request
             // or b) there is an integrity, and it matches the precache manifest.
             // See https://github.com/GoogleChrome/workbox/issues/2858
-            // Also if the original request users no-cors we don't use integrity.
-            // See https://github.com/GoogleChrome/workbox/issues/3096
-            if (integrityInManifest &&
-                noIntegrityConflict &&
-                request.mode !== 'no-cors') {
+            if (integrityInManifest && noIntegrityConflict) {
                 this._useDefaultCacheabilityPluginIfNeeded();
                 const wasCached = await handler.cachePut(request, response.clone());
                 if (true) {
@@ -1782,7 +1774,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // @ts-ignore
 try {
-    self['workbox:precaching:6.5.3'] && _();
+    self['workbox:precaching:6.5.2'] && _();
 }
 catch (e) { }
 
@@ -2790,11 +2782,6 @@ class NavigationRoute extends _Route_js__WEBPACK_IMPORTED_MODULE_2__.Route {
      * and [`search`]{@link https://developer.mozilla.org/en-US/docs/Web/API/HTMLHyperlinkElementUtils/search}
      * portions of the requested URL.
      *
-     * *Note*: These RegExps may be evaluated against every destination URL during
-     * a navigation. Avoid using
-     * [complex RegExps](https://github.com/GoogleChrome/workbox/issues/3077),
-     * or else your users may see delays when navigating your site.
-     *
      * @param {workbox-routing~handlerCallback} handler A callback
      * function that returns a Promise resulting in a Response.
      * @param {Object} options
@@ -3462,7 +3449,7 @@ class Router {
 
 // @ts-ignore
 try {
-    self['workbox:routing:6.5.3'] && _();
+    self['workbox:routing:6.5.2'] && _();
 }
 catch (e) { }
 
@@ -4428,7 +4415,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /**
  * An implementation of a
- * [stale-while-revalidate](https://developer.chrome.com/docs/workbox/caching-strategies-overview/#stale-while-revalidate)
+ * [stale-while-revalidate](https://developer.chrome.com/docs/workbox/reference/workbox-strategies/#type-StaleWhileRevalidate)
  * request strategy.
  *
  * Resources are requested from both the cache and the network in parallel.
@@ -5333,7 +5320,7 @@ class StrategyHandler {
 
 // @ts-ignore
 try {
-    self['workbox:strategies:6.5.3'] && _();
+    self['workbox:strategies:6.5.2'] && _();
 }
 catch (e) { }
 
@@ -5626,7 +5613,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-(0,workbox_precaching__WEBPACK_IMPORTED_MODULE_0__.precacheAndRoute)([{'revision':'8550fd991599f216807d23f0f0a1b2e9','url':'../../../apps/web/jsstoreWorker.min.js'},{'revision':'442619bc185244b7677841358cb771a6','url':'../../../apps/web/piBackgroundWorker.js'},{'revision':'e96391fc594b5869546a3cdac4e76b10','url':'../../../apps/web/sql-wasm.wasm'},{'revision':'7db2a4e096bda6fed2fffa217f74977a','url':'index.html'},{'revision':'cc36724f983b9935aa91e76e1f718b56','url':'main.js'},{'revision':'256151cd41ee804865c100139d8f76f9','url':'src_app_noodl_ts.js'},{'revision':'6167a9cedfa926e984c58a372762437f','url':'src_app_trackers_ts.js'},{'revision':'b97b2e75eb13e5dd1228aedc85dec85d','url':'src_handlers_history_ts.js'},{'revision':'ee953cbf27920500a585c5cfe2fc19e6','url':'vendors-node_modules_canvg_lib_index_es_js.js'},{'revision':'63d86412ee1b58f5ea95bed50653d4d3','url':'vendors-node_modules_dompurify_dist_purify_js.js'},{'revision':'17c2268ad5b1accf5270a146fdf4eaef','url':'vendors-node_modules_elasticsearch-browser_elasticsearch_js.js'},{'revision':'f5c62ec0214a98474528632531f97503','url':'vendors-node_modules_html2canvas_dist_html2canvas_js.js'},{'revision':'9cf6816eac9158d52f7819df64929482','url':'vendors-node_modules_noodl-yaml_dist_index_js.js'}]);
+(0,workbox_precaching__WEBPACK_IMPORTED_MODULE_0__.precacheAndRoute)([{'revision':'8550fd991599f216807d23f0f0a1b2e9','url':'../../../apps/web/jsstoreWorker.min.js'},{'revision':'442619bc185244b7677841358cb771a6','url':'../../../apps/web/piBackgroundWorker.js'},{'revision':'e96391fc594b5869546a3cdac4e76b10','url':'../../../apps/web/sql-wasm.wasm'},{'revision':'fccc5e9bec4929b10e7ebb7b9d771d49','url':'favicon.ico'},{'revision':'7db2a4e096bda6fed2fffa217f74977a','url':'index.html'},{'revision':'c8c3b5e993c5fb1c8a82774f2ca9aa73','url':'main.js'},{'revision':'9b2477d51bdc5530ac2267bae1c7c4a9','url':'src_app_noodl_ts.js'},{'revision':'6167a9cedfa926e984c58a372762437f','url':'src_app_trackers_ts.js'},{'revision':'b97b2e75eb13e5dd1228aedc85dec85d','url':'src_handlers_history_ts.js'},{'revision':'62f7c69be72645908137983ce5b729a2','url':'vendors-node_modules_canvg_lib_index_es_js.js'},{'revision':'63d86412ee1b58f5ea95bed50653d4d3','url':'vendors-node_modules_dompurify_dist_purify_js.js'},{'revision':'17c2268ad5b1accf5270a146fdf4eaef','url':'vendors-node_modules_elasticsearch-browser_elasticsearch_js.js'},{'revision':'f5c62ec0214a98474528632531f97503','url':'vendors-node_modules_html2canvas_dist_html2canvas_js.js'},{'revision':'9cf6816eac9158d52f7819df64929482','url':'vendors-node_modules_noodl-yaml_dist_index_js.js'}]);
 (0,workbox_routing__WEBPACK_IMPORTED_MODULE_1__.registerRoute)(
   new RegExp(`/\\.(css|html|yml|mp4|min\\.js)$/`),
   new workbox_strategies__WEBPACK_IMPORTED_MODULE_2__.StaleWhileRevalidate()

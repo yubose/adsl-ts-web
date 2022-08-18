@@ -1,0 +1,535 @@
+Cov19TestNewPatPreviewPage4:
+  viewPort: top
+  title: Cov19TestNewPatPreviewPage4
+  init: 
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: "auto"
+        margin: "auto"
+        overflow: "hidden"
+      children: 
+        - type: view
+          style: 
+            position: fixed
+            height: 6vw
+            width: "100%"
+            zIndex: 100
+            right: 0
+          children: 
+            - type: view
+              style:
+                width: 89.8vw
+                height: "6vw"
+                marginTop: '0'
+                color: "#143459"
+                margin: 'auto'
+                backgroundColor: "0xffffff"
+                boxShadow: "0px 20px 20px -20px #5e5e5e"
+                display: flex
+                flexDirection: row
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    height:  "6vw"
+                    width: 20vw
+                    display: flex
+                    flexDirection: row
+                  children:
+                    - type: image
+                      path: aitmedLogo3.png
+                      style:
+                        width: '3.5vw'
+                        marginTop: '1vw'
+                        marginLeft: 5vw
+                    - type: label
+                      text: AiTmed   
+                      style:
+                        width: "15vw"
+                        height: "2.5vw"
+                        marginLeft: "1vw"
+                        marginTop: "2vw"
+                        fontFamily: "Arial"
+                        fontSize: "1.5vw"
+                        fontWeight: 650
+                        textAlign: 
+                          y: center
+
+                - type: view
+                  style: 
+                    marginLeft: 30vw
+                    height: 6vw
+                    width: 39.8vw
+                    display: flex
+                    flexDirection: row
+                    justifyContent: center
+                  children:
+                    - type: view
+                      style: 
+                        height: 6vw
+                        width: 14vw
+                        marginLeft: 11vw  
+                        justifyContent: flex-start
+                      children:
+                        - type: popUp
+                          viewTag: redict 
+                          style:
+                            width: 16.9vw
+                            height: 9vw
+                            marginTop: "-1vw"
+                            zIndex: 1000
+                            marginLeft: 
+                            backgroundColor: "0xffffff"
+                            border:
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "#E1E1E4"
+                            display: flex
+                            flexDirection: column
+                            alignItems: center
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1        
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "COVID-19 Testing Consent-New Patient"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "4/6"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: scrollView
+              style:
+                width: 89.8vw
+                height: 39vw
+                marginTop: 0.5vw
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - type: view
+                      style:
+                        width: 40vw
+                        backgroundColor: "#ffffff"
+                        marginTop: 0.1vw
+                        justifyContent: flex-start
+                      children:
+                        - .NewFirstTitle:
+                          text: "Informed Consent For Coronavirus (COVID-19) Testing"
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h1
+                            textAlign: 
+                                x: center
+                                y: center
+                        - type: label
+                          text: "Please carefully read the following informed consent:"
+                          style:
+                            marginTop: "0.025"
+                            fontSize: .Nfont.h0_1
+                            fontWeight: "550"
+                            color: "#333333"
+                        - type: label
+                          textBoard:
+                            - text: "a. I authorize "
+                            - text: "A&C Urgent Care"
+                              dataKey: Global.FacilityInfos.name.data.basicInfo.medicalFacilityName
+                            - text: " to conduct collection of blood specimen to be screened for antibodies for COVID-19."
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          textBoard:
+                            - text: "b. I authorize "
+                            - text: "A&C Urgent Care"
+                              dataKey: Global.FacilityInfos.name.data.basicInfo.medicalFacilityName
+                            - text: " to utilizing a rapid test kit which is used for the qualitative detection of the nucleocapsid protein antigen from SARS-CoV-2 in nasopharyngeal swab specimens directly collected from individuals suspected of COVID-19 as ordered by an authorized medical provider or public health official. "
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          textBoard:
+                            - text: "c. I authorize  "
+                            - text: "A&C Urgent Care"
+                              dataKey: Global.FacilityInfos.name.data.basicInfo.medicalFacilityName
+                            - text: " to conduct collection through a nasopharyngeal swab, as ordered by an authorized medical provider or public health official. "
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: d. I authorize my test results to be disclosed to the county, state, or to any other governmental entity as may be required by law.
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: e. I acknowledge that a positive test result is an indication that I must continue to self-isolate in an effort to avoid infecting others (for nasal tests only). 
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label 
+                          textBoard:
+                            - text: "f. I understand that I am not creating a patient relationship with "
+                            - text: "A&C Urgent Care"
+                              dataKey: Global.FacilityInfos.name.data.basicInfo.medicalFacilityName
+                            - text: " by participating in testing/screening."
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: g. I understand this testing facility is not acting as my medical provider and I assume complete and full responsibility to take appropriate action with regards to my test results  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          textBoard:
+                            - text: "h. I understand that, as with any medical test, there is the potential for false positive or false negative test results can occur. "
+                            - text: "A&C Urgent Care"
+                              dataKey: Global.FacilityInfos.name.data.basicInfo.medicalFacilityName
+                            - text: " carries no responsibilities/liabilities for false test."
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: i.I understand that if this screening test is at the request of my employer, they will receive the results.  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - type: label
+                          text: I, the undersigned, have been informed about the test purpose, procedures, possible benefits and risks, and I have received a copy of this Informed consent. I have been given the opportunity to ask questions before I sign, and I have been told that I can ask other questions at any time. I voluntarily agree to antibody screening and/or testing for COVID-19.  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        
+                    - type: view
+                      style:
+                        marginTop: 1vw
+                        width: 29vw
+                        height: "3.5vw"
+                      children:
+                        - type: label
+                          text: "Name of Recipient/Healthcare Proxy"
+                          style:
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "#333333"
+                            fontWeight: 550
+                        - type: textField
+                          isEditable: "false" 
+                          placeholder: " Enter here"
+                          dataKey: recipientName
+                          style: 
+                            height: "2.5vw"
+                            width: 20vw
+                            fontSize: .Nfont.h0_1
+                            border: 
+                              style: "3"
+                            borderRadius: "5"
+                            borderColor: "#DEDEDE"
+                    - type: view
+                      style: 
+                        # left: "0.085"
+                        marginTop: 1vw
+                        width: "40vw"
+                        border:
+                          style: "1"
+                          width: "1"
+                          color: "#DEDEDE"
+                        # backgroundColor: "red"
+                      children:
+                        - .VQSecondTitle:
+                          text: Signature
+                          style: 
+                            marginTop: 2vw
+                            fontSize: .Nfont.h0_1
+                            color: "#333333"
+                            fontWeight: 550
+                        - .ViewRow:
+                          style:
+                            justifyContent: space-between
+                            alignItems: center
+                            width: "30vw"
+                          children:
+                            - .VQSecondTitle:
+                              text: "Click on the signature box below to finger sign"
+                              style: 
+                                marginTop: 0.5vw
+                            - type: button
+                              text: "Clear"
+                              
+                              style:
+                                marginTop: 0.5vw
+                                width: "4vw"
+                                fontSize: .Nfont.h0_1
+                                height: '1vw'
+                                color: "#E24445"
+                                border: 'none'
+                                borderRadius: "2"
+                                backgroundColor: '0xffffff'
+                                textAlign:
+                                  y: center
+                                  x: center    
+                        
+                        - type: view
+                          style: 
+                            marginTop: "0.01"
+                            width: "28.9vw"
+                            height: "0.2"
+                            border:
+                              style: "4"
+                              width: "1.5"
+                              color: "0xDEDEDE"
+                          children:
+                            - .ViewRow:
+                              style:
+                                margin: "auto"
+                                marginTop: "0.16"
+                                width: "24vw"
+                              children:
+                                - type: label
+                                  text: "x"
+                                  style:
+                                    height: "1vw"
+                                - type: label
+                                  style:
+                                    height: "1vw"
+                                    width: "24vw"
+                                    borderBottom: "1px solid #666666"
+                                    borderWidth: "1px"
+                            
+                        - .ViewColumn:
+                          style:
+                            marginTop: 1vw
+                            width: 29vw
+                          children:
+                            - .ViewRow:
+                              style:
+                                justifyContent: flex-start
+                              children:
+                                - .VQSecondTitle: 
+                                  text: "Patient Name:"
+                                  style:
+                                    fontSize: .Nfont.h0_1
+                                - .VQSecondTitle:
+                                  text: "Aomas Mueller"
+                                  style:
+                                    color: "#333333"
+                                    marginLeft: 1vw
+                            - .ViewRow:
+                              style: 
+                                marginTop: 1vw
+                                justifyContent: flex-start
+                              children:
+                                - .VQSecondTitle: 
+                                  text: "Date:"
+                                  style:
+                                    fontSize: .Nfont.h0_1
+                                - .VQSecondTitle:
+                                  text: MM/DD/YYYY
+                                  style:
+                                    color: "#333333"
+                                    marginLeft: 1vw
+                                    fontSize: .Nfont.h0_1
+                
+            - type: view
+              style:
+                height: 2.3vw
+                left: 15.5vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Leftbutton.svg
+                  style:
+                    height: 3vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false
+                        - .Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.whetherCoronavirusSignature@: true   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                        
+            - type: view
+              style:
+                height: 2.3vw
+                left: 60.3vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Rightbutton.svg
+                  style:
+                    height: 3vw
+                    left: 10vw
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: Cov19TestNewPatPreviewPage4.newSign.document.name.data  
+                          isEmpty: Cov19TestNewPatPreviewPage4.whetherSignature
+                        - actionType: evalObject
+                          object:
+                            - =..newSign.docAPI.store: "" 
+                            # 存放签名的id
+                            - if: 
+                              - =..whetherSignature
+                              - .Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.whetherCoronavirusSignature@: =..whetherSignature
+                              - actionType: evalObject
+                                object:
+                                  - .Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.recipientName@: =..recipientName
+                                  - .Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.id@: =..newSign.docRes.doc.id
+                                  # 保存签名判断状态
+                                  - .Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.whetherCoronavirusSignature@: =..whetherSignature
+                            - if: 
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..temporarySignature
+                                    string2: ""
+                              - continue 
+                              - actionType: evalObject
+                                object:
+                                  - .Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.id@: =..temporarySignature
+                                  # 保存签名判断状态
+                                  - .Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.whetherCoronavirusSignature@: false
+                              - continue     
+                            - if: 
+                              - =.Global.formData.cov19TestNewPatForm.name.data.signatureCoronavirus.whetherCoronavirusSignature
+                              - actionType: popUp
+                                popUpView: warningView
+                                wait: true
+                              - continue
+                        - goto: Cov19TestNewPatPreviewPage5
+        - .NewBaseWarningView:
+          message: "You haven’t signed the form"
+                       

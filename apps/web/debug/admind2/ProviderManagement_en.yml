@@ -1,0 +1,2621 @@
+ProviderManagement: #xd page number: 92
+  pageNumber: "590" 
+  viewPort: top
+  title: "ProviderManagement"
+  init:
+    - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.acceptInfo 
+      dataObject: {}      
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: ""  
+    - .SignInCheck
+    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+    - =.Global.jwt.edgeAPI.store: ""
+    - ..providerList.docAPI.get
+    - =..invite.edgeAPI.get: ""
+    - =.builtIn.array.keepLatestDoc: 
+        dataIn: 
+          docList: =..providerList.list.doc
+          path: bsig
+        dataOut: ProviderManagement.formData.providerList
+    - =.builtIn.array.splitTableList: 
+        dataIn: 
+          arrObj: =..formData.providerList
+          numX: "12"
+          numY: "1"
+        dataOut: ProviderManagement.formData.tableData
+    - ..formData.tableList@: =..formData.tableData.0
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.tablePageNum # page num
+          - " / "
+          - =..formData.tableData.1 # total page
+        dataOut: ProviderManagement.formData.tableCurrentPage # current page                           
+    - =.builtIn.number.addition: # get totalPage+1 to verify legitimacy of gotoPageNum
+        dataIn:
+          num: =..formData.tableData.1
+          step: "1"
+        dataOut: ProviderManagement.formData.totalPageMore # update page num        
+  data: ""
+  formData:
+    searchProd:    # 搜索到provider的信息
+      name: 
+        data: 
+          specialty: []
+          cv: ""
+    reasonForVisit: []          
+    tableData: []
+    tableList: []
+    tablePageNum: "1"
+    tableCurrentPage: "1"
+    gotoPageNum: ""
+    totalPageMore: "" # totalPage(tableData.1)+1
+    firstName: ""
+    middleName: ""
+    lastName: ""
+    countryCode: "+1"
+    number: ""
+    phoneNumber: ""
+    providerInfo:  # for displaying prodInfo in PopUp (view)
+      cv: ""
+      avatar: ""
+    indexList: ""
+    currentProviderList: []
+    providerList: []
+    specialty: ""
+    currentProviderId: ""
+    medicalLicense:
+    cvViewFlag: true # 控制 CV 的 View显示
+    searchCvViewFlag: true # 控制 Search 页面 CV 的 View显示
+  gender: 
+    - key: gender
+      value: "Male"
+    - key: gender
+      value: "Female"
+    - key: gender
+      value: "Other"
+  boardCertified:
+    - key: boardCertified
+      value: "Yes"
+    - key: boardCertified
+      value: "No"
+  page: ""
+  medicalLicense: ""
+  visitReason: 
+    docResp: 
+      doc: []
+    docIn: 
+      type: .DocType.VisitReason
+      id: 
+      xfname: eid
+      obfname: "mtime"
+      _nonce: =.Global._nonce
+      name: 
+        data:
+          reasonForVisit: [] 
+    document: 
+      type: .DocType.VisitReason
+      eid: 
+      name: 
+        data:
+          reasonForVisit: []
+    docAPI: 
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: visitReason.document
+      get: 
+        .DocAPI.get: ""
+        api: rd
+        dataIn: visitReason.docIn
+        dataOut: ProviderManagement.visitReason.docResp
+  reasonObj: 
+    reason: ""
+    duration: "5 min"
+    document: []
+  doucment:
+    - title: New Patient Forms
+      pageName: NewPatFormPreviewPage1
+    - title: COVID-19 Testing Consent - New Patient
+      pageName: Cov19TestNewPatPreviewPage1
+    - title: COVID-19 Testing Consent Form
+      pageName: Cov19TestFormPreviewPage1
+    - title: Pifzer-BioNTech Vaccine - First Dose
+      pageName: PifzerVaccineFirDosePreviewPage1
+    - title: Pifzer-BioNTech Vaccine - Second Dose
+      pageName: PifzerVaccineSecDosePreviewPage1
+    - title: Moderna Vaccine Form - First Dose
+      pageName: ModernaVaccineFirDosePreviewPage1
+    - title: Moderna Vaccine Form - Second Dose
+      pageName: ModernaVaccineSecDosePreviewPage1  
+  invite:
+    response: ""
+    edge:
+      .Edge: ""
+      type: .EdgeType.InviteInfo
+      bvid: .Global.currentFacility.id
+      _nonce: =.Global._nonce
+      subtype: .EInboxSubtype.ProviderFacility
+      # refid: null
+      name:
+        businessType: .Global.currentFacility.name.basicInfo.businessType
+        phoneNumber: ""
+        facilityAvatarID: .Global.facilityAvatarID
+        inviterPhoneNumber: .Global.currentFacility.name.basicInfo.phoneNumber
+        inviterName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+        data: 
+          phone: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: invite.edge
+        dataOut: ProviderManagement.invite.response
+      get: 
+        api: re
+        id: .Global.currentFacility.id
+        xfname: bvid
+        maxcount: "100"
+        type: 1053
+        obfname: "ctime"
+        asc: true
+        sCondition: subtype in (196608,196624) 
+        _nonce: =.Global._nonce
+        dataKey: data 
+  providerData: # vertex
+    vertexResp: ""
+    vertexIn:
+      id: ""
+      type: 1
+      xfname: none
+      sCondition: ""
+      _nonce: =.Global._nonce
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: ProviderManagement.providerData.vertexIn
+        dataOut: ProviderManagement.providerData.vertexResp
+  isConnected: # use phoneNumber query out v.id and use vid to query if there is a 10002 edge 
+    edgeResp: ""
+    edgeIn:
+      id: ""
+      sfname: "{\"result\":\"E.*\", \"join\": \"INNER JOIN Vertex V on V.id = E.evid OR V.id = E.bvid\"}"
+      xfname: "E.bvid|E.evid"
+      sCondition: ""
+      type: 10002
+      subtype: .EInboxSubtype.ProviderFacility
+      ObjType: 28
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get: 
+        api: re
+        dataIn: ProviderManagement.isConnected.edgeIn
+        dataOut: ProviderManagement.isConnected.edgeResp        
+  providerList:
+    list: 
+      doc: []
+    providerGet:
+      ObjType: 12
+      type: .DocType.DoctorProfile
+      id: .Global.currentFacility.id
+      subtype: .EInboxSubtype.ProviderFacility
+      xfname: E.bvid|E.evid
+      obfname: "ctime"
+      sCondition: "E.type=10002 AND E.tage in (1,2) AND E.subtype&0xf0000=0x30000"
+      maxcount: "10000"
+      _nonce: =.Global._nonce
+    docAPI:
+      get: 
+        api: rd
+        dataIn: ProviderManagement.providerList.providerGet
+        dataOut: ProviderManagement.providerList.list
+        
+  providerDisplay:  # 邀请provider的时候，点击搜索会展示provider的信息
+    docResp: ""
+    docIn: 
+      type: .DocType.DoctorPublicProfile
+      id: ""
+      xfname: ovid
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI: 
+      get: 
+        .DocAPI.get: ""
+        api: rd
+        dataIn: providerDisplay.docIn
+        dataOut: ProviderManagement.providerDisplay.docResp
+  apiRequest:
+    # 获取Facility 和provider以及patient之间的E10002，用于发邮件
+    connection: 
+      edgeResp: ""
+      edgeIn: 
+        id: 
+          - .Global.currentFacility.id
+        xfname: Bvid,Evid
+        type: 10002
+        tage: 1
+        obfname: mtime
+        _nonce: =.Global._nonce
+        maxcount: "1"
+      edgeAPI: 
+        get: 
+          api: re
+          dataIn: apiRequest.connection.edgeIn
+          dataOut: ProviderManagement.apiRequest.connection.edgeResp
+    facilityProviderEdge:
+      edgeResp: ""
+      updateDoc: ""
+      updateDocResp: ""
+      edge:
+        .Edge: ""
+        id:
+          - ""
+          - .Global.currentFacility.id
+        type: 10002
+        xfname: "Bvid,Evid"
+        
+        sCondition: "tage in (1,2) AND subtype in (196624)"
+      edgeApi:
+        get: 
+          api: re
+          dataIn: apiRequest.facilityProviderEdge.edge
+          dataOut: ProviderManagement.apiRequest.facilityProviderEdge.edgeResp
+        update:
+          api: ce
+          dataIn: apiRequest.facilityProviderEdge.updateDoc
+          dataOut: ProviderManagement.apiRequest.facilityProviderEdge.updateDocResp
+  style: 
+    confirmBtnView:    # 弹框底部的VIEW
+      type: view
+      style:
+        height: "0.1"
+        width: "0.4"
+        top: "0.73"
+        left: "0"
+        boxSizing: border-box 
+        # borderTop: "1px solid #333333" 
+        boxShadow: "0px -2px 3px -2px #cFcFcF"
+        display: flex
+        alignItems: center
+        backgroundColor: "0xffffff"
+    confirmButton:     # 弹框底部的按钮
+      type: button
+      text: Confirm
+      style:
+        color: "0xffffff"
+        left: "0.28"
+        width: "0.07"
+        height: "0.037"
+        boxSizing: border-box
+        fontSize: .Nfont.nf4
+        fontFamily: "Roboto"
+        border: 
+          style: "3"
+        borderWidth: "1"
+        borderColor: "0x005795"
+        borderRadius: "3"
+        backgroundColor: "0x005795"
+        textAlign:
+          x: center
+          y: center    
+  components:
+    - .BaseCheckView: ""
+      message: "Uploading in progress ..."
+      viewTag: uploading
+    - .LoadingView: ""
+      message: "In searching..."
+      viewTag: searchingView
+    - .BaseCheckView: ""
+      message: "You don't have the authority to add a new provider"
+      viewTag: providerAuthCreate
+      style: 
+        zIndex: "100000"
+
+    - .BaseCheckView: ""
+      message: "You don't have the authority to edit"
+      viewTag: providerAuthEdit
+      style: 
+        zIndex: "100000"    
+
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children: 
+        - .BaseWarningView: ""
+          msg2: "The phone number is already invited"
+          viewTag: phoneInvited
+          style: 
+            zIndex: "20"  #   need dismiss addpopUp and clear data    
+        - .BaseWarningView: ""
+          msg2: "The phone number doesn't exist"
+          viewTag: phoneNotExist
+          style: 
+            zIndex: "20"  #   need dismiss addpopUp and clear data
+        - .BaseWarningView: ""
+          msg2: "The phone number doesn't login in provider"
+          viewTag: phoneNotProvider
+          style: 
+            zIndex: "20"  #   need dismiss addpopUp and clear data            
+        - .BaseWarningView: ""
+          msg2: "The phone number is already added"
+          viewTag: phoneRepeat
+          style: 
+            zIndex: "20"  #   need dismiss addpopUp and clear data       
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+          style:
+        - .BodyView:
+          style:
+            # position: fixed
+          children:
+            - .Label2:
+              type: label
+              text: "Provider Management"
+              style:
+                left: "0.03"
+                fontSize: "2.9vh"
+                width: "0.3"
+                top: "0.02"
+            - type: view
+              onClick:
+                - actionType: updateObject
+                  dataKey: ProviderManagement.formData.searchProd
+                  dataObject: {}
+                - actionType: evalObject
+                  object:
+                    - ..formData.number@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: AddProvider
+                # - actionType: evalObject
+                #   object:
+                #     - if: 
+                #       - =.builtIn.string.equal:
+                #           dataIn: 
+                #             string1: =.Global.auth.provider.create
+                #             string2: true 
+                #       - actionType: popUp
+                #         popUpView: AddProvider
+                #       - actionType: popUp
+                #         popUpView: providerAuthCreate
+                - actionType: popUp
+                  popUpView: AddProvider 
+                
+              style:
+                width: "0.11"
+                left: "0.69"
+                height: "0.05"
+                top:  "0.015"
+                backgroundColor: "#005795"
+                borderRadius: "5"
+                color: "#FFFFFF"
+              children:
+                - .Label1:
+                  text: Add New Provider
+                  style: 
+                    fontSize: "15"
+                    # top: "0.01208"
+                    left: "0.023"
+                    height: "0.05"
+                    color: "#e8eef3"
+                    textAlign: 
+                      y: center
+                - type: image
+                  path: addWhite.svg
+                  style:
+                    width: "0.01"
+                    top: "0.015"
+                    left: "0.009"
+        - .ContentView:
+          style: 
+            height: "0.82"
+            left: "0.19"
+            top: "0.145"
+          children:
+            # Table
+            - type: view
+              viewTag: tableView
+              style:
+                left: "0.035"
+                top: "0.04"
+                width: "0.72"
+                height: "auto"
+                borderRadius: "8"
+                boxSizing: content-box
+                border:
+                  style: "3"
+                borderColor: "0x7070704f"
+              children:
+                # Title
+                - type: label
+                  viewTag: tableTitle
+                  text: "Provider List"
+                  style:
+                    textIndent: "2em"
+                    width: "0.72"
+                    margin: "0"
+                    left: "0"
+                    height: "0.055"
+                    backgroundColor: "0x014c82"
+                    fontSize: .Nfont.nf3
+                    fontWeight: "500"
+                    fontFamily: "Poppins"
+                    color: "0xffffff"
+                    borderTopLeftRadius: "8px"
+                    borderTopRightRadius: "8px"
+                    textAlign:
+                      y: center
+                # Header
+                - type: view
+                  viewTag: tableHeader
+                  style:
+                    marginTop: "0.02"
+                    width: "0.72"
+                    margin: "0"
+                    left: "0"
+                    height: "0.05"
+                    backgroundColor: "0xf9fafb"
+                  children:
+                    - type: label
+                      text: "Name"
+                      style: 
+                        left: "0"
+                        top: "0"
+                        width: "0.1"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Phone Number"
+                      style: 
+                        left: "0.1"
+                        top: "0"
+                        width: "0.12"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Gender"
+                      style: 
+                        left: "0.22"
+                        top: "0"
+                        width: "0.08"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Specialty"
+                      style: 
+                        left: "0.3"
+                        top: "0"
+                        width: "0.26" # "0.18"   
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: Edit Reason
+                      style: 
+                        left: "0.56"
+                        top: "0"
+                        width: "0.08"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center                             
+                    - type: label
+                      text: Edit Availability
+                      style: 
+                        left: "0.64"
+                        top: "0"
+                        width: "0.08"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        textAlign: 
+                          x: center
+                          y: center                                                                                                                           
+                # Body
+                - type: list
+                  viewTag: tableBody
+                  contentType: listObject
+                  listObject: =..formData.tableList
+                  iteratorVar: itemObject
+                  style:
+                    width: "0.72"
+                    margin: "0"
+                    left: "0"
+                    height: auto
+                    borderTop: "solid 1px  #7070704f"
+                    backgroundColor: "0xffffff"
+                    fontSize: .Nfont.nf2
+                  children:
+                    - type: listItem
+                      itemObject: 
+                      style:
+                        borderBottom: "solid 1px  #7070704f"
+                        minHeight: "4.5vh"
+                        height: "auto"
+                        textAlign:
+                          x: center
+                          y: center
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.data.fullName
+                          onClick: 
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..formData.providerInfo@: $var.name.data
+                                  - ..apiRequest.connection.edgeIn.id.1@: $var.bsig
+                                  - =..apiRequest.connection.edgeAPI.get: ""                                         
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.providerInfo.cv
+                                        string2: ""
+                                  - continue
+                                  - ..formData.cvViewFlag@: false
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: viewProviderInfo
+                            - actionType: popUp
+                              popUpView: viewProviderInfo
+                          style:
+                            left: "0"
+                            top: "0"
+                            width: "0.1"    
+                            height: "0.045"
+                            borderWidth: "1"
+                            borderRight: "solid 1px  #7070704f"
+                            color: "0x004779"
+                            textDecoration: underline
+                            textAlign: 
+                              x: center
+                              y: center                              
+                        - type: label
+                          dataKey: itemObject.name.data.phone
+                          style:
+                            left: "0.1"
+                            top: "0"
+                            width: "0.12"    
+                            height: "0.045"
+                            borderWidth: "1"
+                            borderRight: "solid 1px  #7070704f"
+                            textAlign: 
+                              x: center
+                              y: center                              
+                        - type: label
+                          dataKey: itemObject.name.data.gender
+                          style:
+                            left: "0.22"
+                            top: "0"
+                            width: "0.08"    
+                            height: "0.045"
+                            borderWidth: "1"
+                            borderRight: "solid 1px  #7070704f"
+                            textAlign: 
+                              x: center
+                              y: center   
+                        - type: view
+                          style:
+                            left: "0.3"
+                            top: "0"
+                            width: "0.26" 
+                            height: "0.045"
+                            borderWidth: "1"
+                            borderRight: "solid 1px  #7070704f"                              
+                          children:                            
+                            - type: label
+                              dataKey: itemObject.name.data.selectedSpecialty
+                              style:   
+                                width: "0.24"
+                                left: "0.02"
+                                top: "0"
+                                height: "0.045"
+                                textAlign: 
+                                  y: center
+                                overflow: hidden
+                                textOverflow: ellipsis
+                                whiteSpace: nowrap
+                                wordBreak: break-all
+                        - type: view
+                          style: 
+                            left: "0.56"
+                            top: "0"
+                            width: "0.08"    
+                            height: "0.045"
+                            borderWidth: "1"
+                            borderRight: "solid 1px  #7070704f"
+                            textAlign: 
+                              x: center
+                              y: center 
+                          children:
+                            - type: image
+                              path: editBlue.svg
+                              style:
+                                top: "0.01"
+                                width: "0.03"                                                             
+                                height: "0.02"
+                              onClick:
+                                - emit: 
+                                    dataKey: 
+                                      var: itemObject
+                                    actions: 
+                                      - .Global.acceptInfo@: $var                                    
+                                      - ..visitReason.docIn.id@: $var.eid
+                                      - =..visitReason.docAPI.get: ""
+                                      - ..formData.reasonForVisit@: []
+                                      - if: 
+                                        - =..visitReason.docResp.doc.0
+                                        - ..formData.reasonForVisit@: =..visitReason.docResp.doc.0.name.data.reasonForVisit
+                                        - continue    
+                                      - if: 
+                                        - =..visitReason.docResp.doc.0
+                                        - ..visitReason.document@: =..visitReason.docResp.doc.0    
+                                        - ..visitReason.document.eid@: $var.eid                                  
+                                                                      
+                                # - actionType: evalObject
+                                #   object: 
+                                #     .Global._nonce@: 
+                                #       =.builtIn.math.random: ""
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: reasonView
+                                - actionType: popUp
+                                  popUpView: reasonView
+                        - type: view
+                          style: 
+                            left: "0.64"
+                            top: "0"
+                            width: "0.08"    
+                            height: "0.045"
+                            borderWidth: "1"
+                            textAlign: 
+                              x: center
+                              y: center 
+                          children:
+                            - type: image
+                              path: editBlue.svg
+                              style:
+                                top: "0.01"
+                                width: "0.03"                                                             
+                                height: "0.02"
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - .Global.acceptInfo@: $var
+                                - goto: SchduleSetting                                   
+
+
+            # TableFooter
+            - type: view
+              viewTag: tableFooter
+              style:
+                left: "0.565"
+                top: "0.78"
+                width: "0.19"
+                height: "0.02622"
+              children:   
+                # Current page
+                - type: view
+                  style:
+                    top: "0.005"
+                    width: "0.08"
+                    height: "0.0155"
+                  children:
+                    - type: label
+                      text: "Current page:"
+                      style:
+                        display: inline-block
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        textAlign:
+                          x: "center"
+                          y: "center"
+                    - type: label
+                      dataKey: formData.tableCurrentPage
+                      style:
+                        marginLeft: "0.005"
+                        display: inline-block
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        textAlign:
+                          x: "center"
+                          y: "center"  
+                # Previous & Next
+                - type: view
+                  style:
+                    top: "0"
+                    left: "0.076"
+                    width: "0.05168"
+                    height: "0.02576"
+                  children:
+                    - type: image
+                      path: tableLeft.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.tablePageNum
+                                    num2: 2
+                              - continue
+                              - actionType: evalObject
+                                object:
+                                  - =.builtIn.number.Subtraction: 
+                                      dataIn:
+                                        num: =..formData.tablePageNum
+                                        step: "1"
+                                      dataOut: ProviderManagement.formData.tablePageNum
+                                  - =.builtIn.array.splitTableList: 
+                                      dataIn: 
+                                        arrObj: =..formData.providerList
+                                        numX: "12"
+                                        numY: =..formData.tablePageNum
+                                      dataOut: ProviderManagement.formData.tableData
+                                  - ..formData.tableList@: =..formData.tableData.0
+                                  - =.builtIn.string.concat: # re-concat
+                                      dataIn:
+                                        - =..formData.tablePageNum # page num
+                                        - " / "
+                                        - =..formData.tableData.1 # total page
+                                      dataOut: ProviderManagement.formData.tableCurrentPage # current page                                       
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView  
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter    
+                      style:
+                        top: "0"
+                        width: "0.01456"
+                        height: "0.02576"
+                    - type: label
+                      viewTag: pageNumView
+                      dataKey: formData.tablePageNum
+                      style:
+                        top: "0"
+                        left: "0.01856"
+                        width: "0.01446"
+                        height: "0.02576"
+                        fontSize: .Nfont.nf0
+                        fontWeight: "500"
+                        color: "0xffffff"
+                        backgroundColor: "0x005795"
+                        borderRadius: "3"
+                        textAlign:
+                          x: center
+                          y: center
+                    - type: image
+                      path: tableRight.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: "" 
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.tablePageNum
+                                    num2: =..formData.tableData.1
+                              - actionType: evalObject
+                                object:
+                                  - =.builtIn.number.addition: 
+                                      dataIn:
+                                        num: =..formData.tablePageNum
+                                        step: "1"
+                                      dataOut: ProviderManagement.formData.tablePageNum # update page num
+                                  - =.builtIn.array.splitTableList: 
+                                      dataIn: 
+                                        arrObj: =..formData.providerList
+                                        numX: "12"
+                                        numY: =..formData.tablePageNum
+                                      dataOut: ProviderManagement.formData.tableData
+                                  - ..formData.tableList@: =..formData.tableData.0
+                                  - =.builtIn.string.concat: # re-concat
+                                      dataIn:
+                                        - =..formData.tablePageNum # page num
+                                        - " / "
+                                        - =..formData.tableData.1 # total page
+                                      dataOut: ProviderManagement.formData.tableCurrentPage # current page 
+                              - continue                           
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView  
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 
+                      style:
+                        top: "0"
+                        left: "0.03712"
+                        height: "0.02576"
+                        width: "0.01456"
+                # Go to
+                - type: view
+                  style:
+                    top: "0"
+                    left: "0.14"
+                    width: "0.05"
+                    height: "0.02496"
+                  children:
+                    - type: textField
+                      viewTag: gotoView
+                      dataKey: formData.gotoPageNum
+                      style:
+                        width: "0.02496"
+                        top: "0"
+                        height: "0.02576"
+                        borderRadius: "3"
+                        borderWidth: "1"
+                        border:
+                          style: "3"
+                        boxSizing: border-box
+                        borderColor: "0xd8d8d8"
+                        fontSize: .Nfont.nf0
+                        fontWeight: "500"
+                        color: "0x333333"
+                        textAlign: 
+                          x: center 
+                          y: center 
+                    - type: button
+                      text: "Go to"
+                      style:
+                        textDecoration: underline
+                        left: "0.029"
+                        top: "0"
+                        height: "0.02576"
+                        border:
+                          style: "1"
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        backgroundColor: "0xffffff00"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""                           
+                        - actionType: evalObject
+                          object:
+                            # gotoPageNum ?> 1
+                            - if:
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.gotoPageNum
+                                    num2: 1
+                              - continue
+                              - actionType: evalObject
+                                object:
+                                  # gotoPageNum ?< totalPage+1
+                                  - if: 
+                                    - =.builtIn.number.less: 
+                                        dataIn: 
+                                          num1: =..formData.gotoPageNum
+                                          num2: =..formData.totalPageMore
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.array.splitTableList: 
+                                            dataIn: 
+                                              arrObj: =..formData.providerList
+                                              numX: "12"
+                                              numY: =..formData.gotoPageNum
+                                            dataOut: ProviderManagement.formData.tableData
+                                        - ..formData.tableList@: =..formData.tableData.0
+                                        - =.builtIn.string.concat: # re-concat
+                                            dataIn:
+                                              - =..formData.gotoPageNum # page num
+                                              - " / "
+                                              - =..formData.tableData.1 # total page
+                                            dataOut: ProviderManagement.formData.tableCurrentPage # current page
+                                        - ..formData.tablePageNum@: =..formData.gotoPageNum
+                                        - ..formData.gotoPageNum@: ""
+                                    - continue                        
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView 
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 
+        # AddProvider
+        - .BasePopUp:
+          viewTag: AddProvider
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                top: "0"
+                height: "1"
+                zIndex: "10"
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Add New Provider"
+                    - .Closebutton:
+                      onClick:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: profileView
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: noProviderView
+                        - actionType: popUpDismiss
+                          popUpView: AddProvider
+                - type: view
+                  style:
+                    height: "0.82"
+                    width: "0.4"
+                    top: "0.08"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: view
+                      style: 
+                        top: "0"
+                        width: "0.4"
+                        height: "0.09"
+                        left: "0"
+                        backgroundColor: "0xeff3f7"
+                      children: 
+                        - type: label
+                          text: Search
+                          dataKey: 
+                          style:
+                            left: "0.05"
+                            width: "0.3"
+                            marginTop: "0.015"
+                            color: "0x004779"
+                            fontSize: .Nfont.nf3
+                            fontFamily: "Roboto"
+                        - type: view
+                          style:
+                            width: "0.3"
+                            left: "0.05"
+                            marginTop: "0.01"
+                            textAlign:  
+                              y: center
+                          children: 
+                            - type: label
+                              textBoard: 
+                                - text: Phone Number
+                                - text: "*"
+                                  color: "0xff0000"
+                              dataKey: 
+                              style:
+                                fontSize: .Nfont.nf3
+                                fontFamily: "Roboto"
+                            - type: select
+                              contentType: countryCode  
+                              placeholder: ..formData.countryCode
+                              dataKey: formData.countryCode # formData.countryCode : inputValue
+                              options:
+                                .CountryCode
+                              required: "true"
+                              style:
+                                marginLeft: "0.02"
+                                width: "0.022"
+                                display: inline-block
+                                height: "0.03"
+                                borderWidth: "1"
+                                boxSizing: border-box
+                                fontSize: .Nfont.nf3
+                                fontFamily: "Roboto"                                
+                                border:
+                                  style: "3"
+                                borderColor: "0xdededf"  
+                                borderRadius: "3"
+                            - type: textField
+                              placeholder: "Enter Here"
+                              dataKey: formData.number
+                              viewTag: numberView
+                              style:
+                                marginLeft: "0.005"
+                                width: "0.11"
+                                height: "0.03"
+                                textIndent: 1em
+                                display: inline-block
+                                boxSizing: border-box
+                                fontSize: .Nfont.nf3
+                                fontFamily: "Roboto"    
+                                border: 
+                                  style: "3"  
+                                borderColor: "#DCDCDC" 
+                                borderRadius: "3"
+                            - type: button
+                              text: Search
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: profileView                                       
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: noProviderView
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.object.clearAll:
+                                        dataIn:
+                                          object: =..formData.searchProd
+                                    - =.builtIn.string.concat: 
+                                        dataIn: 
+                                          - =..formData.countryCode
+                                          - " "
+                                          - =..formData.number
+                                        dataOut: ProviderManagement.formData.phoneNumber
+                                    - ..inviteInfo.edge.name.phoneNumber@: =..formData.phoneNumber
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - "uid like"
+                                          - " '%"
+                                          - =..formData.phoneNumber
+                                          - "'"
+                                        dataOut: ProviderManagement.providerData.vertexIn.sCondition
+                                    - =..providerData.vertexAPI.get: ""
+                                    # isExist                               
+                                    - if:
+                                      - =..providerData.vertexResp.vertex.0
+                                      - continue
+                                      - actionType: popUp
+                                        popUpView: phoneNotExist
+                                        wait: true
+                                - actionType: evalObject
+                                  object:
+                                    - ..providerDisplay.docIn.id@: =..providerData.vertexResp.vertex.0.id
+                                    - =..providerDisplay.docAPI.get: ""
+                                    - if: 
+                                      - =..providerDisplay.docResp.doc.0 
+                                      - ..formData.searchProd@: =..providerDisplay.docResp.doc.0
+                                      - actionType: popUp
+                                        popUpView: phoneNotProvider
+                                        wait: true                                 
+                                    - ..formData.number@: ""
+                                - actionType: evalObject
+                                  object:
+                                    - if: 
+                                      - =..providerDisplay.docResp.doc.0                  
+                                      - actionType: builtIn
+                                        funcName: show
+                                        viewTag: profileView 
+                                      - actionType: builtIn
+                                        funcName: show
+                                        viewTag: noProviderView                                    
+                                    - if: 
+                                      - =..providerDisplay.docResp.doc.0
+                                      - actionType: builtIn
+                                        funcName: hide
+                                        viewTag: noProviderView  
+                                      - actionType: builtIn
+                                        funcName: hide
+                                        viewTag: profileView 
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: prodInfoTag                                                                                  
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: numberView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: profileView  
+                              style: 
+                                marginLeft: "0.01"
+                                height: "0.03"
+                                width: "0.05"
+                                boxSizing: border-box
+                                backgroundColor: "0x005795"
+                                color: "0xffffff"
+                                border: 
+                                  style: "3"  
+                                borderColor: "0x005795" 
+                                borderRadius: "3"
+                    - type: view
+                      viewTag: noProviderView
+                      style: 
+                        top: "0.09"
+                        width: "0.4"
+                        height: "0.83"
+                        textAlign: 
+                          x: center
+                      children: 
+                        - type: image
+                          path: noProvider.svg
+                          style:
+                            width: "0.12"
+                            marginTop: "0.15"
+                        - type: label
+                          text: Please enter phone number to search a provider
+                          dataKey: 
+                          style:
+                            marginTop: "0.05"
+                            color: "0x666666"
+                            fontSize: .Nfont.nf4
+                            fontFamily: "Roboto"
+                    - type: view
+                      viewTag: profileView
+                      style: 
+                        top: "0.09"
+                        left: "0.055"
+                        width: "0.31"
+                        height: "0.83"
+                        backgroundColor: "0xffffff"
+                        isHidden: true
+                        # isHidden: true
+                      children: 
+                        - type: view
+                          style:
+                            width: "0.295"
+                            height: "0.09"
+                            left: "0"
+                            marginTop: "0.03"
+                            backgroundColor: "0xffffff"
+                          children:
+                            - type: image
+                              path: providerDefault.svg
+                              dataKey: formData.searchProd.name.data.avatar
+                              path=func: .builtIn.utils.prepareDocToPath
+                              style:
+                                width: "0.05"
+                                height: "0.082"
+                                left: "0"
+                                top: "0"
+                            - type: label
+                              dataKey: formData.searchProd.name.data.fullName
+                              style:
+                                left: "0.062"
+                                width: "0.14"
+                                marginTop: "0"
+                                fontSize: .Nfont.nf5
+                                fontFamily: "Roboto"
+                                fontWeight: "600"
+                            - type: view
+                              style:
+                                left: "0.062"
+                                width: "0.14"
+                                height: "auto"
+                                marginTop: "0.01"
+                                fontSize: .Nfont.nf0
+                                fontFamily: "Roboto"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "User Name:"
+                                  dataKey: 
+                                  style:
+                                    marginLeft: "0"
+                                - type: label
+                                  dataKey: formData.searchProd.name.data.userName
+                                  style:
+                                    marginLeft: "0.01"
+                            - type: view
+                              style:
+                                left: "0.062"
+                                width: "0.14"
+                                height: "auto"
+                                marginTop: "0.01"
+                                fontSize: .Nfont.nf0
+                                fontFamily: "Roboto"
+                                display: flex
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "Phone #:"
+                                  dataKey: 
+                                  style:
+                                    marginLeft: "0"
+                                - type: label
+                                  dataKey: formData.searchProd.name.data.phone
+                                  style:
+                                    marginLeft: "0.01"
+                        - type: scrollView
+                          style:
+                            width: "0.295"
+                            height: "0.58"
+                            left: "0"
+                            marginTop: "0.01"
+                            overflow: scroll
+                          children:
+                            # Basic Info Start
+                            - .ProfileInfoTitle:
+                              text: "Basic Info"
+                              style:
+                                marginTop: "0.02"
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "First Name"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.firstName
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Middle Name"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.middleName
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Last Name"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.lastName
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Title Training"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.title
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Language Spoken"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.languages
+                                  style: 
+                                    word-break: break-all
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Gender"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.gender
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Email"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.email
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Fax #"
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.fax
+                            # Basic Info End
+
+                            # Credentials Start
+                            - .ProfileInfoTitle:
+                              text: "Credentials"
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Specialty and board certified"
+                                  style:
+                                    width: "0.295"
+                                    # fontWeight: ""
+                            - .ProfileInfoTextView:
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..providerDisplay.docResp.doc.0.name.data.specialty
+                                  iteratorVar: itemObject
+                                  viewTag: specialtyView
+                                  style:
+                                    width: "0.295"
+                                    margin: "0"
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        width: "0.295"
+                                        height: "0.03"
+                                        left: "0"
+                                        marginTop: ""
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.specialty
+                                          style:
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            display: inline-block
+                                            textAlign:
+                                              y: top  
+                                        - type: label
+                                          text: "|"
+                                          dataKey: 
+                                          style:
+                                            marginLeft: "0.005"
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            display: inline-block
+                                            textAlign:
+                                              y: top  
+                                        - type: label
+                                          dataKey: itemObject.boardCertified
+                                          style:
+                                            marginLeft: "0.005"
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            display: inline-block
+                                            textAlign:
+                                              y: top   
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Medical License"
+                                  style:
+                                    # fontWeight: "500"
+                                    width: "0.295"
+                            - .ProfileInfoTextView:
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.searchProd.name.data.MedicalLicense
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.23"
+                                    marginLeft: "0.01"
+                                    margin: "0"
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        width: "0.23"
+                                        height: "0.03"
+                                        marginTop: ""
+                                        display: flex
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.medicalLicense
+                                          style:
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            textAlign:
+                                              y: top  
+                                        - type: label
+                                          text: "|"
+                                          dataKey: 
+                                          style:
+                                            marginLeft: "0.005"
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            textAlign:
+                                              y: top  
+                                        - type: label
+                                          dataKey: itemObject.state
+                                          style:
+                                            marginLeft: "0.005"
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            textAlign:
+                                              y: top    
+                                        - type: label
+                                          text: "|"
+                                          dataKey: 
+                                          style:
+                                            marginLeft: "0.005"
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            textAlign:
+                                              y: top  
+                                        - type: label
+                                          dataKey: itemObject.expiration
+                                          style:
+                                            marginLeft: "0.005"
+                                            height: "0.03"
+                                            fontFamily: "Roboto"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            textAlign:
+                                              y: top
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "NPI #"
+                                  style:
+                                    # fontWeight: ""
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.NPI
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "DEA #"
+                                  style:
+                                    # fontWeight: ""
+                                - .ProfileInfoRightText:
+                                  dataKey: formData.searchProd.name.data.DEA
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Description"
+                                  style:
+                                    # fontWeight: ""
+                                    width: "0.295"
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  dataKey: formData.searchProd.name.data.description
+                                  style:
+                                    fontWeight: ""
+                                    width: "0.295"
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "Education and training"
+                                  style:
+                                    width: "0.295"
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  dataKey: formData.searchProd.name.data.education
+                                  style:
+                                    left: "0"
+                                    width: "0.295"
+                                    fontWeight: ""
+                            - .ProfileInfoTextView:
+                              children:
+                                - .ProfileInfoLeftText:
+                                  text: "CV"
+                                  style:
+                                    width: "0.295"
+                                - .ProfileInfoRightText:
+                                  text: "View"
+                                  viewTag: searchCvViewTag
+                                  onClick: 
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: searchCvView
+                                    - actionType: evalObject
+                                      object:
+                                        - if: 
+                                          - ..formData.searchProd.name.data.cv
+                                          - actionType: popUp
+                                            popUpView: searchCvView
+                                          - actionType: popUp
+                                            popUpView: searchCvViewNoImageTag
+                                            popUpDismiss: 1500
+                                            wait: true
+                                  style:
+                                    color: "0x004779"
+                                    textDecoration: underline
+                                    # isHidden: ..formData.searchCvViewFlag                      
+                        - ..style.confirmBtnView: 
+                          style:
+                            width: "0.31"
+                            justifyContent: flex-end
+                          children: 
+                            - ..style.confirmButton:
+                              style:
+                                left: "0"
+                              text: Add
+                              onClick: 
+                                - actionType: evalObject
+                                  object: 
+                                    .Global._nonce@: 
+                                      =.builtIn.math.random: ""
+                                - actionType: evalObject
+                                  object: 
+                                    # get 10002
+                                    - ..isConnected.edgeResp.edge@: []
+                                    - ..isConnected.edgeIn.id@: =.Global.currentFacility.id
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - "V.uid like"
+                                          - " '%"
+                                          - =..formData.phoneNumber
+                                          - "' AND E.tage>=0"
+                                        dataOut: ProviderManagement.isConnected.edgeIn.sCondition
+                                    - =..isConnected.edgeAPI.get: ""
+                                - actionType: evalObject
+                                  object:                                    
+                                    # isAdded or isInvited
+                                    - if:
+                                      - =..isConnected.edgeResp.edge.0
+                                      - actionType: evalObject
+                                        object:
+                                          - if: 
+                                            - =.builtIn.number.less: 
+                                                dataIn: 
+                                                  num1: =..isConnected.edgeResp.edge.0.tage
+                                                  num2: 1
+                                            - actionType: popUp
+                                              popUpView: phoneInvited # <1 already invited but not be approved
+                                              wait: true
+                                            - actionType: popUp
+                                              popUpView: phoneRepeat                                            
+                                              wait: true
+                                      - continue 
+                                - actionType: evalObject
+                                  object:                                      
+                                    # create 1053                                 
+                                    - ..invite.edge.subtype@: "196608"
+                                    - ..invite.edge.name.inviteeName@: =..formData.searchProd.name.data.fullName
+                                    - ..invite.edge.name.phoneNumber@: =..formData.searchProd.name.data.phone
+                                    - =..invite.edgeAPI.store: ""
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - actionType: evalObject
+                                  object:
+                                    # - =..invite.edgeAPI.get: ""
+                                    - ..formData.searchProd@: ""
+                                    - ..formData.number@: ""         
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: profileView 
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: noProviderView                                                                      
+                                - actionType: popUpDismiss
+                                  popUpView: AddProvider  
+                                # - actionType: popUpDismiss
+                                #   popUpView: uploading      
+                                - actionType: popUp
+                                  popUpView: success 
+        # Provider的个人信息
+        - type: popUp
+          viewTag: viewProviderInfo
+          style:
+            width: "1" 
+            height: "1"
+            top: "0"
+            left: "0"     
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                backgroundColor: "0xFFFFFF" 
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Provider Profile"
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: viewProviderInfo
+                - type: view
+                  viewTag: infoView
+                  style:
+                    height: "0.92"
+                    width: "0.31"
+                    top: "0.08"
+                    left: "0.055"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.295"
+                        height: "auto"
+                        left: "0"
+                        marginTop: "0.03"
+                      children:
+                        - type: image
+                          path: providerDefault.svg
+                          dataKey: formData.providerInfo.avatar
+                          path=func: .builtIn.utils.prepareDocToPath
+                          style:
+                            height: "0.082"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          # text: "Aomas Mueller"
+                          dataKey: formData.providerInfo.fullName
+                          style:
+                            left: "0.062"
+                            width: "0.25"
+                            marginTop: "0"
+                            fontSize: .Nfont.nf5
+                            fontFamily: "Roboto"
+                            fontWeight: "600"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "User Name:"
+                              dataKey: 
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              # text: "Lighting"
+                              dataKey: formData.providerInfo.userName
+                              style:
+                                marginLeft: "0.01"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "Phone #:"
+                              dataKey: 
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              # text: "+ 18883843328"
+                              dataKey: formData.providerInfo.phone
+                              style:
+                                marginLeft: "0.01"
+                    - type: view
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - .Global.formData.reply.eid@: =..apiRequest.connection.edgeResp.edge.0.id
+                            - .Global.formData.reply.name.data.receiverAvatarId@: =..formData.providerInfo.avatar
+                            - .Global.formData.reply.name.data.receiverName@: =..formData.providerInfo.fullName
+                        - goto: NewMessage                    
+                      style:
+                        top: "0.04"
+                        left: "0.295"
+                        height: "auto"
+                      children:
+                        - type: image
+                          path: Inbox.svg
+                          style:
+                            height: "0.016"
+                            marginTop: "0"
+                        - type: label
+                          text: Mail
+                          style:
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                    - type: scrollView
+                      viewTag: prodInfoTag
+                      style:
+                        width: "0.295"
+                        height: "0.74"
+                        left: "0"
+                        marginTop: "0.02"
+                        overflow: hidden
+                      children:
+                        # Basic Info Start
+                        - .ProfileInfoTitle:
+                          text: "Basic Info"
+                          style:
+                            marginTop: "0"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "First Name"
+                            - .ProfileInfoRightText:
+                              # text: "Aomas"
+                              dataKey: formData.providerInfo.firstName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Middle Name"
+                            - .ProfileInfoRightText:
+                              # text: "Bill"
+                              dataKey: formData.providerInfo.middleName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Last Name"
+                            - .ProfileInfoRightText:
+                              # text: "Mueller"
+                              dataKey: formData.providerInfo.lastName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Title Training"
+                            - .ProfileInfoRightText:
+                              # text: "CNA"
+                              dataKey: formData.providerInfo.title
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Language Spoken"
+                            - .ProfileInfoRightText:
+                              # text: "English"
+                              dataKey: formData.providerInfo.languages
+                              style: 
+                                wordBreak: break-all
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Gender"
+                            - .ProfileInfoRightText:
+                              # text: "Male"
+                              dataKey: formData.providerInfo.gender
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Email"
+                            - .ProfileInfoRightText:
+                              # text: "amy.smith@123.com"
+                              dataKey: formData.providerInfo.email
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Fax #"
+                            - .ProfileInfoRightText:
+                              # text: "39487193743"
+                              dataKey: formData.providerInfo.fax
+                        # Basic Info End
+
+                        # Credentials Start
+                        - .ProfileInfoTitle:
+                          text: "Credentials"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Specialty and board certified"
+                              style:
+                                width: "0.295"
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.providerInfo.specialty
+                          iteratorVar: itemObject
+                          style:
+                            width: "0.295"
+                            margin: "0"
+                            left: "0"
+                            height: "auto"
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: "0.295"
+                                height: "auto"
+                                left: "0"
+                                marginTop: ""
+                              children:
+                                - .ProfileInfoTextView:
+                                  children:
+                                    - .ProfileInfoLeftText:
+                                      # text: "Anatomic and Clinical Pathology"
+                                      dataKey: itemObject.specialty
+                                      style:
+                                        width: "auto"
+                                        fontWeight: ""
+                                    - .ProfileInfoRightText:
+                                      # text: "Yes"
+                                      dataKey: itemObject.boardCertified
+                                      style:
+                                        marginLeft: "0.02"
+                                        width: "0.02"
+                                        borderLeft: "1px solid #666666"
+                                        fontSize: .Nfont.nf0
+                                        textAlign:
+                                          x: center
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Medical License"
+                              style:
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.providerInfo.MedicalLicense
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.23"
+                                marginLeft: "0.01"
+                                margin: "0"
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: "0.23"
+                                    height: "0.03"
+                                    marginTop: ""
+                                    display: flex
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.medicalLicense
+                                      style:
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top  
+                                    - type: label
+                                      text: "|"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top  
+                                    - type: label
+                                      dataKey: itemObject.state
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top    
+                                    - type: label
+                                      text: "|"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top  
+                                    - type: label
+                                      dataKey: itemObject.expiration
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "NPI #"
+                              style:
+                            - .ProfileInfoRightText:
+                              # text: "31424235345"
+                              dataKey: formData.providerInfo.NPI
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "DEA #"
+                              style:
+                            - .ProfileInfoRightText:
+                              # text: "5674576757657"
+                              dataKey: formData.providerInfo.DEA
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Description"
+                              style:
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              # text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. "
+                              dataKey: formData.providerInfo.description
+                              style:
+                                fontWeight: ""
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Education and training"
+                              style:
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              # text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. "
+                              dataKey: formData.providerInfo.education
+                              style:
+                                left: "0"
+                                width: "0.295"
+                                # marginTop: "0.01"
+                                fontWeight: ""
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "CV"
+                              style:
+                                width: "0.295"
+                            - .ProfileInfoRightText:
+                              text: "View"
+                              # viewTag: cvViewTag
+                              style:
+                                color: "0x004779"
+                                textDecoration: underline
+                                isHidden: ..formData.cvViewFlag
+                              onClick:
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: viewCvTag
+                                - actionType: popUp
+                                  popUpView: viewCvTag
+                        # Credentials End
+        # 查看图片的弹框 
+        - type: popUp
+          viewTag: searchCvView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children: 
+            - type: view
+              style: 
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"   
+              children: 
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children: 
+                    - type: image
+                      path: close.svg
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children: 
+                    - type: image
+                      path: null.png
+                      dataKey: formData.searchProd.name.data.cv
+                      path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"                        
+                           
+        - type: popUp
+          viewTag: viewCvTag
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children: 
+            - type: view
+              style: 
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"   
+              children: 
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children: 
+                    - type: image
+                      path: close.svg
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children: 
+                    - type: image
+                      path: null.png
+                      dataKey: formData.providerInfo.cv
+                      path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+        # Reason的弹框
+        - type: popUp
+          viewTag: reasonView
+          style:
+            width: "1"
+            top: "0"
+            left: "0"
+            height: "1"
+            backgroundColor: "0x00000033"
+            zIndex: "1000"
+          children:
+            - type: srollView
+              style:
+                left: "0.6"
+                top: "0"
+                width: "0.4"
+                height: "1"
+                overflow: sroll
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Reason For Visit"
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: reasonView
+                        - actionType: popUpDismiss
+                          popUpView: documentView
+                - type: textField
+                  placeholder: select
+                  dataKey: reasonObj.document
+                  viewTag: docFieldView
+                  isEditable: "false"
+                  onClick: 
+                    - actionType: popUp
+                      popUpView: documentView
+                  style: 
+                    left: "0.203"
+                    top: "0.11"
+                    width: "0.175"
+                    height: "0.03"
+                    boxSizing: border-box
+                    border: 
+                      style: "3"
+                    borderColor: "0x00000066"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    # boxSizing: border-box
+                    zIndex: "100"
+                    textAlign: 
+                      y: center
+                - type: view
+                  # viewTag: docFieldView
+                  onClick: 
+                    - actionType: popUp
+                      popUpView: documentView
+                  style: 
+                    left: "0.203"
+                    top: "0.11"
+                    width: "0.175"
+                    height: "0.03"
+                    boxSizing: border-box
+                    border: 
+                      style: "3"
+                    borderColor: "0x00000066"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    # boxSizing: border-box
+                    zIndex: "100"
+                    textAlign: 
+                      y: center                      
+                - type: view
+                  onClick: 
+                    - actionType: popUpDismiss
+                      popUpView: documentView
+                  style:
+                    height: "0.92"
+                    width: "0.4"
+                    top: "0.08"
+                    backgroundColor: "0xffffff"   
+                  children: 
+                    - type: view
+                      style: 
+                        top: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.15"
+                        backgroundColor: "0xffffff"
+                        zIndex: "10"
+                      children: 
+                        - type: textField
+                          placeholder: Enter Reson Here
+                          dataKey: reasonObj.reason
+                          style: 
+                            left: "0.025"
+                            top: "0.03"
+                            width: "0.1"
+                            height: "0.03"
+                            border: 
+                              style: "3"
+                            borderColor: "0x00000066"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                        - type: select
+                          placeholder: Select
+                          dataKey: reasonObj.duration
+                          options: 
+                            .Duration
+                          style: 
+                            left: "0.14"
+                            top: "0.03"
+                            width: "0.05"
+                            height: "0.03"
+                            boxSizing: content-box
+                            border: 
+                              style: "3"
+                            borderColor: "0x00000066"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                        - type: button
+                          text: Create new reason
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - ..reasonObj.reason
+                                  - continue
+                                  - actionType: popUp
+                                    popUpView: reasonNullView
+                                    wait: true          
+                                # - if: 
+                                                      
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..formData.reasonForVisit
+                                      value: =..reasonObj                
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: reasonTag
+                          style: 
+                            left: "0.15"
+                            top: "0.1"
+                            width: "0.1"
+                            height: "0.04"
+                            fontSize: .Nfont.nf2
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            border: 
+                              style: "3"
+                            borderColor: "0x005795"
+                            borderWidth: "1"
+                            borderRadius: "5"  
+                            textAlign:
+                              x: center  
+                    - type: button
+                      text: Save
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..visitReason.document.name.data.reasonForVisit@: =..formData.reasonForVisit
+                            - .Global.jwt.edge.bvid@: =.Global.acceptInfo.bsig
+                            - =.Global.jwt.edgeAPI.store: ""
+                            # - ..visitReason.document.name.data.reasonForVisit@: []
+                            - =..visitReason.docAPI.store: ""
+                            - =.builtIn.search.updateEsData:
+                                dataIn:
+                                  id: =.Global.acceptInfo.bsig
+                                  type: '79360'
+                                dataOut: ProviderManagement.res
+                            - ..reasonObj.reason@: ""
+                            - ..reasonObj.duration@: "5 min"
+                            - ..reasonObj.document@: []
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 
+                        - actionType: popUp
+                          popUpView: successView
+                        - actionType: popUpDismiss
+                          popUpView: reasonView
+
+                        # - actionType;
+                      style: 
+                        left: "0.32"
+                        top: "0.22"
+                        width: "0.06"
+                        height: "0.035"
+                        color: "0xffffff"
+                        backgroundColor: "0x005795"
+                        border: 
+                          style: "3"
+                        borderColor: "0x005795"
+                        borderWidth: "1"    
+                        borderRadius: "5"
+                    - type: view
+                      style: 
+                        left: "0"
+                        top: "0.26"
+                        width: "0.4"
+                        height: "0.05"
+                        border: 
+                          style: "2"
+                        borderColor: "0x00000033"
+                        borderWidth: "1"
+                        # backgroundColor: "0xcdcdcd"
+                      children: 
+                        - type: label
+                          text: Reason for Visit
+                          style: 
+                            left: "0.025"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign: 
+                              x: center
+                              y: center
+                        - type: label
+                          text: Duration
+                          style: 
+                            left: "0.15"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign: 
+                              x: center
+                              y: center
+                        - type: label
+                          text: Documents
+                          style: 
+                            left: "0.275"
+                            width: "0.1"
+                            top: "0.01"
+                            height: "0.03"
+                            fontSize: .Nfont.nf2
+                            color: "0x00000099"
+                            textAlign: 
+                              x: center
+                              y: center
+                    - type: view
+                      style: 
+                        left: "0"
+                        top: "0.31"
+                        width: "0.4"
+                        height: "0.61"
+                        backgroundColor: "0xefefef"
+                      children: 
+                        - type: view
+                          style: 
+                            left: "0"
+                            top: "0.001"
+                            width: "0.4"
+                            height: "0.05"
+                            backgroundColor: "0xffffff"
+                          children: 
+                            - type: label
+                              contentType: messageHidden
+                              text: No settings created
+                              style: 
+                                top: "0.01"
+                                width: "0.4"
+                                height: "0.04"
+                                left: "0"
+                                textAlign: 
+                                  x: center
+                                fontSize: .Nfont.nf2
+                                color: "0x00000088"
+                        - type: scrollView
+                          
+                          style: 
+                            top: "0.001"
+                            width: "0.4"
+                            height: "0.6"
+                            overflow: scroll
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: =..formData.reasonForVisit
+                              iteratorVar: itemObject
+                              viewTag: reasonTag
+                              style: 
+                                width: "0.4"
+                                height: "0.6"
+                                margin: "0"
+                                left: "0"
+                              children: 
+                                - type: listItem
+                                  itemObject: ""
+                                  style: 
+                                    height: "0.05"
+                                    left: ""
+                                    width: "0.4"
+                                    border: 
+                                      style: "2"
+                                    borderColor: "0x00000033"
+                                    borderWidth: "1"
+                                    backgroundColor: "0xffffff"
+                                  children: 
+                                    - type: label
+                                      dataKey: itemObject.reason
+                                      style: 
+                                        width: "0.1"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.025"
+                                        textAlign: 
+                                          x: center
+                                    - type: label
+                                      dataKey: itemObject.duration
+                                      style: 
+                                        width: "0.1"
+                                        height: "0.03"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.15"
+                                        textAlign: 
+                                          x: center
+                                    - type: select
+                                      # dataKey: itemObject.document
+                                      options: itemObject.document
+                                      style: 
+                                        width: "0.06"
+                                        height: "0.03"
+                                        top: "0.01"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x00000099"
+                                        left: "0.3"
+                                        border:   
+                                          style: "3"
+                                        borderRadius: "3"
+                                        borderColor: "0x00000033"
+                                        textAlign: 
+                                          x: center
+                                    - type: image
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - =.builtIn.array.removeByName:
+                                                  dataIn:
+                                                    object: =..formData.reasonForVisit
+                                                    key: "reason"
+                                                    name: $var.reason
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: reasonTag
+                                        # - actionType: refresh
+                                      path: delete.svg
+                                      style:
+                                        left: "0.37"
+                                        top: "0.015"
+                                        width: "0.01"  
+        # reason里的表格预览                      
+        - type: popUp
+          viewTag: documentView
+          style: 
+            left: "0.802"
+            width: "0.175"
+            height: "0.25"
+            top: "0.15"
+            backgroundColor: "0xffffff"
+            boxShadow: "1px 1px #f0f0f0" 
+            zIndex: "10000"
+          children: 
+            - type: scrollView
+              style:
+                left: "0"
+                top: "0"
+                width: "0.175"
+                height: "0.27"
+                overflow: scroll
+              children: 
+                - type: list
+                  contentType: listObject
+                  listObject: ..doucment
+                  iteratorVar: itemObject
+                  viewTag: docListView
+                  style:
+                    width: "0.175"   
+                    left: "0"
+                    marginTop: "0"
+                    height: "0.25"
+                    padding: "0"
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      style:
+                        width: "0.175"
+                        left: "0"
+                        height: "0.035"
+                        boder: 
+                          style: "1"
+                      children:
+                        - type: image
+                          viewTag: selectView
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:                        
+                                - if:
+                                  - =.builtIn.array.has:
+                                      dataIn:
+                                        object: =..reasonObj.document
+                                        value: $var.title
+                                  - checkOn.svg
+                                  - checkOff.svg
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions: 
+                                  - if:
+                                    - =.builtIn.array.has:
+                                        dataIn:
+                                          object: =..reasonObj.document
+                                          value: $var.title
+                                    - =.builtIn.array.removeByValue:
+                                        dataIn:
+                                          object: =..reasonObj.document
+                                          value: $var.title
+                                    - =.builtIn.array.add:
+                                        dataIn:
+                                          object: =..reasonObj.document
+                                          value: $var.title
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: docListView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: docFieldView
+                          style:
+                            top: "0.0075"
+                            left: "0.005"
+                            width: "0.011"
+                        - type: label
+                          dataKey: itemObject.title
+                          onClick: 
+                            - emit: 
+                                dataKey: 
+                                  var: itemObject
+                                actions: 
+                                  - .Global.formData.previewFromProvider@: true
+                                  - if: 
+                                    - true
+                                    - goto: $var.pageName                         
+                                    - goto: $var.pageName                                
+                          style:
+                            top: "0"
+                            left: "0.024"
+                            width: "0.15"
+                            height: "0.035"
+                            fontFamily: "Raleway"
+                            fontSize: .Nfont.nf0
+                            textAlign: 
+                              y: center                                        
+
+        # 没有选中的轻提示
+        - type: popUp # popUp
+          viewTag: searchCvViewNoImageTag
+          msg: "Provider didn't share the image"
+          img: miniRedAlert.svg
+          style:
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000033"
+            top: "0"
+            zIndex: "20"
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: noMessageTag
+          children:
+            - type: view 
+              style:
+                width: "0.32"
+                height: "0.055"
+                top: "0.04"
+                left: "0.4"
+                zIndex: "10"
+                backgroundColor: "0xffffff"
+                borderRadius: "3px"
+                textAlign:
+                  y: center
+              children:
+                - type: image
+                  path: ___.img
+                  style:
+                    top: "0.017"
+                    left: "0.08"
+                    width: "0.015"
+                    height: "0.025"
+                - type: label
+                  text: ___.msg
+                  style:
+                    top: "0.018"
+                    left: "0.12"
+                    height: "0.055"
+                    fontSize: .Nfont.nf2
+                    color: "0x000000"  
+        # 邀请provider成功
+        - .BaseSuccessfulView: ""
+          msg: "successful!"
+          viewTag: success     
+
+
+
+

@@ -1,0 +1,329 @@
+PatientHistory: 
+  title: "PatientHistory"
+  init: 
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..profile.docAPI.get
+    - ..formData.patInfoEmerContactFullName: ""
+    # 拼串操作
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..profile.docResponse.doc.0.name.data.emergencyContact.firstName
+          - =..profile.docResponse.doc.0.name.data.emergencyContact.middleName
+          - =..profile.docResponse.doc.0.name.data.emergencyContact.lastName
+        dataOut: PatientHistory.formData.patInfoEmerContactFullName    
+    - =..listData.get: ""
+    - =.builtIn.array.selectOneToArr:
+        dataIn:
+          arr: =.Global.locationAll
+          key: "id"
+        dataOut: PatientHistory.formData.allLocationID
+    - ..formData.allHistoryID@: =..formData.allLocationID
+
+    - =.builtIn.array.push: 
+        dataIn: 
+          messages: =..formData.allHistoryID
+          newMessage: =.Global.currentFacility.id
+    - =.builtIn.array.push: 
+        dataIn: 
+          messages: =..formData.allHistoryID
+          newMessage: =.Global.formData.patientHistoryId          
+    - ..listData.edge.id@: =..formData.allHistoryID
+    - =..listData.edgeAPI.get: ""
+  formData:
+    patInfoEmerContactFullName:
+    allLocationID: []
+    allHistoryID: []
+  listData: 
+    WaitingInRoom:
+      edge: "" 
+    edge: 
+      ObjType: 20
+      id: 
+      xfname: (E.bvid|E.evid)&(E2.Bvid)
+      sCondition: "E2.type=40000 AND E2.subtype&0xff in (1,9) AND E.type=40000 AND E.subtype&0xff in (6,100) AND E.tage&0x100 in (256)"
+    edgeAPI: 
+      get: 
+        api: re
+        dataIn: listData.edge
+        dataOut: PatientHistory.listData.WaitingInRoom
+
+  profile:
+    docResponse: ""
+    docIn: 
+      id: .Global.formData.patientHistoryId
+      xfname: E.bvid
+      type: .DocType.PatientProfile #  type: "257"
+      obfname: "mtime"
+      ObjType: 12
+      sCondition: "E.type=10000"
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI: 
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        dataIn: profile.docIn
+        dataOut: PatientHistory.profile.docResponse
+  flag: ""
+  jwt:
+    edge:
+      .Edge: ""
+      type: 1030
+      id: .Global.formData.patientHistoryId
+      xfname: "bvid"
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: jwt.edge
+
+  avatar:
+    url: ava.png
+    showdocument: ""
+    docRes: ""
+    docAPI: 
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.formData.patientHistoryId
+        xfname: ovid
+        type: .DocType.UserAvatar
+        dataKey: avatar.docRes
+        maxcount: "1"
+        obfname: "mtime"
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          children:
+            - type: view
+              style: 
+                left: "0.05"
+                width: "0.73"
+                height: "0.2"
+                top: "0.05"
+                border:   
+                  style: "5"
+                borderRadius: "5"
+                boxShadow: "#dededf 0px 0px 10px"
+                backgroundColor: "0xffffff"
+              children: 
+                - type: label
+                  text: Profile
+                  style: 
+                    left: '0.015'
+                    top: "0.01"
+                    width: "0.12"
+                    height: "0.035"
+                    fontSize: .Nfont.nf5
+                    color: "#517086"
+                - type: image
+                  path: ava.png
+                #  work after yongjian update
+                  path=func: .builtIn.utils.prepareDocToPath
+                  dataKey: profile.docResponse.doc.0.name.data.basicInfo.avatar
+                  style: 
+                    left: "0.02"
+                    width: "0.075"
+                    top: "0.05"
+                - type: view
+                  style: 
+                    left: "0.13"
+                    width: "0.3"
+                    height: "0.15"
+                    top: "0.025"
+                    # backgroundColor: "0xffffff"
+                  children: 
+                    - .PatientHistoryText: 
+                      dataKey: profile.docResponse.doc.0.name.data.basicInfo.fullName
+                    - .PatientHistoryText: 
+                      dataKey: profile.docResponse.doc.0.name.data.basicInfo.dateOfBirth
+                      style: 
+                        top: "0.0375"
+                    - .PatientHistoryText: 
+                      dataKey: profile.docResponse.doc.0.name.data.basicInfo.phone
+                      style: 
+                        top: "0.075"
+                    - .PatientHistoryText: 
+                      dataKey: profile.docResponse.doc.0.name.data.contactInfo.email
+                      style: 
+                        top: "0.11"
+                    - .PatientHistoryText:
+                      text: Emergency Contact
+                      style:
+                        left: "0.25"
+                        color: "0x586f84"
+                    - .PatientHistoryText: 
+                      dataKey: formData.patInfoEmerContactFullName
+                      style: 
+                        top: "0.0375"
+                        left: "0.25"
+                    - .PatientHistoryText: 
+                      dataKey: profile.docResponse.doc.0.name.data.emergencyContact.relation
+                      style: 
+                        left: "0.25"
+                        top: "0.075"
+                    - .PatientHistoryText: 
+                      dataKey: profile.docResponse.doc.0.name.data.emergencyContact.phone.fullPhone
+                      style: 
+                        left: "0.25"
+                        top: "0.11"
+                - type: button
+                  text: Done
+                  onClick: 
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                  style: 
+                    left: "0.62"
+                    top: "0.05"
+                    width: "0.09" 
+                    height: "0.05" 
+                    backgroundColor: "0x005795"
+                    color: "0xffffff"
+                    fontSize: .Nfont.nf3
+                    border: 
+                      style: '5'
+                    borderRadius: "5"
+            - type: view
+              style: 
+                left: "0.05"
+                width: "0.73"
+                height: "0.6"
+                top: "0.28"
+                border:   
+                  style: "5"
+                borderRadius: "5"
+                boxShadow: "#dededf 0px 0px 10px"
+                backgroundColor: "0xffffff"
+                display: flex
+                alignItems: center
+                justifyContent: center
+              children: 
+                - type: label
+                  text: Visit History
+                  style: 
+                    left: '0.015'
+                    top: "0.02"
+                    width: "0.7"
+                    height: "0.035"
+                    fontSize: .Nfont.nf4
+                    color: "#517086"
+                - type: scrollView
+                  style: 
+                    width: "0.6"
+                    height: "0.49"
+                    marginTop: "0.02"
+                    overflow: scroll
+                  children: 
+                    - type: list
+                      contentType: listObject
+                      listObject: ..listData.WaitingInRoom.edge
+                      iteratorVar: itemObject
+                      style:
+                        width: '0.58'
+                        left: "0.01"
+                        top: "0"
+                        height: "0.49"
+                        margin: '0'
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          onClick: 
+                            - emit: 
+                                dataKey: 
+                                  var: itemObject
+                                actions: 
+                                  - .Global.formData.patientHistoryInfo.id@: $var.id
+                                  - if: 
+                                    - =.builtIn.object.has: 
+                                        dataIn: 
+                                          object: $var.name
+                                          key: "roomName"
+                                    - ..flag@: "1"
+                                    - ..flag@: "0"
+                            - actionType: evalObject
+                              object:
+                                - if: 
+                                    - =.builtIn.string.equal:
+                                        dataIn: 
+                                          string1: =..flag
+                                          string2: "1"
+                                    - goto: PatientVisitHistoryRoom
+                                    - goto: PatientVisitHistory
+                          style:
+                            width: '0.55'
+                            height: '0.15'
+                            marginTop: "0.02"
+                            left: '0.015'
+                            border:   
+                              style: "5"
+                            borderRadius: "5"
+                            boxShadow: "#dededf 0px 0px 10px"
+                          children:
+                            - type: label
+                              text=func: .builtIn.string.getFirstChar
+                              dataKey: itemObject.name.providerName
+                              style: 
+                                left: "0.02"
+                                top: "0.04"
+                                width: "0.0365"
+                                height: "0.065"
+                                backgroundColor: "0xffd25a"
+                                color: "0xffffff"
+                                fontSize: "2.4vh"
+                                border: 
+                                  style: "5"
+                                borderRadius: "50"
+                                textAlign: 
+                                  x: center
+                                  y: center
+                            - type: label
+                              dataKey: itemObject.name.visitReason
+                              style: 
+                                left: "0.08"
+                                width: "0.2"
+                                top: "0.038"
+                                height: "0.03"
+                                fontSize: .Nfont.nf4
+                            - type: label
+                              dataKey: itemObject.name.providerName
+                              style: 
+                                left: "0.08"
+                                width: "0.2"
+                                top: "0.082"
+                                height: "0.03"
+                                fontSize: .Nfont.nf3
+                            - type: label
+                              text=func: .builtIn.string.formatUnixtime_en
+                              dataKey: itemObject.stime
+                              style: 
+                                left: "0.42"
+                                width: "0.1"
+                                top: "0.038"
+                                height: "0.03"
+                                fontSize: .Nfont.nf2
+                                textAlign:  
+                                  x: right
+                            - type: label
+                              dataKey: itemObject.name.visitType
+                              style: 
+                                left: "0.42"
+                                width: "0.1"
+                                top: "0.082"
+                                height: "0.03"
+                                fontSize: .Nfont.nf2
+                                textAlign:  
+                                  x: right

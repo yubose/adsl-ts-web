@@ -1,0 +1,701 @@
+ScheduleManagementProd:
+  title: "Schedule Management"
+  pageNumber: 
+  init: #Page initialization
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+    - actionType: evalObject
+      object: .BaseDate.getDate   
+    - ..selectDate@: .BaseDate.calendarDate.todayDate    
+    # 获取staff的权限 auth
+    - =..apiRequest.author.edgeAPI.get: ""
+    - if:
+      - =.Global.formData.firstLogIn
+      - continue
+      - actionType: updateObject
+        dataKey: Global.relation.edgeReq.id
+        dataObject: []
+    - if:
+      - =.Global.formData.firstLogIn
+      - continue
+      - actionType: updateObject
+        dataKey: Global.auth
+        dataObject: ""
+    - if:
+      - =.Global.formData.firstLogIn
+      - continue
+      - .Global.auth@: =.Global.relation.edgeResponse.edge.0.name.auth
+    - .Global.formData.firstLogin@: false          
+    # 清空
+    - .Global.locationAll@: []
+    - =..apiRequest.locationList.vertexAPI.get: ""
+    # 获取facility 头像 存入Global.facilityAvatarID
+    - =..apiRequest.getAvatarID.docAPI.get: ""
+    - if: 
+      - ..apiRequest.getAvatarID.docResp.doc.0
+      - .Global.facilityAvatarID@: =..apiRequest.getAvatarID.docResp.doc.0.id
+      - continue
+    - =..apiRequest.fac_RootNotebook.edgeAPI.get: ""
+    - .Global.fac_rootNotebook@: =..apiRequest.fac_RootNotebook.edge.edge.0.id
+    # 给email 的reply的eid赋值    
+    - .Global.formData.reply.eid@: =.Global.fac_rootNotebook 
+    - ..apiRequest.locationAll.document.eid@: =..apiRequest.fac_RootNotebook.edge.edge.0.id
+    - ..formData.middleList@: =..apiRequest.locationList.list.vertex
+    - =.builtIn.object.extractArray: 
+        dataIn: 
+          obj: =..formData.middleList
+          arr: =..formDataTemp.extractData
+        dataOut: ScheduleManagementProd.apiRequest.locationAll.document.name.data.allLocation
+    - =..apiRequest.locationAll.docAPI.store: ""
+    - .Global.locationAll@: =..apiRequest.locationAll.document.name.data.allLocation
+    - .Global.formData.locationId@: =.Global.locationAll.0.id  # initial account management id
+    - =..apiRequest.patient.docAPI.get: ""
+    - ..formData.timeTable.response@: ""  #表格置空
+    - ..formData.providerSelect@: ["All Providers"]
+    - =..apiRequest.providerList.docAPI.get: ""
+    - if: 
+      - ..apiRequest.providerList.list.doc.0
+      - actionType: evalObject
+        object:
+          - =.builtIn.object.extract:
+              dataIn:
+                array: =..apiRequest.providerList.list.doc
+                field: name.data.fullName
+              dataOut: ScheduleManagementProd.formData.providerList
+          - ..formData.providerSendList@: =..formData.providerList
+          - ..formData.providerSendName@: =..formData.providerSendList.0
+          - ..formData.specialty@: =..apiRequest.providerList.list.doc.0.name.data.specialty
+          - =.builtIn.array.getIdByUserName: # get providerSendId
+              dataIn:
+                array: =..apiRequest.providerList.list.doc
+                userName: =..formData.providerSendName
+              dataOut: ScheduleManagementProd.formData.providerSendId  
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..formData.providerSendName
+                - " "
+                - "-"
+                - " "
+                - =..formData.specialty.0.specialty
+              dataOut: ScheduleManagementProd.newAppointment.edge.name.providerFullInfo
+          - =.builtIn.array.push: 
+              dataIn: 
+                messages: =..formData.providerList
+                newMessage: "All Providers"
+              dataOut: ScheduleManagementProd.formData.providerList
+          - ..formData.providerSelect@: =..formData.providerList
+          - ..formData.providerName@: "All Providers"
+          # - ..formData.providerId@: =..providerList.list.doc.0.bsig
+          # get all providers's id
+          - =.builtIn.array.selectOneToArr:
+              dataIn:
+                arr: =..apiRequest.providerList.list.doc
+                key: "bsig"
+              dataOut: ScheduleManagementProd.formData.providerIdList
+          - ..inMeeting.edge.id@: =..formData.providerIdList
+      - continue    
+  formData: #Input data here
+    middleList: []  # store all location 
+    allAppointment: [] # store  appointment's edges via inMeeting.edgeAPI.get
+    checkedInAppointment: [] # store checkedIn appointments
+    isDisplayAllAppointment: block
+    isDisplayCheckedInAppointment: none
+    appointmentLength: "0"    # 预约的长度
+    appointmentLengthLabel: "New Appointment"  # 展示的文本
+    appointment: [] # for showing appointments list (allAppointment or checkedInAppointment)
+    providerAvatarId: ""
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    extractData:    # 提取location信息的模板
+      - id
+      - name.basicInfo.medicalFacilityName
+      - name.basicInfo.phoneNumber
+      - name.basicInfo.address
+      - name.basicInfo.locationID
+    appointmentTitleNew:
+      title:  "New Request"
+      fontColor: "0x005795"
+      fontWeight: "600"
+      bdColor: "0x005795"
+    appointmentTitleCheck: 
+      title: "Checked in"
+      fontColor: "0x000000"
+      fontWeight: "500" 
+      bdColor: "0xf2f2f2"      
+    appointmentTitleData: 
+      - title:  "New Request"
+        fontColor: "0x005795"
+        fontWeight: "600"
+        bdColor: "0x005795"
+      - title: "Checked in"
+        fontColor: "0x000000"
+        fontWeight: "500" 
+        bdColor: "0xf2f2f2"
+  apiRequest: #Input data request here
+    #get 1100 or 1200
+    author:
+      response: ""
+      edge:
+        id:
+          - .Global.currentFacility.id
+          - .Global.currentUser.vertex.id
+        xfname: "evid & bvid"
+        sCondition: "type in (1200,1100)"
+        # maxcount : ""
+        obfname : "ctime"
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: apiRequest.author.edge 
+          dataOut: ScheduleManagementProd.apiRequest.author.response
+    # 获取所有的location
+    locationList: 
+      list: ""
+      vertexIn: 
+        ObjType: 4
+        id: .Global.currentFacility.id
+        xfname: "E.bvid"
+        sCondition: "E.type=1100 AND V.type=21"
+        maxcount: "100"
+        obfname: "ctime"
+        asc: true
+        _nonce: =.Global._nonce
+      vertexAPI: 
+        get: 
+          api: rv
+          dataIn: apiRequest.locationList.vertexIn
+          dataOut: ScheduleManagementProd.apiRequest.locationList.list   
+    # 获取facility头像的id 放入global里，随时调用（给provide，patient添加好友）
+    getAvatarID:   
+      docResp: 
+        doc: []
+      docIn: 
+        ObjType: 12
+        type: .DocType.BusinessLogoPicture
+        id: .Global.currentFacility.id
+        xfname: E.bvid
+        sCondition: E.type=10000
+        _nonce: =.Global._nonce
+      docAPI: 
+        get: 
+          api: rd
+          dataIn: apiRequest.getAvatarID.docIn
+          dataOut: ScheduleManagementProd.apiRequest.getAvatarID.docResp
+    # get rootNotebookId of facility
+    fac_RootNotebook:
+      edgeReq:
+        id: .Global.currentFacility.id
+        xfname: bvid
+        type: .EdgeType.RootNotebook
+      edge: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: ScheduleManagementProd.apiRequest.fac_RootNotebook.edgeReq
+          dataOut: ScheduleManagementProd.apiRequest.fac_RootNotebook.edge
+    # doc: 38401 存放所有的location的简略信息
+    locationAll:   # 把所有的location 信息，在schedule那边显示
+      document: # for store some info of location 
+        type: .DocType.LocationOfFacility
+        eid: ""
+        name: 
+          data: 
+            allLocation: []
+          # type: "application/json"
+      docAPI:
+        .DocAPI: ""
+        store: 
+          api: cd
+          dataIn: ScheduleManagementProd.apiRequest.locationAll.document
+          subtype:
+            mediaType: "application/json" 
+    # 获取所有的病人
+    patient:  
+      list: ""
+      docReq:
+          type: .DocType.PatientProfile
+          id: .Global.currentFacility.id
+          xfname: E.bvid|E.evid
+          sCondition: "E.type=10002 AND E.mtime>0"
+          maxcount: "10000"
+          _nonce: =.Global._nonce
+          ObjType: 8
+      docAPI:
+        get: 
+          api: rd
+          dataIn: ScheduleManagementProd.apiRequest.patient.docReq      
+          dataOut: ScheduleManagementProd.apiRequest.patient.list
+    # 获取所有的医生
+    providerList:
+      list: ""
+      docIn: 
+        ObjType: 12
+        type: .DocType.DoctorProfile
+        id: .Global.currentFacility.id
+        xfname: E.bvid|E.evid
+        sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+        maxcount: "10000"
+        _nonce: =.Global._nonce
+      docAPI:
+        get: 
+          api: rd
+          dataIn: apiRequest.providerList.docIn
+          dataOut: ScheduleManagementProd.apiRequest.providerList.list
+
+  style: #Input style fragment here
+
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+          children:
+            - .aitLogo:
+            - .MenuBar:        
+        - .TopBar: 
+        - .InnerBodyView:
+          children:
+            - .PageTitleLabel:
+              children: 
+                - type: label
+                  text: ..title
+                  style:
+                    fontSize: .Nfont.n5
+                    width: "0.3"
+                    fontFamily: "Roboto"  
+                - type: view
+                  style: 
+                    # left: "0.69"
+                    # top:  '0.02'
+                    width: '0.11'
+                    height: '0.04'
+                    border: 
+                      style: "3"
+                    borderColor: "0x2960a4"
+                    borderRadius: "5"
+                    boxSizing: border-box
+                    textAlign: 
+                      y: center
+                      x: center
+                  children: 
+                    - type: image
+                      path: setting.svg
+                      style:
+                        width: "0.012"
+                    - type: label
+                      text: 'Schedule Settings'
+                      onClick: 
+                        - goto: ScheduleSettings
+                      style:
+                        marginLeft: "0.005"
+                        fontSize: .Nfont.nf2
+                        fontFamily: "Roboto"
+                        color: "0x2888e6"         
+            - .ContentBar:
+              style: 
+                backgroundColor: "0xf0f0f0"
+              children:
+                # 左侧
+                - type: view
+                  style: 
+                    width: "0.22"
+                    height: "0.83"
+                    boxSizing: border-box
+                    # backgroundColor: "0xffffff"
+                  children:
+                    # 左上预约的数量
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.22"
+                        height: "0.12"
+                        backgroundColor: "0xffffff"
+                        boxSizing: border-box
+                      children:    
+                        - type: label
+                          text: "Provider Appointments"
+                          style: 
+                            left: "0"
+                            width: "0.22"
+                            height: "0.04"
+                            top: "0.02"
+                            textAlign:  
+                              x: center
+                            fontSize: .Nfont.nf5
+                            fontWeight: "500"
+                            fontFamily: "Arial"
+                        - type: label
+                          viewTag: appointmentLengthTag
+                          dataKey: formData.appointmentLength
+                          # text: 12
+                          style: 
+                            left: "0"
+                            width: "0.22"
+                            height: "0.04"
+                            top: "0.065"
+                            textAlign:  
+                              x: center
+                            fontWeight: "600"
+                            fontSize: .Nfont.nf6
+                            color: "0x30b354"
+                            fontFamily: "Arial" 
+                    # 左下
+                    - type: view
+                      style: 
+                        marginTop: "0.01"
+                        width: "0.22"
+                        height: "0.7"
+                        backgroundColor: "0xffffff"
+                        boxSizing: border-box
+                      children: 
+                        # New Request/Check in 的标题块
+                        - type: view
+                          style:
+                            width: '0.22'
+                            height: '0.08'
+                            left: '0'
+                            marginTop: "0"
+                            backgroundColor: "0xffffff"
+                          viewTag: appointmentLengthTag
+                          children: 
+                            # 标题的切换
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.appointmentTitleData
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.18'
+                                margin: '0'
+                                left: '0.02'
+                                height: "0.045"
+                                axis: horizontal
+                                display: flex
+                                alignItems: center
+                                justifyContent: space-evenly
+                                border:
+                                  style: "2"
+                                borderColor: "0xf2f2f2"
+                                borderWidth: "2"
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '0.08'
+                                    height: "0.045"
+                                    marginTop: ''
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - ..formData.appointmentTitle@: $var.title
+                                          - =.builtIn.object.setProperty:
+                                              dataIn:
+                                                obj: =..formDataTemp.appointmentTitleData
+                                                label: "title"
+                                                text: $var.title
+                                                arr: ["fontColor", "fontWeight","bdColor"]
+                                                valueArr: ["0x005795", "600","0x005795"]
+                                                errorArr: ["0x000000", "500","0xf2f2f2"]
+                                    - actionType: evalObject
+                                      object:                                                              
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formData.appointmentTitle
+                                                  string2: "New Request"
+                                            - actionType: evalObject
+                                              object:
+                                                - ..formData.appointment@: =..formData.allAppointment        
+                                                - ..formData.appointmentLengthLabel@: "New Appointment"
+                                                - ..formData.isDisplayAllAppointment@: block
+                                                - ..formData.isDisplayCheckedInAppointment@: none
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.array.filterArrayByPath:
+                                                    dataIn:
+                                                      objArr: =..formData.allAppointment
+                                                      path: tage
+                                                      compareStr: [11]
+                                                    dataOut: ScheduleManagementProd.formData.checkedInAppointment                                      
+                                                - ..formData.appointment@: =..formData.checkedInAppointment
+                                                - ..formData.appointmentLengthLabel@: "Checked in"
+                                                - ..formData.isDisplayAllAppointment@: none
+                                                - ..formData.isDisplayCheckedInAppointment@: block
+                                        - =.builtIn.array.getListLength:
+                                            dataIn:
+                                              object: =..formData.appointment
+                                            dataOut: ScheduleManagementProd.formData.appointmentLength                                        
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: appointmentLengthTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: allAppointTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: checkedInAppointTag  
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: appointmentViewTag                                                                                                                       
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.title
+                                      style:
+                                        width: "0.08"
+                                        fontSize: .Nfont.nf4
+                                        lineHeight: "4.5vh"
+                                        display: inline-block
+                                        fontFamily: "Roboto"
+                                        border:
+                                          style: "2"
+                                        borderColor: itemObject.bdColor
+                                        color: itemObject.fontColor
+                                        fontWeight: itemObject.fontWeight
+                                        textAlign:
+                                          x: center
+                            # 预约文本以及数量（New request)
+                            - type: view
+                              viewTag: allAppointTag
+                              style:
+                                marginTop: "0.01"
+                                width: "0.22"
+                                # height: "0.035"
+                                display: ..formData.isDisplayAllAppointment
+                                textAlign:
+                                  y: center
+                              children:       
+                                - type: label
+                                  dataKey: formData.appointmentLength
+                                  style:
+                                    marginLeft: "0.027"
+                                    color: '0x0063A8'
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                - type: label
+                                  text: New Appointment
+                                  style:
+                                    color: '0x0063A8'
+                                    marginLeft: "0.008"
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                            # 预约文本以及数量（check in)
+                            - type: view
+                              viewTag: checkedInAppointTag
+                              style:
+                                marginTop: "0.01"
+                                width: "0.22"
+                                # height: "0.02"
+                                display: ..formData.isDisplayCheckedInAppointment
+                              children:       
+                                - type: label
+                                  dataKey: formData.appointmentLength
+                                  style:
+                                    marginLeft: "0.027"
+                                    color: '0x0063A8'
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                - type: label
+                                  dataKey: formData.appointmentLengthLabel
+                                  style:
+                                    color: '0x0063A8'
+                                    marginLeft: "0.008"
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block   
+                        # 预约的list 
+                        - type: scrollView
+                          viewTag: appointmentViewTag
+                          style:
+                            width: "0.22"
+                            left: "0"
+                            marginTop: "0"
+                            height: "0.61"
+                            overflow: scroll
+                            backgroundColor: "0xffffff"
+                          children:
+                            - .BaseList:
+                              viewTag: appointmentTag
+                              listObject: ..formData.appointment
+                              style:
+                                width: '0.22'
+                                left: '0'
+                                height: 'auto'
+                                # top: '0.22'
+                                top: "0"
+                                margin: "0"
+                                # position: fixed
+                              children:
+                                - .BaseListItem:
+                                  style:
+                                    width: '0.2'
+                                    left: '0.01'
+                                    height: '0.13'
+                                    marginTop: "0.01"
+                                    display: inline-block
+                                    backgroundColor: '0xf4f8fa'
+                                    borderRadius: '10'
+                                    overflow: hidden
+                                  children:
+                                    - type: view
+                                      style:
+                                        width: "0.05"
+                                        height: "0.1"
+                                        # backgroundColor: "0xff000033"
+                                      children:
+                                        - type: image
+                                          path: providerDefault.svg
+                                          dataKey: itemObject.name.providerAvatarId
+                                          path=func: .builtIn.utils.prepareDocToPath
+                                          style:
+                                            left: "0.008"
+                                            top: "0.023"
+                                            width: "0.034"
+                                            height: "0.064"
+                                    - type: view
+                                      style:
+                                        left: '0.05'
+                                        width: "0.14"
+                                        height: "0.03"
+                                        top: "0.02"  
+                                      children:
+                                        - .Label1:
+                                          dataKey: itemObject.name.providerName 
+                                          style:
+                                            fontSize: .Nfont.nf4
+                                            fontWeight: "600"
+                                            color: "#143459"
+                                            textDecoration: underline
+                                            display: inline-block
+                                          onClick: 
+                                            - emit:
+                                                dataKey: 
+                                                  var: itemObject
+                                                actions:
+                                                  - .Global.formData.patientHistoryInfo.id@: $var.id 
+                                                  - if:
+                                                    - =.Global.formData.patientHistoryInfo.id
+                                                    - goto: PatientSummary
+                                                    - continue
+                                        - type: image
+                                          path:                            
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:                        
+                                                - if:
+                                                  - =.builtIn.string.equal:
+                                                      dataIn:
+                                                        string1: $var.name.visitType
+                                                        string2: Telemedicine
+                                                  - telemedicine.svg
+                                                  - officeVisit.svg
+                                          style:
+                                            marginLeft: "0.01"
+                                            width: "0.01"
+                                            top: "0.006"
+                                            display: inline-block
+                                # Reason 
+                                    - type: label
+                                      text: 
+                                      dataKey: itemObject.name.Reason
+                                      style:
+                                        left: "0.05"
+                                        top: "0.05"
+                                        fontSize: .Nfont.nf2
+                              ##     
+                                    - type: view
+                                      style:
+                                        width: "0.2"
+                                        height: "0.03"
+                                        top: "0.095"
+                                        left: "0"
+                                      children:
+                                        - type: view
+                                          style:
+                                            marginLeft: "0.005"
+                                            width: "0.06"
+                                            display: inline-block 
+                                            borderRight: "1px solid #999999"
+                                          children:
+                                            - type: image
+                                              path: schedule.svg
+                                              style:
+                                                width: '0.01'
+                                                marginLeft: "0.003"
+                                                display: inline-block 
+                                            - .Label1:
+                                              text=func: .builtIn.string.formatUnixtimeL_en
+                                              dataKey: itemObject.stime
+                                              style:
+                                                marginLeft: '0.003'
+                                                color: '#000000'
+                                                fontSize: .Nfont.nf2  
+                                                display: inline-block    
+                                        # - type: view
+                                        #   style:
+                                        #     marginLeft: "0.005"
+                                        #     width: "0.0008"
+                                        #     height: "0.025"
+                                        #     backgroundColor: "#999999"
+                                        #     display: inline-block
+
+                                        - type: view
+                                          style:
+                                            marginLeft: "0.003"
+                                            width: "0.053"
+                                            display: inline-block 
+                                            borderRight: "1px solid #999999"
+                                          children:
+                                            - type: image
+                                              path: history.svg
+                                              style:
+                                                width: '0.01'
+                                                marginLeft: "0.003"
+                                                display: inline-block 
+                                            - .Label1:
+                                              text=func: .builtIn.string.formatUnixtimeLT_en
+                                              dataKey: itemObject.stime
+                                              style:
+                                                marginLeft: '0.003'
+                                                color: '#000000'
+                                                fontSize: .Nfont.nf2  
+                                                display: inline-block    
+                                        # - type: view
+                                        #   style:
+                                        #     marginLeft: "0.005"
+                                        #     width: "0.0008"
+                                        #     height: "0.025"
+                                        #     backgroundColor: "#999999"
+                                        #     display: inline-block
+                                        - type: view
+                                          style:
+                                            marginLeft: "0.003"
+                                            width: "0.072"
+                                            display: inline-block 
+                                            # borderRight: "1px solid #999999"
+                                          children:
+                                            - type: image
+                                              path: doctor.svg
+                                              style:
+                                                width: '0.01'
+                                                marginLeft: "0.003"
+                                                display: inline-block 
+                                            - type: label
+                                              dataKey: itemObject.name.patientName
+                                              style:
+                                                marginLeft: '0.003'
+                                                width: "0.054"
+                                                color: '#000000'
+                                                fontSize: .Nfont.nf2  
+                                                display: inline-block 
+                                                overflow: hidden
+                                                textOverflow: ellipsis
+                                                whiteSpace: nowrap

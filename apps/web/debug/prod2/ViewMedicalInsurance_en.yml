@@ -1,0 +1,228 @@
+ViewMedicalInsurance:
+  title: "ViewMedicalInsurance"
+  init:
+    - .SignInCheck
+  listData:
+    - key: "Insurance Provider:"
+      value: "Aetna"
+    - key: "Policy holder name:"
+      value: "Susie Wright"
+    - key: "Group of Policy#"
+      value: "1Z9835"
+    - key: "Member ID"
+      value: "9827405124"      
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      children:
+        - type: label
+          text: Back
+          style: 
+            left: "0.08"
+            top: "0"
+            height: "0.1"
+            zIndex: '100'
+            fontSize: "1.8vh"
+            color: "0xffffff"
+            textAlign: 
+              x: left
+              y: center
+    - type: view
+      style:
+        top: '0.1'
+        width: "1"
+        height: '0.9'
+        backgroundColor: '0xebebeb'
+      children:
+        - type: veiw  
+          style:
+            width: '1'
+            height: '0.05'
+          children:
+            - type: label
+              text: "Fill out all information below:"
+              style: 
+                backgroundColor: "0xebebeb"
+                textAlign: 
+                  x: center
+                lineHeight: '4vh'
+                fontSize: '1.8vh'
+                width: '1'
+                height: '0.05'
+        - type: view
+          style:
+            top: '0.05'
+            left: '0.05'
+            width: "0.9"
+            height: "0.6"
+            backgroundColor: "0xffffff"    
+            border:
+              style: "3"
+            borderRadius: "15"  
+            boxShadow: "1px 1px 10px 1px #cecece"
+          children:
+            - type: label
+              text: "Medical Insurance"
+              style:
+                top: "0.025"
+                left: "0.05"
+                width: "auto"
+                height: "0.03"
+                fontSize: "2vh"
+                borderBottom: '2px solid #b8b8b8'
+            # - type: divider
+            #   style: 
+            #     top: "0.04"
+            #     left: "0.03"
+            #     width: "0.3"
+            #     height: "0.0001"
+            #     color: "#b8b8b8"
+            - type: list
+              contentType: listObject
+              iteratorVar: itemObject
+              listObject: ..listData
+              style:
+                marginTop: "0.07"
+                left: "0.05"
+                width: "0.8"
+                height: "0.16"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    marginTop: "0.002"
+                    left: "0"
+                    width: "0.8"
+                    height: "0.04"
+                  children:
+                    - type: label
+                      dataKey: itemObject.key
+                      style:
+                        marginTop: "0"  
+                        left: "0"
+                        # width: "0.29"
+                        fontSize: '1.8vh'
+                        height: "0.04"
+                    - type: label
+                      dataKey: itemObject.value
+                      style:
+                        marginTop: "0.002"
+                        top: "0"
+                        left: "0.5"
+                        # width: "0.29"
+                        fontSize: '1.8vh'
+                        height: "0.04"
+                        # textAlign:
+                        #   x: right   
+            - type: label
+              text: "Upload Insurance card"
+              style:
+                top: "0.23"
+                left: "0.05"
+                width: "auto"
+                height: "0.03"
+                fontSize: "2vh"     
+                borderBottom: '2px solid #b8b8b8' 
+            # - type: divider
+            #   style: 
+            #     top: "0.25"
+            #     left: "0.03"
+            #     width: "0.38"
+            #     height: "0.0001"
+            #     color: "#b8b8b8" 
+            - type: view
+              style:
+                top: '0.28'
+                width: '0.9'
+                height: '0.03'
+              children:
+                - type: label
+                  text: "Front of Insurance Card"
+                  style:
+                    textAlign: 
+                      x: center
+                    width: "1"
+                    height: "auto"  
+                    fontSize: '1.6vh'
+            - type: view
+              style: 
+                top: "0.31"
+                left: "0.15"
+                width: "0.6"
+                height: "0.073"
+                border:
+                  style: "3"
+                backgroundColor: "#d5e7f4"    
+              children: 
+                - type: label
+                  text: "Image here"
+                  style: 
+                    textAlign:
+                      x: center
+                      y: center
+                    marginTop: "0"
+                    # left: "0.028"
+                    width: "0.6"
+                    height: "0.073" 
+                    fontSize: "42"  
+                    lineHeight: '4vh'
+            - type: view
+              style:
+                top: "0.39"
+                width: '0.9'
+                height: '0.03'
+              children:
+                - type: label
+                  text: "Back of Insurance Card"
+                  style:
+                    textAlign: 
+                      x: center
+                    width: "1"
+                    height: "auto"       
+                    fontSize: '1.6vh'
+            - type: view
+              style: 
+                top: "0.42"
+                left: "0.15"
+                width: "0.6"
+                height: "0.073"
+                border:
+                  style: "3"
+                backgroundColor: "#b4d4ec"     
+              children: 
+                - type: label
+                  text: "Image here"
+                  style: 
+                    textAlign:
+                      x: center
+                      y: center
+                    top: "0"
+                    # left: "0.028"
+                    width: "0.6"
+                    height: "0.073" 
+                    fontSize: "42"  
+                    lineHeight: '4vh'
+            - type: button
+              onClick:
+                - actionType: updateObject
+                  dataKey: Global.currentMeetingDoc
+                  dataObject: []
+                - goto: AppointmentLobby
+              text: "Done"
+              style: 
+                top: "0.51"
+                left: "0.08"
+                width: "0.74"
+                height: "0.06"  
+                color: "#ffffff"  
+                fontSize: "15"
+                fontWeight: '600'
+                backgroundColor: "#2988e6" 
+                border:
+                  style: "3"
+                borderRadius: "5"                                  
+
+
+
+
+

@@ -1,0 +1,283 @@
+AssignToPage:
+  title: "Assign To"
+
+  init: #Page initialization
+    - .SignInCheck
+    - if:
+        - .Global.formData.assignInfo
+        - ..formDataTemp.assignInfo@: .Global.formData.assignInfo
+        - continue
+    - if:
+        - =.builtIn.array.hasKey:
+            dataIn:
+              object: =..formDataTemp.assignInfo
+              key: "isSelected"
+        - continue
+        - =.builtIn.object.setObjectKey:
+            dataIn:
+              objectArr: =..formDataTemp.assignInfo
+              key: "isSelected"
+              value: "No"
+
+  formData:
+
+  formDataTemp:
+    generalInfo: true
+    selectedDocList: []
+    cursorButton: "none"
+    backgroundColorButton: "0xffffff"
+    colorButton: "0x2988e6"
+    assignInfo:
+      - imgPath: aboutGreen.svg
+        title: "Aomas Mueller"
+        name: "Patient"
+        backgroundColor: "0xfeefd3"
+        color: "0xf8ae29"
+      - imgPath: aboutGreen.svg
+        title: "Lucy Picklesworth"
+        name: "Provider"
+        backgroundColor: "0xd4f0dc"
+        color: "0x2fb355"
+      - imgPath: aboutGreen.svg
+        title: "A&C Urgent Care"
+        name: "Admin"
+        backgroundColor: "0xd4f0dc"
+        color: "0x2fb355"
+  apiRequest: #Input data request here
+
+  style:
+
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+
+    - type: scrollView
+      style:
+        marginTop: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.8"
+        overflow: scroll
+      children:
+        - type: view
+          style:
+            height: "auto"
+            width: "0.9"
+            left: "0"
+            fontFamily: "Arial"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.assignInfo
+              iteratorVar: itemObject
+              style:
+                width: "1"
+                margin: "0"
+                height: "auto"
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "1"
+                    height: "0.1"
+                    left: "0"
+                    marginTop: "0"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.93"
+                        marginLeft: "0.035"
+                        border:
+                          style: "2"
+                        borderWidth: "1"
+                        borderColor: "0xe2e2e2"
+                        height: "0.1"
+                      children:
+                        - type: view
+                          style:
+                            height: "0.1"
+                            width: "0.1"
+                            display: "inline-block"
+                          children:
+                            - type: image
+                              viewTag: assignlListTag
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..formDataTemp.generalInfo
+                                              string2: $var.isSelected
+                                        - selectOn.svg
+                                        - selectOff.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formDataTemp.generalInfo
+                                                string2: $var.isSelected
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: $var
+                                                key: isSelected
+                                                value: "No"
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: $var
+                                                key: isSelected
+                                                value: true
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.array.findSelectAtl:
+                                            dataIn:
+                                              arrObject: =..formDataTemp.assignInfo
+                                              value: true
+                                              keyAtl: "isSelected"
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formDataTemp.backgroundColorButton@: "0x2988e6"
+                                            - ..formDataTemp.colorButton@: "0xffffff"
+                                            - ..formDataTemp.cursorButton@: "auto"
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formDataTemp.cursorButton@: "none"
+                                            - ..formDataTemp.backgroundColorButton@: "0xffffff"
+                                            - ..formDataTemp.colorButton@: "0x2988e6"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: buttonView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: assignlListTag
+                              style:
+                                height: "0.025"
+                                marginTop: "0.0375"
+                                left: "0"
+                        - type: image
+                          path: newConnection.svg
+                          style:
+                            height: "0.045"
+                            marginTop: "0.03"
+                            marginLeft: "0"
+                        - type: label
+                          dataKey: itemObject.title
+                          style:
+                            fontSize: .Nfont.n2
+                            fontFamily: "Arial"
+                            fontWeight: "400"
+                            height: "0.1"
+                            lineHeight: "10vh"
+                            textAlign:
+                              x: center
+                            display: "inline-block"
+                            width: "0.55"
+                        - type: label
+                          dataKey: itemObject.name
+                          style:
+                            backgroundColor: itemObject.backgroundColor
+                            color: itemObject.color
+                            fontSize: .Nfont.n6
+                            fontFamily: "Arial"
+                            fontWeight: "400"
+                            height: "0.025"
+                            marginTop: "0.0375"
+                            lineHeight: "2.5vh"
+                            textAlign:
+                              x: center
+                            borderRadius: "3"
+                            display: "inline-block"
+                            width: "0.15"
+
+    - type: view
+      style:
+        width: "0.9"
+        marginLeft: "0.05"
+        height: "auto"
+      children:
+        - type: view
+          viewTag: buttonView
+          style:
+            width: "0.9"
+            height: "0.05"
+            marginTop: "0.025"
+            marginLeft: "0"
+            pointerEvents: =..formDataTemp.cursorButton
+          children:
+            - type: button
+              text: "Confirm"
+              style:
+                width: "0.9"
+                height: "0.05"
+                color: =..formDataTemp.colorButton
+                fontSize: .Nfont.n2
+                textAlign:
+                  x: center
+                lineHeight: "5vh"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                backgroundColor: ..formDataTemp.backgroundColorButton
+                borderColor: "0x65a9ee"
+                borderRadius: "5"
+          onClick:
+            - .Global.formData.assignInfo@: ..formDataTemp.assignInfo
+            - actionType: popUp
+              popUpView: checkQuest
+    - .simplePopup:
+      viewTag: checkQuest
+      children:
+        - .simplePopupView:
+          style:
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: "Please confirm whether to send?"
+              style:
+                marginTop: "0.04"
+                marginLeft: "0.03"
+                width: "0.64"
+                height: "auto"
+                color: "0x4b4b4b"
+                fontSize: .Nfont.h2
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                marginTop: "0.04"
+                height: "0.001"
+                width: "0.72"
+                backgroundColor: "0x8f8f90"
+            - type: view
+              style:
+                height: "0.06"
+                width: "0.72"
+              children:
+                - .simplePopupSplit1:
+                  style:
+                    top: "0"
+                    height: "0.06"
+                - .simplePopupLeftButton:
+                  text: "NO"
+                  style:
+                    top: "0.01"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: checkQuest
+                - .simplePopupRightButton:
+                  text: "Yes"
+                  style:
+                    top: "0.01"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: checkQuest
+                    - goto: PulmonaryFunctionReport

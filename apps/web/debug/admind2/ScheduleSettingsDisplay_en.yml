@@ -1,0 +1,858 @@
+ScheduleSettingsDisplay: #xd page number: 65
+  pageNumber: "380"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+    - =..getVertexType.vertexAPI.get: ""
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.LoopToGenerate:
+            dataIn:
+              span: =..newAppointment.edge.name.setting.bookingTimeSpan
+            dataOut: ScheduleSettingsDisplay.scheduleSettingsTemp.TimeSpan
+
+    - actionType: evalObject
+      object:
+        - if:
+          - =.Global.currentSchedule.id
+          - ..newAppointment.edge@: =.Global.currentSchedule
+          - ..newAppointment.edge@: =..newBackup
+        - if:
+          - =.Global.currentSchedule.id
+          - =.builtIn.array.transformNull:
+              dataIn:
+                dayObject: =..newAppointment.edge.name.setting.day
+          - continue
+        - ..newAppointment.edge.id@: ""
+        - if:
+          - =.Global.currentSchedule.id
+          - =.builtIn.date.transformSelectWeek:
+              dataIn:
+                object: =.Global.currentSchedule.name.setting.day
+              dataOut: ScheduleSettingsDisplay.formData.res
+          - continue
+        - if:
+          - =.ScheduleSettingsDisplay.formData.res.addWeek.0
+          - ..addWeek@: =.ScheduleSettingsDisplay.formData.res.addWeek
+          - continue
+        - if:
+          - =.ScheduleSettingsDisplay.formData.res.selectWeek.0
+          - ..scheduleSettingsTemp.weekDaySelect@: =.ScheduleSettingsDisplay.formData.res.selectWeek
+          - continue
+    - ..newAppointment.edge.name.visitType@: =.Global.formData.scheduleType
+    - ..newAppointment.edge.name.setting.Address@: =.Global.formData.scheduleAddress
+    - if:  # 判断是什么类型，并根据类型决定预约的edge的bvid
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..newAppointment.edge.name.visitType
+            string2: "Telemedicine"
+      - ..newAppointment.edge.bvid@: =.Global.currentFacility.id 
+      - ..newAppointment.edge.bvid@: =.Global.formData.scheduleLocationId
+    - if:  # 判断是什么类型，并根据类型决定预约的edge的bvid
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..getVertexType.vertexResp.vertex.0.type
+            string2: 1
+      - continue
+      - ..newAppointment.edge.bvid@: =.Global.formData.scheduleLocationId
+    - ..newAppointment.edge.name.setting.startDate@: =.BaseDate.calendarDate.todayDate
+    - if:  # 判断是什么类型，并根据类型决定是否可编辑地址
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..newAppointment.edge.name.visitType
+            string2: "Telemedicine"
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100 
+    - if:  # 判断是什么类型，并根据类型决定预约的edge的bvid
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..getVertexType.vertexResp.vertex.0.type
+            string2: 1
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100 
+    # 显示信息（provider的名字或者roomName)
+    - if: 
+      - .Global.acceptInfo.name.data.roomName
+      - ..formData.appointmentName@: =.Global.acceptInfo.name.data.roomName
+      - ..formData.appointmentName@: =.Global.acceptInfo.name.data.fullName
+    - actionType: evalObject
+      object:
+        .ScheduleSettingsDisplay.newAppointment.edge.name.setting.timezoneOffsetInMinute@:
+          =.builtIn.date.getTimezoneOffset: ""
+  viewPort: top
+  # WeekData: 
+  formData:
+    start: ""
+    end: ""
+    flag: ""
+    appointmentName: ""  
+  getVertexType:  # judge the type of newAppointment's evid  
+    vertexResp: ""
+    vertex: 
+      id: .Global.acceptInfo.bsig
+    vertexAPI: 
+      get: 
+        api: rv
+        dataIn: getVertexType.vertex
+        dataOut: ScheduleSettingsDisplay.getVertexType.vertexResp
+  newAppointment:
+    response:
+    edge:
+      .Edge: ""
+      id: ""
+      subtype: .Global.setSchedule.scheduleTypeNumber #   0x10003 3<<16 + 1  3*65536 +1  0x30000|1 196609   online ,  +2 in office  0x20000|1    2<<16 + 1  131073,  0x10000|1 1<<16+1 65537
+      type: 40000
+      # bvid: .Global.currentFacility.id 
+      bvid: ""  
+      evid: .Global.acceptInfo.bsig
+      name:
+        roomName: ""
+        visitType: ""
+        setting:
+          day:
+            -
+            -
+            -
+            -
+            -
+            -
+            -
+          forwardRepeatWeeks: '10'
+          blockDays: []
+          governmentHolidays: ''
+          businessHolidays: ''
+          # advanceBookingLimit: '1'
+          bookingTimeSpan: '30'
+          timeSlotBackColor: "#ffffff"
+          timeSlotColor: "#000000"
+          timezoneOffsetInMinute: "" 
+          startDate: ""
+          endDate: ""  
+          Address: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: newAppointment.edge
+        dataOut: newAppointment.response
+  AvailableTime: 
+    timeStart: "" 
+    timeEnd: "00:00AM" 
+    timeResult: ""
+  addWeek: []
+
+  scheduleSettingsTemp:
+    weekdayTemp:
+      - key: Su
+        index: 0
+        AvailableTime: 
+          timeStart: "00:00AM"
+          timeEnd: "00:00AM"
+      - key: M
+        index: 1
+        AvailableTime: 
+          timeStart: "00:00AM"
+          timeEnd: "00:00AM"
+      - key: T
+        index: 2
+        AvailableTime: 
+          timeStart: "00:00AM"
+          timeEnd: "00:00AM"
+      - key: W
+        index: 3
+        AvailableTime: 
+          timeStart: "00:00AM"
+          timeEnd: "00:00AM"
+      - key: Th
+        index: 4
+        AvailableTime: 
+          timeStart: "00:00AM"
+          timeEnd: "00:00AM"
+      - key: F
+        index: 5
+        AvailableTime: 
+          timeStart: "00:00AM"
+          timeEnd: "00:00AM"
+      - key: Sa
+        index: 6
+        AvailableTime: 
+          timeStart: "00:00AM"
+          timeEnd: "00:00AM"
+    weekDaySelect:
+      - key: M
+        index: 1
+      - key: T
+        index: 2
+      - key: W
+        index: 3
+    TimeSpan:  
+      - 00:00
+      - 12:00
+  date:
+    - day: Sunday
+    - day: Monday
+    - day: Tuesday
+    - day: Wednesday
+    - day: Thursday
+    - day: Friday
+    - day: Saturday
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          children:
+            - .ContentView:
+              style:
+                height: "0.85"
+                top: "0.05"
+              children:
+                - type: view
+                  style:
+                    width: "0.78"
+                    height: "0.2"
+                    top: "0"
+                    left: "0"
+                    border: 
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "#cfcfcf"
+                  children:
+                    # - type: image
+                    #   path: ava.png
+                    #   path=func: .builtIn.utils.prepareDocToPath
+                    #   dataKey: Global.acceptInfo.name.data.avatar
+                    #   style:
+                    #     top: "0.05"
+                    #     left: "0.045"
+                    #     width: "0.06"
+                    - type: label
+                      dataKey: formData.appointmentName
+                      style:
+                        top: "0.07"
+                        left: "0.045"
+                        fontSize: .Nfont.nf4
+                        fontFamily: Poppins
+                        color: "#646d82"
+                    - type: label
+                      dataKey: newAppointment.edge.name.visitType
+                      style:
+                        top: "0.11"
+                        left: "0.045"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                        color: "#a6b1c2"   
+                    - type: label
+                      text: Availability Settings
+                      style:
+                        top: "0.13"
+                        left: "0.3"
+                        fontSize: .Nfont.nf4
+                        fontFamily: sans-serif
+                        color: "#000000"  
+                    - type: label
+                      text: Cancel
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                      style:
+                        top: "0.03"
+                        left: "0.72"
+                        fontSize: .Nfont.nf3
+                        color: "#1492e6"                          
+                - type: view
+                  style:
+                    width: "0.78"
+                    height: "0.645"
+                    top: "0.2"
+                    left: "0"
+                    border: 
+                      style: "2"
+                    borderColor: "#cfcfcf"
+                  children:
+                    - type: view
+                      style:
+                        top: "0.04"
+                        left: "0.05"
+                        width: "0.7"
+                        height: "0.1"
+                        # backgroundColor: "#8dd35f"
+                      children:
+                        - type: view
+                          style:
+                            left: "0"
+                            width: "0.21"
+                            height: "0.1"
+                            # backgroundColor: "#fccb43"
+                          children: 
+                            - type: label
+                              text: "Appointment Type"
+                              style:
+                                left: "0"
+                                width: "0.21"
+                                height: "0.04"
+                                fontSize: "15"
+                                # fontWeight: "300"
+                            - type: label
+                              dataKey: newAppointment.edge.name.visitType
+                              # options:
+                              #   .appointmentType
+                              onChange:
+                                - actionType: evalObject
+                                  object:
+                                    
+                                    - if: 
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: Telemedicine
+                                      - ..newAppointment.edge.subtype@: 196611
+                                      - continue
+                                    - if: 
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: Office Visit
+                                      - ..newAppointment.edge.subtype@: 131075
+                                      - continue
+                                    - if: 
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: Covid19Test
+                                      - ..newAppointment.edge.subtype@: 655363
+                                      - continue
+                                    - if: 
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: Covid19Vaccine
+                                      - ..newAppointment.edge.subtype@: 393219
+                                      - continue
+                                    - if: 
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: FluShot
+                                      - ..newAppointment.edge.subtype@: 786435
+                                      - continue
+                              style:
+                                top: "0.04"
+                                left: "0"
+                                width: "0.21"
+                                height: "0.04"
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "#eaeaea"
+                                boxSizing: border-box
+                                textIndent: 1em
+                                textAlign: 
+                                  y: center
+                        - type: view
+                          contentType: messageHidden
+                          style:
+                            left: "0.25"
+                            width: "0.25"
+                            height: "0.1"
+                            top: "0"
+                            isHidden: "true"
+                          children: 
+                            - type: label
+                              text: "Address location"
+                              style:
+                                left: "0"
+                                width: "0.25"
+                                height: "0.04"
+                                fontSize: "15"
+                            - type: label
+                              dataKey: newAppointment.edge.name.setting.Address
+                              # options:
+                              #   .location
+                              style:
+                                top: "0.04"
+                                left: "0"
+                                width: "0.25"
+                                fontSize: "15"
+                                height: "0.04"
+                                textIndent: 1em
+                                borderColor: "#eaeaea"
+                                border: 
+                                  style: "3"
+                                textAlign: 
+                                  y: center
+                    - type: label
+                      text: "Select the available days that patient can be scheduled"
+                      style:
+                        top: "0.17"
+                        left: "0.05"
+                        fontSize: .Nfont.nf3
+                  
+                    - type: view
+                      viewTag: AvailableTimeTag
+                      style:
+                        top: "0.22"
+                        left: "0.05"
+                        width: "0.25"
+                        height: "0.407"
+                        border:
+                          style: "3"
+                        borderColor: "#d0d9df"
+                      children:
+                        - type: view
+                          style:
+                            top: "0"
+                            left: "0"
+                            width: "0.25"
+                            height: "0.05"
+                            backgroundColor: "#004779"
+                          children:
+                            - type: label
+                              text: Availability  Setting
+                              style:
+                                top: "0"
+                                left: "0.02"
+                                height: "0.05"
+                                textAlign: 
+                                  y: center
+                                fontFamily: Poppins 
+                                fontSize: .Nfont.nf3
+                                color: "0xFFFFFF"
+                                
+                        - .BaseList:
+                          listObject: ..scheduleSettingsTemp.weekdayTemp
+                          style:
+                            top: "0.05"
+                            width: "0.25"
+                            margin: "0"
+                          children:
+                            - .BaseListItem:
+                              style:
+                                width: "0.25"
+                                height: "0.05"
+                                border: 
+                                  style: "2"
+                                borderWidth: "1"
+                                borderColor: "#d0d9df"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.key
+                                  style:
+                                    top: "0.015"
+                                    left: "0.025"
+                                    fontFamily: Poppins 
+                                    fontSize: "14"
+                                - type: select
+                                  dataKey: AvailableTime.timeStart
+                                  options:
+                                    ..scheduleSettingsTemp.TimeSpan
+                                  style: 
+                                    top: "0.01"
+                                    width: "0.05"
+                                    height: "0.03"
+                                    fontSize: "15"
+                                    left: "0.07"
+                                    boxSizing: border-box
+                                    borderColor: "#d0d9df" 
+                                - type: select
+                                  dataKey: AvailableTime.timeEnd
+                                  options:
+                                    ..scheduleSettingsTemp.TimeSpan
+                                  style: 
+                                    top: "0.01"
+                                    width: "0.05"
+                                    height: "0.03"
+                                    left: "0.13"
+                                    fontSize: "15"
+                                    boxSizing: border-box
+                                    borderColor: "#d0d9df"   
+                                - type: label
+                                  text: +
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        .ScheduleSettingsDisplay.WeekData@: ""
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - ..formData.start@: $var.AvailableTime.timeStart
+                                          - ..formData.end@: $var.AvailableTime.timeEnd
+                                    - actionType: evalObject
+                                      object: 
+                                        - =.builtIn.date.DateCompare:
+                                            dataIn:
+                                              startTime: =..formData.start
+                                              endTime: =..formData.end
+                                            dataOut: ScheduleSettingsDisplay.formData.flag
+                                    - actionType: evalObject
+                                      object: 
+                                        - if:
+                                          - =.builtIn.date.DateCompare:
+                                              dataIn:
+                                                startTime: =..formData.start
+                                                endTime: =..formData.end
+                                          - continue
+                                          - actionType: popUp
+                                            popUpView: timeErrorView
+                                        - ..formData.start@: ""
+                                        - ..formData.end@: ""
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - if:
+                                            - ..formData.flag
+                                            - =.builtIn.string.concat:
+                                                dataIn:
+                                                  - $var.AvailableTime.timeStart 
+                                                  - "-"
+                                                  - $var.AvailableTime.timeEnd
+                                                dataOut: ScheduleSettingsDisplay.AvailableTime.timeResult
+                                            - continue
+                                          - if:
+                                            - ..formData.flag
+                                            - =.builtIn.array.addByIndex:
+                                                dataIn:
+                                                  object: =..newAppointment.edge.name.setting.day
+                                                  value: =..AvailableTime.timeResult
+                                                  index: $var.index
+                                            - continue
+                                          - if:
+                                            - ..formData.flag
+                                            - =.builtIn.array.AddWeek:
+                                                dataIn:
+                                                  object: =..addWeek
+                                                  duration: =.ScheduleSettingsDisplay.AvailableTime.timeResult
+                                                  Address: ""
+                                                  index: $var.index
+                                                  key: $var.key
+                                            - continue
+                                    - actionType: evalObject
+                                      object: 
+                                        - if:
+                                          - ..formData.flag
+                                          - actionType: evalObject
+                                            object:     
+                                              - =.builtIn.date.TransformWeekDate:
+                                                  dataIn:
+                                                    object: =..addWeek
+                                                  dataOut: ScheduleSettingsDisplay.WeekData
+                                              - =.builtIn.array.SortBy:
+                                                  dataIn:
+                                                    object: =..addWeek 
+                                                    iterate: "index"
+                                                    orders: "asc"
+                                                  dataOut: ScheduleSettingsDisplay.addWeek
+                                          - continue
+                                    - actionType: evalObject
+                                      object:
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: timeSlot
+                                  style: 
+                                    top: "0"
+                                    left: "0.22"
+                                    height: "0.05"
+                                    fontSize: "2.8vh"
+                                    color: "0x004779"
+                                    textAlign: 
+                                      y: center
+                    - type: view
+                      # viewTag: AvailableTimeTag
+                      style:
+                        top: "0.22"
+                        left: "0.35"
+                        width: "0.25"
+                        height: "auto"
+                      children:
+                        - type: view
+                          style:
+                            top: "0"
+                            left: "0"
+                            width: "0.25"
+                            height: "0.05"
+                            backgroundColor: "#004779"
+                          children:
+                            - type: label
+                              text: Availability
+                              style:
+                                top: "0"
+                                left: "0.02"
+                                fontFamily: Poppins 
+                                fontSize: .Nfont.nf3
+                                height: "0.05"
+                                color: "0xFFFFFF"
+                                textAlign: 
+                                  y: center
+                        - type: scrollView
+                          style:
+                            top: "0.05"
+                            width: "0.25"
+                            height: "0.35"
+                            left: "0"
+                            overflow: scroll
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: ..addWeek
+                              iteratorVar: itemObject
+                              viewTag: timeSlot
+                              style:
+                                top: "0"
+                                width: "0.25"
+                                height: "auto"
+                                left: "0"
+                                margin: "0"
+                                zIndex: "10000"
+                                border:
+                                  style: "3"
+                                borderColor: "#d0d9df"
+                                boxSizing: border-box
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    height: "0.05"
+                                    width: "0.25"
+                                    left: "0"
+                                    border: 
+                                      style: "2"
+                                    borderWidth: "1"
+                                    borderColor: "#d0d9df"
+                                  # viewTag: selectWeek
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.key
+                                      style:
+                                        width: "0"
+                                        left: "0.02"
+                                        fontSize: .Nfont.nf3
+                                        top: "0"
+                                        height: "0.05"
+                                        textAlign: 
+                                          y: center
+                                          
+                                    - type: label
+                                      dataKey: itemObject.duration
+                                      style:
+                                        width: "0.1"
+                                        left: "0.1"
+                                        fontSize: .Nfont.nf3
+                                        top: "0"
+                                        height: "0.05"
+                                        textAlign: 
+                                          y: center
+                                    - type: image
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - =.builtIn.array.removeWeekByIndexs:
+                                                  dataIn:
+                                                    object1: =..addWeek
+                                                    object2: =..newAppointment.edge.name.setting.day
+                                                    index: $var.index
+                                                    duration: $var.duration
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: timeSlot
+                                      path: delete.svg
+                                      style:
+                                        left: "0.2"
+                                        top: "0.015"
+                                        height: "0.02"
+                    - type: view
+                      style:
+                        top: "0.2"
+                        left: "0.6"
+                        width: "0.25"
+                        height: "0.25"
+                        # backgroundColor: "#8dd35f"
+                      children:
+                        - type: view
+                          style:
+                            top: "0"
+                            left: "0"
+                            width: "0.15"
+                            height: "0.2"
+                            # backgroundColor: "#ffe680"
+                          viewTag: selectStartAndEndTag
+                          children:
+                            - type: label
+                              text: Start Date
+                              style:
+                                top: "0"
+                                left: "0.05"
+                                width: "0.05"
+                                fontSize: "15"  
+                            - type: textField
+                              placeholder: YYYY-MM-DD
+                              dataKey: newAppointment.edge.name.setting.startDate
+                              onClick:
+                                - actionType: popUp
+                                  popUpView: startDateTag
+                              style:
+                                top: "0.03"
+                                left: "0.05"
+                                width: "0.1"
+                                height: "0.03"
+                                fontSize: "15"    
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderRadius: "3"
+                            - type: label
+                              text: Repeat weeks
+                              style:
+                                top: "0.09"
+                                left: "0.05"
+                                width: "0.12"
+                                fontSize: "15"  
+                            - type: textField
+                              # placeholder: YYYY-MM-DD
+                              dataKey: newAppointment.edge.name.setting.forwardRepeatWeeks
+                              style:
+                                top: "0.12"
+                                left: "0.05"
+                                width: "0.1"
+                                height: "0.03"
+                                fontSize: "15"    
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderRadius: "3"
+                            - .AddButton:
+                              text: Update Availability
+                              onClick:
+                                - actionType: evalObject
+                                  object: 
+                                    - if:  # 判断是什么类型，并根据类型决定预约的edge的bvid
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: "Telemedicine"
+                                      - .Global.jwt.edge.bvid@: =.Global.currentFacility.id 
+                                      - .Global.jwt.edge.bvid@: =.Global.formData.scheduleLocationId
+                                    - if:  # 判断是什么类型，并根据类型决定预约的edge的bvid
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..getVertexType.vertexResp.vertex.0.type
+                                            string2: 1
+                                      - continue
+                                      - .Global.jwt.edge.bvid@: =.Global.formData.scheduleLocationId
+                                    - =.Global.jwt.edgeAPI.store: ""
+                                    - =.ScheduleSettingsDisplay.newAppointment.edgeAPI.store: ""
+                                    - if:  # 判断是什么类型，并根据类型决定预约的edge的bvid
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..getVertexType.vertexResp.vertex.0.type
+                                            string2: 1
+                                      - =.builtIn.search.updateEsData:
+                                          dataIn:
+                                            id: =..newAppointment.edge.evid
+                                            type: '40000'
+                                            bvid: =..newAppointment.edge.bvid
+                                          dataOut: ScheduleSettingsDisplay.res
+                                      - =.builtIn.search.updateEsData:
+                                          dataIn:
+                                            id: =..newAppointment.edge.evid
+                                            type: '655363'
+                                          dataOut: ScheduleSettingsDisplay.res
+                                      - if: 
+                                        - =..res._id
+                                        - continue
+                                        - actionType: popUp
+                                          popUpView: updateFailTag
+                                          wait: true
+                                    # - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+                                    # - =.Global.jwt.edgeAPI.store: ""
+                                - actionType: popUp
+                                  popUpView: setting
+                                # - goto: SchduleSetting
+                                # - actionType: builtIn
+                                #   funcName: goBack
+                                #   reload: true
+                              style:
+                                top: "0.2"
+                                left: "0.05"
+                                width: "0.1"
+                                height: "0.042"
+                                fontSize: .Nfont.nf2
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "#004779"
+                                borderRadius: "5"
+        - .BaseCheckView: 
+          message: "Please select or change appropriate start & end time"
+          viewTag: timeErrorView
+        - .BaseSuccessfulView:
+          viewTag: setting
+          msg: "setting successfully"
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: __.viewTag          
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+        - type: popUp
+          viewTag: startDateTag
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1" 
+            backgroundColor: "0x00000033"
+            zIndex: "1000000"
+          children:
+            - .BaseDate.calendar:
+              children:
+                - .BaseDate.calendarTitle:
+                - .BaseDate.calendarCancel:
+                - .BaseDate.calendarHeader:
+                  children:
+                    - .BaseDate.newMonthView:
+                    - .BaseDate.newYearView:
+                - .BaseDate.weekView:
+                - .BaseDate.dayView:
+                - .BaseDate.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..newAppointment.edge.name.setting.startDate@: =.BaseDate.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: selectStartAndEndTag
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+                - .BaseDate.cancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+        - .BaseWarningView:
+          viewTag: updateFailTag
+          msg2: Please update availability again.                      

@@ -1,0 +1,664 @@
+Cov19TestNewPatPreviewPage3:
+  viewPort: top
+  title: Cov19TestNewPatPreviewPage3
+  init: 
+  experienceSelect: 
+    - key: fever
+      value: Fever
+    - key: muscieAches
+      value: Muscie aches
+    - key: nausea
+      value: Nausea and vomiting
+    - key: cough
+      value: Cough
+    - key: diarrhea
+      value: Diarrhea
+    - key: shortBreath
+      value: Shortness of breath
+    - key: soreThroat
+      value: Sore throat
+    - key: headache
+      value: Headache
+    - key: tiredness
+      value: Tiredness,Fatigue
+    
+    # - key: other
+    #   value: "Other:"
+    # - key: none
+    #   value: None
+  selectYesOrNo:
+    problem1:
+      - key: problem1
+        value: "Yes"
+      - key: problem1
+        value: "No"
+    problem2:
+      - key: problem2
+        value: "Yes"
+      - key: problem2
+        value: "No"
+    problem3:
+      - key: problem3
+        value: "Yes"
+      - key: problem3
+        value: "No"
+    problem4:
+      - key: problem4
+        value: "Yes"
+      - key: problem4
+        value: "No"
+    problem5:
+      - key: problem5
+        value: "Yes"
+      - key: problem5
+        value: "No" 
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: "auto"
+        margin: "auto"
+      children: 
+        - type: view
+          style: 
+            position: fixed
+            height: 6vw
+            width: "100%"
+            zIndex: 100
+            right: 0
+          children: 
+            - type: view
+              style:
+                width: 89.8vw
+                height: "6vw"
+                marginTop: '0'
+                color: "#143459"
+                margin: 'auto'
+                backgroundColor: "0xffffff"
+                boxShadow: "0px 20px 20px -20px #5e5e5e"
+                display: flex
+                flexDirection: row
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    height:  "6vw"
+                    width: 20vw
+                    display: flex
+                    flexDirection: row
+                  children:
+                    - type: image
+                      path: aitmedLogo3.png
+                      style:
+                        width: '3.5vw'
+                        marginTop: '1vw'
+                        marginLeft: 5vw
+                    - type: label
+                      text: AiTmed   
+                      style:
+                        width: "15vw"
+                        height: "2.5vw"
+                        marginLeft: "1vw"
+                        marginTop: "2vw"
+                        fontFamily: "Arial"
+                        fontSize: "1.5vw"
+                        fontWeight: 650
+                        textAlign: 
+                          y: center
+
+                - type: view
+                  style: 
+                    marginLeft: 30vw
+                    height: 6vw
+                    width: 39.8vw
+                    display: flex
+                    flexDirection: row
+                    justifyContent: center
+                  children:
+                    - type: view
+                      style: 
+                        height: 6vw
+                        width: 14vw
+                        marginLeft: 11vw  
+                        justifyContent: flex-start
+                      children:
+                        - type: popUp
+                          viewTag: redict 
+                          style:
+                            width: 16.9vw
+                            height: 9vw
+                            marginTop: "-1vw"
+                            zIndex: 1000
+                            marginLeft: 
+                            backgroundColor: "0xffffff"
+                            border:
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "#E1E1E4"
+                            display: flex
+                            flexDirection: column
+                            alignItems: center
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1    
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "COVID-19 Testing Consent-New Patient"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "3/6"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: scrollView
+              style:
+                width: 89.8vw
+                height: 39vw
+                marginTop: 0.5vw
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - type: view
+                      style:
+                        width: 40vw
+                        backgroundColor: "#ffffff"
+                        marginTop: 0.1vw
+                        justifyContent: flex-start
+                      children:
+                        - .NewFirstTitle:
+                          text: Symptom Profile
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h1
+                            textAlign: 
+                                x: center
+                                y: center
+                        - .VQSecondTitle:
+                          text: "COVID-19 screening and/or diagnostic testing, authorized by the Food and Drug Administration under an Emergency Use Authorization (EUA), will be used today. This test is meant for use in individuals with signs and/or symptoms compatible with COVID-19."
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                            fontSize: .Nfont.h0_1
+                        - .VQSecondTitle:
+                          text: "Please mark the symptoms you are currently experiencing (if any):"
+                          style:
+                            width: 40vw
+                            marginTop: 1vw 
+                            fontSize: .Nfont.h0_1
+                            fontWeight: 550
+                        - .ViewColumn:
+                          style:
+                            marginTop: 1vw
+                            width: "40vw"
+                            fontSize: .Nfont.h0_1
+                          children:
+                            - type: list
+                              viewTag: experienceSelectTag
+                              contentType: listObject
+                              listObject: ..experienceSelect
+                              iteratorVar: itemObject
+                              style:
+                                width: "40vw"
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    float: left
+                                    width: 13vw
+                                    height: 1vw
+                                    marginTop: 0.8vw
+                                    marginLeft: 0.3vw
+                                  children:
+                                    - type: image
+                                      path: 
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:                        
+                                            - if:
+                                              - =.builtIn.array.has:
+                                                  dataIn:
+                                                    object: =..formData.symptomProfile.experience
+                                                    value: $var.key
+                                              - selectOnblue.svg
+                                              - selectBlack.svg
+                                      
+                                      style:
+                                        height: 1vw
+                                        float: left
+                                    - .VQSecondTitle:
+                                      dataKey: itemObject.value
+                                      style:
+                                        marginLeft: 0.5vw
+                                        float: left
+                                        fontSize: .Nfont.h0_1
+                                        
+                            - type: view
+                              style:
+                                width: "20vw"
+                              children:
+                                - .ViewRow:
+                                  style: 
+                                    float: left
+                                    width: 10vw
+                                    height: 1vw
+                                    marginTop: 0.8vw
+                                    marginLeft: 0.3vw
+                                    justifyContent: flex-start
+                                  children:
+                                    - type: image
+                                      viewTag: imageOfNone
+                                      style:
+                                        width: "1vw"
+                                        height: "1vw"
+                                      path: 
+                                        emit:
+                                          actions:                        
+                                            - if:
+                                              - =..formDataTemp.NoneExperience
+                                              - selectOnblue.svg
+                                              - selectBlack.svg
+                                      
+                                    - .VQSecondTitle:
+                                      text: "None"
+                                      style:
+                                        marginLeft: 0.5vw
+                                        float: left
+                                - .ViewRow:
+                                  style: 
+                                    float: left
+                                    width: 10vw
+                                    height: 1vw
+                                    marginTop: 0.8vw
+                                    marginLeft: 0.3vw
+                                    justifyContent: flex-start
+                                  children:
+                                    - type: image
+                                      viewTag: imageOfOther
+                                      style:
+                                        width: "1vw"
+                                        height: "1vw"
+                                      path: 
+                                        emit:
+                                          # dataKey:
+                                          #   var: ..formDataTemp.hasOther
+                                          actions:                        
+                                            - if:
+                                              - =..formDataTemp.hasOther
+                                              - selectOnblue.svg
+                                              - selectBlack.svg
+                                      
+                                    - .VQSecondTitle:
+                                      text: "Other"
+                                      style:
+                                        marginLeft: 0.5vw
+                                        float: left
+                                
+                            
+                        - .VQTextView:
+                          viewTag: textViewOfOther
+                          isEditable: "false" 
+                          dataKey: formData.symptomProfile.remark
+                          style:
+                            width: 40vw
+                            height: 4vw
+                            display: ..formData.symptomProfile.showOther
+
+                        - type: view
+                          style:
+                            width: 40vw
+                            marginTop: 2vw
+                          children: 
+                            - .VQSecondTitle:
+                              text: "Do you live in a group home, assisted living center or other facility with more than 3 other people older than 60 years old?"
+                              style:
+                                fontSize: .Nfont.h0_1
+                            - type: view
+                              style: 
+                                width: 40vw
+                                height: 1vw
+                                marginTop: 0.7vw
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..selectYesOrNo.problem1
+                                  iteratorVar: itemObject
+                                  viewTag: problem1Tag
+                                  style:
+                                    height: 1vw
+                                    axis: horizontal
+                                    width: 16vw
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: space-between
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: 8vw
+                                        height: 1vw
+                                        display: flex
+                                        flexDirection: row
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: 0.8vw
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem1
+                                                          string2: $var.value
+                                                    - blue.svg
+                                                    - black.svg
+                                          
+                                        - .VQSecondTitle:
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: 0.5vw
+                                            float: left
+                                            fontSize: .Nfont.h0_1
+                                            lineHeight: 1vw
+                        - type: view
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .VQSecondTitle:
+                              text: "Do you work in a hospital, long-term care facility or assisted living facility?"
+                              style:
+                                fontSize: .Nfont.h0_1
+                            - type: view
+                              style: 
+                                width: 40vw
+                                height: 1vw
+                                marginTop: 0.7vw
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..selectYesOrNo.problem2
+                                  iteratorVar: itemObject
+                                  viewTag: problem2Tag
+                                  style:
+                                    height: 1vw
+                                    axis: horizontal
+                                    width: 16vw
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: space-between
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: 8vw
+                                        height: 1vw
+                                        display: flex
+                                        flexDirection: row
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: 0.8vw
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem2
+                                                          string2: $var.value
+                                                    - blue.svg
+                                                    - black.svg
+                                          
+                                        - .VQSecondTitle:
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: 0.5vw
+                                            float: left
+                                            fontSize: .Nfont.h0_1
+                                            lineHeight: 1vw
+                        - type: view
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .VQSecondTitle:
+                              text: "Have you traveled anywhere outside of California in the past 1 month?"
+                              style:
+                                fontSize: .Nfont.h0_1
+                            - type: view
+                              style: 
+                                width: 40vw
+                                height: 1vw
+                                marginTop: 0.7vw
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..selectYesOrNo.problem3
+                                  iteratorVar: itemObject
+                                  viewTag: problem3Tag
+                                  style:
+                                    height: 1vw
+                                    axis: horizontal
+                                    width: 16vw
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: space-between
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: 8vw
+                                        height: 1vw
+                                        display: flex
+                                        flexDirection: row
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: 0.8vw
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem3
+                                                          string2: $var.value
+                                                    - blue.svg
+                                                    - black.svg
+                                          
+                                        - .VQSecondTitle:
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: 0.5vw
+                                            float: left
+                                            fontSize: .Nfont.h0_1
+                                            lineHeight: 1vw
+                        - type: view
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .VQSecondTitle:
+                              text: "Have you been in KNOWN close contact (i.e. within 6 feet) with someone confirmed to have COVID-19??"
+                              style:
+                                fontSize: .Nfont.h0_1
+                            - type: view
+                              style: 
+                                width: 40vw
+                                height: 1vw
+                                marginTop: 0.7vw
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..selectYesOrNo.problem4
+                                  iteratorVar: itemObject
+                                  viewTag: problem4Tag
+                                  style:
+                                    height: 1vw
+                                    axis: horizontal
+                                    width: 16vw
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: space-between
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: 8vw
+                                        height: 1vw
+                                        display: flex
+                                        flexDirection: row
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: 0.8vw
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem4
+                                                          string2: $var.value
+                                                    - blue.svg
+                                                    - black.svg
+                                          
+                                        - .VQSecondTitle:
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: 0.5vw
+                                            float: left
+                                            fontSize: .Nfont.h0_1
+                                            lineHeight: 1vw
+                
+            - type: view
+              style:
+                height: 2.3vw
+                left: 15.5vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Leftbutton.svg
+                  style:
+                    height: 3vw
+                  onClick: 
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                height: 2.3vw
+                left: 60.3vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Rightbutton.svg
+                  style:
+                    height: 3vw
+                    left: 10vw
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - goto: Cov19TestNewPatPreviewPage4 

@@ -1,0 +1,1270 @@
+VisitQuestion:
+  pageNumber: "16"
+  title: VisitQuestion
+  init:
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: ""
+    - ..profile.docAPI.get
+    - if:
+      - =..profile.docResponse.doc.0
+      - actionType: evalObject
+        object:
+          - ..profile.patientdocument@: =..profile.docResponse.doc.0
+          - =.builtIn.utils.prepareDoc:
+              dataIn:
+                doc: =..profile.docResponse.doc.0
+              dataOut: VisitQuestion.profile.patientdocument
+      - continue
+    - .Global.currentUser.vertex.name.fullName@: =..profile.patientdocument.name.data.basicInfo.fullName
+    - .Global.titleProfile@: =..profile.patientdocument
+    - if:
+      - =.Global.formData.visitQuestionnaireDoc.doc.id
+      - ..VisitQuestionnaireObject.document@: =.Global.formData.visitQuestionnaireDoc.doc
+      - continue
+    - ..VisitQuestionnaireObject.document.name.user@: =..profile.docResponse.doc.0.name.data.basicInfo.fullName
+    # - actionType: evalObject
+    #   object:
+    #     - =.builtIn.string.phoneNumberSplit: 
+    #         dataIn: 
+    #           phoneNumber: =..profile.patientdocument.name.data.phone
+    #           sign: " "
+    #         : VisitQuestion.phone
+    - actionType: evalObject
+      object:
+        - if:
+          - =.Global.isSignIn
+          - actionType: evalObject
+            object:
+              - ..isPersonal@: "false"
+              - ..isSignIn@: "true"
+          - actionType: evalObject
+            object:
+              - ..isPersonal@: "true"
+              - ..isSignIn@: "false"
+    - .Global.ProfilePop@: "block"
+    - .Global.editProfile@: true
+  save:
+    - =.builtIn.eccNaCl.decryptAES:
+        dataIn:
+          key: =..formData.password
+          message: =.Global.currentUser.vertex.esk
+        dataOut: VisitQuestion.formData.sk
+    - =.builtIn.eccNaCl.skCheck:
+        dataIn:
+          pk: =.Global.currentUser.vertex.pk
+          sk: =..formData.sk
+        dataOut: VisitQuestion.formData.pass 
+  profile:
+    docResponse: ""
+    patientdocument: ""
+    document:
+      type: .DocType.PatientProfile
+      eid: .Global.rootNotebookID
+      name:
+        # .Global.Profile: ""
+        data:
+          insurance: 
+            insuranceProvider: ""
+            policyHolderName: ""
+            groupOrPolicy: ""
+            memberID: ""
+          phone: .Global.currentUser.vertex.uid
+          phone2: ""
+          avatarUrl: ava.png
+          email: ""
+          firstName: .Global.currentUser.vertex.name.firstName
+          middleName: ""
+          lastName: .Global.currentUser.vertex.name.lastName
+          birth: ""
+          userName: .Global.currentUser.vertex.name.userName
+          address: ""
+          fullName: .VisitQuestion.formData.showName
+          Address:
+            St: ""
+            city: ""
+            state: ""
+            line2: ""
+            zip: ""
+          name: ""
+          relation: ""
+        type: .VisitQuestion.profile.docAPI.store.subtype.mediaType
+    docAPI:
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PatientProfile
+        obfname: mtime
+        dataKey: profile.docResponse
+        _nonce: =.Global._nonce 
+  gender:
+    - key: gender
+      value: Male
+    - key: gender
+      value: Female
+  previousDose: 
+    - key: previousDose
+      value: Yes
+    - key: previousDose
+      value: No
+  ingredient: 
+    - key: ingredient
+      value: Yes
+    - key: ingredient
+      value: No   
+  consent: 
+    - key: consent
+      value1: "1"
+      value2: "I GIVE CONSENT to CommonSpirit Health and its staff to vaccinate me with the COVID-19. You must electronically sign this consent to receive the COVID-19 Vaccine."
+    - key: consent
+      value1: "0"
+      value2: "I DO NOT GIVE CONSENT to CommonSpirit Health and its staff to be vaccinated. "
+  VisitQuestionnaireTemp:
+    Visit:
+      input1:
+        - key: purpose
+          value: "What is the purpose of your visit?"
+        - key: descriptionOfIllness
+          value: Description of history of present illness.
+      radio:
+        - key: prescribed
+          value: "Taking medication"
+    isPrescribed:
+      - key: isPrescribed
+        value: 'Yes'
+      - key: isPrescribed
+        value: 'Sometimes'
+      - key: isPrescribed
+        value: 'No'
+    isProblems:
+      - key: select
+        value: "Yes"
+      - key: select
+        value: "Sometimes"
+      - key: select
+        value: "No"
+    isToEmergency:
+      - key: select
+        value: "Yes"
+      - key: select
+        value: "No"
+    isToAnotherDoctor:
+      - key: select
+        value: "Yes"
+      - key: select
+        value: "No"
+    isFamilyHistoryChanges:
+      - key: select
+        value: "Yes"
+      - key: select
+        value: "No"
+
+  VisitQuestionnaireObject:
+    response: ""
+    document:
+      type: .DocType.VitalQuestionnaire
+      eid: .Global.rootNotebookID
+      name:
+        type: "application/json"
+        title: "Visit Questionnaire"
+        user: ""
+        data:
+          classTag:
+            name: Patient
+            fontColor: "0xf8ae29"
+            backgroundColor: "0xfff4e0"
+            display: block
+          statusTag:
+            display: none
+          purpose: ""
+          descriptionOfIllness: ""
+          isPrescribed: ""
+          problems:
+            select: ""
+            isShow: "none"
+            content: ""
+          emergency:
+            select: ""
+            isShow: "none"
+            content: ""
+          familyHistoryChanges:
+            select: ""
+            isShow: "none"
+            content: ""
+          newDrug:
+            select: ""
+            isShow: "none"
+            allergy: ""
+            happens: ""
+          notes: ""
+          referProvider:
+            name: ""
+            facilityMain: ""
+            facilityFax: ""
+            email: ""
+            addressLine: ""
+            addressSecondLine: ""
+            city: ""
+            county: ""
+            state: ""
+            zipCode: ""
+          fullAddress: ""
+
+    docAPI:
+      get:
+        # api: rd
+        #   dataKey: 
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: VisitQuestionnaireObject.document
+        dataOut: Global.formData.visitQuestionnaireDoc
+        subtype:
+          mediaType: "application/json"
+  formData:
+    password: "123456"
+    sk: ""
+    pass: ""
+    address: []
+  reviews:
+    - key: 'Dr.K and her staff were exemplary.Everyone was extremely professional and lovely.l would happily recommend her to anyone.'
+      value: 'Less than 1 month ago. • lnitials hidlden'
+  listdata: 
+    - .Global.Provider
+  mapoption:
+    mapType: 2
+    zoom: 11
+    data: []
+  dataObject: .Global.Provider
+  saveNewAppointment:  
+    - =.VisitQuestion.newAppointment.edgeAPI.store: ""
+  
+  components:
+    - type: view
+      style:
+        width: '1'
+        margin: 'auto'
+        display: flex
+        flexDirection: column
+        justifyContent: center
+        fontFamily: "Arial"
+      children:
+        - .baseTopBar:
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .BaseUserBar
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4vw
+            margin: "auto"
+            marginTop: "6vw"
+            backgroundColor: "#ffffff"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1        
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                height: 4vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+              children:
+                - type: label
+                  text: Visit Questionnaire
+                  style:
+                    top: 1.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 2vw
+                    textAlign: 
+                      y: top
+
+        - type: scrollView
+          style:
+            width: 89.8vw
+            height: 40vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: view
+              style:
+                width: 40vw
+                backgroundColor: "#ffffff"
+                marginTop: 0.1vw
+                marginLeft: 25vw
+                justifyContent: flex-start
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 2vw
+                    marginTop: 1vw
+                  children:
+                    - .VQFirstTitle:
+                      text: Today's Visit
+                      style:
+                        marginTop: 0vw 
+                        height: 2vw 
+                        textAlign:
+                          y: center
+                - .VQSecondTitle:
+                  text: "1. What is the purpose of your visit?"
+                  style: 
+                    marginTop: 0.5vw
+                - .VQTextView:
+                  dataKey: VisitQuestionnaireObject.document.name.data.purpose
+                  placeholder: "Ex: Follow-up, lab results, physical, ect."
+                - .VQSecondTitle:
+                  text: "2. Description of history of present illness."
+                  style: 
+                    marginTop: 1vw
+                - .VQTextView:
+                  placeholder: "what, when, where, and how, why in details."
+                  dataKey: VisitQuestionnaireObject.document.name.data.descriptionOfIllness
+                - type: view
+                  style:
+                    width: 40vw
+                    justifyContent: flex-start
+                    marginTop: 1vw
+                  children: 
+                    - .VQSecondTitle:
+                      text: "3. Taking medications as prescribed?"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..VisitQuestionnaireTemp.isPrescribed
+                      viewTag: isPrescribed
+                      iteratorVar: itemObject
+                      style:
+                        width: "0.18"
+                        height: 1vw
+                        axis: horizontal
+                        justify-content: space-between
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            height: 1vw
+                            display: "flex"
+                            flexDirection: row
+                            marginTop: "0.5vw"
+                          children:
+                            - type: image
+                              style:
+                                height: 0.8vw
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..VisitQuestionnaireObject.document.name.data.isPrescribed
+                                              string2: $var.value
+                                        - blue.svg
+                                        - black.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..VisitQuestionnaireObject.document.name.data.isPrescribed
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isPrescribed
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                marginLeft: 0.5vw
+                                height: 1vw
+                                lineHeight: 0.8vw
+                                color: "#333333"
+                                fontSize: .Nfont.h0
+                - type: view
+                  style:
+                    width: 40vw
+                    height: "auto"
+                    marginTop: 1.5vw
+                    justifyContent: space-between
+                  children: 
+                    - .VQSecondTitle:
+                      text: "4. Any problems with your medications?"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..VisitQuestionnaireTemp.isProblems
+                      iteratorVar: itemObject
+                      viewTag: isProblems
+                      style:
+                        height: 1vw
+                        axis: horizontal
+                        width: "0.18"
+                        justify-content: space-between
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            height: 1vw
+                            display: flex
+                            flexDirection: row
+                            marginTop: "0.5vw"
+                          children:
+                            - type: image
+                              style:
+                                height: 0.8vw
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..VisitQuestionnaireObject.document.name.data.problems.select
+                                              string2: $var.value
+                                        - blue.svg
+                                        - black.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..VisitQuestionnaireObject.document.name.data.problems.select
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.problems
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.problems
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..VisitQuestionnaireObject.document.name.data.problems.select
+                                            string2: "Yes"
+                                      - ..VisitQuestionnaireObject.document.name.data.problems.isShow@: "block"
+                                      - actionType: evalObject
+                                        object:
+                                          - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..VisitQuestionnaireObject.document.name.data.problems.select
+                                                    string2: "Sometimes"
+                                              - ..VisitQuestionnaireObject.document.name.data.problems.isShow@: "block"
+                                              - ..VisitQuestionnaireObject.document.name.data.problems.isShow@: "none"
+                              
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isProblems
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: medicationsTag
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                marginLeft: 0.5vw
+                                height: 1vw
+                                lineHeight: 0.8vw
+                                color: "#333333"
+                                fontSize: .Nfont.h0
+                    - .VQTextView:
+                      viewTag: medicationsTag
+                      style:
+                        marginTop: "1vw"
+                        display: ..VisitQuestionnaireObject.document.name.data.problems.isShow
+                      dataKey: VisitQuestionnaireObject.document.name.data.problems.content
+                - type: view
+                  style:
+                    width: 40vw
+                    height: "auto"
+                    marginTop: 1.5vw
+                  children: 
+                    - .VQFirstTitle:
+                      text: "Update information"
+                      style:
+                        marginTop: 0vw 
+                        height: 2vw 
+                        textAlign:
+                          y: center
+                - type: view
+                  style:
+                    width: 40vw
+                    height: "auto"
+                    marginTop: 1vw
+                  children:
+                    - .VQSecondTitle:
+                      text: "1. Have you been to the emergency room or hospital since your last visit?"
+                      style: 
+                        width: 40vw
+     
+                    - type: list
+                      contentType: listObject
+                      listObject: ..VisitQuestionnaireTemp.isToEmergency
+                      iteratorVar: itemObject
+                      viewTag: isToEmergency
+                      style:
+                        marginTop: 0.5vw
+                        height: 1vw
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            width: "0.06"
+                            height: 0.8vw
+                            display: flex
+                            flexDirection: row
+                          children:
+                            - type: image
+                              style:
+                                height: 0.8vw
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..VisitQuestionnaireObject.document.name.data.emergency.select
+                                              string2: $var.value
+                                        - blue.svg
+                                        - black.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..VisitQuestionnaireObject.document.name.data.emergency.select
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.emergency
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.emergency
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..VisitQuestionnaireObject.document.name.data.emergency.select
+                                            string2: "Yes"
+                                      - ..VisitQuestionnaireObject.document.name.data.emergency.isShow@: "block"
+                                      - ..VisitQuestionnaireObject.document.name.data.emergency.isShow@: "none"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: emergencyTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isToEmergency
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                marginLeft: 0.3vw
+                                height: 1vw
+                                color: "#333333"
+                                fontSize: .Nfont.h0
+                                lineHeight: 0.8vw
+                    - .VQTextView:
+                      viewTag: emergencyTag
+                      style:
+                        marginTop: "1vw"
+                        display: ..VisitQuestionnaireObject.document.name.data.emergency.isShow
+                      dataKey: VisitQuestionnaireObject.document.name.data.emergency.content
+                
+                - type: view
+                  style:
+                    width: 40vw
+                    height: "auto"
+                    marginTop: 1.5vw
+                  children:
+                    - .VQSecondTitle:
+                      text: "2. Have you been to another doctor office since your last visit?"
+                      style: 
+                        width: 40vw
+                    - type: list
+                      contentType: listObject
+                      listObject: ..VisitQuestionnaireTemp.isToAnotherDoctor
+                      iteratorVar: itemObject
+                      viewTag: isToEmergency
+                      style:
+                        marginTop: 0.5vw
+                        height: 1vw
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            height: 0.8vw
+                            display: flex
+                            flexDirection: row
+                            width: "0.06"
+                          children:
+                            - type: image
+                              style:
+                                height: 0.8vw
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..VisitQuestionnaireObject.document.name.data.familyHistoryChanges.select
+                                              string2: $var.value
+                                        - blue.svg
+                                        - black.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..VisitQuestionnaireObject.document.name.data.familyHistoryChanges.select
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.familyHistoryChanges
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.familyHistoryChanges
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..VisitQuestionnaireObject.document.name.data.familyHistoryChanges.select
+                                            string2: "Yes"
+                                      - ..VisitQuestionnaireObject.document.name.data.familyHistoryChanges.isShow@: "block"
+                                      - ..VisitQuestionnaireObject.document.name.data.familyHistoryChanges.isShow@: "none"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isToAnotherTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isToEmergency
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                marginLeft: 0.3vw
+                                height: 1vw
+                                color: "#333333"
+                                fontSize: .Nfont.h0
+                                lineHeight: 0.8vw
+                    - .VQTextView:
+                      viewTag: isToAnotherTag
+                      style:
+                        marginTop: "1vw"
+                        display: ..VisitQuestionnaireObject.document.name.data.familyHistoryChanges.isShow
+                      dataKey: VisitQuestionnaireObject.document.name.data.familyHistoryChanges.content
+
+                - type: view
+                  style:
+                    width: 40vw
+                    height: "auto"
+                    marginTop: 1.5vw
+                    justifyContent: space-between
+                  children:
+                    - .VQSecondTitle:
+                      text: "3. Any changes or new conditions in your family history?"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..VisitQuestionnaireTemp.isFamilyHistoryChanges
+                      iteratorVar: itemObject
+                      viewTag: isFamilyHistoryChanges
+                      style:
+                        marginTop: 0.5vw
+                        height: 1vw
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            height: 0.8vw
+                            display: flex
+                            flexDirection: row
+                            width: "0.06"
+                          children:
+                            - type: image
+                              style:
+                                height: 0.8vw
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..VisitQuestionnaireObject.document.name.data.newDrug.select
+                                              string2: $var.value
+                                        - blue.svg
+                                        - black.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..VisitQuestionnaireObject.document.name.data.newDrug.select
+                                                string2: $var.value
+                                          - =.builtIn.object.clear:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.newDrug
+                                                key: $var.key
+                                          - =.builtIn.object.set:
+                                              dataIn:
+                                                object: =..VisitQuestionnaireObject.document.name.data.newDrug
+                                                key: $var.key
+                                                value: $var.value
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..VisitQuestionnaireObject.document.name.data.newDrug.select
+                                              string2: "Yes"
+                                        - ..VisitQuestionnaireObject.document.name.data.newDrug.isShow@: "block"
+                                        - ..VisitQuestionnaireObject.document.name.data.newDrug.isShow@: "none"
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isFamilyTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: isFamilyHistoryChanges
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                marginLeft: 0.3vw
+                                height: 1vw
+                                color: "#333333"
+                                fontSize: .Nfont.h0
+                                lineHeight: 0.8vw
+                    - type: view
+                      viewTag: isFamilyTag
+                      style:
+                        width: 40vw
+                        height: auto
+                        display: ..VisitQuestionnaireObject.document.name.data.newDrug.isShow
+                      children:
+                        - .VQSecondTitle:
+                          text: "1) Allergy/Irritant"
+                          style: 
+                            marginTop: 0.5vw
+                        - .VQTextView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.newDrug.allergy
+                          placeholder: " Enter here"
+                        - .VQSecondTitle:
+                          text: "2) What happens?"
+                          style: 
+                            marginTop: 0.5vw
+                        - .VQTextView:
+                          placeholder: "Explain  here"
+                          dataKey: VisitQuestionnaireObject.document.name.data.newDrug.happens
+                - type: view
+                  style:
+                    width: 40vw
+                    height: "auto"
+                    marginTop: 1.5vw
+                    justifyContent: space-between
+                  children:
+                    - .VQSecondTitle:
+                      text: "4. Other notes ?"
+                      style: 
+                        height: 1vw
+                        textAlign: 
+                          x: left
+                    - .VQTextView:
+                      dataKey: VisitQuestionnaireObject.document.name.data.notes
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 1.5vw
+                    marginTop: 1vw
+                  children: 
+                    - .VQFirstTitle:
+                      text: "Referring Provider"
+                      style:
+                        marginTop: 0vw 
+                        height: 1.5vw 
+                        textAlign:
+                          y: center
+                - .VQSecondTitle:
+                  text: "Who referred you?"
+                  style:
+                    marginTop: 1vw 
+                    height: "auto"
+                - type: view
+                  style:
+                    left: "0"
+                    width: 40vw
+                    height: "auto"
+                  children:
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 20vw
+                        overflow: hidden
+                      children:
+                        - type: label
+                          text: Provider’s name
+                          style:
+                            width: 20vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.name
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 20vw
+                      children:
+                        - type: label
+                          text: "Facility Main #"
+                          style:
+                            width: 20vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+              
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.facilityMain
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    left: "0"
+                    width: 40vw
+                    height: "auto"
+                  children:
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 20vw
+                        overflow: hidden
+                      children:
+                        - type: label
+                          text: "Facility Fax #"
+                          style:
+                            width: 20vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.facilityFax
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 20vw
+                      children:
+                        - type: label
+                          text: "Facility Email"
+                          style:
+                            width: 20vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+              
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.email
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    left: "0"
+                    width: 40vw
+                    height: "auto"
+                  children:
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 20vw
+                        overflow: hidden
+                      children:
+                        - type: label
+                          text: "Address Line"
+                          style:
+                            width: 20vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+                        - .VQReferView:
+                          placeholder: Facility Address Line
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.addressLine
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 20vw
+                      children:
+                        - type: label
+                          text: "Address Second Line"
+                          placeholder: Facility Address Second Line
+                          style:
+                            width: 20vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+              
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.addressSecondLine
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    left: "0"
+                    width: 40vw
+                    height: "auto"
+                    marginBottom: 2vw
+                  children:
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 8.5vw
+                        overflow: hidden
+                      children:
+                        - type: label
+                          text: "City"
+                          style:
+                            width: 8.5vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.city
+                          style:
+                            width: 8vw
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 8.5vw
+                        marginLeft: 1vw
+                      children:
+                        - type: label
+                          text: "County"
+                          style:
+                            width: 8.5vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.county
+                          style:
+                            width: 8vw
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 8vw
+                        marginLeft: 1vw
+                      children:
+                        - type: label
+                          text: "State"
+                          style:
+                            width: 8vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+                        - type: select
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.state
+                          options:
+                            .SelectData.state
+                          style:
+                            width: 7.5vw
+                            height: "0.035"
+                            marginTop: "0.3vw"
+                            color: "0x000000"
+                            border:
+                              style: "3"
+                            borderColor: "0x00000033"
+                            borderRadius: "3"
+                            borderWidth: "1"
+                            fontSize: .Nfont.n2_3
+                            fontFamily: sans-serif
+                    - type: view
+                      style:
+                        height: "auto"
+                        display: "inline-block"
+                        width: 8.5vw
+                        marginLeft: 1vw
+                      children:
+                        - type: label
+                          text: "Zip Code"
+                          style:
+                            width: 8.5vw
+                            height: "auto"
+                            marginTop: "0.015"
+                            fontSize: .Nfont.n2_3
+                            
+                        - .VQReferView:
+                          dataKey: VisitQuestionnaireObject.document.name.data.referProvider.zipCode
+                          style:
+                            width: 8vw
+        
+        - type: popUp
+          viewTag: logoutTag 
+          style:
+            width: "0.2"
+            height: "0.12"
+            left: "0.77"
+            top: "0.12"
+            backgroundColor: "white"
+            position: fixed
+            zIndex: 13333330   
+          children:
+            - type: label
+              text: "Please input your password" 
+              style:
+                width: "0.2"
+                height: "0.02"
+                top: "0"
+                left: "0"
+                textAlign:
+                  x: center
+                  y: center
+                fontSize: .Nfont.h0    
+            - type: textField
+              contentType: password
+              placeholder: password
+              dataKey: formData.password
+              required: "true"
+              style:
+                fontSize: .Nfont.h0
+                left: "0.03"
+                top: "0.03"
+                width: "0.16"
+                height: "0.035"
+                border:
+                  style: "2"
+                  width: "0.99"
+                  color: "0x33333388"
+            - type: label
+              text: "Log Out"
+              style:
+                width: "0.1"
+                height: "0.04"
+                top: "0.07"
+                left: "0.08"
+                textAlign:
+                  y: center
+                fontSize: .Nfont.h0
+              onClick:
+                - actionType: evalObject
+                  object: ..save
+                - actionType: evalObject
+                  object:
+                    - if:
+                      - =..formData.pass
+                      - continue
+                      - actionType: builtIn
+                        funcName: checkField
+                        contentType: messageHidden
+                - actionType: evalObject
+                  object:
+                    - if:
+                      - =..formData.pass
+                      - .Global.currentUser.vertex.esk@ : ""
+                      - continue 
+                - actionType: evalObject
+                  object:
+                    - if:
+                      - =..formData.pass
+                      - .Global.currentUser.vertex.sk@ : ""
+                      - continue   
+                - actionType: evalObject
+                  object:
+                    - if:
+                      - =..formData.pass
+                      - =.builtIn.cleanLocalStorage
+                      - continue   
+                    - .TitleInfo@: 
+                - actionType: evalObject
+                  object: 
+                    .Global._nonce@: 
+                      =.builtIn.math.random: ""    
+                - actionType: evalObject
+                  object:
+                    - .Global.isSignIn@: false
+                    - if:  
+                      - =..formData.pass       
+                      # - actionType: refresh
+                      - goto: SearchProvider
+                      - continu
+                - actionType: popUpDismiss
+                  popUpView: logoutTag
+                - goto: SearchProvider
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: Personaltag
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: SignIntag
+
+        - type: view
+          style:
+            width: "1"
+            height: 5vw
+            borderTop: "2px solid #E3E3E3"
+            borderWidth: 2px
+          children:
+            - type: button
+              text: Done
+              style:
+                width: 12.3vw
+                height: 2.3vw
+                margin: auto
+                marginTop: 1.8vw
+                borderRadius: 5px
+                backgroundColor: "#1263A8"
+                color: "#ffffff"
+                fontSize: .Nfont.h1
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.address
+                          value: =..VisitQuestionnaireObject.document.name.data.referProvider.addressLine
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.address
+                          value: =..VisitQuestionnaireObject.document.name.data.referProvider.addressSecondLine
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.address
+                          value: =..VisitQuestionnaireObject.document.name.data.referProvider.city
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.address
+                          value: =..VisitQuestionnaireObject.document.name.data.referProvider.county
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.address
+                          value: =..VisitQuestionnaireObject.document.name.data.referProvider.state
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.address
+                          value: =..VisitQuestionnaireObject.document.name.data.referProvider.zipCode
+                    - =.builtIn.array.formatStringFill:
+                        dataIn:
+                          strArr: =..formData.address
+                          sfill: ","
+                        dataOut: VisitQuestion.VisitQuestionnaireObject.document.name.data.fullAddress
+                - actionType: evalObject
+                  object:
+                    - =.VisitQuestion.VisitQuestionnaireObject.docAPI.store: ""
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - .Global.DisProviderPop@: "none"
+                    - .Global.editProfile@: true
+                    - .Global.visitQuestionnaireDoc@: "true"
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true                  
+        

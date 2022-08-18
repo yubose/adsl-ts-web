@@ -1,0 +1,2270 @@
+SurgeryAuthorizationEdit:
+  title: Surgery Authorization
+  pageNumber: 
+  init: #Page initialization
+    - .SignInCheck
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: ""     
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+    - =.builtIn.array.getListLength:
+        dataIn: 
+          object: =.Global.formData.providerInfo.name.data.MedicalLicense
+        dataOut: SurgeryAuthorizationEdit.formData.medicalLicenseLength
+    - if:
+      - =.builtIn.string.equal:
+          dataIn: 
+            string1: =..formData.medicalLicenseLength
+            string2: "0"
+      - ..apiRequest.surgeryForm.docReq.name.data.providerInfo.LIC@: ""
+      - =.builtIn.string.concat:
+          dataIn: 
+            - =.Global.formData.providerInfo.name.data.MedicalLicense.0.state
+            - " "
+            - =.Global.formData.providerInfo.name.data.MedicalLicense.0.medicalLicense
+          dataOut: SurgeryAuthorizationEdit.apiRequest.surgeryForm.docReq.name.data.providerInfo.LIC
+    - =..apiRequest.surgeryForm.docAPI.store: ""
+    - ..apiRequest.surgeryForm.docReq.name.data.providerInfo.providerFullName@: =.Global.formData.providerInfo.name.data.fullName
+    - ..apiRequest.surgeryForm.docReq.name.data.patientInfo.examDate@: =.Global.formData.currentAppointmentProdSchedule.ctime
+    - =.builtIn.string.concat: 
+        dataIn:
+          - "Please sign and send back. Please call our office at"
+          - " "
+          - =.Global.currentFacility.name.basicInfo.phoneNumber
+          - "."
+          - " "
+          - Thank you for your prompt attention concerning this matter.
+        dataOut: SurgeryAuthorizationEdit.formDataTemp.normalInfo
+
+  formData: #Input data here
+    diagnosis:
+      descriptiveList:
+        code: ""
+        description: ""
+        comment: ""
+    selectedDiagnosis: ""
+    selectedProRequest: ""
+    proRequest:
+      descriptiveList:
+        code: ""
+        description: ""
+    selectStatus:
+      physician:
+        isRequired: ""
+        content: ""
+      clearance:
+        isClear: ""
+    # 七个圆圈 week
+    postTherapy:
+      perWeek: ""
+      week: ""
+      body: ""
+    medicalClear: []
+    flag: none
+    medicalLicenseLength: ""
+    whetherSignature: ""
+
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    normalInfo: ""
+    perWeekTemp:
+      - key: perWeek
+        imgOn: oneOn.png
+        imgOff: oneOff.png
+        value: "1"
+      - key: perWeek
+        imgOn: twoOn.png
+        imgOff: twoOff.png
+        value: "2"
+      - key: perWeek
+        imgOn: threeOn.png
+        imgOff: threeOff.png
+        value: "3"
+    weekTemp:
+      - key: week
+        imgOn: oneOn.png
+        imgOff: oneOff.png
+        value: "1"
+      - key: week
+        imgOn: twoOn.png
+        imgOff: twoOff.png
+        value: "2"
+      - key: week
+        imgOn: fourOn.png
+        imgOff: fourOff.png
+        value: "4"
+      - key: week
+        imgOn: sixOn.png
+        imgOff: sixOff.png
+        value: "6"
+    physicianTemp:
+      - key: isRequired
+        value: "Yes"
+      - key: isRequired
+        value: "No"  
+    clearTemp:
+      - key: isClear
+        value: "Yes"
+      - key: isClear
+        value: "No"  
+    weekSelectLeft: 
+      - key: 1
+        value: oneOff.svg
+      - key: 2
+        value: twoOff.svg
+      - key: 3
+        value: threeOff.svg
+    weekSelectRight: 
+      - key: 1
+        value: oneOff.svg
+      - key: 2
+        value: twoOff.svg
+      - key: 4
+        value: fourOff.svg
+      - key: 6
+        value: sixOff.svg
+    medicalSelect:
+      - key: CBC
+        value: CBC
+      - key: PT
+        value: PT/PTT
+      - key: CH
+        value: CHEM 7
+      - key: HCG
+        value: HCG - Urine
+      - key: Chest
+        value: Chest X-ray
+      - key: EKG
+        value: EKG
+      - key: covid
+        value: COVID-19 test
+    approveTemp:
+      - key: 1
+        value: Yes
+      - key: 2
+        value: No
+    privateTag: 
+      display: "block"
+      backgroundColor: "0xececee"
+      fontColor: "0x4c5264"
+      name: "Private"   
+    publicTag: 
+      display: "block"
+      backgroundColor: "0xdfedfc"
+      fontColor: "0x2988e6"
+      name: "Released"  
+    allListInfo: []
+    allListString: []
+    allCodes: []
+    allDescription: []
+    allCPTListInfo: []
+    allCPTListString: []
+    allCPTCodes: []
+    allCPTDescription: []
+
+  apiRequest: #Input data request here
+    # surgeryForm文档
+    surgeryForm:
+      docResp: ""
+      docReq:
+        id: ""
+        eid: .Global.formData.meetingDocEid
+        reid: "" # .Global.formData.meetingDocReid
+        type: .DocType.surgeryForm
+        subtype:
+          mediaType: "application/json"
+        name:
+          title: "Surgery Authorization"
+          user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          type: "text/plain"
+          subtype: "0" #0是未完成，1是完成
+          data:
+            classTag:
+              name: Admin
+              fontColor: "0x005795"
+              backgroundColor: "0xe9f2fc"
+              display: block
+            statusTag: ""
+            signatureId: ""
+            whetherSignature: true
+            fontcolor: ""
+            authority: ""
+            facilityInfo: 
+              facilityName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+              location: .Global.currentFacility.name.basicInfo.location
+              email: .Global.currentFacility.name.basicInfo.email
+              aiTmedID: .Global.currentFacility.name.basicInfo.locationID
+              phone: .Global.currentFacility.name.basicInfo.phoneNumber
+              fax: .Global.currentFacility.name.basicInfo.fax
+              website: .Global.currentFacility.name.basicInfo.website
+            providerInfo: 
+              providerFullName: ""
+              LIC: ""
+            patientInfo: 
+              examDate: .Global.roomInfo.edge.stime
+              patientName: .Global.formData.patientInfo.name.data.basicInfo.fullName
+              dob: .Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+              aiTmedID: .Global.formData.patientInfo.name.data.basicInfo.userName
+              phone: .Global.formData.patientInfo.name.data.basicInfo.phone
+              email: .Global.formData.patientInfo.name.data.contactInfo.email
+            surgeryInfo:
+              surgicalFacility: ""
+              surgicalDate: ""
+              diagnosis:
+                descriptiveList: []
+              proRequest:
+                descriptiveList: []
+              proDescription: ""
+              physician: ""
+              postTherapy: ""
+              equipment: ""
+              medicalStatus:
+                medicalSelect: ""
+                clearSelect: ""
+      deleteId: 
+        id: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: SurgeryAuthorizationEdit.apiRequest.surgeryForm.docReq
+          dataOut: SurgeryAuthorizationEdit.apiRequest.surgeryForm.docResp
+          subtype:
+            mediaType: "text/plain"
+        get:
+          api: rd
+          dataKey: surgeryForm.docResp
+          id: .Global.Note.id
+          xfname: eid
+          type: .DocType.surgeryForm
+          maxcount: "1"
+        delete:
+          api: dx
+          dataIn: SurgeryAuthorizationEdit.apiRequest.surgeryForm.deleteId
+    # 签名文档
+    newSign:
+      docResp: ""
+      docReq: #DOC
+        .Document: ""
+        eid: .Global.formData.meetingDocEid
+        refid: ""
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.docReq.subtype.mediaType
+          data: ""
+        subtype:
+          mediaType: "" # mediaType : "image/jpeg"
+      docAPI: 
+        store:
+          api: cd
+          dataIn: SurgeryAuthorizationEdit.apiRequest.newSign.docReq
+          dataOut: SurgeryAuthorizationEdit.apiRequest.newSign.docResp
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+              onClick:
+                - actionType: evalObject
+                  object: 
+                    - ..apiRequest.surgeryForm.deleteId.id@: =..apiRequest.surgeryForm.docResp.doc.id
+                    - =..apiRequest.surgeryForm.docAPI.delete: ""
+                    - if: 
+                      - =.Global.formData.reviewFromProvider
+                      - goto: PatientSummary
+                      - goto: PatientSummaryRoom 
+            - type: view
+              style:
+                left: "0"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                    # backgroundColor: "0xff000033"
+                  children:
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.74"
+                        overflow: scroll
+                      children:
+                        - type: view
+                          style:
+                            marginTop: "0.04"
+                            height: "0.1"
+                            width: '0.39'
+                          children:                                  
+                            - type: view
+                              style:
+                              children:
+                                - type: image
+                                  path: hospital.png
+                                  dataKey:               
+                                  style:
+                                    top: "0"
+                                    width: "0.0.39"
+                                    height: "0.1"
+                            - type: view
+                              style:
+                                top: "0"
+                                marginLeft: "0.1"
+                                height: "auto"
+                                width: "0.24"        
+                                # overflow: hidden
+                              children: 
+                                - type: label
+                                  dataKey: Global.currentFacility.name.basicInfo.medicalFacilityName
+                                  style:
+                                    height: "auto"
+                                    width: "0.24"        
+                                    fontSize: .Nfont.nf5
+                                    fontFamily: "Roboto"
+                                - type: label
+                                  dataKey: Global.currentFacility.name.basicInfo.location
+                                  style:
+                                    marginTop: '0.01'
+                                    height: "auto"
+                                    width: "0.24"  
+                                    color: "0x0f0f0f"   
+                                    fontSize: .Nfont.nf2
+                                    fontFamily: "Roboto" 
+                                - type: label
+                                  dataKey: Global.currentFacility.name.basicInfo.website
+                                  style:
+                                    marginTop: '0.01'
+                                    height: "auto"
+                                    width: "0.24"    
+                                    color: "0x0f0f0f"   
+                                    fontSize: .Nfont.nf2
+                                    fontFamily: "Roboto"
+                        - type: view
+                          style:
+                            height: "auto"
+                            width: "0.39"
+                            marginTop: "0.02"
+                          children:
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Email
+                                  style:
+                                    color: "0x757575" 
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.currentFacility.name.basicInfo.email
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: AiTmed ID
+                                  style:
+                                    color: "0x757575" 
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.currentFacility.name.basicInfo.locationID
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Phone
+                                  style:
+                                    color: "0x757575"   
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.currentFacility.name.basicInfo.phoneNumber
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Fax
+                                  style:
+                                    color: "0x757575"    
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.currentFacility.name.basicInfo.fax
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            left: "0"
+                            width: "0.39" 
+                            height: "0.002"      
+                            backgroundColor: "0x707070"       
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                          children: 
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Exam Date
+                                  style:
+                                    color: "0x757575" 
+                                - .PrescriptionDatakey:
+                                  text=func: .builtIn.string.formatUnixtime_en
+                                  dataKey: Global.formData.currentAppointmentProdSchedule.ctime
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Patient Name
+                                  style:
+                                    color: "0x757575"
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.formData.patientInfo.name.data.basicInfo.fullName
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: DOB
+                                  style:
+                                    color: "0x757575" 
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: AiTmed ID
+                                  style:
+                                    color: "0x757575" 
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.formData.patientInfo.name.data.basicInfo.userName
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Phone
+                                  style:
+                                    color: "0x757575"
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.formData.patientInfo.name.data.basicInfo.phone
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Email
+                                  style:
+                                    color: "0x757575"
+                                - .PrescriptionDatakey:
+                                  dataKey: Global.formData.patientInfo.name.data.contactInfo.email
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            left: "0"
+                            width: "0.39" 
+                            height: "0.002"      
+                            backgroundColor: "0x707070"
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Surgical facility name
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                fontSize: .Nfont.nf4
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - type: textView
+                              dataKey: apiRequest.surgeryForm.docReq.name.data.surgeryInfo.surgicalFacility
+                              placeholder: Enter here
+                              style:
+                                marginTop: "0.01"
+                                width: "0.39"
+                                height: "0.15"
+                                border:
+                                  style: 3
+                                borderColor: "0xdededf"
+                                borderWidth: "1"
+                                borderRadius: "3"
+                                boxSizing: border-box
+                                resize: "none" 
+                                textIndent: "0.8em"
+                                paddingTop: "0.5em"
+                                fontFamily: Proxima Nova
+                                fontSize: .Nfont.nf3
+                        - type: view
+                          viewTag: dateViewTag
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Date of Surgery
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                fontSize: .Nfont.nf4
+                                fontFamily: "Poppins"
+                            - type: view
+                              style:
+                                width: auto
+                                height: auto
+                              onClick:
+                                - actionType: popUp
+                                  popUpView: startDateTag
+                              children:
+                                - type: label
+                                  dataKey: apiRequest.surgeryForm.docReq.name.data.surgeryInfo.surgicalDate
+                                  placeholder: Enter here
+                                  style: 
+                                    border:
+                                      style: 3
+                                    borderColor: "0xdededf"
+                                    borderWidth: "1"
+                                    borderRadius: "3"   
+                                    height: "0.04"
+                                    marginTop: "0.01"
+                                    width: "0.25"
+                                    boxSizing: border-box 
+                                    resize: "none"  
+                                    textIndent: "0.8em"
+                                    paddingTop: "0.5em"
+                                    fontFamily: Proxima Nova
+                                    fontSize: .Nfont.nf3
+                                    textAlign: 
+                                      x: left
+                                      y: center 
+                                - type: image
+                                  path: calendarBlue.svg
+                                  style:
+                                    width: "0.012"
+                                    top: "0.01"
+                                    left: "0.22"
+                        
+                        - type: view
+                          style:
+                            marginTop: "0.04"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Diagnoses
+                              dataKey:
+                              style:
+                                height: "auto"
+                                color: "0x0f0f0f"
+                                fontSize: .Nfont.h1
+                                fontStyle: bold
+                                fontFamily: "Arial"
+                            - type: view
+                              viewTag: searchBox
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                    height: "auto"
+                                    boxSizing: border-box
+                                  children:
+                                    - type: view
+                                      viewTag: selectDateTag
+                                      style:
+                                        display: "inline-block"
+                                        height: "auto"
+                                        boxSizing: border-box
+                                      children:
+                                        - type: image
+                                          path: searchBlue.png
+                                          style:
+                                            top: "0.01"
+                                            left: "0.13"
+                                            height: "0.02"
+                                            zIndex: 10
+                                        - type: textField
+                                          viewTag: CodeListTag
+                                          placeholder: Search
+                                          dataKey: formData.diagnosis.descriptiveList.code
+                                          style:
+                                            height: "0.04"
+                                            width: "0.15"
+                                            boxSizing: border-box
+                                            border:
+                                              style: 3
+                                            borderRadius: "3"
+                                            borderWidth: "1"
+                                            borderColor: "0xcdcdcd"
+                                          onInput:
+                                            - actionType: evalObject
+                                              object:
+                                                - ..formDataTemp.allListInfo@: []
+                                                - ..formDataTemp.allListString@: []
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.search.queryCode:
+                                                    dataIn:
+                                                      query: =..formData.diagnosis.descriptiveList.code
+                                                    dataOut: SurgeryAuthorizationEdit.formDataTemp.allListInfo
+                                                - ..formDataTemp.allListString@: =..formDataTemp.allListInfo
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: CodeTag # 查询结果弹框
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: CodeTag
+                                            - actionType: builtIn
+                                              funcName: hide
+                                              viewTag: listData # 显示结果view
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: ShowTag # 查询结果弹框 内层
+                                            - actionType: popUp
+                                              popUpView: CodeTag
+                                              dismissOnTouchOutside: true
+                                    - type: textField
+                                      viewTag: descriptionTag
+                                      placeholder: Description
+                                      dataKey: formData.diagnosis.descriptiveList.description
+                                      style:
+                                        marginLeft: "0.015"
+                                        display: "inline-block"
+                                        height: "0.04"
+                                        width: "0.225"
+                                        boxSizing: border-box
+                                        border:
+                                          style: 3
+                                        borderRadius: "3"
+                                        borderWidth: "1"
+
+                                        borderColor: "0xcdcdcd"
+                                - type: textView
+                                  viewTag: CommentsTag
+                                  placeholder: Comments
+                                  dataKey: formData.diagnosis.descriptiveList.comment
+                                  style:
+                                    marginTop: "0.015"
+                                    width: "0.39"
+                                    height: "0.15"
+                                    boxSizing: border-box
+                                    border:
+                                      style: 3
+                                    borderRadius: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0xcdcdcd"
+                                    textIndent: "0.8em"
+                                    paddingTop: "0.5em"
+                                    fontFamily: Proxima Nova
+                                    fontSize: .Nfont.nf3
+                            # + add more
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                height: "0.02"
+                              children:
+                                - type: label
+                                  text: + add more
+                                  style:
+                                    marginTop: "0"
+                                    left: "0.17"
+                                    fontFamily: "Arial"
+                                    fontSize: "1.5vh"
+                                    color: "0x1492e6"
+                                    height: "0.02"
+                                    width: "0.21"
+                                    textAlign:
+                                      y: center
+                                    fontWeight: "550"
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.diagnosis.descriptiveList.code
+                                                string2: ""
+                                          - actionType: popUp
+                                            popUpView: noDiagnosesTag
+                                            wait: true
+                                          - continue
+                                    - emit:
+                                        actions:
+                                          - =.builtIn.array.add:
+                                              dataIn:
+                                                object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.diagnosis.descriptiveList
+                                                value: =..formData.diagnosis.descriptiveList # create copy .create by value ,not reference
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.diagnosis.descriptiveList.code@: ""
+                                        - ..formData.diagnosis.descriptiveList.description@: ""
+                                        - ..formData.diagnosis.descriptiveList.comment@: ""
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: listData
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: CodeListTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: descriptionTag
+                                    - actionType: builtIn
+                                      funcName: hide
+                                      viewTag: ShowTag
+                                    - actionType: builtIn
+                                      funcName: show
+                                      viewTag: listData
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: CommentsTag
+                            # 查询结果弹窗
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  viewTag: CodeTag
+                                  style:
+                                    display: "none"
+                                    width: "0.39"
+                                    height: "auto"
+                                    fontFamily: "Poppins"
+                                    border:
+                                      style: 3
+                                      color: "0xeeeeee"
+                                    borderWidth: "1"
+                                    zIndex: 10
+                                  children:
+                                    - type: scrollView
+                                      viewTag: ShowTag
+                                      style:
+                                        width: "0.39"
+                                        height: "0.3"
+                                        left: "0.02"
+                                        overflow: scroll
+                                      children:
+                                        - type: list
+                                          contentType: listObject
+                                          listObject: ..formDataTemp.allListString
+                                          iteratorVar: itemObject
+                                          viewTag: CodeTags
+                                          style:
+                                            width: "0.39"
+                                            height: "auto"
+                                            margin: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - type: listItem
+                                              itemObject: ""
+                                              style:
+                                                # backgroundColor: "0xffffff"
+                                                width: "0.39"
+                                                marginTop: "0.002"
+                                                height: "auto"
+                                              children:
+                                                - type: label
+                                                  dataKey: itemObject.0.2
+                                                  style:
+                                                    width: "0.39"
+                                                    left: "0"
+                                                    textIndent: 20px
+                                                    marginTop: "0"
+                                                    textAlign:
+                                                      x: left
+                                                      y: center
+                                                    height: "auto"
+                                                    fontSize: "1.7vh"
+                                                    color: "0x143459"
+                                                  onClick:
+                                                    - emit:
+                                                        dataKey:
+                                                          var: itemObject
+                                                        actions:
+                                                          - ..formData.diagnosis.descriptiveList.code@: $var.0.0
+                                                          - ..formData.diagnosis.descriptiveList.description@: $var.0.1
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: CodeListTag
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: descriptionTag
+                                                    # - actionType: popUpDismiss
+                                                    #   popUpView: CodeTag
+                                                    - actionType: builtIn
+                                                      funcName: hide
+                                                      viewTag: ShowTag
+                                                    - actionType: builtIn
+                                                      funcName: show
+                                                      viewTag: listData
+                                                    - actionType: builtIn
+                                                      funcName: hide
+                                                      viewTag: CodeTag
+                                - type: view
+                                  viewTag: listData
+                                  style:
+                                    width: "0.39"
+                                    left: "0"
+                                    height: "auto"
+                                    marginTop: "0.01"
+                                    display: ..formData.listDataflag
+                                  children:
+                                    - type: view
+                                      style:
+                                        marginTop: "0.01"
+                                        height: "0.002"
+                                        width: "0.39"
+                                        backgroundColor: "0xd8d8d8"
+                                    - type: list
+                                      viewTag: listData
+                                      contentType: listObject
+                                      listObject: ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.diagnosis.descriptiveList # to dataObject to enumerate the list
+                                      iteratorVar: itemObject
+                                      style:
+                                        left: "0"
+                                        width: "0.39"
+                                        marginTop: "0.03"
+                                        height: "auto"
+                                        margin: "0"
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          style:
+                                            marginTop: "0.01"
+                                            width: "0.387"
+                                            height: "auto"
+                                            left: "0"
+                                            overflow: hidden
+                                            border:
+                                              style: "3"
+                                            borderColor: "0xcccccc"
+                                            borderRadius: "10px"
+                                            boxShadow: "0px 0px 2px 0.5px #cccccc"
+                                            boxSizing: border-box
+                                          children:
+                                            - type: view
+                                              style:
+                                                width: "0.387"
+                                                height: "auto"
+                                              children:
+                                                - type: image
+                                                  path: deletePhoto.svg
+                                                  style:
+                                                    display: "inline-block"
+                                                    height: "0.02"
+                                                    zIndex: 10
+                                                    verticalAlign: middle
+                                                  onClick:
+                                                    - emit:
+                                                        dataKey:
+                                                          var: itemObject
+                                                        actions:
+                                                          - =.builtIn.array.removeByName:
+                                                              dataIn:
+                                                                object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.diagnosis.descriptiveList
+                                                                key: code
+                                                                name: $var.code # =..formData.selectedDiagnosis.code
+                                                    - actionType: evalObject
+                                                      object:
+                                                        - ..formData.listDataflag@: "block"
+                                                        - actionType: builtIn
+                                                          funcName: redraw
+                                                          viewTag: listData
+                                                    - actionType: updateObject
+                                                      dataKey: SurgeryAuthorizationEdit.formData.selectedDiagnosis
+                                                      dataObject: itemObject
+                                                - type: label
+                                                  dataKey: itemObject.code
+                                                  style:
+                                                    display: "inline-block"
+                                                    marginLeft: "0.02"
+                                                    height: "auto"
+                                                    width: "0.08"
+                                                    textAlign:
+                                                      x: left
+                                                    fontFamily: "Arial"
+                                                    backgroundColor: "0xffffff"
+                                                    wordBreak: break-all
+                                                    fontSize: .Nfont.h1
+                                                    fontWeight: "550"
+                                                    verticalAlign: middle
+                                                - type: label
+                                                  text: "—"
+                                                  style:
+                                                    verticalAlign: middle
+                                                    display: "inline-block"
+                                                    width: "auto"
+                                                    height: "auto"
+                                                    fontSize: .Nfont.h2
+                                                - type: label
+                                                  dataKey: itemObject.description
+                                                  style:
+                                                    verticalAlign: middle
+                                                    marginLeft: "0.035"
+                                                    display: "inline-block"
+                                                    height: "auto"
+                                                    width: "0.22"
+                                                    textAlign:
+                                                      x: left
+                                                    backgroundColor: "0xffffff"
+                                                    fontFamily: "Arial"
+                                                    wordBreak: break-all
+                                                    fontSize: .Nfont.h1
+                                            - type: label
+                                              dataKey: itemObject.comment
+                                              style:
+                                                marginTop: "0.002"
+                                                marginLeft: "0.035"
+                                                width: "0.35"
+                                                height: "auto"
+                                                color: "0x666666"
+                                                fontFamily: "Arial"
+                                                wordBreak: break-all
+                                                fontSize: .Nfont.h1
+                      
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Procedure request   
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                fontSize: .Nfont.nf4
+                                fontStyle: bold
+                                fontFamily: "Roboto"  
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                height: "0.04"
+                                width: "0.39"
+                              children:
+                                - type: label
+                                  text: CPT Code
+                                  dataKey: 
+                                  style:
+                                    top: "0"
+                                    width: "0.1"
+                                    height: "0.04"
+                                    fontSize: .Nfont.nf4 
+                                    textAlign: 
+                                      x: center
+                                      y: center 
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.23"
+                                    height: "0.04"
+                                  children:
+                                    - type: image
+                                      path: searchBlue.png
+                                      style:
+                                        top: "0.007"
+                                        left: "0.21"
+                                        height: "0.02"
+                                        zIndex: "10"
+                                    - .BaseTextField:
+                                      viewTag: CPTCodeListTag
+                                      placeholder: Search by code or description
+                                      dataKey: formData.proRequest.descriptiveList.code
+                                      style:
+                                        top: "0"
+                                        left: "0"
+                                        width: "0.23"
+                                        height: "0.03"
+                                        fontSize: .Nfont.h1
+                                        fontFamily: "Arial"
+                                        color: "0x0f0f0f"
+                                        borderRadius: "3"
+                                      onInput:
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formDataTemp.allCPTListInfo@: []
+                                            - ..formDataTemp.allCPTListString@: []
+                                        - actionType: evalObject
+                                          object:
+                                            - =.builtIn.apiRequest.queryCPT:
+                                                dataIn:
+                                                  query: =..formData.proRequest.descriptiveList.code
+                                                dataOut: SurgeryAuthorizationEdit.formDataTemp.allCPTListInfo
+                                            - ..formDataTemp.allCPTListString@: =..formDataTemp.allCPTListInfo
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: CPTCodeTag
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: CPTCodeTags
+                                        - actionType: builtIn
+                                          funcName: show
+                                          viewTag: CPTCodeTag
+                                        - actionType: builtIn
+                                          funcName: hide
+                                          viewTag: CPTlistData
+                                        - actionType: builtIn
+                                          funcName: show
+                                          viewTag: ShowTag
+                                        - actionType: popUp
+                                          popUpView: CPTCodeTag
+                                          dismissOnTouchOutside: true
+                                
+                            - type: view
+                              style:
+                                top: "0"
+                                left: "0.25"
+                                width: "0.14"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  text: QTY
+                                  dataKey:
+                                  style:
+                                    height: "auto"
+                                    fontSize: .Nfont.h1
+                                    color: "0x6b6b6b"
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.14"
+                                    height: "0.04"
+                                  children:
+                                    - type: textField
+                                      viewTag: CPTdescriptionTag
+                                      dataKey: formData.proRequest.descriptiveList.description
+                                      style:
+                                        width: "0.135"
+                                        height: "0.03"
+                                        fontSize: .Nfont.h1
+                                        fontFamily: "Arial"
+                                        border:
+                                          style: "3"
+                                          color: "0xdededf"
+                                        borderWidth: "1"
+                                        borderRadius: "3"
+                                      onInput:
+                                        - actionType: evalObject
+                                          object:
+                                            - ..formDataTemp.allCPTListInfo@: []
+                                            - ..formDataTemp.allCPTListString@: []
+                                        - actionType: evalObject
+                                          object:
+                                            - =.builtIn.apiRequest.queryCPT:
+                                                dataIn:
+                                                  query: =..formData.proRequest.descriptiveList.description
+                                                dataOut: SurgeryAuthorizationEdit.formDataTemp.allCPTListInfo
+                                            - ..formDataTemp.allCPTListString@: =..formDataTemp.allCPTListInfo
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: CPTCodeTag
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: CPTCodeTags
+                                        - actionType: builtIn
+                                          funcName: show
+                                          viewTag: CPTCodeTag
+                                        - actionType: builtIn
+                                          funcName: show
+                                          viewTag: ShowTag
+                                        - actionType: popUp
+                                          popUpView: CPTCodeTag
+                                          dismissOnTouchOutside: true
+                        
+                        - type: button
+                          text: Add
+                          style:
+                            marginTop: "0.01"
+                            height: "0.04"
+                            left: "0.15"
+                            width: "0.1"
+                            backgroundColor: "0x2988e6"
+                            fontSize: .Nfont.h1
+                            color: "0xffffff"
+                            border:
+                              style: 1
+                            borderRadius: "3"
+                            textAlign:
+                              x: center
+                              y: center
+                          onClick:
+                            - actionType: evalObject
+                              object: 
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..formData.proRequest.descriptiveList.code
+                                        string2: ""
+                                  - actionType: popUp
+                                    popUpView: noProcedureTag
+                                    wait: true
+                                  - continue
+                            - emit:
+                                actions:
+                                  - =.builtIn.array.add:
+                                      dataIn:
+                                        object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList
+                                        value: =..formData.proRequest.descriptiveList # create copy .create by value ,not reference
+                            - actionType: evalObject
+                              object:
+                                - ..formData.proRequest.descriptiveList.code@: ""
+                                - ..formData.proRequest.descriptiveList.description@: ""
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: CPTlistData
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: CPTCodeListTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: CPTdescriptionTag
+                            - actionType: builtIn
+                              funcName: hide
+                              viewTag: CPTCodeTag
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: CPTlistData
+                                    
+                        # debug  
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: view
+                              viewTag: CPTCodeTag
+                              style:
+                                display: "none"
+                                width: "0.39"
+                                height: "0.3"
+                                fontFamily: "Poppins"
+                                border:
+                                  style: 3
+                                  color: "0xeeeeee"
+                                borderWidth: "1"
+                                zIndex: 10
+                                overflow: scroll
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.allCPTListString
+                                  iteratorVar: itemObject
+                                  viewTag: CPTCodeTags
+                                  style:
+                                    width: "0.39"
+                                    height: "auto"
+                                    margin: "0"
+                                    marginTop: "0"
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.39"
+                                        marginTop: "0.002"
+                                        height: "auto"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject
+                                          style:
+                                            width: "0.39"
+                                            left: "0"
+                                            textIndent: 20px
+                                            marginTop: "0"
+                                            textAlign:
+                                              x: left
+                                              y: center
+                                            height: "auto"
+                                            fontSize: "1.7vh"
+                                            color: "0x143459"
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - ..formData.proRequest.descriptiveList.code@: $var.0
+                                                  - ..formData.proRequest.descriptiveList.description@: $var.1
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: CPTCodeListTag
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: CPTdescriptionTag
+                                            - actionType: builtIn
+                                              funcName: hide
+                                              viewTag: CPTCodeTag
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: CPTlistData
+
+                            - type: view
+                              style:
+                                width: "0.39"
+                                left: "0"
+                                height: "auto"
+                                marginTop: "0.01"
+                                # display: "none"
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  viewTag: CPTlistData
+                                  style:
+                                    left: "0"
+                                    width: "0.39"
+                                    marginTop: "0.03"
+                                    height: "auto"
+                                    margin: "0"
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: "0.02"
+                                        width: "0.385"
+                                        height: "auto"
+                                        left: "0.001"
+                                        boxShadow: "0px 0px 2px 0.5px #cccccc"
+                                      children:
+                                        - type: image
+                                          path: deletePhoto.svg
+                                          style:
+                                            top: "0.008"
+                                            height: "0.025"
+                                          onClick:
+                                            - actionType: updateObject
+                                              dataKey: SurgeryAuthorizationEdit.formData.selectedProRequest
+                                              dataObject: itemObject
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.array.removeByName:
+                                                    dataIn:
+                                                      object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList
+                                                      key: code
+                                                      name: =..formData.selectedProRequest.code
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: CPTlistData
+                                        - type: label
+                                          dataKey: itemObject.code
+                                          style:
+                                            display: "inline-block"
+                                            height: "auto"
+                                            width: "0.3"
+                                            left: "0.05"
+                                            textAlign:
+                                              x: left
+                                            fontFamily: "Arial"
+                                            wordBreak: break-all
+                                            fontSize: .Nfont.h15
+                                        - type: label
+                                          dataKey: itemObject.description
+                                          style:
+                                            display: "inline-block"
+                                            height: "auto"
+                                            width: "0.3"
+                                            left: "0.05"
+                                            textAlign:
+                                              x: left
+                                            fontFamily: "Arial"
+                                            wordBreak: break-all
+                                            fontSize: .Nfont.h15
+
+                        - type: view
+                          style:
+                            marginTop: "0.04"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Procedure Description
+                              dataKey:
+                              style:
+                                height: "auto"
+                                color: "0x0f0f0f"
+                                fontSize: .Nfont.h1
+                                fontStyle: bold
+                                fontFamily: "Arial"
+                            - type: textView
+                              placeholder: Enter here
+                              dataKey: apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proDescription
+                              style:
+                                marginTop: "0.01"
+                                width: "0.39"
+                                height: "0.15"
+                                border:
+                                  style: 3
+                                borderColor: "0xd4d4d4"
+                                boxSizing: border-box
+                                borderWidth: "1"
+                                borderRadius: "3"
+                                resize: "none"
+                                textIndent: "0.8em"
+                                paddingTop: "0.5em"
+                                fontFamily: Proxima Nova
+                                fontSize: .Nfont.nf3
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: view
+                              style:
+                                height: "0.06"
+                                width: "0.39"
+                              children:
+                                - type: label
+                                  text: Physician Assistant Required
+                                  dataKey:
+                                  style:
+                                    top: "0"
+                                    left: "0"
+                                    height: "0.06"
+                                    color: "0x0f0f0f"
+                                    fontSize: .Nfont.h1
+                                    fontStyle: bold
+                                    fontFamily: "Arial"
+                                    textAlign:
+                                      y: center
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.physicianTemp
+                                  iteratorVar: itemObject
+                                  viewTag: isRequiredTag
+                                  style:
+                                    top: "0"
+                                    left: "0.22"
+                                    width: "0.16"
+                                    height: "0.06"
+                                    axis: horizontal
+                                  children:
+                                    - type: listItem
+                                      itemObject:
+                                      style:
+                                        width: "0.08"
+                                        height: "0.06"
+                                        left: "0"
+                                        marginTop: "0"
+                                      children:
+                                        - type: image
+                                          style:
+                                            top: "0.02"
+                                            left: "0"
+                                            height: "0.025"
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.selectStatus.physician.isRequired
+                                                          string2: $var.value
+                                                    - selectBlue.svg
+                                                    - selectGray.svg
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.selectStatus.physician.isRequired
+                                                          string2: $var.value
+                                                    - =.builtIn.object.clear:
+                                                        dataIn:
+                                                          object: =..formData.selectStatus.physician
+                                                          key: $var.key
+                                                    - =.builtIn.object.set:
+                                                        dataIn:
+                                                          object: =..formData.selectStatus.physician
+                                                          key: $var.key
+                                                          value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: isRequiredTag
+
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style:
+                                            top: "0.003"
+                                            left: "0.02"
+                                            fontFamily: "Arial"
+                                            fontSize: .Nfont.h1
+                                            height: "0.057"
+                                            textAlign:
+                                              y: center
+                            - type: textField
+                              placeholder: Enter here
+                              dataKey: formData.selectStatus.physician.content
+                              style:
+                                width: "0.39"
+                                height: "0.035"
+                                fontSize: .Nfont.h1
+                                fontFamily: "Arial"
+                                border:
+                                  style: "3"
+                                  color: "0xdededf"
+                                borderWidth: "1"
+                                boxSizing: border-box
+                                borderRadius: "3"
+                        
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Postoperative Therapy
+                              dataKey:
+                              style:
+                                height: "auto"
+                                color: "0x0f0f0f"
+                                fontSize: .Nfont.h1
+                                fontStyle: bold
+                                fontFamily: "Arial"
+                            - type: view
+                              style:
+                                height: "0.06"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    width: "0.1"
+                                    height: "0.06"
+                                  children:
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.perWeekTemp
+                                      iteratorVar: itemObject
+                                      viewTag: perWeekTag
+                                      style:
+                                        width: "0.1"
+                                        height: "0.06"
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject:
+                                          style:
+                                            width: "0.032"
+                                            height: "0.06"
+                                            left: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - type: image
+                                              style:
+                                                top: "0.02"
+                                                left: "0"
+                                                height: "0.025"
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..formData.postTherapy.perWeek
+                                                              string2: $var.value
+                                                        - $var.imgOn
+                                                        - $var.imgOff
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - if:
+                                                          - =.builtIn.string.equal:
+                                                              dataIn:
+                                                                string1: =..formData.postTherapy.perWeek
+                                                                string2: $var.value
+                                                          - =.builtIn.object.clear:
+                                                              dataIn:
+                                                                object: =..formData.postTherapy
+                                                                key: $var.key
+                                                          - =.builtIn.object.set:
+                                                              dataIn:
+                                                                object: =..formData.postTherapy
+                                                                key: $var.key
+                                                                value: $var.value
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: perWeekTag
+
+                                - type: label
+                                  text: times per week
+                                  dataKey:
+                                  style:
+                                    display: "inline-block"
+                                    height: "0.06"
+                                    color: "0x000000"
+                                    fontSize: .Nfont.h1
+                                    fontFamily: "Arial"
+                                    lineHeight: "6vh"
+                                    textAlign:
+                                      x: center
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    width: "0.14"
+                                    height: "0.06"
+                                    left: "0.03"
+                                  children:
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.weekTemp
+                                      iteratorVar: itemObject
+                                      viewTag: weekTag
+                                      style:
+                                        width: "0.14"
+                                        height: "0.06"
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject:
+                                          style:
+                                            width: "0.03"
+                                            height: "0.06"
+                                            left: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - type: image
+                                              style:
+                                                top: "0.02"
+                                                left: "0"
+                                                height: "0.025"
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..formData.postTherapy.week
+                                                              string2: $var.value
+                                                        - $var.imgOn
+                                                        - $var.imgOff
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - if:
+                                                          - =.builtIn.string.equal:
+                                                              dataIn:
+                                                                string1: =..formData.postTherapy.week
+                                                                string2: $var.value
+                                                          - =.builtIn.object.clear:
+                                                              dataIn:
+                                                                object: =..formData.postTherapy
+                                                                key: $var.key
+                                                          - =.builtIn.object.set:
+                                                              dataIn:
+                                                                object: =..formData.postTherapy
+                                                                key: $var.key
+                                                                value: $var.value
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: weekTag
+
+                                - type: label
+                                  text: week(s)
+                                  dataKey:
+                                  style:
+                                    display: "inline-block"
+                                    height: "0.06"
+                                    color: "0x000000"
+                                    left: "0.01"
+                                    fontSize: .Nfont.h1
+                                    fontFamily: "Arial"
+                                    lineHeight: "6vh"
+                                    textAlign:
+                                      x: center
+
+                            - type: textField
+                              placeholder: Body Part
+                              dataKey: formData.postTherapy.body
+                              style:
+                                width: "0.39"
+                                height: "0.035"
+                                fontSize: .Nfont.h1
+                                fontFamily: "Arial"
+                                boxSizing: border-box
+                                border:
+                                  style: "3"
+                                  color: "0xdededf"
+                                borderWidth: "1"
+                                borderRadius: "3"
+
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Special Supplies / Equipment
+                              dataKey:
+                              style:
+                                height: "auto"
+                                color: "0x0f0f0f"
+                                fontSize: .Nfont.h1
+                                fontStyle: bold
+                                fontFamily: "Arial"
+                            - type: textView
+                              placeholder: Enter here
+                              dataKey: apiRequest.surgeryForm.docReq.name.data.surgeryInfo.equipment
+                              style:
+                                marginTop: "0.01"
+                                width: "0.39"
+                                height: "0.05"
+                                border:
+                                  style: 3
+                                borderColor: "0xd4d4d4"
+                                borderWidth: "1"
+                                borderRadius: "3"
+                                resize: "none"
+                                boxSizing: border-box
+                                fontFamily: Proxima Nova
+                                fontSize: .Nfont.nf4
+
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Medical Clearance
+                              dataKey:
+                              style:
+                                height: "auto"
+                                color: "0x0f0f0f"
+                                fontSize: .Nfont.h1
+                                fontStyle: bold
+                                fontFamily: "Arial"
+                            - type: list
+                              viewTag: SelectTag
+                              contentType: listObject
+                              listObject: ..formDataTemp.medicalSelect
+                              iteratorVar: itemObject
+                              style:
+                                margin: "0"
+                                marginTop: "0.02"
+                                width: "0.39"
+                                left: "0"
+                                height: "auto"
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: "0.3"
+                                    height: "0.0.39"
+                                    left: "0"
+                                    marginTop: "0.01"
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.value
+                                      style:
+                                        fontSize: .Nfont.h1
+                                        height: "0.034"
+                                        left: "0.03"
+                                        textAlign:
+                                          y: center
+                                    - type: image
+                                      style:
+                                        top: "0.003"
+                                        height: "0.025"
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.array.has:
+                                                    dataIn:
+                                                      object: =..formData.medicalClear
+                                                      value: $var.key
+                                                - selectBlue.svg
+                                                - selectGray.svg
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - if:
+                                                  - =.builtIn.array.has:
+                                                      dataIn:
+                                                        object: =..formData.medicalClear
+                                                        value: $var.key
+                                                  - =.builtIn.array.removeByValue:
+                                                      dataIn:
+                                                        object: =..formData.medicalClear
+                                                        value: $var.key
+                                                  - =.builtIn.array.add:
+                                                      dataIn:
+                                                        object: =..formData.medicalClear
+                                                        value: $var.key
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: SelectTag
+
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            height: "0.04"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: H&P / Medical clearance
+                              dataKey:
+                              style:
+                                top: "0"
+                                left: "0"
+                                height: "0.04"
+                                color: "0x000000"
+                                fontSize: .Nfont.h1
+                                fontFamily: "Arial"
+                                textAlign:
+                                  y: center
+                            - type: list
+                              viewTag: isClearTag
+                              contentType: listObject
+                              listObject: ..formDataTemp.clearTemp
+                              iteratorVar: itemObject
+                              style:
+                                top: "0"
+                                left: "0.18"
+                                width: "0.2"
+                                height: "0.04"
+                                axis: horizontal
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: "0.08"
+                                    height: "0.04"
+                                    left: "0"
+                                    marginTop: "0"
+                                  children:
+                                    - type: image
+                                      style:
+                                        top: "0.01"
+                                        left: "0"
+                                        height: "0.025"
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..formData.selectStatus.clearance.isClear
+                                                      string2: $var.value
+                                                - selectBlue.svg
+                                                - selectGray.svg
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - if:
+                                                  - =.builtIn.string.equal:
+                                                      dataIn:
+                                                        string1: =..formData.selectStatus.clearance.isClear
+                                                        string2: $var.value
+                                                  - =.builtIn.object.clear:
+                                                      dataIn:
+                                                        object: =..formData.selectStatus.clearance
+                                                        key: $var.key
+                                                  - =.builtIn.object.set:
+                                                      dataIn:
+                                                        object: =..formData.selectStatus.clearance
+                                                        key: $var.key
+                                                        value: $var.value
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: isClearTag
+
+                                    - type: label
+                                      dataKey: itemObject.value
+                                      style:
+                                        top: "0.002"
+                                        left: "0.025"
+                                        fontFamily: "Arial"
+                                        fontSize: .Nfont.h1
+                                        height: "0.04"
+                                        textAlign:
+                                          y: center
+
+                        - type: label
+                          text: Please fax all results 3 business days prior to surgery date.
+                          style:
+                            marginTop: "0.01"
+                            height: "auto"
+                            color: "0x000000"
+                            fontSize: .Nfont.nf2
+                            fontStyle: bold
+                            fontFamily: "Arial"
+                       
+                        - type: label
+                          text: If preops results are not received as request surgery will be subject to cancellation.
+                          style:
+                            marginTop: "0.01"
+                            height: "auto"
+                            color: "0x000000"
+                            fontSize: .Nfont.nf3
+                            fontFamily: "Arial"
+                            textAlign:
+                              x: center
+
+                        - type: view
+                          style:
+                            marginTop: "0.04"
+                            height: "0.03"
+                            width: "0.39"
+                          children:
+                            - type: label
+                              text: Signature
+                              dataKey:
+                              style:
+                                top: "0"
+                                left: "0"
+                                height: "0.03"
+                                width: "0.38"
+                                color: "0x0f0f0f"
+                                fontSize: .Nfont.h1
+                                fontStyle: bold
+                                fontFamily: "Arial"
+                                textAlign:
+                                  y: center
+                            - type: label
+                              text: Clear
+                              style:
+                                top: "0"
+                                left: "0.35"
+                                height: "0.03"
+                                color: "0xff0000"
+                                fontSize: .Nfont.h1
+                                fontFamily: "Arial"
+                                textAlign:
+                                  y: center
+                              onClick:
+                                - actionType: removeSignature
+                                  dataObject: BLOB
+                                  dataKey: SurgeryAuthorizationEdit.apiRequest.newSign.docReq.name.data
+                                  viewTag: signatureTag
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.38"
+                            height: "0.15"
+                            border:
+                              style: 4
+                            borderColor: "0xababab"
+                            borderWidth: "2"
+                            boxSizing: border-box
+                          children:
+                            # 签名区域
+                            - type: canvas
+                              dataKey: SurgeryAuthorizationEdit.apiRequest.newSign.docReq.name.data
+                              viewTag: signatureTag
+                              style:
+                                width: "0.33"
+                                top: "0"
+                                height: "0.16"
+                                zIndex: "2"
+                            # 显示暂存的签名
+                            # - type: image
+                            #   viewTag: signatureShowTag
+                            #   path=func: =.builtIn.utils.prepareDocToPath
+                            #   # 传入签名文档的id
+                            #   dataKey: SurgeryAuthorizationEdit.formData.temporarySignature
+                            #   style:
+                            #     # 控制显示
+                            #     display: ..formData.flag
+                            #     left: "0"
+                            #     width: "0.39"
+                            #     top: "0"
+                            #     height: "0.15"
+                            #     overflow: scroll
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                          children:
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                left: "0"
+                                width: "0.39"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  dataKey: apiRequest.surgeryForm.docReq.name.data.providerInfo.providerFullName
+                                  style:
+                                    height: "auto"
+                                    width: "0.3"
+                                    fontSize: .Nfont.h4
+                                    wordBreak: break-all
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                left: "0.025"
+                                width: "0.32"
+                                height: "auto"
+                                # backgroundColor: "pink"
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    left: "0"
+                                    width: "0.32"
+                                    height: "auto"
+                                  children:
+                                    - type: label
+                                      text: Family Medicine
+                                      style:
+                                        height: "auto"
+                                        width: "0.32"
+                                        fontSize: .Nfont.h1
+                                        fontFamily: "Arial"
+                                        color: "0x0f0f0f"
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    left: "0"
+                                    height: "0.03"
+                                  children:
+                                    - type: label
+                                      dataKey: apiRequest.surgeryForm.docReq.name.data.providerInfo.LIC
+                                      style:
+                                        left: "0.035"
+                                        height: "auto"
+                                        fontSize: .Nfont.h1
+                                        wordBreak: break-all
+                                        fontFamily: "Arial"
+                                        color: "0x0f0f0f"
+                                    - type: label
+                                      text: "LIC#"
+                                      style:
+                                        top: "0"
+                                        left: "0"
+                                        height: "auto"
+                                        fontSize: .Nfont.h1
+                                        fontFamily: "Arial"
+                                        color: "0x757575"
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                left: "0"
+                                width: "0.39"
+                                height: "0.01"
+                                backgroundColor: "0x707070"
+                            - type: label
+                              text: "For Insurance or Payer use only"
+                              dataKey:
+                              style:
+                                marginTop: "0.01"
+                                height: "auto"
+                                width: "0.39"
+                                fontSize: .Nfont.h1
+                                color: "0x000000"
+                                textAlign:
+                                  x: center
+                                  y: center
+                        # 无法编辑
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                            backgroundColor: "0xffffff"
+                            opacity: "0.6"
+                          children:
+                            - type: view
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - type: label
+                                  dataKey: formDataTemp.normalInfo
+                                  style:
+                                    height: "auto"
+                                    width: "0.39"
+                                    color: "0x000000"
+                                    fontSize: .Nfont.h1
+                                    fontFamily: "Poppins"
+                                - type: list
+                                  viewTag: isClearTag
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.approveTemp
+                                  iteratorVar: itemObject
+                                  style:
+                                    marginTop: "0.02"
+                                    width: "0.39"
+                                    height: "0.04"
+                                    axis: horizontal
+                                    # backgroundColor: "pink"
+                                  children:
+                                    - type: listItem
+                                      itemObject:
+                                      style:
+                                        width: "0.12"
+                                        height: "0.04"
+                                        left: "0"
+                                        marginTop: "0"
+                                      children:
+                                        - type: image
+                                          path: selectGray.svg
+                                          style:
+                                            top: "0.01"
+                                            left: "0"
+                                            height: "0.025"
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style:
+                                            top: "0"
+                                            left: "0.03"
+                                            fontFamily: "Arial"
+                                            fontSize: .Nfont.h1
+                                            height: "0.04"
+                                            textAlign:
+                                              y: center
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "auto"
+                                width: "0.39"
+                                # backgroundColor: 'yellow'
+                              children:
+                                - type: label
+                                  text: Name of person authorizing service
+                                  dataKey:
+                                  style:
+                                    height: "auto"
+                                    width: "0.39"
+                                    color: "0x000000"
+                                    fontSize: .Nfont.h1
+                                    fontFamily: "Poppins"
+                                - type: textField
+                                  isEditable: false
+                                  placeholder: Enter here
+                                  dataKey:
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                    height: "0.035"
+                                    border:
+                                      style: 3
+                                    borderColor: "0xd4d4d4"
+                                    borderWidth: "1"
+                                    boxSizing: border-box
+                                    borderRadius: "3"
+                                    backgroundColor: "0xffffff"
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "0.03"
+                                width: "0.39"
+                              children:
+                                - type: label
+                                  text: Signature
+                                  dataKey:
+                                  style:
+                                    top: "0"
+                                    left: "0"
+                                    height: "0.03"
+                                    width: "0.39"
+                                    color: "0x0f0f0f"
+                                    fontSize: .Nfont.h1
+                                    fontStyle: bold
+                                    fontFamily: "Arial"
+                                    textAlign:
+                                      y: center
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                width: "0.388"
+                                height: "0.15"
+                                border:
+                                  style: 4
+                                borderColor: "0xababab"
+                                borderWidth: "2"
+                            - type: label
+                              text: Date
+                              dataKey:
+                              style:
+                                marginTop: "0.02"
+                                width: "0.39"
+                                height: "auto"
+                                color: "0x000000"
+                                fontSize: .Nfont.h1
+                                fontFamily: "Poppins"
+
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick: 
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: SurgeryAuthorizationEdit.apiRequest.newSign.docReq.name.data
+                          isEmpty: SurgeryAuthorizationEdit.formData.whetherSignature
+
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.string.equal: 
+                                  dataIn:
+                                    string1: =..formData.whetherSignature
+                                    string2: true
+                              - continue
+                              - actionType: evalObject
+                                object: 
+                                  # 签名a
+                                  - ..apiRequest.newSign.docReq.refid@: =..apiRequest.surgeryForm.docResp.doc.id
+                                  - =..apiRequest.newSign.docAPI.store: ""
+                                  - ..apiRequest.surgeryForm.docReq.name.data.signatureId@: =..apiRequest.newSign.docResp.doc.id
+                                  - ..apiRequest.surgeryForm.docReq.name.data.whetherSignature@: false
+                                  
+                            - ..apiRequest.surgeryForm.docReq.id@: =..apiRequest.surgeryForm.docResp.doc.id
+                            - ..apiRequest.surgeryForm.docReq.reid@: =.Global.formData.meetingDocReid
+                            # 修改文档类型
+                            - ..apiRequest.surgeryForm.docReq.type@: 133120
+                            - ..apiRequest.surgeryForm.docReq.name.data.statusTag@: =..formDataTemp.privateTag
+                            
+                            # physician
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.physician@: =..formData.selectStatus.physician
+                            # Postoperative  Therapy
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.postTherapy@: =..formData.postTherapy
+                            # medicalSelect
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.medicalStatus.medicalSelect@: =..formData.medicalClear
+                            # H&P / Medical clearance
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.medicalStatus.clearSelect@: =..formData.selectStatus.clearance
+                            - =..apiRequest.surgeryForm.docAPI.store: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true  
+                    - .FormsBottomRightButton:
+                      onClick: 
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: SurgeryAuthorizationEdit.apiRequest.newSign.docReq.name.data
+                          isEmpty: SurgeryAuthorizationEdit.formData.whetherSignature
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.string.equal: 
+                                  dataIn:
+                                    string1: =..formData.whetherSignature
+                                    string2: true
+                              - actionType: popUp
+                                popUpView: noSignatureTag
+                                wait: true
+                              - continue
+                            # 签名
+                            - =..apiRequest.newSign.docReq.refid@: =..apiRequest.surgeryForm.docResp.doc.id
+                            - =..apiRequest.newSign.docAPI.store: ""
+                            # 修改文档类型
+                            - =.builtIn.number.inhx: 
+                                dataIn: 
+                                  intHex: =..apiRequest.surgeryForm.docReq.type
+                                  index: 1
+                                  hex: 1
+                                dataOut: SurgeryAuthorizationEdit.apiRequest.surgeryForm.docReq.type
+                            - ..apiRequest.surgeryForm.docReq.id@: =..apiRequest.surgeryForm.docResp.doc.id
+                            - ..apiRequest.surgeryForm.docReq.reid@: =.Global.formData.meetingDocReid
+                            - ..apiRequest.surgeryForm.docReq.name.data.whetherSignature@: false
+                            - ..apiRequest.surgeryForm.docReq.name.data.statusTag@: =..formDataTemp.publicTag
+                            - ..apiRequest.surgeryForm.docReq.name.data.signatureId@: =..apiRequest.newSign.docResp.doc.id
+                            # physician
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.physician@: =..formData.selectStatus.physician
+                            # Postoperative  Therapy
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.postTherapy@: =..formData.postTherapy
+                            # medicalSelect
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.medicalStatus.medicalSelect@: =..formData.medicalClear
+                            # H&P / Medical clearance
+                            - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.medicalStatus.clearSelect@: =..formData.selectStatus.clearance
+                            - =..apiRequest.surgeryForm.docAPI.store: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true  
+        - type: popUp
+          viewTag: startDateTag
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1" 
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - .BaseDate.calendar:
+              children:
+                - .BaseDate.calendarTitle:
+                - .BaseDate.calendarCancel:
+                - .BaseDate.calendarHeader:
+                  children:
+                    - .BaseDate.newMonthView:
+                    - .BaseDate.newYearView:
+                - .BaseDate.weekView:
+                - .BaseDate.dayView:
+                - .BaseDate.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.surgicalDate@: =.BaseDate.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: dateViewTag
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+                - .BaseDate.cancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: startDateTag
+
+        - .BaseWarningView:
+          msg1: Warning
+          msg2: You haven't signed the form.
+          viewTag: noSignatureTag
+
+        - .BaseWarningView:
+          msg1: Warning
+          msg2: You haven't added the Diagnoses.
+          viewTag: noDiagnosesTag
+
+        - .BaseWarningView:
+          msg1: Warning
+          msg2: You haven't added the Procedure request.
+          viewTag: noProcedureTag

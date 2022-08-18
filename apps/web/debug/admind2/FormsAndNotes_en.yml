@@ -1,0 +1,486 @@
+PatientForm: 
+  NewPatForm:
+    title: New Patient Forms
+    type: 94721
+    baseDataModelType: .DocType.PatientForm
+    preview: 
+      - pageName: NewPatFormPreviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: NewPatFormPreviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: NewPatFormPreviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+    edit: 
+      - pageName: NewPatFormEditPage1
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: NewPatFormEditPage2
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: NewPatFormEditPage3
+        uiFinished: No
+        dataModelFinished: No
+    review: 
+      - pageName: NewPatFormReviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: NewPatFormReviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: NewPatFormReviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: NewPatFormReviewPage4
+        uiFinished: Yes
+        dataModelFinished: Yes
+  Cov19TestNewPat: 
+    title: COVID-19 Testing Consent - New Patient
+    type: 107521
+    baseDataModelType: .DocType.Cov19TestNewPatForm
+    preview: 
+      - pageName: Cov19TestNewPatPreviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatPreviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatPreviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatPreviewPage4
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatPreviewPage5
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatPreviewPage6
+        uiFinished: Yes
+        dataModelFinished: Yes
+    edit: 
+      - pageName: Cov19TestNewPatEditPage1
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: Cov19TestNewPatEditPage2
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: Cov19TestNewPatEditPage3
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: Cov19TestNewPatEditPage4
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: Cov19TestNewPatEditPage5
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: Cov19TestNewPatEditPage6
+        uiFinished: No
+        dataModelFinished: No
+    review: 
+      - pageName: Cov19TestNewPatReviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatReviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatReviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatReviewPage4
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatReviewPage5
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatReviewPage6
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestNewPatReviewPage7
+        uiFinished: Yes
+        dataModelFinished: Yes
+  Cov19TestForm:
+    title: COVID-19 Testing Consent Form
+    type: 110081
+    baseDataModelType: .DocType.Cov19TestForm
+    preview: 
+      - pageName: Cov19TestFormPreviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestFormPreviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestFormPreviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+    edit: 
+      - pageName: Cov19TestFormEditPage1
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: Cov19TestFormEditPage2
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: Cov19TestFormEditPage3
+        uiFinished: No
+        dataModelFinished: No
+    review: 
+      - pageName: Cov19TestFormReviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestFormReviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: Cov19TestFormReviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+  PifzerVaccineFirDose: 
+    title: Pifzer-BioNTech Vaccine - First Dose
+    type: 112641
+    baseDataModelType: .DocType.PifzerVaccineFirDoseForm
+    preview: 
+      - pageName: PifzerVaccineFirDosePreviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDosePreviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDosePreviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDosePreviewPage4
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDosePreviewPage5
+        uiFinished: Yes
+        dataModelFinished: Yes
+    edit: 
+      - pageName: PifzerVaccineFirDoseEditPage1
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: PifzerVaccineFirDoseEditPage2
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: PifzerVaccineFirDoseEditPage3
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: PifzerVaccineFirDoseEditPage4
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: PifzerVaccineFirDoseEditPage5
+        uiFinished: No
+        dataModelFinished: No
+    review: 
+      - pageName: PifzerVaccineFirDoseReviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDoseReviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDoseReviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDoseReviewPage4
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDoseReviewPage5
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineFirDoseReviewPage6
+        uiFinished: Yes
+        dataModelFinished: Yes
+  PifzerVaccineSecDose:
+    title: Pifzer-BioNTech Vaccine - Second Dose
+    type: 115201
+    baseDataModelType: .DocType.PifzerVaccineSecDoseForm
+    preview: 
+      - pageName: PifzerVaccineSecDosePreviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineSecDosePreviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+    edit: 
+      - pageName: PifzerVaccineSecDoseEditPage1
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: PifzerVaccineSecDoseEditPage2
+        uiFinished: No
+        dataModelFinished: No
+    review: 
+      - pageName: PifzerVaccineSecDoseReviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: PifzerVaccineSecDoseReviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+  ModernaVaccineFirDose: 
+    title: Moderna Vaccine Form - First Dose
+    type: 117761
+    baseDataModelType: .DocType.ModernaVaccineFirDoseForm
+    preview: 
+      - pageName: ModernaVaccineFirDosePreviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDosePreviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDosePreviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDosePreviewPage4
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDosePreviewPage5
+        uiFinished: Yes
+        dataModelFinished: Yes
+    edit: 
+      - pageName: ModernaVaccineFirDoseEditPage1
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: ModernaVaccineFirDoseEditPage2
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: ModernaVaccineFirDoseEditPage3
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: ModernaVaccineFirDoseEditPage4
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: ModernaVaccineFirDoseEditPage5
+        uiFinished: No
+        dataModelFinished: No
+    review: 
+      - pageName: ModernaVaccineFirDoseReviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDoseReviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDoseReviewPage3
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDoseReviewPage4
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDoseReviewPage5
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineFirDoseReviewPage6
+        uiFinished: Yes
+        dataModelFinished: Yes
+  ModernaVaccineSecDose:
+    title: Moderna Vaccine Form - Second Dose
+    type: 120321
+    baseDataModelType: .DocType.ModernaVaccineSecDoseForm
+    preview: 
+      - pageName: ModernaVaccineSecDosePreviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineSecDosePreviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+    edit: 
+      - pageName: ModernaVaccineSecDoseEditPage1
+        uiFinished: No
+        dataModelFinished: No
+      - pageName: ModernaVaccineSecDoseEditPage2
+        uiFinished: No
+        dataModelFinished: No
+    review: 
+      - pageName: ModernaVaccineSecDoseReviewPage1
+        uiFinished: Yes
+        dataModelFinished: Yes
+      - pageName: ModernaVaccineSecDoseReviewPage2
+        uiFinished: Yes
+        dataModelFinished: Yes
+
+ProviderNotes:
+  CovResultAndFluResult: 
+    title: COVID-19 Results & Flu A&B Results
+    type: 138241
+    baseDataModelType: .DocType.covResultAndFluResult
+    edit: 
+      pageName: Cov19ResultsAndFluResultsEdit
+      uiFinished: Yes
+      dataModelFinished: Yes
+    review: 
+      pageName: Cov19ResultsAndFluResultsReview
+      uiFinished: Yes
+      dataModelFinished: Yes
+  ProgressReport: 
+    title: Progress Report
+    type: 140801
+    baseDataModelType: .DocType.ProgressReport
+    edit: 
+      pageName: ProgressReportEdit
+      uiFinished: Yes
+      dataModelFinished: Yes
+    review: 
+      pageName: ProgressReportReview
+      uiFinished: Yes
+      dataModelFinished: Yes
+    private: 
+      pageName: ProgressReportPrivate
+      uiFinished: Yes
+      dataModelFinished: Yes      
+  InitEvalReport: 
+    title: Initial Evaluation Report
+    type: 135681
+    baseDataModelType: .DocType.InitEvalReport
+    edit: 
+      pageName: 
+      uiFinished: No
+      dataModelFinished: No
+    review: 
+      pageName: InitEvalReport
+      uiFinished: Yes 
+      dataModelFinished: Yes 
+  EvaluationNote:
+    title: Evaluation Note
+    type: 1793
+    baseDataModelType: .DocType.EvaluationNote
+    edit: 
+      pageName: EvaluationNoteEdit
+      uiFinished: Yes
+      dataModelFinished: No
+    review: 
+      pageName: EvaluationNoteReview
+      uiFinished: Yes
+      dataModelFinished: No
+    private: 
+      pageName: EvaluationNotePrivateReview
+      uiFinished: No
+      dataModelFinished: No      
+  # Prescription: 
+  #   title: prescription
+  #   type: 2049
+  #   baseDataModelType: .DocType.Prescription
+  #   edit: 
+  #     pageName:
+  #     uiFinished: No
+  #     dataModelFinished: No
+  #   review: 
+  #     pageName:
+  #     uiFinished: Yes
+  #     dataModelFinished: No
+  AbsentNote: 
+    title: Absence Note
+    type: 2305
+    baseDataModelType: .DocType.AbsentNote
+    edit: 
+      pageName: AbsentNoteEdit
+      uiFinished: Yes
+      dataModelFinished: Yes
+    review: 
+      pageName: AbsentNoteReview
+      uiFinished: Yes
+      dataModelFinished: Yes
+    private: 
+      pageName: AbsentNotePrivate
+      uiFinished: Yes 
+      dataModelFinished: Yes     
+  BlankNote: 
+    title: Blank Note
+    type: 1537
+    baseDataModelType: .DocType.MeetingNote
+    edit: 
+      pageName: BlankNoteEdit
+      uiFinished: Yes
+      dataModelFinished: Yes
+    review: 
+      pageName: BlankNoteReview
+      uiFinished: Yes
+      dataModelFinished: Yes
+    private:
+      pageName: BlankNotePrivate
+      uiFinished: Yes
+      dataModelFinished: Yes
+  WorkStatusForm: 
+    title: Work Status Form
+    type: 122881
+    baseDataModelType: .DocType.workStatusForm
+    edit: 
+      pageName: WorkStatusFormEdit
+      uiFinished: Yes
+      dataModelFinished: Yes
+    review: 
+      pageName: WorkStatusFormReview
+      uiFinished: Yes
+      dataModelFinished: Yes
+    private: 
+      pageName: WorkStatusFormPrivate
+      uiFinished: Yes
+      dataModelFinished: Yes      
+  PROne: 
+    title: PR-1
+    type: 125441
+    baseDataModelType: .DocType.pROne
+    edit: 
+      pageName: PROneEdit
+      uiFinished: Yes
+      dataModelFinished: Yes
+    review: 
+      pageName: PROneReview
+      uiFinished: Yes
+      dataModelFinished: Yes
+    private: 
+      pageName: PROnePrivate
+      uiFinished: Yes
+      dataModelFinished: Yes      
+  PRTwo: 
+    title: PR-2
+    type: 128001
+    baseDataModelType: .DocType.pRTwo
+    edit: 
+      pageName: PRTwoEdit
+      uiFinished: Yes
+      dataModelFinished: Yes
+    review: 
+      pageName: PRTwoReview
+      uiFinished: Yes 
+      dataModelFinished: Yes
+    private: 
+      pageName: PRTwoPrivate
+      uiFinished: Yes 
+      dataModelFinished: Yes     
+  DWCFormRFA: 
+    title: DWC Form RFA
+    type: 130561
+    baseDataModelType: .DocType.dWCFormRFA
+    edit: 
+      pageName: 
+      uiFinished: No
+      dataModelFinished: No
+    review: 
+      pageName: DWCFormRFAPrivate
+      uiFinished: Yes
+      dataModelFinished: No
+  SurgeryAuthorization: 
+    title: Surgery Authorization
+    type: 133121
+    baseDataModelType: .DocType.surgeryForm
+    edit: 
+      pageName: 
+      uiFinished: No
+      dataModelFinished: No
+    review: 
+      pageName: SurgeryAuthorizationReview
+      uiFinished: Yes
+      dataModelFinished: Yes
+  FluVaccinationConsentFormEnglish:
+    title: Flu Vaccination Consent Form 2020-2021(English)
+    type: 143361
+    baseDataModelType: .DocType.FluVaccinationConsentFormEnglish
+    edit: 
+      Provisional
+    review: 
+      Provisional
+  FluVaccinationConsentFormSpanish:
+    title: Flu Vaccination Consent Form 2020-2021(Spanish)
+    type: 145921
+    baseDataModelType: .DocType.FluVaccinationConsentFormSpanish
+    edit: 
+      Provisional
+    review: 
+      Provisional      

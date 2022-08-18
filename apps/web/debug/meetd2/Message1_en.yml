@@ -1,0 +1,324 @@
+Message1:
+  pageNumber: "220"
+  title: "Message"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Message1.docDetail.document@: =.Global.email.document
+    - if:
+      - =.Message1.docDetail.document.fid
+      - ..NewPasswordHelper.docAPI.get
+      - continue
+    - if:
+      - =..docResponse.doc.0
+      - ..userData.get
+      - continue       
+    - if:
+      - =..userData.userVertex.vertex.0.pk
+      - actionType: evalObject
+        object:
+          - =.builtIn.eccNaCl.decryptASK:
+              dataIn:
+                eData: =..docResponse.doc.0.name.aesk
+                recvSk: =.Global.currentUser.vertex.sk 
+                sendPk: =..userData.userVertex.vertex.0.pk
+              dataOut: Message1.formData.password #aesk        
+          - =.builtIn.string.split16Dkey:
+              dataIn: =.Message1.formData.password
+              dataOut: Message1.formData.split
+          - .Message1.docDetail.document.name.data@: =..formData.split
+      - continue
+    - if:
+      - =..docResponse.doc.0
+      - continue            
+      - actionType: evalObject
+        object:
+          =.builtIn.utils.prepareDoc:
+            dataIn:
+              doc: =..docDetail.document
+            dataOut: Message1.docDetail.document
+  userData:
+    userVertex:
+      vertex:
+    request:
+      id: =..docResponse.doc.0.bsig # the ovid of document
+      xfname: id
+      type: 1          
+    get:
+      api: rv
+      dataIn: userData.request
+      dataOut: userData.userVertex          
+  formData:
+    password: ""
+    split: ""        
+  docDetail:
+    document: ""
+    docAPI:
+      .DocAPI: "" 
+      store:
+        dataIn: Message1.docDetail.document
+      delete:
+        api: dx
+        dataIn: Message1.docDetail.document
+  NewPasswordHelper:
+    document:
+    docAPI:
+      .DocAPI: ""
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        ids:
+          - =.Message1.docDetail.document.fid 
+        xfname: id
+        type: .DocType.PasswordHelper 
+        maxcount: "1"
+        obfname: "mtime"
+        dataKey: docResponse
+        _nonce: =.Global._nonce 
+  docResponse:
+    doc:
+    error: ""
+    jwt: ""                    
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick: 
+        - goto: InboxDashboard
+      # path: backWhiteArrow.png
+    - .HeaderRightImg:
+      path: elipsis.png
+      # onClick:
+      #   - actionType: evalObject
+      #     object:
+      #       ..styleAttribute.funcBar@: "block"
+      #   - actionType: builtIn
+      #     funcName: redraw
+      #     viewTag: funbar
+      # onClick:
+      #   - actionType: popUp
+      #     popUpView: detailview
+    - type: view
+      style:
+        width: "1"
+        height: "0.8"
+        # marginTop: "0.1"
+        left: "0"
+        top: "0.1"
+        # display: "block"
+        overflow: scroll
+      viewTag: funbar
+      children:
+        - type: view
+          style: 
+            top: "0"
+            width: "1"
+            left: "0"
+            height: "0.075"
+            # backgroundColor: "0xcdcdcd"
+            zIndex: "10"
+            border: 
+              style: "2"
+            borderColor: "0x00000066"
+            borderWidth: "1"
+            position: "relative"
+            # backgroundColor: =..styleAttribute.funcBar
+          children: 
+            - type: button
+              text: Trash
+              # onClick:
+              #   - actionType: evalObject
+              #     object:
+              #       ..email.edge.subtype@: 50
+              #   - actionType: evalObject
+              #     object: 
+              #       - =..email.edgeAPI.store: ""
+              #   - goto: Trash
+              style:
+                left: "0.15"
+                width: "0.18"
+                top: "0.02"
+                height: "0.035"
+                fontSize: "16"
+                color: "0xd10101"
+                border: 
+                  style: "3"
+                borderColor: "0xd10101"
+                borderWidth: "1"
+                borderRadius: "20"
+                textAlign: 
+                  x: center
+                backgroundColor: "0xffffff"
+            # - type: button
+            #   text: Move
+            #   onClick:
+            #     - actionType: popUp
+            #       popUpView: moveView
+            #     - actionType: popUpDismiss
+            #       popUpView: replyView
+            #   style:
+            #     left: "0.41"
+            #     width: "0.18"
+            #     top: "0.02"
+            #     height: "0.035"
+            #     fontSize: "16"
+            #     color: "0x2988e6"
+            #     border: 
+            #       style: "3"
+            #     borderColor: "0x2988e6"
+            #     borderWidth: "1"
+            #     borderRadius: "20"
+            #     textAlign: 
+            #       x: center
+            #     backgroundColor: "0xffffff"
+            - type: button
+              text: Reply
+              # onClick:
+              #   - actionType: evalObject
+              #     object:
+              #       - ..NewEmail.edge.evid@: =..email.edge.bvid
+              #       - ..NewEmail.edge.refid@: =..email.edge.id
+              #       - ..NewEmail.edge.name.receiveName@: =..email.edge.name.senderName
+              #       - ..NewEmail.edge.name.senderName@: =..email.edge.name.receiveName
+              #       - ..NewEmail.edge.name.title@: =.Message1.subject
+              #   - actionType: evalObject
+              #     object: 
+              #       - =.Message1.NewEmail.edgeAPI.store: ""
+              #   - actionType: evalObject
+              #     object:
+              #       .Global.email@: =..NewEmail.response.edge
+              #   - goto: NewMessage2
+              style:
+                left: "0.67"
+                width: "0.18"
+                top: "0.02"
+                height: "0.035"
+                fontSize: "16"
+                color: "0xffffff"
+                border: 
+                  style: "3"
+                borderColor: "0x2988e6"
+                borderWidth: "1"
+                borderRadius: "20"
+                textAlign: 
+                  x: center
+                backgroundColor: "0x2988e6"
+        
+        - type: view
+          style:
+            top: "0.08"
+            width: "1"
+            height: "0.15"
+            display: "block"
+            boxShadow: "0px 15px 10px -15px #0000002f"
+          children:
+            - type: label
+              text=func: .builtIn.string.getFirstChar
+              dataKey: Message1.docDetail.document.name.user
+              style:  
+                left: "0.05"
+                top: "0.02"
+                width: "0.1"
+                height: "0.06"
+                fontSize: "18"
+                color: "#2988e6"
+                # textIndent: "18px"
+                textAlign: 
+                  x: center
+                  y: center
+                backgroundColor: "#b2d1ff"
+            - type: label
+              text: "From:"
+              style:
+                left: "0.23"
+                top: "0.025"
+                height: "0.035"
+                fontSize: "15"
+                textAlign:
+                  x: left
+            - type: label
+              dataKey: Message1.docDetail.document.name.user
+              style:
+                fontSize: "15"
+                fontWeight: "450"
+                height: "0.035"
+                color: "0x707070"
+                left: "0.35"
+                top: "0.025"
+                textAlign:
+                  x: left
+            - type: label
+              text: "To:"
+              style:
+                left: "0.23"
+                top: "0.055"
+                height: "0.035"
+                fontSize: "15"
+                textAlign:
+                  x: left
+            - type: label
+              text: Me
+              # dataKey: email.edge.name.receiveName
+              style:
+                fontSize: "15"
+                fontWeight: "450"
+                height: "0.035"
+                color: "0x707070"
+                left: "0.3"
+                top: "0.055"
+                textAlign:
+                  x: left
+            - type: label
+              text: Anaheim Marketing Plan
+              dataKey: Message1.docDetail.document.name.title
+              style:
+                fontSize: "22"
+                fontWeight: "500"
+                # color: "0x707070"
+                left: "0.05"
+                top: "0.09"
+            - type: label
+              text=func: .builtIn.string.formatUnixtime_en
+              dataKey: Message1.docDetail.document.ctime
+              style:
+                top: "0.025"
+                height: "0.02"
+                textAlign:
+                  y: center
+                left: "0.66"
+                fontSize: "10"
+                color: "0x707070s"
+            - type: image
+              path: pin.png
+              style:
+                top: "0.07"
+                height: "0.04"
+                left: "0.8"
+                color: "0x4A91C4"
+                textAlign:
+                  y: center
+              onClick:
+                - goto: EmailDocumentsList    
+        - type: view
+          style:
+            top: "0.25"
+            left: "0"
+            width: "1"
+            height: "0.43"
+            #backgroundColor: "0xcdcdcd"
+          children:
+            - type: ecosDoc
+              ecosObj: ..docDetail.document 
+              style:
+                width: "0.9"
+                left: "0.05"
+                height: "0.4"
+                color: "0x757575"
+                isEditable: "false"
+                border: 
+                  style: "1"
+                textAlign: 
+                  y: top 
+
+  
+

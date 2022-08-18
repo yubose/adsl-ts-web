@@ -1,0 +1,307 @@
+MeetingChat:
+  pageNumber: "180"  # xd page 13
+  title: "Meeting Note"
+  init: 
+    - .SignInCheck
+    - .MeetingChat.newNote.docAPI.get
+        # if the .docResponse.doc is out of refernce1), target object could end up in following trhee form
+        # 1) null, 2) keep the string literally, 3) leave target intact
+    - if:
+      -  =..docResponse.doc.0.id
+      -  .MeetingChat.newNote.document@: =..docResponse.doc.0
+      -  =.MeetingChat.newNote.docAPI.store: ""
+    - if: # ensure line 22, the MeetingChat.newNote.document.doc.id exists
+      -  =.MeetingChat.newNote.document.id
+      - continue
+      - .MeetingChat.newNote.document.id@: =.MeetingChat.newNote.cdResponse.doc.id
+    - .Global.DocChat.document@: =.MeetingChat.newNote.document    
+    - .MeetingChat.newNote.document.name.targetRoomName@: =.Global.rootRoomInfo.edge.name.title
+    - ..listData.get
+    - ..newestMsg@: =..listData.chatList.doc.0
+  save: 
+    - .MeetingChat.newChat.document.reid@: =.MeetingChat.newNote.document.id
+    - =.MeetingChat.newChat.docAPI.store: ""     
+    - .Global.DocChat.document@: =.MeetingChat.newNote.document
+
+  listData:
+    chatList:
+      doc:
+        name:
+          title: "No Title in DocumentList"      
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataKey: listData.chatList
+      ids: 
+        - =.Global.DocChat.document.id
+      xfname: reid
+      type: .DocType.MeetingNote
+      obfname : "ctime" 
+      maxcount : "40"
+      _nonce: .Global._nonce    
+  listReGet:
+    chatList:
+      doc:
+        id: =.Global.DocChat.document.id
+        xfname: reid
+        type: .DocType.MeetingNote
+        obfname : "ctime" 
+        maxcount : "40"
+        _nonce: =.Global._nonce           
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataIn: MeetingChat.listReGet.chatList.doc
+      dataOut: MeetingChat.listData.chatList
+  newNote:
+    cdResponse: ""
+    document:
+      .Document: ""
+      eid: =.Global.VideoChatObjStore.reference.edge.refid
+      type: .DocType.UploadFile  # 1025
+      name: 
+        title: "new note"
+        type: =..newNote.document.subtype.mediaType
+        data: "new chat"
+        user: .Global.currentUser.vertex.name.fullName
+        targetRoomName: .Global.rootRoomInfo.edge.name.title 
+      subtype:
+        mediaType: "application/json" # mediaType : "image/jpeg"
+    docAPI:
+      .DocAPI: ""    
+      store:
+        api: cd
+        dataIn: newNote.document
+        dataOut: newNote.cdResponse
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        ids:
+          - .Global.VideoChatObjStore.reference.edge.refid
+        xfname: eid
+        type: .DocType.UploadFile  # "6"
+        scondition: "name like '%application/json%'"
+        maxcount: "1"
+        obfname: "mtime"
+        dataKey: docResponse
+        _nonce: =.Global._nonce
+  docResponse: 
+    doc:
+      - type: .DocType.UploadFile # "6" # private profile
+        eid: .Global.VideoChatObjStore.reference.edge.refid
+        name: ""
+    error: ""
+    jwt: ""
+
+  newChat:
+    document:
+      .Document: ""
+      eid: =.Global.VideoChatObjStore.reference.edge.refid
+      type: .DocType.MeetingNote # 1537
+      name: 
+        title: ""
+        type: =..newChat.document.subtype.mediaType
+        data: ""
+        user: .Global.currentUser.vertex.name.userName
+      subtype:
+        mediaType: "text/plain" # mediaType : "image/jpeg"          
+    docAPI:
+      .DocAPI: ""    
+      store:
+        api: cd 
+        dataIn: newChat.document  
+  onNewMessageToDisplay:
+    - actionType: evalObject
+      object:
+        - .Global._nonce@: 
+            =.builtIn.math.random: ""
+        - =..listReGet.get: ""
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: ChatList                      
+  components:
+    - .BaseCheckView: ""
+      message: "Please input note title"
+      viewTag: noTitle     
+    - .BaseHeader3:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""                  
+        - goto:
+            dataIn:
+              destination: VideoChat
+              # reload: false
+    - type: label
+      contentType: timer
+      viewTag: "videoTimer"
+      text=func: =.builtIn.string.formatTimer
+      dataKey: Global.timer # to be remove after implemented builtIn   
+      style:
+        left: "0.8"
+        top: "0"
+        width: "0.1"
+        height: "0.1"
+        zIndex: 100
+        #marginTop: "0.05"
+        color: "0xffffff"
+        fontSize: "17"
+        textAlign:
+          x: right
+          y: center                   
+    - type: view
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.9"
+      children:
+        - type: textField
+          placeholder: Title Here
+          dataKey: newNote.document.name.title
+          style:
+            top: "0.01"
+            left: "0.1"
+            height: "0.04"
+            width: "0.8"
+            color: "0x000000ff"
+            fontWeight: "200"
+            fontSize: 13
+            borderWidth: "1"
+            border:
+              style: "2"
+            textAlign: 
+              x: center
+        - type: scrollView
+          style:
+            top: "0.06"
+            # top: "0.15"
+            left: "0.05"
+            width: "1"
+            height: "0.71"
+            backgroundColor: "#ffffff"
+            overflow: scroll
+          children:
+            - type: list
+              viewTag: ChatList
+              contentType: listObject
+              listObject: ..listData.chatList.doc
+              iteratorVar: itemObject
+              style:
+                # left: "0.05"
+                top: "0"
+                width: "0.9"
+                height: "0.7"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    # top: "0"
+                    width: "0.9"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                    borderWidth: "0.8"
+                    borderColor: "0x00000011"
+                    textAlign:
+                      y: center                      
+                  children:
+                    - type: label
+                      dataKey: itemObject.name.data
+                      style:
+                        left: "0.05"
+                        top: "0.02"
+                        width: "0.7"
+                        height: "0.02"
+                        fontSize: "13"
+                        fontWeight: "500" 
+                        textAlign:
+                          y: center
+                    - type: label
+                      text: 10.30am
+                      text=func: =.builtIn.string.formatUnixtimeLT_en
+                      dataKey: itemObject.ctime # Mon Day, Year hh:mm:ss
+                      style:
+                        color: "0x808080"
+                        left: "0.05"
+                        top: "0.06"
+                        width: "0.4"
+                        height: "0.02"
+                        fontSize: "12"
+                    - type: label
+                      dataKey: itemObject.name.user
+                      style:
+                        color: "0x808080"
+                        left: "0.7"
+                        top: "0.04"
+                        width: "0.3"
+                        height: "0.02"
+                        fontSize: "12"
+                        textAlign:
+                          y: center               
+        - type: textView
+          isEditable: "true"
+          viewTag: textInput
+          placeholder: Text Here
+          dataKey: newChat.document.name.data # users' input will be saved to this key
+          style:
+            textAlign:
+              y: top
+              x: left
+            fontSize: "14"
+            left: "0.05"
+            top: "0.8"
+            width: "0.7"
+            height: "0.06"
+            required: "true"
+            fontFamily: "sans-serif"
+            color: "0x000000ff"
+            borderWidth: "1"
+            border:
+              style: "6"
+        - type: button
+          text: Send
+          style:
+            left: "0.8"
+            height: "0.07"
+            top: "0.8"
+            width: "0.15"
+            backgroundColor: "0x388ecc"
+            color: "0xffffff"
+            borderRadius: 2
+            textAlign:
+              x: center
+          onClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..newNote.document.name.title
+                    - continue
+                    - actionType: popUp
+                      popUpView: noTitle
+                      wait: true            
+            - actionType: evalObject
+              object:  
+                - .MeetingChat.newNote.document.name.user@: =.Global.currentUser.vertex.name.fullName 
+                - =.MeetingChat.newNote.docAPI.store: ""         
+            - actionType: evalObject
+              object: ..save
+            - actionType: evalObject
+              object:
+                # - .MeetingChat.listData.chatList.doc@: [] 
+                - .Global.DocChat.document.id@: =.MeetingChat.newNote.document.id 
+            # - =..onNewMessageToDisplay: ""                                
+            - actionType: evalObject
+              object:
+                - .Global._nonce@: 
+                    =.builtIn.math.random: ""                                                                                                                     
+                - =..listReGet.get: "" 
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: ChatList
+            - actionType: builtIn
+              funcName: clearText
+              viewTag: textInput    

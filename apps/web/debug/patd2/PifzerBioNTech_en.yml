@@ -1,0 +1,926 @@
+PifzerBioNTech:
+  pageNumber: "160"
+  title: "Vaccine Forms"
+  init: 
+    - .SignInCheck
+
+    - ..pifzerBioNTech.document@: =.Global.formData.pifzerBioNTech
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - =..consent1.0.value1
+              - " "
+              - =..consent1.0.value2
+              - " "
+              - =..consent1.0.value3
+            dataOut: PifzerBioNTech.a1
+        - =.builtIn.string.concat:
+            dataIn:
+              - =..consent1.1.value1
+              - " "
+              - =..consent1.1.value2
+              - " "
+              - =..consent1.1.value3
+            dataOut: PifzerBioNTech.a2
+    - actionType: evalObject
+      object:
+        - ..consent.0.value2@: =.PifzerBioNTech.a1
+        - ..consent.1.value2@: =.PifzerBioNTech.a2
+
+    - actionType: evalObject  #android use calendar init
+      object: 
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject #android use calendar init
+      object: 
+        .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: 
+        .BaseComponents.getShow 
+    - actionType: evalObject
+      object:
+        - ..calendarDate@: =.BaseComponents.calendarDate
+    - actionType: evalObject #IOS use calendar init
+      object: 
+        - =.builtIn.date.getMonth:
+            dataIn: 
+            dataOut: PifzerBioNTech.calendarDate.month
+        - =.builtIn.date.getYear: 
+            dataIn: 
+            dataOut: PifzerBioNTech.calendarDate.year
+        - =.builtIn.date.getDate: 
+            dataIn: 
+            dataOut: PifzerBioNTech.calendarDate.day   
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.PifzerBioNTech.calendarDate.year
+              month: =.PifzerBioNTech.calendarDate.month
+              today: =.PifzerBioNTech.calendarDate.day
+            dataOut: PifzerBioNTech.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.PifzerBioNTech.calendarDate.month
+            dataOut: PifzerBioNTech.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.PifzerBioNTech.calendarDate.year
+              month: =.PifzerBioNTech.calendarDate.month
+              day: =.PifzerBioNTech.calendarDate.day
+              formatType: "Y-M-D"
+            dataOut: PifzerBioNTech.calendarDate.todayDate
+    - actionType: evalObject
+      object:
+        - .BaseComponents.calendarDate@: =.PifzerBioNTech.calendarDate 
+        - ..signature.docReq@: =.Global.formData.signature_pifzerBioNTech.doc
+    # 判断显示签名的id是否为空
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..pifzerBioNTech.document.name.data.signature
+              string2: ""
+        - continue
+        # 非空修改显示的标识,刷新签名区域
+        - actionType: evalObject
+          object:
+            - ..signature.flag@: block
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: signatureShowTag
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    monthName: ""
+    todayDate: ""
+    dayLable: []     
+  signature:
+    # 控制签名显示的标识,默认不显示
+    flag: none
+    docResp: ""
+    docReq:
+      eid: .Global.rootNotebookID
+      type: .DocType.DocumentSignature
+      name:
+        data: binFile
+        type: ..signature.docAPI.store.subtype.mediaType
+    docAPI:
+      store:
+        api: cd
+        dataIn: PifzerBioNTech.signature.docReq
+        dataOut: PifzerBioNTech.signature.docResp
+        subtype: 
+          mediaType: ""
+  pifzerBioNTech:
+    docResp: ""
+    document: 
+      .Document: ""
+      eid: .Global.rootNotebookID
+      type: .DocType.PifzerBioNTech
+      name:
+        title: "PifzerBioNTech"
+        user: .Global.currentUser.vertex.name.userName
+        type: .PifzerBioNTech.pifzerBioNTech.docAPI.store.type.mediaType
+        data: 
+          personalInfo: 
+            gender: ""
+            firstName: ""
+            middleName: ""
+            lastName: ""
+            birth: ""
+            phoneNubmer: ""
+          question: 
+            previousDose: ""
+            ingredient: ""
+            consent: ""
+          signature: ""
+      deat:
+        sig: ""
+        url: "" 
+    docAPI: 
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: pifzerBioNTech.document
+        dataOut: PifzerBioNTech.pifzerBioNTech.docResp
+        subtype:
+          mediaType: "application/json" # mediaType : "image/jpeg"
+  gender:
+    - key: gender
+      value: Male
+    - key: gender
+      value: Female
+  previousDose: 
+    - key: previousDose
+      value: "Yes"
+    - key: previousDose
+      value: "No"
+  ingredient: 
+    - key: ingredient
+      value: "Yes"
+    - key: ingredient
+      value: "No"  
+  consent: 
+    - key: consent
+      value1: "1"
+      value2: "I GIVE CONSENT to CommonSpirit Health and its staff to vaccinate me with the COVID-19. You must electronically sign this consent to receive the COVID-19 Vaccine."
+    - key: consent
+      value1: "0"
+      value2: "I DO NOT GIVE CONSENT to CommonSpirit Health and its staff to be vaccinated. "
+
+  consent1: 
+    - value1: "I GIVE CONSENT to"
+      value2: ..currentUserName
+      value3: "to vaccinate me with the COVID-19. You must electronically sign this consent to receive the COVID-19 Vaccine."
+    - value1: "I DO NOT GIVE CONSENT to"
+      value2: ..currentUserName
+      value3: 'to be vaccinated.'
+
+  a1: ''
+  a2: ''
+  currentUserName: .Global.ActiveLocation.name.data.basicInfo.medicalFacilityName
+
+
+  components:
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1" 
+        backgroundColor: "0x00000066" 
+      children:
+        - type: view
+          style:
+            top: "0"
+            left: "0"
+            wdith: "1"
+            height: "1"
+            zIndex: 9
+          children:
+            - .BaseComponents.calendar:
+              children:
+                - .BaseComponents.calendarHeader:
+                  children:
+                    - type: view
+                      style:
+                        marginTop: "0.024"
+                        left: "0"
+                        height: "0.035"
+                        width: "0.9"
+                      children:
+                        - .BaseComponents.newMonthView:
+                        - .BaseComponents.newYearView:
+                    - .BaseComponents.newdevider:
+                    - .BaseComponents.weekView:
+                - .BaseComponents.dayView:
+                - .BaseComponents.addButton:
+                  text: "Select"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.ShowDateByNumber:
+                            dataIn:
+                              year: =.BaseComponents.calendarDate.year
+                              month: =.BaseComponents.calendarDate.month
+                              day: =.BaseComponents.calendarDate.day
+                              formatType: "Y-M-D"
+                            dataOut: BaseComponents.calendarDate.todayDate
+                        - ..pifzerBioNTech.document.name.data.personalInfo.birth@: =.BaseComponents.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: birthTag
+                    - actionType: popUpDismiss
+                      popUpView: birthDay    
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+    - type: scrollView
+      style:
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+      children: 
+        - type: label
+          textBoard: 
+            - text: Pfizer-BioNTech
+            - br: 
+            - text: COVID-19 Vaccine Consent Form
+          style: 
+            left: "0"
+            width: "1"
+            marginTop: "0.03"
+            height: "auto"
+            fontSize: "18"
+            fontFamily: "sans-serif"
+            textAlign: 
+              x: center
+        - type: label
+          text: Section 1:Personal Information (attach)
+          style: 
+            left: "0.05"
+            width: "0.9"
+            marginTop: "0.03"
+            height: "0.035"
+            fontSize: "16.5"
+            fontFamily: "Raleway"
+            textAlign: 
+              x: left
+        - type: view
+          style: 
+            left: "0.05"
+            marginTop: "0.03"
+            width: "0.95"
+            height: "0.3"
+          children: 
+            - .VaccineTitleView: 
+              children: 
+                - .VaccineTitle:
+                - .VaccineTextField:
+                  dataKey: pifzerBioNTech.document.name.data.personalInfo.firstName
+                  style:
+                    paddingLeft: "15px"
+                    width: '0.37'
+            - .VaccineTitleView: 
+              children: 
+                - .VaccineTitle:
+                  text: Middle name or initial
+                - .VaccineTextField:
+                  dataKey: pifzerBioNTech.document.name.data.personalInfo.middleName
+                  style:
+                    paddingLeft: "15px"
+                    width: '0.37'
+            - .VaccineTitleView: 
+              children: 
+                - .VaccineTitle:
+                  text: Last name
+                - .VaccineTextField:
+                  dataKey: pifzerBioNTech.document.name.data.personalInfo.lastName
+                  style:
+                    paddingLeft: "15px"
+                    width: '0.37'
+            - .VaccineTitleView: 
+              children: 
+                - .VaccineTitle:
+                  text: Date of birth
+                - .VaccineTextField:
+                  placeholder: Enter     
+                  viewTag: birthTag
+                  onClick:
+                    - actionType: popUp
+                      popUpView: birthDay
+                  dataKey: pifzerBioNTech.document.name.data.personalInfo.birth
+                  style:
+                    paddingLeft: "15px"
+                    width: '0.37'
+            - .VaccineTitleView: 
+              children: 
+                - .VaccineTitle:
+                  text: phone number
+                - .VaccineTextField:
+                  dataKey: pifzerBioNTech.document.name.data.personalInfo.phoneNubmer
+                  style:
+                    paddingLeft: "15px"
+                    width: '0.37'
+            - .VaccineTitleView: 
+              children: 
+                - .VaccineTitle:
+                  text: Sex assigned at birth
+                - type: list
+                  contentType: listObject
+                  listObject: ..gender
+                  iteratorVar: itemObject
+                  viewTag: sexView
+                  style: 
+                    margin: "0"
+                    top: "0"
+                    width: "0.5"
+                    height: "0.035"
+                    left: "0.45"
+                    axis: horizontal
+                  children: 
+                    - type: listItem
+                      itemObject: ""
+                      style: 
+                        left: "0"
+                        height: "0.034"
+                        width: "0.25"
+                      children: 
+                        - type: image
+                          path: 
+                            emit:
+                              dataKey:
+                                  var: itemObject
+                              actions:                        
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..pifzerBioNTech.document.name.data.personalInfo.gender
+                                        string2: $var.value
+                                  - selectOn.svg
+                                  - selectOff.svg
+                          onClick: 
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions: 
+                                  - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..pifzerBioNTech.document.name.data.personalInfo.gender
+                                          string2: $var.value
+                                    - =.builtIn.object.set:
+                                        dataIn:
+                                          object: =..pifzerBioNTech.document.name.data.personalInfo
+                                          key: $var.key
+                                          value: ""
+                                    - =.builtIn.object.set:
+                                        dataIn:
+                                          object: =..pifzerBioNTech.document.name.data.personalInfo
+                                          key: $var.key
+                                          value: $var.value
+                            
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: sexView
+                            
+                          style: 
+                            left: "0"
+                            height: "0.025"
+                            top: "0.005"
+                        - type: label
+                          dataKey: itemObject.value
+                          style: 
+                            left: "0.06"
+                            width: "0.18"
+                            top: "0.004"
+                            fontSize: "16"
+                            
+        - type: label
+          text: Section 2:Screening for Vaccine Eligibility
+          style: 
+            left: "0.05"
+            width: "0.9"
+            marginTop: "0.02"
+            height: "0.035"
+            fontSize: "16.5"
+            fontFamily: "Raleway"
+            textAlign: 
+              x: left
+        - type: label
+          text: "Please answer the following questions:"
+          style: 
+            left: "0.05"
+            width: "0.9"
+            marginTop: "0.01"
+            height: "0.025"
+            fontSize: "13"
+            fontFamily: "Raleway"
+            textAlign: 
+              x: center
+        - type: view
+          style: 
+            left: "0.05"
+            marginTop: "0.02"
+            width: "0.95"
+            height: "auto"
+          children: 
+            - type: view
+              style: 
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.95"
+                left: "0"
+              children: 
+                - type: label
+                  text: Have you had a severe allergic reaction after receiving a previous dose of COVID-19 vaccine?
+                  style:
+                    marginTop: "0.01"
+                    left: "0"
+                    width: "0.57"
+                    height: "auto"
+                    fontSize: "13.5"
+                - type: list
+                  contentType: listObject
+                  listObject: ..previousDose
+                  iteratorVar: itemObject
+                  viewTag: previousDoseView
+                  style: 
+                    margin: "0"
+                    top: "0.02"
+                    width: "0.38"
+                    height: "0.05"
+                    left: "0.57"
+                    axis: horizontal
+                  children: 
+                    - type: listItem
+                      itemObject: ""
+                      style: 
+                        left: "0"
+                        height: "0.05"
+                        width: "0.19"
+                      children: 
+                        - type: image
+                          path: 
+                            emit:
+                              dataKey:
+                                  var: itemObject
+                              actions:                        
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..pifzerBioNTech.document.name.data.question.previousDose
+                                        string2: $var.value
+                                  - selectOn.svg
+                                  - selectOff.svg
+                          onClick: 
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions: 
+                                  - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..pifzerBioNTech.document.name.data.question.previousDose
+                                          string2: $var.value
+                                    - =.builtIn.object.set:
+                                        dataIn:
+                                          object: =..pifzerBioNTech.document.name.data.question
+                                          key: $var.key
+                                          value: ""
+                                    - =.builtIn.object.set:
+                                        dataIn:
+                                          object: =..pifzerBioNTech.document.name.data.question
+                                          key: $var.key
+                                          value: $var.value
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: previousDoseView
+                          style: 
+                            left: "0.01"
+                            height: "0.025"
+                            top: "0.005"
+                        - type: label
+                          dataKey: itemObject.value
+                          style: 
+                            left: "0.08"
+                            width: "0.1"
+                            top: "0.004"
+                            fontSize: "16"
+            - type: view
+              style: 
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.95"
+                left: "0"
+              children: 
+                - type: label
+                  text: Have you had a severe allergic reaction to any ingredient in the Pfizer-BioNtech COVID-19 vaccine?
+                  style:
+                    marginTop: "0.01"
+                    left: "0"
+                    width: "0.57"
+                    height: "auto"
+                    fontSize: "13.5"
+                - type: list
+                  contentType: listObject
+                  listObject: ..ingredient
+                  iteratorVar: itemObject
+                  viewTag: ingredientView
+                  style: 
+                    margin: "0"
+                    top: "0.02"
+                    width: "0.38"
+                    height: "0.05"
+                    left: "0.57"
+                    axis: horizontal
+                  children: 
+                    - type: listItem
+                      itemObject: ""
+                      style: 
+                        left: "0"
+                        height: "0.05"
+                        width: "0.19"
+                      children: 
+                        - type: image
+                          path: 
+                            emit:
+                              dataKey:
+                                  var: itemObject
+                              actions:                        
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..pifzerBioNTech.document.name.data.question.ingredient
+                                        string2: $var.value
+                                  - selectOn.svg
+                                  - selectOff.svg
+                          onClick: 
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions: 
+                                  - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..pifzerBioNTech.document.name.data.question.ingredient
+                                          string2: $var.value
+                                    - =.builtIn.object.set:
+                                        dataIn:
+                                          object: =..pifzerBioNTech.document.name.data.question
+                                          key: $var.key
+                                          value: ""
+                                    - =.builtIn.object.set:
+                                        dataIn:
+                                          object: =..pifzerBioNTech.document.name.data.question
+                                          key: $var.key
+                                          value: $var.value
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: ingredientView
+                          style: 
+                            left: "0.01"
+                            height: "0.025"
+                            top: "0.018"
+                        - type: label
+                          dataKey: itemObject.value
+                          style: 
+                            left: "0.08"
+                            width: "0.1"
+                            top: "0.016"
+                            fontSize: "16"
+                - type: view
+                  style: 
+                    marginTop: "0.05"
+                    height: "auto"
+                    width: "0.95"
+                    left: "0"
+                  children: 
+                    - type: label
+                      text: "Components of the Pfizer-BioNTech COVID-19 vaccine: nucleoside modified messenger RNA (modRNA) encoding the viral spike (S) glycoprotein of SARS-CoV-2, sodium chloride, lipids, polyethylene glycol, potassium chloride, monobasic potassium phosphate, dibasic sodium phosphate dihydrate, and sucrose."
+                      style:
+                        marginTop: "0.01"
+                        left: "0"
+                        width: "0.9"
+                        height: "auto"
+                        fontSize: "13.5"
+                        textAlign: 
+                          x: left
+        - type: label
+          text: Section 3:Consent for Vaccination
+          style: 
+            left: "0.05"
+            width: "0.9"
+            height: "0.035"
+            fontSize: "16.5"
+            marginTop: "0.03"
+            fontFamily: "Raleway"
+            textAlign: 
+              x: left
+        - type: view
+          style: 
+            left: "0.05"
+            marginTop: "0"
+            width: "0.95"
+            height: "auto"
+          children: 
+            - .VaccineTextView:
+              style:
+                 height: "0.12"
+              children: 
+                - .VaccineTextDot:
+                - .VaccineText:
+                  text: The Fact Sheet for Patients and Parents / Caregivers for the Pfizer-BioNTech COVID-19 Vaccine I am receiving (sometimes hereafter, the COVID-19 Vaccine) has been offered to me.
+            - .VaccineTextView:
+              # style: 
+              #   top: "0.4"
+              children: 
+                - .VaccineTextDot:
+                - .VaccineText:
+                  text: I have read or had explained to me the Pfizer-BioNTech Fact Sheet for Patients and Parents / Caregivers for the COVID-19 Vaccine and I understand the risks and benefits. 
+            - .VaccineTextView:
+              # style: 
+              #   top: "0.4"
+              children: 
+                - .VaccineTextDot:
+                - .VaccineText:
+                  text: I understand the COVID-19 Vaccine has been approved by an emergency use authorization (EUA) process and has not fully been FDA reviewed or approved.
+            - .VaccineTextView:
+              style: 
+                height: "0.21"
+              children: 
+                - .VaccineTextDot:
+                - .VaccineText:
+                  text: I understand the potential risks from the therapy including serious allergic reactions (anaphylaxis). Other adverse reactions that have been reported include injection site pain, fatigue, headache, muscle pain, chills, joint pain, fever, injection site swelling, injection site redness, nausea, malaise, and lymphadenopathy.
+            - .VaccineTextView:
+              style: 
+                height: "0.05"
+              children: 
+                - .VaccineTextDot:
+                - .VaccineText:
+                  text: I understand that there may be other potential options to prevent COVID-19. 
+            - .VaccineTextView:
+              style: 
+                height: "0.05"
+              children: 
+                - .VaccineTextDot:
+                - .VaccineText:
+                  text: I was offered the opportunity to ask questions and all questions were answered. 
+            - .VaccineTextView:
+              style: 
+                height: "0.05"
+              children: 
+                - .VaccineTextDot:
+                - .VaccineText:
+                  text: I agree to proceed with receiving the Pfizer-BioNTech COVID-19 Vaccine.
+        - type: view
+          style: 
+            left: "0.05"
+            marginTop: "0.05"
+            width: "0.95"
+            height: "0.3" 
+          children: 
+            - type: list
+              contentType: listObject
+              listObject: ..consent
+              iteratorVar: itemObject
+              viewTag: consentView
+              style: 
+                margin: "0"
+                top: "0"
+                width: "0.9"
+                height: "0.3"
+                left: "0"
+                overflow: hidden
+              children: 
+                - type: listItem
+                  itemObject: ""
+                  style: 
+                    left: "0"
+                    height: "0.12"
+                    width: "0.95"
+                    marginTop: "auto"
+                  children: 
+                    - type: image
+                      path: 
+                        emit:
+                          dataKey:
+                              var: itemObject
+                          actions:                        
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..pifzerBioNTech.document.name.data.question.consent
+                                    string2: $var.value1
+                              - selectOn.svg
+                              - selectOff.svg
+                      onClick: 
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions: 
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..pifzerBioNTech.document.name.data.question.consent
+                                      string2: $var.value1
+                                - =.builtIn.object.set:
+                                    dataIn:
+                                      object: =..pifzerBioNTech.document.name.data.question
+                                      key: $var.key
+                                      value: ""
+                                - =.builtIn.object.set:
+                                    dataIn:
+                                      object: =..pifzerBioNTech.document.name.data.question
+                                      key: $var.key
+                                      value: $var.value1
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: consentView
+                      style: 
+                        left: "0"
+                        width: "0.05"
+                        top: "0.004"
+                    - type: label
+                      dataKey: itemObject.value2
+                      style: 
+                        left: "0.07"
+                        width: "0.83"
+                        top: "0"
+                        fontSize: "14"
+                        textAlign: 
+                          x: left
+                        fontFamily: "Raleway"
+                        height: "auto"
+
+        - type: view
+          style: 
+            left: "0.05"
+            marginTop: "0.03"
+            width: "0.95"
+            height: "auto"
+          children: 
+            - type: label
+              text: Click on the signature box below to finger sign
+              style: 
+                marginTop: "0"
+                width: "0.9"
+                fontSize: "14"
+                textAlign: 
+                  x: center 
+            # 清除签名
+            - type: label
+              text: "clear"
+              onClick:
+                #  清空签名
+                - actionType: removeSignature
+                  dataObject: BLOB
+                  dataKey: PifzerBioNTech.signature.docReq.name.data 
+                  viewTag: signatureTag
+                # 显示签名区域隐藏
+                - actionType: builtIn
+                  funcName: hide
+                  viewTag: signatureShowTag
+                - actionType: builtIn
+                  funcName: show
+                  viewTag: signatureTag
+              style:
+                marginTop: "0.02"
+                left: "0.78"
+                width: "0.12"
+                fontSize: "14"
+                height: "0.03"
+                color: "0xffffff"
+                border: "none"
+                borderRadius: "2"
+                backgroundColor: "0xD53C42"
+                zIndex: "100000"
+                textAlign:
+                  y: center
+                  x: center
+            - type: view
+              style: 
+                marginTop: "0.02"
+                left: "0"
+                width: "0.9"
+                height: "0.13"
+                border: 
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0x707070"
+              children: 
+                # 签名区域
+                - type: canvas
+                  dataKey: PifzerBioNTech.signature.docReq.name.data 
+                  viewTag: signatureTag
+                  style: 
+                    left: "0"
+                    width: "0.9"
+                    top: "0"
+                    height: "0.13"
+                    overflow: scroll  
+                    zIndex: "1000"
+                # 显示暂存的签名
+                - type: image
+                  viewTag: signatureShowTag
+                  path=func: .builtIn.utils.prepareDocToPath
+                  # 传入签名文档的id
+                  dataKey: pifzerBioNTech.document.name.data.signature
+                  style:
+                    # 控制显示
+                    display: ..signature.flag
+                    left: "0"
+                    width: "0.9"
+                    top: "0"
+                    height: "0.13"
+                    overflow: scroll  
+                    zIndex: "1000"
+            - type: label
+              text: Signature of Recipient/Healthcare Proxy
+              style: 
+                left: "0"
+                width: "0.9"
+                marginTop: "0.02"
+                height: "0.04"
+                fontSize: "16"
+                textAlign: 
+                  x: center
+        - type: view
+          style: 
+            left: "0.05"
+            marginTop: "0.02"
+            width: "0.95"
+            height: "0.1"
+          children: 
+            - type: button
+              text: Complete Vaccine Consent
+              onClick: 
+                - actionType: evalObject
+                  object:
+                    - actionType: saveSignature
+                      dataObject: BLOB
+                      dataKey: PifzerBioNTech.signature.docReq.name.data 
+
+                - emit:
+                    actions:
+                      - =.builtIn.array.add:
+                          dataIn: 
+                            object: =.Global.vaccine
+                            value: "PifzerBioNTech"
+                      - =.builtIn.array.elementUnique: 
+                          dataIn: 
+                            arr: =.Global.vaccine
+                          dataOut: Global.vaccine
+                - actionType: evalObject
+                  object: 
+                    # 存放签名文档的id
+                    - ..pifzerBioNTech.document.name.data.signature@: =..signature.docResp.doc.id
+                    - =.PifzerBioNTech.pifzerBioNTech.docAPI.store: ""
+                - actionType: evalObject
+                  object:  
+                   #  签名的reid为moderna doc的id
+                    - ..signature.docReq.reid@: =..pifzerBioNTech.docResp.doc.id
+                    - =..signature.docAPI.store: ""
+                    - .Global.formData.pifzerBioNTech@: =..pifzerBioNTech.docResp.doc
+                    - .Global.formData.signature_pifzerBioNTech@: =..signature.docResp.doc
+                - actionType: evalObject
+                  object: 
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+              style: 
+                left: "0.1"
+                width: "0.7"
+                top: "0"
+                height: "0.05"
+                fontSize: "16"
+                fontFamily: "Raleway"
+                color: "0xffffff"
+                backgroundColor: "0x30b354"
+                textAlign: 
+                  x: center
+                border: 
+                  style: "3"
+                borderColor: "0x30b354"
+                borderWidth: "1"
+
+
+        

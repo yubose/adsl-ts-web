@@ -1,0 +1,351 @@
+# pageName : BasePage: # This is page name
+  
+BasePage:
+  pageNumber : "0"
+# start config
+SignInCheck:
+  
+  if:
+    - =.Global.currentUser.vertex.sk  # 'true', 'false'
+    - continue
+    - goto: SignIn
+
+# 详细的popUp
+BaseDetailPop: 
+  type: popUp
+  popTitle: Super Administrators Profile
+  viewTag: vvView
+  style:
+    width: "1"
+    height: "1"
+    top: "0"
+    left: "0"
+    backgroundColor: "0x00000033"
+    zIndex: "10"
+  children: 
+    - .BaseDetailPopView: 
+      children: 
+        - .BaseDetailPopImg: 
+        - .BaseDetailPopLabel: 
+        - .BaseDetailPopInnerView:
+BaseDetailPopView: 
+  type: view
+  style: 
+    left: "0.39"
+    top: "0.22"
+    width: "0.38"
+    height: "0.56"
+    backgroundColor: "0xffffff"
+    border: 
+      style: "3"
+    borderWidth: "1"
+    borderColor: "0x00000033"
+    borderRadius: "8"
+BaseDetailPopImg: 
+  type: image
+  path: popUpClose.svg
+  onClick: 
+    - actionType: popUpDismiss
+      popUpView: ____.viewTag
+  style:
+    left: "0.355"
+    width: "0.012"
+    top: "0.02"
+BaseDetailPopLabel: 
+  type: label
+  text: ___.popTitle
+  style:
+    top: "0.06"
+    width: "0.38"
+    height: "0.04"
+    fontSize: "1.2vw"
+    fontFamily: Poppins
+    textAlign: 
+      x: center
+BaseDetailPopInnerView:
+  type: view
+  style: 
+    top: "0.1"
+    width: "0.38"
+    height: "0.46"
+    # backgroundColor: "0xcdcdcd"
+
+# TotalView: 
+TotalView:
+  type: view
+  style: 
+    width: "1"
+    margin: auto
+    height: "1"
+    display: flex
+    flexWrap: nowrap
+    backgroundColor: "0xffffff"
+
+# BodyView
+BodyView: 
+  type: view
+  style:
+    width: '0.84'
+    display: flex
+    flexWrap: wrap
+
+# TopBar: 
+TopBar: 
+  type: view
+  style:
+    backgroundColor: "0xffffff"
+    width: "0.84"
+    height: "0.065"
+
+# InnerBodyView
+InnerBodyView:
+  type: view
+  style:
+    backgroundColor: "#f4f8fa"
+    width: "0.84"
+    height: "0.935"
+    display: flex
+    flexDirection: column
+    alignItems: center
+
+# PageTile: 
+PageTitle: 
+  type: label
+  text: ..title
+  style:
+    display: flex
+    height: "0.1"
+    fontSize: "1.5rem"
+    width: "0.78"
+    alignItems: center
+
+# go back button
+GotoBack: 
+  type: view
+  onClick: 
+    - actionType: builtIn
+      funcName: goBack
+      reload: true
+  style:
+    top: "0"
+    left: "0.73" 
+    width: "0.08"
+    height: "0.1"
+    display: flex
+    justifyContent: flex-end
+    alignItems: center
+  children: 
+    - type: image
+      path: goBack.svg
+      style: 
+        width: "0.008"
+    - type: label
+      text: Back
+      style:
+        width: "0.03"
+        fontSize: "0.9vw"
+        color: "0x045795"
+        fontFamily: Poppins
+        textAlign: 
+          x: right
+
+# ContentView:
+ContentView:
+  type: view
+  style:
+    backgroundColor: "0xffffff"
+    width: "0.78"
+    height: "0.8"
+# loading
+Loading:
+  type: popUp
+  viewTag: uploading
+  style:
+    top: '0.333'
+    left: '0.333'
+    width: '0.3'
+    height: '0.3'
+    zIndex: "100000000"
+    backgroundColor: "blue"
+# BasicInformationTableSonView
+BasicInformationTableSonViewGray:
+  type: view
+  style:
+    width: "0.685"
+    height: "0.04"
+    backgroundColor: "0xeaeaea"
+
+# BasicInformationTableSonViewWhite
+BasicInformationTableSonViewWhiteLabel:
+  type: label
+  text: "A&C Urgent Care"
+  dataKey: 
+  style:
+    width: "0.17125"
+    height: "0.04"
+    borderRight: 0xc9c9c9 1px solid 
+    display: flex
+    boxSizing: border-box
+    paddingLeft: "10px"
+    alignItems: center
+
+BasicInformationTableSonSonText: 
+  type: label
+  text: Medical Facility Name
+  dataKey: 
+  style:
+    fontFamily: Poppins
+    height: "0.04"
+    fontWeight: "500"
+    fontSize: "0.8vw"
+    width: 10vw
+    display: flex
+    justifyContent: flex-start
+    alignItems: center
+# EditTableText
+EditTableText:
+  type: label
+  text: "Medical Facility Name"
+  dataKey: 
+  style:
+    width: "0.095"
+    height: "0.02533"
+    display: flex
+    alignItems: center
+    fontSize: "0.8vw"
+# *
+EditTableTextField:
+  type: label
+  text: "Medical Facility Name"
+  dataKey: 
+  style:
+    # width: "0.05"
+    height: "0.028"
+    display: flex
+    alignItems: center
+    fontSize: "0.8vw"
+EditTableStarField:
+  type: label
+  text: "*"
+  dataKey: 
+  style:
+    height: "0.025"
+    color: "0xff4747"
+    display: flex
+    alignItems: center
+    marginLeft: "10px"
+EditTableStar:
+  type: label
+  text: "*"
+  dataKey: 
+  style:
+    height: "0.02533"
+    color: "0xff4747"
+    display: flex
+    alignItems: center
+# EditTableLabel
+EditTableLabel:
+  type: textField
+  placeholder: "A&C Urgent Care"
+  dataKey: 
+  style:
+    width: "0.12"
+    height: "0.04"
+    display: flex
+    paddingLeft: "10px"
+    alignItems: center
+    boxSizing: border-box
+    flexGrow: "0.5"
+    border:
+      style: "3"
+    borderColor: "0xe2e2e2"
+    fontSize: "0.9vw"
+EditTableField:
+  type: textField
+  dataKey: 
+  style:
+    width: "0.08"
+    flexGrow: "0"
+    height: "0.04"
+    display: flex
+    paddingLeft: "10px"
+    alignItems: center
+    border:
+      style: "3"
+    borderColor: "#eaeaea"
+    borderWidth: "2"
+    borderRadius: "5px"
+    fontSize: "0.9vw"
+    boxSizing: border-box
+BaseCheckView:
+  type: popUp
+  viewTag: baseCheckView
+  message: "error code"
+  path: aboutBlue.svg
+  style:
+    width: "0.3"
+    height: "0.4"
+    top: "0.3"
+    left: "0.35"
+    zIndex: "10"
+    backgroundColor: "0xffffff"
+    borderRadius: "7"
+    border: 
+      style: "3"
+    borderColor: "0xf4f8fa"
+    boxShadow: "0px 0px  5px 2px #f4f8fa"
+    display: flex
+    flex-direction: column
+    justify-content: space-evenly
+    align-items: center
+  children:
+    - type: image
+      path: __.path
+      style: 
+        width: "6vw"
+        height: "6vw"
+    - type: label
+      text: __.message
+      text2: _.text3 # "v'
+      text3: "v"
+      text4: __.children.1.text # "ok"
+      style:
+        width: "20vw"
+        fontSize: "1vw"
+        fontFamily: "sans-serif"
+        fontWeight: "500"
+        textAlign:
+          x: center
+          y: center
+    - type: button
+      text: ok
+      style:
+        width: "5.2vw"
+        height: "1.9vw"
+        color: "0xffffff"
+        backgroundColor: "0x005795"
+        fontSize: "1vw"
+        border:
+          style: "3"
+          color: "0x005795"
+        borderRadius: "5"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: ___.viewTag
+BaseButton:
+  type: button
+  text: button
+  style:
+    color: "0xffffffff"
+    fontSize: "0.8vw"
+    width: "15.2vw"
+    height: "2.2vw"
+    backgroundColor: "0x0b4a7e"
+    border:
+      style: "1"
+    display: inline
+    borderRadius: "5"
+    textAlign:
+      x: center
+      y: center
+

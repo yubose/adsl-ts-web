@@ -1,0 +1,1043 @@
+UploadMedicalRecord2: #xdpage: 22
+  pageNumber: "330 340" # xd page 34 popup-440
+  title: "Add Documents"
+  init:
+    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+    - =.Global.createjwt.edgeAPI.store: ""
+    - .SignInCheck
+    - if:
+        #判断是否从ProviderMacros回来，需要复现之前已填的数据
+        - =.Global.formData.providerDoc.medicalRecord.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.medicalRecord.docReq@: =.Global.formData.providerDoc.medicalRecord
+        - actionType: evalObject
+          object:
+            #页面进入时就创建文档
+            - =.UploadMedicalRecord2.apiRequest.medicalRecord.docAPI.store: ""
+            # 将创建的文档数据重新给medicalRecord 进行update
+            - ..apiRequest.medicalRecord.docReq@: =..apiRequest.medicalRecord.docResp.doc
+
+  apiRequest: #Input data request here
+    medicalRecord:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: ""
+        subtype:
+          isEncrypted: "0"
+          isOnServer: "0"
+        type: .DocType.MedicalUpload
+        name:
+          data:
+            fileId: ""
+            classTag:
+              name: Provider
+              fontColor: "0x30b354"
+              backgroundColor: "0xe4f5e9"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"
+              backgroundColor: "0xececee"
+              display: block
+          type: "text/plain"
+          title: ""
+          user: .Global.formData.providerTitle
+          uploadUserName: .Global.MyProfile.name.data.fullName
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: apiRequest.medicalRecord.docReq
+          dataOut: apiRequest.medicalRecord.docResp
+          subtype:
+            mediaType: "text/plain" # mediaType : "image/jpeg"
+
+    uplaodDoc:
+      docResp: ""
+      docReq:
+        subtype:
+          isEncrypted: "0"
+          isOnServer: "0"
+        type: .DocType.UploadFile
+        name:
+          type: ..apiRequest.uplaodDoc.docAPI.store.subtype.mediaType
+          data: binFile
+        deat:
+          sig: ""
+          url: ""
+        # eid:
+        eid: .Global.currentRoom.edge.id
+        reid: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          subtype:
+            mediaType: ""
+          dataIn: apiRequest.uplaodDoc.docReq
+          dataOut: apiRequest.uplaodDoc.docResp
+
+  formData:
+    flag: ""
+    fileSize: ""
+    fileId: ""
+    uplodImg: "block"
+    showImg: "none"
+    need: .jpeg, .png, .pdf, .xlsx, .xls, .pptx, .ppt, .docx, .doc, .numbers, .pages, .htm
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: view
+      style:
+        width: "1"
+        height: "0.846"
+        overflow: scroll
+        fontFamily: "Arial"
+      children:
+        - type: view
+          style:
+            marginTop: "0.01"
+            left: "0.05"
+            width: "0.9"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: Create document name
+              dataKey:
+              style:
+                display: "inline-block"
+                marginTop: "0.02"
+                width: "0.6"
+                fontSize: .Nfont.h2
+            - type: label
+              text: "*"
+              style:
+                marginTop: "0.015"
+                display: "inline-block"
+                color: "0xfd3a3a"
+                fontFamily: "Arial"
+                width: "0.1"
+        - type: textField
+          placeholder: "Enter here"
+          dataKey: apiRequest.medicalRecord.docReq.name.title
+          style:
+            marginTop: "0.01"
+            marginLeft: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h15
+            color: "0x000000ff"
+            border:
+              style: "2"
+              color: "0x000000ef"
+            borderWidth: "1"
+        - type: view
+          style:
+            marginTop: "0.02"
+            left: "0.05"
+            width: "0.9"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: Upload your document
+              dataKey:
+              style:
+                display: "inline-block"
+                marginTop: "0.02"
+                width: "0.6"
+                fontSize: .Nfont.h2
+            - type: label
+              text: "*"
+              style:
+                marginTop: "0.015"
+                display: "inline-block"
+                color: "0xfd3a3a"
+                fontFamily: "Arial"
+                width: "0.1"
+        - type: view
+          viewTag: uplodImgTag
+          style:
+            display: ..formData.uplodImg
+            width: "1"
+            height: "auto"
+          children:
+            - type: view
+              onClick:
+                - actionType: popUp
+                  popUpView: selectView
+              style:
+                marginTop: "0.03"
+                marginLeft: "0.05"
+                width: "0.9"
+                height: "0.1"
+                border:
+                  style: 4
+                borderColor: "0x707070"
+                borderWidth: "1.5"
+              children:
+                - type: image
+                  path: cloud.svg
+                  style:
+                    height: "0.06"
+                    marginLeft: "0.15"
+                    display: "inline-block"
+                    verticalAlign: middle
+                - type: label
+                  text: "Click here to upload"
+                  style:
+                    width: "auto"
+                    fontSize: .Nfont.h15
+                    color: "0xacacac"
+                    height: "0.1"
+                    lineHeight: "10vh" #y: center + height= 10vh
+                    display: "inline-block"
+                    verticalAlign: middle
+                    marginLeft: "0.1"
+            - type: view
+              style:
+                marginTop: "0.04"
+                marginLeft: "0.05"
+                width: "0.9"
+                height: "auto"
+              children:
+                - type: label
+                  text: "Only the following file types are supported: "
+                  style:
+                    fontFamily: "Arial"
+                    color: "0x707070"
+                    fontSize: .Nfont.h1
+                    height: "auto"
+                    lineHeight: "3vh"
+                    width: "0.8"
+                    marginLeft: "0.05"
+                    wordWrap: break-word
+                - type: label
+                  dataKey: formData.need
+                  style:
+                    fontFamily: "Arial"
+                    color: "0x707070"
+                    fontSize: .Nfont.h1
+                    height: "auto"
+                    width: "0.82"
+                    marginLeft: "0.05"
+                    wordWrap: break-word
+                - type: label
+                  text: File size must be no larger than BLANK
+                  style:
+                    marginTop: "0.02"
+                    fontFamily: "Arial"
+                    color: "0x707070"
+                    fontSize: .Nfont.h1
+                    height: "auto"
+                    lineHeight: "3vh"
+                    width: "0.7"
+                    marginLeft: "0.05"
+                    wordWrap: break-word
+                    textAlign:
+                      x: center
+
+        - type: view
+          viewTag: showImgTag
+          style:
+            display: ..formData.showImg
+            marginTop: "0.03"
+            marginLeft: "0.05"
+            height: "auto"
+            # backgroundColor: "pink"
+          children:
+            - type: image
+              path: null.png
+              viewTag: showFileTag
+              path=func: .builtIn.utils.prepareDocToPath
+              dataKey: UploadMedicalRecord2.formData.fileId
+              style:
+                width: "0.9"
+                height: "auto"
+                margin: auto
+            - type: image
+              path: greyDelete.svg
+              style:
+                top: "-0.01"
+                left: "0.88"
+                height: "0.02"
+                zIndex: "10"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..formData.fileId@: ""
+                    - ..formData.uplodImg@: "block"
+                    - ..formData.showImg@: "none"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showFileTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showImgTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: uplodImgTag
+    - .BasePublicFooter:
+      children:
+        - type: view
+          style:
+            height: auto
+            width: "auto"
+          children:
+            - .DocButtonPrivate:
+              onClick:
+                #  指定 eid 和 reid
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.medicalRecord.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.medicalRecord.docReq.reid@: =.Global.roomInfo.edge.id
+                    - ..apiRequest.medicalRecord.docReq.name.data.fileId@: =..formData.fileId
+
+                # title处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..apiRequest.medicalRecord.docReq.name.title
+                              string2: ""
+                        - ..apiRequest.medicalRecord.docReq.name.title@: "Documents"
+                        - continue
+
+                #  修改type
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.medicalRecord.docReq.type
+                          index: 1
+                          hex: 0
+                        dataOut: UploadMedicalRecord2.apiRequest.medicalRecord.docReq.type
+
+                - actionType: evalObject
+                  object:
+                    - =.UploadMedicalRecord2.apiRequest.medicalRecord.docAPI.store: ""
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =.Global.currentMeetingDoc
+                          value: =..apiRequest.medicalRecord.docResp.doc
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - actionType: evalObject
+                  object:
+                    - goto: ProviderNoteSelect
+            - .DocButtonRelease:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.fileId
+                              string2: ""
+                        - actionType: popUp
+                          popUpView: fileWarnTag
+                          wait: true
+                        - continue
+                - actionType: popUp
+                  popUpView: uploading
+                #  指定 eid 和 reid
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.medicalRecord.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.medicalRecord.docReq.reid@: =.Global.roomInfo.edge.id
+                    - ..apiRequest.medicalRecord.docReq.name.data.fileId@: =..formData.fileId
+
+                # title处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..apiRequest.medicalRecord.docReq.name.title
+                              string2: ""
+                        - ..apiRequest.medicalRecord.docReq.name.title@: "Documents"
+                        - continue
+
+                # 更新文档状态
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.medicalRecord.docReq.name.data.statusTag.name@: Released
+                    - ..apiRequest.medicalRecord.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+                    - ..apiRequest.medicalRecord.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+                #  修改type
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.medicalRecord.docReq.type
+                          index: 1
+                          hex: 1
+                        dataOut: UploadMedicalRecord2.apiRequest.medicalRecord.docReq.type
+
+                - actionType: evalObject
+                  object:
+                    - =.UploadMedicalRecord2.apiRequest.medicalRecord.docAPI.store: ""
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =.Global.currentMeetingDoc
+                          value: =..apiRequest.medicalRecord.docResp.doc
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - actionType: evalObject
+                  object:
+                    - goto: ProviderNoteSelect
+
+    - type: popUp
+      viewTag: selectView
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0xa9a9a9cc"
+      children:
+        - type: view
+          style:
+            top: "0.59"
+            width: "0.9"
+            height: "0.275"
+            left: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "0xe9e9e9"
+            zIndex: 1000
+          children:
+            - type: label
+              textBoard:
+                - text: Medical Records
+                  color: "0x00000099"
+                - br:
+                - text: Upload an image or document
+                  color: "0x00000066"
+              style:
+                top: "0.02"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "10"
+                color: "0x"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000066"
+            - type: button
+              text: Camera
+              contentType: file
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: openCamera
+                  dataObject: BLOB
+                  dataKey: UploadMedicalRecord2.apiRequest.uplaodDoc.docReq.name.data
+                - actionType: popUp
+                  popUpView: uploading
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.uplaodDoc.docReq.reid@: =..apiRequest.medicalRecord.docReq.id
+                    - =.UploadMedicalRecord2.apiRequest.uplaodDoc.docAPI.store: ""
+                    - ..formData.fileId@: =..apiRequest.uplaodDoc.docResp.doc.id
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.fileId
+                              string2: ""
+                        - continue
+                        - actionType: evalObject
+                          object:
+                            - ..formData.uplodImg@: "none"
+                            - ..formData.showImg@: "block"
+                - actionType: popUpDismiss
+                  popUpView: uploading
+
+                - actionType: builtIn
+                  funcName: checkField
+                  contentType: messageHidden
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showFileTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showImgTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: uplodImgTag
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 2000
+              style:
+                top: "0.085"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "18"
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000066"
+            - type: button
+              text: Photo Library
+              contentType: file
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: openPhotoLibrary
+                  dataObject: BLOB
+                  dataKey: UploadMedicalRecord2.apiRequest.uplaodDoc.docReq.name.data
+                - actionType: popUp
+                  popUpView: uploading
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.math.lessthanSize:
+                            dataIn:
+                              object: =..apiRequest.uplaodDoc.docReq.name.data # obejct
+                              key: 2 #mb
+                        - ..formData.flag@: false
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.utils.getFileSize:
+                                dataIn:
+                                  object: =..apiRequest.uplaodDoc.docReq.name.data
+                                  units: mb
+                                dataOut: UploadMedicalRecord2.formData.fileSize
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "Your file size:"
+                                  - =..formData.fileSize
+                                  - "Mb"
+                                dataOut: Global.formData.fileSize
+                            - ..formData.flag@: true
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.flag
+                        - actionType: popUp
+                          popUpView: overSize
+                          wait: true
+                        - continue
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.uplaodDoc.docReq.reid@: =..apiRequest.medicalRecord.docReq.id
+                    - =.UploadMedicalRecord2.apiRequest.uplaodDoc.docAPI.store: ""
+                    - ..formData.fileId@: =..apiRequest.uplaodDoc.docResp.doc.id
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.fileId
+                              string2: ""
+                        - continue
+                        - actionType: evalObject
+                          object:
+                            - ..formData.uplodImg@: "none"
+                            - ..formData.showImg@: "block"
+                - actionType: popUpDismiss
+                  popUpView: uploading
+
+                - actionType: builtIn
+                  funcName: checkField
+                  contentType: messageHidden
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showFileTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showImgTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: uplodImgTag
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 2000
+              style:
+                top: "0.146"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "18"
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000066"
+            - type: button
+              text: Document Manager
+              contentType: file
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: openDocumentManager
+                  dataObject: BLOB
+                  dataKey: UploadMedicalRecord2.apiRequest.uplaodDoc.docReq.name.data
+                - actionType: popUp
+                  popUpView: uploading
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.math.lessthanSize:
+                            dataIn:
+                              object: =..apiRequest.uplaodDoc.docReq.name.data # obejct
+                              key: 2 #mb
+                        - ..formData.flag@: false
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.utils.getFileSize:
+                                dataIn:
+                                  object: =..apiRequest.uplaodDoc.docReq.name.data
+                                  units: mb
+                                dataOut: UploadMedicalRecord2.formData.fileSize
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "Your file size:"
+                                  - =..formData.fileSize
+                                  - "Mb"
+                                dataOut: Global.formData.fileSize
+                            - ..formData.flag@: true
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.flag
+                        - actionType: popUp
+                          popUpView: overSize
+                          wait: true
+                        - continue
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.uplaodDoc.docReq.reid@: =..apiRequest.medicalRecord.docReq.id
+                    - =.UploadMedicalRecord2.apiRequest.uplaodDoc.docAPI.store: ""
+                    - ..formData.fileId@: =..apiRequest.uplaodDoc.docResp.doc.id
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.fileId
+                              string2: ""
+                        - continue
+                        - actionType: evalObject
+                          object:
+                            - ..formData.uplodImg@: "none"
+                            - ..formData.showImg@: "block"
+                - actionType: popUpDismiss
+                  popUpView: uploading
+                - actionType: builtIn
+                  funcName: checkField
+                  contentType: messageHidden
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showFileTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: showImgTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: uplodImgTag
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 2000
+              style:
+                top: "0.206"
+                width: "0.9"
+                height: "0.06"
+                fontSize: "18"
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: 1
+        - type: button
+          text: Cancel
+          style:
+            top: "0.9"
+            left: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: "18"
+            color: "0x1d88fc"
+            backgroundColor: "0xe9e9e9"
+            textAlign:
+              x: center
+            borderRadius: "10"
+            border:
+              style: 1
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: selectView
+    # - type: popUp
+    #   viewTag: selectView
+    #   style:
+    #     left: "0"
+    #     width: "1"
+    #     top: "0"
+    #     height: "1"
+    #     backgroundColor: "0xa9a9a9cc"
+    #   children:
+    #     - type: view
+    #       style:
+    #         top: "0.59"
+    #         width: "0.9"
+    #         height: "0.275"
+    #         left: "0.05"
+    #         border:
+    #           style: "1"
+    #         borderRadius: "10"
+    #         backgroundColor: "0xe9e9e9"
+    #         zIndex: 1000
+    #       children:
+    #         - type: label
+    #           textBoard:
+    #             - text: Medical Records
+    #               color: "0x00000099"
+    #             - br:
+    #             - text: Upload an image or document
+    #               color: "0x00000066"
+    #           style:
+    #             top: "0.02"
+    #             width: "0.9"
+    #             height: "0.06"
+    #             fontSize: "10"
+    #             color: "0x"
+    #             textAlign:
+    #               x: center
+    #             border:
+    #               style: "2"
+    #             borderWidth: "1"
+    #             borderColor: "0x00000066"
+    #         - type: button
+    #           text: Camera
+    #           contentType: file
+    #           onClick:
+    #             - actionType: popUpDismiss
+    #               popUpView: selectView
+    #             - actionType: openCamera
+    #               dataObject: BLOB
+    #               dataKey: UploadMedicalRecord2.apiRequest.uplaodDoc.docReq.name.data
+    #             - actionType: popUp
+    #               popUpView: uploading
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.math.lessthanSize:
+    #                         dataIn:
+    #                           object: =..apiRequest.uplaodDoc.docReq.name.data # obejct
+    #                           key: 2 #mb
+    #                     - ..formData.flag@: false
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - =.builtIn.utils.getFileSize:
+    #                             dataIn:
+    #                               object: =..apiRequest.uplaodDoc.docReq.name.data
+    #                               units: mb
+    #                             dataOut: UploadMedicalRecord2.formData.fileSize
+    #                         - =.builtIn.string.concat:
+    #                             dataIn:
+    #                               - "Your file size:"
+    #                               - =..formData.fileSize
+    #                               - "Mb"
+    #                             dataOut: Global.formData.fileSize
+    #                         - ..formData.flag@: true
+    #             - actionType: popUpDismiss
+    #               popUpView: uploading
+    #             - actionType: popUp
+    #               popUpView: uploadSuccess
+    #               wait: 2000
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: overSize
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =..formData.flag
+    #                     - actionType: popUp
+    #                       popUpView: overSize
+    #                       wait: true
+    #                     - continue
+    #             - actionType: evalObject
+    #               object:
+    #                 - ..apiRequest.uplaodDoc.docReq.reid@: =..apiRequest.medicalRecord.docReq.id
+    #                 - =.UploadMedicalRecord2.apiRequest.uplaodDoc.docAPI.store: ""
+    #                 - ..formData.fileId@: =..apiRequest.uplaodDoc.docResp.doc.id
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.string.equal:
+    #                         dataIn:
+    #                           string1: =..formData.fileId
+    #                           string2: ""
+    #                     - continue
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - ..formData.uplodImg@: "none"
+    #                         - ..formData.showImg@: "block"
+    #             # - actionType: popUpDismiss
+    #             #   popUpView: selectView
+    #             - actionType: builtIn
+    #               funcName: checkField
+    #               contentType: messageHidden
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: showFileTag
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: showImgTag
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: uplodImgTag
+    #           style:
+    #             top: "0.085"
+    #             width: "0.9"
+    #             height: "0.06"
+    #             fontSize: "18"
+    #             color: "0x1d88fc"
+    #             backgroundColor: "0xe9e9e9"
+    #             textAlign:
+    #               x: center
+    #             border:
+    #               style: "2"
+    #             borderWidth: "1"
+    #             borderColor: "0x00000066"
+    #         - type: button
+    #           text: Photo Library
+    #           contentType: file
+    #           onClick:
+    #             - actionType: popUpDismiss
+    #               popUpView: selectView
+    #             - actionType: openPhotoLibrary
+    #               dataObject: BLOB
+    #               dataKey: UploadMedicalRecord2.apiRequest.uplaodDoc.docReq.name.data
+    #             - actionType: popUp
+    #               popUpView: uploading
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.math.lessthanSize:
+    #                         dataIn:
+    #                           object: =..apiRequest.uplaodDoc.docReq.name.data # obejct
+    #                           key: 2 #mb
+    #                     - ..formData.flag@: false
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - =.builtIn.utils.getFileSize:
+    #                             dataIn:
+    #                               object: =..apiRequest.uplaodDoc.docReq.name.data
+    #                               units: mb
+    #                             dataOut: UploadMedicalRecord2.formData.fileSize
+    #                         - =.builtIn.string.concat:
+    #                             dataIn:
+    #                               - "Your file size:"
+    #                               - =..formData.fileSize
+    #                               - "Mb"
+    #                             dataOut: Global.formData.fileSize
+    #                         - ..formData.flag@: true
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: overSize
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =..formData.flag
+    #                     - actionType: popUp
+    #                       popUpView: overSize
+    #                       wait: true
+    #                     - continue
+    #             - actionType: evalObject
+    #               object:
+    #                 - ..apiRequest.uplaodDoc.docReq.reid@: =..apiRequest.medicalRecord.docReq.id
+    #                 - =.UploadMedicalRecord2.apiRequest.uplaodDoc.docAPI.store: ""
+    #                 - ..formData.fileId@: =..apiRequest.uplaodDoc.docResp.doc.id
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.string.equal:
+    #                         dataIn:
+    #                           string1: =..formData.fileId
+    #                           string2: ""
+    #                     - continue
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - ..formData.uplodImg@: "none"
+    #                         - ..formData.showImg@: "block"
+    #             - actionType: popUpDismiss
+    #               popUpView: uploading
+    #             - actionType: popUp
+    #               popUpView: uploadSuccess
+    #               wait: 2000
+    #             - actionType: builtIn
+    #               funcName: checkField
+    #               contentType: messageHidden
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: showFileTag
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: showImgTag
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: uplodImgTag
+    #           style:
+    #             top: "0.146"
+    #             width: "0.9"
+    #             height: "0.06"
+    #             fontSize: "18"
+    #             color: "0x1d88fc"
+    #             backgroundColor: "0xe9e9e9"
+    #             textAlign:
+    #               x: center
+    #             border:
+    #               style: "2"
+    #             borderWidth: "1"
+    #             borderColor: "0x00000066"
+    #         - type: button
+    #           text: Document Manager
+    #           contentType: file
+    #           onClick:
+    #             - actionType: popUpDismiss
+    #               popUpView: selectView
+    #             - actionType: openDocumentManager
+    #               dataObject: BLOB
+    #               dataKey: UploadMedicalRecord2.apiRequest.uplaodDoc.docReq.name.data
+    #             - actionType: popUp
+    #               popUpView: uploading
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.math.lessthanSize:
+    #                         dataIn:
+    #                           object: =..apiRequest.uplaodDoc.docReq.name.data # obejct
+    #                           key: 2 #mb
+    #                     - ..formData.flag@: false
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - =.builtIn.utils.getFileSize:
+    #                             dataIn:
+    #                               object: =..apiRequest.uplaodDoc.docReq.name.data
+    #                               units: mb
+    #                             dataOut: UploadMedicalRecord2.formData.fileSize
+    #                         - =.builtIn.string.concat:
+    #                             dataIn:
+    #                               - "Your file size:"
+    #                               - =..formData.fileSize
+    #                               - "Mb"
+    #                             dataOut: Global.formData.fileSize
+    #                         - ..formData.flag@: true
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: overSize
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =..formData.flag
+    #                     - actionType: popUp
+    #                       popUpView: overSize
+    #                       wait: true
+    #                     - continue
+    #             - actionType: evalObject
+    #               object:
+    #                 - ..apiRequest.uplaodDoc.docReq.reid@: =..apiRequest.medicalRecord.docReq.id
+    #                 - =.UploadMedicalRecord2.apiRequest.uplaodDoc.docAPI.store: ""
+    #                 - ..formData.fileId@: =..apiRequest.uplaodDoc.docResp.doc.id
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.string.equal:
+    #                         dataIn:
+    #                           string1: =..formData.fileId
+    #                           string2: ""
+    #                     - continue
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - ..formData.uplodImg@: "none"
+    #                         - ..formData.showImg@: "block"
+    #             - actionType: popUpDismiss
+    #               popUpView: uploading
+    #             - actionType: popUp
+    #               popUpView: uploadSuccess
+    #               wait: 2000
+    #             - actionType: builtIn
+    #               funcName: checkField
+    #               contentType: messageHidden
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: showFileTag
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: showImgTag
+    #             - actionType: builtIn
+    #               funcName: redraw
+    #               viewTag: uplodImgTag
+    #           style:
+    #             top: "0.206"
+    #             width: "0.9"
+    #             height: "0.06"
+    #             fontSize: "18"
+    #             color: "0x1d88fc"
+    #             backgroundColor: "0xe9e9e9"
+    #             textAlign:
+    #               x: center
+    #             border:
+    #               style: 1
+    #     - type: button
+    #       text: Cancel
+    #       style:
+    #         top: "0.9"
+    #         left: "0.05"
+    #         width: "0.9"
+    #         height: "0.06"
+    #         fontSize: "18"
+    #         color: "0x1d88fc"
+    #         backgroundColor: "0xe9e9e9"
+    #         textAlign:
+    #           x: center
+    #         borderRadius: "10"
+    #         border:
+    #           style: 1
+    #       onClick:
+    #         - actionType: popUpDismiss
+    #           popUpView: selectView
+
+    - .BaseoverSize:
+    - .ProgressCheckView:
+      message: "loading ..."
+      viewTag: uploading
+    - .SuccessfulOneLine:
+      viewTag: "uploadSuccess"
+      message: "Upload Successfully"
+    - .BaseWarningView:
+      viewTag: fileWarnTag
+      message: "Please upload the file"

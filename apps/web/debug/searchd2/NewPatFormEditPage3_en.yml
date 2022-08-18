@@ -1,0 +1,1436 @@
+NewPatFormEditPage3:
+  viewPort: top
+  title: NewPatFormEditPage3
+  init:
+    - ..billingInfo@: =.Global.formData.newPatientForm.name.data.billingInfo
+    - ..patientForm.docReq@: =.Global.formData.newPatientForm
+    - actionType: evalObject
+      object: .BaseDate.miniWeekGet
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    - if:
+      - =.Global.isSignIn
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "false"
+          - ..isSignIn@: "true"
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "true"
+          - ..isSignIn@: "false"
+    - ..profile.docAPI.get
+    
+    - if:
+      - =..profile.docResponse.doc.0
+      - actionType: evalObject
+        object:
+          - ..profile.c@: =..profile.docResponse.doc.0
+          - =.builtIn.utils.prepareDoc:
+              dataIn:
+                doc: =..profile.docResponse.doc.0
+              dataOut: NewPatFormEditPage3.profile.patientdocument
+          - .NewPatFormEditPage3.front_IDCard.docRes.doc.id@: =..profile.docResponse.doc.0.name.data.identification.imageId
+          - ..billingInfo.indentification.security@: =..profile.docResponse.doc.0.name.data.basicInfo.socialSecurity
+          - ..billingInfo.IDType@: =..profile.docResponse.doc.0.name.data.identification.type
+      - continue
+    - ..apiRequest.insurance.docQueryReq.id@: =..profile.docResponse.doc.0.name.data.insuranceId
+    - ..apiRequest.insurance.docAPI.get
+    - if:
+      - =..apiRequest.insurance.docQueryResp.doc.0
+      - actionType: evalObject
+        object:
+          - .NewPatFormEditPage3.front_InsuranceCard.docRes.doc.id@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.front_InsuranceCardId
+          - .NewPatFormEditPage3.back_InsuranceCard.docRes.doc.id@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.back_InsuranceCardId
+          - ..billingInfo.indentification.insuranceId@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.memberId
+          - ..billingInfo.indentification.companyName@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.companyName
+          - ..billingInfo.indentification.insuredName@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.memberName
+          - ..billingInfo.indentification.insurancePlan@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.planOrMedicalGroup
+      - actionType: evalObject
+        object:
+          - .NewPatFormEditPage3.front_InsuranceCard.docRes.doc.id@: ""
+          - .NewPatFormEditPage3.back_InsuranceCard.docRes.doc.id@: ""
+          - ..billingInfo.indentification.insuranceId@: ""
+          - ..billingInfo.indentification.companyName@: ""
+          - ..billingInfo.indentification.insuredName@: ""
+          - ..billingInfo.indentification.insurancePlan@: ""
+    - if:
+      - =.Global.formData.front_IDCard.doc
+      - actionType: evalObject
+        object:
+          - ..front_IDCard.docRes@: =.Global.formData.front_IDCard
+          - =.builtIn.utils.prepareDoc:
+              dataIn:
+                doc: =..front_IDCard.docRes.doc
+              dataOut: NewPatFormEditPage3.front_IDCard.docRes
+      - continue
+    - if:
+      - =.Global.formData.front_InsuranceCard.doc
+      - actionType: evalObject
+        object:
+          - ..front_InsuranceCard.docRes@: =.Global.formData.front_InsuranceCard
+          - =.builtIn.utils.prepareDoc:
+              dataIn:
+                doc: =..front_InsuranceCard.docRes.doc
+              dataOut: NewPatFormEditPage3.front_InsuranceCard.docRes
+      - continue
+    - if:
+      - =.Global.formData.back_InsuranceCard.doc
+      - actionType: evalObject
+        object:
+          - ..back_InsuranceCard.docRes@: =.Global.formData.back_InsuranceCard
+          - =.builtIn.utils.prepareDoc:
+              dataIn:
+                doc: =..back_InsuranceCard.docRes.doc
+              dataOut: NewPatFormEditPage3.back_InsuranceCard.docRes
+      - continue
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..billingInfo.medicalInsurance
+            string2: "No"
+      - actionType: evalObject
+        object:
+          - ..isHiddenForNo@: "block"
+          - ..isHiddenForDoc@: "none"
+          - ..isHiddenForYes@: "none"
+      - continue 
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..billingInfo.medicalInsurance
+            string2: "Yes"
+      - actionType: evalObject
+        object:
+          - ..isHiddenForNo@: "none"
+          - ..isHiddenForDoc@: "none"
+          - ..isHiddenForYes@: "block"
+      - continue     
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..front_IDCard.docRes.doc.id
+            string2: ""
+      - actionType: evalObject
+        object:
+          - ..formData.isShow1@: "none"
+          - ..formData.isShow4@: "none"
+      - actionType: evalObject
+        object:
+          - ..formData.isShow1@: "block"
+          - ..formData.isShow4@: "block"
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..front_InsuranceCard.docRes.doc.id
+            string2: ""
+      - ..formData.isShow2@: "none"
+      - ..formData.isShow2@: "block"
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..back_InsuranceCard.docRes.doc.id
+            string2: ""
+      - ..formData.isShow3@: "none"
+      - ..formData.isShow3@: "block"
+      
+  isPersonal:
+  isSignIn:
+
+  isHiddenForYes: "none"
+  isHiddenForDoc: "block"
+  isHiddenForNo: "none"   
+  
+  profile:
+    docResponse: ""
+    patientdocument: ""
+    document:
+      type: .DocType.PatientProfile
+      eid: .Global.rootNotebookID
+      name:
+        # .Global.Profile: ""
+        data:
+          insurance: 
+            insuranceProvider: ""
+            policyHolderName: ""
+            groupOrPolicy: ""
+            memberID: ""
+          phone: .Global.currentUser.vertex.uid
+          phone2: ""
+          avatarUrl: ava.png
+          avatar: ""
+          gender: ""
+          email: ""
+          firstName: .Global.currentUser.vertex.name.firstName
+          middleName: ""
+          lastName: .Global.currentUser.vertex.name.lastName
+          birth: ""
+          userName: .Global.currentUser.vertex.name.userName
+          address: ""
+          fullName: .NewPatFormEditPage3.formData.showName
+          Address:
+            St: ""
+            city: ""
+            state: ""
+            line2: ""
+            zip: ""
+          name: ""
+          relation: ""
+        type: .NewPatFormEditPage3.profile.docAPI.store.subtype.mediaType
+    docAPI:
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PatientProfile
+        obfname: mtime
+        dataKey: profile.docResponse
+        _nonce: =.Global._nonce 
+      
+  formData:
+    isShow1: "none"
+    isShow2: "none"
+    isShow3: "none"
+    isShow4: "none"
+    countryCode: "+1"   
+    phoneNumber: "8881307128"
+    password: "123456"
+    code: ""
+    sk: ""
+    pass: ""
+    showName: ""
+    doc: []
+    flag: false
+    fileSize: ""
+    front_IDCard: "block"
+    front_InsuranceCard: "block"
+    back_InsuranceCard: "block"
+  billingInfo: 
+    medicalInsurance: ""
+    indentification:
+      back_InsuranceCard: ""
+      companyName: ""
+      front_IDCard: ""
+      front_InsuranceCard: ""
+      insuredName: ""
+      insuranceId: ""
+      insurancePlan: ""
+      security: "" 
+  billingInfoTemp:
+    - key: medicalInsurance 
+      value: "Yes"
+    - key: medicalInsurance 
+      value: "No" 
+  socialSecurityNumber:
+    - key: security
+      value: "Social Security #"
+  patientForm:
+    docResp: ""
+    docReq: 
+      id: ""
+      eid: .Global.rootNotebookID
+      type: .DocType.PatientForm
+      name:
+        data: ""
+        title: "New Patient Forms"
+        user: ""
+        type: "application/json"
+    docAPI:
+      store:
+        api: cd
+        dataIn: NewPatFormEditPage3.patientForm.docReq
+        dataOut: NewPatFormEditPage3.patientForm.docResp
+        subtype:
+          mediaType: "application/json"
+  front_IDCard:
+    docRes: ""
+    docReq:
+      name:
+        title: ""
+        type: ..front_IDCard.docAPI.store.subtype.mediaType
+        data: binFile
+      eid: .Global.rootNotebookID
+      reid: .Global.formData.newPatientForm.id      
+      type: .DocType.F_IDCard
+    docAPI:
+      store:
+        api: cd
+        dataIn: NewPatFormEditPage3.front_IDCard.docReq
+        subtype:
+          mediaType: ""
+        dataOut: Global.formData.front_IDCard
+
+  front_InsuranceCard:
+    docReq:
+      name:
+        type: ..front_InsuranceCard.docAPI.store.subtype.mediaType
+        data: binFile
+      eid: .Global.rootNotebookID
+      reid: .Global.formData.newPatientForm.id      
+      type: .DocType.F_InsuranceCard
+    docAPI:
+      store:
+        api: cd
+        dataIn: NewPatFormEditPage3.front_InsuranceCard.docReq
+        dataOut: Global.formData.front_InsuranceCard
+        subtype:
+          mediaType: ""
+
+  back_InsuranceCard:
+    docReq:
+      name:
+        type: ..back_InsuranceCard.docAPI.store.subtype.mediaType
+        data: binFile
+      eid: .Global.rootNotebookID
+      reid: .Global.formData.newPatientForm.id      
+      type: .DocType.B_InsuranceCard
+    docAPI:
+      store:
+        api: cd
+        dataIn: NewPatFormEditPage3.back_InsuranceCard.docReq 
+        dataOut: Global.formData.back_InsuranceCard
+        subtype:
+          mediaType: ""
+  apiRequest:
+    insurance:
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.InsuranceCard
+        id: 
+        xfname: id
+        _nonce: =.Global._nonce
+        obfname: ctime
+      docAPI:
+        get:  
+          api: rd
+          dataIn: NewPatFormEditPage3.apiRequest.insurance.docQueryReq
+          dataOut: NewPatFormEditPage3.apiRequest.insurance.docQueryResp
+    
+  components:
+    
+    - type: view
+      style:
+        width: '1'
+        margin: 'auto'
+        display: flex
+        flexDirection: column
+        justifyContent: center
+        fontFamily: "Arial"
+      children: 
+        - .baseTopBar:
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .BaseUserBar
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1       
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "New Patient Forms"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "3/3"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: scrollView
+              viewTag: page1
+              style:
+                width: 89.8vw
+                height: 39vw
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - .NewFirstTitle:
+                      text: Billing Information
+                      style:
+                        marginTop: "0.02"
+                        fontSize: .Nfont.h1
+                        textAlign: 
+                            x: center
+                            y: center
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                        # backgroundColor: "red"
+                      children:
+                        - type: label
+                          text: Do You Have Medical Insurance?
+                          style:
+                            marginTop: "0.5vw"
+                            fontSize: .Nfont.h0
+                            color: "#143459"
+                        - type: list
+                          contentType: listObject
+                          listObject: ..billingInfoTemp
+                          iteratorVar: itemObject
+                          viewTag: medicalInsuranceTag
+                          style:
+                            marginTop: "0.5vw"
+                            # left: "0.08"
+                            height: "3vw"
+                            axis: horizontal
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "13.5vw"
+                                left: "0"
+                                height: "2.5vw"
+                                display: inline-block
+                              children:
+                                - type: image
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: $var.value
+                                          - blue.svg
+                                          - black.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions: 
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..billingInfo.medicalInsurance
+                                                  string2: $var.value
+                                            - =.builtIn.object.clear:
+                                                dataIn:
+                                                  object: =..billingInfo
+                                                  key: $var.key
+                                            - =.builtIn.object.set:
+                                                dataIn:
+                                                  object: =..billingInfo
+                                                  key: $var.key
+                                                  value: $var.value
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: "Yes"
+                                          - actionType: evalObject
+                                            object:
+                                              - actionType: builtIn
+                                                funcName: show
+                                                viewTag:  yesPage
+                                              - ..isHiddenForYes@: block
+                                              - ..isHiddenForNo@: none
+                                              - ..isHiddenForDoc@: none
+                                          - continue  
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: "Yes"
+                                          - actionType: evalObject
+                                            object:
+                                              - actionType: builtIn
+                                                funcName: hide
+                                                viewTag:  docPage
+                                          - continue   
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: "Yes"
+                                          - actionType: evalObject
+                                            object:
+                                              - actionType: builtIn
+                                                funcName: hide
+                                                viewTag:  noPage   
+                                          - continue  
+                                    # 显示docPage页面
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: ""  
+                                          - actionType: evalObject
+                                            object: 
+                                              - actionType: builtIn
+                                                funcName: show
+                                                viewTag:  docPage
+                                              - ..isHiddenForYes@: none
+                                              - ..isHiddenForNo@: none
+                                              - ..isHiddenForDoc@: block
+                                          - continue 
+                                    # 隐藏yesPage
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: ""  
+                                          - actionType: evalObject
+                                            object: 
+                                              - actionType: builtIn
+                                                funcName: hide
+                                                viewTag: yesPage   
+                                          - continue 
+                                    # 隐藏noPage   
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: ""
+                                          - actionType: evalObject
+                                            object: 
+                                              - actionType: builtIn
+                                                funcName: hide
+                                                viewTag: noPage   
+                                          - continue  
+                                    # noPage 显示noPage#
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: "No"  
+                                          - actionType: evalObject
+                                            object: 
+                                              - actionType: builtIn
+                                                funcName: show
+                                                viewTag:  noPage
+                                              - ..isHiddenForYes@: none
+                                              - ..isHiddenForNo@: block
+                                              - ..isHiddenForDoc@: none
+                                          - continue 
+                                    # 隐藏yesPage
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: "No"  
+                                          - actionType: evalObject
+                                            object: 
+                                              - actionType: builtIn
+                                                funcName: hide
+                                                viewTag: yesPage   
+                                          - continue 
+                                    # 隐藏docPage   
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..billingInfo.medicalInsurance
+                                                string2: "No"
+                                          - actionType: evalObject
+                                            object: 
+                                              - actionType: builtIn
+                                                funcName: hide
+                                                viewTag: docPage   
+                                          - continue                        
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: medicalInsuranceTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: yesPage
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: noPage
+                                  style:
+                                    top: "0"
+                                    left: "0"
+                                    height: "1vw"
+                                - type: label
+                                  dataKey: itemObject.value
+                                  style:
+                                    top: "0"
+                                    left: "1.5vw"
+                                    width: "18vw"
+                                    height: "1vw"
+                                    fontSize: .Nfont.h0
+                                    color: "#333333"
+                    - type: view    
+                      viewTag: yesPage
+                      style:
+                        height: "34vw"
+                        width: "31vw"
+                        # isHidden: true
+                        display: ..isHiddenForYes
+                      children:
+                        - type: view
+                          style:
+                            height: "0.3"
+                            width: "0.34"
+                          children:
+                            - type: label
+                              text: Identification
+                              style:
+                                height: "0.03"
+                                width: "30vw"
+                                fontSize: .Nfont.h0_1
+                                color: "#143459"
+                                fontWeight: 580
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: ID Type
+                                - type: select
+                                  dataKey: billingInfo.IDType
+                                  options:
+                                    .IDType
+                                  style:
+                                    height: 2.5vw
+                                    width: 18vw
+                                    marginTop: 0.5vw
+                                    border: "1px solid #DEDEDE"
+                                    borderWidth: 1px
+                                    borderRadius: 5px
+                                    fontSize: .Nfont.h0
+                                    fontWeight: 400
+                            - type: label
+                              text: Please upload your ID Image
+                              style:
+                                marginTop: 1vw
+                                height: "0.03"
+                                width: "15vw"
+                                fontSize: .Nfont.h0
+                                color: "#333333"
+                            - .ViewColumn:
+                              style:
+                                width: "12vw"
+                                borderRadius: 5px
+                              children:
+                                - type: view
+                                  style: 
+                                    width: 9vw
+                                    height: 6vw
+                                  children:
+                                    - type: image
+                                      path: upload.svg
+                                      # 指定刷新组件名称
+                                      viewTag: front_IDCardTag 
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: NewPatFormEditPage3.front_IDCard.docRes.doc.id
+                                      onClick:
+                                        # 上传图片处理
+                                        - actionType: openPhotoLibrary
+                                          dataKey: NewPatFormEditPage3.front_IDCard.docReq.name.data
+                                          dataObject: BLOB
+                                        - actionType: popUp
+                                          popUpView: upLoad
+                                        # 图片尺寸判断
+                                        - actionType: evalObject
+                                          object:
+                                            - if:
+                                              - =.builtIn.math.lessthanSize:
+                                                  dataIn:
+                                                    object: =..front_IDCard.docReq.name.data # object
+                                                    key: 2  #mb
+                                              - ..formData.flag@: false
+                                              - actionType: evalObject
+                                                object:
+                                                  - =.builtIn.utils.getFileSize:
+                                                      dataIn:
+                                                        object: =..front_IDCard.docReq.name.data
+                                                        units: mb
+                                                      dataOut: NewPatFormEditPage3.formData.fileSize
+                                                  - =.builtIn.string.concat:
+                                                      dataIn:
+                                                        - "Your file size:"
+                                                        - =..formData.fileSize
+                                                        - "Mb"
+                                                      dataOut: Global.formData.fileSize 
+                                                  - ..formData.flag@: true
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: overSize
+                                        - actionType: popUpDismiss
+                                          popUpView: upLoad
+                                        - actionType: evalObject
+                                          object:
+                                            - if:
+                                              - =..formData.flag
+                                              - actionType: popUp
+                                                popUpView: overSize
+                                                wait: true
+                                              - continue
+                                        - actionType: popUp
+                                          popUpView: upLoad
+                                        # 保存图片数据
+                                        - actionType: evalObject
+                                          object:
+                                            - =..front_IDCard.docAPI.store: ""
+                                            - ..front_IDCard.docRes@: =.Global.formData.front_IDCard
+                                            - if:
+                                              - =.NewPatFormEditPage3.front_IDCard.docRes.doc.id
+                                              - ..formData.isShow1@: "block"
+                                              - actionType: popUp
+                                                popUpView: uploadFailed
+                                                wait: true
+                                        # 刷新image组件
+                                        - actionType: popUpDismiss
+                                          popUpView: upLoad
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: overSize
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: isShow1
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: front_IDCardTag
+                                      style: 
+                                        width: 9vw
+                                        height: 6vw
+                                    - type: image
+                                      viewTag: isShow1
+                                      path: showImage.svg
+                                      style: 
+                                        display: ..formData.isShow1
+                                        width: 3vw
+                                        zIndex: 100
+                                        marginLeft: 6vw
+                                        top: 3vw
+                                - type: label
+                                  text: Front of Insurance Card
+                                  style:
+                                    height: "0.03"
+                                    width: 5vw"
+                                    fontSize: 0.8vw
+                                    textAlign:
+                                      x: left
+                                      y: center
+                                
+                            
+                        
+                        - type: view
+                          style:
+                            left: "0"
+                            width: "29vw"
+                            marginTop: 2vw
+                            # backgroundColor: "red"
+                          children:
+                            - type: label
+                              text: Medical Coverage
+                              style:
+                                height: "0.03"
+                                width: "29vw"
+                                fontSize: .Nfont.h0_1
+                                color: "#143459"
+                                fontWeight: 580
+                            - .ViewRow:
+                              style:
+                                width: 40vw
+                                marginTop: 1vw
+                              children:
+                                - .ViewColumn:
+                                  style: 
+                                    justifyContent: space-between
+                                  children:
+                                    - .VQSecondTitle:
+                                      text: Insurance Company Name 
+                                    - .NPITextField: 
+                                      dataKey: billingInfo.indentification.companyName
+                                      style:
+                                        width: 19.5vw
+                                - .ViewColumn:
+                                  style: 
+                                    justifyContent: space-between
+                                  children:
+                                    - .VQSecondTitle:
+                                      text: Insurance Plan / Medical Group
+                                    - .NPITextField: 
+                                      dataKey: billingInfo.indentification.insurancePlan
+                                      style:
+                                        width: 19.5vw
+                            - .ViewRow:
+                              style:
+                                width: 40vw
+                                marginTop: 1vw
+                              children:
+                                - .ViewColumn:
+                                  style: 
+                                    justifyContent: space-between
+                                  children:
+                                    - .VQSecondTitle:
+                                      text: Insured Name
+                                    - .NPITextField: 
+                                      dataKey: billingInfo.indentification.insuredName
+                                      style:
+                                        width: 19.5vw
+                                - .ViewColumn:
+                                  style: 
+                                    justifyContent: space-between
+                                  children:
+                                    - .VQSecondTitle:
+                                      text: "Insurance ID # / Medical Record #"
+                                    - .NPITextField: 
+                                      dataKey: billingInfo.indentification.insuranceId
+                                      style:
+                                        width: 19.5vw
+                            - type: label
+                              text: Please upload your medical insurance card
+                              style:
+                                marginTop: "2vw"
+                                height: "0.03"
+                                width: "29vw"
+                                fontSize: .Nfont.h0  
+                            - .ViewRow:
+                              style:
+                                width: "28vw"
+                                justifyContent: space-between
+                              children: 
+                                - .ViewColumn:
+                                  style:
+                                    width: "12vw"
+                                    borderRadius: 5px
+                                  children:
+                                    - type: view
+                                      style: 
+                                        width: 9vw
+                                        height: 6vw
+                                      children:
+                                        - type: image
+                                          path: upload.svg
+                                          # 指定刷新组件名称
+                                          viewTag: front_InsuranceCardTag  
+                                          path=func: .builtIn.utils.prepareDocToPath
+                                          dataKey: NewPatFormEditPage3.front_InsuranceCard.docRes.doc.id
+                                          onClick:
+                                            # 上传图片处理
+                                            - actionType: openPhotoLibrary
+                                              dataKey: NewPatFormEditPage3.front_InsuranceCard.docReq.name.data
+                                              dataObject: BLOB
+                                            - actionType: popUp
+                                              popUpView: upLoad
+                                            # 图片尺寸判断
+                                            - actionType: evalObject
+                                              object:
+                                                - if:
+                                                  - =.builtIn.math.lessthanSize:
+                                                      dataIn:
+                                                        object: =..front_InsuranceCard.docReq.name.data # object
+                                                        key: 2  #mb
+                                                  - ..formData.flag@: false
+                                                  - actionType: evalObject
+                                                    object:
+                                                      - =.builtIn.utils.getFileSize:
+                                                          dataIn:
+                                                            object: =..front_InsuranceCard.docReq.name.data
+                                                            units: mb
+                                                          dataOut: NewPatFormEditPage3.formData.fileSize
+                                                      - =.builtIn.string.concat:
+                                                          dataIn:
+                                                            - "Your file size:"
+                                                            - =..formData.fileSize
+                                                            - "Mb"
+                                                          dataOut: Global.formData.fileSize 
+                                                      - ..formData.flag@: true
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: overSize
+                                            - actionType: popUpDismiss
+                                              popUpView: upLoad
+                                            - actionType: evalObject
+                                              object:
+                                                - if:
+                                                  - =..formData.flag
+                                                  - actionType: popUp
+                                                    popUpView: overSize
+                                                    wait: true
+                                                  - continue
+                                            - actionType: popUp
+                                              popUpView: upLoad
+                                            # 保存图片数据
+                                            - actionType: evalObject
+                                              object:
+                                                - =..front_InsuranceCard.docAPI.store: ""
+                                                - ..front_InsuranceCard.docRes@: =.Global.formData.front_InsuranceCard
+                                                - if:
+                                                  - =.NewPatFormEditPage3.front_InsuranceCard.docRes.doc.id
+                                                  - ..formData.isShow2@: "block"
+                                                  - actionType: popUp
+                                                    popUpView: uploadFailed
+                                                    wait: true
+                                            # 刷新image组件
+                                            - actionType: popUpDismiss
+                                              popUpView: upLoad
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: overSize
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: isShow2
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: front_InsuranceCardTag 
+                                          style: 
+                                            width: 9vw
+                                            height: 6vw
+                                        - type: image
+                                          path: showImage.svg
+                                          viewTag: isShow2
+                                          style: 
+                                            display: ..formData.isShow2
+                                            width: 3vw
+                                            zIndex: 100
+                                            marginLeft: 6vw
+                                            top: 3vw
+                                    - type: label
+                                      text: Front of Insurance Card
+                                      style:
+                                        marginBottom: 2vw
+                                        height: "0.03"
+                                        width: 5vw"
+                                        fontSize: 0.8vw
+                                        textAlign:
+                                          x: left
+                                          y: center
+                                
+                                - .ViewColumn:
+                                  style:
+                                    width: "12vw"
+                                    borderRadius: 5px
+                                  children:
+                                    - type: view
+                                      style: 
+                                        width: 9vw
+                                        height: 6vw
+                                      children:
+                                        - type: image
+                                          path: upload.svg
+                                          # 指定刷新组件名称
+                                          viewTag: back_InsuranceCardTag 
+                                          path=func: .builtIn.utils.prepareDocToPath
+                                          dataKey: NewPatFormEditPage3.back_InsuranceCard.docRes.doc.id
+                                          onClick:
+                                            # 上传图片处理
+                                            - actionType: openPhotoLibrary
+                                              dataKey: NewPatFormEditPage3.back_InsuranceCard.docReq.name.data
+                                              dataObject: BLOB
+                                            - actionType: popUp
+                                              popUpView: upLoad
+                                            # 图片尺寸判断
+                                            - actionType: evalObject
+                                              object:
+                                                - if:
+                                                  - =.builtIn.math.lessthanSize:
+                                                      dataIn:
+                                                        object: =..back_InsuranceCard.docReq.name.data # object
+                                                        key: 2  #mb
+                                                  - ..formData.flag@: false
+                                                  - actionType: evalObject
+                                                    object:
+                                                      - =.builtIn.utils.getFileSize:
+                                                          dataIn:
+                                                            object: =..back_InsuranceCard.docReq.name.data
+                                                            units: mb
+                                                          dataOut: NewPatFormEditPage3.formData.fileSize
+                                                      - =.builtIn.string.concat:
+                                                          dataIn:
+                                                            - "Your file size:"
+                                                            - =..formData.fileSize
+                                                            - "Mb"
+                                                          dataOut: Global.formData.fileSize 
+                                                      - ..formData.flag@: true
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: overSize
+                                            - actionType: popUpDismiss
+                                              popUpView: upLoad
+                                            - actionType: evalObject
+                                              object:
+                                                - if:
+                                                  - =..formData.flag
+                                                  - actionType: popUp
+                                                    popUpView: overSize
+                                                    wait: true
+                                                  - continue
+                                            - actionType: popUp
+                                              popUpView: upLoad
+                                            # 保存图片数据
+                                            - actionType: evalObject
+                                              object:
+                                                - =..back_InsuranceCard.docAPI.store: ""
+                                                - ..back_InsuranceCard.docRes@: =.Global.formData.back_InsuranceCard
+                                                - if:
+                                                  - =.NewPatFormEditPage3.back_InsuranceCard.docRes.doc.id
+                                                  - ..formData.isShow3@: "block"
+                                                  - actionType: popUp
+                                                    popUpView: uploadFailed
+                                                    wait: true
+                                            # 刷新image组件
+                                            - actionType: popUpDismiss
+                                              popUpView: upLoad
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: overSize
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: isShow3
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: back_InsuranceCardTag 
+                                          style: 
+                                            width: 9vw
+                                            height: 6vw
+                                        - type: image
+                                          path: showImage.svg
+                                          viewTag: isShow3
+                                          style: 
+                                            display: ..formData.isShow3
+                                            width: 3vw
+                                            zIndex: 100
+                                            marginLeft: 6vw
+                                            top: 3vw
+                                    - type: label
+                                      text: Back of Insurance Card
+                                      style:
+                                        marginBottom: 2vw
+                                        height: "0.03"
+                                        width: 5vw"
+                                        fontSize: 0.8vw
+                                        textAlign:
+                                          x: left
+                                          y: center
+                            
+                            
+                            
+                            
+                    - type: view
+                      viewTag: noPage
+                      style:
+                        height: "auto"
+                        width: "0.34"
+                        # isHidden: true
+                        display: ..isHiddenForNo
+                      children:
+                        - type: label
+                          text: Identification
+                          style:
+                            height: "0.03"
+                            width: "30vw"
+                            fontSize: .Nfont.h0_1
+                            color: "#143459"
+                            fontWeight: 580
+                        - .ViewColumn:
+                          style: 
+                            justifyContent: space-between
+                          children:
+                            - .VQSecondTitle:
+                              text: ID Type
+                            - type: select
+                              dataKey: billingInfo.IDType
+                              options:
+                                .IDType
+                              style:
+                                height: 2.5vw
+                                width: 18vw
+                                marginTop: 0.5vw
+                                border: "1px solid #DEDEDE"
+                                borderWidth: 1px
+                                borderRadius: 5px
+                                fontSize: .Nfont.h0
+                                fontWeight: 400
+                        - type: label
+                          text: Please upload your ID Image
+                          style:
+                            marginTop: 1vw
+                            height: "0.03"
+                            width: "15vw"
+                            fontSize: .Nfont.h0
+                            color: "#333333"
+                        - .ViewColumn:
+                          style:
+                            width: "12vw"
+                            borderRadius: 5px
+                          children:
+                            - type: view
+                              style: 
+                                width: 9vw
+                                height: 6vw
+                              children:
+                                - type: image
+                                  viewTag: front_IDCardTag 
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: NewPatFormEditPage3.front_IDCard.docRes.doc.id
+                                  path: upload.svg
+                                  onClick:
+                                  # 上传图片处理
+                                    - actionType: openPhotoLibrary
+                                      dataKey: NewPatFormEditPage3.front_IDCard.docReq.name.data
+                                      dataObject: BLOB
+                                    - actionType: popUp
+                                      popUpView: upLoad
+                                    # 图片尺寸判断
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.math.lessthanSize:
+                                              dataIn:
+                                                object: =..front_IDCard.docReq.name.data # object
+                                                key: 2  #mb
+                                          - ..formData.flag@: false
+                                          - actionType: evalObject
+                                            object:
+                                              - =.builtIn.utils.getFileSize:
+                                                  dataIn:
+                                                    object: =..front_IDCard.docReq.name.data
+                                                    units: mb
+                                                  dataOut: NewPatFormEditPage3.formData.fileSize
+                                              - =.builtIn.string.concat:
+                                                  dataIn:
+                                                    - "Your file size:"
+                                                    - =..formData.fileSize
+                                                    - "Mb"
+                                                  dataOut: Global.formData.fileSize 
+                                              - ..formData.flag@: true
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: overSize
+                                    - actionType: popUpDismiss
+                                      popUpView: upLoad
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =..formData.flag
+                                          - actionType: popUp
+                                            popUpView: overSize
+                                            wait: true
+                                          - continue
+                                    - actionType: popUp
+                                      popUpView: upLoad
+                                    # 保存图片数据
+                                    - actionType: evalObject
+                                      object:
+                                        - =..front_IDCard.docAPI.store: ""
+                                        - ..front_IDCard.docRes@: =.Global.formData.front_IDCard
+                                        - if:
+                                          - =.NewPatFormEditPage3.front_IDCard.docRes.doc.id
+                                          - ..formData.isShow4@: "block"
+                                          - actionType: popUp
+                                            popUpView: uploadFailed
+                                            wait: true
+                                    # 刷新image组件
+                                    - actionType: popUpDismiss
+                                      popUpView: upLoad
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: overSize
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: isShow4
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: front_IDCardTag 
+                                  style: 
+                                    width: 9vw
+                                    height: 6vw
+                                - type: image
+                                  path: showImage.svg
+                                  viewTag: isShow4
+                                  style: 
+                                    display: ..formData.isShow4
+                                    width: 3vw
+                                    zIndex: 100
+                                    marginLeft: 6vw
+                                    top: 3vw
+                            - type: label
+                              text: Front of Insurance Card
+                              style:
+                                height: "0.03"
+                                width: 5vw"
+                                fontSize: 0.8vw
+                                textAlign:
+                                  x: left
+                                  y: center
+                        - type: label
+                          text: Social Security
+                          style:
+                            height: "0.03"
+                            width: "30vw"
+                            fontSize: .Nfont.h0_1
+                            color: "#143459"
+                            fontWeight: 580
+                            marginTop: 1.5vw
+                        - type: list
+                          contentType: listObject
+                          listObject: .NewPatFormEditPage3.socialSecurityNumber
+                          iteratorVar: itemObject
+                          style:
+                            width: '0.34'
+                            margin: '0'
+                            height: auto
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: '29vw'
+                                height: '0.1'
+                                marginTop: '0'
+                              children:
+                                - type: label
+                                  dataKey: itemObject.value
+                                  style:
+                                    width: '29vw'
+                                    height: "0.03"
+                                    # width: 29vw
+                                    fontSize: .Nfont.h0
+                                    color: "#333333"
+                                    textAlign: 
+                                          y: center
+                                - type: textField
+                                  placeholder:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - =.builtIn.object.get:
+                                            dataIn:
+                                              object: =..billingInfo.indentification
+                                              key: $var.key
+                                  dataValue:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - =.builtIn.object.get:
+                                            dataIn:
+                                              object: =..billingInfo.indentification
+                                              key: $var.key
+                                  dataKey: itemObject.dataValue 
+                                  onChange:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject # itemObject.value to the input field 
+                                      actions:
+                                        - =.builtIn.object.set:
+                                            dataIn:
+                                              object: =..billingInfo.indentification
+                                  style:
+                                    width: "18vw"
+                                    height: "2.5vw"
+                                    border: 
+                                      style: "3"
+                                    borderColor: "0xdededf" 
+                                    borderWidth: "0.1px"
+                                    textIndent: 0.5em
+                                    fontSize: .Nfont.h0
+                                    borderRadius: "5"
+            - type: view
+              style:
+                width: 22.3vw
+                height: 2.3vw
+                left: 15.5vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Leftbutton.svg
+                  style:
+                    height: 3vw
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        # 保存front_IDCard 图片的id
+                        - ..billingInfo.indentification.front_IDCard@: =..front_IDCard.docRes.doc.id
+                        # 保存front_InsuranceCard 图片的id
+                        - ..billingInfo.indentification.front_InsuranceCard@: =..front_InsuranceCard.docRes.doc.id
+                        # 保存back_InsuranceCard 图片的id
+                        - ..billingInfo.indentification.back_InsuranceCard@: =..back_InsuranceCard.docRes.doc.id
+
+                        - .Global.formData.newPatientForm.name.data.billingInfo@: =..billingInfo
+                    - goto: NewPatFormEditPage2
+            - type: view
+              style:
+                width: "90vw"
+                height: 5vw
+                borderTop: "2px solid #E3E3E3"
+                borderWidth: 2px
+              children:
+                - type: button
+                  text: Done
+                  style:
+                    width: 12.3vw
+                    height: 2.3vw
+                    margin: auto
+                    marginTop: 1.8vw
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h1
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..billingInfo.medicalInsurance
+                                string2: ""  
+                          - actionType: popUp
+                            popUpView: warningView
+                            wait: true
+                          - continue
+                        # 保存front_IDCard 图片的id
+                        - ..billingInfo.indentification.front_IDCard@: =..front_IDCard.docRes.doc.id
+                        # 保存front_InsuranceCard 图片的id
+                        - ..billingInfo.indentification.front_InsuranceCard@: =..front_InsuranceCard.docRes.doc.id
+                        # 保存back_InsuranceCard 图片的id
+                        - ..billingInfo.indentification.back_InsuranceCard@: =..back_InsuranceCard.docRes.doc.id
+
+                        - ..patientForm.docReq.name.data.billingInfo@: =..billingInfo
+
+                        - =.builtIn.array.add:
+                            dataIn: 
+                              object: =.Global.vaccine
+                              value: "New Patient Forms"
+                        - =.builtIn.array.elementUnique: 
+                            dataIn: 
+                              arr: =.Global.vaccine
+                            dataOut: NewPatFormEditPage3.formData.doc
+                        
+                    - actionType: evalObject
+                      object: 
+                        - .Global.vaccine@: ""
+              
+                    - actionType: evalObject
+                      object:
+                        - .Global.vaccine@: =..formData.doc 
+                        - =..patientForm.docAPI.store: "" 
+                        - .Global.formData.newPatientForm@: =..patientForm.docResp.doc
+                
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@:
+                          =.builtIn.math.random: "" 
+                    - actionType: evalObject
+                      object:
+                        - .Global.ProfilePop@: "block"
+                        - .Global.editProfile@: true
+                    - goto: .Global.FormGoUrl
+                        
+        
+        - .BaseOverSizeWarningView: 
+          style:
+        - .WaitView:
+          viewTag: upLoad
+        - .BaseuploadFailed:
+          viewTag: uploadFailed
+        - .NewBaseWarningView:     
+                       
+                    

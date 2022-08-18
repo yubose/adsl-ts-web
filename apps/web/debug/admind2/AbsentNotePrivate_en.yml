@@ -1,0 +1,649 @@
+AbsentNotePrivate:
+  title: Absence Note
+  # pageNumber: "184"
+  init: 
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - ..absentNote.document@: =.Global.formData.medicalRecords
+        - continue
+    # - if:
+    #     #判断是否从ProviderMacros回来，需要复现之前已填的数据
+    #     - =.Global.formData.providerDoc.absentNote.id
+    #     - actionType: evalObject
+    #       object:
+    #         - ..absentNote.document@: =.Global.formData.providerDoc.absentNote
+    #     - actionType: evalObject
+    #       object:
+            # # 修改状态
+            # - =.builtIn.number.inhx:
+            #     dataIn:
+            #       intHex: =..absentNote.document.type
+            #       index: 1
+            #       hex: 1
+            #     dataOut: AbsentNotePrivate.absentNote.document.type
+    #页面进入时就创建文档
+    # - =.AbsentNotePrivate.absentNote.docAPI.store: ""
+    # 将创建的文档数据重新给absentNote 进行update
+    # - ..absentNote.document@: =..absentNote.response.doc
+
+    # 判断是否签名
+    - actionType: evalObject
+      object:
+        - if:
+            - =.AbsentNotePrivate.absentNote.document.name.data.whetherSign
+            - continue
+            # 非空修改显示的标识,刷新签名区域
+            - actionType: evalObject
+              object:
+                - ..formData.temporarySignature@: =.AbsentNotePrivate.absentNote.document.name.data.signatureId
+                - ..formData.signShow@: "block"
+                - ..formData.canvasShow@: "none"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: signatureShowTag
+                  
+  newSign:
+    docRes: ""
+    document: #DOC
+      .Document: ""
+      type: .DocType.DocumentSignature
+      name:
+        title: ""
+        type: ..newSign.document.subtype.mediaType
+        data: "" 
+      eid: .Global.formData.meetingDocEid
+      subtype:
+        mediaType: "" # mediaType : "image/jpeg"        
+    docAPI: # DOCAPI
+      .DocAPI: ""    
+      store:
+        api: cd
+        dataIn: AbsentNotePrivate.newSign.document
+        dataOut: AbsentNotePrivate.newSign.docRes
+  absentNote:
+    response: ""
+    document:
+      .Document: ""
+      eid: .Global.formData.meetingDocEid
+      type: .DocType.AbsentNote
+      reid: ""
+      name:
+        title: "Absence Note"
+        user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+        type: "text/plain"
+        data:
+          classTag:
+            name: Admin
+            fontColor: "0x005795"
+            backgroundColor: "0xdfedfc"
+            display: block
+          statusTag:
+            name: Private
+            fontColor: "0x4c5264"
+            backgroundColor: "0xececee"
+            display: block
+          signatureId: ""
+          whetherSign: true
+          name: ""
+          date: ""
+          place: ""
+          reason: ""
+          uploadUserName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          patientInfo:
+            name: .Global.formData.patientInfo.name.data.basicInfo.fullName
+            dob: .Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+            phoneNumber: .Global.formData.patientInfo.name.data.basicInfo.phone
+            email: .Global.formData.patientInfo.name.data.contactInfo.email
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: AbsentNotePrivate.absentNote.document
+        dataOut: AbsentNotePrivate.absentNote.response
+        subtype:
+          mediaType: "text/plain"
+      delete:
+        api: dx
+        dataIn: AbsentNotePrivate.absentNote.document
+  save: 
+    - =.AbsentNotePrivate.absentNote.docAPI.store: ""
+  delete: 
+    - =.AbsentNotePrivate.absentNote.docAPI.delete: ""
+  place: 
+    - key: place
+      value: School
+    - key: place
+      value: Work
+    - key: place
+      value: Other
+  reason: 
+    - key: reason
+      value: injury
+    - key: reason
+      value: illness
+    - key: reason
+      value: Other
+  formData:
+    signShow: "none"
+    canvasShow: "block"
+    temporarySignature: ""
+    whetherSign: ""
+  components: 
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+              onClick:
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true                     
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                    # backgroundColor: "0xff000033"
+                  children:
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.74"
+                        overflow: scroll
+                      children:
+                        - type: view 
+                          style: 
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: "0.1"
+                          children: 
+                            - type: image
+                              path: medicalRecords.svg
+                              style: 
+                                top: "0"
+                                width: "0.056"
+                                height: "0.1"
+                            - type: label
+                              text=func: .builtIn.string.formatUnixtime_en
+                              dataKey: Global.roomInfo.edge.stime
+                              style:
+                                marginLeft: "0.056"
+                                height: "0.1"
+                                width: "0.334"
+                                top: "0"
+                                fontSize: .Nfont.nf2
+                                textAlign: 
+                                  x: right
+                                  y: center
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: auto
+                            # overflow: hidden
+                          children:
+                            - .PrescriptionListBox:
+                              children: 
+                                - .PrescriptionLabel:
+                                - .PrescriptionDatakey:
+                                  dataKey: absentNote.document.name.data.patientInfo.name
+                            - .PrescriptionListBox:
+                              children: 
+                                - .PrescriptionLabel:
+                                  text: DOB
+                                - .PrescriptionDatakey:
+                                  dataKey: absentNote.document.name.data.patientInfo.dob
+                            - .PrescriptionListBox:
+                              children: 
+                                - .PrescriptionLabel:
+                                  text: Phone
+                                - .PrescriptionDatakey:
+                                  dataKey: absentNote.document.name.data.patientInfo.phoneNumber
+                            - .PrescriptionListBox:
+                              children: 
+                                - .PrescriptionLabel:
+                                  text: Email
+                                - .PrescriptionDatakey:
+                                  dataKey: absentNote.document.name.data.patientInfo.email
+                        - type: view 
+                          style:  
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: "0.002"
+                            backgroundColor: "0x707070"
+                        - type: view
+                          style: 
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: auto
+                            # overflow: hidden
+                          children: 
+                            - type: label
+                              text: Leave of Absence
+                              style: 
+                                color: "0x333333"
+                                width: "0.39"
+                                fontFamily: "sans-serif"
+                                fontSize: .Nfont.nf3
+                                fontWeight: "600"
+                                textAlign: 
+                                  x: center
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Please Excuse
+                                - type: textField
+                                  dataKey: absentNote.document.name.data.name
+                                  style:
+                                    color: "0x333333"
+                                    width: "0.17"
+                                    height: "0.03"
+                                    left: "0.22"
+                                    top: "0"
+                                    fontSize: .Nfont.nf4
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xdedede"
+                                    boxSizing: border-box
+                                    borderRadius: "3"
+                                    textIndent: "0.5em"
+                                    textAlign: 
+                                      y: center                                  
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: as of
+                                - type: textField
+                                  placeholder: mm/dd/yyyy
+                                  dataKey: absentNote.document.name.data.date                                  
+                                  style:
+                                    color: "0x333333"
+                                    width: "0.17"
+                                    height: "0.03"
+                                    left: "0.22"
+                                    top: "0"
+                                    fontSize: .Nfont.nf4
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xdedede"
+                                    boxSizing: border-box
+                                    textIndent: "0.5em"
+                                    borderRadius: "3"
+                                    textAlign: 
+                                      y: center  
+
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: from
+                                - type: list
+                                  viewTag: placeTag
+                                  contentType: listObject
+                                  listObject: ..place
+                                  iteratorVar: itemObject
+                                  style: 
+                                    marginLeft: "0.21"
+                                    axis: horizontal
+                                    width: "0.18"
+                                    height: "0.03"
+                                  children:    
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:    
+                                        marginLeft: "0.01"                   
+                                        width: "0.05"
+                                        height: "0.03"
+                                        textAlign:
+                                          y: center
+                                      children: 
+                                        - type: image                                               
+                                          style:
+                                            width: "0.013"    
+                                            height: "0.023"
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:        
+                                                - if:
+                                                  - =.builtIn.string.equal:
+                                                      dataIn:
+                                                        string1: =..absentNote.document.name.data.place
+                                                        string2: $var.value
+                                                  - selectBlue.svg
+                                                  - selectGray.svg
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..absentNote.document.name.data.place
+                                                            string2: $var.value
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: ""
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: placeTag   
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style: 
+                                            marginLeft: "0.015"
+                                            fontSize: .Nfont.nf4
+                                            top: "0"
+                                            height: "0.03"
+                                            width: "0.03"
+                                            textAlign: 
+                                              x: right
+                                              y: center
+                            - .PrescriptionListBox:
+                              children:
+                                - .PrescriptionLabel:
+                                  text: Due to
+                                - type: list
+                                  viewTag: reasonTag
+                                  contentType: listObject
+                                  listObject: ..reason
+                                  iteratorVar: itemObject
+                                  style: 
+                                    marginLeft: "0.21"
+                                    axis: horizontal
+                                    width: "0.18"
+                                    height: "0.03"
+                                  children:    
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:  
+                                        marginLeft: "0.01"                   
+                                        width: "0.05"
+                                        height: "0.03"
+                                        textAlign:
+                                          y: center
+                                      children: 
+                                        - type: image
+                                          style:
+                                            width: "0.013"    
+                                            height: "0.023"   
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:                        
+                                                - if:
+                                                  - =.builtIn.string.equal:
+                                                      dataIn:
+                                                        string1: =..absentNote.document.name.data.reason
+                                                        string2: $var.value
+                                                  - selectBlue.svg
+                                                  - selectGray.svg
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..absentNote.document.name.data.reason
+                                                            string2: $var.value
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: ""
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: reasonTag
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style:  
+                                            marginLeft: "0.015"
+                                            top: "0"
+                                            fontSize: .Nfont.nf4
+                                            height: "0.03"
+                                            width: "0.03"
+                                            textAlign: 
+                                              x: right
+                                              y: center
+                        - type: view 
+                          style: 
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: "0.002"
+                            backgroundColor: "0x707070"
+                        - type: label
+                          text: "Confidentiality Notice:The documents accompanying this facsimile Transmission contain confidential information belonging to the sender, which is privilege.The information is intended only for the use of the Individual or entity below.If you are not the intended recipient, you are Hereby notified that any disclosure.copying distribution or the taking of any action in reliance of the contents of this telescoped information is strictly prohibited. If you have received this facsimile in error,please Notify us immediately by telephone to arrange for the return of said documents."
+                          style:  
+                            marginTop: "0.02"
+                            width: "0.39"
+                            fontSize: .Nfont.nf2
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: auto
+                          children:
+                            - .PrescriptionLabel:
+                              text: "Signature:"
+                              style:
+                                width: "0.39"
+                            - type: label
+                              text: "Clear"
+                              style:
+                                left: "0.35"
+                                width: "0.02"
+                                .SignClearStyle:
+                              onClick:
+                                - actionType: removeSignature
+                                  dataObject: BLOB
+                                  dataKey: AbsentNotePrivate.newSign.document.name.data   
+                                  viewTag: signatureTag   
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.temporarySignature@: ""
+                                    - ..formData.signShow@: "none" 
+                                    - ..formData.canvasShow@: "block"
+                                    - ..absentNote.document.name.data.signatureId@: ""
+                                    - ..absentNote.document.name.data.whetherSign@: true                                    
+                                # 显示签名区域隐藏
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: signatureShowTag
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: signatureTag                                             
+
+                        - type: view
+                          style:
+                            marginTop: "0.05"
+                            width: "0.39"
+                            display: flex
+                            flexDirection: column
+                            flexWrap: wrap
+                            alignContent: space-around
+                            justifyContent: center
+                          children:
+                            # sign area
+                            # - .SignAreaClickText:
+                            - .SignAreaView:
+                              children:
+                                - type: image
+                                  viewTag: signatureShowTag
+                                  dataKey: AbsentNotePrivate.formData.temporarySignature
+                                  path=func: =.builtIn.utils.prepareDocToPath
+                                  style:
+                                    display: ..formData.signShow
+                                    width: "0.33"
+                                    height: "0.16"
+                                    top: "0"
+                                    left: "0" 
+                                    overflow: scroll                                   
+                                - type: canvas
+                                  dataKey: AbsentNotePrivate.newSign.document.name.data
+                                  viewTag: signatureTag
+                                  style:
+                                    display: ..formData.canvasShow
+                                    overflow: scroll
+                                    .SignCanvasStyle:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: AbsentNotePrivate.newSign.document.name.data
+                          isEmpty: AbsentNotePrivate.formData.whetherSign
+                        # 签名处理
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =.AbsentNotePrivate.formData.whetherSign
+                              - continue 
+                              - actionType: evalObject
+                                object:                        
+                                  # 签名reid指向absentNote doc 的id
+                                  - ..newSign.document.reid@: =..absentNote.document.id
+                                  - =..newSign.docAPI.store: ""                                
+                                  # 存放签名的id到absentNote
+                                  - ..absentNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                  - ..absentNote.document.name.data.whetherSign@: =..formData.whetherSign
+                        #  指定 eid 和 reid
+                        - actionType: evalObject
+                          object:
+                            - ..absentNote.document.eid@: =.Global.formData.meetingDocEid
+                            - ..absentNote.document.reid@: =.Global.formData.meetingDocReid                                        
+                        # 修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..absentNote.document.type
+                                  index: 1
+                                  hex: 0
+                                dataOut: AbsentNotePrivate.absentNote.document.type
+                        # 保存absentNote
+                        - actionType: evalObject
+                          object: ..save
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.Global.formData.reviewFromProvider
+                              - goto: PatientSummary
+                              - goto: PatientSummaryRoom    
+                    - .FormsBottomRightButton:  
+                      onClick:
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: AbsentNotePrivate.newSign.document.name.data
+                          isEmpty: AbsentNotePrivate.formData.whetherSign                      
+                        - actionType: evalObject
+                          object:
+                            # 签名处理
+                            - if:
+                              - =..formData.temporarySignature
+                              - continue
+                              # - actionType: evalObject
+                              #   object:
+                              #     # 存放签名的id到absentNote
+                              #     - ..absentNote.document.name.data.signatureId@: =..formData.temporarySignature
+                              #     - ..absentNote.document.name.data.whetherSign@: false
+                              #     - ..formData.whetherSign@: false
+                              - actionType: evalObject
+                                object:
+                                  # 签名弹窗
+                                  - if:
+                                    - =.AbsentNotePrivate.formData.whetherSign
+                                    - actionType: popUp
+                                      popUpView: warningView
+                                      wait: true
+                                    - continue                          
+                                  # 签名reid指向absentNote doc 的id
+                                  - ..newSign.document.reid@: =..absentNote.document.id
+                                  # 保存签名
+                                  - =..newSign.docAPI.store: ""                                
+                                  # 存放签名的id到absentNote
+                                  - ..absentNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                  - ..absentNote.document.name.data.whetherSign@: =..formData.whetherSign
+                        #  指定 eid 和 reid
+                        - actionType: evalObject
+                          object:
+                            - ..absentNote.document.eid@: =.Global.formData.meetingDocEid
+                            - ..absentNote.document.reid@: =.Global.formData.meetingDocReid
+                        # 更新文档状态
+                        - actionType: evalObject
+                          object:
+                            - ..absentNote.document.name.data.statusTag.name@: "Released"
+                            - ..absentNote.document.name.data.statusTag.fontColor@: "0x2988e6"
+                            - ..absentNote.document.name.data.statusTag.backgroundColor@: "0xdfedfc"
+                        #  修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..absentNote.document.type
+                                  index: 1
+                                  hex: 1
+                                dataOut: AbsentNotePrivate.absentNote.document.type
+                        # 保存absentNote
+                        - actionType: evalObject
+                          object: ..save
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.Global.formData.reviewFromProvider
+                              - goto: PatientSummary
+                              - goto: PatientSummaryRoom                                                
+        - .BaseWarningView:
+          viewTag: warningView
+          msg2: "You haven't signed the form"                                    

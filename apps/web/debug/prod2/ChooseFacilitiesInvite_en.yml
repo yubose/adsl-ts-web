@@ -1,0 +1,531 @@
+ChooseFacilitiesInvite:
+  title: Choose to Invite
+  pageNumber:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..apiRequest.providers.docAPI.get
+    - =.builtIn.array.keepLatestDoc:
+        dataIn:
+          docList: =..apiRequest.providers.docRes.doc
+          path: bsig
+        dataOut: ChooseFacilitiesInvite.formData.providers
+  formData:
+    providers: []
+    category: "Provider"
+    currentInviteInfo: ""
+    roleInfo: ""
+    fullName: ""
+  formDataTemp:
+    categoryObj:
+      - role: Attorney
+        code: 110
+      - role: Specialist
+        code: 120
+      - role: Provider
+        code: 130
+      - role: Employer
+        code: 140
+  apiRequest:
+    inviteEmail:
+      docCreateResp: ""
+      docCreateReq:
+        type: .DocType.InboxMessage
+        eid: ""
+        name:
+          data: 
+            content: ""
+            receiverName: ""
+            senderName: ""
+            senderAvatarId: ""
+            appointmentId: ""
+          title: Appointment Invite Notification  
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: ChooseFacilitiesInvite.apiRequest.inviteEmail.docCreateReq
+          dataOut: ChooseFacilitiesInvite.apiRequest.inviteEmail.docCreateResp
+    relation:
+      edgeCreateResp: ""
+      edgeCreateReq:
+        type: 10002
+        bvid: .Global.currentUser.vertex.id
+        evid: ""
+        tage: 1
+        subtype: .EInboxSubtype.ProviderProvider
+      edgeQueryResp: 
+        edge: []
+      edgeQueryReq:
+        id: []
+        xfname: (bvid,evid)&(evid,bvid)
+        type: 10002
+        sCondition: subtype in (262144) AND tage>0
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: ChooseFacilitiesInvite.apiRequest.relation.edgeCreateReq
+          dataOut: ChooseFacilitiesInvite.apiRequest.relation.edgeCreateResp
+        get:
+          api: re
+          dataIn: ChooseFacilitiesInvite.apiRequest.relation.edgeQueryReq
+          dataOut: ChooseFacilitiesInvite.apiRequest.relation.edgeQueryResp
+    providers:
+      docReq:
+        ObjType: 12
+        type: .DocType.DoctorPublicProfile
+        id: .Global.currentFacilityDoc.bsig
+        xfname: E.bvid|E.evid
+        sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+        maxcount: "100"
+        obfname: mtime
+        _nonce: =.Global._nonce
+      docRes: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: ChooseFacilitiesInvite.apiRequest.providers.docReq
+          dataOut: ChooseFacilitiesInvite.apiRequest.providers.docRes
+    invite:
+      edgeQueryResp:
+        edge: []
+      edgeQueryReq:
+        ObjType: 20
+        id: ""
+        xfname: E2.id,E.evid
+        sCondition: E.type=1053 AND E.subtype in (110,120,130,140)
+        _nonce: =.Global._nonce
+      response: ""
+      edge:
+        bvid: .Global.currentUser.vertex.id #inviter's id
+        evid: "" #invitee's id
+        refid: .Global.roomInfo.edge.id
+        type: .EdgeType.InviteInfo
+        subtype: "" # 110 / 120 / 130 / 140
+        name:
+          role: "" # Attorney/Specalist/Provider/Employer
+          roleName: "" # inviter's name
+      edgeAPI:
+        get:
+          api: re
+          dataIn: ChooseFacilitiesInvite.apiRequest.invite.edgeQueryReq
+          dataOut: ChooseFacilitiesInvite.apiRequest.invite.edgeQueryResp
+        store:
+          api: ce
+          dataIn: ChooseFacilitiesInvite.apiRequest.invite.edge
+          dataOut: ChooseFacilitiesInvite.apiRequest.invite.response
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: list
+      contentType: listObject
+      listObject: ..formData.providers
+      iteratorVar: itemObject
+      style:
+        ..style.dataList:
+      children:
+        - type: listItem
+          itemObject: ""
+          style:
+            ..style.dataListItem:
+          onClick:
+            - ..event.providerItemClick
+          children:
+            - type: view
+              style:
+                ..style.itemBox:
+              children:
+                - type: image
+                  path: providerImage.svg
+                  path=func: .builtIn.utils.prepareDocToPath
+                  dataKey: itemObject.name.data.avatar
+                  style:
+                    ..style.listImg:
+                - type: view
+                  style:
+                    ..style.itemValueBox:
+                  children:
+                    - type: label
+                      textBoard:
+                        - text: ""
+                          dataKey: itemObject.name.data.fullName
+                        - text: "&nbsp;-&nbsp;"
+                        - text: ""
+                          dataKey: itemObject.name.data.title
+                      dataKey:
+                      style:
+                        ..style.fullLabel:
+                    - type: label
+                      text: ""
+                      dataKey: itemObject.name.data.selectedSpecialty.0
+                      style:
+                        ..style.specialty:
+            - type: view
+              style:
+                marginTop: "0.0198"
+
+    # 弹窗区域
+    - .TipsOneLine:
+      viewTag: warnView
+      message: "This person has been invited"
+    - type: popUp
+      viewTag: InviteTip
+      message: "Invite To"
+      style:
+        ..style.popBox:
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: InviteTip
+      rightButton:
+        - actionType: evalObject
+          object:
+            - ..apiRequest.relation.edgeQueryReq.id@: []
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =.Global.currentUser.vertex.id
+                  messages: =..apiRequest.relation.edgeQueryReq.id
+                dataOut: ChooseFacilitiesInvite.apiRequest.relation.edgeQueryReq.id
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =..formData.currentInviteInfo.bsig
+                  messages: =..apiRequest.relation.edgeQueryReq.id
+                dataOut: ChooseFacilitiesInvite.apiRequest.relation.edgeQueryReq.id   
+            - =..apiRequest.relation.edgeAPI.get: ""
+            - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.relation.edgeQueryResp.edge
+                    len: 0
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.relation.edgeCreateReq.evid@: =..formData.currentInviteInfo.bsig
+                  - =..apiRequest.relation.edgeAPI.store: ""
+              - ..apiRequest.relation.edgeCreateResp@: =..apiRequest.relation.edgeQueryResp
+            - =.builtIn.string.concat:
+                dataIn:
+                  - "Hello, You are invited to an appointment by"
+                  - =.Global.MyProfile.name.data.fullName
+                  - ". Please check the appointment details follow."
+                dataOut: ChooseFacilitiesInvite.apiRequest.inviteEmail.docCreateReq.name.data.content
+            - ..apiRequest.inviteEmail.docCreateReq.eid@: =..apiRequest.relation.edgeCreateResp.edge.id
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.receiverName@: =..formData.currentInviteInfo.name.data.fullName
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.senderName@: =.Global.MyProfile.name.data.fullName
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.senderAvatarId@: =.Global.MyProfile.name.data.avatar
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.appointmentId@: =.Global.roomInfo.edge.id
+            - ..apiRequest.inviteEmail.docCreateReq.name.title@: "Appointment Invite Notification"
+            - ..apiRequest.inviteEmail.docCreateReq.name.user@: =..formData.currentInviteInfo.name.data.avatar
+            - =..apiRequest.inviteEmail.docAPI.store: ""
+            - ..apiRequest.inviteEmailTag.docCreateReq.reid@: =..apiRequest.inviteEmail.docCreateResp.doc.id
+            - =..apiRequest.inviteEmailTag.docAPI.store: ""
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =..formData.currentInviteInfo.name.data.fullName
+                  - "&nbsp;-&nbsp;"
+                  - =..formData.currentInviteInfo.name.data.title
+                dataOut: ChooseFacilitiesInvite.formData.fullName
+        - actionType: evalObject
+          object:
+            - =.builtIn.array.getObjectByArray:
+                dataIn:
+                  array: =..formDataTemp.categoryObj
+                  key: "role"
+                  value: =..formData.category
+                dataOut: ChooseFacilitiesInvite.formData.roleInfo
+        - actionType: evalObject
+          object:
+            - ..apiRequest.invite.edge.evid@: =..formData.currentInviteInfo.bsig
+            - ..apiRequest.invite.edge.subtype@: =..formData.roleInfo.code
+            - ..apiRequest.invite.edge.name.role@: =..formData.roleInfo.role
+            - ..apiRequest.invite.edge.name.roleName@: =..formData.fullName
+        - actionType: evalObject
+          object:
+            - =.ChooseFacilitiesInvite.apiRequest.invite.edgeAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: InviteTip
+        - goto: .Global.formData.pageName
+      children:
+        - type: view
+          style:
+            ..style.conentBox:
+          children:
+            - type: label
+              text: ___.message
+              style:
+                ..style.message:
+            - type: view
+              style:
+                ..style.secondBox:
+              children:
+                - type: view
+                  children:
+                    - type: image
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      dataKey: formData.currentInviteInfo.name.data.avatar
+                      path: inviteAvatar.png
+                      style:
+                        ..style.popImg:
+                    - type: view
+                      style:
+                        ..style.valueBox:
+                      children:
+                        - type: label
+                          textBoard:
+                            - text: ""
+                              dataKey: formData.currentInviteInfo.name.data.fullName
+                            - text: "&nbsp;-&nbsp;"
+                            - text: ""
+                              dataKey: formData.currentInviteInfo.name.data.title
+                          style:
+                            ..style.valueLabel:
+                        - type: label
+                          dataKey: formData.currentInviteInfo.name.data.selectedSpecialty.0
+                          style:
+                            ..style.popSpecialty:
+                        # - type: label
+                        #   text: Category
+                        #   style:
+                        #     ..style.popTitle:
+                        # - type: select
+                        #   dataKey: formData.category
+                        #   options: .SelectINformationDM.category
+                        #   style:
+                        #     ..style.category:
+            - type: view
+              style:
+                ..style.secondLine:
+            - type: view
+              style:
+                width: "0.72"
+              children:
+                - type: button
+                  text: "Cancel"
+                  style:
+                    ..style.cancelBox:
+                  onClick: ____.leftButton
+                - type: view
+                  style:
+                    ..style.buttonLine:
+                - type: button
+                  text: "Confirm"
+                  style:
+                    ..style.confirmBox:
+                  onClick: ____.rightButton
+  event:
+    providerItemClick:
+      - actionType: updateObject
+        dataKey: ChooseFacilitiesInvite.formData.currentInviteInfo
+        dataObject: itemObject
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.roomInfo.edge.name.providerId
+                  string2: =..formData.currentInviteInfo.bsig
+            - actionType: popUp
+              popUpView: warnView
+              wait: true
+              popUpDismiss: 2000
+            - continue
+          - ..apiRequest.invite.edgeQueryResp.edge@: []
+          - ..apiRequest.invite.edgeQueryReq.id@: []
+          - =.builtIn.array.pushAny:
+              dataIn:
+                newMessage: =.Global.roomInfo.edge.id
+                messages: =..apiRequest.invite.edgeQueryReq.id
+              dataOut: ChooseFacilitiesInvite.apiRequest.invite.edgeQueryReq.id
+          - =.builtIn.array.pushAny:
+              dataIn:
+                newMessage: =..formData.currentInviteInfo.bsig
+                messages: =..apiRequest.invite.edgeQueryReq.id
+              dataOut: ChooseFacilitiesInvite.apiRequest.invite.edgeQueryReq.id  
+          - =..apiRequest.invite.edgeAPI.get: ""
+          - if:
+            - =.builtIn.array.judgeListLength:
+                dataIn:
+                  array: =..apiRequest.invite.edgeQueryResp.edge
+                  len: 0
+            - continue
+            - actionType: popUp
+              popUpView: warnView
+              wait: true
+              popUpDismiss: 2000
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: InviteTip
+      - actionType: popUp
+        popUpView: InviteTip
+  style:
+    dataList:
+      margin: "0"
+      padding: "0"
+      width: "1"
+      height: "0.94"
+      boxSizing: border-box
+      overflow: scroll
+    dataListItem:
+      width: "1"
+      height: "auto"
+      margin: "0"
+      border:
+        style: "2"
+      borderWidth: "1"
+      borderColor: "0xdededf"
+      overflow: hidden
+    listImg:
+      verticalAlign: middle
+      display: "inline-block"
+      height: "0.04926"
+      width: "0.10666"
+      boxSizing: border-box
+      borderRadius: "4"
+    itemBox:
+      marginTop: "0.0198"
+      marginLeft: "0.0427"
+      height: "auto"
+      width: "0.91"
+    itemValueBox:
+      verticalAlign: middle
+      marginLeft: "0.03733"
+      display: "inline-block"
+      height: "auto"
+      width: "0.75"
+      overflow: hidden
+    fullLabel:
+      width: "0.75"
+      height: "auto"
+      fontFamily: "Arial"
+      verticalAlign: middle
+      fontSize: .Nfont.h16
+      fontWeight: "600"
+      wordWrap: break-word
+    specialty:
+      marginTop: "0.005"
+      width: "0.75"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#666666"
+      fontFamily: "Arial"
+      verticalAlign: middle
+      wordWrap: break-word
+    popBox:
+      top: "0"
+      left: "0"
+      width: "1"
+      height: "1"
+      backgroundColor: "0x00000066"
+      zIndex: "50"
+      textAlign:
+        y: center
+    conentBox:
+      width: "0.72"
+      marginLeft: "0.14"
+      backgroundColor: "0xE6E6E6"
+      borderRadius: "14px"
+    message:
+      width: "0.616"
+      marginLeft: "0.052"
+      marginTop: "0.029"
+      fontWeight: "600"
+      fontSize: .Nfont.h16
+      fontFamily: "Arial"
+      color: "0x4B4B4B"
+      textAlign:
+        x: center
+    secondBox:
+      marginTop: "0.014778"
+      textAlign:
+        x: center
+      width: "0.72"
+    popImg:
+      marginLeft: "0.032"
+      height: "0.04926"
+      width: "0.10666"
+      backgroundColor: "0xFFFFFF"
+      verticalAlign: middle
+      display: "inline-block"
+      borderRadius: "4"
+      textAlign:
+        x: center
+    valueBox:
+      display: "inline-block"
+      verticalAlign: middle
+      marginLeft: "0.037"
+      textAlign:
+        x: left
+    valueLabel:
+      fontSize: .Nfont.h12
+      color: "0x333333"
+      fontWeight: "600"
+    popSpecialty:
+      fontSize: .Nfont.h12
+      marginTop: "0"
+      zIndex: "1000"
+      color: "0x666666"
+      fontWeight: "400"
+      height: "auto"
+      width: "0.45"
+      overflow: hidden
+      textOverflow: ellipsis
+      whiteSpace: nowrap
+    popTitle:
+      marginTop: "0.01231"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h12
+      color: "#333333"
+      fontWeight: "600"
+    category:
+      marginTop: "0.005"
+      width: "0.43733"
+      height: "0.03694"
+      fontSize: .Nfont.h12
+      border:
+        style: 3
+      borderWidth: "1"
+      borderRadius: "4"
+      borderColor: "#dededf"
+      textIndent: "12px"
+    secondLine:
+      height: "0.02"
+      border:
+        style: 2
+        color: "0x919192"
+      borderWidth: "1"
+      width: "0.72"
+    buttonLine:
+      width: "0.002"
+      backgroundColor: "0x919192"
+      display: inline-block
+      height: "0.054"
+      zIndex: "50"
+    cancelBox:
+      color: "0x007AFF"
+      backgroundColor: "0xE6E6E6"
+      display: inline-block
+      width: "0.359"
+      borderRadius: "0 0 0 14px"
+      fontSize: .Nfont.h14
+      height: "0.054"
+      border:
+        style: "1"
+    confirmBox:
+      color: "0x007AFF"
+      fontWeight: "800"
+      backgroundColor: "0xE6E6E6"
+      display: inline-block
+      width: "0.359"
+      fontSize: .Nfont.h14
+      borderRadius: "0 0 14px 0"
+      height: "0.054"
+      border:
+        style: "1"

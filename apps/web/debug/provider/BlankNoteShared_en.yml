@@ -1,0 +1,207 @@
+BlankNoteShared:
+  title: Blank Note/Form
+  init:
+    - .SignInCheck
+    - ..formData@: =.Global.Note
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.name.data.statusTag.name
+                  string2: "Released"
+            - continue
+            - ..formDataTemp.downFlag@: "none"
+  formData: ""
+  formDataTemp:
+    downFlag: "inline-block"
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderDownload:
+          style:
+            display: ..formDataTemp.downFlag
+    - type: scrollView
+      style:
+        marginLeft: "0.04"
+        width: "1"
+        height: "0.846"
+        overflow: scroll
+        fontFamily: "Arial"
+      children:
+        - type: label
+          text: "Name your notes"
+          style:
+            width: "auto"
+            height: "0.023"
+            color: "0x333333"
+            marginTop: "0.022"
+            fontSize: .Nfont.h14
+            fontWeight: "600"
+        - type: textField
+          isEditable: "false"
+          placeholder: "Blank Note"
+          dataKey: formData.name.title
+          style:
+            fontSize: .Nfont.h14
+            height: "0.037"
+            width: "0.92"
+            marginTop: "0.00985" #8
+            overflow: hidden
+            backgroundColor: "0xf4f4f4"
+            border:
+              style: 1
+            borderRadius: "4"
+            textIndent: "12px"
+            color: "0x333333"
+        - type: label
+          text: "Notes"
+          style:
+            width: "0.1093"
+            height: "0.023"
+            color: "0x333333"
+            marginTop: "0.0258"
+            fontSize: .Nfont.h14
+            fontWeight: "600"
+        - type: label
+          text: "No content"
+          dataKey: formData.name.data.note
+          style:
+            marginTop: "0.00985" # 8px
+            height: "auto"
+            width: "0.92"
+            fontSize: .Nfont.h14
+            border:
+              style: "1"
+            backgroundColor: "0xf4f4f4"
+            borderRadius: "4"
+            padding: "6px 12px"
+            wordBreak: break-word
+            boxSizing: border-box
+        - type: view
+          style:
+            width: "0.92"
+            height: "auto"
+            marginTop: "0.022"
+            boxSizing: border-box
+          children:
+            - type: label
+              text: "Signature"
+              style:
+                display: "inline-block"
+                width: "0.816"
+                height: "0.023"
+                color: "0x333333"
+                fontSize: .Nfont.h14
+                fontWeight: "600"
+            # 签名区域canvas
+            - type: view
+              style:
+                marginTop: "0.0098"
+                height: "0.128"
+                width: "0.91"
+                border:
+                  style: "4"
+                  color: "0xA9A9A9"
+                borderWidth: "2"
+              children:
+                - type: label
+                  text: X
+                  style:
+                    .SignLabelStyle:
+                - type: canvas
+                  dataKey: BlankNoteShared.formData.name.data
+                  viewTag: signatureTag
+                  style:
+                    left: "0"
+                    width: "0.88"
+                    height: "0.128"
+                    overflow: scroll
+                  # 显示暂存的签名
+                - type: image
+                  viewTag: signatureShowTag
+                  path=func: .builtIn.utils.prepareDocToPath
+                  # 传入签名文档的id
+                  dataKey: BlankNoteShared.formData.name.data.signatureId
+                  style:
+                    # 控制显示
+                    left: "0"
+                    width: "0.88"
+                    top: "0"
+                    height: "0.128"
+                    overflow: scroll
+
+        - type: view
+          style:
+            marginTop: "0.0146"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: view
+              viewTag: signatureTimeTag
+              style:
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.92"
+              children:
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: formData.name.data.signatureTime
+                  style:
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    fontSize: .Nfont.h12
+                    color: "0x757575"
+                    verticalAlign: middle
+                - type: label
+                  text: "Digitally Signed"
+                  dataKey:
+                  style:
+                    marginLeft: "0.02"
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    fontSize: .Nfont.h12
+                    color: "0x757575"
+                    verticalAlign: middle
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "auto"
+                height: "auto"
+              children:
+                - type: label
+                  text: Date
+                  style:
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    color: "0x666666"
+                    fontSize: .Nfont.h12
+                - type: label
+                  text=func: .builtIn.string.formatUnixtimeL_en
+                  dataKey: formData.ctime
+                  style:
+                    marginLeft: "0.0373"
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    color: "0x333333"
+                    fontSize: .Nfont.h12
+                    fontWeight: "600"
+
+        - .DocPublicLine:
+          style:
+            marginTop: "0.0246"
+            width: "0.92"
+
+    - .HeaderPopUpDownload:

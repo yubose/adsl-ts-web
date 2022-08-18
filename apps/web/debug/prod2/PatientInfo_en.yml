@@ -1,0 +1,662 @@
+PatientInfo:       #xdpage:14
+  title: "Patient Info"
+  viewPort: top
+  init:
+    - .SignInCheck
+    - ..covidQuestionaire.docAPI.get
+    - actionType: evalObject
+      object:
+        ..covidQuestionaire.document@: =..docResponse.doc.0
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.covertToJsonArray:
+            dataIn:
+              array: =..covidQuestionaire.document.name.data.symptomProfile.radio1    
+            dataOut: PatientInfo.symptomProfile.radio  
+  symptoms:
+    radio1:
+      - key: fever
+        value: Fever
+      - key: cough
+        value: Cough
+      - key: SOB
+        value: Shortness of breath
+      - key: TF
+        value: Tiredness.Fatigue
+      - key: other
+        value: Other
+      - key: MA
+        value: muscle aches
+      - key: NAV
+        value: Nausea and vomiting
+      - key: diarhea
+        value: Diarhea
+      - key: ST
+        value: Sore throat
+      - key: headache
+        value: Headache
+      - key: none
+        value: None 
+  covidQuestionaire:
+    document: ""
+    docAPI:
+      .DocAPI: ""
+      get:
+        .DocAPI.get: ""
+        dataKey: docResponse
+        id: .Global.appointmnetRequest.id
+        xfname: eid
+        type: .DocType.Covid19Questionnaire 
+        _nonce: =.Global._nonce
+  docResponse:
+    doc: ""
+  symptomProfile:
+    radio: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+    - type: scrollView
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "1"
+        overflow: scroll
+      children:
+        - type: view
+          style:
+            top: "0"
+            left: "0"
+            width: "1"
+            height: "1"
+          children:
+            - .H5:
+              text: Intake Summary
+              style:
+                marginTop: "0.02"
+                left: "0.05"
+                color: "#353535"
+                width: "0.9"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.75"
+                left: "0.05"
+                marginTop: "0.02"
+                border:
+                  style: "2"
+                borderWidth: "2"
+                borderColor: "#bfbfbf"
+              children:
+                - .H6:
+                  text: "General Information"
+                  style:
+                    marginTop: "0.02"
+                    left: "0"
+                    height: "0.08"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.9"
+                    height: "0.68"
+                    left: "0"
+                  children:
+                    - .PatientChartShowLine:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Patient's name
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.name
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.04"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Date of Birth
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.birth
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.08"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Address
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.address
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.12"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: City
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.city
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.16"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: State
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.state
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.20"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Zip code
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.zip
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.24"
+                      children:
+                        - .PatientChartShowTitle:
+                          style: 
+                            left: "0"
+                            width: "0.65"
+                          text: Patient county of residence
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.country
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.28"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Phone number (Main Contact)
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.phone
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.32"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Alternative phone number
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.alternativePhone
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.36"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Email
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.email
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.4"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Occupation
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.occuption
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.44"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Employer
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.patientInfo.employer
+                    - .H6:
+                      text: "Emergency Contact"
+                      style:
+                        top: "0.48"
+                        left: "0"
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.55"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Name
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.emergencyContact.name
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.59"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Phone number
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.emergencyContact.phone
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.63"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Relation
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.emergencyContact.relation
+            - type: view
+              style:
+                width: "0.9"
+                height: "1.2"
+                left: "0.05"
+                top: "0.82"
+                border:
+                  style: "2"
+                borderWidth: "2"
+                borderColor: "#bfbfbf"
+              children:
+                - .H6:
+                  text: "TESTING ELIGIBILITY"
+                  style:
+                    top: "0"
+                    left: "0"
+                - .H6:
+                  text: "COVID-19 screening and/or diagnostic testing, authorized by the Food and Drug Administration under an Emergency Use Authorization (EUA), will be used today. This test is meant for use in individuals with signs and/or symptoms compatible with COVID-19. "
+                  style:
+                    fontSize: "15"
+                    top: "0.12"
+                    left: "0"
+                    height: "0.15"
+                - .H6:
+                  text: "Please mark the symptoms you are currently experiencing (if any):"
+                  style:
+                    fontSize: "15"
+                    top: "0.27"
+                    left: "0"   
+                    height: "0.06" 
+                - .BaseList:
+                  listObject: ..symptoms.radio1
+                  style: 
+                    top: "0.35"
+                    width: "0.8"
+                    left: "0.1"
+                  children:
+                    - .BaseListItem:
+                      style:
+                        display: "inline-block"
+                        width: "0.39"
+                      viewTag: Radio1Tag
+                      children:
+                        - .Checkbox:
+                          style:
+                            left: "0"
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:                        
+                                - if:
+                                  - =.builtIn.array.has:
+                                      dataIn:
+                                        object: =..covidQuestionaire.document.name.data.symptomProfile.radio1
+                                        value: $var.key
+                                  - selectOn.svg
+                                  - selectOff.svg
+                        - Paragraph:
+                          dataKey: itemObject.value
+                          style:
+                            left: "0.06"
+                            width: "0.4"
+                            top: "0.01"
+                            height: "0.03"
+                - .BaseView:
+                  style:
+                    top: "0.72"
+                    height: "0.3"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        width: "0.9"
+                        left: "0"
+                      children:
+                        - .BaseLabelForCovid_left:
+                          text: Do you live in a group home, assisted living center or other facility with more than 3 other people older than 60 years old?
+                          style:
+                            top: "0"
+                        - .BaseLabelForCovid_right:
+                          dataKey: covidQuestionaire.document.name.data.symptomProfile.liveFacility
+                          style:
+                            top: "0.03"
+                    - type: view
+                      style:
+                        top: "0.13"
+                        width: "0.9"
+                        left: "0"
+                      children:
+                        - .BaseLabelForCovid_left:
+                          text: Do you work in a hospital, long-term care facility or assisted living facility?
+                          style:
+                            top: "0"
+                        - .BaseLabelForCovid_right:
+                          dataKey: covidQuestionaire.document.name.data.symptomProfile.liveFacility
+                          style:
+                            top: "0.03"
+                    - type: view
+                      style:
+                        top: "0.23"
+                        width: "0.9"
+                        left: "0"
+                      children:
+                        - .BaseLabelForCovid_left:
+                          text: Have you traveled anywhere outside of California in the past 1 month?
+                          style:
+                            top: "0"
+                        - .BaseLabelForCovid_right:
+                          dataKey: covidQuestionaire.document.name.data.symptomProfile.liveFacility
+                          style:
+                            top: "0.03"     
+                    - type: view
+                      style:
+                        top: "0.33"
+                        width: "0.9"
+                        left: "0"
+                      children:
+                        - .BaseLabelForCovid_left:
+                          text: Have you been in KNOWN close contact (i.e. within 6 feet) with someone confirmed to have COVID-19?
+                          style:
+                            top: "0"
+                        - .BaseLabelForCovid_right:
+                          dataKey: covidQuestionaire.document.name.data.symptomProfile.liveFacility
+                          style:
+                            top: "0.03"    
+            - type: view
+              style:
+                width: "0.8"
+                top: "2.05"
+                left: "0.1"
+                height: "1.39"
+              children: 
+                - type: label
+                  text: INFORMED CONSENT FOR CORONAVIRUS (COVID-19) TESTING
+                  style: 
+                    .SuperLabelStyle:
+                - type: label
+                  text: a. I authorize A&C Urgent Care to conduct collection of blood specimen to be screened for antibodies for COVID-19. 
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: b. I authorize A&C Urgent Care to utilizing a rapid test kit which is used for the qualitative detection of the nucleocapsid protein antigen from SARS-CoV-2 in nasopharyngeal swab specimens directly collected from individuals suspected of COVID-19 as ordered by an authorized medical provider or public health official.
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: c. I authorize A&C Urgent Care to conduct collection through a nasopharyngeal swab, as ordered by an authorized medical provider or public health official.
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: d. I authorize my test results to be disclosed to the county, state, or to any other governmental entity as may be required by law.
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: e. I acknowledge that a positive test result is an indication that I must continue to self-isolate in an effort to avoid infecting others (for nasal tests only).
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: f. I understand that I am not creating a patient relationship with A&C Urgent Care by participating in testing/screening. 
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: g. I understand this testing facility is not acting as my medical provider and I assume complete and full responsibility to take appropriate action with regards to my test results
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: h. I understand that, as with any medical test, there is the potential for false positive or false negative test results can occur. A&C Urgent Care carries no responsibilities/liabilities for false test. 
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  style: 
+                    .LittleLabelStyle
+                  text: i. I understand that if this screening test is at the request of my employer, they will receive the results
+                - type: label
+                  text: I, the undersigned, have been informed about the test purpose, procedures, possible benefits and risks, and I have received a copy of this Informed consent. I have been given the opportunity to ask questions before I sign, and I have been told that I can ask other questions at any time. I voluntarily agree to antibody screening and/or testing for COVID-19
+                  style: 
+                    .LittleLabelStyle:
+                    fontWeight: "500"
+            - .BaseView:
+              style:
+                top: "3.45"
+                width: "0.8"
+                left: "0.1"
+                height: "0.15"
+                border:
+                  style: "2"
+                borderWidth: "2"
+                borderColor: "#bfbfbf"
+              children:
+                - type: image
+                  path: drImg.png
+                  style:
+                    backgroundColor: "blue"
+                    top: "0"
+                    width: "0.8"
+                    left: "0"
+                    height: "0.1"
+            - type: view
+              style:
+                width: "0.8"
+                top: "3.65"
+                left: "0.1"
+                flexFlow: row wrap
+                display: flex
+              children: 
+                - type: label
+                  text: AGREEMENT FOR SELF-ISOLATION
+                  style: 
+                    .SuperLabelStyle
+                - type: label
+                  text: a. I understand that I may be infected with the virus causing COVID-19 and that I meet criteria for isolation.
+                  style: 
+                    .LittleLabelStyle
+                - type: label
+                  text: b. I agree that while I wait for my COVID-19 test results, I will remain in self-isolation.
+                  style:
+                    .LittleLabelStyle
+                - type: label
+                  text: c. I agree that if my COVID-19 test results are positive, I will remain isolated for 7 days from this day of testing OR until at least 72 hours after my symptoms have resolved, whichever is longer.
+                  style:
+                    .LittleLabelStyle
+                - type: label
+                  text: d. I agree that if my COVID-19 test results are negative, I will remain isolated until at least 72 hours after my symptoms have resolved.
+                  style:
+                    .LittleLabelStyle
+                - type: label
+                  text: e. I understand that if I am not isolated while ill, I could pose a substantial threat to the health of other persons.
+                  style:
+                    .LittleLabelStyle
+                - type: label
+                  text: f. I agree that I will not come into contact with any other person who is not isolated or ill due to potential COVID- 19 infection.
+                  style:
+                    .LittleLabelStyle
+                - type: label
+                  text: g. I understand that if I test positive for IgM antibody, I may need to take a COVID-19 swab test for active virus confirmation. 
+                  style:
+                    .LittleLabelStyle
+                - type: label
+                  text: h. I understand that testing positive for antibody does not mean immunity to COVID-19
+                  style:
+                    .LittleLabelStyle
+                - type: label
+                  text: I, the undersigned, have been informed about the test purpose, procedures, possible benefits and risks, and I have received a copy of this Informed consent. I have been given the opportunity to ask questions before I sign, and I have been told that I can ask other questions at any time. I voluntarily agree to testing for COVID-19 and to self-isolation.  If A&C Urgent Care does not accept my insurance I consent to being financially responsible for the testing. If my insurance denies covering the cost of the testing I consent to being financially responsible for the testing.
+                  style:
+                    .LittleLabelStyle:
+                    fontWeight: "500"   
+            - .BaseView:
+              style:
+                top: "4.8"
+                width: "0.8"
+                left: "0.1"
+                height: "0.15"
+                border:
+                  style: "2"
+                borderWidth: "2"
+                borderColor: "#bfbfbf"
+              children:
+                - type: image
+                  path: drImg.png
+                  style:
+                    backgroundColor: "blue"
+                    top: "0"
+                    width: "0.8"
+                    left: "0"
+                    height: "0.1"        
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.4"
+                left: "0.05"
+                top: "4.95"
+              children:
+                - .H6:
+                  text: "Billing Information"
+                  style:
+                    top: "0"
+                    left: "0"
+                - type: view
+                  style:
+                    top: "0.08"
+                    width: "0.9"
+                    height: "0.4"
+                    left: "0."
+                  children:
+                    - .PatientChartShowLine:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Name on Card
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.nameOnCard
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.04"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Card Number
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.cardNumber
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.08"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Expr
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.expr
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.12"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: CVV
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.cvv
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.16"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Address
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.address
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.20"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: City
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.city
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.24"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: State
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.state
+                    - .PatientChartShowLine:
+                      style:
+                        top: "0.28"
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Zip
+                        - .PatientChartShowData:
+                          dataKey: covidQuestionaire.document.name.data.paymentMethod.zip
+            - .BaseView:
+              style:
+                top: "5.35"
+                width: "0.8"
+                left: "0.1"
+                height: "0.15"
+              children:
+                - .H6:
+                  text: Driver license (DL) or federal ID
+                  style:
+                    top: "0"
+                    left: "0"
+                - type: image
+                  path: drImg.png
+                  style:
+                    backgroundColor: "blue"
+                    top: "0.1"
+                    width: "0.8"
+                    left: "0"
+                    height: "0.1"     
+            - .BaseView:
+              style:
+                top: "5.55"
+                width: "0.8"
+                left: "0.1"
+                height: "0.15"
+              children:
+                - .H6:
+                  text: Front of Insurance Card
+                  style:
+                    top: "0"
+                    left: "0"
+                - type: image
+                  path: drImg.png
+                  style:
+                    backgroundColor: "blue"
+                    top: "0.1"
+                    width: "0.8"
+                    left: "0"
+                    height: "0.1"  
+            - .BaseView:
+              style:
+                top: "5.75"
+                width: "0.8"
+                left: "0.1"
+                height: "0.15"
+              children:
+                - .H6:
+                  text: Back of Insurance Card
+                  style:
+                    top: "0"
+                    left: "0"
+                - type: image
+                  path: drImg.png
+                  style:
+                    backgroundColor: "blue"
+                    top: "0.1"
+                    width: "0.8"
+                    left: "0"
+                    height: "0.1"                       
+        - .SmallButton:
+          text: Done
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+          style:
+            top: "6.1"
+            width: "0.8"
+            left: "0.1"
+            height: "0.05"
+            backgroundColor: "0x2988e6"
+
+
+
+
+
+
+
+
+
+
+
+
+
+

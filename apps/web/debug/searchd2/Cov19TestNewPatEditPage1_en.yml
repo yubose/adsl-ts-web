@@ -1,0 +1,927 @@
+Cov19TestNewPatEditPage1:
+  viewPort: top
+  title: Cov19TestNewPatEditPage1
+  init: 
+    # - actionType: evalObject
+    #   object: .BaseDate.miniWeekGet
+    # - actionType: evalObject
+    #   object: .BaseDate.getDate
+    
+    - actionType: evalObject  #android use calendar init
+      object: 
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 80
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject #android use calendar init
+      object: 
+        .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: 
+        .BaseComponents.getShow 
+    - actionType: evalObject #IOS use calendar init
+      object: 
+        - =.builtIn.date.getMonth:
+            dataIn: 
+            dataOut: Cov19TestNewPatEditPage1.calendarDate.month
+        - =.builtIn.date.getYear: 
+            dataIn: 
+            dataOut: Cov19TestNewPatEditPage1.calendarDate.year
+        - =.builtIn.date.getDate: 
+            dataIn: 
+            dataOut: Cov19TestNewPatEditPage1.calendarDate.day   
+    - actionType: evalObject  
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.Cov19TestNewPatEditPage1.calendarDate.year
+              month: =.Cov19TestNewPatEditPage1.calendarDate.month
+              today: =.Cov19TestNewPatEditPage1.calendarDate.day
+            dataOut: Cov19TestNewPatEditPage1.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.Cov19TestNewPatEditPage1.calendarDate.month
+            dataOut: Cov19TestNewPatEditPage1.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.Cov19TestNewPatEditPage1.calendarDate.year
+              month: =.Cov19TestNewPatEditPage1.calendarDate.month
+              day: =.Cov19TestNewPatEditPage1.calendarDate.day
+              formatType: "Y-M-D"
+            dataOut: Cov19TestNewPatEditPage1.calendarDate.todayDate
+    
+    - if:
+      - =.Global.formData.cov19TestNewPatForm.id
+      - actionType: evalObject
+        object:
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo@: =.Global.formData.cov19TestNewPatForm.name.data.patientInfo
+      - continue
+    
+    - if:
+      - =.Global.formData.cov19TestNewPatForm.id
+      - ..patientInfo@: =.Global.formData.cov19TestNewPatForm.name.data.patientInfo
+      - continue
+
+    - if:
+      - =.Global.isSignIn
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "false"
+          - ..isSignIn@: "true"
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "true"
+          - ..isSignIn@: "false"
+    - ..profile.docAPI.get
+    - ..cov19TestNewPatForm.docReq.name.user@: =..profile.docResponse.doc.0.name.data.basicInfo.fullName
+    - if:
+      - =..profile.docResponse.doc.0
+      - actionType: evalObject
+        object:
+          - ..profile.c@: =..profile.docResponse.doc.0
+          - =.builtIn.utils.prepareDoc:
+              dataIn:
+                doc: =..profile.docResponse.doc.0
+              dataOut: Cov19TestNewPatEditPage1.profile.patientdocument
+      - continue
+    - if:
+      - =.Global.formData.firstToCov19TestNewPatForm
+      - actionType: evalObject
+        object:
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.firstName@: =..profile.patientdocument.name.data.basicInfo.firstName
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.middleName@: =..profile.patientdocument.name.data.basicInfo.middleName
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.lastName@: =..profile.patientdocument.name.data.basicInfo.lastName
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.dateOfBirth@: =..profile.patientdocument.name.data.basicInfo.dateOfBirth
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.gender@: =..profile.patientdocument.name.data.basicInfo.gender
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.city@: =..profile.patientdocument.name.data.contactInfo.address.city
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.state@: =..profile.patientdocument.name.data.contactInfo.address.state
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.zipCode@: =..profile.patientdocument.name.data.contactInfo.address.zipCode
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.email@: =..profile.patientdocument.name.data.contactInfo.email
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.agreement@: []
+          
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..profile.patientdocument.name.data.emergencyContact.firstName
+                  string2: ""
+            - ..cov19TestNewPatForm.docReq.name.data.patientInfo.name@: ""
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =..profile.patientdocument.name.data.emergencyContact.firstName
+                  - " "
+                  - =..profile.patientdocument.name.data.emergencyContact.middleName
+                  - " "
+                  - =..profile.patientdocument.name.data.emergencyContact.lastName
+                dataOut: Cov19TestNewPatEditPage1.cov19TestNewPatForm.docReq.name.data.patientInfo.name
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.relation@: =..profile.patientdocument.name.data.emergencyContact.relation
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.employer@: =..profile.patientdocument.name.data.employment.employerName
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.occupation@: =..profile.patientdocument.name.data.employment.Occupation
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.mainContact@: =..profile.patientdocument.name.data.basicInfo.phone
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.residence@: =..profile.patientdocument.name.data.contactInfo.address.county
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.fullName@: =..profile.patientdocument.name.data.basicInfo.fullName
+          - ..cov19TestNewPatForm.docReq.name.data.patientInfo.fullAddress@: =..profile.patientdocument.name.data.contactInfo.address.fullAddress
+          - if:
+            - =..profile.patientdocument.name.data.contactInfo.address.line
+            - ..cov19TestNewPatForm.docReq.name.data.patientInfo.line@: =..profile.patientdocument.name.data.contactInfo.address.line
+            - continue
+          - if:
+            - =..profile.patientdocument.name.data.contactInfo.address.secondLine
+            - ..cov19TestNewPatForm.docReq.name.data.patientInfo.secondLine@: =..profile.patientdocument.name.data.contactInfo.address.secondLine
+            - continue
+          - if:
+            - =..profile.patientdocument.name.data.contactInfo.alternatePhone.fullPhone
+            - ..cov19TestNewPatForm.docReq.name.data.patientInfo.alternativePhone@: =..profile.patientdocument.name.data.contactInfo.alternatePhone.fullPhone
+            - continue
+          - if:
+            - =..profile.patientdocument.name.data.emergencyContact.phone.fullPhone
+            - ..cov19TestNewPatForm.docReq.name.data.patientInfo.phoneNumber@: =..profile.patientdocument.name.data.emergencyContact.phone.fullPhone
+            - continue
+          
+      - continue
+    - if:
+      - =.Global.formData.cov19TestNewPatForm.id
+      - actionType: evalObject
+        object:
+          - if:
+            - =.Global.formData.cov19TestNewPatForm.name.data.patientInfo.mainContact
+            - =.builtIn.string.phoneNumberSplit:
+                dataIn:
+                  phoneNumber: =.Global.formData.cov19TestNewPatForm.name.data.patientInfo.mainContact
+                  sign: " " 
+                dataOut: Cov19TestNewPatEditPage1.formData.phoneMain
+            - continue
+          - if:
+            - =.Global.formData.cov19TestNewPatForm.name.data.patientInfo.alternativePhone
+            - =.builtIn.string.phoneNumberSplit:
+                dataIn:
+                  phoneNumber: =.Global.formData.cov19TestNewPatForm.name.data.patientInfo.alternativePhone
+                  sign: " "
+                dataOut: Cov19TestNewPatEditPage1.formData.phoneAlternative
+            - continue
+          - if:
+            - =.Global.formData.cov19TestNewPatForm.name.data.patientInfo.phoneNumber
+            - =.builtIn.string.phoneNumberSplit:
+                dataIn:
+                  phoneNumber: =.Global.formData.cov19TestNewPatForm.name.data.patientInfo.phoneNumber
+                  sign: " "
+                dataOut: Cov19TestNewPatEditPage1.formData.phone
+            - continue
+      - continue
+    - if:
+      - =.Global.formData.firstToCov19TestNewPatForm
+      - actionType: evalObject
+        object:
+          - =..cov19TestNewPatForm.docAPI.store: ""
+          - .Global.formData.cov19TestNewPatForm@: =..cov19TestNewPatForm.docResp.doc
+      - continue
+    
+    - .Global.ProfilePop@: "block"
+    - .Global.editProfile@: true
+  cov19TestNewPatForm:
+    docResp: ""
+    docReq: 
+      id: ""
+      eid: .Global.rootNotebookID
+      type: .DocType.Cov19TestNewPatForm
+      name:
+        data: 
+          classTag:
+            name: Patient
+            fontColor: "0xf8ae29"
+            backgroundColor: "0xfff4e0"
+            display: block
+          statusTag:
+            display: none
+        title: "COVID-19 Testing Consent - New Patient"
+        user: ""
+        type: "application/json"
+    docAPI:
+      store:
+        api: cd
+        dataIn: Cov19TestNewPatEditPage1.cov19TestNewPatForm.docReq
+        dataOut: Cov19TestNewPatEditPage1.cov19TestNewPatForm.docResp
+        subtype:
+          mediaType: "application/json"
+  isPersonal:
+  isSignIn:
+  formData:
+    phoneMain: ["+1",""]
+    phoneAlternative: ["+1",""]
+    phone: ["+1",""]
+    countryCode: "+1"   
+    phoneNumber: "8881307128"
+    password: "123456"
+    code: ""
+    sk: ""
+    pass: ""
+    showName: ""
+  formDataTemp:
+    checkBoxTemp:
+      - key: isConsent
+        value: I consent above information is true and correct.
+      - key: isAgree
+        value: I agree to share my information with said provider.
+  gender:
+    - key: gender
+      value: "Male"
+    - key: gender
+      value: "Female"
+    - key: gender
+      value: "Other"  
+  profile:
+    docResponse: ""
+    patientdocument: ""
+    document:
+      type: .DocType.PatientProfile
+      eid: .Global.rootNotebookID
+      name:
+        # .Global.Profile: ""
+        data:
+          insurance: 
+            insuranceProvider: ""
+            policyHolderName: ""
+            groupOrPolicy: ""
+            memberID: ""
+          phone: .Global.currentUser.vertex.uid
+          phone2: ""
+          avatarUrl: ava.png
+          avatar: ""
+          gender: ""
+          email: ""
+          firstName: .Global.currentUser.vertex.name.firstName
+          middleName: ""
+          lastName: .Global.currentUser.vertex.name.lastName
+          birth: ""
+          userName: .Global.currentUser.vertex.name.userName
+          address: ""
+          fullName: .Covid19TestNewPatEditPage1.formData.showName
+          Address:
+            St: ""
+            city: ""
+            state: ""
+            line2: ""
+            zip: ""
+          name: ""
+          relation: ""
+        type: .Covid19TestNewPatEditPage1.profile.docAPI.store.subtype.mediaType
+    docAPI:
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PatientProfile
+        obfname: mtime
+        dataKey: profile.docResponse
+        _nonce: =.Global._nonce 
+  components:
+    - type: view
+      style:
+        width: '1'
+        margin: 'auto'
+        display: flex
+        flexDirection: column
+        justifyContent: center
+        fontFamily: "Arial"
+      children:
+        - .baseTopBar:
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .BaseUserBar
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1        
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "COVID-19 Testing Consent-New Patient"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "1/6"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+                
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "1vw"
+          children:
+            - type: scrollView
+              viewTag: page1
+              style:
+                width: 89.8vw
+                height: 39vw
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - .NewFirstTitle:
+                      text: Patient Info
+                      style:
+                        textAlign: 
+                            x: center
+                            y: center
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                      children:
+                        - .VQSecondTitle:
+                          text: About
+                          style:
+                            fontWeight: 550
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: First Name
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.firstName
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Middle Name
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.middleName
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Last Name
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.lastName
+                                  style:
+                                    width: 13vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Date of Birth
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    boxSizing: border-box
+                                    verticalAlign: middle
+                                    height: 2.5vw
+                                    cursor: "pointer"
+                                    backgroundColor: "0xffffff"
+                                    width: 13vw
+                                    marginTop: 0.5vw
+                                    border: "1px solid #DEDEDE"
+                                    borderWidth: 1px
+                                    borderRadius: 5px
+                                  children: 
+                                    - type: textField
+                                      viewTag: showBirth
+                                      isEditable: false
+                                      dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.dateOfBirth
+                                      style:
+                                        display: "inline-block"
+                                        boxSizing: border-box
+                                        verticalAlign: middle
+                                        height: 2.3vw
+                                        cursor: "pointer"
+                                        fontSize: .Nfont.h0
+                                        backgroundColor: "0xffffff"
+                                        width: 11vw
+                                        textIndent: 0.5em
+                                    - type: image
+                                      path: calendarImage.svg
+                                      style:
+                                        display: "inline-block"
+                                        verticalAlign: middle
+                                        height: "0.02"
+                                  onClick:
+                                    - actionType: 'popUp'
+                                      popUpView: 'birthDay'
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Gender
+                                - type: view 
+                                  style:
+                                    width: 26vw
+                                    height: 2.2vw
+                                    fontSize: .Nfont.h0
+                                    fontWeight: 400
+                                  children:
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..gender
+                                      iteratorVar: itemObject
+                                      viewTag: isToEmergency
+                                      style:
+                                        marginTop: 0.5vw
+                                        height: 1vw
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          style:
+                                            height: 0.8vw
+                                            display: flex
+                                            flexDirection: row
+                                            width: "0.06"
+                                          children:
+                                            - type: image
+                                              style:
+                                                height: 0.8vw
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..cov19TestNewPatForm.docReq.name.data.patientInfo.gender
+                                                              string2: $var.value
+                                                        - blue.svg
+                                                        - black.svg
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - if:
+                                                          - =.builtIn.string.equal:
+                                                              dataIn:
+                                                                string1: =..cov19TestNewPatForm.docReq.name.data.patientInfo.gender
+                                                                string2: $var.value
+                                                          - =.builtIn.object.clear:
+                                                              dataIn:
+                                                                object: =..cov19TestNewPatForm.docReq.name.data.patientInfo
+                                                                key: $var.key
+                                                          - =.builtIn.object.set:
+                                                              dataIn:
+                                                                object: =..cov19TestNewPatForm.docReq.name.data.patientInfo
+                                                                key: $var.key
+                                                                value: $var.value
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: isToEmergency
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: 0.3vw
+                                                height: 1vw
+                                                color: "#333333"
+                                                fontSize: .Nfont.h0
+                                                lineHeight: 0.8vw
+                        
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Address Line
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.line
+                                  style:
+                                    width: 19.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Address Second Line
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.secondLine
+                                  style:
+                                    width: 19.5vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: City
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.city
+                                  style:
+                                    width: 9.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: county
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.residence
+                                  style:
+                                    width: 9.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: State
+                                - type: select
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.state
+                                  options:
+                                    .SelectData.state
+                                  style:
+                                    height: 2vw
+                                    width: 9.5vw
+                                    marginTop: 0.5vw
+                                    border: "1px solid #DEDEDE"
+                                    borderWidth: 1px
+                                    borderRadius: 5px
+                                    fontSize: .Nfont.h0
+                                    fontWeight: 400
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Zip Code
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.zipCode
+                                  style:
+                                    width: 9.5vw
+                        
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Phone #"
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.mainContact
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Alternate Phone #"
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.alternativePhone
+                                  style:
+                                    width: 13vw
+                        
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Email
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.email
+                                  style:
+                                    width: 13vw
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                        marginTop: 1vw
+                      children:
+                        - .VQSecondTitle:
+                          text: Emergency Contact 
+                          style:
+                            fontWeight: 550
+                        - .ViewRow: 
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .ViewColumn:
+                              children:
+                                - .VQSecondTitle:
+                                  text: Name
+                                - .NPITextField:
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.name
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              children:
+                                - .VQSecondTitle:
+                                  text: Relation
+                                - .NPITextField:
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.relation
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Phone #"
+                                - .NPITextField:
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.phoneNumber
+                                  style:
+                                    width: 13vw
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                        marginTop: 1vw
+                      children:
+                        - .VQSecondTitle:
+                          text: Employment 
+                          style:
+                            fontWeight: 550
+                        - .ViewRow: 
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Employer
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.employer
+                                  style:
+                                    width: 19.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Occupation
+                                - .NPITextField: 
+                                  dataKey: cov19TestNewPatForm.docReq.name.data.patientInfo.occupation
+                                  style:
+                                    width: 19.5vw
+                    
+                    
+                    - type: view
+                      style:
+                        marginTop: "1vw"
+                        # left: "0.07"
+                        width: "77vw"
+                        height: "2vw"
+                      children:
+                        - type: list
+                          viewTag: checkedView
+                          androidGrid: true
+                          contentType: listObject
+                          listObject: ..formDataTemp.checkBoxTemp
+                          iteratorVar: itemObject
+                          style:
+                            ..style.list:
+                          children:
+                            - type: listItem
+                              itemObject:
+                              style:
+                                margin: "0"
+                                marginTop: "0.01724"
+                                width: "77vw"
+                                height: "auto"
+                                boxSizing: border-box
+                              children:
+                                - type: image
+                                  style:
+                                    display: "inline-block"
+                                    height: "0.02"
+                                    verticalAlign: middle
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - if:
+                                          - =.builtIn.array.has:
+                                              dataIn:
+                                                object: =..cov19TestNewPatForm.docReq.name.data.patientInfo.agreement
+                                                value: $var.key
+                                          - selectOnblue.svg
+                                          - selectBlack.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - if:
+                                            - =.builtIn.array.has:
+                                                dataIn:
+                                                  object: =..cov19TestNewPatForm.docReq.name.data.patientInfo.agreement
+                                                  value: $var.key
+                                            - =.builtIn.array.removeByValue:
+                                                dataIn:
+                                                  object: =..cov19TestNewPatForm.docReq.name.data.patientInfo.agreement
+                                                  value: $var.key
+                                            - =.builtIn.array.add:
+                                                dataIn:
+                                                  object: =..cov19TestNewPatForm.docReq.name.data.patientInfo.agreement
+                                                  value: $var.key
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: checkedView
+                                - type: label
+                                  dataKey: itemObject.value
+                                  style:
+                                    marginLeft: "0.01"
+                                    display: "inline-block"
+                                    fontSize: .Nfont.h0
+                                    color: "#333333"
+                                    width: "auto"
+                                    height: "auto"
+                                    verticalAlign: middle
+                    
+            - type: view
+              style:
+                width: 22.3vw
+                height: 2.3vw
+                left: 60.3vw
+                top: 15.5vw
+              children:
+                - type: image
+                  viewTag: ProgressButton1
+                  path: Rightbutton.svg
+                  style:
+                    height: 3vw
+                    left: 10vw
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =..cov19TestNewPatForm.docReq.name.data.patientInfo.agreement
+                            dataOut: Cov19TestNewPatEditPage1.formData.agreeLength
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.agreeLength
+                                string2: "2"
+                          - continue
+                          - actionType: popUp
+                            popUpView: agreeView
+                            wait: true
+                        - .Global.formData.cov19TestNewPatForm@: =..cov19TestNewPatForm.docResp.doc
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.cov19TestNewPatForm@: =..cov19TestNewPatForm.docResp.doc
+                        # 将patientInfo信息保存
+                        - .Global.formData.cov19TestNewPatForm.name.data.patientInfo@: =..patientInfo
+                        - .Global.formData.cov19TestNewPatForm.name.data.patientInfo@: =..cov19TestNewPatForm.docReq.name.data.patientInfo
+                        
+                        # 更新文档状态
+                        - .Global.formData.firstToCov19TestNewPatForm@: false
+                    - goto: Cov19TestNewPatEditPage2
+
+        - .NewBaseWarningView:
+          viewTag: agreeView
+        
+        - type: popUp
+          viewTag: birthDay
+          style:
+            top: "0"
+            backgroundColor: "0x1e1e1e20"
+            height: "1"
+            width: "1"
+            zIndex: "1000"
+          children:
+            - .BaseComponents.calendar:
+              children:
+                - .BaseComponents.calendarHeader:
+                - .BaseComponents.weekView:
+                - .BaseComponents.dayView:
+                - .BaseComponents.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object: 
+                        - ..cov19TestNewPatForm.docReq.name.data.patientInfo.dateOfBirth@: =.BaseComponents.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: showBirth
+                    - actionType: popUpDismiss
+                      popUpView: birthDay  

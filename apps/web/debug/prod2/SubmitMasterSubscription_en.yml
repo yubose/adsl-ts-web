@@ -1,0 +1,109 @@
+SubmitMasterSubscription:
+  title: "Signature"
+  pageNumber: "74"
+  init: 
+    - .SignInCheck
+    # - ..newDoc.docAPI.get
+  save:
+    - =.SubmitMasterSubscription.newDoc.docAPI.store: ""
+  newDoc:
+    document: #DOC
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: "7"
+      name:
+        title: ""
+        type: ..newDoc.docAPI.store.type.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    docAPI: # DOCAPI
+      .DocAPI: ""    
+      store:
+        api: cd
+        dataKey: newDoc.document  
+        subtype:
+          mediaType: "" # mediaType : "image/jpeg"
+      get:
+        .DocAPI.get : ""
+        api: rd
+        dataKey: newDoc
+        ids: 
+          - .Global.rootNotebookID
+        type: "7"
+        xfname: eid
+        obfname : "mtime"
+        maxcount : "1"
+        _nonce: =.Global._nonce
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderRightButton:
+      text: Sign
+      onClick:
+        - goto: MasterSubscriptionSigned
+    - type: view
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: label
+          text: Sign with your finger below
+          style: 
+            top: "0.2"
+            width: "0.8"
+            left: "0.1"
+            fontWeight: "200"
+            fontSize: "18"
+            color: "0x939393"
+            textAlign:
+              x: center
+        - type: view
+          contentType: file
+          onClick:
+            - actionType: updateObject
+              dataObject: BLOB
+              #dataKey: profile.document.name.data.avatarUrl
+              dataKey: newDoc.name.data.avatarUrl
+          style:
+            top: "0.3"
+            width: "0.8"
+            height: "0.2"
+            left: "0.1"
+            borderWidth: "1"
+            border:
+              style: "3"
+              color: "0x939393" 
+          children:
+            - type: textField
+              placeholder: x
+              style:
+                top: "0.1"
+                width: "0.7"
+                left: "0.05"
+                borderWidth: "1"
+                color: "0x0000000"
+                fontSize: "20"
+                border:
+                  style: "2"
+                  color: "0x939393"
+                paddingBottom: "10px"
+        - .SmallButton:
+          onClick:
+            - actionType: evalObject
+              object: ..save 
+            - goto: MasterSubscriptionSigned
+          text: Sign
+          style:
+            top: "0.6"
+            width: "0.6"
+            left: "0.2"
+
+
+            

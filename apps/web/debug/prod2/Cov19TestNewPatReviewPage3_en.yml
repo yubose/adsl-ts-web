@@ -1,0 +1,513 @@
+Cov19TestNewPatReviewPage3:
+  title: "COVID-19 Testing Consent - New Patient"
+  init: # Page initialization
+    - .SignInCheck
+
+  formData: # Input data here
+    symptomProfile:
+      experience: []
+      remark: ""
+      problem1: ""
+      problem2: ""
+      problem3: ""
+      problem4: ""
+      flag: "none"
+  formDataTemp: # Input data temp here
+    experienceSelect:
+      - key: none
+        value: None
+      - key: muscieAches
+        value: Muscle aches
+      - key: fever
+        value: Fever
+      - key: nausea
+        value: Nausea and vomiting
+      - key: cough
+        value: Cough
+      - key: shortBreath
+        value: Shortness of breath
+      - key: diarrhea
+        value: Diarrhea
+      - key: tiredness
+        value: Tiredness,Fatigue
+      - key: headache
+        value: Headache
+      - key: soreThroat
+        value: Sore throat
+      - key: other
+        value: "Other:"
+
+    selectYesOrNo:
+      problem1:
+        - key: problem1
+          value: "Yes"
+        - key: problem1
+          value: "No"
+      problem2:
+        - key: problem2
+          value: "Yes"
+        - key: problem2
+          value: "No"
+      problem3:
+        - key: problem3
+          value: "Yes"
+        - key: problem3
+          value: "No"
+      problem4:
+        - key: problem4
+          value: "Yes"
+        - key: problem4
+          value: "No"
+      problem5:
+        - key: problem5
+          value: "Yes"
+        - key: problem5
+          value: "No"
+  components:
+    - type: view
+      style:
+        ..style.formatting:
+      children:
+        - .BasePublicHeader:
+          children:
+            - .BasePublicHeaderLeft:
+            - .BasePublicHeaderTitle:
+              style:
+                fontSize: .Nfont.h14
+        - type: view
+          style:
+            ..style.bodyBox:
+          children:
+            - type: view
+              style:
+                ..style.viewBox:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      text: Symptom Profile
+                      dataKey:
+                      style:
+                        ..style.titlelabel:
+                    - type: label
+                      text: "3&nbsp;/&nbsp;6"
+                      dataKey:
+                      style:
+                        ..style.pageNum:
+            - type: scrollView
+              style:
+                ..style.scrollBox:
+              children:
+                - type: label
+                  text: "COVID-19 screening and/or diagnostic testing, authorized by the Food and Drug Administration under an Emergency Use Authorization (EUA), will be used today. This test is meant for use in individuals with signs and/or symptoms compatible with COVID-19. "
+                  style:
+                    ..style.text:
+                    marginTop: "0.0258"
+                - type: label
+                  text: "Please Mark The Symptoms You Are Currently Experiencing (If Any):"
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                - type: list
+                  androidGrid: true
+                  viewTag: experienceSelectTag
+                  contentType: listObject
+                  listObject: ..formDataTemp.experienceSelect
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.checkBox:
+                          style:
+                            ..style.itemImg:
+
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+                - type: label
+                  viewTag: remarkTag
+                  text: "No content"
+                  dataKey: Global.formData.cov19TestNewPatForm.name.data.symptomProfile.remark
+                  style:
+                    ..style.blockInput:
+                    display: .Global.formData.cov19TestNewPatForm.name.data.symptomProfile.flag
+
+                - type: label
+                  text: "Do you live in a group home, assisted living center or other facility with more than 3 other people older than 60 years old?"
+                  style:
+                    ..style.text:
+                    marginTop: "0.0246"
+
+                - type: list
+                  viewTag: problem1Tag
+                  contentType: listObject
+                  listObject: ..formDataTemp.selectYesOrNo.problem1
+                  iteratorVar: itemObject
+                  style:
+                    ..style.radioList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.radioListItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.oneRadio:
+                          style:
+                            ..style.radioItemImg:
+
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.radioItemValue:
+
+                - type: label
+                  text: "Do you work in a hospital, long-term care facility or assisted living facility?"
+                  style:
+                    ..style.text:
+                    marginTop: "0.0246"
+
+                - type: list
+                  viewTag: problem2Tag
+                  contentType: listObject
+                  listObject: ..formDataTemp.selectYesOrNo.problem2
+                  iteratorVar: itemObject
+                  style:
+                    ..style.radioList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.radioListItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.twoRadio:
+                          style:
+                            ..style.radioItemImg:
+
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.radioItemValue:
+                - type: label
+                  text: "Have you traveled anywhere outside of California in the past 1 month?"
+                  style:
+                    ..style.text:
+                    marginTop: "0.0246"
+
+                - type: list
+                  viewTag: problem3Tag
+                  contentType: listObject
+                  listObject: ..formDataTemp.selectYesOrNo.problem3
+                  iteratorVar: itemObject
+                  style:
+                    ..style.radioList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.radioListItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.threeRadio:
+                          style:
+                            ..style.radioItemImg:
+
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.radioItemValue:
+
+                - type: label
+                  text: "Have you been in KNOWN close contact (i.e. within 6 feet) with someone confirmed to have COVID-19?"
+                  style:
+                    ..style.text:
+                    marginTop: "0.0246"
+
+                - type: list
+                  viewTag: problem4Tag
+                  contentType: listObject
+                  listObject: ..formDataTemp.selectYesOrNo.problem4
+                  iteratorVar: itemObject
+                  style:
+                    ..style.radioList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.radioListItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.fourRadio:
+                          style:
+                            ..style.radioItemImg:
+
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.radioItemValue:
+                - type: view
+                  style:
+                    marginTop: "0.03"
+
+        - type: view
+          style:
+            ..style.btnBox:
+          children:
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.btn:
+              onClick:
+                - goto: Cov19TestNewPatReviewPage4
+  event:
+    oneRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.cov19TestNewPatForm.name.data.symptomProfile.problem1
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    twoRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.cov19TestNewPatForm.name.data.symptomProfile.problem2
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    threeRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.cov19TestNewPatForm.name.data.symptomProfile.problem3
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    fourRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.cov19TestNewPatForm.name.data.symptomProfile.problem4
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    checkBox:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =.Global.formData.cov19TestNewPatForm.name.data.symptomProfile.experience
+                    value: $var.key
+              - selectOnBlue.svg
+              - selectOffGray.svg
+
+  style: #Input style fragment here
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+      fontFamily: "Arial"
+      color: "0x333333"
+      fontSize: .Nfont.h16
+
+    bodyBox:
+      width: "auto"
+      height: "0.84852"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+      fontFamily: "Arial"
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.7832"
+      boxSizing: border-box
+      overflow: scroll
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0246"
+      lineHeight: "2.58vh"
+    text:
+      marginTop: "0.0172"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+      wordWrap: break-word
+    list:
+      width: "auto"
+      margin: "0"
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    listItem:
+      display: "inline-block"
+      width: "0.425"
+      height: "auto"
+      marginTop: "0.01724"
+      boxSizing: border-box
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    radioList:
+      margin: "0"
+      marginTop: "0.01477"
+      width: "0.92"
+      axis: horizontal
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    radioListItem:
+      display: "inline-block"
+      width: "0.2666"
+      height: "auto"
+      boxSizing: border-box
+    radioItemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    radioItemValue:
+      marginLeft: "0.032"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.02133"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    blockInput:
+      marginTop: "0.01"
+      height: "auto"
+      width: "0.92"
+      boxSizing: border-box
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      padding: "6px 12px"
+      wordWrap: break-word
+      backgroundColor: "#f4f4f4"
+      borderRadius: "3"
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+      fontFamily: "Arial"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

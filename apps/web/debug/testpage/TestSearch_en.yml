@@ -1,0 +1,120 @@
+TestSearch:
+  title: "Test Search"
+  components: 
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        backgroundColor: "0xD6E5F3"
+      children:
+        - type: view
+          style:
+            top: "0.4"
+            width: "0.9"
+            height: "0.1"
+            left: "0.05"
+            backgroundColor: "0xffffff"
+            borderRadius: "2px"
+          children:
+            - type: image
+              path: search.png
+              style:
+                top: "0.025"
+                height: "0.05"
+                left: "0.02"
+            - type: textField
+              placeholder: "Condition,percedure,doctor"
+              style:
+                top: "0.02"
+                width: "0.2"
+                height: "0.06"
+                left: "0.05"
+                borderWidth: "0"
+                fontSize: "12"
+                fontWeight: "600"
+                borderRight: "solid 1px #DFE1E5"
+            - type: image
+              path: position.png
+              style:
+                top: "0.025"
+                height: "0.05"
+                left: "0.26"
+            - type: textField
+              placeholder: "92805"
+              style:
+                top: "0.02"
+                width: "0.1"
+                height: "0.06"
+                left: "0.29"
+                borderWidth: "0"
+                fontSize: "12"
+                fontWeight: "600"
+                borderRight: "solid 1px #DFE1E5"
+            - type: image
+              path: radar.png
+              style:
+                top: "0.025"
+                height: "0.05"
+                left: "0.4"
+            - type: textField
+              placeholder: " within 10 miles"
+              style:
+                top: "0.02"
+                width: "0.1"
+                height: "0.06"
+                left: "0.43"
+                borderWidth: "0"
+                fontSize: "12"
+                fontWeight: "600"
+                borderRight: "solid 1px #DFE1E5"
+            - type: image
+              path: calendar.png
+              style:
+                top: "0.025"
+                height: "0.05"
+                left: "0.54"
+            - type: textField
+              placeholder: "online office"
+              style:
+                top: "0.02"
+                width: "0.1"
+                height: "0.06"
+                left: "0.57"
+                borderWidth: "0"
+                fontSize: "12"
+                fontWeight: "600"
+                borderRight: "solid 1px #DFE1E5"
+            - type: image
+              path: questionmark.png
+              style:
+                top: "0.025"
+                height: "0.05"
+                left: "0.68"
+            - type: textField
+              placeholder: "Please select your insurance"
+              style:
+                top: "0.02"
+                width: "0.15"
+                height: "0.06"
+                left: "0.71"
+                borderWidth: "0"
+                fontSize: "12"
+                fontWeight: "600"
+                # borderRight: "solid 1px #DFE1E5"
+            - type: view
+              style:
+                left: "0.85"
+                height: "0.1"
+                width: "0.05"
+                backgroundColor: "0xFFF04B"
+              children:
+                - type: image
+                  path: search.png
+                  style:
+                    top: "0.025"
+                    height: "0.05"
+                    left: "0.01"
+
+
+
+

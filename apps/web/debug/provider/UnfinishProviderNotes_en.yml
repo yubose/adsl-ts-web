@@ -1,0 +1,529 @@
+UnfinishProviderNotes:
+  title: Provider Notes
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..apiRequest.unfinishedDoc.docAPI.get
+
+    - ..apiRequest.listRoomData.get
+    - ..apiRequest.meetingList.get
+
+    - ..formData.docList@: =..apiRequest.unfinishedDoc.docQueryResp.doc
+
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..formData.docList
+          array2: []
+          sortby: ctime
+          orders: desc
+        dataOut: UnfinishProviderNotes.formData.docList
+
+    - =.builtIn.array.setFormJumpPage:
+        dataIn:
+          objArry: =..formData.docList
+          docFormObj: =.DocumentList
+        dataOut: UnfinishProviderNotes.formData.docJumpList
+
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..apiRequest.listRoomData.docResp.edge
+          array2: =..apiRequest.meetingList.docResp.edge
+          sortby: "stime"
+          orders: "desc"
+        dataOut: UnfinishProviderNotes.formData.historyList
+
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.currentTabStatus
+              string2: ""
+        - continue
+        - actionType: evalObject
+          object:
+            - =.builtIn.object.setProperty:
+                dataIn:
+                  obj: =..formDataTemp.titleData
+                  label: "title"
+                  text: =.Global.formData.currentTabStatus
+                  arr: ["fontColor", "fontWeight", "block"]
+                  valueArr: ["0x2988e6", "600", "block"]
+                  errorArr: ["0x666666", "400", "none"]
+                dataOut: UnfinishProviderNotes.formDataTemp.titleData
+
+  apiRequest:
+    # get all unfinished doc
+    unfinishedDoc:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.currentUser.vertex.id
+        xfname: E.bvid&D.ovid
+        ObjType: 12
+        sCondition: D.type in (1536,1792,125440,128000,122880,130560,133120,135680,151040,140800,2048,2304,2560,156160)
+        _nonce: =.Global._nonce
+        obfname: "mtime"
+        asc: false
+      docAPI:
+        get:
+          api: rd
+          dataIn: UnfinishProviderNotes.apiRequest.unfinishedDoc.docQueryReq
+          dataOut: UnfinishProviderNotes.apiRequest.unfinishedDoc.docQueryResp
+
+    listRoomData:
+      docResp: ""
+      docReq:
+        ObjType: "4"
+        id:
+          - =.Global.currentUser.vertex.id
+          - =.Global.currentFacility.id
+        xfname: "E.evid,E.bvid"
+        sCondition: "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage&0x100 in (256) "
+        maxcount: "100"
+        obfname: "stime"
+        asc: false
+        _nonce: =.Global._nonce
+      get:
+        api: re
+        dataIn: UnfinishProviderNotes.apiRequest.listRoomData.docReq
+        dataOut: UnfinishProviderNotes.apiRequest.listRoomData.docResp
+
+    meetingList:
+      docResp: ""
+      docReq:
+        type: "40000"
+        id: =.Global.ids
+        xfname: "E2.evid,E2.Bvid"
+        sCondition: "E2.type=40000 AND E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.type=40000 AND E.tage&0x100 in (256)"
+        maxcount: "20000"
+        obfname: "stime"
+        ObjType: "20"
+        asc: false
+        _nonce: .Global._nonce
+      get:
+        api: re
+        dataIn: UnfinishProviderNotes.apiRequest.meetingList.docReq
+        dataOut: UnfinishProviderNotes.apiRequest.meetingList.docResp
+
+  formDataTemp:
+    titleData:
+      - title: Unfinished
+        fontColor: "0x2988e6"
+        fontWeight: "600"
+        block: "block"
+      - title: Visit History
+        fontColor: "0x666666"
+        fontWeight: "400"
+        block: "none"
+  formData:
+    tempData: ""
+    tempDataId: ""
+    docList: []
+    docJumpList: []
+    historyList: []
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        marginTop: "0.1"
+        width: "1"
+        height: "auto"
+        boxSizing: "border-box"
+        overflow: hidden
+      children:
+        - type: list
+          viewTag: tabTwoTag
+          contentType: listObject
+          listObject: ..formDataTemp.titleData
+          iteratorVar: itemObject
+          style:
+            width: "1"
+            margin: "0"
+            axis: horizontal
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                width: "0.5"
+                height: "auto"
+                boxSizing: "border-box"
+              children:
+                - type: label
+                  dataKey: itemObject.title
+                  style:
+                    color: itemObject.fontColor
+                    height: "auto"
+                    marginTop: "0.0172"
+                    width: "0.5"
+                    fontWeight: itemObject.fontWeight
+                    textAlign:
+                      x: center
+                    fontSize: .Nfont.h16
+                    boxSizing: "border-box"
+                - type: view
+                  style:
+                    marginTop: "0.011"
+                    height: "1.5px"
+                    width: "0.5"
+                    backgroundColor: "0xf0f0f0"
+                    boxSizing: "border-box"
+                - type: view
+                  viewTag: leftBlockTag
+                  style:
+                    display: itemObject.block
+                    top: "0.0532"
+                    left: "0"
+                    width: "0.5"
+                    height: "1.5px"
+                    backgroundColor: "0x2988e6"
+                    boxSizing: "border-box"
+                    zIndex: 10
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - =.builtIn.object.setProperty:
+                          dataIn:
+                            obj: =..formDataTemp.titleData
+                            label: "title"
+                            text: $var.title
+                            arr: ["fontColor", "fontWeight", "block"]
+                            valueArr: ["0x2988e6", "600", "block"]
+                            errorArr: ["0x666666", "400", "none"]
+                      # 保存当前tab栏状态
+                      - .Global.formData.currentTabStatus@: $var.title
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: docListTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: historyListTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockHeightTag
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: "Unfinished"
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: docListTag
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: historyListTag
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: historyListTag
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: docListTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: tabTwoTag
+    - type: scrollView
+      viewTag: blockHeightTag
+      style:
+        width: "1"
+        height: "0.84"
+        backgroundColor: "0xffffff"
+      children:
+        - type: view
+          viewTag: docListTag
+          style:
+            width: "1"
+            height: "0.84"
+            display: ..formDataTemp.titleData.0.block
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..formData.docJumpList
+              iteratorVar: itemObject
+              style:
+                margin: "0"
+                width: "1"
+                height: "0.84"
+                overflow: scroll
+                boxSizing: "border-box"
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "1"
+                    height: "auto"
+                    left: "0"
+                    marginTop: "0"
+                    boxSizing: "border-box"
+                  children:
+                    - type: label
+                      dataKey: itemObject.name.title
+                      style:
+                        marginTop: "0.0173"
+                        marginLeft: "0.04"
+                        width: "0.92"
+                        height: "auto"
+                        fontSize: .Nfont.h16
+                        wordBreak: "break-all"
+                        fontWeight: "600"
+                        boxSizing: "border-box"
+                    - type: view
+                      style:
+                        marginTop: "0.001"
+                        marginLeft: "0.04"
+                        width: "0.92"
+                        height: "auto"
+                        overflow: hidden
+                        boxSizing: "border-box"
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.user
+                          style:
+                            display: "inline-block"
+                            width: "0.42"
+                            height: "auto"
+                            fontSize: .Nfont.h14
+                            verticalAlign: middle
+                            wordBreak: "break-all"
+                            color: "0x666666"
+                            boxSizing: "border-box"
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtime_en
+                          dataKey: itemObject.mtime
+                          style:
+                            marginLeft: "0.08"
+                            display: "inline-block"
+                            width: "0.42"
+                            height: "auto"
+                            fontSize: .Nfont.h12
+                            verticalAlign: middle
+                            wordBreak: "break-all"
+                            boxSizing: "border-box"
+                            color: "0x999999"
+                            textAlign:
+                              x: right
+                    - type: view
+                      style:
+                        marginTop: "0.016"
+                        height: "0.001"
+                        width: "1"
+                        backgroundColor: "0xdedede"
+                        boxSizing: "border-box"
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - ..formData.tempDataId@: $var.id
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.getObjectByArray:
+                            dataIn:
+                              array: =..formData.docList
+                              key: "id"
+                              value: =..formData.tempDataId
+                            dataOut: UnfinishProviderNotes.formData.tempData
+                    - actionType: evalObject
+                      object:
+                        - .Global.Note@: ""
+                        - .Global.Note@: =..formData.tempData
+                        - .Global.currentRoom.edge.id@: =.Global.Note.esig
+                        - .Global.roomInfo.edge.eid@: =.Global.Note.eid
+                        - .Global.formData.unPageName@: "UnfinishProviderNotes"
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - goto: $var.pageName
+        - type: view
+          viewTag: historyListTag
+          style:
+            width: "1"
+            height: "0.84"
+            display: ..formDataTemp.titleData.1.block
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..formData.historyList
+              iteratorVar: itemObject
+              style:
+                width: "1"
+                margin: "0"
+                height: "0.84"
+                overflow: scroll
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    marginTop: "0.015"
+                    width: "0.9"
+                    height: "auto"
+                    left: "0.05"
+                    border:
+                      style: 3
+                    borderColor: "0xefefef"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    boxShadow: "1px 1px 4px 1px #efefef"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.85"
+                        height: "0.04"
+                        left: "0.025"
+                      children:
+                        - type: view
+                          style:
+                            display: "inline-block"
+                            height: "0.04"
+                            width: "0.85"
+                          children:
+                            - type: image
+                              path: waitTime.svg
+                              style:
+                                height: "0.018"
+                                display: "inline-block"
+                                verticalAlign: middle
+                            - type: label
+                              text=func: .builtIn.date.ShowTimeSpan
+                              dataKey: itemObject
+                              style:
+                                marginLeft: "0.025"
+                                display: "inline-block"
+                                fontSize: .Nfont.h12
+                                color: "0x4b4b4b"
+                                width: "0.36"
+                                height: "0.04"
+                                lineHeight: "4vh"
+                                verticalAlign: middle
+                                fontFamily: "Arial"
+                                fontWeight: "600"
+                                textAlign:
+                                  x: left
+                            - type: label
+                              text=func: .builtIn.string.formatUnixtimeL_en
+                              dataKey: itemObject.stime
+                              style:
+                                marginLeft: "0.01"
+                                display: "inline-block"
+                                fontSize: .Nfont.h12
+                                color: "0x666666"
+                                width: "0.2"
+                                lineHeight: "4vh"
+                                verticalAlign: middle
+                                textAlign:
+                                  x: left
+                            - type: label
+                              text: "completed"
+                              dataKey:
+                              style:
+                                marginLeft: "0.04"
+                                display: "inline-block"
+                                height: "auto"
+                                width: "auto"
+                                color: "0x999999"
+                                lineHeight: "4vh"
+                                verticalAlign: middle
+                                fontSize: .Nfont.h12
+                                fontWeight: "600"
+
+                    - type: view
+                      style:
+                        width: "0.85"
+                        height: "0.001"
+                        left: "0.025"
+                        backgroundColor: "0xf0f0f0"
+                    - type: view
+                      style:
+                        width: "0.85"
+                        height: "0.001"
+                        left: "0.025"
+                        backgroundColor: "0xf0f0f0"
+                    - type: view
+                      style:
+                        marginTop: "0.01"
+                        width: "0.9"
+                        height: "auto"
+                      children:
+                        - type: image
+                          path: appLeft.svg
+                          style:
+                            top: "0"
+                            left: "0.78"
+                            height: "0.06"
+                        - type: view
+                          style:
+                            width: "0.7"
+                            height: "auto"
+                            left: "0.025"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.patientName
+                              style:
+                                display: "inline-block"
+                                fontSize: .Nfont.h16
+                                color: "0x4b4b4b"
+                                height: "auto"
+                                width: "auto"
+                                verticalAlign: middle
+                                fontWeight: "600"
+                            - type: label
+                              dataKey: itemObject.name.roomName
+                              style:
+                                display: "inline-block"
+                                fontSize: .Nfont.h16
+                                color: "0x4b4b4b"
+                                height: "auto"
+                                width: "auto"
+                                verticalAlign: middle
+                                fontWeight: "600"
+                            - type: image
+                              style:
+                                display: "inline-block"
+                                marginLeft: "0.024"
+                                height: "0.016"
+                                verticalAlign: middle
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: $var.name.visitType
+                                              string2: Telemedicine
+                                        - video.svg
+                                        - videoTele.svg
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            height: "auto"
+                            width: "auto"
+                            left: "0.025"
+                            wordWrap: break-word
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.Reason
+                              style:
+                                color: "0x666666"
+                                height: "auto"
+                                width: "auto"
+                                fontSize: .Nfont.h14
+                            - type: view
+                              style:
+                                width: "0.9"
+                                height: "0.01"
+                  onClick:
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: Global.roomInfo.edge
+                      dataObject: itemObject
+                    - goto: VisitDetial

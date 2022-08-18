@@ -1,0 +1,713 @@
+ProviderSchduleSetting:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: ""
+    - actionType: updateObject
+      dataKey: Global.currentSchedule
+      dataObject: []
+    - actionType: evalObject
+      object:
+        - =..fac_RootNotebook.edgeAPI.get: ""
+        - =..locationAll.docAPI.get: "" 
+        - .Global.locationAll@: =..locationAll.docResp.doc.0.name.data.allLocation
+    - =.builtIn.array.selectOneToArr:
+        dataIn:
+          arr: =.Global.locationAll
+          key: "medicalFacilityName"
+        dataOut: ProviderSchduleSetting.addressName
+    - =.builtIn.array.matchInArray:
+        dataIn:
+          arr: =.Global.locationAll
+          value: =..addressName.0
+          key: medicalFacilityName
+          key1: "id"
+        dataOut: ProviderSchduleSetting.locationId
+    # - =.builtIn.search.updateEsData:
+    #     dataIn:
+    #       id: =.Global.currentUser.vertex.id
+    #       type: '40000'
+    #     dataOut: ProviderScheduleSetting.res
+    - if:
+      - =.ProviderSchduleSetting.locationId
+      - ..getScheduleOfficeVisit.edgeReq.id.0@: =..locationId
+      - continue
+    # - =.builtIn.array.add:
+    #     dataIn:
+    #       object: =..getScheduleOfficeVisit.edgeReq.id
+    #       value: =..locationId
+    - =..getScheduleTelemedicine.get: ""
+    - =..getScheduleOfficeVisit.get: ""
+    - actionType: evalObject
+      object:
+        - ..formDataTelemedicine@: =..getScheduleTelemedicine.schedule.edge.0
+        - ..formDataOfficeVisit@: =..getScheduleOfficeVisit.schedule.edge.0
+    - actionType: evalObject
+      object:
+        - if:
+          - =.ProviderSchduleSetting.getScheduleTelemedicine.schedule.edge.0.id
+          - =.builtIn.array.WeekSchedule:
+              dataIn:
+                planObject: =.ProviderSchduleSetting.getScheduleTelemedicine.schedule.edge.0.name.setting.day
+              dataOut: ProviderSchduleSetting.dayTelemedicine
+          - continue
+        - if:
+          - =.ProviderSchduleSetting.getScheduleOfficeVisit.schedule.edge.0.id
+          - =.builtIn.array.WeekSchedule:
+              dataIn:
+                planObject: =.ProviderSchduleSetting.getScheduleOfficeVisit.schedule.edge.0.name.setting.day
+              dataOut: ProviderSchduleSetting.dayOfficeVisit
+          - continue
+  title: "AvailabilitySettings"
+  formDataTemp:
+    TypeName:
+      - userTypeName: Reason for Visit
+        borderColor: "0xf4f4f4"
+        fontWeight: "400"
+      - userTypeName: Availability Setting
+        borderColor: "0x003d68"
+        fontWeight: "500"
+  getScheduleTelemedicine:
+    schedule:
+      edge:
+        name:
+          setting:
+            day: []
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataKey: ProviderSchduleSetting.getScheduleTelemedicine.schedule
+      type: 40000
+      id: 
+        - .Global.currentFacility.id
+        - .Global.currentUser.vertex.id
+      sCondition: "subtype=196611"
+      xfname: "bvid,evid"
+      maxcount: "1"
+      obfname : "ctime"
+      _nonce: =.Global._nonce
+  locationAll: 
+    docResp: ""   
+    docIn:    
+      type: .DocType.LocationOfFacility
+      id: =.ProviderSchduleSetting.fac_RootNotebook.edge.edge.0.id 
+      xfname: eid
+      obfname: mtime
+      maxcount: "1"
+      name: 
+        data: 
+          allLocation: 
+    docAPI:
+      .DocAPI: ""
+      get: 
+        api: rd
+        dataIn: ProviderSchduleSetting.locationAll.docIn
+        dataOut: ProviderSchduleSetting.locationAll.docResp      
+  fac_RootNotebook:
+    edgeReq:
+      id: .Global.currentFacility.id
+      xfname: bvid
+      type: 10000
+    edge: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: ProviderSchduleSetting.fac_RootNotebook.edgeReq
+        dataOut: ProviderSchduleSetting.fac_RootNotebook.edge     
+  getScheduleOfficeVisit:
+    edgeReq: 
+      type: 40000
+      id: 
+        - .Global.currentFacility.id
+        - .Global.currentUser.vertex.id
+      sCondition: "subtype=131075"
+      xfname: "bvid,evid"
+      maxcount: "1"
+      obfname : "ctime"
+      _nonce: =.Global._nonce
+    schedule:
+      edge:
+        name:
+          setting:
+            day: []
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: ProviderSchduleSetting.getScheduleOfficeVisit.edgeReq
+      dataOut: ProviderSchduleSetting.getScheduleOfficeVisit.schedule
+
+  weekLabel:
+      - key: Sunday
+      - key: Monday
+      - key: Tuesday
+      - key: Wednesday
+      - key: Thursday
+      - key: Friday
+      - key: Saturday
+  formDataTelemedicine: ""
+  dayTelemedicine: ""
+  formDataOfficeVisit: ""
+  formDataOfficeVisisAddress: ..addressName.0  # 给select的dataKey一个初始值，如果不赋值，dataKey在未选择之前都是空的
+  locationId: ""
+  dayOfficeVisit: ""
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .BaseCheckView: ""
+          message: "You don't have the authority to edit"
+          viewTag: pATAuthEdit
+          style: 
+            zIndex: "100000"
+        - type: view
+          style:
+            background-image: 'linear-gradient(#0063a8, #004371)'   
+            height: "1"
+            width: "0.16"
+          children:
+            - .aitLogo:
+            - .Menu:
+        - .TopBar:
+        - .ViewRow:
+          style:
+            backgroundColor: "#f4f8fa"
+            width: "0.84"
+            height: "0.92"
+            left: '0.16'
+            top: "0.08"
+            alignItems: flex-start
+          children:
+            - type: view
+              style:
+                backgroundColor: "0xffffff"
+                width: "0.8"
+                height: "0.85"
+                marginTop: "0.04"
+                borderRadius: "5"
+                border: 
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
+              children:
+                - type: label
+                  text: "Availability Profile"
+                  style:
+                    color: "0x000000"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h3
+                    top: "0.03"
+                    marginLeft: "0.028"
+                - type: view
+                  style:
+                    width: "0.74"
+                    height: "0.06"
+                    marginTop: "0.11"
+                    marginLeft: "0.03"
+                    border: 
+                      style: "2"
+                    borderWidth: "2px"
+                    boxSizing: border-box
+                    borderColor: "0x00000020"
+                    display: flex
+                    justifyContent: flex-start
+                    alignItems: center
+                  children:
+                    - type: list
+                      viewTag: listNameData
+                      contentType: listObject
+                      listObject: ..formDataTemp.TypeName
+                      iteratorVar: itemObject
+                      style:
+                        width: '0.2'
+                        justifyContent: center
+                        alignItems: center
+                        margin: '0'
+                        axis: horizontal
+                        height: auto
+                      children:
+                        - type: listItem
+                          itemObject: 
+                          style:
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                            width: '0.1'
+                            height: '0.06'
+                            border: 
+                              style: "2"
+                            borderWidth: "4px"
+                            boxSizing: border-box
+                            borderColor: itemObject.borderColor
+                          children:
+                            - type: label
+                              dataKey: itemObject.userTypeName
+                              style:
+                                color: "0x003d68"
+                                fontSize: .Nfont.n6
+                                fontWeight: itemObject.fontWeight
+                          onClick: 
+                            - emit: 
+                                dataKey: 
+                                  var: itemObject
+                                actions:
+                                  - if: 
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: $var.userTypeName
+                                          string2: "Reason for Visit"
+                                    - goto: ProviderReason
+                                    - continue
+                                  - if: 
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: $var.userTypeName
+                                          string2: "Availability Setting"
+                                    - goto: ProviderSchduleSetting
+                                    - continue
+                - type: view
+                  viewTag: reasonAllTag
+                  style:
+                    width: "0.82"
+                    height: "0.53"
+                    marginTop: "0.04"
+                  children: 
+                    # telemedicine 表格
+                    - type: view
+                      style:
+                        width: "0.36"
+                        height: "0.53"
+                        left: "0.028"
+                        marginTop: "0.01"
+                        border:
+                          style: "1"
+                        borderWidth: "2"
+                        border-top-left-radius: "5px"
+                        border-top-right-radius: "5px"
+                        display: inline-block
+                      children:
+                        - type: view
+                          style:
+                            width: "0.36"
+                            height: "0.047"
+                            backgroundColor: "0x005795"
+                            border-top-left-radius: "5px"
+                            border-top-right-radius: "5px"
+                            boxSizing: border-box
+                            display: flex
+                            justifyContent: "space-between"
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: Telemedicine
+                              dataKey: 
+                              style:
+                                color: "0xffffff"
+                                fontWeight: "600"
+                                left: "0.015"
+                                fontSize: .Nfont.n6
+                            - type: label
+                              text: Edit
+                              onClick: 
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                      - =.Global.currentFacility.id
+                                      - continue
+                                      - actionType: popUp
+                                        popUpView: errorTag
+                                        wait: true 
+                                    - .Global.formData.scheduleType@: Telemedicine
+                                    - .Global.currentSchedule@: =..getScheduleTelemedicine.schedule.edge.0
+                                    - .Global.setSchedule.scheduleTypeNumber@: "196611"
+                                - goto: ProviderScheduleSettingsDisplay
+                              style:
+                                textDecoration: underline
+                                color: "0xffffff"
+                                fontWeight: "700"
+                                fontSize: .Nfont.n6
+                                marginRight: "0.01"
+                        - type: view
+                          style:
+                            width: "0.36"
+                            height: "0.06"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - type: label
+                              text: From
+                              dataKey: 
+                              style:
+                                display: inline-block
+                                fontSize: .Nfont.n6_1
+                                fontWeight: "600"
+                                left: "0.018"
+                                width: "0.03"
+                                height: "0.06"
+                                lineHeight: "5.5vh"
+                            - type: view
+                              style:
+                                width: "0.08"
+                                height: "0.06"
+                                marginLeft: "0.025"
+                                display: inline-block
+                              children:
+                                - type: label
+                                  viewTag: showBirth
+                                  placeholder: "00/00/000"
+                                  dataKey: formDataTelemedicine.name.setting.startDate
+                                  style: 
+                                    marginTop: "0.0125"
+                                    width: "0.08"
+                                    height: "0.035"
+                                    border:
+                                      style: 3
+                                    borderWidth: 1px
+                                    borderColor: "0xC4C4C4"
+                                    borderRadius: "5px"
+                                    fontSize: .Nfont.n6_1
+                                    textAlign:
+                                      y: center
+                                - type: image
+                                  path: cala.svg
+                                  style:
+                                    zIndex: "100"
+                                    top: "0.0225"
+                                    marginLeft: "0.065"
+                                    width: 1.1vw
+                            - type: label
+                              text: "Repeat weeks:"
+                              dataKey: 
+                              style:
+                                display: inline-block
+                                fontSize: .Nfont.n6_1
+                                fontWeight: "600"
+                                marginLeft: "0.02"
+                                height: "0.06"
+                                lineHeight: "5.5vh"
+                            - type: label
+                              dataKey: formDataTelemedicine.name.setting.forwardRepeatWeeks
+                              style: 
+                                display: inline-block
+                                height: "0.06"
+                                fontSize: .Nfont.n6_1
+                                lineHeight: "5.6vh"
+                                marginLeft: "0.002"
+                                textAlign: 
+                                  y: center  
+
+                        - type: scrollView
+                          style:
+                            width: '0.36'
+                            height: auto
+                            display: inline-block
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..dayTelemedicine
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.36'
+                                margin: '0'
+                                height: "0.433"
+                                boxSizing: border-box
+                                borderBottom: "0xffffff"
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '0.36'
+                                    height: '0.072'
+                                    marginTop: ''
+                                    boxSizing: border-box
+                                    borderBottom: "0xd7e2e9"
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xd1dee6"
+                                    borderTop: "0xffffff"
+                                    borderWidth: "1.5"
+                                  children:
+                                    - type: label
+                                      text: 
+                                      dataKey: itemObject.weekDay
+                                      style:
+                                        display: inline-block
+                                        width: '0.074'
+                                        height: "0.072"
+                                        lineHeight: 7.2vh
+                                        marginLeft: "0.018"
+                                    - type: label
+                                      text: 
+                                      dataKey: itemObject.info
+                                      style:
+                                        left: "9vw"
+                                        width: "21vw"
+                                        top: "0"
+                                        height: "2.3vw"
+                                        fontSize: "0.8vw"
+                                        textAlign: 
+                                          x: center
+                                          y: center
+                    
+                    # office visit 表格
+                    - type: view
+                      style:
+                        width: "0.36"
+                        height: "0.53"
+                        left: "0.048"
+                        marginTop: "0.01"
+                        border:
+                          style: "1"
+                        borderWidth: "2"
+                        border-top-left-radius: "5px"
+                        border-top-right-radius: "5px"
+                        display: inline-block
+                      children:
+                        - type: view
+                          style:
+                            width: "0.36"
+                            height: "0.047"
+                            backgroundColor: "0x005795"
+                            border-top-left-radius: "5px"
+                            border-top-right-radius: "5px"
+                            boxSizing: border-box
+                            display: flex
+                            justifyContent: "space-between"
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: Office Visit
+                              dataKey: 
+                              style:
+                                color: "0xffffff"
+                                fontWeight: "600"
+                                left: "0.015"
+                                fontSize: .Nfont.n6
+                            - type: label
+                              text: Edit
+                              onClick: 
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                      - =.Global.currentFacility.id
+                                      - continue
+                                      - actionType: popUp
+                                        popUpView: errorTag
+                                        wait: true 
+                                    - .Global.formData.scheduleType@: Office Visits
+                                    - .Global.formData.scheduleAddress@: =..formDataOfficeVisisAddress
+                                    - .Global.formData.scheduleLocationId@: =..locationId
+                                    - .Global.currentSchedule@: =..getScheduleOfficeVisit.schedule.edge.0
+                                    - .Global.setSchedule.scheduleTypeNumber@: "131075"
+                                - goto: ProviderScheduleSettingsDisplay   
+                              style:
+                                textDecoration: underline
+                                color: "0xffffff"
+                                fontWeight: "700"
+                                fontSize: .Nfont.n6
+                                marginRight: "0.01"
+                        - type: view
+                          style:
+                            width: "0.36"
+                            height: "0.06"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - type: label
+                              text: From
+                              dataKey: 
+                              style:
+                                display: inline-block
+                                fontSize: .Nfont.n6_1
+                                fontWeight: "600"
+                                left: "0.018"
+                                width: "0.03"
+                                height: "0.06"
+                                lineHeight: "5.5vh"
+                            - type: view
+                              style:
+                                width: "0.08"
+                                height: "0.06"
+                                marginLeft: "0.025"
+                                display: inline-block
+                              children:
+                                - type: label
+                                  viewTag: showBirth
+                                  dataKey: formDataOfficeVisit.name.setting.startDate
+                                  placeholder: "00/00/000"
+                                  style: 
+                                    marginTop: "0.0125"
+                                    width: "0.08"
+                                    height: "0.035"
+                                    border:
+                                      style: 3
+                                    borderWidth: 1px
+                                    borderColor: "0xC4C4C4"
+                                    borderRadius: "5px"
+                                    fontSize: .Nfont.n6_1
+                                    textAlign:
+                                      y: center
+                                - type: image
+                                  path: cala.svg
+                                  style:
+                                    zIndex: "100"
+                                    top: "0.0225"
+                                    marginLeft: "0.065"
+                                    width: 1.1vw
+                            - type: label
+                              text: "Repeat weeks:"
+                              dataKey: 
+                              style:
+                                display: inline-block
+                                fontSize: .Nfont.n6_1
+                                fontWeight: "600"
+                                marginLeft: "0.02"
+                                height: "0.06"
+                                lineHeight: "5.5vh"
+                            - type: label
+                              dataKey: formDataTelemedicine.name.setting.forwardRepeatWeeks
+                              style: 
+                                display: inline-block
+                                height: "0.06"
+                                fontSize: .Nfont.n6_1
+                                lineHeight: "5.6vh"
+                                marginLeft: "0.002"
+                                textAlign: 
+                                  y: center  
+                            - type: label
+                              text: "Address:"
+                              dataKey: 
+                              style:
+                                display: inline-block
+                                fontSize: .Nfont.n6_1
+                                fontWeight: "600"
+                                marginLeft: "0.02"
+                                width: "0.04"
+                                height: "0.06"
+                                lineHeight: "5.5vh"
+                            - type: select
+                              options:
+                                ..addressName
+                              dataKey: formDataOfficeVisisAddress
+                              onChange: 
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.matchInArray:
+                                        dataIn:
+                                          arr: =.Global.locationAll
+                                          value: =..formDataOfficeVisisAddress
+                                          key: medicalFacilityName
+                                          key1: "id"
+                                        dataOut: ProviderSchduleSetting.locationId
+                                    - ..getScheduleOfficeVisit.edgeReq.id@: []
+                                    - ..getScheduleOfficeVisit.schedule.edge@: []
+                                    - =.builtIn.array.add:
+                                        dataIn:
+                                          object: =..getScheduleOfficeVisit.edgeReq.id
+                                          value: =..locationId
+                                    - =.builtIn.array.add:
+                                        dataIn:
+                                          object: =..getScheduleOfficeVisit.edgeReq.id
+                                          value: =.Global.currentUser.vertex.id
+                                - actionType: evalObject
+                                  object: 
+                                    .Global._nonce@: 
+                                      =.builtIn.math.random: ""
+                                - actionType: evalObject
+                                  object: 
+                                    - =..getScheduleOfficeVisit.get: ""
+                                    - ..formDataOfficeVisit@: =..getScheduleOfficeVisit.schedule.edge.0
+                                    - if: 
+                                      - =.ProviderSchduleSetting.getScheduleOfficeVisit.schedule.edge.0.id
+                                      - =.builtIn.array.WeekSchedule:
+                                          dataIn:
+                                            planObject: =.ProviderSchduleSetting.getScheduleOfficeVisit.schedule.edge.0.name.setting.day
+                                          dataOut: ProviderSchduleSetting.dayOfficeVisit
+                                      - ..dayOfficeVisit@: []
+                                    - if: 
+                                      - =.ProviderSchduleSetting.getScheduleOfficeVisit.schedule.edge.0
+                                      - continue
+                                      - actionType: evalObject
+                                        object: 
+                                          - ..formDataOfficeVisit.name.setting.startDate@: ""
+                                          - ..formDataOfficeVisit.name.setting.forwardRepeatWeeks@: ""
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: timeView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: availabilityView
+                              style: 
+                                display: inline-block
+                                marginTop: "0.0125"
+                                width: "0.05"
+                                height: "0.035"
+                                border:
+                                  style: 3
+                                borderWidth: 1px
+                                borderColor: "0xC4C4C4"
+                                borderRadius: "5px"
+                                fontSize: .Nfont.n6_1
+                                textAlign:
+                                  y: center
+
+                        - type: scrollView
+                          style:
+                            width: '0.36'
+                            height: auto
+                            display: inline-block
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..dayOfficeVisit
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.36'
+                                margin: '0'
+                                height: "0.433"
+                                boxSizing: border-box
+                                borderBottom: "0xffffff"
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '0.36'
+                                    height: '0.072'
+                                    marginTop: ''
+                                    boxSizing: border-box
+                                    borderBottom: "0xd7e2e9"
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xd1dee6"
+                                    borderTop: "0xffffff"
+                                    borderWidth: "1.5"
+                                  children:
+                                    - type: label
+                                      text: 
+                                      dataKey: itemObject.weekDay
+                                      style:
+                                        display: inline-block
+                                        width: '0.07'
+                                        height: "0.072"
+                                        lineHeight: 7.2vh
+                                        marginLeft: "0.018"
+                                    - type: label
+                                      text: 
+                                      dataKey: itemObject.info
+                                      style: 
+                                        left: "8.7vw"
+                                        width: "21.6vw"
+                                        top: "0"
+                                        height: "2.5vw"
+                                        fontSize: "0.8vw"
+                                        textAlign: 
+                                          x: center
+                                          y: center
+        - .BaseWarningViewOne:
+          viewTag: errorTag
+          msg2: "Please add Facility !"               
+          style:
+            width: "1"
+            height: "1"

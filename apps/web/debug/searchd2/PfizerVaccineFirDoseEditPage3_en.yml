@@ -1,0 +1,471 @@
+PfizerVaccineFirDoseEditPage3:
+  viewPort: top
+  title: PfizerVaccineFirDoseEditPage3
+  init:
+    - if:
+      - =.Global.formData.pifzerVaccineFirDoseForm.name.data.screeningEligibility
+      - .PfizerVaccineFirDoseEditPage3.formData.screeningEligibility@: =.Global.formData.pifzerVaccineFirDoseForm.name.data.screeningEligibility
+      - continue
+    - actionType: evalObject
+      object: .BaseDate.miniWeekGet
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    - if:
+      - =.Global.isSignIn
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "false"
+          - ..isSignIn@: "true"
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "true"
+          - ..isSignIn@: "false"
+    - ..profile.docAPI.get
+    - if:
+      - =..profile.docResponse.doc.0
+      - actionType: evalObject
+        object:
+          - ..profile.c@: =..profile.docResponse.doc.0
+          - =.builtIn.utils.prepareDoc:
+              dataIn:
+                doc: =..profile.docResponse.doc.0
+              dataOut: PfizerVaccineFirDoseEditPage3.profile.patientdocument
+      - continue
+  isPersonal:
+  isSignIn:
+    
+  profile:
+    docResponse: ""
+    patientdocument: ""
+    document:
+      type: .DocType.PatientProfile
+      eid: .Global.rootNotebookID
+      name:
+        # .Global.Profile: ""
+        data:
+          insurance: 
+            insuranceProvider: ""
+            policyHolderName: ""
+            groupOrPolicy: ""
+            memberID: ""
+          phone: .Global.currentUser.vertex.uid
+          phone2: ""
+          avatarUrl: ava.png
+          avatar: ""
+          gender: ""
+          email: ""
+          firstName: .Global.currentUser.vertex.name.firstName
+          middleName: ""
+          lastName: .Global.currentUser.vertex.name.lastName
+          birth: ""
+          userName: .Global.currentUser.vertex.name.userName
+          address: ""
+          fullName: .PfizerVaccineFirDoseEditPage3.formData.showName
+          Address:
+            St: ""
+            city: ""
+            state: ""
+            line2: ""
+            zip: ""
+          name: ""
+          relation: ""
+        type: .PfizerVaccineFirDoseEditPage3.profile.docAPI.store.subtype.mediaType
+    docAPI:
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PatientProfile
+        obfname: mtime
+        dataKey: profile.docResponse
+        _nonce: =.Global._nonce 
+      
+  formData: #Input data here
+    screeningEligibility: 
+      # 单选框状态
+      recevingDose: ""
+      ingredient: ""
+    countryCode: "+1"   
+    phoneNumber: "8881307128"
+    password: "123456"
+    code: ""
+    sk: ""
+    pass: ""
+    showName: ""
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    recevingDose: 
+      - key: recevingDose
+        value: "Yes"
+      - key: recevingDose
+        value: "No"
+    ingredient: 
+      - key: ingredient
+        value: "Yes"
+      - key: ingredient
+        value: "No"
+  components:
+    - type: view
+      style:
+        width: '1'
+        margin: 'auto'
+        display: flex
+        flexDirection: column
+        justifyContent: center
+        fontFamily: "Arial"
+      children:
+        - .baseTopBar:
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .BaseUserBar
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1         
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "Pfizer-BioNTech Vaccine - First Dose"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "3/5"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+        
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: scrollView
+              style:
+                width: 89.8vw
+                height: 39vw
+                marginTop: 0.5vw
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - type: view
+                      style:
+                        width: 40vw
+                        backgroundColor: "#ffffff"
+                        marginTop: 0.1vw
+                        justifyContent: flex-start
+                      children:
+                        - .NewFirstTitle:
+                          text: Pfizer-BioNTech COVID-19 Vaccine Consent Form
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h1
+                            textAlign: 
+                                x: center
+                                y: center
+                        - .NewFirstTitle:
+                          text: 1.Screening for Vaccine Eligibility
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h0
+                            textAlign: 
+                                x: center
+                                y: center
+                        - .VQSecondTitle:
+                          text: "Components of the Pfizer-BioNTech COVID-19 vaccine: nucleoside modified messenger RNA (modRNA) encoding the viral spike (S) glycoprotein of SARS-CoV-2, sodium chloride, lipids, polyethylene glycol, potassium chloride, monobasic potassium phosphate, dibasic sodium phosphate dihydrate, and sucrose."
+                          style:
+                            fontSize: .Nfont.h0
+                            lineHeight: 1.2vw
+                            width: 40vw
+                            marginTop: 1vw
+                        - .VQSecondTitle:
+                          text: "Please answer the following questions:"
+                          style: 
+                            width: 40vw
+                            marginTop: 1vw 
+                            fontSize: .Nfont.h0_1
+                            fontWeight: 550
+                        - type: view
+                          style:
+                            width: "40vw"
+                            marginTop: 0.5vw
+                          children: 
+                            - .VQSecondTitle:
+                              text: "Have you had a severe allergic reaction after receiving a previous dose of COVID-19 vaccine?"
+                              style:
+                                fontSize: .Nfont.h0
+                                lineHeight: 1.2vw
+                            - type: view
+                              style: 
+                                width: 40vw
+                                height: 1vw
+                                marginTop: 0.7vw
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.recevingDose
+                                  iteratorVar: itemObject
+                                  viewTag: screeningView
+                                  style:
+                                    height: 1vw
+                                    axis: horizontal
+                                    width: 16vw
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: space-between
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: 8vw
+                                        height: 1vw
+                                        display: flex
+                                        flexDirection: row
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: 0.8vw
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.screeningEligibility.recevingDose
+                                                          string2: $var.value
+                                                    - blue.svg
+                                                    - black.svg
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions: 
+                                                  - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.screeningEligibility.recevingDose
+                                                          string2: $var.value
+                                                    - =.builtIn.object.clear:
+                                                        dataIn:
+                                                          object: =..formData.screeningEligibility
+                                                          key: $var.key
+                                                    - =.builtIn.object.set:
+                                                        dataIn:
+                                                          object: =..formData.screeningEligibility
+                                                          key: $var.key
+                                                          value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: screeningView
+                                        - .VQSecondTitle:
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: 0.5vw
+                                            float: left
+                                            fontSize: .Nfont.h0_1
+                                            lineHeight: 1vw
+                        - type: view
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .VQSecondTitle:
+                              text: "Have you had a severe allergic reaction to any ingredient in the Pfizer-BioNtech COVID-19 vaccine?"
+                              style:
+                                fontSize: .Nfont.h0
+                                lineHeight: 1.2vw
+                            - type: view
+                              style: 
+                                width: 40vw
+                                height: 1vw
+                                marginTop: 0.7vw
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.ingredient
+                                  iteratorVar: itemObject
+                                  viewTag: screeningView
+                                  style:
+                                    height: 1vw
+                                    axis: horizontal
+                                    width: 16vw
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: space-between
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: 8vw
+                                        height: 1vw
+                                        display: flex
+                                        flexDirection: row
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: 0.8vw
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.screeningEligibility.ingredient
+                                                          string2: $var.value
+                                                    - blue.svg
+                                                    - black.svg
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions: 
+                                                  - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.screeningEligibility.ingredient
+                                                          string2: $var.value
+                                                    - =.builtIn.object.clear:
+                                                        dataIn:
+                                                          object: =..formData.screeningEligibility
+                                                          key: $var.key
+                                                    - =.builtIn.object.set:
+                                                        dataIn:
+                                                          object: =..formData.screeningEligibility
+                                                          key: $var.key
+                                                          value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: screeningView
+                                        - .VQSecondTitle:
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: 0.5vw
+                                            float: left
+                                            fontSize: .Nfont.h0_1
+                                            lineHeight: 1vw
+                        
+                
+            - type: view
+              style:
+                height: 2.3vw
+                left: 15.5vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Leftbutton.svg
+                  style:
+                    height: 3vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        # 保存选择状态
+                        - .Global.formData.pifzerVaccineFirDoseForm.name.data.screeningEligibility@: =..formData.screeningEligibility 
+                    - goto: PfizerVaccineFirDoseEditPage2
+            - type: view
+              style:
+                height: 2.3vw
+                left: 60.3vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Rightbutton.svg
+                  style:
+                    height: 3vw
+                    left: 10vw
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:    
+                    - actionType: evalObject
+                      object:
+                        # 保存选择状态
+                        - .Global.formData.pifzerVaccineFirDoseForm.name.data.screeningEligibility@: =..formData.screeningEligibility      
+                    - goto: PfizerVaccineFirDoseEditPage4
+        

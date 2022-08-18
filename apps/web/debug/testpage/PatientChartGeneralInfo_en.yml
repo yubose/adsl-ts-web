@@ -1,0 +1,297 @@
+PatientChartGeneralInfo:
+  pageNumber: "171"
+  title: "Patient Chart"
+  init:
+    - .SignInCheck
+  generalInfo: .PatientChartDM.patientChart.generalInfo  #引用用户总表单对象
+  # data template for update
+  generalInfoTemp:
+    input1:
+      - key: firstName
+        value: First Name
+      - key: middleNameAndInitial
+        value: "Middle Name and Initial"
+      - key: lastName
+        value: Last Name
+      - key: preferredName
+        value: Preferred name
+    gender:
+      - key: gender
+        value: Male
+      - key: gender
+        value: Female
+      - key: gender
+        value: Other
+    input2:
+      - key: dateOfBirth
+        value: "Date of birth"  
+      - key: occupation
+        value: "Occupation"  
+      - key: relationshipStatus
+        value: "Relationship Status"    
+      - key: primaryCarePhysician
+        value: "Primary Care Physician"  
+      - key: primaryCareClinic
+        value: "Primary Care Clinic"
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+    - .HeaderRightButton:
+      text: Skip
+      onClick:
+        - goto: PatientChartPastMedicalHistory
+    - type: view
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "1.02"
+      children:
+        - type: image
+          path: progresspercent0.png
+          style: 
+            width: "0.9"
+            top: "0.02"
+            height: "0.035"
+            left: "0.05"
+        - .H6:
+          text: "General Information"
+          style:
+            top: "0.03"
+            left: "0.1"
+            fontStyle: "bold"
+  #       #将输入框按照list输出
+        - type: list
+          contentType: listObject
+          listObject: ..generalInfoTemp.input1
+          iteratorVar: itemObject
+          style: 
+            top: "0.1"
+            width: "1"
+            height: "0.6"
+            left: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              style: 
+                left: "0"
+                top: "0"
+                width: "1"
+                height: "0.07"
+                backgroundColor: "0xffffffff"
+              children:              
+                - type: label
+                  dataKey: itemObject.value
+                  style:
+                    fontSize: "14"
+                    top: "0"
+                    left: "0.1"
+                    color: "#636363"
+                - .BaseTextField:
+                  placeholder:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      actions:
+                        - =.builtIn.object.get:
+                            dataIn:
+                              object: =..generalInfo
+                              key: $var.key
+                  dataValue:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      actions:
+                        - =.builtIn.object.get:
+                            dataIn:
+                              object: =..generalInfo
+                              key: $var.key
+                  dataKey: itemObject.dataValue 
+                  onChange:
+                    # set itemObject.value = textFieldInput
+                    # "value" 
+                    emit:
+                      dataKey:
+                        var: itemObject # itemObject.value to the input field 
+                      actions:
+                        - =.builtIn.object.set:
+                            dataIn:
+                              object: =..generalInfo
+                              key: $var.key
+                              value: $var.dataValue
+                  style:
+                    width: "0.4"
+                    left: "0.5"
+                    top: "0"
+                    height: "0.03"
+                    fontSize: "14"
+                    border:
+                      width: "3"
+                      style: "6"
+                      color: "#7e7e7e"
+                    borderRadius: "3"
+        #将单选框按照list输出
+        - type: list  
+          contentType: listObject
+          listObject: ..generalInfoTemp.gender
+          iteratorVar: itemObject
+          style: 
+            top: "0.4"
+            width: "1"
+            height: "0.6"
+            left: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              style: 
+                left: "0"
+                top: "0"
+                width: "0.33"
+                height: "0.07"
+                backgroundColor: "0xffffffff"
+                display: "inline-block"
+              viewTag: genderTag
+              children:
+                - type: image
+                  path:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      actions:                        
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..generalInfo.gender
+                                string2: $var.value
+                          - https://public.aitmed.com/commonRes/selectOn.png
+                          - https://public.aitmed.com/commonRes/selectOff.png
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions: 
+                          - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..generalInfo.gender
+                                  string2: $var.value
+                            - =.builtIn.object.clear:
+                                dataIn:
+                                  object: =..generalInfo
+                                  key: $var.key
+                            - =.builtIn.object.set:
+                                dataIn:
+                                  object: =..generalInfo
+                                  key: $var.key
+                                  value: $var.value 
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: genderTag
+                  style:
+                    height: "0.02"
+                    width: "0.042"
+                    top: "0"
+                    left: "0.07"
+                - type: label
+                  dataKey: itemObject.value
+                  style:
+                    fontSize: "13"
+                    top: "0"
+                    left: "0.13"
+        - type: list
+          contentType: listObject
+          listObject: ..generalInfoTemp.input2
+          iteratorVar: itemObject
+          style: 
+            top: "0.48"
+            width: "1"
+            height: "0.45"
+            left: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              style: 
+                left: "0"
+                top: "0"
+                width: "1"
+                height: "0.07"
+                backgroundColor: "0xffffffff"
+              children:              
+                - type: label
+                  dataKey: itemObject.value
+                  style:
+                    fontSize: "14"
+                    top: "0"
+                    left: "0.1"
+                    color: "#636363"
+                - .BaseTextField:
+                  placeholder:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      # hardcoded to set textField input into itemObject.value
+                      actions:
+                        - =.builtIn.object.get:
+                            dataIn:
+                              object: =..generalInfo
+                              key: $var.key
+                  dataValue:    #itemObject.value xuchen 1207
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      # hardcoded to set textField input into itemObject.value
+                      actions:
+                        - =.builtIn.object.get:
+                            dataIn:
+                              object: =..generalInfo
+                              key: $var.key
+                  dataKey: itemObject.dataValue
+                  onChange:
+                    # set itemObject.value = textFieldInput
+                    # "value" 
+                    emit:
+                      dataKey:
+                        var: itemObject # itemObject.value to the input field 
+                      actions:
+                        - =.builtIn.object.set:
+                            dataIn:
+                              object: =..generalInfo
+                              key: $var.key
+                              value: $var.dataValue
+                  style:
+                    width: "0.4"
+                    left: "0.5"
+                    top: "0"
+                    height: "0.03"
+                    fontSize: "14"
+                    border:
+                      width: "3"
+                      style: "6"
+                      color: "#7e7e7e"
+                    borderRadius: "3"
+        - type: button
+          text: "Next"
+          onClick:
+            # - emit:
+            #     dataKey:
+            #       var: .PatientChartDM.patientChart.generalInfo
+            #     actions:
+            #       - var@: {}
+            #       # - var@: ..generalInfo
+            - actionType: evalObject
+              object:
+                - .PatientChartDM.patientChart.generalInfo@: ""
+                - .PatientChartDM.patientChart.generalInfo@: =..generalInfo
+            - goto: PatientChartPastMedicalHistory
+          style:
+            left: "0.2"
+            top: "0.85"
+            width: "0.6"
+            height: "0.05"
+            backgroundColor: "#388ecc"
+            color: "0xFFFFFF"
+            fontSize: "17"
+            display: inline
+            borderRadius: 10
+            border:
+              style: 1

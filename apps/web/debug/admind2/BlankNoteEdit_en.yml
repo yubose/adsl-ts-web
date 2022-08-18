@@ -1,0 +1,348 @@
+BlankNoteEdit:
+  title: Provider Note
+  init:
+    - .SignInCheck
+    #页面进入时就创建文档
+    - =.BlankNoteEdit.newNote.docAPI.store: ""
+    - ..newNote.document@: =..newNote.response.doc
+    
+
+  newSign:
+    docRes: ""
+    document: 
+      reid: ""
+      .Document: ""
+      type: .DocType.DocumentSignature
+      name:
+        title: ""
+        type: ..newSign.document.subtype.mediaType
+        data: ""
+      eid: .Global.formData.meetingDocEid
+      subtype:
+        mediaType: "" # mediaType : "image/jpeg"
+    docAPI: # DOCAPI
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: BlankNoteEdit.newSign.document
+        dataOut: BlankNoteEdit.newSign.docRes
+
+  newNote:
+    deleteReq:
+      id: ""
+    response: ""
+    document:
+      .Document: ""
+      eid: .Global.formData.meetingDocEid
+      reid: ""
+      type: .DocType.MeetingNote
+      subtype:
+        mediaType: "" # mediaType : "image/jpeg"
+      name:
+        data:
+          signatureTime: ""
+          signatureId: ""
+          whetherSign: "true"
+          note: ""
+          classTag:
+            name: Admin
+            fontColor: "0x005795"
+            backgroundColor: "0xe9f2fc"
+            display: block
+          statusTag:
+            name: Private
+            fontColor: "0x4c5264"
+            backgroundColor: "0xececee"
+            display: block
+        type: "text/plain"
+        title: ""
+        user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: BlankNoteEdit.newNote.document
+        dataOut: BlankNoteEdit.newNote.response
+        subtype:
+          mediaType: "text/plain" 
+      delete:
+        api: dx
+        dataIn: BlankNoteEdit.newNote.document
+
+  formData:
+    flag: "none"
+    temporarySignature: ""
+    whetherSignature: ""
+  formDataTemp:
+    privateTag: 
+      display: "block"
+      backgroundColor: "0xececee"
+      fontColor: "0x4c5264"
+      name: "Private"
+    publicTag: 
+      display: "block"
+      backgroundColor: "0xdfedfc"
+      fontColor: "0x2988e6"
+      name: "Released"
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..newNote.deleteReq.id@: =..newNote.response.doc.id
+                    - =..newNote.docAPI.delete: ""
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                  children:
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.74"
+                        overflow: "scroll"                      
+                      children:
+                        - type: view 
+                          style: 
+                            height: "0.1"
+                            width: "0.39"
+                            marginTop: "0.02"    
+                          children:
+                            - type: label
+                              text: Name your notes
+                              style:
+                                left: "0"
+                                height: "0.03"
+                                fontSize: .Nfont.nf5
+                                marginTop: "0.03"
+                                textAlign:
+                                  x: center
+                            - type: label
+                              text: "*"
+                              style:
+                                left: "0.245"
+                                top: "0"
+                                width: "0.1"
+                                height: "0.02"
+                                fontSize: .Nfont.nf3
+                                color: "0xd53c42"
+                            - type: textField
+                              placeholder: "Blank Note"
+                              dataKey: newNote.document.name.title
+                              style:
+                                left: "0"
+                                top: "0.05"
+                                width: "0.39"
+                                height: "0.04"                      
+                                border:
+                                  style: "2"
+                                borderWidth: "1"
+                                borderColor: "0x000000"
+                                backgroundColor: "0xffffff"
+                                fontSize: .Nfont.nf4
+                                textAlign:
+                                  x: center
+                            - type: textView
+                              placeholder: "Hello this meeting"
+                              dataKey: newNote.document.name.data.note
+                              style:
+                                left: "0"
+                                top: "0.12"
+                                width: "0.39"
+                                height: "0.61"
+                                fontSize: .Nfont.nf4
+                                textIndent: "10px"
+                                fontFamily: sans-serif
+                                backgroundColor: "0xffffff"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                  width: "1"
+                                borderColor: "0x787878"
+                                textAlign: 
+                                  y: top
+                            - type: view
+                              style:
+                                top: "0.75"
+                                left: "0"
+                                width: "0.39"
+                                height: "0.2"
+                              children:
+                                - type: label
+                                  text: "Signature:"
+                                  style:
+                                    left: "0"
+                                    top: "0" 
+                                    fontSize: .Nfont.nf5
+                                    height: auto
+                                    color: "0x000000"
+                                    textAlign:
+                                      y: center
+                                - type: view
+                                  style:
+                                    marginTop: "0.05"
+                                    width: "0.39"
+                                    display: flex
+                                    flexDirection: column
+                                    flexWrap: wrap
+                                    alignContent: space-around
+                                    justifyContent: center
+                                  children:
+                                    - type: label
+                                      text: "Clear"
+                                      style:
+                                        textAlign:
+                                          x: right
+                                        color: "0xff0000"
+                                      onClick:
+                                        - actionType: removeSignature
+                                          dataObject: BLOB
+                                          dataKey: newSign.document.name.data
+                                          viewTag: signatureTag
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: signatureTag
+                                    - .SignAreaView:
+                                      children:
+                                        - type: canvas
+                                          dataKey: newSign.document.name.data
+                                          viewTag: signatureTag  
+                                          style:
+                                            top: "0"
+                                            left: "0"
+                                            width: "0.33"
+                                            height: "0.16"
+                                        - type: label
+                                          text: "X"
+                                          style:
+                                            .SignLabelStyle:   
+                                       
+                                                                             
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick: 
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: newSign.document.name.data
+                          isEmpty: formData.whetherSignature 
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =..formData.whetherSignature
+                              - continue
+                              - actionType: evalObject
+                                object:
+                                  - ..newSign.document.reid@: =..newNote.response.doc.id
+                                  - =..newSign.docAPI.store: ""
+                                # 存放签名的id到blankNote
+                                  - ..newNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                  - ..newNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                                  - ..newNote.document.name.data.whetherSign@: =..formData.whetherSignature
+                                  
+
+
+                        #  指定  reid
+                        - actionType: evalObject
+                          object:
+                            - ..newNote.document.reid@: =.Global.formData.meetingDocReid
+                        #  修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..newNote.document.type
+                                  index: 1
+                                  hex: 0
+                                dataOut: BlankNoteEdit.newNote.document.type
+                        # title处理
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..newNote.document.name.title
+                                      string2: ""
+                                - ..newNote.document.name.title@: "Blank Note"
+                                - continue
+                        - actionType: evalObject
+                          object:
+                            - =..newNote.docAPI.store: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                  # release button         
+                    - .FormsBottomRightButton:
+                      onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: newSign.document.name.data
+                          isEmpty: formData.whetherSignature
+                        #  指定  reid
+                        - actionType: evalObject
+                          object:
+                            - ..newNote.document.reid@: =.Global.formData.meetingDocReid
+                        # title处理
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..newNote.document.name.title
+                                    string2: ""
+                              - ..newNote.document.name.title@: "Blank Note"
+                              - continue
+                        
+                        # 签名处理
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =..formData.whetherSignature
+                              - actionType: popUp
+                                popUpView: signatureWarningTag
+                                wait: true
+                              - continue
+                            - =..newSign.docAPI.store: ""
+                            - ..newNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                            - ..newNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                            - ..newNote.document.name.data.whetherSign@: =..formData.whetherSignature
+                            - ..newNote.document.name.data.statusTag@: =..formDataTemp.publicTag
+                            - =..newNote.docAPI.store: ""
+                  
+
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+
+        - .BaseWarningView:
+          msg2: "You haven't signed the form."
+          viewTag: signatureWarningTag

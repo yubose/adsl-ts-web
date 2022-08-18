@@ -1,0 +1,3210 @@
+StaffManagement: #xd page number: 86
+  pageNumber: "540" 
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..invite.edgeAPI.get
+    - ..staff.edgeAPI.get
+    - ..authorization@: []
+    - =.builtIn.array.keepLatestDoc: 
+        dataIn: 
+          docList: =..staff.list.edge
+          path: bsig
+        dataOut: StaffManagement.formData.staffList
+    - =.builtIn.array.splitTableList: 
+        dataIn: 
+          arrObj: =..formData.staffList
+          numX: "12"
+          numY: "1"
+        dataOut: StaffManagement.formData.tableData
+    - ..formData.tableList@: =..formData.tableData.0
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.tablePageNum # page num
+          - " / "
+          - =..formData.tableData.1 # total page
+        dataOut: StaffManagement.formData.tableCurrentPage # current page                           
+    - =.builtIn.number.addition: # get totalPage+1 to verify legitimacy of gotoPageNum
+        dataIn:
+          num: =..formData.tableData.1
+          step: "1"
+        dataOut: StaffManagement.formData.totalPageMore # update page num    
+  viewPort: top  
+  title: "StaffManagement"
+  test: ""
+  Level:
+    - key: "Active"
+    - key: "Schedule"
+    - key: "Staff Management"
+    - key: "Patient Mangement"
+    - key: "Provider Mangement"
+  gender: 
+    - key: gender
+      value: "Male"
+    - key: gender
+      value: "Female"
+    - key: gender
+      value: "Other"
+  invite1:
+    info: ""
+    edge:
+      id: ""
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: StaffManagement.invite1.edge
+        dataOut: StaffManagement.invite1.info
+  invite:
+    authList: 
+      edge: ""
+    ceResp: ""
+    deleteList: 
+      .Edge: ""
+      id: HXV/DVWJRKGgK9fscgAGUw==
+    edge:
+      .Edge: ""
+      type: .EdgeType.Invite
+      bvid: .Global.currentUser.vertex.id
+      refid: .Global.currentFacility.id
+      name:
+        firstName: ""
+        middleName: ""
+        lastName: ""
+        inviteeName: "" # fullName
+        inviteePhoneNumber: ""
+        inviterPhoneNumber: .Global.currentUser.vertex.uid
+        inviterName: .Global.currentUser.vertex.name.userName
+        inviterPk: .Global.currentUser.vertex.pk
+        status: ""
+        statusMark: false
+        inviterCategory: Facility
+        inviteeCategory: staff
+        auth: ""
+        gender: ""
+        email: ""
+        authShow: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: invite.edge
+        dataOut: invite.ceResp
+      get: 
+        api: re
+        dataKey: invite.authList
+        xfname: evid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        type: .EdgeType.Invite
+        sCondition: subtype!=0 AND subtype!=1 AND subtype!=2
+        _nonce: =.Global._nonce
+      delete:
+        api: dx
+        dataIn: invite.deleteList
+  accept:
+    edge:
+      .Edge: ""
+      type: .EdgeType.Accept
+      evid: .Global.currentUser.vertex.id
+      bvid: =..invite.ceResp.edge.evid
+      refid: =..invite.ceResp.edge.id
+      name: =..invite.ceResp.edge.name
+    edgeAPI: 
+      store:
+        api: ce
+        dataIn: accept.edge   
+  auth:
+    document: ""
+    response: ""
+    documentReq:
+      id: ""
+      xfname: eid
+      type: .DocType.Auth
+      _nonce: =.Global._nonce
+    docAPI:
+      store:
+        api: cd
+        dataIn: StaffManagement.auth.document
+      get:
+        api: rd
+        dataIn: StaffManagement.auth.documentReq
+        dataOut: StaffManagement.auth.response
+  relation:
+    edgeStore: ""
+    edge: ""
+    edgeReq:
+      type: .EdgeType.StaffToFacility
+      id: []
+      xfname: evid & bvid
+      obfname: ctime
+      _nonce: =.Global._nonce
+    edgeAPI:
+      store: 
+        api: ce
+        dataIn: StaffManagement.relation.edgeStore
+      get:
+        api: re
+        dataIn: StaffManagement.relation.edgeReq
+        dataOut: StaffManagement.relation.edge
+  staff:
+    list: 
+      edge: []
+    edge:
+      id:
+        # - .Global.currentUser.vertex.id
+        - .Global.currentFacility.id
+      type: "1051"
+      maxcount: "100"
+      xfname:  refid
+      obfname: ctime
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: StaffManagement.staff.edge
+        dataOut: StaffManagement.staff.list
+      store:
+        api: ce
+        dataIn: StaffManagement.formData.staffInfo
+  formData:   
+    # staffList: []         
+    tableData: []           # sdk 返回的数组,包括当前显示第几页的数据list 和 被切分成总共多少页面
+    tableList: []           # sdk 返回的数组的第一项，list真正打印的数据
+    tablePageNum: "1"     # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: ""       # goto 后面的文本显示
+    totalPageMore: ""     # totalPage(tableData.1) + 1 
+    id: []
+    authLi: []
+    dataStruc:
+      - id
+      - name.inviteeName
+      - name.gender
+      - name.status
+      - name.inviteePhoneNumber
+      - name.email
+    #   # - name.authShow.Schedule
+    respData: ""
+    countryCode: "+1"
+    number: ""
+    currentStaffList: []
+    staffList: []
+    staffInfo: 
+      name: 
+        gender: "Male"
+    idList: []
+    subtypeList: []
+    firstName: ""
+    middleName: ""
+    lastName: ""
+    authList:
+      MFI: "1"
+      TDT: "2"
+      staff: "3"
+      patient: "4"
+      provider: "5"
+      scheduleInfo: "6"
+      PAT: "7"
+    auth:
+      MFI:
+        create: false
+        edit: false
+        review: false
+      TDT:
+        create: false
+        edit: false
+        review: false
+      staff:
+        create: false
+        edit: false
+        review: false
+      patient:
+        create: false
+        edit: false
+        review: false
+      provider:
+        create: false
+        edit: false
+        review: false
+      scheduleInfo:
+        create: false
+        edit: false
+        review: false
+      PAT:
+        create: false
+        edit: false
+        review: false
+    authTemp:
+      MFI:
+        - key: create
+        - key: edit
+        - key: review
+      TDT:
+        - key: create
+        - key: edit
+        - key: review
+      staff:
+        - key: create
+        - key: edit
+        - key: review
+      patient:
+        - key: create
+        - key: edit
+        - key: review
+      provider:
+        - key: create
+        - key: edit
+        - key: review
+      scheduleInfo:
+        - key: create
+        - key: edit
+        - key: review
+      PAT:
+        - key: create
+        - key: edit
+        - key: review  
+  authorization: []
+  mess: ""
+  apiRequest:  
+    staffData: 
+      vertexResp: ""
+      vertexIn: 
+        xfname: "none"
+        type: "1"
+        sCondition: ""
+      vertexAPI: 
+        get: 
+          api: rv
+          dataIn: apiRequest.staffData.vertexIn
+          dataOut: StaffManagement.apiRequest.staffData.vertexResp
+  # inviteInfo:
+  #   edgeResp:
+  #     edge:
+  #   edge:
+  #     bvid: .Global.currentFacility.id
+  #     type: .EdgeType.InviteInfo
+  #     _nonce: '=.Global._nonce'
+  #     name:
+  #       phoneNumber: ""     
+  #   edgeAPI:
+  #     store:
+  #       api: ce
+  #       dataIn: inviteInfo.edge
+  #       dataOut: StaffManagement.inviteInfo.edgeResp
+  #     delete:
+  #       api: dx
+  #       dataIn: StaffManagement.inviteInfo.edgeResp.edge
+
+  staffDisplay:
+    vertexResp:
+    vertexIn:
+      id: 
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: staffDisplay.vertexIn
+        dataOut: StaffManagement.staffDisplay.vertexResp
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .BaseCheckView: ""
+          message: "Required information: First name, Last name, Phone number. This is the minimum information needed to create a new staff. The other information can be updated whenever you want."
+          viewTag: errorFillinView
+          style: 
+            zIndex: "100000"
+        - .BaseWarningView: ""
+          msg2: "The phone number doesn't exist"
+          viewTag: phoneNotExit
+          style: 
+            zIndex: "20"  #   need dismiss addpopUp and clear data            
+        - .LoadingView: ""
+          message: "In searching..."
+          viewTag: searchingView
+        - .BaseCheckView: ""
+          message: "You don't have the authority to add a new staff"
+          viewTag: staffAuthCreate
+          style: 
+            zIndex: "100000"
+        - .BaseCheckView: ""
+          message: "You don't have the authority to edit"
+          viewTag: staffAuthEdit
+          style: 
+            zIndex: "100000"
+        - .BasePopUp:
+          viewTag: CreateUser
+          style: 
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                backgroundColor: "0xFFFFFF"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Add Staff'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: CreateUser
+                        - actionType: evalObject
+                          object:
+                            - ..formData.phoneNumber@: ""
+                            - ..formData.countryCode@: ""
+                            - ..formData.number@: ""
+                            - ..invite.edge.name.firstName@: ""
+                            - ..invite.edge.name.lastName@: ""
+                            - ..invite.edge.name.middleName@: ""
+                            - ..invite.edge.name.lastName@: ""
+                            - ..invite.edge.name.gender@: ""
+                            - ..invite.edge.name.email@: ""
+                            - ..invite.edge.name.statusMark@: false
+                            - ..formData.auth.MFI.create@: false
+                            - ..formData.auth.MFI.edit@: false
+                            - ..formData.auth.MFI.review@: false
+                            - ..formData.auth.TDT.create@: false
+                            - ..formData.auth.TDT.edit@: false
+                            - ..formData.auth.TDT.review@: false
+                            - ..formData.auth.staff.create@: false
+                            - ..formData.auth.staff.edit@: false
+                            - ..formData.auth.staff.review@: false      
+                            - ..formData.auth.patient.create@: false
+                            - ..formData.auth.patient.edit@: false
+                            - ..formData.auth.patient.review@: false                                                                          
+                            - ..formData.auth.provider.create@: false
+                            - ..formData.auth.provider.edit@: false
+                            - ..formData.auth.provider.review@: false
+                            - ..formData.auth.scheduleInfo.create@: false
+                            - ..formData.auth.scheduleInfo.edit@: false
+                            - ..formData.auth.scheduleInfo.review@: false
+                            - ..formData.auth.PAT.create@: false
+                            - ..formData.auth.PAT.edit@: false
+                            - ..formData.auth.PAT.review@: false 
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: CreateUser                                                                                 
+                - type: scrollView
+                  viewTag: CreateUser1
+                  style: 
+                    height: '0.82'
+                    width: '0.4'
+                    top: '0.08'
+                    overflow: scroll
+                  children: 
+                    - type: view
+                      style:
+                        height: '0.34'
+                        width: '0.4'
+                        top: '0'
+                      children:
+                        - type: label
+                          text: Basic Info
+                          style:
+                            fontSize: '16'
+                            left: '0.03'
+                            top: '0.02'
+                            color: '#7f7f7f'
+                        - type: label
+                          textBoard: 
+                            - text: First Name      
+                            - text: "*"
+                              color: "0xff0000"         
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.095"
+                            textAlign:
+                              y: center
+                        - type: label
+                          text: Middle Name            
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.135"
+                            textAlign:
+                              y: center
+                        - type: label
+                          textBoard: 
+                            - text: Last Name      
+                            - text: "*"
+                              color: "0xff0000"                 
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.18"
+                            textAlign:
+                              y: center
+                        - type: label
+                          text: Gender              
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.225"
+                            textAlign:
+                              y: center
+                        - type: label
+                          textBoard: 
+                            - text: Phone Number
+                            - text: "*"
+                              color: "0xff0000"  
+                          style:
+                            # width: '0.05'
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.05"
+                            textAlign:
+                              y: center
+                        - type: label
+                          text: Email             
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.275"
+                            textAlign:
+                              y: center
+                        - type: textField
+                          placeholder: "Enter Here"
+                          dataKey: invite.edge.name.firstName
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.095"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC" 
+                        - type: textField
+                          placeholder: "Enter Here"
+                          dataKey: invite.edge.name.middleName
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.135"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC"  
+                            boxSizing: content-box                           
+
+                        - type: textField
+                          placeholder: "Enter Here"
+                          dataKey: invite.edge.name.lastName
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.18"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC"  
+                        - type: list
+                          contentType: listObject
+                          listObject: ..gender
+                          iteratorVar: itemObject
+                          viewTag: genderView
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.225"
+                            height: "0.035"
+                            margin: "0"
+                            axis: horizontal
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style: 
+                                left: "0"
+                                width: "0.1"
+                                height: "0.035"
+                                backgroundColor: "0xffffffff"
+                              children:
+                                - type: image
+                                  style:
+                                    top: "0.007"
+                                    left: "0"
+                                    width: "0.01"
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..invite.edge.name.gender
+                                                string2: $var.value
+                                          - checkOn.svg
+                                          - checkOff.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions: 
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..invite.edge.name.gender
+                                                  string2: $var.value
+                                            - =.builtIn.object.clear:
+                                                dataIn:
+                                                  object: =..invite.edge.name
+                                                  key: $var.key
+                                            - =.builtIn.object.set:
+                                                dataIn:
+                                                  object: =..invite.edge.name
+                                                  key: $var.key
+                                                  value: $var.value 
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: genderView
+                                - type: label
+                                  dataKey: itemObject.value
+                                  style:
+                                    top: "0"
+                                    left: "0.02"  
+                                    color: "#5f5f5f"  
+                                    height: "0.035"
+                                    textAlign: 
+                                      y: center
+                                    fontSize: "14" 
+                        # - type: textField
+                        #   placeholder: "Enter Here"
+                        #   dataKey: invite.edge.name.gender
+                        #   style:
+                        #     width: "0.2"
+                        #     left: "0.13"
+                        #     top: "0.185"
+                        #     height: "0.035"
+                        #     border:
+                        #       style: "3" 
+                        #     borderColor: "#DCDCDC"   
+                        - type: select
+                          contentType: countryCode
+                          placeholder: ..formData.countryCode
+                          dataKey: formData.countryCode # formData.countryCode : inputValue
+                          options:
+                            .CountryCode
+                          required: "true"
+                          style:
+                            width: "0.029"
+                            left: "0.13"
+                            top: "0.05"
+                            height: "0.04"
+                            placeholder: "US +1"
+                            borderWidth: "1"
+                            border:
+                              style: "3"
+                              color: "0xdededf"  
+                        - type: textField
+                          placeholder: "Enter Here"
+                          dataKey: formData.number
+                          style:
+                            width: "0.13"
+                            left: "0.16"
+                            top: "0.05"
+                            height: "0.035"
+                            # backgroundColor: "#f4f8fa"
+                            border: 
+                              style: "3"  
+                            borderColor: "#DCDCDC" 
+                        - type: button
+                          text: Search 
+                          style:
+                            width: "0.03"
+                            left: "0.295"
+                            top: "0.05"
+                            height: "0.036"
+                            textAlign:
+                              x: center
+                              y: center
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            border: 
+                              style: "3"  
+                            borderColor: "0x005795"
+                            borderRadius: "3" 
+                            boxSizing: content-box
+                          onClick:
+                            # - actionType: popUp
+                            #   popUpView: searchingView
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            # - actionType: popUp
+                            #   popUpView: searchingView
+                            - actionType: evalObject
+                              object:
+                                - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                - =.Global.jwt.edgeAPI.store: ""
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - =..formData.countryCode
+                                      - " "
+                                      - =..formData.number
+                                    dataOut: StaffManagement.formData.phoneNumber
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - "uid like '%"
+                                      - ""
+                                      - =..formData.phoneNumber
+                                      - "'"
+                                    dataOut: StaffManagement.apiRequest.staffData.vertexIn.sCondition
+                                - =..apiRequest.staffData.vertexAPI.get: ""
+                                - if: 
+                                  - =..apiRequest.staffData.vertexResp.vertex.0
+                                  - continue
+                                  - actionType: popUp
+                                    popUpView: phoneNotExit
+                                    wait: true
+                                - ..staffDisplay.vertexIn.id@: =..apiRequest.staffData.vertexResp.vertex.0.id
+                                - =..staffDisplay.vertexAPI.get: ""
+                                - ..invite.edge.name.firstName@: =..staffDisplay.vertexResp.vertex.0.name.firstName
+                                - ..invite.edge.name.lastName@: =..staffDisplay.vertexResp.vertex.0.name.lastName
+                            
+                                # - =..staffDisplay.vertexAPI.get: ""
+                            # - actionType: popUp
+                            # #   popUpView: searchingView 
+                            # - actionType: popUpDismiss
+                            #   popUpView: searchingView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: CreateUser1
+                        - type: textField
+                          placeholder: "Enter Here"
+                          dataKey: invite.edge.name.email
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.275"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC"   
+                            boxSizing: content-box                           
+                    - type: label
+                      text: Authorization Level
+                      style:
+                        fontSize: '16'
+                        left: '0.03'
+                        top: '0.34'
+                        color: '#7f7f7f'
+                    - type: label
+                      text: Status 
+                      style:
+                        fontSize: '12'
+                        left: '0.06'
+                        top: '0.395'
+                    - type: image
+                      viewTag: statusTag
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                              - =..invite.edge.name.statusMark
+                              - switchOn.svg
+                              - switchOff.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =..invite.edge.name.statusMark
+                              - ..invite.edge.name.statusMark@: false
+                              - ..invite.edge.name.statusMark@: true   
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: statusTag
+                      style:
+                        width: "0.035"
+                        left: "0.3"
+                        top: "0.38"
+                        zIndex: "1000"
+                    # - type: view
+                    #   style: 
+                    #     border:
+                    #       style: "3"
+                    #     width: "0.25"
+                    #     height: "0.12"
+                    #     left: "0.075"
+                    #     top: "0.45"
+                    #     borderColor: "#E4F4FF"
+                    #   children:
+                    #     - .Label1:
+                    #       text: Create
+                    #       style:
+                    #         left: "0.13"
+                    #         top: "0.005"
+                    #     - .Label1:
+                    #       text: Edit
+                    #       style:
+                    #         left: "0.177"
+                    #         top: "0.005"
+                    #     - .Label1:
+                    #       text: Review
+                    #       style:
+                    #         left: "0.215"
+                    #         top: "0.005"
+                    #     - .Label1:
+                    #       text: "Settings"
+                    #       style:
+                    #         top: "0.005"
+                    #         left: "0.01"
+                    #         fontSize: "14"
+                    #     - .Label1:
+                    #       text: "Medical Facility Info"
+                    #       style:
+                    #         top: "0.045"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Treatment Date & Time"
+                    #       style:
+                    #         top: "0.08"
+                    #         left: "0.01"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.MFI
+                    #       viewTag: MFITag
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.02"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #             # top: auto
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.auth.MFI
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.MFI
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.MFI
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.MFI
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: MFITag
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.TDT
+                    #       viewTag: TDTTag
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.06"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.auth.TDT
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.TDT
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.TDT
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.TDT
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: TDTTag
+                    #                 style:
+                    #                   left: "0"
+                    # - type: view
+                    #   style: 
+                    #     border:
+                    #       style: "3"
+                    #     width: "0.25"
+                    #     height: "0.16"
+                    #     left: "0.075"
+                    #     top: "0.6"
+                    #     borderColor: "#E4F4FF"
+                    #   children:
+                    #     - .Label1:
+                    #       text: "User Management"
+                    #       style:
+                    #         top: "0.005"
+                    #         left: "0.01"
+                    #         fontSize: "14"
+                    #     - .Label1:
+                    #       text: "Staff"
+                    #       style:
+                    #         top: "0.045"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Provider"
+                    #       style:
+                    #         top: "0.115"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Patient"
+                    #       style:
+                    #         top: "0.08"
+                    #         left: "0.01"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.04"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.08"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.12"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.staff
+                    #       viewTag: staffTag
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.02"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.auth.staff
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.staff
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.staff
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.staff
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: staffTag
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.patient
+                    #       viewTag: patientTag
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.06"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.auth.patient
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.patient
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.patient
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.patient
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: patientTag
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.provider
+                    #       viewTag: providerTag
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.1"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.auth.provider
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.provider
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.provider
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.provider
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: providerTag
+                    #                 style:
+                    #                   left: "0"
+                    # - type: view
+                    #   style: 
+                    #     border:
+                    #       style: "3"
+                    #     width: "0.25"
+                    #     height: "0.12"
+                    #     left: "0.075"
+                    #     top: "0.79"
+                    #     borderColor: "#E4F4FF"
+                    #   children:
+                    #     - .Label1:
+                    #       text: "Scheduling"
+                    #       style:
+                    #         top: "0.005"
+                    #         left: "0.01"
+                    #         fontSize: "14"
+                    #     - .Label1:
+                    #       text: "Schedule Info"
+                    #       style:
+                    #         top: "0.045"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Providers available time"
+                    #       style:
+                    #         top: "0.08"
+                    #         left: "0.01"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.04"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.08"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.scheduleInfo
+                    #       viewTag: scheduleInfoTag
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.02"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.auth.scheduleInfo
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.scheduleInfo
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.scheduleInfo
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.scheduleInfo
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: scheduleInfoTag
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.PAT
+                    #       viewTag: PATTag
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.06"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.auth.PAT
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.PAT
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.PAT
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.auth.PAT
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: PATTag
+                    #                 style:
+                    #                   left: "0"
+                
+                - .BottomButton:
+                  text: 'Next'
+                  style:
+                    left: '0.28'
+                    top: '0.92'
+                    backgroundColor: '0x235690ff'
+                    color: '0xffffff'
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..invite.edge.name.firstName
+                              - " "
+                              - =..invite.edge.name.middleName
+                              - " "
+                              - =..invite.edge.name.lastName
+                            dataOut: StaffManagement.invite.edge.name.inviteeName
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..formData.countryCode
+                              - " "
+                              - =..formData.number
+                            dataOut: StaffManagement.invite.edge.name.inviteePhoneNumber
+                        - ..invite.edge.name.auth@: =..formData.auth
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..invite.edge.name.statusMark
+                                string2: true
+                          - ..invite.edge.name.status@: Active
+                          - ..invite.edge.name.status@: Inactive
+                        - =.builtIn.object.findTrue:
+                            dataIn:
+                              object: =..formData.auth
+                            dataOut: StaffManagement.invite.edge.name.authShow
+                        - =.builtIn.object.authToSubType:
+                            dataIn:
+                              auth: =..formData.auth
+                              authList: =..formData.authList
+                            dataOut: StaffManagement.formData.subtypeList
+                    - actionType: evalObject
+                      object:
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..invite.edge.name.status
+                                string2: "Active"
+                          - =.builtIn.array.add:
+                              dataIn:
+                                object: =..authorization
+                                value: "Active"
+                          - continue
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..invite.edge.name.authShow.Settings
+                                string2: true
+                          - =.builtIn.array.add:
+                              dataIn:
+                                object: =..authorization
+                                value: "Settings"
+                          - continue
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..invite.edge.name.authShow.Schedule
+                                string2: true
+                          - =.builtIn.array.add:
+                              dataIn:
+                                object: =..authorization
+                                value: "Schedule"
+                          - continue
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..invite.edge.name.authShow.UserManagement
+                                string2: true
+                          - =.builtIn.array.add:
+                              dataIn:
+                                object: =..authorization
+                                value: "UserManagement"
+                          - continue
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..authorization
+                                string2: ""
+                          - continue
+                          - =.builtIn.array.covertToJsonArray:
+                              dataIn:
+                                array: =..authorization
+                              dataOut: StaffManagement.authorization
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..invite.edge.name.firstName
+                              - " "
+                              - =..invite.edge.name.middleName
+                              - " "
+                              - =..invite.edge.name.lastName
+                              # - " "
+                              # - "at"
+                              - " "
+                              - =..invite.edge.name.inviteePhoneNumber
+                            dataOut: StaffManagement.mess
+                    - actionType: evalObject
+                      object:
+                        - ..formData.authLi@: =..authorization
+                    - actionType: evalObject
+                      object: 
+                        - if: 
+                          - =.builtIn.string.judgeFillinAll:
+                              dataIn:
+                                - =..formData.number
+                                - =..invite.edge.name.firstName
+                                - =..invite.edge.name.lastName
+                          - ..authorization@: []
+                          - continue           
+                    - actionType: evalObject
+                      object: 
+                        - if: 
+                          - =.builtIn.string.judgeFillinAll:
+                              dataIn:
+                                - =..formData.number
+                                - =..invite.edge.name.firstName
+                                - =..invite.edge.name.lastName
+                          - actionType: popUp
+                            popUpView: errorFillinView
+                          - continue
+                        # - if: 
+                        #   - =.builtIn.string.judgeFillinAll:
+                        #       dataIn:
+                        #         - =..formData.number
+                        #         - =..invite.edge.name.firstName
+                        #         - =..invite.edge.name.lastName
+                        #   - continue
+
+                    - actionType: evalObject
+                      object: 
+                        - if: 
+                          - =.builtIn.string.judgeFillinAll:
+                              dataIn:
+                                - =..formData.number
+                                - =..invite.edge.name.firstName
+                                - =..invite.edge.name.lastName
+                          - continue
+                          - actionType: popUpDismiss
+                            popUpView: CreateUser
+                    - actionType: evalObject
+                      object: 
+                        - if: 
+                          - =.builtIn.string.judgeFillinAll:
+                              dataIn:
+                                - =..formData.number
+                                - =..invite.edge.name.firstName
+                                - =..invite.edge.name.lastName
+                          - continue
+                          - actionType: popUp
+                            popUpView: Confirm
+                        
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: authView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: messageView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: basicInfoView
+
+        - .BasePopUp:
+          viewTag: Confirm
+          style:
+            top: "0"
+            zIndex: "100"
+            # backgroundColor: "0xffffff"
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                top: "0"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Add Staff'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: evalObject
+                          object: 
+                            - ..authorization@: []
+                        - actionType: popUpDismiss
+                          popUpView: Confirm
+                        - actionType: evalObject
+                          object:
+                            - ..formData.phoneNumber@: ""
+                            - ..formData.countryCode@: ""
+                            - ..formData.number@: ""
+                            - ..invite.edge.name.firstName@: ""
+                            - ..invite.edge.name.lastName@: ""
+                            - ..invite.edge.name.middleName@: ""
+                            - ..invite.edge.name.lastName@: ""
+                            - ..invite.edge.name.gender@: ""
+                            - ..invite.edge.name.email@: ""
+                            - ..invite.edge.name.statusMark@: false
+                            - ..formData.auth.MFI.create@: false
+                            - ..formData.auth.MFI.edit@: false
+                            - ..formData.auth.MFI.review@: false
+                            - ..formData.auth.TDT.create@: false
+                            - ..formData.auth.TDT.edit@: false
+                            - ..formData.auth.TDT.review@: false
+                            - ..formData.auth.staff.create@: false
+                            - ..formData.auth.staff.edit@: false
+                            - ..formData.auth.staff.review@: false      
+                            - ..formData.auth.patient.create@: false
+                            - ..formData.auth.patient.edit@: false
+                            - ..formData.auth.patient.review@: false                                                                          
+                            - ..formData.auth.provider.create@: false
+                            - ..formData.auth.provider.edit@: false
+                            - ..formData.auth.provider.review@: false
+                            - ..formData.auth.scheduleInfo.create@: false
+                            - ..formData.auth.scheduleInfo.edit@: false
+                            - ..formData.auth.scheduleInfo.review@: false
+                            - ..formData.auth.PAT.create@: false
+                            - ..formData.auth.PAT.edit@: false
+                            - ..formData.auth.PAT.review@: false 
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: CreateUser                           
+                - type: view
+                  style:
+                    height: '0.92'
+                    width: '0.4'
+                    top: '0.08'
+                    backgroundColor: '#f2f2f2'
+                  children:
+                    - type: view
+                      style:
+                        height: '0.43'
+                        width: '0.4'
+                        top: '0'
+                      children:
+                        - type: label
+                          text: Confirm Information
+                          style:
+                            fontSize: '2vh'
+                            left: '0.14'
+                            top: '0.03'
+                            color: '#272626'
+                            fontWeight: "500"
+                        - type: button
+                          text: Edit Info
+                          onClick: 
+                            - actionType: evalObject
+                              object: 
+                                - ..authorization@: []
+                            - actionType: popUpDismiss
+                              popUpView: Confirm
+                            - actionType: popUp
+                              popUpView: CreateUser
+                          style:
+                            fontSize: '12'
+                            left: '0.33'
+                            top: '0.03'
+                            color: '0x075b97'
+                            width: '0.045'
+                            height: '0.035'
+                            backgroundColor: '0xffffff'
+                            border: "1px solid #075b97"
+                            borderWidth: "2"
+                            borderRadius: "2"
+                        - type: view
+                          style:
+                            height: '0.28'
+                            width: '0.35'
+                            left: '0.025'
+                            top: '0.1'
+                            border: 
+                              style: '3'
+                            borderColor: "0xdededf"
+                            borderWidth: '1'
+                          children:
+                            - type: view
+                              style: 
+                                top: "0"
+                                width: "0.35"
+                                height: "0.04"
+                                left: "0"
+                                backgroundColor: "0x005795"
+                              children: 
+                                - type: label
+                                  text: Basic Info
+                                  style: 
+                                    left: "0.01"
+                                    top: "0"
+                                    height: "0.04"
+                                    width: "0.12"
+                                    fontSize: .Nfont.nf2
+                                    color: "0xffffff"
+                                    textAlign: 
+                                      x: left
+                                      y: center
+                                # - type: divider
+                                #   style: 
+                                #     left: "0.18"
+                                #     top: "0"
+                                #     height: "0.038"
+                                #     width: "0.00001"
+                                #     marginTop: "0"
+                                #     backgroundColor: "0xdededf01"
+                                # - type: label
+                                #   text: Authorization Level
+                                #   style: 
+                                #     left: "0.19"
+                                #     top: "0"
+                                #     height: "0.04"
+                                #     width: "0.12"
+                                #     fontSize: .Nfont.nf2
+                                #     color: "0xffffff"
+                                #     textAlign: 
+                                #       x: left
+                                #       y: center
+                            - type: view
+                              viewTag: basicInfoView
+                              style: 
+                                top: "0.04"
+                                width: "0.18"
+                                height: "0.24"
+                                left: "0"
+                              children: 
+                                - .StaffBasicInfoView:  
+                                  children: 
+                                    - .StaffBasicInfoText:
+                                      text: "First Name:"
+                                    - .StaffBasicInfoDatakey:
+                                      dataKey: invite.edge.name.firstName
+                                - .StaffBasicInfoView:  
+                                  children: 
+                                    - .StaffBasicInfoText:
+                                      text: "Middle Name:"
+                                    - .StaffBasicInfoDatakey: 
+                                      dataKey: invite.edge.name.middleName
+                                - .StaffBasicInfoView:  
+                                  children: 
+                                    - .StaffBasicInfoText:
+                                      text: "Last Name:"
+                                    - .StaffBasicInfoDatakey: 
+                                      dataKey: invite.edge.name.lastName
+                                - .StaffBasicInfoView:  
+                                  children: 
+                                    - .StaffBasicInfoText:
+                                      text: "Gender:"
+                                    - .StaffBasicInfoDatakey: 
+                                      dataKey: invite.edge.name.gender
+                                - .StaffBasicInfoView:  
+                                  children: 
+                                    - .StaffBasicInfoText:
+                                      text: "PhoneNumber:"
+                                    - .StaffBasicInfoDatakey: 
+                                      dataKey: invite.edge.name.inviteePhoneNumber
+                                - .StaffBasicInfoView:  
+                                  children: 
+                                    - .StaffBasicInfoText:
+                                      text: "Email:"
+                                    - .StaffBasicInfoDatakey: 
+                                      dataKey: invite.edge.name.email               
+                            # - type: divider
+                            #   style: 
+                            #     left: "0.18"
+                            #     height: "0.238"
+                            #     width: "0.00001"
+                            #     marginTop: "0"
+                            #     top: "0.04"
+                            #     backgroundColor: "0xf2f2f211"
+                            # - type: view
+                            #   style: 
+                            #     top: "0.04"
+                            #     width: "0.18"
+                            #     height: "0.24"
+                            #     left: "0.18"
+                            #   children: 
+                            #     - type: list
+                            #       contentType: listObject
+                            #       listObject: ..formData.authLi
+                            #       iteratorVar: itemObject
+                            #       viewTag: authView
+                            #       style:
+                            #         width: '0.16'
+                            #         left: "0.01"
+                            #         margin: '0'
+                            #         height: "0.2"
+                            #         top: "0.01"
+                            #       children:
+                            #         - type: listItem
+                            #           itemObject: ""
+                            #           style:
+                            #             width: '0.16'
+                            #             height: '0.03'
+                            #             left: '0'
+                            #             marginTop: '0.01'
+                            #           children:
+                            #             - type: image
+                            #               path: approve.svg
+                            #               style: 
+                            #                 left: "0.01"
+                            #                 top: "0.005"
+                            #                 width: "0.01"
+                            #             - type: label
+                            #               dataKey: itemObject.key
+                            #               style: 
+                            #                 left: '0.03'
+                            #                 width: "0.11"
+                            #                 height: "0.03"
+                            #                 top: "0"
+                            #                 textAlign:  
+                            #                   x: left
+                        
+                        - type: label
+                          text: Invitation will be sent to 
+                          style: 
+                            top: "0.4"
+                            width: "0.12"
+                            left: "0.05"
+                            height: "0.03" 
+                            fontSize: .Nfont.nf2
+                            textAlign: 
+                              x: left
+                        - type: label
+                          dataKey: mess
+                          viewTag: messageView
+                          style: 
+                            top: "0.4"
+                            width: "0.17"
+                            left: "0.17"
+                            height: "0.03" 
+                            fontSize: .Nfont.nf2
+                            textAlign: 
+                              x: left
+                        # - type: label
+                        #   text: New User will need to confirm phone number for login security proposes.
+                        #   style: 
+                        #     top: "0.43"
+                        #     width: "0.32"
+                        #     left: "0.05"
+                        #     height: "0.03" 
+                        #     fontSize: .Nfont.nf2
+                        #     textAlign: 
+                        #       x: left
+              
+        
+                - .BottomButton:
+                  text: 'Invite'
+                  style:
+                    left: '0.15'
+                    top: '0.9'
+                    backgroundColor: '#005694'
+                    color: '0xffffff'
+                    fontSize: 1.7vh
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..invite.edgeAPI.store: ""
+                    - actionType: evalObject    
+                      object:
+                        - .Global.jwt.edge.bvid@: =..invite.ceResp.edge.evid
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..accept.edgeAPI.store: ""
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..relation.edgeReq.id
+                              value: =.Global.currentFacility.id
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..relation.edgeReq.id
+                              value: =..invite.ceResp.edge.evid
+                        - =..relation.edgeAPI.get: ""
+                        - ..relation.edgeStore@: =..relation.edge.edge.0
+                        - ..relation.edgeStore.name.auth@: =..formData.auth
+                        - ..relation.edgeStore.name.status@: =..invite.edge.name.status
+                        - =..relation.edgeAPI.store: ""  
+                    - actionType: popUp
+                      popUpView: Success
+                    - actionType: popUpDismiss
+                      popUpView: Confirm
+        - .BasePopUp:
+          viewTag: Success
+          style: 
+            zIndex: "100"
+          children:
+            - type: view
+              style:
+                backgroundColor: "0xFFFFFF"
+                top: "0"
+                left: "0.6"
+                height: "1"
+                width: "0.4"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Add Staff'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: Success
+                - type: image
+                  path: popUpSuccess.svg
+                  style:
+                    left: '0.16'
+                    top: '0.2'
+                    width: '0.08'
+                - type: label
+                  text: 'Success!'
+                  style:
+                    left: '0'
+                    top: '0.41'
+                    width: "0.4"
+                    fontSize: '2.8vh'
+                    textAlign:
+                      x: center
+                # - type: label
+                #   text: The appointment invitation has bee sent to
+                #   style: 
+                #     top: '0.5'
+                #     left: '0'
+                #     width: "0.4"
+                #     fontSize: .Nfont.nf3
+                #     textAlign:
+                #       x: center
+                # - type: label
+                #   dataKey: mess
+                #   viewTag: messageView
+                #   style: 
+                #     top: '0.54'
+                #     left: '0'
+                #     width: "0.4"
+                #     fontSize: .Nfont.nf3
+                #     textAlign:
+                #       x: center
+                - .BottomButton:
+                  text: 'Done'
+                  style:
+                    left: '0.15'
+                    width: "0.1"
+                    top: '0.7'
+                    height: "0.045"
+                    backgroundColor: '#005694'
+                    color: '0xFFFFFF'
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: Success
+                    - goto: StaffManagement
+        - .BasePopUp:
+          viewTag: EditUser
+          style:
+            height: "1.0"
+            # overflowY: scroll
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                backgroundColor: "0xFFFFFF"       
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Edit Staff'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: EditUser
+                - type: scrollView
+                  viewTag: infoView
+                  style: 
+                    height: '0.82'
+                    width: '0.4'
+                    top: '0.08'
+                    overflow: scroll
+                  children:      
+                    - type: view
+                      style:
+                        width: '0.4'
+                        top: '0'
+                        height: "0.34"
+                      children:
+                        - type: label
+                          text: Basic Info
+                          style:
+                            fontSize: '16'
+                            left: '0.03'
+                            top: '0.02'
+                            color: '#7f7f7f'
+                        - .Label1:
+                          textBoard: 
+                            - text: First Name      
+                            - text: "*"
+                              color: "0xff0000"               
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.05"
+                            textAlign:
+                              y: center
+                        - .Label1:
+                          text: Middle Name               
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.095"
+                            textAlign:
+                              y: center
+                        - .Label1: 
+                          textBoard: 
+                            - text: Last Name      
+                            - text: "*"
+                              color: "0xff0000"             
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.14"
+                            textAlign:
+                              y: center
+                        - .Label1:
+                          text: Gender              
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.185"
+                            textAlign:
+                              y: center
+                        - .Label1:
+                          textBoard: 
+                            - text: Phone Number      
+                            - text: "*"
+                              color: "0xff0000"             
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.23"
+                            textAlign:
+                              y: center
+                        - .Label1:
+                          text: Email             
+                          style:
+                            left: '0.05'
+                            height: '0.035'
+                            top: "0.275"
+                            textAlign:
+                              y: center
+                        - type: textField
+                          viewTag: editUser
+                          dataKey: formData.staffInfo.name.firstName
+                          placeholder:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - =.builtIn.object.has:
+                                    dataIn:
+                                      object: =..formData.staffInfo.name
+                                      key: firstName
+                          # dataValue:
+                          #   emit:
+                          #     dataKey:
+                          #       var: itemObject
+                          #     actions:
+                          #       - =.builtIn.object.has:
+                          #           dataIn:
+                          #             object: =..generalInfo
+                          #             key: $var.key
+                          # dataKey: itemObject.dataValue 
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.05"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC" 
+                        - type: textField
+                          viewTag: editUser
+                          dataKey: formData.staffInfo.name.middleName
+                          placeholder:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - =.builtIn.object.has:
+                                    dataIn:
+                                      object: =..formData.staffInfo.name
+                                      key: middleName
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.095"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC"  
+                        - type: textField
+                          viewTag: editUser
+                          dataKey: formData.staffInfo.name.lastName
+                          placeholder:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - =.builtIn.object.has:
+                                    dataIn:
+                                      object: =..formData.staffInfo.name
+                                      key: lastName
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.14"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC"  
+
+                        - type: list
+                          contentType: listObject
+                          listObject: ..gender
+                          iteratorVar: itemObject
+                          viewTag: genderView1
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.185"
+                            height: "0.035"
+                            margin: "0"
+                            axis: horizontal
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style: 
+                                left: "0"
+                                width: "0.1"
+                                height: "0.035"
+                                backgroundColor: "0xffffffff"
+                              children:
+                                - type: image
+                                  style:
+                                    top: "0.007"
+                                    left: "0"
+                                    width: "0.01"
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.staffInfo.name.gender
+                                                string2: $var.value
+                                          - checkOn.svg
+                                          - checkOff.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions: 
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formData.staffInfo.name.gender
+                                                  string2: $var.value
+                                            - =.builtIn.object.clear:
+                                                dataIn:
+                                                  object: =..formData.staffInfo.name
+                                                  key: $var.key
+                                            - =.builtIn.object.set:
+                                                dataIn:
+                                                  object: =..formData.staffInfo.name
+                                                  key: $var.key
+                                                  value: $var.value 
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: genderView1
+                                - type: label
+                                  dataKey: itemObject.value
+                                  style:
+                                    top: "0"
+                                    left: "0.02"  
+                                    color: "#5f5f5f"  
+                                    height: "0.035"
+                                    textAlign: 
+                                      y: center
+                                    fontSize: "14"   
+                        # - type: textField
+                        #   viewTag: editUser
+                        #   placeholder:
+                        #     emit:
+                        #       dataKey:
+                        #         var: itemObject
+                        #       actions:
+                        #         - =.builtIn.object.has:
+                        #             dataIn:
+                        #               object: =.Global.staffInfo.name
+                        #               key: gender
+                        #   dataKey: formData.staffInfo.name.gender
+                        #   style:
+                        #     width: "0.2"
+                        #     left: "0.13"
+                        #     top: "0.185"
+                        #     height: "0.035"
+                        #     border:
+                        #       style: "3" 
+                        #     borderColor: "#DCDCDC"   
+                        - type: textField
+                          viewTag: editUser
+                          dataKey: formData.staffInfo.name.inviteePhoneNumber
+                          placeholder:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - =.builtIn.object.has:
+                                    dataIn:
+                                      object: =.Global.staffInfo.name
+                                      key: inviteePhoneNumber
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.23"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC"    
+                        - type: textField
+                          viewTag: editUser
+                          placeholder:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - =.builtIn.object.has:
+                                    dataIn:
+                                      object: =..formData.staffInfo.name
+                                      key: email
+                          dataKey: formData.staffInfo.name.email
+                          style:
+                            width: "0.2"
+                            left: "0.13"
+                            top: "0.275"
+                            height: "0.035"
+                            border:
+                              style: "3" 
+                            borderColor: "#DCDCDC"  
+                        # - type: image
+                        #   path: Icon awesome-asterisk.png
+                        #   style:
+                        #     width: '0.01'
+                        #     left: '0.112'                        
+                        #     top: '0.0625'  
+                        #     height: "0.01"         
+                        # - type: image
+                        #   path: Icon awesome-asterisk.png
+                        #   style:
+                        #     width: '0.01'
+                        #     left: '0.112'
+                        #     top: '0.1525'  
+                        #     height: "0.01"    
+                        # - type: image
+                        #   path: Icon awesome-asterisk.png
+                        #   style:
+                        #     width: '0.01'
+                        #     left: '0.112'
+                        #     top: '0.2425'  
+                        #     height: "0.01"                                       
+                    - type: label
+                      text: Authorization Level
+                      style:
+                        fontSize: '16'
+                        left: '0.03'
+                        top: '0.34'
+                        color: '#7f7f7f'
+                    - type: label
+                      text: Status 
+                      style:
+                        fontSize: '12'
+                        left: '0.06'
+                        top: '0.395'
+                    - type: image
+                      viewTag: editUser
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                              - =..formData.staffInfo.name.statusMark
+                              - switchOn.svg
+                              - switchOff.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =..formData.staffInfo.name.statusMark
+                              - ..formData.staffInfo.name.statusMark@: false
+                              - ..formData.staffInfo.name.statusMark@: true  
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: editUser
+                      style:
+                        width: "0.035"
+                        left: "0.3"
+                        top: "0.38"
+                        zIndex: "1000"
+                    # - type: view
+                    #   style: 
+                    #     border:
+                    #       style: "3"
+                    #     width: "0.25"
+                    #     height: "0.12"
+                    #     left: "0.075"
+                    #     top: "0.45"
+                    #     borderColor: "#E4F4FF"
+                    #   children:
+                    #     - .Label1:
+                    #       text: Create
+                    #       style:
+                    #         left: "0.13"
+                    #         top: "0.005"
+                    #     - .Label1:
+                    #       text: Edit
+                    #       style:
+                    #         left: "0.18"
+                    #         top: "0.005"
+                    #     - .Label1:
+                    #       text: Review
+                    #       style:
+                    #         left: "0.21"
+                    #         top: "0.005"
+                    #     - .Label1:
+                    #       text: "Settings"
+                    #       style:
+                    #         top: "0.005"
+                    #         left: "0.01"
+                    #         fontSize: "14"
+                    #     - .Label1:
+                    #       text: "Medical Facility Info"
+                    #       style:
+                    #         top: "0.045"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Treatment Date & Time"
+                    #       style:
+                    #         top: "0.08"
+                    #         left: "0.01"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.MFI
+                    #       viewTag: editUser
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.02"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #             top: auto
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.staffInfo.name.auth.MFI
+                    #                               # object: =..formData.auth.MFI
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.MFI
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.MFI
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.MFI
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: editUser
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.TDT
+                    #       viewTag: editUser
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.06"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.staffInfo.name.auth.TDT
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.TDT
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.TDT
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.TDT
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: editUser
+                    #                 style:
+                    #                   left: "0"
+                    # - type: view
+                    #   style: 
+                    #     border:
+                    #       style: "3"
+                    #     width: "0.25"
+                    #     height: "0.16"
+                    #     left: "0.075"
+                    #     top: "0.6"
+                    #     borderColor: "#E4F4FF"
+                    #   children:
+                    #     - .Label1:
+                    #       text: "User Management"
+                    #       style:
+                    #         top: "0.005"
+                    #         left: "0.01"
+                    #         fontSize: "14"
+                    #     - .Label1:
+                    #       text: "Staff"
+                    #       style:
+                    #         top: "0.045"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Provider"
+                    #       style:
+                    #         top: "0.115"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Patient"
+                    #       style:
+                    #         top: "0.08"
+                    #         left: "0.01"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.04"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.08"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.12"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.staff
+                    #       viewTag: editUser
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.02"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.staffInfo.name.auth.staff
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.staff
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.staff
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.staff
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: editUser
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.patient
+                    #       viewTag: editUser
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.06"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.staffInfo.name.auth.patient
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.patient
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.patient
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.patient
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: editUser
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.provider
+                    #       viewTag: editUser
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.1"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.staffInfo.name.auth.provider
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.provider
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.provider
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.provider
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: editUser
+                    #                 style:
+                    #                   left: "0"
+                    # - type: view
+                    #   style: 
+                    #     border:
+                    #       style: "3"
+                    #     width: "0.25"
+                    #     height: "0.12"
+                    #     left: "0.075"
+                    #     top: "0.79"
+                    #     borderColor: "#E4F4FF"
+                    #   children:
+                    #     - .Label1:
+                    #       text: "Scheduling"
+                    #       style:
+                    #         top: "0.005"
+                    #         left: "0.01"
+                    #         fontSize: "14"
+                    #     - .Label1:
+                    #       text: "Schedule Info"
+                    #       style:
+                    #         top: "0.045"
+                    #         left: "0.01"
+                    #     - .Label1:
+                    #       text: "Providers available time"
+                    #       style:
+                    #         top: "0.08"
+                    #         left: "0.01"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.04"
+                    #     # - .CheckBox:
+                    #     #   style:
+                    #     #     top: "0.08"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.scheduleInfo
+                    #       viewTag: editUser
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.02"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.staffInfo.name.auth.scheduleInfo
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.scheduleInfo
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.scheduleInfo
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.scheduleInfo
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: editUser
+                    #                 style:
+                    #                   left: "0"
+                    #     - .BaseList:
+                    #       listObject: ..formData.authTemp.PAT
+                    #       viewTag: editUser
+                    #       style:
+                    #         axis: horizontal
+                    #         top: "0.06"
+                    #         left: "0.135"
+                    #         width: "0.13"
+                    #       children:
+                    #         - .BaseListItem:
+                    #           style: 
+                    #             width: "0.05"
+                    #           children:
+                    #             - .SmallCheckBox:
+                    #                 path:
+                    #                   emit:
+                    #                     dataKey:
+                    #                       var: itemObject
+                    #                     actions:
+                    #                       - if:
+                    #                         - =.builtIn.object.has:
+                    #                             dataIn:
+                    #                               object: =..formData.staffInfo.name.auth.PAT
+                    #                               key: $var.key 
+                    #                         - checkOn.svg
+                    #                         - checkOff.svg
+                    #                 onClick:
+                    #                   - emit:
+                    #                       dataKey:
+                    #                         var: itemObject
+                    #                       actions:
+                    #                         - if:
+                    #                           - =.builtIn.object.has:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.PAT
+                    #                                 key: $var.key
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.PAT
+                    #                                 key: $var.key
+                    #                                 value: false
+                    #                           - =.builtIn.object.set:
+                    #                               dataIn:
+                    #                                 object: =..formData.staffInfo.name.auth.PAT
+                    #                                 key: $var.key
+                    #                                 value: true
+                    #                   - actionType: builtIn
+                    #                     funcName: redraw
+                    #                     viewTag: editUser
+                    #                 style:
+                    #                   left: "0"
+                - .BottomButton:
+                  text: 'Next'
+                  style:
+                    left: '0.28'
+                    top: '0.92'
+                    backgroundColor: '0x235690ff'
+                    color: '0xffffff'
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.add:
+                            dataIn: 
+                              object: =..relation.edgeReq.id
+                              value: =.Global.currentFacility.id
+                        - =.builtIn.array.add:
+                            dataIn: 
+                              object: =..relation.edgeReq.id
+                              value: =..formData.staffInfo.evid 
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..formData.staffInfo.name.statusMark
+                                string2: true
+                          - ..formData.staffInfo.name.status@: Active
+                          - ..formData.staffInfo.name.status@: Inactive      
+                        - =..relation.edgeAPI.get: ""
+                        - ..relation.edgeStore@: =..relation.edge.edge.0
+                        - ..relation.edgeStore.name.auth@: =..formData.staffInfo.name.auth
+                        - ..relation.edgeStore.name.status@: =..formData.staffInfo.name.status
+                        - .Global.jwt.edge.bvid@: =..formData.staffInfo.evid
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..relation.edgeAPI.store: ""  
+                        # - ..auth.documentReq.id@: =..relation.edge.edge.0.id
+                        # - =..auth.docAPI.get: ""
+                        # - ..auth.document@: =..auth.response.doc.0
+                        # - ..auth.document.name.data.auth@: =..formData.staffInfo.name.auth
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..formData.staffInfo.name.firstName
+                              - " "
+                              - =..formData.staffInfo.name.middleName
+                              - " "
+                              - =..formData.staffInfo.name.lastName
+                            dataOut: StaffManagement.formData.staffInfo.name.inviteeName
+                        - =.builtIn.object.findTrue:
+                            dataIn:
+                              object: =..formData.staffInfo.name.auth
+                            dataOut: StaffManagement.formData.staffInfo.name.authShow
+                        - =..staff.edgeAPI.store: ""
+                        # - =..auth.docAPI.store: ""
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:  
+                        - =..staff.edgeAPI.get: ""
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.object.extractArray: 
+                            dataIn: 
+                              obj: =..staff.list.edge
+                              arr: =..formData.dataStruc
+                            dataOut: StaffManagement.testD1
+                    - actionType: evalObject
+                      object:   
+                        - .StaffManagement.tableData.dataObject@: =..testD1
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableBody
+                        # - =.builtIn.string.concat:
+                        #     dataIn:
+                        #       - =..formData.firstName
+                        #       - " "
+                        #       - =..formData.middleName
+                        #       - " "
+                        #       - =..formData.lastName
+                        #     dataOut: StaffManagement.invite.edge.name.inviteeName
+                        # - ..invite.edge.name.auth@: =..formData.auth
+                        # - =..invite.edgeAPI.store: ""
+                        # - =.builtIn.object.authToSubType:
+                        #     dataIn:
+                        #       auth: =..formData.auth
+                        #       authList: =..formData.authList
+                        #     dataOut: StaffManagement.formData.subtypeList
+                        # - =.builtIn.array.createBySubtype:
+                        #     dataIn:
+                        #       subtypelist: =..formData.subtypeList
+                        #       createModel: =..invite.edge
+                    # - actionType: popUp
+                    #   popUpView: Success
+                    - actionType: popUpDismiss
+                      popUpView: EditUser
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+          # style: 
+        - .BodyView:
+          children:
+            - .Label2:
+              text: "Staff Management"
+              style:
+                left: "0.03"
+                top: "0.028"
+                width: "0.2"
+                fontSize: "2.9vh"
+            - .Addbutton1:
+              onClick:
+                # - actionType: evalObject
+                #   object:
+                #     - if: 
+                #       - =.builtIn.string.equal:
+                #           dataIn: 
+                #             string1: =.Global.auth.staff.create
+                #             string2: true 
+                #       - actionType: popUp
+                #         popUpView: CreateUser
+                #       - actionType: popUp
+                #         popUpView: staffAuthCreate
+                - actionType: popUp
+                  popUpView: CreateUser
+
+        - .ContentView:
+          style: 
+            height: "0.85"
+            left: "0.19"
+            top: "0.145"
+            # position: fixed
+          children:
+            # Table
+            - type: view
+              viewTag: tableView
+              style: 
+                left: "0.035"
+                top: "0.04"
+                width: "0.72"
+                height: "auto"
+                # backgroundColor: "0xf3f3f3"
+                borderRadius: "8"
+                boxSizing: content-box
+                border:
+                  style: "3"
+                borderColor: "0x7070704f"
+              children: 
+                #TableTitle
+                - type: label
+                  viewTag: tableTitle
+                  text: Staff List
+                  style: 
+                    textIndent: "2em" 
+                    width:  "0.72"
+                    margin: "0"
+                    left:  "0"
+                    height:  "0.055"
+                    backgroundColor: "0x014c82" 
+                    fontSize: .Nfont.nf3 
+                    fontWeight: "500" 
+                    fontFamily: "Poppins"
+                    boxSizing: "border-box" 
+                    color: "0xffffff" 
+                    borderTopLeftRadius: "8px" 
+                    borderTopRightRadius: "8px" 
+                    textAlign:
+                      y: "center" 
+                #TableHeader
+                - type: view
+                  viewTag: tableHeader
+                  style: 
+                    marginTop: "0.02"
+                    width: "0.72"
+                    margin: "0"
+                    left: "0"
+                    height: "0.05"
+                    backgroundColor: "0xf9fafb"
+                  children: 
+                    - type: label
+                      text: "Name"
+                      style: 
+                        left: "0"
+                        top: "0"
+                        width: "0.1"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Gender"
+                      style: 
+                        left: "0.1"
+                        top: "0"
+                        width: "0.1"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Status"
+                      style: 
+                        left: "0.2"
+                        top: "0"
+                        width: "0.1"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Phone Number"
+                      style: 
+                        left: "0.3"
+                        top: "0"
+                        width: "0.18"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center                          
+                    - type: label
+                      text: "Email"
+                      style: 
+                        left: "0.48"
+                        top: "0"
+                        width: "0.16"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Edit"
+                      style: 
+                        left: "0.64"
+                        top: "0"
+                        width: "0.08"    
+                        height: "0.05"
+                        fontSize: .Nfont.nf2
+                        fontStyle: "bold"                     
+                        color: "0x6b7280"
+                        borderWidth: "1"
+                        # borderRight: "solid 1px  #7070704f"
+                        textAlign: 
+                          x: center
+                          y: center   
+                #TableBody
+                - type: list
+                  viewTag: tableBody
+                  contentType: listObject
+                  listObject: ..formData.tableList
+                  iteratorVar: itemObject
+                  style: 
+                    width: "0.72"
+                    margin: "0"
+                    left: "0"
+                    height: auto
+                    borderTop: "solid 1px  #7070704f"
+                    backgroundColor: "0xffffff"
+                    fontSize: .Nfont.nf2
+                  children: 
+                    - type: listItem
+                      itemObject: 
+                      style:   
+                        height: "0.045" 
+                        borderBottom: "solid 1px  #7070704f" 
+                        textAlign:
+                          x: "center" 
+                          y: "center" 
+                      children: 
+                        - type: label
+                          dataKey: itemObject.name.inviteeName
+                          style: 
+                            width: "0.1" 
+                            top: "0"  
+                            left: "0"
+                            height: "0.045"  
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center" 
+                        - type: label
+                          dataKey: itemObject.name.gender
+                          style: 
+                            width: "0.1"
+                            top: "0"  
+                            left: "0.1"
+                            height: "0.045"  
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center" 
+                        - type: label
+                          dataKey: itemObject.name.status
+                          style: 
+                            width: "0.1" 
+                            top: "0"  
+                            left: "0.2" 
+                            height: "0.045" 
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center"                                                            
+                        - type: label
+                          dataKey: itemObject.name.inviteePhoneNumber
+                          style: 
+                            width: "0.18" 
+                            top: "0"  
+                            left: "0.3" 
+                            height: "0.045" 
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center"                                   
+                        - type: label
+                          dataKey: itemObject.name.email
+                          style:
+                            width: "0.16" 
+                            top: "0" 
+                            left: "0.48" 
+                            height: "0.045" 
+                            color: "0x2988e6"
+                            backgroundColor: "0xffffff00"
+                            fontSize: .Nfont.nf2
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f"
+                            textAlign:
+                              x: "center" 
+                              y: "center"                                                
+                        - type: view
+                          style: 
+                            width: "0.08"
+                            top: "0" 
+                            left: "0.64" 
+                            height: "0.045" 
+                            borderWidth: "1" 
+                            textAlign:
+                              x: "center" 
+                              y: "center" 
+                          children: 
+                            - type: image
+                              path: editBlue.svg
+                              style: 
+                                top: "0.01"
+                                width: "0.03"
+                                height: "0.02"
+                              onClick: 
+                                - actionType: evalObject
+                                  object: 
+                                    .Global._nonce@: 
+                                      =.builtIn.math.random: ""
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..formData.staffInfo@: $var                     
+                                - actionType: popUp
+                                  popUpView: EditUser
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: infoView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: tableView
+                                - actionType: builtIn 
+                                  funcName: redraw
+                                  viewTag: tableFooter 
+            # TableFooter
+            - type: view
+              viewTag: tableFooter
+              style: 
+                left: "0.565"
+                top: "0.78"
+                width: "0.19"
+                height: "0.02622"
+                # backgroundColor: "0xff000033"
+              children: 
+                - type: view
+                  style: 
+                    top: "0.005"
+                    width: "0.08"
+                    height: "0.0155"
+                  children: 
+                    - type: label
+                      text: "Current page:"
+                      style: 
+                        display: inline-block
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        textAlign:
+                          x: "center"
+                          y: "center"
+                    - type: label
+                      dataKey: formData.tableCurrentPage
+                      # text: 100/333
+                      style: 
+                        marginLeft: "0.005"
+                        display: inline-block
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        textAlign:
+                          x: "center"
+                          y: "center"
+                - type: view
+                  style: 
+                    top: "0"
+                    left: "0.076"
+                    width: "0.05168"
+                    height: "0.02576"
+                  children: 
+                    - type: image
+                      path: tableLeft.svg
+                      onClick:
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.tablePageNum 
+                                    num2: 2 
+                              - continue 
+                              - actionType: evalObject 
+                                object: 
+                                  - =.builtIn.number.Subtraction: 
+                                      dataIn: 
+                                        num: =..formData.tablePageNum 
+                                        step: "1"
+                                      dataOut: StaffManagement.formData.tablePageNum
+                                  - =.builtIn.array.splitTableList: 
+                                      dataIn: 
+                                        arrObj: =..formData.staffList
+                                        numX: "12"
+                                        numY: =..formData.tablePageNum
+                                      dataOut: StaffManagement.formData.tableData
+                                  - ..formData.tableList@: =..formData.tableData.0 
+                                  - =.builtIn.string.concat: 
+                                      dataIn: 
+                                        - =..formData.tablePageNum
+                                        - " / "
+                                        - =..formData.tableData.1
+                                      dataOut: StaffManagement.formData.tableCurrentPage
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 
+                      style: 
+                        top: "0"
+                        width: "0.01456"
+                        height: "0.02576"
+                    - type: label
+                      dataKey: formData.tablePageNum
+                      style: 
+                        top: "0"
+                        left: "0.01856"
+                        width: "0.01446"
+                        height: "0.02576"
+                        fontSize: .Nfont.nf0
+                        fontWeight: "500"
+                        color: "0xffffff"
+                        backgroundColor: "0x005795"
+                        borderRadius: "3"
+                        textAlign:
+                          x: center
+                          y: center
+                    - type: image
+                      path: tableRight.svg
+                      onClick:
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.tablePageNum 
+                                    num2: =..formData.tableData.1 
+                              - actionType: evalObject 
+                                object: 
+                                  - =.builtIn.number.addition: 
+                                      dataIn: 
+                                        num: =..formData.tablePageNum 
+                                        step: "1"
+                                      dataOut: StaffManagement.formData.tablePageNum
+                                  - =.builtIn.array.splitTableList: 
+                                      dataIn: 
+                                        arrObj: =..formData.staffList
+                                        numX: "12"
+                                        numY: =..formData.tablePageNum
+                                      dataOut: StaffManagement.formData.tableData
+                                  - ..formData.tableList@: =..formData.tableData.0 
+                                  - =.builtIn.string.concat: 
+                                      dataIn: 
+                                        - =..formData.tablePageNum
+                                        - " / "
+                                        - =..formData.tableData.1
+                                      dataOut: StaffManagement.formData.tableCurrentPage
+                              - continue 
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter                           
+                      style: 
+                        top: "0"
+                        left: "0.03712"
+                        height: "0.02576"
+                        width: "0.01456"
+                # Goto
+                - type: view
+                  style: 
+                    top: "0"
+                    left: "0.14"
+                    width: "0.05"
+                    height: "0.02496"
+                  children: 
+                    - type: textField
+                      viewTag: gotoView
+                      dataKey: formData.gotoPageNum
+                      style:
+                        width: "0.02496"
+                        top: "0"
+                        height: "0.02576"
+                        borderRadius: "3"
+                        borderWidth: "1"
+                        border:
+                          style: "3"
+                        boxSizing: border-box
+                        borderColor: "0xd8d8d8"
+                        fontSize: .Nfont.nf0
+                        fontWeight: "500"
+                        color: "0x333333"
+                        textAlign: 
+                          x: center 
+                          y: center 
+                    - type: button
+                      text: "Go to" 
+                      style:
+                        textDecoration: underline
+                        left: "0.029"
+                        top: "0"
+                        height: "0.02576"
+                        border:
+                          style: "1"
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        backgroundColor: "0xffffff00"
+                      onClick:
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: "" 
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.gotoPageNum 
+                                    num2: 1
+                              - continue 
+                              - actionType: evalObject 
+                                object: 
+                                  - if: 
+                                    - =.builtIn.number.less: 
+                                        dataIn: 
+                                          num1: =..formData.gotoPageNum 
+                                          num2: =..formData.totalPageMore 
+                                    - actionType: evalObject 
+                                      object: 
+                                        - =.builtIn.array.splitTableList: 
+                                            dataIn: 
+                                              arrObj: =..formData.staffList
+                                              numX: "12"
+                                              numY: =..formData.gotoPageNum
+                                            dataOut: StaffManagement.formData.tableData
+                                        - ..formData.tableList@: =..formData.tableData.0 
+                                        - =.builtIn.string.concat: 
+                                            dataIn: 
+                                              - =..formData.gotoPageNum
+                                              - " / "
+                                              - =..formData.tableData.1
+                                            dataOut: StaffManagement.formData.tableCurrentPage
+                                        - ..formData.tablePageNum@: =..formData.gotoPageNum
+                                        - ..formData.gotoPageNum@: ""                                                
+                                    - continue
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 

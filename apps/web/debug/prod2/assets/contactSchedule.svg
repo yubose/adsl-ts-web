@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="66" height="49" viewBox="0 0 66 49">
+  <g id="组_9662" data-name="组 9662" transform="translate(-44 -256)">
+    <g id="组_9381" data-name="组 9381" transform="translate(19 -7)">
+      <rect id="矩形_18620" data-name="矩形 18620" width="66" height="49" transform="translate(25 263)" fill="#fff"/>
+      <g id="组_9340" data-name="组 9340" transform="translate(-162 10)">
+        <g id="组_9339" data-name="组 9339" transform="translate(2)">
+          <g id="椭圆_671" data-name="椭圆 671" transform="translate(204 253)" fill="none" stroke="#2fb355" stroke-width="1">
+            <circle cx="16" cy="16" r="16" stroke="none"/>
+            <circle cx="16" cy="16" r="15.5" fill="none"/>
+          </g>
+          <g id="组_9291" data-name="组 9291" transform="translate(211 260)">
+            <g id="矩形_18571" data-name="矩形 18571" transform="translate(0 0.94)" fill="#2fb355" stroke="#2fb355" stroke-width="1">
+              <path d="M2,0H13.037a2,2,0,0,1,2,2V5.639a0,0,0,0,1,0,0H0a0,0,0,0,1,0,0V2A2,2,0,0,1,2,0Z" stroke="none"/>
+              <path d="M2,.5H13.037a1.5,1.5,0,0,1,1.5,1.5V4.639a.5.5,0,0,1-.5.5H1a.5.5,0,0,1-.5-.5V2A1.5,1.5,0,0,1,2,.5Z" fill="none"/>
+            </g>
+            <path id="路径_9472" data-name="路径 9472" d="M-7629.881,7549.849h-6.548s-1.263.086-1.245-1.132,0-7.732,0-7.732" transform="translate(7638.145 -7534.607)" fill="none" stroke="#2fb355" stroke-linecap="round" stroke-width="1"/>
+            <line id="直线_1262" data-name="直线 1262" y2="0.865" transform="translate(3.925)" fill="none" stroke="#2fb355" stroke-linecap="round" stroke-width="1.3"/>
+            <line id="直线_1263" data-name="直线 1263" y2="0.865" transform="translate(11.776)" fill="none" stroke="#2fb355" stroke-linecap="round" stroke-width="1.3"/>
+            <line id="直线_1264" data-name="直线 1264" x2="3.462" transform="translate(3.059 9.159)" fill="none" stroke="#2fb355" stroke-linecap="round" stroke-width="1"/>
+            <line id="直线_1265" data-name="直线 1265" x2="3.462" transform="translate(3.059 12.649)" fill="none" stroke="#2fb355" stroke-linecap="round" stroke-width="1"/>
+            <circle id="椭圆_669" data-name="椭圆 669" cx="4.699" cy="4.699" r="4.699" transform="translate(8.602 7.654)" fill="#2fb355"/>
+            <path id="路径_9473" data-name="路径 9473" d="M-7623,7544.672v2.662h1.813" transform="translate(7636.097 -7534.892)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="1"/>
+          </g>
+        </g>
+        <text id="Schedule" transform="translate(197 298)" fill="#2fb355" font-size="12" font-family="ProximaNova-Regular, Proxima Nova"><tspan x="0" y="0">Schedule</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>

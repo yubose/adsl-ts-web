@@ -1,0 +1,820 @@
+ProviderProfileSave: 
+
+  title: "Provider Profile"
+  
+  pageNumber:
+  
+  init: 
+
+  formData: 
+  
+  formDataTemp: 
+
+  apiRequest:
+
+  style: 
+
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+        - .BodyView: 
+          children:
+            - .TopBar: 
+            - .InnerBodyView:
+              children:
+                - .PageTitle:
+                  text: Provider Profile
+                - .GotoBack: 
+                - .ContentView:
+                  children:
+                    - type: view
+                      style:
+                        width: "0.75"
+                        height: "0.15"
+                        margin: auto
+                        display: flex
+                        # justifyContent: center
+                        alignItems: center
+                      children:
+                        - type: view
+                          style:
+                            # width: "0.4"
+                            height: "0.15"
+                            display: flex
+                            justifyContent: space-between
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.09"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                              children:
+                                - type: image
+                                  path: basicInformation.svg
+                                  style:
+                                    width: "0.06"
+                            - type: view
+                              style:
+                                height: "0.15"
+                                display: flex
+                                justifyContent: space-around
+                                alignItems: flex-start
+                                flexDirection: column
+                              children:
+                                - type: view
+                                  style:
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    - type: label
+                                      text: A&C Urgent Care
+                                      dataKey: 
+                                      style:
+                                        width: "0.15"
+                                        # height: "0.05"
+                                        display: flex
+                                        justifyContent: flex-start
+                                        alignItems: center
+                                        color: "0x000000"
+                                        fontSize: "1vw"
+                                        fontFamily: Poppins
+                                    - type: view
+                                      style:
+                                        display: flex
+                                        width: "0.1"
+                                        justifyContent: space-evenly
+                                      children:
+                                        - type: image
+                                          path: sendEmail.svg
+                                        - type: label
+                                          text: "Send Email"
+                                          dataKey: 
+                                          style:
+                                            width: "5vw"
+                                            fontSize: "0.7vw"
+                                - type: view
+                                  style:
+                                    display: flex
+                                    justifyContent: space-between
+                                    alignItems: flex-start
+                                    width: "0.12"
+                                  children:
+                                    - type: label
+                                      text: "User Name"
+                                      dataKey: 
+                                      style:
+                                        # width: "0.02"
+                                        color: "0x668eae"
+                                        fontSize: "0.7vw"
+                                    - type: label
+                                      text: "DrChen001"
+                                      dataKey: 
+                                      style:
+                                        # width: "0.15"
+                                        fontSize: "0.7vw"
+                                - type: view
+                                  style:
+                                    display: flex
+                                    justifyContent: space-between
+                                    alignItems: flex-start
+                                    width: "0.12"
+                                  children:
+                                    - type: label
+                                      text: "Phone Number:"
+                                      dataKey: 
+                                      style:
+                                        color: "0x668eae"
+                                        fontSize: "0.7vw"
+                                    - type: label
+                                      text: "888-999-8888"
+                                      dataKey: 
+                                      style:
+                                        fontSize: "0.7vw"
+                                - type: view
+                                  style:
+                                    width: "0.28"
+                                    display: flex
+                                    justifyContent: space-between
+                                    alignItems: flex-start
+                                  children:
+                                    - type: label
+                                      text: "Link: "
+                                      dataKey: 
+                                      style:
+                                        width: "0.02"
+                                        color: "0x668eae"
+                                        fontSize: "0.7vw"
+                                    - type: label
+                                      text: " https://www.aitmed.com/doctor/ehsan-saadat-md-286437"
+                                      dataKey: 
+                                      style:
+                                        width: "0.21"
+                                        fontSize: "0.7vw"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            height: "0.15"
+                            display: flex
+                            justifyContent: flex-end
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.096"
+                                display: flex
+                                justifyContent: flex-end
+                                alignItems: center
+                              children:
+                                - type: image
+                                  path: editPhoto.svg
+                                  style:
+                                    width: "4vw" 
+                                  onClick: 
+                                    - goto: ProviderProfileEdit
+                    - type: label
+                      text: Basic Info
+                      style:
+                        # height: "0.03"
+                        margin: auto
+                        width: "0.75"
+                        display: flex
+                        alignItems: center
+                        fontSize: "1vw"
+                        fontWeight: "600"
+                        justifyContent: "flex-start"
+                        marginBottom: "5px"
+                    - type: view
+                      style:
+                        width: "0.75"
+                        height: "auto"
+                        margin: auto
+                        border:
+                          style: "3"
+                        borderWidth: "0.1"
+                        borderColor: "0xc9c9c9"
+                        borderRadius: "5px"
+                        display: flex
+                        alignItems: center
+                        flexDirection: column
+                      children:
+                        - .BasicInformationTableSonViewGray:
+                          style:
+                            display: flex
+                            # justifyContent: center
+                            width: "0.75"
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.08"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: First Name
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.08"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Middle Nme"
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.08"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Last Name"
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.18"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderRight: 0xc9c9c9 1px solid
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Title/ Training"
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.2"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderRight: 0xc9c9c9 1px solid
+                                
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Languages spoken"
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.13"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderBottom: 0xc9c9c9 1px solid 
+                                
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Email"
+                        - type: view
+                          style:
+                            width: "0.75"
+                            display: flex
+                            # justifyContent: center
+                          children:
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.08"
+                                fontSize: "0.6vw"
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.08"
+                                fontSize: "0.6vw"
+
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.08"
+                                fontSize: "0.6vw"
+
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.18"
+                                fontSize: "0.6vw"
+
+                            - type: select
+                              options:
+                                .State
+                              style:
+                                text: "A&C32798"
+                                width: "0.2"
+                                height: "0.04"
+                                border:
+                                  style: "3"
+                                borderColor: "#eaeaea"
+                                # borderWidth: "2"
+                                # borderRadius: "5px"
+                                flexGrow: "0"
+                                fontSize: "0.6vw"
+                                # boxSizing: border-box
+
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style:
+                                width: "0.13"
+                                fontSize: "0.6vw"
+
+                                borderRight: ""
+                          
+                        - .BasicInformationTableSonViewGray:
+                          style:
+                            width: "0.75"
+                            
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.24"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  width: "auto"
+                                  text: "Provider’s gander"
+                            - type: view
+                              style:
+                                width: "0.18"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Address"
+                            - type: view
+                              style:
+                                width: "0.15"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Address second line "
+                            - type: view
+                              style:
+                                width: "0.06"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "City"
+                            - type: view
+                              style:
+                                width: "0.06"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "State"
+                            - type: view
+                              style:
+                                width: "0.06"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Zipcode"
+                        - type: view
+                          style:
+                            width: "0.75"
+                            display: flex
+                            justifyContent: center
+                          children:
+                            - type: view
+                              style: 
+                                borderRight: 0xc9c9c9 1px solid 
+                                width: "0.24"
+                                fontSize: "0.6vw"
+                                boxSizing : border-box
+                              children:
+                                - type: view
+                                  style:
+                                    display: flex
+                                    width: "0.2"
+                                    height: "0.04"
+                                    alignItems: center
+                                    fontSize: "0.9vw"
+                                    justifyContent: space-evenly
+                                    # boxSizing: border-box
+                                  children:
+                                    - type: image
+                                      path: textAreaBoxTrue.svg
+                                      style: 
+                                        width: "0.8vw"
+                                        
+                                    - type: label
+                                      text: Male
+                                      style:
+                                        
+                                    - type: image
+                                      path: textAreaBox.svg
+                                      style: 
+                                        width: "0.8vw"
+                                        paddingLeft: "10px"
+                                        
+                                    - type: label
+                                      text: Female
+                                      style:
+                                        
+                                    - type: image
+                                      path: textAreaBox.svg
+                                      style: 
+                                        width: "0.8vw"
+                                        paddingLeft: "10px"
+                                        
+                                    - type: label
+                                      text: Other
+                                      style:
+                    
+
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style:  
+                                # borderBottom: 0xc9c9c9 1px solid 
+                                width: "0.18"
+                                fontSize: "0.6vw"
+
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.15"
+                                fontSize: "0.6vw"
+
+                                # borderBottom: 0xc9c9c9 1px solid 
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.06"
+                                fontSize: "0.6vw"
+
+                                # borderBottom: 0xc9c9c9 1px solid 
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.06"
+                                fontSize: "0.6vw"
+
+                                # borderBottom: 0xc9c9c9 1px solid 
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.06"
+                                fontSize: "0.6vw"
+
+                                # borderBottom: 0xc9c9c9 1px solid 
+                                borderRight: ""
+                    - type: label
+                      text: Credentials
+                      style:
+                        height: "0.05"
+                        margin: auto
+                        width: "0.75"
+                        display: flex
+                        alignItems: center
+                        justifyContent: "flex-start"
+                        fontSize: "1vw"
+                        fontWeight: "600"
+                    - type: view
+                      style:
+                        width: "0.75"
+                        height: "auto"
+                        margin: auto
+                        border:
+                          style: "3"
+                        borderWidth: "0.1"
+                        borderColor: "0xc9c9c9"
+                        borderRadius: "5px"
+                        display: flex
+                        alignItems: center
+                        flexDirection: column
+                      children:
+                        - .BasicInformationTableSonViewGray:
+                          style:
+                            display: flex
+                            # justifyContent: center
+                            width: "0.75"
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.25"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: Specialty&Board Certified
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.1"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "NPI #"
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.3"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Medical License "
+                                  style:
+                                    width: "auto"
+                            - type: view
+                              style:
+                                width: "0.1"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "DEA #"
+                                  style:
+                                    width: "auto"
+                            
+                        - type: view
+                          style:
+                            width: "0.75"
+                            display: flex
+                            # justifyContent: center
+                          children:
+                            - type: select
+                              options:
+                                .State
+                              style:
+                                text: "A&C32798"
+                                width: "0.25"
+                                height: "0.04"
+                                border:
+                                  style: "3"
+                                borderColor: "#eaeaea"
+                                flexGrow: "0"
+                                fontSize: "0.6vw"
+
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.1"
+                                fontSize: "0.6vw"
+
+                            - type: select
+                              options:
+                                .State
+                              style:
+                                text: "A&C32798"
+                                width: "0.3"
+                                height: "0.04"
+                                border:
+                                  style: "3"
+                                borderColor: "#eaeaea"
+                                fontSize: "0.6vw"
+
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style: 
+                                width: "0.1"
+                                fontSize: "0.6vw"
+
+                                borderRight: ""
+                          
+                        - .BasicInformationTableSonViewGray:
+                          style:
+                            width: "0.75"
+                            
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.375"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  width: "auto"
+                                  text: "Description"
+                            - type: view
+                              style:
+                                width: "0.375"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderBottom: 0xc9c9c9 1px solid 
+                                borderTop: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "Education and training"
+                        - type: view
+                          style:
+                            width: "0.75"
+                            display: flex
+                            justifyContent: center
+                          children:
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              text: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum porttitor iaculis velit, sit amet interdum risus lacinia at. Praesent porta ac lorem gravida commodo. Aliquam dictum volutpat justo, sit amet interdum leo elementum eu. Aenean varius dolor at pellentesque sagittis. Cras。
+                              style: 
+                                fontSize: "0.7vw"
+                                
+                                height: "auto"
+                                width: "0.375"
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              style:  
+                                width: "0.375"
+                                fontSize: "0.6vw"
+
+                                height: "auto"
+                                borderRight: ""
+
+
+                    - type: label
+                      text: Facility
+                      style:
+                        height: "0.05"
+                        margin: auto
+                        width: "0.75"
+                        display: flex
+                        alignItems: center
+                        justifyContent: "flex-start"
+                        fontSize: "1vw"
+                        fontWeight: "600"
+                    - type: view
+                      style:
+                        width: "0.75"
+                        height: "auto"
+                        margin: auto
+                        border:
+                          style: "3"
+                        borderWidth: "0.1"
+                        borderColor: "0xc9c9c9"
+                        borderRadius: "5px"
+                        display: flex
+                        alignItems: center
+                        flexDirection: column
+                      children:
+                        - .BasicInformationTableSonViewGray:
+                          style:
+                            width: "0.75"
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                          children:
+                            - type: view
+                              style:
+                                width: "0.375"
+                                height: "0.04"
+                                boxSizing: border-box
+                                borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  width: "auto"
+                                  text: "Facility Name"
+                            - type: view
+                              style:
+                                width: "0.375"
+                                height: "0.04"
+                                boxSizing: border-box
+                                # borderRight: 0xc9c9c9 1px solid 
+                                borderBottom: 0xc9c9c9 1px solid 
+                                paddingLeft: "10px"
+                              children:
+                                - .BasicInformationTableSonSonText:
+                                  text: "State"
+                                  style:
+                                    # borderRight: ""
+                        - type: view
+                          style:
+                            width: "0.75"
+                            display: flex
+                            justifyContent: center
+                          children:
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              text: ""
+                              style:
+                                height: "auto"
+                                width: "0.375"
+                                display: flex
+                                flexWrap: wrap
+                              children:
+                                - type: label
+                                  text: "A&C urgentcare"
+                                  style:
+                                    display: flex
+                                    width: "0.375"
+                                    alignItems: center
+                                    height: "0.03"
+                                    boxSizing: border-box
+                                    fontSize: "0.6vw"
+                                    paddingLeft: "10px"
+                                - type: label
+                                  text: "A&C urgentcare Cerritos"
+                                  style:
+                                    display: flex
+                                    fontSize: "0.6vw"
+                                    width: "0.375"
+                                    height: "0.03"
+                                    boxSizing: border-box
+                                    alignItems: center
+                                    paddingLeft: "10px"
+                                - type: label
+                                  text: "A&C urgentcare Los Angeles"
+                                  style:
+                                    display: flex
+                                    width: "0.375"
+                                    fontSize: "0.6vw"
+                                    height: "0.03"
+                                    boxSizing: border-box
+                                    alignItems: center
+                                    paddingLeft: "10px"
+                            - .BasicInformationTableSonViewWhiteLabel:
+                              text: ""
+                              style:
+                                borderRight: ""
+                                height: "auto"
+                                width: "0.375"
+                                display: flex
+                                flexWrap: wrap
+                              children:
+                                - type: label
+                                  text: "Verified"
+                                  style:
+                                    display: flex
+                                    width: "0.375"
+                                    alignItems: center
+                                    height: "0.03"
+                                    boxSizing: border-box
+                                    fontSize: "0.6vw"
+                                    paddingLeft: "10px"
+                                - type: label
+                                  text: "Pending"
+                                  style:
+                                    display: flex
+                                    fontSize: "0.6vw"
+                                    width: "0.375"
+                                    height: "0.03"
+                                    boxSizing: border-box
+                                    alignItems: center
+                                    paddingLeft: "10px"
+                                - type: label
+                                  text: "Not Verified"
+                                  style:
+                                    display: flex
+                                    width: "0.375"
+                                    fontSize: "0.6vw"
+                                    height: "0.03"
+                                    boxSizing: border-box
+                                    alignItems: center
+                                    paddingLeft: "10px"

@@ -1,0 +1,244 @@
+TestNewStructure:
+  title: 
+  pageNumber: 
+  init: #Page initialization
+    - .SignInCheck
+
+  formData: #Input data here
+
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+          children:
+            - .aitLogo:
+            - .MenuBar:        
+        - .TopBar: 
+        - .InnerBodyView:
+          children:
+            - .PageTitleLabel:
+            - .ContentBar:
+              children:
+                # font 
+                - type: view
+                  style:
+                    width: "0.4"
+                    marginLeft: "0"
+                    display: inline-block
+                    height: "0.7"
+                  children: 
+                    - type: label
+                      text: "Font Family:"
+                      dataKey: 
+                      style:
+                        left: "0.03"
+                        fontSize: .Nfont.nf6
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "600"
+                    - type: label
+                      text: "First One(32px)"
+                      dataKey: 
+                      style:
+                        left: "0.05"
+                        fontSize: .Nfont.nf6
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "500"
+                    - type: label
+                      text: "Second One(24px)"
+                      dataKey: 
+                      style:
+                        left: "0.05"
+                        fontSize: .Nfont.nf5
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "500"
+                    - type: label
+                      text: "Third One(20px)"
+                      dataKey: 
+                      style:
+                        left: "0.05"
+                        fontSize: 0.9625vw
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "500"
+                    - type: label
+                      text: "Forth One(16px)"
+                      dataKey: 
+                      style:
+                        left: "0.05"
+                        fontSize: 0.77vw
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "500"
+                    - type: label
+                      text: "Forth One(14px)"
+                      dataKey: 
+                      style:
+                        left: "0.05"
+                        fontSize: 0.67375vw
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "500"
+                    - type: label
+                      text: "Fifth One(12px)"
+                      dataKey: 
+                      style:
+                        left: "0.05"
+                        fontSize: 0.5775vw
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "500"
+                # button 
+                - type: view
+                  style:
+                    width: "0.4"
+                    marginLeft: "0"
+                    display: inline-block
+                    height: "0.7"
+                  children: 
+                    - type: label
+                      text: "Button:"
+                      dataKey: 
+                      style:
+                        left: "0.03"
+                        fontSize: .Nfont.nf6
+                        fontFamily: Roboto
+                        lineHeight: "2"
+                        color: "0x333333"
+                        fontWeight: "500"
+                    - type: view
+                      style:
+                        left: "0.05"
+                        marginTop: "0.02"
+                        width: "0.2"
+                        height: "0.06"
+                        display: flex
+                        alignItems: center
+                        justifyContent: space-between
+                      children: 
+                        - type: label
+                          text: "Standard Button:"
+                          dataKey: 
+                          style:
+                            display: inline-block
+                            fontSize: 0.938vw
+                            fontFamily: Roboto
+                            lineHeight: "2"
+                            color: "0x333333"
+                            fontWeight: "500"
+                        - type: button
+                          text: "Button"
+                          style:
+                            marginLeft: "0.02"
+                            display: inline-block
+                            fontSize: 0.938vw
+                            fontFamily: "Roboto"
+                            boxSizing: border-box
+                            border: 
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "0x005795"
+                            # borderRadius: "3"
+                            backgroundColor: "0x005795"
+                            width: "0.08"
+                            color: "0xffffff"
+                            height: "0.0405"
+                            textAlign:
+                              x: center
+                              y: center
+                    - type: view
+                      style:
+                        left: "0.05"
+                        marginTop: "0.02"
+                        width: "0.2"
+                        height: "0.06"
+                        display: flex
+                        alignItems: center
+                        justifyContent: space-between
+                      children: 
+                        - type: label
+                          text: "Medium Button:"
+                          dataKey: 
+                          style:
+                            display: inline-block
+                            fontSize: 0.938vw
+                            fontFamily: Roboto
+                            lineHeight: "2"
+                            color: "0x333333"
+                            fontWeight: "500"
+                        - type: button
+                          text: "Button"
+                          style:
+                            marginLeft: "0.02"
+                            display: inline-block
+                            fontSize: 0.833vw
+                            fontFamily: "Roboto"
+                            boxSizing: border-box
+                            border: 
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "0x005795"
+                            borderRadius: "3"
+                            backgroundColor: "0x005795"
+                            width: "0.06"
+                            color: "0xffffff"
+                            height: "0.0368"
+                            textAlign:
+                              x: center
+                              y: center       
+                    - type: view
+                      style:
+                        left: "0.05"
+                        marginTop: "0.02"
+                        width: "0.2"
+                        height: "0.06"
+                        display: flex
+                        alignItems: center
+                        justifyContent: space-between
+                      children: 
+                        - type: label
+                          text: "Small Button:"
+                          dataKey: 
+                          style:
+                            display: inline-block
+                            fontSize: 0.938vw
+                            fontFamily: Roboto
+                            lineHeight: "2"
+                            color: "0x333333"
+                            fontWeight: "500"
+                        - type: button
+                          text: "Button"
+                          style:
+                            marginLeft: "0.02"
+                            display: inline-block
+                            fontSize: 0.625vw
+                            fontFamily: "Roboto"
+                            boxSizing: border-box
+                            border: 
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "0x005795"
+                            borderRadius: "3"
+                            backgroundColor: "0x005795"
+                            width: "0.04"
+                            color: "0xffffff"
+                            height: "0.02576"
+                            textAlign:
+                              x: center
+                              y: center                                                      
+       

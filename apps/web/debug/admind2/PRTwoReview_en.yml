@@ -1,0 +1,1183 @@
+PRTwoReview:
+  title: PR-2
+  init: 
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pRTwo.docReq@: =.Global.formData.medicalRecords
+            - ..formData.workStatus@: =.Global.formData.medicalRecords.name.data.workStatus
+            - ..formData.diagnosis.treatmentPlan@: =.Global.formData.medicalRecords.name.data.diagnosis.treatmentPlan
+            - ..apiRequest.pRTwo.docReq.name.data.providerInfo.date@: =.Global.formData.medicalRecords.ctime 
+        - continue
+
+    # 判断是否签名
+    - actionType: evalObject
+      object:
+        - if:
+          - =.PRTwoReview.apiRequest.pRTwo.docReq.name.data.whetherSign
+          - continue
+          # 非空修改显示的标识,刷新签名区域
+          - actionType: evalObject
+            object:
+              # 签名的时间
+              - ..formData.temporarySignature@: =.PRTwoReview.apiRequest.pRTwo.docReq.name.data.signatureId
+              - ..formData.flag@: "block"
+              - actionType: builtIn
+                funcName: redraw
+                viewTag: signatureShowTag
+
+    # 判断选择Other
+    - actionType: evalObject
+      object:
+        - if:
+          - =.PRTwoReview.apiRequest.pRTwo.docReq.name.data.whetherOther
+          - actionType: evalObject
+            object:
+              - ..formData.selectData@: =..PRTwoReview.apiRequest.pRTwo.docReq.name.data.submitReport
+              - .PRTwoReview.apiRequest.pRTwo.docReq.name.data.submitReport@: "Other"
+
+              - ..formData.whetherOther@: =.PRTwoReview.apiRequest.pRTwo.docReq.name.data.whetherOther
+              - ..formData.rePortflag@: "block"
+              - actionType: builtIn
+                funcName: redraw
+                viewTag: rePortShowTag
+          - actionType: evalObject
+            object:
+              - ..formData.selectData@: =..PRTwoReview.apiRequest.pRTwo.docReq.name.data.submitReport
+
+    # 判断Diagnoses
+    - actionType: evalObject
+      object:
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList
+                  string2: ""
+            - continue
+            - actionType: evalObject
+              object:
+                - ..formData.listDataflag@: "block"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: listData
+
+  calendarDate: 
+    year: ""
+    month: ""
+    day: ""
+    dayLable: []
+    todayDate: ""
+    monthName: ""
+
+  formDataTemp:
+    allListInfo:  []
+    allListString: []
+    allCodes: []
+    allDescription: []
+    report:
+      - Please select 
+      - Periodic Report (Required 45 days after last report)
+      - Change in treatment plan
+      - Release Form Care
+      - Change in work status
+      - Need for referral consultation
+      - Response to request for information
+      - Change in patient’s condition
+      - Need for surgery or hospitalization
+      - Request for authorization
+      - Other  
+  formData: 
+    listDataflag: "none"
+    rePortflag: "none"
+    flag: "none"
+    whetherSign: ""
+    whetherOther: ""
+    selectData: ""
+    temporarySignature: ""
+    diagnosis:
+      treatmentPlan: ""
+      descriptiveList:
+        code: ""
+        description: ""
+    workStatus:
+      claimsAd: 
+        isClaimsAd: false
+        ClaimsAdDate: ""
+      modifiedWork:
+        isModified: false
+        modifiedDate: ""
+      restrictions: ""
+      fullDuty:
+        isFullDuty: false
+        fullDutyDate: ""
+      examDate: ""
+
+  apiRequest: 
+    # 签名文档
+    newSign:
+      docResp: ""
+      docReq: #DOC
+        .Document: ""
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.docReq.subtype.mediaType
+          data:
+            size: ""
+        eid: .Global.rootNotebookID
+        fid: ""
+        subtype:
+          mediaType: "" # mediaType : "image/jpeg"
+      docAPI: # DOCAPI
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PRTwoReview.apiRequest.newSign.docReq
+          dataOut: PRTwoReview.apiRequest.newSign.docResp
+
+    # pRTwo文档
+    pRTwo:
+      docResp: ""
+      docReq:
+        .Document: ""
+        eid: .Global.roomInfo.edge.id
+        type: .DocType.pRTwo
+        name:
+          title: "PR-2"
+          user: .Global.currentUser.vertex.name.userName
+          type: "text/plain"
+          subtype: "0" #0是未完成，1是完成
+          data:
+            signatureId: ""
+            whetherSign: ""
+            fontcolor: ""
+            authority: ""
+            patientInfo:
+              injuryDate: ""
+            administratorInfo:
+              administrator: ""
+              claimsNumber: ""
+              claimsAddress: ""
+              city: ""
+              state: ""
+              zipCode: ""
+              phone: ""
+              fax: ""
+              employerName: ""
+              employerPhone: ""
+              subComplaints: ""
+              objFindings: ""
+            diagnosis: 
+              treatmentPlan: ""
+              descriptiveList: []
+            workStatus: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PRTwoReview.apiRequest.pRTwo.docReq
+          dataOut: PRTwoReview.apiRequest.pRTwo.docResp
+          subtype:
+            mediaType: "text/plain"
+        get:
+          api: rd
+          dataKey: pRTwo.docResp
+          id: .Global.formData.medicalRecords.id
+          xfname: eid
+          type: .DocType.pRTwo
+          maxcount: "1"
+        delete:
+          api: dx
+          dataIn: PRTwoReview.apiRequest.pRTwo.docReq
+
+
+  
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - type: view
+              style:
+                top: "0.06"
+                left: "0.665"
+                width: "0.065"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView                
+              children:
+                - type: image
+                  path: downLoadBlue.svg
+                  style:
+                    marginTop: "0.006"
+                    display: inline-block
+                    width: "0.009"
+                    height: "0.015"
+                - type: label
+                  text: "Download"
+                  style:
+                    display: inline-block
+                    width: "0.055"
+                    color: "0x0063A8"
+                    fontSize: .Nfont.nf4
+                    fontWeight: "600"
+                    textAlign:
+                      x: center
+                      y: center 
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    margin: "auto"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - type: scrollView
+                          style:
+                            width: "0.39"
+                            height: "0.74"
+                            overflow: scroll
+                          children:
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                left: "0"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                                # backgroundColor: "yellow"
+                              children:
+                                - type: label
+                                  text: State of California
+                                  style:
+                                    fontSize: .Nfont.nf3
+                                    color: "0x333333"
+                                    height: auto
+                                    width: "0.39"
+                                    textAlign: 
+                                      x: center
+                                      y: center
+                                - type: label
+                                  text: "PRIMARY TREATING PHYSICIAN'S PROGRESS REPORT (PR-2)"
+                                  style:
+                                    marginTop: "0.01"
+                                    fontSize: .Nfont.nf4
+                                    color: "0x333333"
+                                    height: "auto"
+                                    width: "0.39"
+                                    textAlign: 
+                                      x: center
+                                      y: center
+                                    fontWeight: "600"
+                                - type: label
+                                  text: Check the boxes which indicate why you are submitting a report at this time. If the patient is "Permanent and  Stationary"(i.e.,has reached maximum medical improvement),do not use this form. You may use DWC Forms PR-3 or PR-4.
+                                  style:
+                                    marginTop: "0.02"
+                                    fontSize: .Nfont.nf2
+                                    color: "0x333333"
+                                    fontWeight: "500"
+                                    height: auto
+                                    width: "0.39"    
+                                - type: label
+                                  dataKey: apiRequest.pRTwo.docReq.name.data.submitReport
+                                  # options:
+                                  #   ..formDataTemp.report        
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "0.0368"
+                                    width: "0.39" 
+                                    boxSizing: border-box 
+                                    border:
+                                      style: "3"
+                                    borderColor: "0xdedede"
+                                    borderWidth: "1"
+                                    borderRadius: "3"
+                                    textIndent: "0.5em"
+                                    backgroundColor: "0xffffff"
+                                    color: "0x333333"
+                                    fontSize: .Nfont.nf1
+                                    textAlign:
+                                      y: center
+                                - type: view
+                                  viewTag: rePortShowTag
+                                  style:
+                                    marginTop: "0.01"
+                                    display: ..formData.rePortflag
+                                    height: "auto"
+                                    width: "0.39"
+                                  children:
+                                    - type: textField
+                                      placeholder: Enter here
+                                      dataKey: formData.selectData
+                                      style:
+                                        height: "0.0368"
+                                        width: "0.39"
+                                        textIndent: "0.5em"
+                                        boxSizing: border-box
+                                        color: "0x333333"
+                                        fontSize: .Nfont.nf1
+                                        border:
+                                          style: 3
+                                        borderColor: "0xdedede"
+                                        borderWidth: "1"
+                                        borderRadius: "4"
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                left: "0"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                                # backgroundColor: "pink"
+                              children:
+                                - type: view
+                                  style:
+                                    height: "auto"
+                                    width: "0.39"
+                                    # backgroundColor: "pink"
+                                  children: 
+                                    - type: label
+                                      text: Patient
+                                      style:
+                                        fontSize: .Nfont.nf4
+                                        color: "0x333333"
+                                        height: auto
+                                        width: "0.39" 
+                                        fontWeight: "600"
+                                    - type: view
+                                      style:
+                                        marginTop: "0.005"
+                                        height: "0.002"
+                                        width: "0.39"  
+                                        backgroundColor: "0xdedede"     
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "auto"
+                                    width: "0.39"
+      
+                                  children:
+                                    - .prTwoLabelView:
+                                      style:   
+                                        width: "0.39"
+                                      
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Patient Name
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.name
+                                          style: 
+                                            border: 
+                                              style: "1"
+                                    - .prTwoLabelView:
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Address
+                                        - .prTwoLabelRight:
+                                          isEditable: false
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.address
+                                          style: 
+                                            border: 
+                                              style: "1"
+                                      
+                                    - .prTwoLabelView:
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Sex
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.sex
+                                          style: 
+                                            border: 
+                                              style: "1"
+                                    - .prTwoLabelView:
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Phone
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.phone
+                                          style: 
+                                            border: 
+                                              style: "1"
+                                    - .prTwoLabelView:
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: DOB
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.DOB
+                                          style: 
+                                            border: 
+                                              style: "1"
+                                    - .prTwoLabelView:
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Date of injury 
+                                        - type: view
+                                          style:
+                                            top: "0.008"
+                                            left: "0.47"
+                                            height: "0.04"
+                                            width: "0.39"
+                                            overflow: hidden
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.injuryDate
+                                          style: 
+                                            border: 
+                                              style: "1"
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                left: "0"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - type: view
+                                  style:
+                                    height: "auto"
+                                    width: "0.39"
+                                  children: 
+                                    - type: label
+                                      text: Claims Administrator 
+                                      style:
+                                        fontSize: .Nfont.nf4
+                                        color: "0x333333"
+                                        height: auto
+                                        width: "0.39" 
+                                        fontWeight: "600" 
+                                    - type: view
+                                      style:
+                                        marginTop: "0.005"
+                                        height: "0.002"
+                                        width: "0.39"  
+                                        backgroundColor: "0xdedede"  
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    height: "auto"
+                                    width: "0.39"
+                                  children:
+                                  - .prTwoListView:
+                                    children:
+                                      - .prTwoListLabel:
+                                        text: Claims Administrator
+                                      - .prTwoListField:
+                                        dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.administrator
+                                  - .prTwoListView:
+                                    children:
+                                      - .prTwoListLabel:
+                                        text: Claims number
+                                      - .prTwoListField:
+                                        dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.claimsNumber
+                                  - .prTwoListView:
+                                    children:
+                                      - .prTwoListLabel:
+                                        text: Claims Administrator Street Address
+                                      - .prTwoListField:
+                                        dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.claimsAddress
+                                  - .prTwoListView:
+                                    style:
+                                      height: "0.06"
+                                    children:
+                                      - type: view
+                                        style:
+                                          top: "0"
+                                          left: "0"
+                                          width: "0.12"
+                                        children:
+                                          - .prTwoListLabel:
+                                            text: City
+                                            style: 
+                                              width: "0.12"             
+                                          - .prTwoListField:
+                                            dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.city
+                                            style:
+                                              width: "0.12"
+                                      - type: view
+                                        style:
+                                          top: "0"
+                                          left: "0.135"
+                                          width: "0.12"
+                                        children:
+                                          - .prTwoListLabel:
+                                            text: State
+                                            style:
+                                              width: "0.12"        
+                                          - type: label
+                                            dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.state
+                                            style:
+                                              width: "0.12"
+                                              marginTop: "0.005"
+                                              height: "0.0368"
+                                              border:
+                                                style: 3
+                                              borderColor: "0xdedede"
+                                              backgroundColor: "0xffffff"
+                                              borderWidth: "1"
+                                              borderRadius: "3"   
+                                              boxSizing: border-box
+                                              fontSize: .Nfont.nf1
+                                              color: "0x333333"
+                                              textIndent: "0.5em"
+                                              textAlign:  
+                                                y: center  
+                                      - type: view
+                                        style:
+                                          top: "0"
+                                          left: "0.27"
+                                          width: "0.12"
+                                        children:
+                                          - .prTwoListLabel:
+                                            text: Zip code
+                                            style:
+                                              width: "0.12"        
+                                          - .prTwoListField:
+                                            dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.zipCode
+                                  - .prTwoListView:
+                                    children:
+                                      - .prTwoListLabel:
+                                        text: Phone Number
+                                      - .prTwoListField:
+                                        dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.phone
+                                  - .prTwoListView:
+                                    children:
+                                      - .prTwoListLabel:
+                                        text: Fax Number
+                                      - .prTwoListField:
+                                        dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.fax
+                                  - .prTwoListView:
+                                    children:
+                                      - .prTwoListLabel:
+                                        text: Employer Name
+                                      - .prTwoListField:
+                                        dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.employerName
+                                  - .prTwoListView:
+                                    children:
+                                      - .prTwoListLabel:
+                                        text: Employer's Phone Number
+                                      - .prTwoListField:
+                                        dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.employerPhone
+
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "auto"
+                                    width: "0.39"
+                                  children:
+                                    - type: label
+                                      text: Subjective Complaints (The information below must be provided. You may use this form or you may substitute or append a narrative report)
+                                      style:
+                                        marginTop: "0"
+                                        fontSize: .Nfont.nf2
+                                        fontWeight: "500"
+                                        color: "0x333333"
+                                        height: "auto"
+                                        width: "0.39" 
+                                    - type: textView
+                                      isEditable: "false"
+                                      placeholder: Enter here
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.subComplaints
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.39"
+                                        height: "0.1"
+                                        fontSize: .Nfont.nf2
+                                        fontFamily: "Roboto"
+                                        color: "0x333333"
+                                        border:
+                                          style: 3
+                                        borderColor: "0xdedede"
+                                        borderWidth: "1"
+                                        borderRadius: "3"
+                                        boxSizing: border-box
+                                        backgroundColor: "0xffffff"
+                                        textIndent: "0.5em"
+                                    - type: label
+                                      text: Objective Findings (Include significant physical examination, laboratory, imaging, or other diagnostic findings.)
+                                      style:
+                                        marginTop: "0.02"
+                                        fontSize: .Nfont.nf2
+                                        fontWeight: "500"
+                                        color: "0x333333"
+                                        height: "auto"
+                                        width: "0.39" 
+                                    - type: textView
+                                      isEditable: "false"
+                                      placeholder: Enter here
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.objFindings
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.39"
+                                        height: "0.1"
+                                        fontSize: .Nfont.nf2
+                                        fontFamily: "Roboto"
+                                        color: "0x333333"
+                                        border:
+                                          style: 3
+                                        borderColor: "0xdedede"
+                                        borderWidth: "1"
+                                        borderRadius: "3"
+                                        resize: "none"
+                                        boxSizing: border-box
+                                        backgroundColor: "0xffffff"
+                                        textIndent: "0.5em"
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    height: "auto"
+                                    width: "0.39"
+                                  children:
+                                    - type: label
+                                      text: Diagnoses
+                                      style:
+                                        fontSize: .Nfont.nf4
+                                        fontWeight: "600"
+                                        height: "auto"
+                                        width: "0.39"  
+                                        color: "0x333333"    
+                                    # debug
+                                    - type: view
+                                      style:
+                                        marginTop: "0.01"
+                                        height: "auto"
+                                        width: "0.39"
+                                      children: 
+                                        - type: view
+                                          viewTag: listData
+                                          style:
+                                            width: "0.39"
+                                            left: "0"
+                                            height: "auto"
+                                            marginTop: "0.01"
+                                            display: ..formData.listDataflag
+                                          children:
+                                            - type: view
+                                              style:
+                                                width: "0.39"
+                                                left: '0'
+                                                height: "auto"
+                                              children:
+                                                - type: label
+                                                  text: "# Code"
+                                                  style:
+                                                    width: "0.15"
+                                                    fontSize: .Nfont.nf2
+                                                    height: "0.04"
+                                                    fontWeight: "600"
+                                                    left: "0"
+                                                    textAlign: 
+                                                      y: center
+                                                    textIndent: "2em"
+                                                - type: label
+                                                  text: "Description"
+                                                  style:
+                                                    width: "0.24"
+                                                    fontSize: .Nfont.nf2
+                                                    left: '0.065'
+                                                    top: "0.004"
+                                                    height: "0.04"
+                                                    fontWeight: "600"
+                                                    textAlign: 
+                                                      y: center 
+                                            - type: list
+                                              contentType: listObject
+                                              listObject: ..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                                              iteratorVar: itemObject
+                                              style:
+                                                left: "0"
+                                                width: "0.39"
+                                                marginTop: "0.01"
+                                                height: "auto"
+                                                border:
+                                                  style: "3"
+                                                borderColor: "0xdedede"
+                                                borderRadius: "4"
+                                                boxSizing: border-box
+                                              children:
+                                                - type: listItem
+                                                  itemObject: ""
+                                                  style:
+                                                    marginTop: "0.01"
+                                                    width: "0.39"
+                                                    height: "auto"
+                                                    left: "0"
+                                                    overflow: hidden
+                                                  children:
+                                                    - type: view
+                                                      style:
+                                                        width: "0.39"
+                                                        height: "auto"
+                                                      children:
+                                                        - type: label
+                                                          text: "●"
+                                                          style:
+                                                            marginLeft: "0.01"
+                                                            fontSize: .Nfont.nf2
+                                                            color: "0x333333"
+                                                            display: "inline-block"
+                                                        - type: label
+                                                          dataKey: itemObject.code
+                                                          style:
+                                                            display: "inline-block"
+                                                            marginLeft: "0.01"
+                                                            height: "auto"
+                                                            width: "0.04"
+                                                            backgroundColor: "0xffffff"
+                                                            wordBreak: break-all
+                                                            fontSize: .Nfont.nf2
+                                                            fontWeight: "500"
+                                                            verticalAlign: middle
+                                                        - type: label
+                                                          text: "-"
+                                                          style:
+                                                            verticalAlign: middle
+                                                            display: "inline-block"
+                                                            width: "auto"
+                                                            height: "auto"
+                                                            fontSize: .Nfont.nf2
+                                                        - type: label
+                                                          dataKey: itemObject.description
+                                                          style:
+                                                            verticalAlign: middle
+                                                            marginLeft: "0.01"
+                                                            display: "inline-block"
+                                                            height: "auto"
+                                                            width: "0.31"
+                                                            textAlign:
+                                                              x: left
+                                                            backgroundColor: "0xffffff"
+                                                            wordBreak: break-all
+                                                            fontSize: .Nfont.nf2
+                                                    - type: label
+                                                      dataKey: itemObject.comment
+                                                      style:
+                                                        marginTop: "0.005"
+                                                        marginLeft: "0.018"
+                                                        width: "0.36"
+                                                        height: "auto"
+                                                        color: "0x666666"
+                                                        wordBreak: break-all
+                                                        fontSize: .Nfont.nf2
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "auto"
+                                    width: "0.39"
+                                  children:
+                                    - type: label
+                                      text: Treatment Plan(Include treatment rendered to date. List methods, frequency and duration of planned treatment(s). Specify consultation/ referral, surgery, and hospitalization. Identify each physician and non-physician provider. Specify type, frequency and duration of physical medicine services (e.g., physical therapy, manipulation, acupuncture). Use of CPT codes is encouraged. Have there been any changes in treatment plan? If so, why?
+                                      style:
+                                        color: "0x333333"
+                                        fontSize: .Nfont.nf2
+                                        fontWeight: "500"
+                                        height: "auto"
+                                        width: "0.39"   
+                                    - type: textView                       
+                                      dataKey: formData.diagnosis.treatmentPlan
+                                      style:
+                                        textIndent: "0.5em"
+                                        marginTop: "0.01"
+                                        width: "0.39"
+                                        height: "0.0736"
+                                        boxSizing: border-box
+                                        fontFamily: Roboto
+                                        color: "0x333333"
+                                        border:
+                                          style: "3"
+                                        borderRadius: "4"
+                                        borderWidth: "1"
+                                        borderColor: "0xdedede"
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    height: "auto"
+                                    width: "0.39"
+                                  children:                                    
+                                    - type: label
+                                      text: "Work Status: This patient has been instructed to"
+                                      style: 
+                                        marginTop: "0.02"
+                                        fontSize: .Nfont.nf2
+                                        fontWeight: "500"
+                                        color: "0x333333"
+                                        height: "auto"
+                                        width: "0.39"                          
+                                    - .prTwoListView:
+                                      style:  
+                                        marginTop: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.023"
+                                            width: "0.39"  
+                                            textAlign:
+                                              y: center 
+                                          children:
+                                            - type: image
+                                              viewTag: claimsAdstatusSelectTag
+                                              style:
+                                                left: "0"
+                                                height: "0.023"
+                                                width: "0.013"
+                                                display: inline-block
+                                              path: 
+                                                emit:
+                                                  actions:                        
+                                                    - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..formData.workStatus.claimsAd.isClaimsAd
+                                                            string2: true
+                                                      - selectBlue.png
+                                                      - selectGray.png
+                                            - .prTwoListLabel:
+                                              text: Return off-work until
+                                              style:
+                                                fontWeight: ""
+                                                display: inline-block
+                                                color: "0x333333"
+                                                left: "0.01"
+                                                width: "auto"   
+                                        - type: view
+                                          viewTag: selectClaimsDateTag
+                                          style:
+                                            marginTop: "0.01"
+                                            width: "0.39"
+                                            height: "0.0368"             
+                                          children:  
+                                            - .prTwoListField:
+                                              placeholder: Select Date
+                                              dataKey: formData.workStatus.claimsAd.ClaimsAdDate
+                                              style:
+                                                left: "0"
+                                                width: "0.39"
+                                                height: "0.0368"
+                                                fontSize: .Nfont.nf1
+                                                color: "0x333333"
+
+                                    - .prTwoListView:
+                                      style:  
+                                        marginTop: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.023"
+                                            width: "0.39"  
+                                            textAlign:
+                                              y: center  
+                                          children:
+                                            - type: image
+                                              viewTag: modifiedWorkSelectTag
+                                              style:
+                                                left: "0"
+                                                height: "0.023"
+                                                width: "0.013"
+                                                display: inline-block
+                                              path: 
+                                                emit:
+                                                  actions:                        
+                                                    - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..formData.workStatus.modifiedWork.isModified
+                                                            string2: true
+                                                      - selectBlue.png
+                                                      - selectGray.png
+                                            - .prTwoListLabel:
+                                              text: Return to modified work on
+                                              style:
+                                                fontWeight: ""
+                                                display: inline-block
+                                                color: "0x333333"
+                                                left: "0.01"
+                                                width: "auto"
+                                        - type: view
+                                          style:
+                                            marginTop: "0.01"
+                                            width: "0.39"
+                                            height: "0.0368"             
+                                          children:                                            
+                                            - .prTwoListField:
+                                              placeholder: Select Date
+                                              dataKey: formData.workStatus.modifiedWork.modifiedDate
+                                              style:
+                                                left: "0"
+                                                width: "0.39"
+                                                height: "0.0368"
+                                                fontSize: .Nfont.nf1
+                                                color: "0x333333"
+            
+                                    - type: label
+                                      text: "with the following limitations or restrictions. (List all specific restrictions re: standing, sitting, bending, use of hands, etc.):"
+                                      style:
+                                        marginTop: "0.02"
+                                        fontSize: .Nfont.nf2
+                                        fontWeight: "500"
+                                        color: "0x333333"
+                                        height: "auto"
+                                        width: "0.39" 
+                                    - type: textView
+                                      placeholder: Enter here
+                                      dataKey: formData.workStatus.restrictions
+                                      style:
+                                        textIndent: "0.5em"
+                                        marginTop: "0.01"
+                                        width: "0.39"
+                                        height: "0.0736"
+                                        boxSizing: border-box
+                                        fontFamily: Roboto
+                                        color: "0x333333"
+                                        border:
+                                          style: "3"
+                                        borderRadius: "4"
+                                        borderWidth: "1"
+                                        borderColor: "0xdedede"
+                                    - .prTwoListView:
+                                      style:  
+                                        marginTop: "0.01"
+                                      children:
+                                        - type: view
+                                          style:
+                                            height: "0.023"
+                                            width: "0.39"  
+                                            textAlign:
+                                              y: center
+                                          children:
+                                            - type: image
+                                              viewTag: fullDutyTag
+                                              style:
+                                                left: "0"
+                                                height: "0.023"
+                                                width: "0.013"
+                                                display: inline-block
+                                              path: 
+                                                emit:
+                                                  actions:                        
+                                                    - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..formData.workStatus.fullDuty.isFullDuty
+                                                            string2: true
+                                                      - selectBlue.png
+                                                      - selectGray.png
+                                            - .prTwoListLabel:
+                                              text: Return to full duty with no limitations or restrictions on
+                                              style:
+                                                fontWeight: ""
+                                                display: inline-block
+                                                color: "0x333333"
+                                                left: "0.01"
+                                                width: "auto"
+                                        - type: view
+                                          viewTag: fullDutyDateTag
+                                          style:
+                                            marginTop: "0.01"
+                                            width: "0.39"
+                                            height: "0.0368"             
+                                          children: 
+                                            - .prTwoListField:
+                                              placeholder: Select Date
+                                              dataKey: formData.workStatus.fullDuty.fullDutyDate
+                                              style:
+                                                left: "0"
+                                                width: "0.39"
+                                                height: "0.0368"
+                                                fontSize: .Nfont.nf1
+                                                color: "0x333333"
+            
+
+                                    - type: label
+                                      text: "Primary Treating Physician:"
+                                      style:
+                                        marginTop: "0.02"
+                                        fontSize: .Nfont.nf2
+                                        fontWeight: "500"
+                                        color: "0x333333"
+                                        height: "auto"
+                                        width: "0.39" 
+                                    - type: label
+                                      text: "Date of Exam"
+                                      style:
+                                        marginTop: "0.02"
+                                        fontSize: .Nfont.nf2
+                                        fontWeight: "500"
+                                        color: "0x333333"
+                                        height: "auto"
+                                        width: "0.39" 
+                                    - type: view
+                                      viewTag: examDateTag
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.39"
+                                        height: "0.0368"             
+                                      children:  
+                                        - .prTwoListField:
+                                          placeholder: Select Date
+                                          dataKey: formData.workStatus.examDate
+                                          style:
+                                            left: "0"
+                                            width: "0.39"
+                                            height: "0.0368"
+                                            fontSize: .Nfont.nf1
+                                            color: "0x333333"
+                                    - type: label
+                                      text: "I declare under penalty of perjury that this report is true and correct to the best of my knowledge and that I have not violated Labor Code section 139.3."
+                                      style:
+                                        marginTop: "0.02"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        height: "auto"
+                                        width: "0.39" 
+                                    - type: view
+                                      style:
+                                        marginTop: "0.02"
+                                        height: "auto"
+                                        width: "0.39"
+                                      children:
+                                        - type: label
+                                          text: Physician signature
+                                          style:
+                                            height: "auto"
+                                            width: "0.3"
+                                            fontSize: .Nfont.nf4 
+                                            fontWeight: "500"
+                                            color: "0x333333"
+                                    - .SignAreaView:
+                                      style:
+                                        width: "0.39"
+                                        marginTop: "0.01"
+                                        boxSizing: border-box
+                                      children:  
+                                        - type: image
+                                          viewTag: signatureShowTag
+                                          dataKey: PRTwoReview.apiRequest.pRTwo.docReq.name.data.signatureId
+                                          path=func: .builtIn.utils.prepareDocToPath
+                                          style:
+                                            display: ..formData.flag
+                                            boxSizing: border-box
+                                        - type: label
+                                          text: "X"
+                                          style:
+                                            fontSize: .Nfont.nf5
+                                            .SignLabelStyle: 
+                                            width: "0.33"
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "auto"
+                                    width: "0.39"
+                                    # backgroundColor: "pink"
+                                  children:
+                                    - .prTwoLabelView:
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Physician Name
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.physicianName
+                                          style: 
+                                            border: 
+                                              style: "1"                                      
+                                    - .prTwoLabelView:
+                                      style:
+                                        marginTop: "0.01"
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Cal. License Number
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.calNumber
+                                          style: 
+                                            border: 
+                                              style: "1"                                      
+                                    - .prTwoLabelView:
+                                      style:
+                                        marginTop: "0.01"
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Specialty
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.specialty
+                                          style: 
+                                            border: 
+                                              style: "1"                                      
+                                    - .prTwoLabelView:
+                                      style:
+                                        marginTop: "0.01"
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Address
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.address
+                                          style: 
+                                            border: 
+                                              style: "1"                                      
+                                    - .prTwoLabelView:
+                                      style:
+                                        marginTop: "0.01"
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Phone Number
+                                        - .prTwoLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.phoneNumber
+                                          style: 
+                                            border: 
+                                              style: "1"                                      
+                                    - .prTwoLabelView:
+                                      style:
+                                        marginTop: "0.01"
+                                      children:
+                                        - .prTwoLabelLeft:
+                                          text: Date
+                                        - .prTwoLabelRight:
+                                          text=func: .builtIn.string.formatNowTime
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.date
+                                          style: 
+                                            border: 
+                                              style: "1"                                      
+                                - type: label
+                                  text: "PRIVACY NOTICE: A statement of current data collection and use policies and certain privacy rights of injured workers may be found at the following website: http://www.dir.ca.gov/od_pub/privacy.html."
+                                  style:
+                                    marginTop: "0.02"
+                                    fontSize: .Nfont.nf2
+                                    height: "0.04"
+                                    color: "0x333333"
+                                    width: "0.39"
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true     

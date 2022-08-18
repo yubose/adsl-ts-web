@@ -1,0 +1,1270 @@
+FacilityDetailLink:
+  viewPort: top
+  pageNumber: 
+  title: FacilityDetailLink
+  init:
+    - .Global.baseFontColor@: "0x333333"
+    
+    - actionType: evalObject
+      object: 
+        - =.builtIn.string.concat:
+            dataIn:
+              - =.FacilityDetailLink.formData.countryCode
+              - " "
+              - =.FacilityDetailLink.formData.phoneNumber
+            dataOut: FacilityDetailLink.apiData.phoneNumber 
+        - =.builtIn.utils.getTempParams:
+            dataIn:
+            dataOut: FacilityDetailLink.formData.facilityId
+        - .Global.FacilityLink@: true
+    - .Global.RoomLocationId@: ""
+    - actionType: evalObject #geust login
+      object:
+        - if: 
+          - =.Global.currentUser.vertex.id
+          - continue
+          - actionType: evalObject
+            object:
+              - =.FacilityDetailLink.verificationCode.edgeAPI.store: ""
+              - =.builtIn.string.retainNumber:
+                  dataIn:
+                    value: =.FacilityDetailLink.verificationCode.response.edge.tage
+                  dataOut: FacilityDetailLink.formData.code
+              - ..loginNewDevice.edge.name.verification_code@: =..formData.code
+              - ..loginNewDevice.edge.name.phone_number@: =.FacilityDetailLink.apiData.phoneNumber
+              - =.FacilityDetailLink.loginNewDevice.edgeAPI.store: ""
+              - =.builtIn.eccNaCl.decryptAES:
+                    dataIn:
+                      key: =..formData.password
+                      message: =..loginNewDevice.response.edge.deat.esk
+                    dataOut: FacilityDetailLink.formData.sk  
+              - =.builtIn.eccNaCl.skCheck:
+                    dataIn:
+                      pk: =..loginNewDevice.response.edge.deat.pk
+                      sk: =..formData.sk
+                    dataOut: FacilityDetailLink.formData.pass
+        - if:
+          - =.Global.currentUser.vertex.id
+          - continue
+          - actionType: evalObject
+            object: ..update
+    
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.facilityId.id
+            string2: ""
+      - continue
+      - =.builtIn.string.concat:
+          dataIn:
+            - "uid="
+            - "'"
+            - =..formData.facilityId.id
+            - "'"           
+          dataOut: FacilityDetailLink.formData.uid
+    - =.builtIn.string.concat:
+        dataIn:
+        - "FacilityDetailLink&id="
+        - =..formData.facilityId.id
+        - ""           
+        dataOut: FacilityDetailLink.formData.GoUrl  
+    - .Global.GoSignUp@: =.FacilityDetailLink.formData.GoUrl  
+    - .Global.formData.LogoOutuid@: =.FacilityDetailLink.formData.GoUrl
+    - ..facilityLink.vertexAPI.get
+    - .Global.MedicalFacilityVertex@: =.FacilityDetailLink.facilityLink.facLinkRes.vertex.0
+    - ..fac_RootNotebook.edgeReq.id@: =.FacilityDetailLink.facilityLink.facLinkRes.vertex.0.id
+    - ..fac_RootNotebook.edgeAPI.get
+    - ..locationAll.docReq.id@: =..fac_RootNotebook.edge.edge.0.id
+    - ..locationAll.docAPI.get
+    - ..facility.documentReq.id@: ..fac_RootNotebook.edge.edge.0.id
+    - ..facility.docAPI.get
+    - ..facilityBasicInfo@: =..facility.response.doc.0.name.data.basicInfo
+    - ..providerList.docAPI.get
+    - =.builtIn.array.keepLatestDoc: 
+        dataIn: 
+          docList: =..providerList.list.doc
+          path: bsig
+        dataOut: FacilityDetailLink.providerList.list.doc
+    - if:
+      - =..locationAll.docResponse.doc.0
+      - actionType: evalObject
+        object: 
+          - =.builtIn.array.selectOneToArr:
+              dataIn:
+                arr: =..locationAll.docResponse.doc.0.name.data.allLocation
+                key: "medicalFacilityName"
+              dataOut: FacilityDetailLink.addressName
+          - =.builtIn.array.matchInArray:
+              dataIn:
+                arr: =..locationAll.docResponse.doc.0.name.data.allLocation
+                value: =..addressName.0
+                key: medicalFacilityName
+                key1: "id"
+              dataOut: FacilityDetailLink.locationId
+          - ..currentId@: ..locationId
+          - .Global.RoomLocationId@: =..locationId
+      - continue
+    - ..roomList.docIn.id@: =..currentId
+    - ..roomList.docAPI.get
+    - ..formData.roomList@: =..roomList.docResp.doc
+    - actionType: evalObject
+      object:
+        - =.builtIn.search.GetFacilityLat:
+            dataIn:
+              object: =..listdata
+            dataOut: FacilityDetailLink.format
+    - actionType: evalObject
+      object: 
+        - if:
+          - =.FacilityDetailLink.format
+          - .FacilityDetailLink.mapoption.data@: =.FacilityDetailLink.format
+          - continue
+    - if:
+      - =.Global.newCareUser
+      - .Global.formData.profile.firstName@: ""
+      - continue
+    - if:
+      - =.Global.currentUser.vertex.id
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.currentUser.vertex.id
+                  string2: "zgT+cgx7QFopl+JPC2WOeA=="
+            - continue
+            - actionType: evalObject
+              object:
+                - if:
+                  - =.Global.titleProfile.id
+                  - ..profile.patientdocument@: =.Global.titleProfile
+                  - actionType: evalObject
+                    object:
+                      - =..profile.docAPI.get: ""
+                      - ..profile.patientdocument@: =..profile.docResponse.doc.0
+                      - .Global.titleProfile@: =..profile.patientdocument
+      - continue
+
+    
+    - if: 
+      - =.Global.isSignIn
+      - actionType: evalObject
+        object:
+          - ..isSignIn@: true
+          - ..isPersonal@: false
+      - actionType: evalObject
+        object:
+          - ..isSignIn@: false
+          - ..isPersonal@: true
+    - if:
+      - =.Global.newCareUser
+      - ..newCare@: false
+      - continue
+  update: 
+    - =.FacilityDetailLink.loginUser.edgeAPI.store: ""
+    - =.FacilityDetailLink.retrieveVertex.vertexAPI.get: ""
+    - .Global.currentUser.vertex@: =..retrieveVertex.response.vertex.0
+    - .Global.currentUser.JWT@: =..loginUser.response.jwt
+    - .Global.currentUser.vertex.sk@: =.FacilityDetailLink.formData.sk 
+    - =.builtIn.storeCredentials:
+        dataIn:
+          sk: =..formData.sk 
+          pk: =.Global.currentUser.vertex.pk
+          userId: =.Global.currentUser.vertex.id
+          esk: =..loginNewDevice.response.edge.deat.esk
+    - .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
+    - .Global.rootNotebookID@: =.Global.currentUser.vertex.deat.rnb64ID
+    - .Global.currentUser.dataCache.loadingDateTime@ : =.Global.currentDateTime
+  apiData:
+    phoneNumber: "" 
+  mapoption:
+    mapType: 2
+    zoom: 11
+    data: [] 
+  listdata: 
+    - .FacilityDetailLink.facility.response.doc.0
+  facilityBasicInfo: ""
+  facilityID: ""
+  isPersonal: 
+  isSignIn:
+  formDataOfficeVisisAddress: ..addressName.0
+  currentId: ""
+  phone: ""
+  newCare: true
+  addressName: 
+  
+  suggestAddress: []
+
+  formData:
+    fullPhone: []
+    roomList: ""
+    NEWROOM: []
+    doctorsINDEXID: ""
+    facilityId: ""
+    NEWPROVIDER: []
+    countryCode: "+1"   
+    phoneNumber: "8881307128"
+    password: "123456"
+    code: ""
+    sk: ""
+    pass: ""
+    uid: ""  #link穿過來的id
+    GoUrl: ""
+    showName: ""
+    address: ""
+    addressDetail: ""
+    phone: ["+1"]
+  
+  retrieveVertex:
+    response: ""
+    vertex:
+      .Vertex: ""
+      id: =..loginNewDevice.response.edge.deat.user_id
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: FacilityDetailLink.retrieveVertex.vertex
+        dataOut: FacilityDetailLink.retrieveVertex.response  
+  verificationCode:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1010
+      name:
+        phone_number: =..apiData.phoneNumber
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: FacilityDetailLink.verificationCode.edge
+        dataOut: FacilityDetailLink.verificationCode.response
+  loginNewDevice:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1040
+      _handledCode: 1020
+      name:
+        phone_number: =..apiData.phoneNumber
+        verification_code: ""
+      deat:
+        UserId: ""
+        Pk: ""
+        Esk: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: FacilityDetailLink.loginNewDevice.edge
+        dataOut: FacilityDetailLink.loginNewDevice.response
+  loginUser:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1030
+      bvid: =..loginNewDevice.response.edge.deat.user_id
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: FacilityDetailLink.loginUser.edge
+        dataOut: FacilityDetailLink.loginUser.response
+  # 根據uid查詢facility
+  facilityLink:
+    facLinkRes: ""
+    getReq:
+      type: 20
+      xfname: "none"
+      sCondition: =..formData.uid
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: FacilityDetailLink.facilityLink.getReq
+        dataOut: FacilityDetailLink.facilityLink.facLinkRes
+  roomList: 
+    docResp: 
+      doc: []
+    docIn: 
+      ObjType: 12
+      id: ""
+      xfname: "E.bvid"
+      maxcount: "100"
+      obfname: "mtime"
+      type: .DocType.RoomProfile
+      sCondition: E.type=1100
+      # asc: true
+      _nonce: =.Global._nonce
+    docAPI:
+      get: 
+        api: rd
+        dataIn: FacilityDetailLink.roomList.docIn
+        dataOut: FacilityDetailLink.roomList.docResp
+  roomListReget: 
+    docResp: 
+      doc: []
+    docIn: 
+      ObjType: 12
+      id: ""
+      xfname: "E.bvid"
+      maxcount: "100"
+      obfname: "mtime"
+      type: .DocType.RoomProfile
+      sCondition: E.type=1100
+      # asc: true
+      _nonce: =.Global._nonce
+    docAPI:
+      get: 
+        api: rd
+        dataIn: FacilityDetailLink.roomListReget.docIn
+        dataOut: FacilityDetailLink.roomListReget.docResp
+  locationAll:
+    docResponse: ""
+    docReq:
+      type: .DocType.LocationOfFacility
+      id: ""
+      xfname: eid
+      obfname: mtime
+      maxcount: "1"
+    docAPI:
+      get:
+        api: rd
+        dataIn: FacilityDetailLink.locationAll.docReq
+        dataOut: FacilityDetailLink.locationAll.docResponse
+  fac_RootNotebook:
+    edgeReq:
+      id: ""
+      xfname: bvid
+      type: .EdgeType.RootNotebook
+    edge: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: fac_RootNotebook.edgeReq
+        dataOut: fac_RootNotebook.edge  
+  facility:
+    response: ""
+    documentReq:
+      id: ""
+      xfname: eid
+      type: .DocType.FacilityProfile
+      _nonce: .Global._nonce
+      obfname: mtime
+      maxcount: "1"
+    docAPI:
+      get:
+        api: rd
+        dataIn: FacilityDetailLink.facility.documentReq
+        dataOut: FacilityDetailLink.facility.response
+  providerList:
+    list: 
+      edge: []
+    docAPI:
+      get: 
+        api: rd
+        dataKey: providerList.list
+        ObjType: 12
+        type: .DocType.DoctorProfile
+        id: .FacilityDetailLink.facilityLink.facLinkRes.vertex.0.id
+        xfname: E.bvid|E.evid
+        obfname: "ctime"
+        subtype: .FriendsType.ProviderFacility
+        sCondition: "E.type=10002 AND E.tage in (1,2) AND E.subtype&0xf0000=0x30000"
+        maxcount: "10000"
+        _nonce: =.Global._nonce
+  profile:
+    docResponse: ""
+    patientdocument:
+      type: .DocType.PatientProfile
+      eid: .Global.rootNotebookID
+      name:
+    docAPI:
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PatientProfile
+        obfname: mtime
+        dataKey: profile.docResponse
+        _nonce: =.Global._nonce 
+      
+      
+  components:
+    - type: view
+      style:
+        width: "1"
+        margin: 'auto'
+        display: flex
+        flexDirection: column
+        justifyContent: center
+      children:
+        - .baseTopBar:
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .ViewRow:
+                  style:
+                    height: '6vw'
+                    alignItems: center
+                    float: right
+                  children:
+                    - .UserBar:
+        - type: view
+          style: 
+            top: "0.1"
+            width: "1"
+            display: flex
+            flexDirection: row
+            justifyContent: center
+          children:
+            - type: view
+              viewTag: LocationInfos
+              style: 
+                width: "0.45"
+                height: '0.9'
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    width: "0.45"
+                    height: 11.31vw
+                    backgroundColor: "#ffffff"
+                    marginTop: "0.1"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.45"
+                        height: "0.192"
+                        backgroundColor: "#eeeeee"
+                        border: "3px solid #e0eefb"
+                        borderWidth: 3px
+                        display: flex
+                        flexDirection: column
+                      children:
+                        - type: view
+                          style:
+                            # width: 40vw
+                            margin: auto
+                            height: 4.64vw
+                            display: flex
+                            flexDirection: row
+                          children: 
+                            - type: image
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: facilityBasicInfo.businessLogo
+                              path: yiyuan-2.svg
+                              # onClick: 
+                              #   - actionType: popUp
+                              #     popUpView: pop1
+                              style:
+                                marginTop: -2vw
+                                width: 6.96vw
+                                height: 6.96vw
+                                borderRadius: "10px"
+                            - type: view
+                              style: 
+                                marginLeft: 0.93vw
+                                height: 4.64vw
+                              children: 
+                                - type: view
+                                  style:
+                                    marginTop: 0.23vw
+                                    width: 9.28vw
+                                    height: 2.09vw
+                                    backgroundColor: "#ffffff"
+                                    border:
+                                      style: 3
+                                    borderRadius: "20px"
+                                    borderColor: "#d6d6d6"
+                                    borderWidth: "2px"
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                  children:
+                                    - type: image
+                                      path: Telemedicine.svg
+                                      style:           
+                                        height: 1.74vw
+                                        marginLeft: 0.2vw
+                                    - type: label
+                                      text: Telemedicine
+                                      style: 
+                                        marginLeft: 0.58vw
+                                        color: "0x333333"
+                                        fontSize: .Nfont.h0
+                                - type: view
+                                  style:
+                                    marginTop: 0.23vw
+                                    width: 9.28vw
+                                    height: 2.09vw
+                                    backgroundColor: "#ffffff"
+                                    border:
+                                      style: 3
+                                    borderRadius: "20px"
+                                    borderColor: "#d6d6d6"
+                                    borderWidth: "2px"
+                                    display: flex
+                                    flexDirection: row
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                  children:
+                                    - type: image
+                                      path: Office Visits.svg
+                                      style:           
+                                        height: 1.74vw
+                                        marginLeft: 0.2vw
+                                    - type: label
+                                      text: Office Visit
+                                      style: 
+                                        marginLeft: 0.58vw
+                                        color: "0x333333"
+                                        fontSize: .Nfont.h0
+                        - type: label
+                          dataKey: facilityBasicInfo.medicalFacilityName
+                          style:
+                            margin: auto
+                            fontSize: .Nfont.h8
+                            color: "0x143459"
+                            fontWeight: bold
+                            fontFamily: "Arial"
+                            textAlign: 
+                              x: center
+                - type: scrollView
+                  style: 
+                    width: "0.45"
+                    height: "0.54"
+                    display: flex
+                    flexDirection: column
+                  children:
+                    - type: view
+                      style: 
+                        width: "0.45"
+                        backgroundColor: "#ffffff"
+                        marginTop: 1vw
+                      children: 
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "Select Location"
+                              style:
+                                fontSize: .Nfont.h3
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                            - type: select
+                              dataKey: formDataOfficeVisisAddress # formData.countryCode : inputValue
+                              options:
+                                =..addressName
+                              onChange: 
+                                - actionType: evalObject
+                                  object: 
+                                    # - ..formData.roomList@: ""
+                                    - ..roomListReget.docResp.doc@: []
+                                    - =.builtIn.array.matchInArray:
+                                        dataIn:
+                                          arr: =..locationAll.docResponse.doc.0.name.data.allLocation
+                                          value: =..formDataOfficeVisisAddress
+                                          key: medicalFacilityName
+                                          key1: "id"
+                                        dataOut: FacilityDetailLink.locationId
+                                    - ..currentId@: =..locationId
+                                    - .Global.RoomLocationId@: =..locationId
+                                    - ..roomListReget.docIn.id@: =..currentId
+                                    - =..roomListReget.docAPI.get: ""
+                                    - ..formData.roomList@: =..roomListReget.docResp.doc
+                                    - ..fac_RootNotebook.edgeReq.id@: =..currentId
+                                    - =..fac_RootNotebook.edgeAPI.get: ""
+                                    - ..facility.documentReq.id@: =..fac_RootNotebook.edge.edge.0.id
+                                    - =..facility.docAPI.get: ""
+                                    - ..facilityBasicInfo@: =..facility.response.doc.0.name.data.basicInfo
+                                    - =.builtIn.search.GetFacilityLat:
+                                        dataIn:
+                                          object: =..listdata
+                                        dataOut: FacilityDetailLink.format
+                                    - if:
+                                      - =.FacilityDetailLink.format
+                                      - .FacilityDetailLink.mapoption.data@: =.FacilityDetailLink.format
+                                      - continue
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: roomListAll
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: LocationInfos
+                              style:
+                                width: "0.34375"
+                                marginTop: 1vw
+                                height: "2vw"
+                                border: 
+                                  style: '3'
+                                borderColor: "0xdedede"
+                                borderRadius: "2"
+                                borderWidth: "1"
+                                fontSize: .Nfont.h1
+                                color: "0x333333"
+                            - type: view
+                              style:
+                                marginTop: 1vw
+                                textAlign:
+                                  y: center
+                              children:
+                                - type: image
+                                  path: location.svg
+                                  style: 
+                                    width: "0.01"
+                                    display: "inline-block"
+                                - type: label
+                                  dataKey: facilityBasicInfo.location
+                                  style:
+                                    fontSize: .Nfont.h0_1
+                                    color: "#666666"
+                                    display: "inline-block"
+                                    marginLeft: "0.005"
+                                    fontFamily: "Arial"
+                    
+                    - .FDInfoView:
+                      children:
+                        - type: view
+                          style: 
+                            display: flex
+                            flexDirection: row
+                          children:
+                            - .FDInfoTitle:
+                              text: About
+                              style:
+                                fontSize: .Nfont.h3
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                            - .FDInfoTitle:
+                              dataKey: facilityBasicInfo.medicalFacilityName
+                              style: 
+                                marginLeft: 0.5vw
+                                fontSize: .Nfont.h3
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                        - .FDInfoLabel:
+                          dataKey: facilityBasicInfo.introduction
+                    - type: view
+                      style: 
+                        width: "0.45"
+                        backgroundColor: "#ffffff"
+                        marginTop: 1vw
+                      children: 
+                        - .FDInfoView:
+                          children:
+                            - .FDInfoTitle:
+                              text: "Facility Basic Information"
+                              style:
+                                fontSize: .Nfont.h3
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "Main #"
+                            - .FDInfoLabel:
+                              text: "this is a test sentence"
+                              dataKey: facilityBasicInfo.phoneNumber
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "Website"
+                            - type: view
+                              style:
+                                width: "0.45"
+                              children:
+                                - .FDInfoLabel:
+                                  text: "www.care.com"
+                                  dataKey: facilityBasicInfo.website
+                                  style:
+                                    textDecoration: underline
+                                    color: "0x2988E6"
+                                    display: "inline-block"
+                                  onClick:
+                                    - goto: ..facilityBasicInfo.website
+                                - type: view
+                                  style: 
+                                    display: "inline-block"
+                                    marginTop: 0.6vw
+                                    marginLeft: 0.4vw
+                                  onClick:
+                                    - goto: ..facilityBasicInfo.website
+                                  children:
+                                    - type: label
+                                      text: Go to
+                                      style: 
+                                        display: "inline-block"
+                                        fontSize: .Nfont.h1
+                                        fontWeight: "400"
+                                        marginLeft: 1vw
+                                        color: "#2988E6"
+                                        fontFamily: "Arial"
+                                        textDecoration: underline
+                                    - type: image
+                                      path: goTo.svg
+                                      style: 
+                                        width: "1vw"
+                                        marginTop: 0.2vw
+                                        marginLeft: 0.2vw
+                                    
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "Email"
+                            - .FDInfoLabel:
+                              dataKey: facilityBasicInfo.email
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "NPI#"
+                            - .FDInfoLabel:
+                              dataKey: facilityBasicInfo.NPI
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "DEA #"
+                            - .FDInfoLabel:
+                              dataKey: facilityBasicInfo.DEANumber
+                    - type: view
+                      viewTag: locationTag
+                      style: 
+                        marginTop: 1vw
+                        width: "0.45"
+                        backgroundColor: "white"
+                        display: flex
+                        flexDirection: column
+                      children:
+                        - type: view
+                          style:
+                            width: "0.45"
+                          children:
+                            - .FDInfoTitle:
+                              text: 'Office location' 
+                              style:
+                                display: "inline-block"
+                                fontSize: .Nfont.h3
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                                lineHeight: "4.4vh"
+                            - type: view
+                              style: 
+                                display: "inline-block"
+                                # zIndex: 1000
+                                # background: "0xEFE9E1"
+                                float: right
+                                lineHeight: "4.4vh"
+                              children:
+                                - type: image
+                                  path: Get_directions.svg
+                                  style: 
+                                    height: "4.4vh"
+                                    width: "1.5vw"
+                                    display: "inline-block"
+                                - type: label
+                                  text: Get directions
+                                  style: 
+                                    display: "inline-block"
+                                    fontSize: .Nfont.h0
+                                    marginLeft: 1vw
+                                    color: "#2988E6"
+                                    fontFamily: "Arial"
+                        - .FDInfoTitle:
+                          dataKey: facilityBasicInfo.medicalFacilityName
+                          style: 
+                            color: "#333333"
+                            fontSize: .Nfont.h1
+                            marginTop: "0.005"
+                        - type: view
+                          style:
+                            marginTop: 1vw
+                            textAlign:
+                              y: center
+                          children:
+                            - type: image
+                              path: location.svg
+                              style: 
+                                width: "0.01"
+                                display: "inline-block"
+                            - type: label
+                              dataKey: facilityBasicInfo.location
+                              style:
+                                fontSize: .Nfont.h0_1
+                                color: "#666666"
+                                display: "inline-block"
+                                marginLeft: "0.01"
+                                fontFamily: "Arial"
+                        - type: view
+                          style:
+                            marginTop: 1vw
+                            width: "0.34375"
+                            height: 20vw
+                          children:
+                            - type: map
+                              dataKey: FacilityDetailLink.mapoption
+                          
+                        
+
+                    
+            - type: view
+              style:
+                width: '0.362'
+                height: "0.9"
+                marginLeft: "0.064"
+              children:
+                - type: view
+                  viewTag: providerOfFacility
+                  style:
+                    backgroundColor: 'white'
+                    border:
+                      style: '3'
+                    borderColor: "#4b9ae7"
+                    borderRadius: "5px"
+                    width: "0.362"
+                    height: "0.8"
+                    top: 4vw
+                  children:
+                    - type: view
+                      viewTag: title
+                      style: 
+                        marginTop: 0
+                        width: '0.362'
+                        height: "0.084"
+                        borderBottom: "1.5px solid  #dfe1e5"
+                        borderWidth: 2  
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-end
+                        borderRadius: "5px 5px 0 0"
+                        justifyContent: space-around
+                        boxShadow: "0px 10px 10px -10px #d1d1d1"
+                      children: 
+                        - type: button
+                          style:
+                            width: '0.181'
+                            height: "0.05"
+                            border: 
+                              style: 2
+                              color: "#2988E6"
+                            borderWidth: 2px
+                            borderRadius: "5px 5px 0 0"
+                            backgroundColor: "#ffffff"
+                            textAlign:
+                              x: center
+                              y: center
+                          children:
+                            - type: image
+                              path: provider.svg
+                              style:
+                                width: "0.02"
+                                display: "inline-block"
+                            - type: label
+                              text: "Provider"
+                              style:
+                                # width: "0.02"
+                                display: "inline-block"
+                                color: "#143459"
+                                fontSize: .Nfont.h6
+                                ontWeight: bold
+                                fontFamily: "Arial"
+                                marginLeft: "0.01"
+                        - type: button
+                          style:
+                            width: '0.181'
+                            height: "0.05"
+                            border: none
+                            borderRadius: "5px 5px 0 0"
+                            fontSize: 1vw
+                            backgroundColor: "#ffffff"
+                            textAlign:
+                              x: center
+                              y: center
+                          children:
+                            - type: image
+                              path: roomGray.svg
+                              style:
+                                width: "0.02"
+                                display: "inline-block"
+                            - type: label
+                              text: "Room"
+                              style:
+                                # width: "0.02"
+                                display: "inline-block"
+                                color: "#666666"
+                                fontSize: .Nfont.h6
+                                ontWeight: bold
+                                fontFamily: "Arial"
+                                marginLeft: "0.01"
+                          onClick: 
+                            - actionType: popUp
+                              popUpView: roomOfFacility
+                            - actionType: popUpDismiss
+                              popUpView: providerOfFacility
+                    - type: view
+                      style:
+                        height: "0.7"
+                        width: "0.362"
+                      children:
+                        - type: scrollView
+                          style:
+                            # marginLeft: 1vw
+                            margin: "auto"
+                            height: "0.69"
+                            width: "0.3"
+                            marginTop: "0.01"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: =..providerList.list.doc
+                              iteratorVar: itemObject
+                              style: 
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style: 
+                                    width: "0.3"
+                                    height: "0.084"
+                                    marginTop: 0
+                                    borderBottom: "2px solid #d1d1d1"
+                                    borderWidth: 2px
+                                    display: flex
+                                    flexDirection: row
+                                    alignItems: center
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - .Global.ProviderInfo@: $var
+                                          - .Global.AppointmentvisitType@: 196609
+                                          - .Global.AppointmentvisitTypeShow@: "Telemedicine"
+                                    - actionType: updateObject
+                                      dataObject: []
+                                      dataKey: Global.Provider
+                                    - actionType: updateObject
+                                      dataKey: Global.calendarDate
+                                      dataObject: {} 
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.goto:
+                                            dataIn:
+                                              destination: ProviderScheduleAppointment
+                                              pageReload: true
+                                  children:
+                                    - type: image
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: itemObject.name.data.avatar
+                                      path: yisheng copy.svg
+                                      style:  
+                                        height: 3.71vw
+                                        width: 3.71vw
+                                        backgroundColor: "#eeeeee"
+                                        boxShadow: "0 0 5px #DFEFFF"
+                                    - type: view
+                                      style: 
+                                        width: "0.25"
+                                        marginLeft: 1vw
+                                        height: 3.5vw
+                                        display: flex
+                                        flexDirection: column
+                                        justifyContent: space-between
+                                        alignItems: flex-start
+                                      children: 
+                                        - type: view
+                                          style: 
+                                            fontWeight: 480
+                                            height: 2vw
+                                            display: flex
+                                            flexDirection: row
+                                            justifyContent: space-between
+                                            alignItems: flex-end
+                                          children:
+                                            - type: label
+                                              dataKey: itemObject.name.data.fullName
+                                              style: 
+                                                width: auto
+                                                fontSize: .Nfont.h1
+                                                color: "0x333333"
+                                                fontWeight: "550"
+                                                fontFamily: "Arial"
+                                                # height: 1.8vw
+                                                textDecoration: underline
+                                            - type: label
+                                              text: " - "
+                                              style: 
+                                                width: auto
+                                                fontSize: .Nfont.h1
+                                                color: "0x333333"
+                                                fontWeight: "550"
+                                                fontFamily: "Arial"
+                                                # height: 1.8vw
+                                                marginLeft: 0.5vw
+                                                marginRight: 0.5vw
+                                            - type: label
+                                              dataKey: itemObject.name.data.title
+                                              style: 
+                                                width: auto
+                                                fontSize: .Nfont.h1
+                                                color: "0x333333"
+                                                fontWeight: "550"
+                                                fontFamily: "Arial"
+                                                # height: 1.8vw
+                                        - type: view
+                                          style: 
+                                            width: "0.25"
+                                            fontWeight: 480
+                                            height: 2vw
+                                            display: flex
+                                            flexDirection: row
+                                            justifyContent: space-between
+                                            alignItems: flex-end
+                                          children:
+                                            - type: label
+                                              dataKey: itemObject.name.data.specialty.0.specialty
+                                              style: 
+                                                width: auto
+                                                height: 1.8vw
+                                                lineHeight: 1.8vw
+                                                overflow: hidden
+                                                textOverflow: ellipsis
+                                                whiteSpace: nowrap
+                                                fontSize: .Nfont.h1
+                                                color: "0x333333"
+                                                fontFamily: "Arial"
+                                                fontWeight: "450"
+                                            - type: view
+                                              style:
+                                                textAlign:
+                                                  y: center
+                                              children:
+                                                - type: image
+                                                  path: calendarCopy.svg
+                                                  style:
+                                                    width: "0.01"
+                                                    display: "inline-block"
+                                                - type: label
+                                                  text: "View all availability"
+                                                  style: 
+                                                    # backgroundColor: "#e9f2fc"
+                                                    display: "inline-block"
+                                                    textDecoration: underline
+                                                    width: 9vw
+                                                    height: 1.6vw
+                                                    marginLeft: "0.5vw"
+                                                    fontSize: .Nfont.h0_1
+                                                    fontFamily: "Arial"
+                                                    color: "#143459"
+                                            
+                                        
+                - type: popUp
+                  viewTag: roomOfFacility
+                  style:
+                    backgroundColor: 'white'
+                    border:
+                      style: '3'
+                    borderColor: "#4b9ae7"
+                    borderRadius: "5px"
+                    width: "0.362"
+                    height: "0.8"
+                    top: 4vw
+                  children:
+                    - type: view
+                      viewTag: title
+                      style: 
+                        marginTop: 0
+                        width: '0.362'
+                        height: "0.084"
+                        borderBottom: "1.5px solid  #dfe1e5"
+                        borderWidth: 2  
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-end
+                        borderRadius: "5px 5px 0 0"
+                        justifyContent: space-around
+                        boxShadow: "0px 10px 10px -10px #d1d1d1"
+                      children: 
+                        - type: button
+                          style:
+                            width: '0.181'
+                            height: "0.05"
+                            border: none
+                            borderWidth: 2px
+                            borderRadius: "5px 5px 0 0"
+                            backgroundColor: "#ffffff"
+                            # borderBottom: ""
+                            fontSize: 1vw
+                            textAlign:
+                              x: center
+                              y: center
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: roomOfFacility
+                            - actionType: popUp
+                              popUpView: providerOfFacility
+                          children:
+                            - type: image
+                              path: providerGray.svg
+                              style:
+                                width: "0.02"
+                                display: "inline-block"
+                            - type: label
+                              text: "Provider"
+                              style:
+                                # width: "0.02"
+                                display: "inline-block"
+                                color: "#666666"
+                                fontSize: .Nfont.h6
+                                ontWeight: bold
+                                fontFamily: "Arial"
+                                marginLeft: "0.01"
+                        - type: button
+                          style:
+                            width: '0.181'
+                            height: "0.05"
+                            border: 
+                              style: 2
+                              color: "#2988E6"
+                            borderWidth: 2px
+                            borderRadius: "5px 5px 0 0"
+                            backgroundColor: "#ffffff"
+                            textAlign:
+                              x: center
+                              y: center
+                          children:
+                            - type: image
+                              path: room.svg
+                              style:
+                                width: "0.02"
+                                display: "inline-block"
+                            - type: label
+                              text: "Room"
+                              style:
+                                # width: "0.02"
+                                display: "inline-block"
+                                color: "#143459"
+                                fontSize: .Nfont.h6
+                                ontWeight: bold
+                                fontFamily: "Arial"
+                                marginLeft: "0.01"
+                          
+                    - type: view
+                      style:
+                        height: "0.7"
+                        width: "0.362"
+                      children:
+                        - type: scrollView
+                          style:
+                            margin: "auto"
+                            height: "0.69"
+                            width: "0.3"
+                            marginTop: "0.01"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: =..formData.roomList
+                              iteratorVar: itemObject
+                              viewTag: roomListAll
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style: 
+                                    width: "0.3"
+                                    height: "0.084"
+                                    marginTop: 0
+                                    borderBottom: "2px solid #d1d1d1"
+                                    borderWidth: 2px
+                                    display: flex
+                                    flexDirection: row
+                                    alignItems: center
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - .Global.RoomInfo@: $var
+                                    - actionType: updateObject
+                                      dataObject: []
+                                      dataKey: Global.Provider 
+                                    - actionType: updateObject
+                                      dataKey: Global.calendarDate
+                                      dataObject: {}
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.goto:
+                                            dataIn:
+                                              destination: RoomScheduleAppointment
+                                              pageReload: true
+                                  children:
+                                    - type: image
+                                      path: yiyuan-2.svg
+                                      style:  
+                                        height: 3.71vw
+                                        width: 3.71vw
+                                        backgroundColor: "#eeeeee"
+                                        boxShadow: "0 0 5px #DFEFFF"
+                                    - type: view
+                                      style: 
+                                        width: "0.25"
+                                        marginLeft: 1vw
+                                        height: 3.5vw
+                                        display: flex
+                                        flexDirection: column
+                                        justifyContent: space-between
+                                        alignItems: flex-start
+                                      children: 
+                                        - type: label
+                                          dataKey: itemObject.name.data.roomName
+                                          style: 
+                                            width: auto
+                                            fontSize: .Nfont.h1
+                                            color: "0x333333"
+                                            fontWeight: "550"
+                                            fontFamily: "Arial"
+                                            textDecoration: underline
+                                        - type: view
+                                          style: 
+                                            width: "0.25"
+                                            fontWeight: 480
+                                            fontSize: 1vw
+                                            height: 2vw
+                                            display: flex
+                                            flexDirection: row
+                                            justifyContent: space-between
+                                            alignItems: flex-end
+                                          children:
+                                            - type: label
+                                              dataKey: itemObject.name.data.service
+                                              style: 
+                                                width: auto
+                                                height: 1.8vw
+                                                lineHeight: 1.8vw
+                                                overflow: hidden
+                                                textOverflow: ellipsis
+                                                whiteSpace: nowrap
+                                                fontSize: .Nfont.h1
+                                                color: "0x333333"
+                                                fontFamily: "Arial"
+                                                fontWeight: "450"
+                                            - type: view
+                                              style:
+                                                textAlign:
+                                                  y: center
+                                              children:
+                                                - type: image
+                                                  path: calendarCopy.svg
+                                                  style:
+                                                    width: "0.01"
+                                                    display: "inline-block"
+                                                - type: label
+                                                  text: "View all availability"
+                                                  style: 
+                                                    display: "inline-block"
+                                                    textDecoration: underline
+                                                    width: 9vw
+                                                    height: 1.6vw
+                                                    marginLeft: "0.5vw"
+                                                    fontSize: .Nfont.h0_1
+                                                    fontFamily: "Arial"
+                                                    color: "#143459"

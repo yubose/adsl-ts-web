@@ -1,0 +1,873 @@
+AppointmentScheduleListView: #xdpage:9
+  title: "ScheduleList"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn: ""
+            dataOut: AppointmentScheduleListView.calendarDate.month
+    # get Year for calendar
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getYear:
+            dataIn: ""
+            dataOut: AppointmentScheduleListView.calendarDate.year
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getDate:
+            dataIn: ""
+            dataOut: AppointmentScheduleListView.calendarDate.day
+    # generate calendar according month and year
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.AppointmentScheduleListView.calendarDate.year
+              month: =.AppointmentScheduleListView.calendarDate.month
+              day: =.AppointmentScheduleListView.calendarDate.day
+            dataOut: AppointmentScheduleListView.selectDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.AppointmentScheduleListView.calendarDate.month
+            dataOut: AppointmentScheduleListView.calendarDate.monthName
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.miniWeeklyCalendarArray:
+            dataIn:
+              year: =.AppointmentScheduleListView.calendarDate.year
+              month: =.AppointmentScheduleListView.calendarDate.month
+              today: =.AppointmentScheduleListView.calendarDate.day
+              markDay: =.AppointmentScheduleListView.calendarDate.day
+              color: "0x000000"
+              backgroundColor: "0x2988E6"
+              todayColor: "0xffffff"
+              todayBackgroundColor: "0xFFFFFF6f"
+            dataOut: AppointmentScheduleListView.calendarDate.dayLable
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - =.AppointmentScheduleListView.calendarDate.year
+              - "-"
+              - =.AppointmentScheduleListView.calendarDate.month
+              - "-"
+              - =.AppointmentScheduleListView.calendarDate.day
+            dataOut: AppointmentScheduleListView.calendarDate.todayDate
+        - =.builtIn.date.getNowLocalTime:
+            dataIn: ""
+            dataOut: AppointmentScheduleListView.nowTime
+    - actionType: evalObject
+      object:
+        - =.builtIn.number.multiply:
+            dataIn:
+              number: =..nowTime
+              multiple: "0.001"
+            dataOut: AppointmentScheduleListView.nowTime
+        - =.builtIn.date.getWeekEndDate:
+            dataIn: =..nowTime
+            dataOut: AppointmentScheduleListView.weekEndTime
+        - =.builtIn.date.getTimeStampOfDate:
+            dataIn:
+              date: =.AppointmentScheduleListView.calendarDate.todayDate
+            dataOut: AppointmentScheduleListView.calendarDate.todayStamp
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getMonthEndDate:
+            dataIn: =..nowTime
+            dataOut: AppointmentScheduleListView.monthEndTime
+        - =.builtIn.date.getTimeStampOfDate:
+            dataIn:
+              date: =.AppointmentScheduleListView.calendarDate.todayDate
+            dataOut: AppointmentScheduleListView.calendarDate.todayStamp
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getQuarterEndDate:
+            dataIn: =..nowTime
+            dataOut: AppointmentScheduleListView.quaterlyEndTime
+        - =.builtIn.date.getTimeStampOfDate:
+            dataIn:
+              date: =.AppointmentScheduleListView.calendarDate.todayDate
+            dataOut: AppointmentScheduleListView.calendarDate.todayStamp
+    - =.builtIn.string.concat:
+        dataIn:
+          - "E.stime>="
+          - =..nowTime
+          - " AND "
+          - "E.etime<="
+          - =.AppointmentScheduleListView.calendarDate.todayStamp.end
+          - " AND "
+          - "E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.tage>0 AND E.type=40000" #196614,131078
+        dataOut: AppointmentScheduleListView.formData.schduleScondition
+    - =.builtIn.string.concat:
+        dataIn:
+          - "E2.stime>="
+          - =..nowTime
+          - " AND "
+          - "E2.etime<="
+          - =.AppointmentScheduleListView.calendarDate.todayStamp.end
+          - " AND "
+          - "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage>=0 "
+        dataOut: AppointmentScheduleListView.formData.roomScondition
+    - ..formData.ids@: []
+    - =.builtIn.array.concat:
+        dataIn:
+          array1: =..formData.ids
+          array2: =.Global.formData.currentFacility.alllocationId
+        dataOut: AppointmentScheduleListView.formData.ids
+    - =.builtIn.array.push:
+        dataIn:
+          messages: =..formData.ids
+          newMessage: =.Global.currentFacility.id
+        dataOut: AppointmentScheduleListView.formData.ids
+    - =.builtIn.array.push:
+        dataIn:
+          messages: =..formData.ids
+          newMessage: =.Global.currentUser.vertex.id
+        dataOut: AppointmentScheduleListView.formData.ids
+    - =..scheduleReGet.get: ""
+    - =..apiRequest.listRoomData.get: ""
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..scheduleReGet.scheduleList.edge
+          array2: =..apiRequest.listRoomData.response.edge
+          sortby: "stime"
+          orders: "asc"
+        dataOut: AppointmentScheduleListView.formData.appointment
+    #获取未读邮件数量
+    - actionType: evalObject
+      object:
+        - =..apiRequest.unReadEmail.docAPI.get: ""
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..apiRequest.unReadEmail.docQueryResp.doc
+            dataOut: AppointmentScheduleListView.formData.unReadEmailNum
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.unReadEmailNum
+                  string2: "0"
+            - ..formData.inboxHidden@: "true"
+            - ..formData.inboxHidden@: "false"
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.requestListNum
+                  string2: "0"
+            - ..requestListHidden@: "true"
+            - ..requestListHidden@: "false"
+  calendarDate:
+    month: ""
+    dayLable: ""
+    year: ""
+    day: ""
+    todayStamp: ""
+    monthName: ""
+    todayDate: ""
+  selectDate: ""
+  requestListHidden: true
+  formData:
+    appointment: []
+    unReadEmailNum: "0"
+    inboxHidden: true
+  nowTime: "" # mean now date
+
+  weekEndTime: ""
+  monthEndTime: ""
+  quaterlyEndTime: ""
+  #获取未读邮件
+  apiRequest:
+    listRoomData:
+      response:
+      edge:
+        ObjType: "4"
+        id:
+          - =.Global.currentUser.vertex.id
+          - =.Global.currentFacility.id
+        xfname: "E.evid,E.Bvid"
+        sCondition: =..formData.roomScondition
+        maxcount: "1000"
+        obfname: "stime"
+        asc: true
+        _nonce: =.Global._nonce
+      get:
+        .EdgeAPI.get: ""
+        api: re
+        dataIn: apiRequest.listRoomData.edge
+        dataOut: apiRequest.listRoomData.response
+    unReadEmail:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 544
+        type: 1281
+        sCondition: E.type=10002 AND (D2.Type&0xFF02=0xE00 OR D2.reid IS NULL OR D2.Type = 66561)
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        maxcount: "100"
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: AppointmentScheduleListView.apiRequest.unReadEmail.docQueryReq
+          dataOut: AppointmentScheduleListView.apiRequest.unReadEmail.docQueryResp
+  scheduleReGet:
+    scheduleList:
+      edge:
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: scheduleReGet.edge
+      dataOut: AppointmentScheduleListView.scheduleReGet.scheduleList
+    edge:
+      ObjType: "20"
+      # type: "40000"
+      # id: .Global.currentUser.vertex.id
+      id: =..formData.ids
+      xfname: "E2.evid,E2.Bvid"
+      sCondition: =..formData.schduleScondition
+      maxcount: "20000"
+      obfname: "stime"
+      asc: true
+      _nonce: .Global._nonce
+  formDataTemp:
+    ScheduleListViewTitle:
+      - title: Today
+        backgroundColor: "0xFEC02D"
+      - title: Week
+        backgroundColor: "0xffffff"
+      - title: Month
+        backgroundColor: "0xffffff"
+      - title: Quaterly
+        backgroundColor: "0xffffff"
+    ScheduleListView:
+      todaytitle:
+        - title1: "# Time"
+          title2: "Patient - Reason"
+          title3: "Type"
+  components:
+    - .noOrganizationMessage:
+    - .BaseHeader:
+    - .HeaderLeftButton2:
+    - .HeaderRightImg:
+      path: setting.svg
+      onClick:
+        - actionType: evalObject
+          object:
+            - if:
+                - =.Global.hasOrganization
+                - goto: ScheduleProfile
+                - actionType: popUp
+                  popUpView: noOrganizationView
+    - type: view
+      style:
+        width: "1"
+        height: "0.05"
+        backgroundColor: "0x2988E6"
+        top: "0.1"
+        left: "0"
+      children:
+        - type: label
+          dataKey: AppointmentScheduleListView.selectDate
+          style:
+            width: "1"
+            # top: "0.14"
+            fontSize: "15"
+            color: "0xffffff"
+            fontWeight: "550"
+            textAlign:
+              x: center
+    - type: view
+      style:
+        width: "1"
+        left: "0"
+        height: "0.62"
+        top: "0.15"
+      children:
+        - type: view
+          style:
+            width: "1"
+            height: "0.119"
+            top: "0"
+            left: "0"
+            border:
+              style: 2
+            borderColor: "0x00000022"
+            borderWidth: "1"
+          children:
+            - type: button
+              text: Check Requests
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.Global.hasOrganization
+                        - goto: AppointmentRequest
+                        - actionType: popUp
+                          popUpView: noOrganizationView
+              style:
+                top: "0.03"
+                left: "0.075"
+                width: "0.4"
+                height: "0.05"
+                color: "#30B354"
+                fontFamily: "Arial"
+                fontSize: .Nfont.h12
+                backgroundColor: "#ffffff"
+                borderRadius: "5"
+                textAlign:
+                  x: center
+                  y: center
+                border:
+                  style: "3"
+                  width: "1"
+                  color: "#30B354"
+            - type: label
+              dataKey: Global.requestListNum
+              contentType: messageHidden
+              style:
+                left: "0.42"
+                top: "0.032"
+                width: "0.05"
+                height: "0.024"
+                zIndex: "2"
+                fontSize: .Nfont.h14
+                backgroundColor: "#ff3a41"
+                border:
+                  style: "5"
+                borderRadius: "50"
+                color: "0xffffff"
+                isHidden: ..requestListHidden
+                textAlign:
+                  x: center
+            - type: button
+              text: ✚ Create Appointment
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.Global.hasOrganization
+                        - goto: MobileContacts
+                        - actionType: popUp
+                          popUpView: noOrganizationView
+              style:
+                textAlign:
+                  x: center
+                  y: center
+                top: "0.03"
+                left: "0.535"
+                width: "0.4"
+                color: "#2988E6"
+                fontFamily: "Arial"
+                fontSize: .Nfont.h12
+                height: "0.05"
+                borderRadius: "5"
+                border:
+                  style: "3"
+                  width: "1"
+                  color: "#2988E6"
+                backgroundColor: "#ffffff"
+        - type: view
+          style:
+            top: "0.14"
+            width: "1"
+            left: "0"
+            height: "0.5"
+          children:
+            - type: view
+              style:
+                width: "0.95"
+                height: "0.07"
+                left: "0.025"
+              children:
+                - type: label
+                  text: "View list by:"
+                  style:
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
+                    fontFamily: "Arial"
+                    width: "0.95"
+                    left: "0"
+                - type: view
+                  viewTag: "ViewList"
+                  style:
+                    width: "0.95"
+                    height: "0.03"
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.ScheduleListViewTitle
+                      iteratorVar: itemObject
+                      viewTag: scheduleTitleView
+                      style:
+                        width: "0.95"
+                        # margin: auto
+                        height: "0.03"
+                        axis: horizontal
+                        marginTop: "0"
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: "0.23"
+                            height: "0.03"
+                          children:
+                            - type: label
+                              dataKey: itemObject.title
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..scheduleReGet.scheduleList.edge@: []
+                                      - ..formData.appointment@: []
+                                      - =.builtIn.object.setProperty:
+                                          dataIn:
+                                            obj: =..formDataTemp.ScheduleListViewTitle
+                                            label: "title"
+                                            text: $var.title
+                                            arr: ["backgroundColor"]
+                                            valueArr: ["0xFEC02D"]
+                                            errorArr: ["0xffffff"]
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Week"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E2.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E2.etime<="
+                                                - =.AppointmentScheduleListView.weekEndTime
+                                                - " AND "
+                                                - "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage>=0 "
+                                              dataOut: AppointmentScheduleListView.formData.roomScondition
+                                          - continue
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Week"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E.etime<="
+                                                - =.AppointmentScheduleListView.weekEndTime
+                                                - " AND "
+                                                - "E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.tage>0 AND E.type=40000" #196614,131078
+                                              dataOut: AppointmentScheduleListView.formData.schduleScondition
+                                          - continue
+
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Today"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E2.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E2.etime<="
+                                                - =.AppointmentScheduleListView.calendarDate.todayStamp.end
+                                                - " AND "
+                                                - "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage>=0 "
+                                              dataOut: AppointmentScheduleListView.formData.roomScondition
+                                          - continue
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Today"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E.etime<="
+                                                - =.AppointmentScheduleListView.calendarDate.todayStamp.end
+                                                - " AND "
+                                                - "E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.tage>0 AND E.type=40000" #196614,131078
+                                              dataOut: AppointmentScheduleListView.formData.schduleScondition
+                                          - continue
+
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Month"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E2.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E2.etime<="
+                                                - =.AppointmentScheduleListView.monthEndTime
+                                                - " AND "
+                                                - "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage>=0 "
+                                              dataOut: AppointmentScheduleListView.formData.roomScondition
+                                          - continue
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Month"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E.etime<="
+                                                - =.AppointmentScheduleListView.monthEndTime
+                                                - " AND "
+                                                - "E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.tage>0 AND E.type=40000" #196614,131078
+                                              dataOut: AppointmentScheduleListView.formData.schduleScondition
+                                          - continue
+
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Quaterly"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E2.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E2.etime<="
+                                                - =.AppointmentScheduleListView.quaterlyEndTime
+                                                - " AND "
+                                                - "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage>=0 "
+                                              dataOut: AppointmentScheduleListView.formData.roomScondition
+                                          - continue
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.title
+                                                string2: "Quaterly"
+                                          - =.builtIn.string.concat:
+                                              dataIn:
+                                                - "E.stime>="
+                                                - =.AppointmentScheduleListView.nowTime
+                                                - " AND "
+                                                - "E.etime<="
+                                                - =.AppointmentScheduleListView.quaterlyEndTime
+                                                - " AND "
+                                                - "E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.tage>0 AND E.type=40000" #196614,131078
+                                              dataOut: AppointmentScheduleListView.formData.schduleScondition
+                                          - continue
+                                - actionType: evalObject
+                                  object:
+                                    .Global._nonce@:
+                                      =.builtIn.math.random: ""
+                                - actionType: evalObject
+                                  object:
+                                    - =..apiRequest.listRoomData.get: ""
+                                    - =..scheduleReGet.get: ""
+                                    - =.builtIn.array.concatArray:
+                                        dataIn:
+                                          array1: =..scheduleReGet.scheduleList.edge
+                                          array2: =..apiRequest.listRoomData.response.edge
+                                          sortby: "stime"
+                                          orders: "asc"
+                                        dataOut: AppointmentScheduleListView.formData.appointment
+                                    # - ..formData.appointment@: =..scheduleReGet.scheduleList.edge
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: scheduleTitleView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: scheduleToday
+                              style:
+                                backgroundColor: itemObject.backgroundColor
+                                fontWeight: "600"
+                                fontFamily: "Arial"
+                                border:
+                                  style: 3
+                                borderWidth: "1"
+                                width: "0.18"
+                                height: "0.03"
+                                borderColor: "#FEC02D"
+                                # display: inline-flex
+                                # lineHeight: '0.03'
+                                textAlign:
+                                  x: center
+                                  y: center
+                                fontSize: .Nfont.h14
+
+            - type: list
+              viewTag: scheduleToday
+              contentType: listObject
+              listObject: ..formDataTemp.ScheduleListView.todaytitle
+              iteratorVar: itemObject
+              style:
+                left: "0"
+                width: "1"
+                margin: "0"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    width: "0.95"
+                    margin: ”
+                    left: "0.025"
+                    height: "0.03"
+                    # axis: horizontal
+                    fontWeight: "600"
+                    color: "#A8A8A8"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0xeeeeee"
+                  children:
+                    - type: label
+                      dataKey: itemObject.title1
+                      style:
+                        width: "0.4"
+                        top: "0"
+                        left: "0"
+                        fontSize: .Nfont.n3
+                        color: "#A8A8A8"
+                        textAlign:
+                          x: left
+                          y: center
+                    - type: label
+                      dataKey: itemObject.title2
+                      style:
+                        width: "0.28"
+                        top: "0"
+                        left: "0.4"
+                        fontSize: .Nfont.n3
+                        color: "#A8A8A8"
+                        textAlign:
+                          x: left
+                          y: center
+                    - type: label
+                      dataKey: itemObject.title3
+                      style:
+                        left: "0.68"
+                        top: "0"
+                        width: "0.28"
+                        fontSize: .Nfont.n3
+                        color: "#A8A8A8"
+                        textAlign:
+                          x: left
+                          y: center
+            - type: list
+              viewTag: scheduleToday
+              contentType: listObject
+              listObject: ..formData.appointment
+              iteratorVar: itemObject
+              style:
+                left: "0"
+                width: "1"
+                margin: "0"
+                overflow: scroll
+                height: "0.5"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - actionType: updateObject
+                      dataKey: Global.roomInfo.edge
+                      dataObject: itemObject
+                    - actionType: updateObject
+                      dataKey: Global.currentMeetingDoc
+                      dataObject: []
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.visitTypeShow
+                                    string2: "COVID-19 Vaccine"
+                              - goto: AppointmentLobbyOfficeVisit
+                              - continue
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.visitTypeShow
+                                    string2: "Covid19Test"
+                              - goto: AppointmentLobbyOfficeVisit
+                              - continue
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.visitTypeShow
+                                    string2: "COVID-19 Testing"
+                              - goto: AppointmentLobbyOfficeVisit
+                              - continue
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.visitTypeShow
+                                    string2: "Telemedicine"
+                              - goto: AppointmentLobby
+                              - continue
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.visitTypeShow
+                                    string2: "Office Visits"
+                              - goto: AppointmentLobbyOfficeVisit
+                              - continue
+                  style:
+                    width: "0.95"
+                    # margin: auto
+                    left: "0.025"
+                    height: "0.05"
+                    fontSize: .Nfont.h14
+                    textAlign:
+                      x: left
+                    fontWeight: "600"
+                    border:
+                      style: "2"
+                    borderColor: "0xeeeeee"
+                    borderWidth: "1"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.4"
+                        top: "0"
+                        height: "0.05"
+                        left: "0"
+                      children:
+                        - type: label
+                          text=func: .builtIn.date.ShowTimeDate
+                          dataKey: itemObject
+                          style:
+                            top: "0"
+                            height: "0.025"
+                            textAlign:
+                              y: center
+                        - type: label
+                          text=func: .builtIn.date.ShowTimeSpan
+                          dataKey: itemObject
+                          style:
+                            top: "0.025"
+                            height: "0.025"
+                            textAlign:
+                              y: center
+                    - type: label
+                      dataKey: itemObject.name.visitReason
+                      style:
+                        textAlign:
+                          x: center
+                          y: center
+                        width: "0.28"
+                        top: "0"
+                        left: "0.4"
+                        height: "0.05"
+                    - type: label
+                      dataKey: itemObject.name.visitType
+                      style:
+                        width: "0.28"
+                        top: "0"
+                        left: "0.68"
+                        height: "0.05"
+                        color: itemObject.name.fontColor
+                        textAlign:
+                          y: center
+    - type: popUp
+      viewTag: setSchedule
+      style:
+        width: "1"
+        height: "0.4"
+        top: "0.3"
+        left: "0"
+        backgroundColor: "0x000000"
+    - .DashboardFooter0:
+      style:
+        top: "0.9"
+      children:
+        - .DashboardFooterView:
+          onClick:
+            - goto: "Dashboard"
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: dashboard0.svg
+            - .DashboardFooterTxt:
+        - .DashboardFooterView:
+          style:
+            left: "0.25"
+          onClick:
+            - goto: "InboxDashboard"
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: inbox.png
+            - .DashboardFooterTxt:
+              text: "Inbox"
+            - type: label
+              dataKey: formData.unReadEmailNum
+              style:
+                left: "0.15"
+                top: "0.005"
+                width: "5vw"
+                height: "5vw"
+                fontSize: .Nfont.h15
+                isHidden: ..formData.inboxHidden
+                backgroundColor: "0xfd3a3a"
+                border:
+                  style: "3"
+                borderColor: "0xfd3a3a"
+                borderRadius: "50"
+                color: "0xffffff"
+                textAlign:
+                  x: center
+        - .DashboardFooterView:
+          style:
+            left: "0.5"
+          onClick:
+            - goto: AppointmentScheduleListView
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: schedule0Yellow.png
+                - type: label
+                  dataKey: Global.requestListNum
+                  contentType: messageHidden
+                  style:
+                    left: "0.145"
+                    top: "0.01"
+                    width: "0.05"
+                    height: "0.024"
+                    zIndex: "2"
+                    fontSize: .Nfont.h12
+                    backgroundColor: "#ff3a41"
+                    border:
+                      style: "5"
+                    borderRadius: "50"
+                    color: "0xffffff"
+                    isHidden: ..requestListHidden
+                    textAlign:
+                      x: center
+            - .DashboardFooterTxt:
+              text: "Schedule"
+        - .DashboardFooterView:
+          style:
+            left: "0.75"
+          onClick:
+            - goto: MenuBars
+          children:
+            - .DashboardBox:
+              children:
+                - .DashboardFooterImg:
+                  path: me.png
+            - .DashboardFooterTxt:
+              text: "Me"

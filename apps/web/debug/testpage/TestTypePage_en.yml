@@ -1,0 +1,20 @@
+TestTypePage:
+  pageNumber: "176.5"
+  title: "TestRightAlign"
+  components: 
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+    - type: view
+      style: 
+        left: "0"
+        top: "0.1"
+        width: "1"
+        height: "0.9"
+      children: 
+        - type: page
+          path: TestRightAlign
+          style: 
+            top: "0.1"
+            width: "0.8"
+            left: "0.1"
+            height: "0.6"

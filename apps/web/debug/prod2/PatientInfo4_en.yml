@@ -1,0 +1,275 @@
+PatientInfo4:
+  title: "Patient Info 4"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - if:
+        - =.Global.DocReference.document.id
+        - ..signature1.docAPI.get
+        - continue
+    - if:
+        - =..signature1.docRes.doc.0
+        - =.builtIn.utils.prepareDoc:
+            dataIn:
+              doc: =..signature1.docRes.doc.0
+            dataOut: PatientInfo4.signature1.docRes.doc
+        - continue
+  signature1:
+    docRes: ""
+    docReq:
+      type: .DocType.Intake3Signature
+      id: .Global.DocReference.document.id
+      xfname: fid
+      _nonce: =.Global._nonce
+    docAPI: # DOCAPI
+      get:
+        api: rd
+        dataIn: PatientInfo4.signature1.docReq
+        dataOut: PatientInfo4.signature1.docRes
+  informedConsent:
+    - num: a.
+      text: I understand that I may be infected with the virus causing COVID-19 and that I meet criteria for isolation.
+    - num: b.
+      text: I agree that while I wait for my COVID-19 test results, I will remain in self-isolation.
+    - num: c.
+      text: I agree that if my COVID-19 test results are positive, I will remain isolated for 7 days from this day of testing OR until at least 72 hours after my symptoms have resolved, whichever is longer.
+    - num: d.
+      text: I agree that if my COVID-19 test results are negative, I will remain isolated until at least 72 hours after my symptoms have resolved.
+    - num: e.
+      text: I understand that if I am not isolated while ill, I could pose a substantial threat to the health of other persons.
+    - num: f.
+      text: I agree that I will not come into contact with any other person who is not isolated or ill due to potential COVID- 19 infection.
+    - num: g.
+      text: I understand that if I test positive for IgM antibody, I may need to take a COVID-19 swab test for active virus confirmation.
+    - num: h.
+      text: I understand that testing positive for antibody does not mean immunity to COVID-19
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      style:
+        backgroundColor: "0x2988e6"
+    - type: scrollView
+      style:
+        height: "0.82"
+        width: "1"
+        top: "0.1"
+        left: "0"
+      children:
+        - type: image
+          path: patientInfo5_4.svg
+          style:
+            left: "0.07"
+            marginTop: "0.02"
+            height: "auto"
+            width: "0.86"
+        - type: label
+          text: AGREEMENT FOR SELF-ISOLATION
+          style:
+            width: "0.86"
+            left: "0.07"
+            fontWeight: "650"
+            marginTop: "0.02"
+            fontSize: "18"
+            height: "0.04"
+            border:
+              style: "2"
+            borderColor: "#DEDEDF"
+            borderWidth: "1"
+        - type: label
+          text: The local health jurisdiction has determined that if you are under suspicion for having COVID-19 due to symptoms and testing request, that it is necessary to be placed in isolation in order to prevent the transmission of this infection. It is important for you to comply with this Isolation Agreement in order to protect the public’s health. Thank you for agreeing to cooperate.
+          style:
+            width: "0.86"
+            left: "0.07"
+            marginTop: "0.02"
+            fontSize: .Nfont.h14
+        - type: label
+          text: "Please carefully read the following informed consent:"
+          style:
+            width: "0.86"
+            left: "0.07"
+            marginTop: "0.02"
+            fontSize: .Nfont.h14
+            fontWeight: "600"
+        - type: view
+          style:
+            width: "0.86"
+            left: "0.07"
+            marginTop: "0.01"
+            height: "auto"
+          children:
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.07"
+              children:
+                - .patientInfo3_label:
+                  text: a.
+                - .patientInfo3_paragraph:
+                  text: I understand that I may be infected with the virus causing COVID-19 and that I meet criteria for isolation.
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.05"
+              children:
+                - .patientInfo3_label:
+                  text: b.
+                - .patientInfo3_paragraph:
+                  text: I agree that while I wait for my COVID-19 test results, I will remain in self-isolation.
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.11"
+              children:
+                - .patientInfo3_label:
+                  text: c.
+                - .patientInfo3_paragraph:
+                  text: I agree that if my COVID-19 test results are positive, I will remain isolated for 7 days from this day of testing OR until at least 72 hours after my symptoms have resolved, whichever is longer.
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.07"
+              children:
+                - .patientInfo3_label:
+                  text: d.
+                - .patientInfo3_paragraph:
+                  text: I agree that if my COVID-19 test results are negative, I will remain isolated until at least 72 hours after my symptoms have resolved.
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.07"
+              children:
+                - .patientInfo3_label:
+                  text: e.
+                - .patientInfo3_paragraph:
+                  text: I understand that if I am not isolated while ill, I could pose a substantial threat to the health of other persons.
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.07"
+              children:
+                - .patientInfo3_label:
+                  text: f.
+                - .patientInfo3_paragraph:
+                  text: I agree that I will not come into contact with any other person who is not isolated or ill due to potential COVID- 19 infection.
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.07"
+              children:
+                - .patientInfo3_label:
+                  text: g.
+                - .patientInfo3_paragraph:
+                  text: I understand that if I test positive for IgM antibody, I may need to take a COVID-19 swab test for active virus confirmation.
+            - type: view
+              style:
+                marginTop: "0.02"
+                left: "0"
+                width: "0.84"
+                height: "0.05"
+              children:
+                - .patientInfo3_label:
+                  text: h.
+                - .patientInfo3_paragraph:
+                  text: I understand that testing positive for antibody does not mean immunity to COVID-19
+        - type: label
+          text: "I, the undersigned, have been informed about the test purpose, procedures, possible benefits and risks, and I have received a copy of this Informed consent. I have been given the opportunity to ask questions before I sign, and I have been told that I can ask other questions at any time. I voluntarily agree to testing for COVID-19 and to self-isolation.  If A&C Urgent Care does not accept my insurance I consent to being financially responsible for the testing. If my insurance denies covering the cost of the testing I consent to being financially responsible for the testing."
+          style:
+            marginTop: "0.02"
+            left: "0.06"
+            width: "0.84"
+            fontSize: .Nfont.h12
+            color: "#707070"
+        - type: view
+          style:
+            # top: "0.06"
+            left: "0.085"
+            marginTop: "0.02"
+            width: "0.8"
+            height: "0.18"
+            border:
+              style: "4"
+              width: "1.5"
+              color: "0xacacac"
+          children:
+            # - type: ecosDoc
+            #   ecosObj: ..signature1.docRes.doc
+            #   style:
+            #     left: "0"
+            #     width: "0.8"
+            #     top: "0"
+            #     height: "0.18"
+            #     # overflow: scroll
+            - type: image
+              path=func: .builtIn.utils.prepareDocToPath
+              # 传入签名文档的id
+              dataKey: Global.formData.cov19Test.doc.0.name.data.signaturePatientInfo4
+              style:
+                left: "0"
+                width: "0.8"
+                top: "0"
+                height: "0.18"
+                # overflow: scroll
+        - type: view
+          style:
+            left: "0"
+            marginTop: "0.01"
+            width: "1"
+            height: "0.15"
+          children:
+            - type: label
+              text: "Patient Name:"
+              style:
+                width: "0.4"
+                left: "0.07"
+                top: "0.02"
+                color: "#707070"
+                # fontStyle: bold
+            - type: label
+              dataKey: Global.formData.cov19Test.doc.0.name.user
+              style:
+                width: "0.4"
+                left: "0.4"
+                top: "0.02"
+                fontStyle: bold
+    - type: button
+      text: Next
+      onClick:
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: "Yes"
+                      string2: =.Global.formData.cov19Test.doc.0.name.data.billingInfo.medicalInsurance
+                - goto: BillingInfo
+                - goto: BillingInfoNo
+      style:
+        height: "0.05"
+        width: "0.84"
+        left: "0.08"
+        border: "none"
+        textAlign:
+          x: center
+          y: center
+        fontSize: .Nfont.h14
+        top: "0.93"
+        backgroundColor: "0x2988e6"
+        color: "0xffffff"
+        borderRadius: "5px"

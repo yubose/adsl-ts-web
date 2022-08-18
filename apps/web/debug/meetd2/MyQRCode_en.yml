@@ -1,0 +1,77 @@
+MyQRCode:
+  title: "My QR Code"
+  init:
+    - if:
+        - =.DisplayProfile.docProfile.doc.0.name.type
+        - ..tar@: .DisplayProfile.docDetail.document.name.data
+        - ..tar@: empty.png  
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data="
+              - "{\"firstName\": \""
+              - =.Global.currentUser.vertex.name.firstName
+              - "\",\"lastName\": \""
+              - =.Global.currentUser.vertex.name.lastName 
+              - "\",\"phoneNumber\": \""
+              - =.Global.phoneNumber                            
+              - "\",\"id\": \""
+              - =.Global.currentUser.vertex.id
+              - "\",\"uid\": \""
+              - =.Global.currentUser.vertex.uid
+              - "\"}"
+            dataOut: MyQRCode.QRpath
+  QRpath: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        top: "0.15"
+        width: "1"
+        height: "0.8"
+      children:
+        - type: view
+          style:
+            marginTop: "0.01"
+            width: "0.9"
+            left: "0.05"
+            height: "0.7"
+            # backgroundColor: "0xF0F0F0"
+            borderRadius: "5"
+          children:
+            - type: image
+              path: ..tar 
+              style:
+                marginTop: "0.02"
+                top: "0"
+                left: "0.05"
+                height: "0.08"
+            - type: label
+              dataKey: Global.currentUser.vertex.name.userName
+              style:
+                left: "0.4"
+                marginTop: "0.02"
+                fontWeight: "650"
+                height: "0.08"
+                top: "0"
+                fontFamily: "Poppins"
+                fontSize: "20"
+                textAlign:
+                  y: center
+            - type: image
+              path: .MyQRCode.QRpath
+              style:
+                top: "0.14"
+                width: "0.6"
+                left: "0.15"
+            - type: label
+              text: "Scan the QR code to add me on AiTmeet"
+              style:
+                top: "0.6"
+                width: "0.9"
+                height: "0.05"
+                left: "0"
+                textAlign:
+                  x: center

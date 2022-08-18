@@ -1,0 +1,208 @@
+SelectINformationDM:
+  Month:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+  Year:
+    - 2021
+    - 2022
+    - 2023
+  VisitType:
+    - Telemedicine
+    - Office Visits
+  CountryCode:
+    - "+1" #US Canada
+    - "+52" #Mexico
+    - "+86" #China
+    - "+965" #Kuwait
+  GovermentHoliday:
+    - New Year’s Eve
+    - New Year’s Day
+    - Martin Luther King
+    - President’s Day
+    - Good Friday
+    - Memorial Day
+    - Independence Day
+    - Labor Day
+    - Veteran’s Day
+    - Thanksgiving Day
+    - Day after Thanksgiving
+    - Day before Christmas
+    - Christmas Day
+  category:
+    - "Select option"
+    - "Provider"
+    - "Colleage"
+    - "Medical Staff"
+    - "Friend"
+  week:
+    - key: SU
+    - key: MO
+    - key: TU
+    - key: WE
+    - key: TH
+    - key: FR
+    - key: SA
+  state:
+    - Select
+    - AK
+    - AL
+    - AR
+    - AZ
+    - CA
+    - CO
+    - CT
+    - DE
+    - FL
+    - GA
+    - HI
+    - ID
+    - IL
+    - IN
+    - IA
+    - KS
+    - KY
+    - LA
+    - ME
+    - MD
+    - MA
+    - MI
+    - MN
+    - MS
+    - MO
+    - MT
+    - NE
+    - NV
+    - NH
+    - NJ
+    - NM
+    - NY
+    - NC
+    - ND
+    - OH
+    - OK
+    - OR
+    - PA
+    - RI
+    - SC
+    - SD
+    - TN
+    - TX
+    - UT
+    - VT
+    - VA
+    - WA
+    - WV
+    - WI
+    - WY
+    - DC
+  title:
+    - D.O.
+    - DNP
+    - M.D.
+    - NP
+    - PA
+    - RN
+    - D.C.
+    - PA-C
+    - DDS
+    - DMD
+    - PhD-BCP
+    - PTC
+    - OTC
+    - RTC
+    - OD
+    - CNMs
+    - CMS
+    - RD/RDN
+    - PsyD
+    - LMFT
+    - LCSW
+  languages:
+    - English
+    - Español
+    - Português
+    - Français
+    - Deutsch
+    - Pусский
+    - اللغة العربية
+    - 日本語
+    - 한국어
+    - Italiano
+    - 简体中文
+    - 繁體中文
+    - Shqiptar
+    - Azərbaycan
+    - Gaeilge
+    - Eesti
+    - беларускі
+    - български
+    - íslenska
+    - Polskie
+    - Bosanski
+    - فارسی
+    - Afrikaans
+    - Danske
+    - Pilipino
+    - Suomi
+    - ខ្មែរ
+    - ქართული
+    - ગુજરાતી
+    - Қазақ
+    - Hausa
+    - Nederlands
+    - Galego
+    - Català
+    - čeština
+    - Hrvatski
+    - Latine
+    - Latvijā
+    - ລາວ
+    - Lietuvos
+    - Română
+    - Malti
+    - मराठी
+    - മലയാളം
+    - Melayu
+    - македонски
+    - Maori
+    - Монгол
+    - বাঙালি
+    - Burmese
+    - Zulu
+    - नेपाली
+    - Norsk
+    - ਪੰਜਾਬੀ ਦੇ
+    - Chichewa
+    - Svenska
+    - Sesotho
+    - සිංහල
+    - slovenský
+    - Slovenščina
+    - Kiswahili
+    - Soomaali
+    - тоҷик
+    - తెలుగు
+    - தமிழ்
+    - ภาษาไทย
+    - Türk
+    - اردو
+    - Український
+    - O'zbekiston
+    - עִב0רִית
+    - ελληνικά
+    - Magyar
+    - հայերեն
+    - Igbo
+    - हिंदी
+    - bahasa Indonesia
+    - Tiếng Việt

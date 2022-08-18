@@ -1,0 +1,55 @@
+TestChangeButtonColor:
+  title: TestChangeButtonColor
+  bt2Color: "0x707070"
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - type: view
+      style: 
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+      children: 
+        - type: button
+          text: this is bt1, click this to change button2
+          onClick: 
+            - actionType: evalObject
+              object: 
+                ..bt2Color@: "0x388ee9"
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: btView
+          style: 
+            left: "0.1"
+            width: "0.8"
+            top: "0.1"
+            height: "0.07"
+            fontSize: "18"
+            border: 
+              style: '1'
+            color: "0xffffff"
+            backgroundColor: "0x2988e6"
+        - type: view
+          viewTag: btView
+          style: 
+            width: "1"
+            top: "0.2"
+            height: "0.2"
+            left: "0"
+          children: 
+            - type: button
+              text: this is button2
+              style: 
+                left: "0.1"
+                width: "0.8"
+                top: "0"
+                height: "0.07"
+                fontSize: "18"
+                border: 
+                  style: '1'
+                color: "0xffffff"
+                backgroundColor: =..bt2Color

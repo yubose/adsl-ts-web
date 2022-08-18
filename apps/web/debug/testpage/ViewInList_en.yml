@@ -1,0 +1,58 @@
+ViewInList:
+  listData:
+    - 
+    -
+  components:
+    - type: view
+      style:
+        height: auto
+        width: '1'
+        marginTop: '0'
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..listData
+          iteratorVar: itemObject
+          style:
+            width: '1'
+            height: auto
+          children:
+            - type: listItem
+              itemObject: 
+              style:
+                width: '1'
+                height: '0.1'
+                left: '0'
+                marginTop: ''
+              children:
+                - type: view
+                  style:
+                    top: "0"
+                    left: "0"
+                    width: "1"
+                    height: "0.05"
+                    backgroundColor: "red"
+                  children:
+                    - type: label
+                      text: test 
+                      style:
+                        top: "0"
+                        left: "0.1"
+                        width: "0.1"
+                        height: "0.05"
+                - type: label
+                  text: hello 
+                  style:
+                    top: "0.05"
+                    left: "0.1"
+                    width: "0.1"
+                    height: "0.05"
+        - type: button
+          text: back
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+          style:
+            top: "0.3"
+            width: "0.1"
+            left: "0.4"

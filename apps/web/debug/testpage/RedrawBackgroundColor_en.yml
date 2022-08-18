@@ -1,0 +1,35 @@
+RedrawBackgroundColor:
+  color: red
+  components:
+    - type: view
+      viewTag: test
+      style:
+        top: "0"
+        left: "0"
+      children:
+        - type: label
+          text: test
+          style:
+            top: "0.1"
+            left: "0.1"   
+            backgroundColor: =..color
+    - type: button
+      text: change color
+      onClick:
+        - actionType: evalObject
+          object:
+            ..color@: blue
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: test
+      style:
+        left: "0.1"
+        top: "0.2"     
+    - type: button
+      text: back
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+      style:
+        top: "0.3"
+        left: "0.1"   

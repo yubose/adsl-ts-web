@@ -1,0 +1,827 @@
+ProviderAvailability: #xd page number: 86
+  pageNumber: "540" 
+  init:
+    # - .SignInCheck
+    - .Global.formData.scheduleType@: ""
+    - .Global.currentSchedule@: []
+    - =..visitReason.docAPI.get: ""
+    - if:
+      - ..visitReason.response.doc.0
+      - ..visitReason.document@: =..visitReason.response.doc.0
+      - continue
+    - actionType: evalObject
+      object:
+        - .Global.formData.scheduleDuration@: =..visitReason.response.doc.0.name.data.reasonForVisit.duration
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    - =.builtIn.object.extractArray: 
+        dataIn: 
+          obj: =..visitReason.response.doc.0.name.data.reasonForVisit
+          arr: =..formData.dataStruc
+        dataOut: ProviderAvailability.middleStruc  
+    - .ProviderAvailability.tableData.dataObject@: =..middleStruc
+    - =.builtIn.search.updateEsData:
+        dataIn:
+          id: =.Global.currentUser.vertex.id
+          type: '79360'
+        dataOut: ProviderAvailability.res
+    - ..deleteReason@: none
+  viewPort: top  
+  title: "ProviderAvailability"
+  deleteReason: ""
+  reasonObj:
+    reason: ""
+    duration: "5min"
+    document: []
+  visitReason: 
+    response: ""
+    createResponse: ""
+    document: 
+      type: .DocType.VisitReason
+      eid: .Global.rootNotebookID
+      name: 
+        data:
+          reasonForVisit: []
+    docAPI: 
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: ProviderAvailability.visitReason.document
+        dataOut: ProviderAvailability.visitReason.createResponse
+      get: 
+        .DocAPI.get: ""
+        api: rd
+        dataKey: visitReason.response
+        type: .DocType.VisitReason
+        id: .Global.rootNotebookID
+        xfname: "eid"
+        obfname: "ctime"
+        _nonce: .Global._nonce
+  middleStruc: {}
+  selectDocument: 
+    document:
+      name:
+        data:
+          document: []
+  DocumentList:
+    - text: New Patient Forms
+    - text: COVID-19 Testing Consent Form
+    - text: COVID-19 Testing Consent - New Patient
+    - text: Pfizer-BioNTech Vaccine - First Dose
+    - text: Pfizer-BioNTech Vaccine - Second Dose
+    - text: Moderna Vaccine Form - First Dose
+    - text: Moderna Vaccine Form - Second Dose
+  formData:
+    addShow: false
+    saveShow: true
+    dataStruc:
+      - reason 
+      - duration
+      - document
+  
+  blockOffDay: []
+  selectDate: ""
+  blockBusinessDay: ""
+  blockGovernDay: ""
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .BaseCheckView: ""
+          message: "You don't add a facility"
+          viewTag: noOrganizationTag
+          style: 
+            zIndex: "100000"
+        - type: view
+          style:
+            background-image: 'linear-gradient(#0063a8, #004371)'   
+            height: "1"
+            width: "0.16"
+          children:
+            - .aitLogo:
+            - .Menu:
+        
+        - .TopBar:
+          # style: 
+        - .ViewRow:
+          style:
+            backgroundColor: "#f4f8fa"
+            width: "0.84"
+            height: "0.92"
+            left: '0.16'
+            top: "0.08"
+            alignItems: flex-start
+          children:
+            - .ViewColumn:
+              style:
+                height: "46.4vw"
+                width: '40vw'
+              children:
+                - type: view
+                  style:
+                    width: "8vw"
+                    height: "6vw"
+                    marginTop: '1vw'
+                  children:
+                    - type: label
+                      text: "Schedule Profile" 
+                      style:
+                        width: "9vw"
+                        height: "1.5vw"
+                        color: "#333333"
+                        fontSize: "1.2vw"
+                        fontWeight: 600
+                    - type: view
+                      style: 
+                        width: "8vw"
+                        height: "4vw"
+                        marginTop: '0.5vw'
+                      children:
+                        - type: image
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: Global.MyProfile.name.data.avatar
+                          path: ava.png
+                          style: 
+                            width: "8vw"
+                            borderRadius: "5px"
+                            height: "4vw"
+                - type: view
+                  style:
+                    width: "40vw"
+                    height: "30vw"
+                  children:
+                    - .ViewRow:
+                      children:
+                        - type: label
+                          text: "Reason For Visit"
+                          style:
+                            left: "0"
+                            top: "0.6vw"
+                            width: "10vw"
+                            color: "#333333"
+                            fontSize: "1.1vw"
+                            fontWeight: 600
+                        - type: button
+                          viewTag: addTag
+                          text: Edit
+                          style:
+                            width: "0.06"
+                            height: "0.035"
+                            color: "0xffffff"
+                            top: "1vw"
+                            left: "32vw" 
+                            isHidden: ..formData.addShow
+                            backgroundColor: "0x005795"
+                            border: 
+                              style: "3"
+                            borderColor: "0x005795"
+                            borderWidth: "1"    
+                            borderRadius: "5"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..deleteReason@: block
+                            - actionType: evalObject
+                              object:
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: delete
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: addNewVisit 
+                            - actionType: builtIn
+                              funcName: hide
+                              viewTag: addTag
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: saveTag
+                            
+                        - type: button
+                          viewTag: saveTag
+                          text: Save
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+                                - =.Global.jwt.edgeAPI.store: ""
+                                - =..visitReason.docAPI.store: ""  
+                                - =.builtIn.search.updateEsData:
+                                    dataIn:
+                                      id: =.Global.currentUser.vertex.id
+                                      type: '79360'
+                                    dataOut: ProviderAvailability.res 
+                                
+                                
+                            - actionType: evalObject
+                              object:
+                                - ..deleteReason@: none
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: delete
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: reasonTag
+                            - actionType: builtIn
+                              funcName: hide
+                              viewTag: addNewVisit
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: addTag 
+                            - actionType: builtIn
+                              funcName: hide
+                              viewTag: saveTag
+                            
+                          style: 
+                            top: "1vw"
+                            left: "0.32"
+                            width: "0.06"
+                            height: "0.035"
+                            color: "0xffffff"
+                            backgroundColor: "0x005795"
+                            border: 
+                              style: "3"
+                            borderColor: "0x005795"
+                            borderWidth: "1"    
+                            borderRadius: "5"
+                            isHidden: ..formData.saveShow
+
+                    - type: view
+                      style: 
+                        top: "4.5vw"
+                        width: "37.7vw"
+                        left: "0"
+                        height: "25.3vw"
+                        margin: "0"
+                      children:
+                        - type: view
+                          style:
+                            width: "38vw"
+                            height: "2.6vw"
+                            top: "0"
+                            left: "0"
+                            backgroundColor: "0xeeeeee"
+                          children:
+                            - type: label
+                              text: Reason for Visit
+                              style: 
+                                left: "1.7vw"
+                                width: "13.7vw"
+                                top: "0.55vw"
+                                height: "1.3vw"
+                                fontSize: "0.8vw"
+                                color: "0x33333399"
+                                textAlign: 
+                                  x: center
+                                  y: center
+                            - type: label
+                              text: Duration
+                              style: 
+                                left: "14.2vw"
+                                width: "9vw"
+                                top: "0.55vw"
+                                height: "1.3vw"
+                                fontSize: "0.8vw"
+                                color: "0x33333399"
+                                textAlign: 
+                                  x: center
+                                  y: center
+                            - type: label
+                              text: Document
+                              style: 
+                                left: "26vw"
+                                width: 9vw"
+                                top: "0.55vw"
+                                height: "1.3vw"
+                                fontSize: "0.8vw"
+                                color: "0x33333399"
+                                textAlign: 
+                                  x: center
+                                  y: center
+                        - type: view
+                          style: 
+                            left: "0"
+                            top: "2.6vw"
+                            width: "38vw"
+                            height: "22.5vw"
+                            backgroundColor: "0xefefef"
+                          children: 
+                            - type: view
+                              style: 
+                                left: "0"
+                                # top: "0.001"
+                                width: "38vw"
+                                height: "22.8vw"
+                                backgroundColor: "0xffffff"
+                              children: 
+                                - type: view
+                                  viewTag: addNewVisit
+                                  style: 
+                                    top: "0"
+                                    width: "38vw"
+                                    height: "2.6vw"
+                                    left: "0"
+                                    textAlign: 
+                                      x: center
+                                    fontSize: "0.3vw"
+                                    color: "0x33333388"
+                                    isHidden: true
+                                  children:
+                                    - .TextField1:
+                                      dataKey: reasonObj.reason
+                                      style:
+                                        width: "13.7vw"
+                                        left: "1.8vw"
+                                        top: "0.5vw"
+                                    - .TimeSelect:
+                                      style:
+                                        width: "7vw"
+                                        left: "16.6vw"
+                                        top: "0.5vw" 
+                                        height: "2.3vw"
+                                        fontSize: "0.7vw"
+                                      dataKey: reasonObj.duration
+                                      options: .Duration
+                                    - .TextField1:
+                                      viewTag: showDocument 
+                                      dataKey: reasonObj.document
+                                      style:
+                                        width: "7.3vw"
+                                        left: "24.5vw"
+                                        top: "0.5vw"
+                                        fontSize: "0.8vw"
+                                      onClick:
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: selectView
+                                        - actionType: popUp
+                                          popUpView: documentView
+                                          dismissOnTouchOutside: true
+                                    - type: button
+                                      text: "create"
+                                      style:
+                                        width: "3vw"
+                                        left: "34vw"
+                                        height: "2vw"
+                                        fontSize: "0.7vw"
+                                        top: "0.6vw"
+                                        backgroundColor: "#25A147"
+                                        color: "0xffffff"
+                                      onClick:
+                                        - actionType: evalObject
+                                          object:  
+                                            - if: 
+                                              - =.builtIn.string.equal:
+                                                  dataIn: 
+                                                    string1: =..reasonObj.reason
+                                                    string2: ""
+                                              - actionType: popUp
+                                                popUpView: pleaseInputReason
+                                              - continue  
+                                            - =.builtIn.array.add:
+                                                dataIn:
+                                                  object: =..visitReason.document.name.data.reasonForVisit
+                                                  value: =..reasonObj 
+                                            - ..selectDocument.document.name.data.document@: []
+                                            - ..reasonObj.reason@: ""
+                                            - ..reasonObj.duration@: "5min"
+                                            - ..reasonObj.document@: []
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: reasonTag
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: addNewVisit 
+                                        - actionType: builtIn
+                                          funcName: show
+                                          viewTag: addNewVisit
+                                - type: scrollView
+                                  style: 
+                                    top: "3.5vw"
+                                    width: "38vw"
+                                    height: "20.7vw"
+                                    overflow: scroll
+                                  children: 
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..visitReason.document.name.data.reasonForVisit
+                                      iteratorVar: itemObject
+                                      viewTag: reasonTag
+                                      style: 
+                                        width: "38vw"
+                                        height: "20.7vw"
+                                        margin: "0"
+                                        left: "0"
+                                      children: 
+                                        - type: listItem
+                                          itemObject: ""
+                                          style: 
+                                            height: "2.5vw"
+                                            width: "38vw"
+                                            border: 
+                                              style: "2"
+                                            borderColor: "0x33333333"
+                                            borderWidth: "1"
+                                            backgroundColor: "0xffffff"
+                                            axis: horizontal
+                                          children: 
+                                            - type: label
+                                              dataKey: itemObject.reason
+                                              style: 
+                                                width: "12.6vw"
+                                                height: "2.5vw"
+                                                fontSize: "0.8vw"
+                                                color: "0x33333399"
+                                                marginLeft: "1.6vw"
+                                                textAlign: 
+                                                  x: center
+                                                  y: center
+                                            - type: label
+                                              dataKey: itemObject.duration
+                                              style: 
+                                                width: "6.1vw"
+                                                height: "2.5vw"
+                                                fontSize: "0.8vw"
+                                                color: "0x33333399"
+                                                textAlign: 
+                                                  x: center
+                                                  y: center
+                                                marginLeft: "1vw"
+                                            - type: select
+                                              options: 
+                                                itemObject.document
+                                              style: 
+                                                flexGrow: '0'
+                                                height: "2.5vw"
+                                                width: "10vw"
+                                                marginLeft: '2vw'
+                                                wordBreak: break-all
+                                                fontSize: "0.9vw"
+                                                color: "0x33333399"
+                                                textAlign: 
+                                                  x: center
+                                                  y: center
+                                            - type: image
+                                              viewTag: delete
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - =.builtIn.array.removeByName:
+                                                          dataIn:
+                                                            object: =..visitReason.document.name.data.reasonForVisit
+                                                            key: "reason"
+                                                            name: $var.reason
+                                                      # - =..visitReason.docAPI.store: ""
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: reasonTag
+                                              path: delete.png
+                                              style:
+                                                width: "1vw"  
+                                                marginLeft: "2vw"
+                                                display: ..deleteReason
+                                                -webkitUserDrag: none
+            - type: view
+              style: 
+              children:
+                - type: view
+                  style:
+                    marginTop:  "5vw"
+                    width: "25.2vw"
+                    height: "39.5vw"
+                    boxShadow: "0px -3px 3px 2px #f0f0f0"
+                  children:
+                    - type: label
+                      text: Availability Settings
+                      style:
+                        left: "2vw"
+                        top: "5.6vw"
+                        width: "9vw"
+                        color: "#333333"
+                        fontSize: "16"
+                    - .RightButton:
+                      onClick:
+                        # - goto: ProviderSchduleSetting
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =.Global.hasOrganization
+                              - goto: ProviderSchduleSetting
+                              - actionType: popUp
+                                popUpView: noOrganizationTag
+                      text: "Edit availability"
+                      style:
+                        top: "15vw"
+                    # - .RightButton:
+                    #   # onClick:
+                    #   #   - actionType: popUp
+                    #   #     popUpView: Blocked-off
+                    #   text: Blocked-off days / Holidays
+                    #   style:
+                    #     top: "23.8vw"
+                    # - .RightButton:
+                    #   style:
+                    #     top: "0.64"
+                    #   onClick:
+                    #     - actionType: popUp
+                    #       popUpView: ScheduleQRcode
+                    #   children:
+                    #     - type: image
+                    #       path: scheduleQRcode.png
+                    #       style:
+                    #         width: "0.045"
+                    #         top: "0.013"
+                    #         left: "0.01"
+                    #     - type: label
+                    #       text: Schedule QR code
+                    #       style:
+                    #         left: "0.067"
+                    #         top: "0.02"
+                    #         width: "0.13"
+                    #         fontSize: "1.8vh"
+                    #         textAlign:
+                    #           x: left
+                    #     - type: label
+                    #       textBoard:
+                    #         - text: Share your schedule with your
+                    #         - br:
+                    #         - text: patients to
+                    #       style:
+                    #         fontSize: "12"
+                    #         left: "0.067"
+                    #         width: "0.13"
+                    #         top: "0.05"
+                    #         textAlign:
+                    #           x: left
+
+        
+        - type: popUp
+          viewTag: documentView
+          style:
+            width: "14.6vw"
+            height: "14.5vw"
+            top: "28.1vw"
+            left: "42.5vw"
+            # overflowY: scroll  
+            backgroundColor: "0xffffff"
+            border:   
+              style: "3"
+            borderColor: '0xdededf'
+          children:
+            - type: list
+              contentType: listObject
+              listObject: .ProviderAvailability.DocumentList
+              iteratorVar: itemObject
+              viewTag: selectView
+              style:
+                width: "13vw"   
+                left: "0"
+                border: "none"
+                top: "0.5vw"
+                height: "auto"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    width: "12vw"
+                    left: "0"
+                    height: "2vw"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: image
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:                        
+                            - if:
+                              - =.builtIn.array.has:
+                                  dataIn:
+                                    object: =..selectDocument.document.name.data.document
+                                    value: $var.text
+                              - selectOnblue.svg
+                              - offSymptoms.png
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions: 
+                              - if:
+                                - =.builtIn.array.has:
+                                    dataIn:
+                                      object: =..selectDocument.document.name.data.document
+                                      value: $var.text
+                                - =.builtIn.array.removeByValue:
+                                    dataIn:
+                                      object: =..selectDocument.document.name.data.document
+                                      value: $var.text
+                                - =.builtIn.array.add:
+                                    dataIn:
+                                      object: =..selectDocument.document.name.data.document
+                                      value: $var.text
+                        - actionType: evalObject
+                          object: 
+                            - ..reasonObj.document@: =..selectDocument.document.name.data.document
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: showDocument
+                        - actionType: popUp  
+                          popUpView: documentView
+                          dismissOnTouchOutside: true #重新弹出框，但是新框
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectView 
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "0.78vw"
+                        width: "1.5vw"
+                    - type: label
+                      dataKey: itemObject.text
+                      style:
+                        left: "1.55vw"
+                        width: "12vw"
+                        top: "-0.6vw"
+                        height: "2vw"
+                        
+                        fontSize: "0.7vw"
+                        textAlign: 
+                          y: center
+                      onClick: 
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions: 
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: $var.text
+                                      string2: New Patient Forms
+                                - goto: NewPatFormPreviewPage1
+                                - continue
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: $var.text
+                                      string2: COVID-19 Testing Consent - New Patient
+                                - goto: Cov19TestNewPatPreviewPage1
+                                - continue
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: $var.text
+                                      string2: COVID-19 Testing Consent Form
+                                - goto: Cov19TestFormPreviewPage1
+                                - continue
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: $var.text
+                                      string2: Pfizer-BioNTech Vaccine - First Dose
+                                - goto: PfizerVaccineFirDosePreviewPage1
+                                - continue
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: $var.text
+                                      string2: Pfizer-BioNTech Vaccine - Second Dose
+                                - goto: PfizerVaccineSecDosePreviewPage1
+                                - continue
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: $var.text
+                                      string2: Moderna Vaccine Form - First Dose
+                                - goto: ModernaVaccineFirDosePreviewPage1
+                                - continue
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: $var.text
+                                      string2: Moderna Vaccine Form - Second Dose
+                                - goto: ModernaVaccineSecDosePreviewPage1
+                                - continue
+
+        
+        - type: popUp
+          viewTag: pleaseInputReason
+          style: 
+            height: "10.1vw"
+            width: "18vw"
+            left: "37vw"
+            top: "20.5vw"
+            borderColor: "#d2d2d2"
+            borderWidth: "1px"
+            border: 
+              style: 3
+            backgroundColor: "#ffffff"
+            zIndex: 
+          children: 
+            - type: view
+              style: 
+                width: "18vw"
+                height: "2.5vw"
+                border: 
+                  style: 3
+                borderBottom: "1px solid #00548e"
+                borderWidth: 1px
+                backgroundColor: "#005794"
+              children: 
+                - .Label1:
+                  text: Remind
+                  style:
+                    left: "1vw" 
+                    width: "10vw"
+                    height: "2.5vw"
+                    fontWeight: 400
+                    color: "#ffffff"
+                    textAlign: 
+                      y: center
+            - .Label1: 
+              text: Please input reason for visit!
+              style: 
+                top: "3vw"
+                width: "18vw"
+                height: "5vw"
+                fontSize: "1.1vw"
+                fontWeight: 450
+                textAlign: 
+                  x: center
+                  y: center
+            - type: button
+              text: confirm
+              style: 
+                backgroundColor: "#005794"
+                width: "4vw"
+                height: "1.5vw"
+                top: "8vw"
+                left: "7vw"
+                color: "#ffffff"
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: pleaseInputReason
+        
+        - type: popUp
+          viewTag: pleaseInputDocument
+          style: 
+            height: "0.2"
+            width: "0.2"
+            left: "0.4"
+            top: "0.4"
+            borderColor: "#d2d2d2"
+            borderWidth: "1px"
+            border: 
+              style: 3
+            backgroundColor: "#ffffff"
+            zIndex: 
+          children: 
+            - type: view
+              style: 
+                width: "0.2"
+                height: "0.05"
+                border: 
+                  style: 3
+                borderBottom: "1px solid #00548e"
+                borderWidth: 1px
+                backgroundColor: "#005794"
+              children: 
+                - .Label1:
+                  text: Remind
+                  style:
+                    left: "0.01" 
+                    width: "0.1"
+                    height: "0.05"
+                    fontWeight: 400
+                    
+                    color: "#ffffff"
+                    textAlign: 
+                      y: center
+            - .Label1: 
+              text: Please input Document!
+              style: 
+                top: "0.05"
+                width: "0.2"
+                height: "0.1"
+                fontSize: "2.5vh"
+                fontWeight: 450
+                textAlign: 
+                  x: center
+                  y: center
+            - type: button
+              text: confirm
+              style: 
+                backgroundColor: "#005794"
+                width: "0.05"
+                height: "0.03"
+                top: "0.16"
+                left: "0.075"
+                color: "#ffffff"
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: pleaseInputDocument
+                
+

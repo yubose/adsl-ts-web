@@ -1,0 +1,721 @@
+CreateNewAccount: # This is page name
+
+  module: patient
+
+  title: Create New Account # Title
+
+  pageNumber: "3" # Page Number
+
+  init: # Page initialization
+    - if:
+        - ..apiRequest.newAccountFlag.vertex.name.phoneNumber
+        - continue
+        - goto: SignUp
+  
+  formData: # Input data here
+    target: false
+    tar: false
+    confirm: ""
+    rvCondition: ""
+    checkOk: ""
+  
+  formDataTemp: # Input data temp here
+
+  apiRequest: # Input data request here
+    newAccountFlag:
+      response: ""
+      vertex : # inherit from BaseDataModel_en.yml
+        .Vertex: ""
+        type : .Global.newAccountFlag
+        name:
+          countryCode: .SignUp.formData.countryCode
+          phoneNumber: .Global.phoneNumber
+          userName: ""
+          firstName: ""
+          lastName: ""
+          password: ""
+          confirmPassword: ""
+          avatar : "https://public.aitmed.com/avatar/JohnDoe.jpg"
+          verificationCode: .SignUp.formData.code
+          signature: ""
+      vertexAPI:
+        .VertexAPI: ""
+        store:
+          api: builtIn.createNewAccount # construct uid, pk, esk .. for new account
+          dataIn: CreateNewAccount.apiRequest.newAccountFlag.vertex
+          dataOut: CreateNewAccount.apiRequest.newAccountFlag.response
+    getVertex:
+      response: ""
+      vertex:
+        xfname: none
+        type: 1
+        sCondition: =..formData.rvCondition
+        _nonce: =.Global._nonce
+      vertexAPI:
+        get:
+          api: rv
+          dataIn: CreateNewAccount.apiRequest.getVertex.vertex
+          dataOut: CreateNewAccount.apiRequest.getVertex.response  
+  
+  style: # Input style fragment here 
+
+  save: 
+    - ..apiRequest.newAccountFlag.vertexAPI.store #
+    # - .Global.rootNotebook.edgeAPI.store
+
+  update: 
+    - .Global.currentUser.vertex@ : =..apiRequest.newAccountFlag.response.vertex # set {".Global.currentUser.vertex":".builtIn.UserVertex"}
+    - .Global.currentUser.vertex.name.firstName@ : =..apiRequest.newAccountFlag.vertex.name.firstName
+    - .Global.currentUser.vertex.name.lastName@ : =..apiRequest.newAccountFlag.vertex.name.lastName      
+    - .Global.currentUser.JWT@ : =..apiRequest.newAccountFlag.response.jwt
+    - .Global.rootNotebookID@: =.Global.currentUser.vertex.deat.rnb64ID
+    - .Global.currentUser.dataCache.loadingDateTime@ : =.Global.currentDateTime
+  
+  components:
+    - .BaseCheckView: ""
+      message: "Incorrect verificationCode"
+      viewTag: wrongCode
+    - .BaseCheckView: ""
+      message: "Password should be same"
+      viewTag: samePassword
+    - .BaseCheckView: ""
+      message: "Please fill out required fields"
+      viewTag: inputPassword
+    - .BaseCheckView: ""
+      message: "Please check the box"
+      viewTag: noSelected
+    - .BaseCheckView: ""
+      message: "Username has been used"
+      viewTag: sameuserid
+    - .BaseCheckView: ""
+      message: "Invalid Username: Required length should be 6 to 16"
+      viewTag: invaliduserid
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - type: view
+          style:
+            width: "0.55"
+            height: "1"
+            top: "0"
+            # backgroundColor: "0xff0000"
+          children:
+            - type: image
+              path: background.svg
+              style:
+                height: "1"
+                left: "0"
+                top: "0"
+            - type: label
+              textBoard: 
+                - text: Welcome To 
+                - br: 
+                - text: AiTmed
+              style:
+                color: "0xffffff"
+                textAlign: 
+                  x: center
+                fontSize: "3.2vw"
+                # lineHeight: "4vw"
+                marginTop: "0.4"
+                # letterSpacing: "0.1vw"
+        - type: view
+          style:
+            left: "0.55"
+            # marginTop: "1vw"
+            width: "0.45"
+            height: "1"
+            # border: 
+            #   style: "3"
+            # borderColor: "0xcdcdcd"
+            # box-sizing: border-box
+            # backgroundColor: "0xf1f1b833"
+            zIndex: "100"
+            display: flex
+            flex-direction: column
+            justify-content: center
+            align-items: center
+          children:
+            - type: image
+              path: aitmedBlack.svg
+              style:
+                # marginTop: "0.05"
+                width: "6.5vw"
+                height: "6.5vw"
+            - type: view
+              style:
+                marginTop: "2vw"
+                width: "33.5vw"
+                height: "35.5vw"
+                borderRadius: "5"
+                boxShadow: "0 0 20px #ecf4f8"
+                display: flex
+                flex-direction: column
+                justify-content: flex-start
+                align-items: center
+              children:
+                # Create Your Account
+                - type: label
+                  text: Create Your Account
+                  style:
+                    width: "28.8vw"
+                    marginTop: "1.8vw"
+                    height: "2vw"
+                    fontSize: "1.6vw"
+                    fontWeight: "400"
+                    # align-items: flext-start
+                    textAlign:
+                      x: left
+                      y: center                
+                # Number
+                - type: view
+                  style:
+                    marginTop: "2.5vw"
+                    width: "28.8vw"
+                    height: "auto"
+                    isHidden: false
+                    display: flex
+                    flex-direction: column
+                    align-content: center
+                  children:
+                    # Country Phone
+                    - type: view
+                      style:
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: row
+                        align-content: flex-start
+                      children:
+                        - type: label
+                          text: Country
+                          style:
+                            width: "3.1vw"
+                            fontSize: "0.7vw"
+                        - type: label
+                          text: Phone
+                          style:
+                            fontSize: "0.7vw"
+                    # Select TextField       
+                    - type: view
+                      style:
+                        marginTop: "0.4vw"
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: row
+                        align-content: center
+                      children:
+                        - type: select
+                          contentType: countryCode
+                          placeholder: ..apiRequest.newAccountFlag.vertex.name.countryCode
+                          dataKey: apiRequest.newAccountFlag.vertex.name.countryCode # formData.countryCode : inputValue
+                          options:
+                            .CountryCode
+                          required: "true"
+                          style:
+                            width: "2.8vw"
+                            height: "2.2vw"
+                            fontSize: "0.7vw"
+                            fontWeight: "500"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box" 
+                            backgroundColor: "0xffffff00"
+                        - type: label
+                          # contentType: phoneNumber
+                          # placeholder: ..apiRequest.newAccountFlag.vertex.name.phoneNumber
+                          dataKey: apiRequest.newAccountFlag.vertex.name.phoneNumber # formData.countryCode : inputValue
+                          # required: "true"
+                          style: 
+                            marginLeft: "0.4vw"
+                            width: "10.8vw"
+                            height: "2.2vw"
+                            fontSize: "0.8vw"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box"  
+                            textIndent: "0.5em"
+                            backgroundColor: "0xffffff00"
+                            textAlign:
+                              y: center
+                # Info
+                - type: view
+                  style:
+                    marginTop: "1vw"
+                    width: "30vw"
+                    height: "15vw"
+                    display: flex
+                    flex-direction: row
+                    flex-wrap: wrap
+                    justify-content: space-evenly
+                    align-content: space-around
+                  children:
+                    # First Name
+                    - type: view
+                      style:
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: column
+                      children:
+                        - type: label
+                          text: First Name
+                          style:
+                            width: "14vw"
+                            fontSize: "0.7vw"
+                        - type: textField
+                          contentType: text
+                          placeholder: "Enter here"
+                          dataKey: apiRequest.newAccountFlag.vertex.name.firstName # formData.countryCode : inputValue
+                          required: "true"
+                          style:
+                            marginTop: "0.4vw"
+                            height: "2.2vw"
+                            fontSize: "0.8vw"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box"  
+                            textIndent: "0.5em"
+                            backgroundColor: "0xffffff00"
+                    # Last Name
+                    - type: view
+                      style:
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: column
+                      children:
+                        - type: label
+                          text: Last Name
+                          style:
+                            width: "14vw"
+                            fontSize: "0.7vw"
+                        - type: textField
+                          contentType: text
+                          placeholder: "Enter here"
+                          dataKey: apiRequest.newAccountFlag.vertex.name.lastName # formData.countryCode : inputValue
+                          required: "true"
+                          style:
+                            marginTop: "0.4vw"
+                            height: "2.2vw"
+                            fontSize: "0.8vw"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box"  
+                            textIndent: "0.5em"
+                            backgroundColor: "0xffffff00"
+                    # Username
+                    - type: view
+                      style:
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: column
+                      children:
+                        - type: label
+                          text: Username
+                          style:
+                            width: "14vw"
+                            fontSize: "0.7vw"
+                        - type: textField
+                          contentType: text
+                          placeholder: "Enter here"
+                          dataKey: apiRequest.newAccountFlag.vertex.name.userName # formData.countryCode : inputValue
+                          required: "true"
+                          style:
+                            marginTop: "0.4vw"
+                            height: "2.2vw"
+                            fontSize: "0.8vw"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box"  
+                            textIndent: "0.5em"
+                            backgroundColor: "0xffffff00"
+                    # Email
+                    - type: view
+                      style:
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: column
+                      children:
+                        - type: label
+                          text: Email
+                          style:
+                            width: "14vw"
+                            fontSize: "0.7vw"
+                        - type: textField
+                          contentType: text
+                          placeholder: "Enter here"
+                          dataKey: apiRequest.newAccountFlag.vertex.name.email # formData.countryCode : inputValue
+                          required: "true"
+                          style:
+                            marginTop: "0.4vw"
+                            height: "2.2vw"
+                            fontSize: "0.8vw"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box"  
+                            textIndent: "0.5em"
+                            backgroundColor: "0xffffff00"
+                    # Password
+                    - type: view
+                      style:
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: column
+                      children:
+                        - type: label
+                          text: Password
+                          style:
+                            width: "14vw"
+                            fontSize: "0.7vw"
+                        - type: view
+                          style:
+                            marginTop: "0.4vw"
+                            height: "2.2vw"
+                            border: '1px solid #000000'
+                            borderWidth: "1px"
+                            borderRadius: 5px
+                            borderColor: "0xc4c4c4"
+                          children:
+                            - type: textField
+                              contentType: password
+                              placeholder: "Enter here"
+                              dataKey: apiRequest.newAccountFlag.vertex.name.password # formData.countryCode : inputValue
+                              required: "true"
+                              style:
+                                height: "2.2vw"
+                                fontSize: "0.8vw"
+                                border: none                           
+                                textAlign:
+                                    x: left
+                                    y: center
+                                textIndent: "0.5em"
+                                backgroundColor: "0xffffff00"
+                                box-sizing: border-box
+                                borderRadius: 5px
+                    # Confirm Password
+                    - type: view
+                      style:
+                        width: "14vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: column
+                      children:
+                        - type: label
+                          text: Confirm Password
+                          style:
+                            width: "14vw"
+                            fontSize: "0.7vw"
+                        - type: view
+                          style:
+                            marginTop: "0.4vw"
+                            height: "2.2vw"
+                            border: '1px solid #000000'
+                            borderWidth: "1px"
+                            borderRadius: 5px
+                            borderColor: "0xc4c4c4"
+                          children:
+                            - type: textField
+                              contentType: password
+                              placeholder: "Enter here"
+                              dataKey: apiRequest.newAccountFlag.vertex.name.confirmPassword # formData.countryCode : inputValue
+                              required: "true"
+                              style:
+                                height: "2.2vw"
+                                fontSize: "0.8vw"
+                                border: none                           
+                                textAlign:
+                                    x: left
+                                    y: center
+                                textIndent: "0.5em"
+                                backgroundColor: "0xffffff00"
+                                box-sizing: border-box
+                                borderRadius: 5px                                          
+                - type: button
+                  text: Sign Up
+                  style:
+                    marginTop: "0.4vw"
+                    color: "0xffffffff"
+                    fontSize: "0.8vw"
+                    width: "14vw"
+                    height: "2.2vw"
+                    backgroundColor: "0x0b4a7e"
+                    border:
+                      style: "1"
+                    display: inline
+                    borderRadius: "5"
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..formData.target
+                          - continue
+                          - actionType: popUp
+                            popUpView: noSelected
+                            wait: true
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..formData.tar
+                          - continue
+                          - actionType: popUp
+                            popUpView: noSelected
+                            wait: true 
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..apiRequest.newAccountFlag.vertex.name.password
+                          - continue
+                          - actionType: popUp
+                            popUpView: inputPassword
+                            wait: true
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..apiRequest.newAccountFlag.vertex.name.userName
+                          - continue
+                          - actionType: popUp
+                            popUpView: inputPassword
+                            wait: true
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..apiRequest.newAccountFlag.vertex.name.firstName
+                          - continue
+                          - actionType: popUp
+                            popUpView: inputPassword
+                            wait: true                      
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..apiRequest.newAccountFlag.vertex.name.lastName
+                          - continue
+                          - actionType: popUp
+                            popUpView: inputPassword
+                            wait: true                                         
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..apiRequest.newAccountFlag.vertex.name.password
+                                  string2: =..apiRequest.newAccountFlag.vertex.name.confirmPassword
+                            - continue
+                            - actionType: popUp
+                              popUpView: samePassword
+                              wait: true                          
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@: 
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.typeCheck.userName:
+                            dataIn:
+                              =..apiRequest.newAccountFlag.vertex.name.userName
+                            dataOut: CreateNewAccount.formData.checkOk
+                        - if:
+                            - =..formData.checkOk
+                            - continue
+                            - actionType: popUp
+                              popUpView: invaliduserid
+                              wait: true 
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - "uid like '"
+                              - =..apiRequest.newAccountFlag.vertex.name.userName
+                              - "%'"
+                            dataOut: CreateNewAccount.formData.rvCondition 
+                        - =..apiRequest.getVertex.vertexAPI.get: ""
+                        - if:
+                            - =..apiRequest.getVertex.response.vertex.0.id
+                            - actionType: popUp
+                              popUpView: sameuserid
+                              wait: true
+                            - continue
+                    - actionType: saveObject
+                      object: ..save 
+                    - actionType: evalObject
+                      object: 
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..apiRequest.newAccountFlag.response.code
+                                  string2: 1031
+                            - actionType: popUp
+                              popUpView: sameuserid
+                              wait: true
+                            - continue    
+                    - actionType: evalObject
+                      object: ..update  
+                    - actionType: evalObject
+                      object:
+                        =.builtIn.eccNaCl.decryptAES:
+                          dataIn:
+                            key: =..apiRequest.newAccountFlag.vertex.name.password
+                            message: =..apiRequest.newAccountFlag.response.vertex.esk
+                          dataOut: Global.currentUser.vertex.sk  
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =..apiRequest.newAccountFlag.response.vertex.pk
+                            - goto: AdminManagement
+                            - actionType: popUp
+                              popUpView: wrongCode 
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..apiRequest.newAccountFlag.response.vertex.pk
+                          - continue
+                          - goto: SignUp                
+                # Policy
+                - type: view
+                  style:
+                    width: "28.6vw"
+                    height: "4vw"
+                  children:
+                    - type: image
+                      viewTag: select
+                      onClick:
+                        - emit:
+                            actions:
+                              - if:
+                                - =.CreateNewAccount.formData.target
+                                - .CreateNewAccount.formData.target@: false
+                                - .CreateNewAccount.formData.target@: true    
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: select
+                      path: 
+                        emit:
+                          actions:
+                            - if:
+                                - =.CreateNewAccount.formData.target
+                                - checkOn.svg
+                                - checkOff.svg
+                      style:
+                        width: "1vw"
+                        top: "1vw"
+                    - type: label
+                      style:
+                        color: "0x000000"
+                        left: "2vw"
+                        top: "1vw"
+                        fontSize: "0.6vw"
+                        textAlign:
+                          x: left 
+                      onClick:
+                        - ..fromData.flag@: "1"
+                        - goto: UserAgreement
+                      textBoard:
+                        - text: "I agree to "
+                        - text: "&nbsp;"
+                        - text: "AiTmed Terms of Use Agreement"
+                          color: "0x005795"
+                        - text: "&nbsp;"
+                        - text: " and "
+                    - type: label
+                      style:
+                        color: "0x000000"
+                        left: "15.3vw"
+                        top: "1vw"
+                        fontSize: "0.6vw"
+                        textAlign:
+                          x: left 
+                      onClick:
+                        - ..fromData.flag@: "2"
+                        - goto: SubscriptionAgreement
+                      textBoard:
+                        - text: "AiTmed Master Subscription Agreement"
+                          color: "0x005795"
+                    - type: image
+                      viewTag: select
+                      onClick:
+                        - emit:
+                            actions:
+                              - if:
+                                - =.CreateNewAccount.formData.tar
+                                - .CreateNewAccount.formData.tar@: false
+                                - .CreateNewAccount.formData.tar@: true    
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: select
+                      path:
+                        emit:
+                          actions:
+                            - if:
+                              - =.CreateNewAccount.formData.tar
+                              - checkOn.svg
+                              - checkOff.svg
+                      style:
+                        width: "1vw"
+                        top: "3vw"
+                    - type: label
+                      onClick:
+                        - ..fromData.flag@: "3"
+                        - goto: PrivacyPolicy
+                      textBoard: 
+                        - text: "I also agree to"
+                        - text: "&nbsp;"
+                        - text: " AiTmed Privacy Policy"
+                          color: "0x005795"
+                      style:
+                        color: "0x000000"
+                        left: "2vw"
+                        top: "3vw"
+                        fontSize: "0.6vw"
+                        textAlign:
+                          x: left
+                # Have an account?
+                - type: view
+                  style:
+                    width: "28.6vw"
+                    height: "2vw"
+                    display: flex
+                    justify-content: center
+                    flex-direction: row
+                    align-items: center
+                  children:
+                    - type: label
+                      text: Have an account?
+                      style:
+                        fontSize: "0.8vw"
+                    - type: Label
+                      text: Sign In
+                      style:
+                        marginLeft: "0.4vw"
+                        color: "0x235591"
+                        fontSize: "0.8vw"
+                        fontWeight: "700" 
+                      onClick: 
+                        - goto: SignIn                  

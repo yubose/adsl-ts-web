@@ -1,0 +1,366 @@
+InvitePatient: # xdpage:5
+  title: "Invite Patient"
+  viewPort: top
+  init:
+    - .SignInCheck
+  inviteMeeting:
+    edge:
+      .Edge: ""
+      type: 1050
+      # refid: .Global.scheduleId
+      bvid: .Global.currentUser.vertex.id
+      # subtype: "1"
+      name:
+        inviteePhoneNumber: .Global.contact.document.name.data.phoneNumber
+        inviterPhoneNumber: .Global.currentUser.vertex.uid
+        inviteeName: .Global.contact.document.name.data.firstName
+        inviterName: .Global.currentUser.vertex.name.userName
+        docId: .Global.scheduleId
+        doctorName: .Global.currentUser.vertex.name.userName
+        eventName: ""
+        Message: ""
+        inviterPk: .Global.currentUser.vertex.pk
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: inviteMeeting.edge
+  patientInfo:
+    fullname: ""
+    dob: ""
+  dataObject: .Global.DocReference.document
+  save:
+    - =..inviteMeeting.edgeAPI.store: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderRightImg:
+      path: addMeeting.svg
+      onClick:
+        - goto: InvitePatient
+    - type: view
+      style:
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+      children:
+        - type: label
+          text: "Invitation Steps: "
+          style:
+            left: "0"
+            top: "0.015"
+            width: "1"
+            height: "0.04"
+            fontSize: "17"
+            fontWeight: "500"
+            textAlign:
+              x: center
+        - type: label
+          style:
+            left: "0.05"
+            top: "0.06"
+            height: "0.33"
+            # backgroundColor: "0xcdcdcd"
+            textAlign:
+              x: left
+            fontSize: .Nfont.h16
+            lineHeight: "1"
+          textBoard:
+            - text: "1.) Confirm that Patient name, Phone number, and Date of Birth are correct"
+            - br:
+            - text: ""
+            - br:
+            - text: "2.) Once invitation is sent, the patient will receive both a text message and app notification that an invitation was sent. Instructions for the patients will be included."
+            - br:
+            - text: ""
+            - br:
+            - text: "3.) Patient will enter their DOB (mm/dd/yyyy) as their password to verify their identity"
+            - br:
+            - text: ""
+            - br:
+            - text: "4.) Patient now given access to Provider Availability, Provider messaging, and Vital Signs"
+            - br:
+            - text: ""
+            - br:
+            - text: '5.) Provider can see Patient profile now under "Patients"'
+        - type: divider
+          style:
+            left: "0"
+            top: "0.39"
+            width: "1"
+            height: "0.001px"
+            color: "0x00000033"
+        - type: view
+          style:
+            left: "0"
+            top: "0.42"
+            width: "1"
+            height: "0.3"
+            # backgroundColor: "0xcdcdcd"
+          children:
+            - type: label
+              text: "Patient Information"
+              style:
+                left: "0"
+                top: "0.005"
+                width: "1"
+                height: "0.04"
+                fontSize: "17"
+                fontWeight: "500"
+                textAlign:
+                  x: center
+            - type: label
+              text: "First name & Last name"
+              style:
+                left: "0.1"
+                width: "1"
+                top: "0.04"
+                height: "0.03"
+                fontSize: .Nfont.h16
+                textAlign:
+                  x: left
+            - type: textField
+              placeholder: "Enter here"
+              dataKey: inviteMeeting.edge.name.inviteeName
+              style:
+                left: "0.1"
+                width: "0.8"
+                top: "0.08"
+                height: "0.03"
+                fontSize: .Nfont.h16
+                textIndent: "10px"
+                border:
+                  style: "2"
+                borderColor: "0x00000066"
+                borderWidth: "1"
+                textAlign:
+                  x: left
+              children:
+                - type: label
+                  dataKey: inviteMeeting.edge.name.inviteeName
+                  style:
+                    diaplay: "inline-block"
+                    height: "0.03"
+            - type: label
+              text: "Add"
+              onClick:
+                - goto: UploadFavorite
+              style:
+                left: "0.72"
+                width: "0.08"
+                top: "0.08"
+                color: "0x2988e6"
+                textAlign:
+                  x: right
+            - type: label
+              text: "Phone number"
+              style:
+                left: "0.1"
+                width: "1"
+                top: "0.13"
+                height: "0.03"
+                fontSize: .Nfont.h16
+                textAlign:
+                  x: left
+            - type: textField
+              placeholder: "Enter here"
+              dataKey: inviteMeeting.edge.name.inviteePhoneNumber
+              style:
+                left: "0.1"
+                width: "0.8"
+                top: "0.17"
+                height: "0.03"
+                fontSize: .Nfont.h16
+                textIndent: "10px"
+                border:
+                  style: "2"
+                borderColor: "0x00000066"
+                borderWidth: "1"
+                textAlign:
+                  x: left
+            - type: label
+              text: "Date of Birth"
+              style:
+                left: "0.1"
+                width: "1"
+                top: "0.22"
+                height: "0.03"
+                fontSize: .Nfont.h16
+                textAlign:
+                  x: left
+            - type: textField
+              placeholder: "mm/dd/yyyy"
+              style:
+                left: "0.1"
+                width: "0.8"
+                top: "0.26"
+                height: "0.03"
+                fontSize: .Nfont.h16
+                textIndent: "10px"
+                border:
+                  style: "2"
+                borderColor: "0x00000066"
+                borderWidth: "1"
+                textAlign:
+                  x: left
+        - type: button
+          text: Confirm
+          onClick:
+            - actionType: popUp
+              popUpView: confirmView
+          style:
+            left: "0.25"
+            top: "0.8"
+            width: "0.5"
+            height: "0.045"
+            color: "0xffffff"
+            fontSize: .Nfont.h16
+            backgroundColor: "0x2fb355"
+            border:
+              style: "3"
+            borderColor: "0x2fb355"
+            borderRadius: "5"
+        - type: button
+          text: Go Back
+          onClick:
+            - goto: "PatientActive"
+          style:
+            left: "0.25"
+            top: "0.85"
+            width: "0.5"
+            height: "0.045"
+            color: "0xd53c42"
+            fontSize: "15"
+            backgroundColor: "0xffffff"
+            border:
+              style: "1"
+    - type: popUp # view
+      viewTag: confirmView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.15"
+            width: "0.89333"
+            height: "0.35"
+            backgroundColor: "0xeeeeeeff"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Send Patient Invite Link"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.04"
+                  width: "0.89333"
+                  height: "0.04"
+                  color: "0x00000088"
+                  fontSize: "20"
+                  fontStyle: bold
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+            - type: label
+              text: "Send Patient invite link to"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.1"
+                  width: "0.89333"
+                  height: "0.04"
+                  color: "0x00000088"
+                  fontSize: .Nfont.h14
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+            - type: label
+              # text: "John"
+              dataKey: inviteMeeting.edge.name.inviteeName
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.15"
+                  width: "0.89333"
+                  height: "0.027247"
+                  color: "0x00000088"
+                  fontSize: .Nfont.h14
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+            - type: label
+              #text: "+1 7148397253"
+              dataKey: inviteMeeting.edge.name.inviteePhoneNumber
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.20"
+                  width: "0.89333"
+                  height: "0.027247"
+                  color: "0x00000088"
+                  fontSize: .Nfont.h14
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.25436"
+                  width: "0.89333"
+                  height: "0.001"
+                  backgroundColor: "0x00000088"
+            - type: button
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: confirmView
+              text: Cancel
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "17"
+                  display: inline
+                  textAlign:
+                    x: center
+                  border:
+                    style: "5"
+                  borderRadius: "15"
+            - type: button
+              onClick:
+                - actionType: evalObject
+                  object: ..save
+                - actionType: popUpDismiss
+                  popUpView: confirmView
+                # - goto: InviteSuccess01
+                - goto: InviteSuccessfuk
+              text: Confirm
+              style:
+                .LabelStyle:
+                  left: "0.45"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x007affff"
+                  fontSize: "17"
+                  display: inline
+                  textAlign:
+                    x: center
+                  border:
+                    style: "5"
+                  borderRadius: "15"

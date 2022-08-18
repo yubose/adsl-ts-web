@@ -1,0 +1,121 @@
+MeetingDocumentsShared: 
+  pageNumber: "170"  # xd page 14
+  title: "Meeting Documents"
+  init:
+    - .SignInCheck
+    - ..listData.get
+    # - ..listData.store
+  listData:
+    sharedDoc:
+      doc:
+        name:
+          title: "Urgent Care Evaluation Report"
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataKey: listData.sharedDoc 
+      # ObjType: 4
+      ids: 
+        - .Global.VideoChatObjStore.reference.edge.refid
+      type: .DocType.UploadFile 
+      # sCondition: .DocType.GetAllDocument
+      xfname : eid
+      obfname : "mtime" 
+      maxcount : "20"
+      _nonce: .Global._nonce    
+  components:
+    - .BaseHeader3:
+    - .HeaderLeftButton: 
+      onClick:
+        - actionType: evalObject
+          object: 
+            .Global._nonce@: 
+              =.builtIn.math.random: ""      
+        - goto:
+            dataIn:
+              destination: VideoChat
+              reload: false
+    - type: view
+      style:
+        top: "0.09"
+        height: "0.7"
+        left: "0"
+        width: "1"
+      children: 
+        - type: list
+          contentType: listObject
+          listObject: ..listData.sharedDoc.doc
+          iteratorVar: itemObject
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "0.7"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                color: "0x000000"
+                backgroundColor: "0xFFFFFF"
+                left: "0"
+                # top: "0"
+                width: "1"
+                height: "0.1"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000011"   
+                textAlign:
+                  y: center                  
+              onClick:
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.DocReference.document
+                  dataObject: itemObject # this must be a rootRoom
+                - goto: DocumentDetail              
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #       - =.builtIn.string.equal:
+                #           dataIn:
+                #             string1: =.Global.DocReference.document.name.type
+                #             string2: "application/json"                      
+                #       - goto: DocumentNotes
+                #       - goto: DocumentDetail
+              children:
+                - type: label
+                  dataKey: itemObject.name.title
+                  style:
+                    left: "0.1"
+                    # top: "0.02"
+                    width: "0.6"
+                    height: "0.06"
+                    fontSize: "15"
+                    fontStyle: bold 
+                    textAlign:
+                      y: center
+                - type: label
+                  text=func: =.builtIn.string.formatUnixtime_en
+                  dataKey: itemObject.ctime 
+                  style:
+                    color: "0x808080"
+                    left: "0.7"
+                    # top: "0.04"
+                    width: "0.3"
+                    height: "0.1"
+                    fontSize: "12"
+                    fontStyle: bold 
+                    textAlign:
+                      y: center
+                # - type: label
+                #   text: July 4,2020
+                #   text=func:  .builtIn.string.formatDurationInSecond
+                #   dataKey: itemObject.tage # hh:mm'ss"
+                #   style:
+                #     color: "0x808080"
+                #     left: "0.05"
+                #     top: "0.04"
+                #     width: "0.6"
+                #     height: "0.02"
+                #     fontSize: "12"
+                #     textAlign:
+                #       y: center

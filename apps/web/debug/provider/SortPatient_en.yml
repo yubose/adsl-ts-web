@@ -1,0 +1,979 @@
+SortPatient:
+  title: "Patient-In-Waiting"
+  pageNumber: "90"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    # get month for calendar
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn: ""
+            dataOut: SortPatient.calendarDate.month
+    # get Year for calendar
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getYear:
+            dataIn: ""
+            dataOut: SortPatient.calendarDate.year
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getDate:
+            dataIn: ""
+            dataOut: SortPatient.calendarDate.day
+    # generate calendar according month and year
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =..calendarDate.year
+              month: =..calendarDate.month
+              day: =..calendarDate.day
+            dataOut: SortPatient.selectDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =..calendarDate.month
+            dataOut: SortPatient.calendarDate.monthName
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.miniWeeklyCalendarArray:
+            dataIn:
+              year: =..calendarDate.year
+              month: =..calendarDate.month
+              today: =..calendarDate.day
+              markDay: =..calendarDate.day
+              color: "0x000000"
+              backgroundColor: "0x2988E6"
+              todayColor: "0xffffff"
+              todayBackgroundColor: "0xFFFFFF6f"
+            dataOut: SortPatient.calendarDate.dayLable
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - =..calendarDate.year
+              - "-"
+              - =..calendarDate.month
+              - "-"
+              - =..calendarDate.day
+            dataOut: SortPatient.calendarDate.todayDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getTimeStampOfDate:
+            dataIn:
+              date: =..calendarDate.todayDate
+            dataOut: SortPatient.calendarDate.todayStamp
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - "subtype in (0x20006,0x30006,0x30064) AND tage=0"
+            dataOut: Global.scheduleScondition
+    - ..listData.get
+    - .SortPatient.formData.response@: =..listData.WaitingInRoom.edge
+  selectDate: ""
+  scheduleId: ""
+  timeSlot: 60
+  splitTime: []
+  patientNumber: "0"
+  requestListNum: "0"
+  autoHeight: "0.88"
+  requestListHidden: "true"
+  selfNumber: "0"
+  resetData:
+    - name:
+        roomName: "today dont have appoinment"
+  ListReGet:
+    WaitingInRoom:
+      edge: ""
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: SortPatient.ListReGet.edge
+      dataOut: SortPatient.ListReGet.WaitingInRoom
+      # dataKay: ListReGet.WaitingInRoom
+    edge:
+      type: .EdgeType.WaitingRoom
+      id: .Global.currentUser.vertex.id
+      # 0--> one people in meeting, 6--> agree request , but no one in meeting
+      sCondition: "=.Global.WaitingSetting"
+      ObjType: "20"
+      xfname: "E2.evid"
+      maxcount: "1000"
+      obfname: "mtime"
+      _nonce: =.Global._nonce
+    # - if:
+    #   - ..listData.WaitingInRoom.edge
+    #   - continue
+    #   - =.builtIn.checkField:
+    #       dataIn:
+    #         contentType: messageHidden
+    #         wait: 100
+  selfRoomInfo:
+    response: ""
+    edge:
+      id:
+        - .Global.currentUser.vertex.id
+        - =.Global.roomInfo.edge.id
+      xfname: bvid,refid
+      type: 40000
+      sCondition: "subtype=0"
+      _nonce: =.Global._nonce
+    get:
+      api: re
+      dataIn: selfRoomInfo.edge
+      dataOut: SortPatient.selfRoomInfo.response
+  todaySchedule: ""
+  formData:
+    response: []
+  calendarDate:
+    month: ""
+    year: ""
+    day: ""
+    dayLable: []
+    tempDate: ""
+    monthName: ""
+    todayStamp:
+      start: ""
+      end: ""
+    weekLabel:
+      - key: SU
+      - key: MO
+      - key: TU
+      - key: WE
+      - key: TH
+      - key: FR
+      - key: SA
+    todayDate: "YYYY-MM-DD"
+    calendarDate:
+    Scondition: ""
+  flag: false
+  listData:
+    WaitingInRoom:
+      edge: ""
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: SortPatient.listData.edge
+      dataOut: SortPatient.listData.WaitingInRoom
+    edge:
+      id: .Global.currentUser.vertex.id
+      # 0--> one people in meeting, 6--> agree request , but no one in meeting
+      sCondition: "=.Global.middleInformation.sCondition"
+      ObjType: "20"
+      xfname: "E2.evid"
+      maxcount: "1000"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+  components:
+    - type: view
+      style:
+        marginTop: "0"
+        width: "1"
+        height: "0.1"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          onClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - ..flag
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: patientList
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: patientList
+            - actionType: evalObject
+              object:
+                - if:
+                    - ..flag
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: patientListSelect
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: patientListSelect
+            - actionType: evalObject
+              object:
+                - if:
+                    - ..flag
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: setSchedule2
+                        - ..flag@: false
+                    - actionType: evalObject
+                      object:
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: setSchedule2
+                        - ..flag@: true
+          path: calendar.svg
+    # - type: view
+    #   viewTag: test
+    #   style:
+    #     isHidden: true
+    #     top: "0.28"
+    #     width: "1"
+    #     left: "0"
+    #     height: "0.1"
+    #     backgroundColor: "0x000000"
+    - type: view
+      viewTag: setSchedule2
+      style:
+        isHidden: true
+        display: none
+      children:
+        - type: view
+          viewTag: setSchedule
+          style:
+            width: "1"
+            height: "0.18"
+            backgroundColor: "0x2988E6"
+            marginTop: "0"
+            left: "0"
+          children:
+            - type: view
+              style:
+                left: "0.25"
+                width: "0.2"
+                height: "0.03"
+              children:
+                - type: image
+                  path: whiteLeft.svg
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.date.loopMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                                step: -1
+                              dataOut: SortPatient.calendarDate.month
+                          - =.builtIn.date.transformMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                              dataOut: SortPatient.calendarDate.monthName
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: =..calendarDate.month
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x2988E6"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: SortPatient.calendarDate.dayLable
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    height: "0.02"
+                    top: "0.005"
+                - type: label
+                  dataKey: calendarDate.monthName
+                  style:
+                    top: "0"
+                    width: "0.12"
+                    height: "0.03"
+                    left: "0.036"
+                    fontSize: "18"
+                    color: "0xffffff"
+                    textAlign:
+                      x: center
+
+                - type: image
+                  path: whiteRight.svg
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.date.loopMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                                step: 1
+                              dataOut: SortPatient.calendarDate.month
+                          - =.builtIn.date.transformMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                              dataOut: SortPatient.calendarDate.monthName
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: =..calendarDate.month
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x2988E6"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: SortPatient.calendarDate.dayLable
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    left: "0.16"
+                    height: "0.02"
+                    top: "0.005"
+            - type: view
+              style:
+                top: "0"
+                left: "0.5"
+                width: "0.4"
+                height: "0.03"
+              children:
+                - type: image
+                  path: whiteLeft.svg
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.number.Subtraction:
+                              dataIn:
+                                num: =..calendarDate.year
+                                step: 1
+                              dataOut: SortPatient.calendarDate.year
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: 1
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x2988E6"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: SortPatient.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        - .SortPatient.calendarDate.month@: 1
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: SortPatient.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+
+                  style:
+                    left: "0"
+                    height: "0.02"
+                    top: "0.005"
+                - type: label
+                  dataKey: calendarDate.year
+                  style:
+                    width: "0.12"
+                    height: "0.03"
+                    top: "0"
+                    left: "0.058"
+                    fontSize: "18"
+                    color: "0xffffff"
+                    textAlign:
+                      x: center
+                - type: image
+                  path: whiteRight.svg
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.number.addition:
+                              dataIn:
+                                num: =..calendarDate.year
+                                step: 1
+                              dataOut: SortPatient.calendarDate.year
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: 1
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x2988E6"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: SortPatient.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        .SortPatient.calendarDate.month@: 1
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: SortPatient.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    left: "0.2"
+                    height: "0.02"
+                    top: "0.005"
+            - type: view
+              style:
+                top: "0"
+                width: "0.08"
+                height: "0.2"
+              children:
+                - type: image
+                  path: whiteLeft.svg
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.date.LastWeek:
+                              dataIn:
+                                year: =..calendarDate.dayLable.0.year
+                                month: =..calendarDate.dayLable.0.month
+                                day: =..calendarDate.dayLable.0.day
+                              dataOut: SortPatient.calendarDate.tempDate
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.tempDate.year
+                                month: =..calendarDate.tempDate.month
+                                today: =..calendarDate.day
+                                markDay: =..calendarDate.tempDate.day
+                                color: "0x000000"
+                                backgroundColor: "0x2988E6"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: SortPatient.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        - ..calendarDate.year@: =..calendarDate.tempDate.year
+                        - ..calendarDate.month@: =..calendarDate.tempDate.month
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: SortPatient.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    top: "0.07"
+                    height: "0.04"
+                    left: "0.02"
+            - type: list
+              contentType: listObject
+              listObject: ..calendarDate.dayLable
+              iteratorVar: itemObject
+              viewTag: calendarColor
+              style:
+                axis: horizontal
+                top: "0.03"
+                left: "0.08"
+                width: "0.84"
+                display: "flex"
+                height: "0.08"
+                justifyContent: "space-between"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: $var.year
+                                month: $var.month
+                                today: $var.day
+                                markDay: $var.day
+                                color: "0x000000"
+                                backgroundColor: "0x2988E6"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: SortPatient.calendarDate.dayLable
+                          - .SortPatient.formData.response@: []
+                          - .SortPatient.ListReGet.WaitingInRoom.edge@: []
+                          - ..calendarDate.year@: $var.year
+                          - ..calendarDate.month@: $var.month
+                          - ..calendarDate.day@: $var.day
+                          - =.builtIn.date.ShowDateByNumber:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: =..calendarDate.month
+                                day: =..calendarDate.day
+                              dataOut: SortPatient.selectDate
+                          - =.builtIn.date.transformMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                              dataOut: SortPatient.calendarDate.monthName
+                          - =.builtIn.string.concat:
+                              dataIn:
+                                - =..calendarDate.year
+                                - "-"
+                                - =..calendarDate.month
+                                - "-"
+                                - $var.day
+                              dataOut: SortPatient.calendarDate.todayDate
+                          - =.builtIn.date.getTimeStampOfDate:
+                              dataIn:
+                                date: =..calendarDate.todayDate
+                              dataOut: SortPatient.calendarDate.todayStamp
+                          # get subtype=1 or subtype=5   userId = evid | bvid
+                          - =.builtIn.string.concat:
+                              dataIn:
+                                - "E2.stime>"
+                                - =..calendarDate.todayStamp.start
+                                - " AND "
+                                - "E2.etime<"
+                                - =..calendarDate.todayStamp.end
+                                - " AND "
+                                - =.Global.middleInformation.sCondition
+                              # dataOut: SortPatient.calendarDate.Scondition
+                              dataOut: Global.WaitingSetting
+                    - actionType: evalObject
+                      object:
+                        - .SortPatient.formData.response@: []
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject #modify
+                      object:
+                        - =..ListReGet.get: ""
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.AddHeightByTimeSpan:
+                            dataIn:
+                              object: =..ListReGet.WaitingInRoom.edge
+                            dataOut: SortPatient.formData.response
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: patientLists
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: patientListSelects
+                  style:
+                    width: "0.12"
+                    height: "0.08"
+                    boxSizing: "border-box"
+                    border: "none"
+                    padding: "0px"
+                    display: "inline-block"
+                    flex: "auto"
+                    # borderRadius: "21px"
+                  children:
+                    - type: label
+                      dataKey: itemObject.weekDay
+                      style:
+                        width: "0.1"
+                        color: "0xffffff"
+                        fontSize: "16px"
+                        textAlign:
+                          x: center
+                        height: "0.04"
+                        top: "0"
+                    - type: label
+                      dataKey: itemObject.day
+                      style:
+                        width: "0.082"
+                        color: "0xffffff"
+                        backgroundColor: itemObject.backgroundColor
+                        borderRadius: "50"
+                        fontSize: "18px"
+                        textAlign:
+                          x: center
+                          y: center
+                        height: "0.04"
+                        # lineHeight: "30px"
+                        top: "0.04"
+            - type: view
+              style:
+                top: "0"
+                left: "0.92"
+                width: "0.08"
+                height: "0.2"
+              children:
+                - type: image
+                  path: whiteRight.svg
+                  style:
+                    top: "0.07"
+                    height: "0.04"
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.date.NextWeek:
+                              dataIn:
+                                year: =..calendarDate.dayLable.6.year
+                                month: =..calendarDate.dayLable.6.month
+                                day: =..calendarDate.dayLable.6.day
+                              dataOut: SortPatient.calendarDate.tempDate
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.tempDate.year
+                                month: =..calendarDate.tempDate.month
+                                today: =..calendarDate.day
+                                markDay: =..calendarDate.tempDate.day
+                                color: "0x000000"
+                                backgroundColor: "0x2988E6"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: SortPatient.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        - ..calendarDate.year@: =..calendarDate.tempDate.year
+                        - ..calendarDate.month@: =..calendarDate.tempDate.month
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: SortPatient.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+            - type: label
+              dataKey: SortPatient.selectDate
+              style:
+                width: "1"
+                top: "0.14"
+                fontSize: "15"
+                color: "0xffffff"
+                fontWeight: "550"
+                textAlign:
+                  x: center
+    - type: view
+      style:
+        width: "1"
+        height: "auto"
+        marginTop: "0"
+        left: "0"
+        backgroundColor: "0xffffff"
+      children:
+        - type: view
+          style:
+            # top: "0"
+            # left: "0.05"
+            width: "1"
+            height: "0.06"
+            backgroundColor: "0x2988e6"
+          children:
+            - .SearchField:
+              placeholder: "Search"
+              style:
+                left: "0.04"
+                top: "0.01"
+                height: "0.035"
+                backgroundColor: "0xffffff"
+                textAlign:
+                  x: center
+                  y: center
+            - type: image
+              path: search.svg
+              style:
+                top: "0.0175"
+                left: "0.35"
+                height: "0.02"
+
+        - type: view
+          viewTag: patientList
+          style:
+            width: "1"
+            height: "0.84"
+          children:
+            - type: list
+              viewTag: patientLists
+              contentType: listObject
+              listObject: ..formData.response
+              iteratorVar: itemObject
+              style:
+                marginTop: "0"
+                left: "0"
+                width: "1"
+                height: "0.84"
+                overflow: scroll
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: Global.roomInfo.edge
+                      dataObject: itemObject
+                    # - actionType: evalObject
+                    #   object:
+                    #     - ..selfRoomInfo.response@: []
+                    # - actionType: evalObject
+                    #   object:
+                    #     .Global._nonce@:
+                    #       =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - =..selfRoomInfo.get: ""
+                    #     - ..selfRoomInfo.response@: =..selfRoomInfo.response.0
+                    #     - =.builtIn.array.getListLength:
+                    #         dataIn:
+                    #           object: =..selfRoomInfo.response.edge
+                    #         dataOut: SortPatient.selfNumber
+                    - actionType: evalObject
+                      object:
+                        # - if:
+                        #     - =.builtIn.string.equal:
+                        #         dataIn:
+                        #           string1: =.SortPatient.selfNumber
+                        #           string2: "0"
+                        - .Global.rootRoomInfo.edge.refid@:
+                            ""
+                            # - .Global.rootRoomInfo.edge@: =..selfRoomInfo.response.edge.0
+                    - actionType: updateObject
+                      dataKey: Global.currentMeetingDoc
+                      dataObject: []
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.visitType
+                                    string2: "Telemedicine"
+                              - goto: AppointmentLobby
+                              - goto: AppointmentLobbyOfficeVisit
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "auto"
+                    border:
+                      style: "2"
+                    borderColor: "0x00000066"
+                    borderWidth: "1"
+                  children:
+                    - type: view
+                      style:
+                        marginTop: "0.015"
+                        width: "1"
+                        height: "auto"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.6"
+                            marginLeft: "0.05"
+                            height: "auto"
+                            display: "inline-block"
+                          children:
+                            - type: view
+                              style:
+                                width: "0.53"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  text=func: .builtIn.date.ShowTimeSpan
+                                  dataKey: itemObject
+                                  style:
+                                    height: "auto"
+                                    fontSize: .Nfont.h15
+                                    display: "inline-block"
+                                - type: label
+                                  text: (
+                                  style:
+                                    marginLeft: "0.03"
+                                    display: "inline-block"
+                                    fontSize: .Nfont.h1
+                                - type: label
+                                  dataKey: itemObject.name.duration
+                                  style:
+                                    height: "auto"
+                                    fontSize: .Nfont.h1
+                                    display: "inline-block"
+                                - type: label
+                                  text: min)
+                                  style:
+                                    fontSize: .Nfont.h1
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                            - type: label
+                              dataKey: itemObject.name.patientName
+                              style:
+                                height: "auto"
+                                marginTop: "0.005"
+                                width: "0.4"
+                                fontSize: .Nfont.n2
+                        - type: view
+                          style:
+                            width: "0.3"
+                            height: "auto"
+                            marginLeft: "0"
+                            display: "inline-block"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.visitType
+                              style:
+                                fontSize: .Nfont.h1
+                                width: "0.3"
+                                textAlign:
+                                  x: right
+                                color: itemObject.name.fontColor
+                            - type: label
+                              dataKey: itemObject.name.Reason
+                              style:
+                                fontSize: .Nfont.h1
+                                wordWrap: break-word
+                                width: "0.3"
+                                marginTop: "0.01"
+                                textAlign:
+                                  x: right
+                        - type: view
+                          style:
+                            width: "0.2"
+                            left: "0"
+                            height: "0.01"
+        - type: view
+          viewTag: patientListSelect
+          style:
+            width: "1"
+            height: "0.66"
+            display: "none"
+          children:
+            - type: list
+              viewTag: patientListSelects
+              contentType: listObject
+              listObject: ..formData.response
+              iteratorVar: itemObject
+              style:
+                marginTop: "0"
+                left: "0"
+                width: "1"
+                height: "0.66"
+                overflow: scroll
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: Global.roomInfo.edge
+                      dataObject: itemObject
+                    - actionType: evalObject
+                      object:
+                        - ..selfRoomInfo.response@: []
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - =..selfRoomInfo.get: ""
+                        - ..selfRoomInfo.response@: =..selfRoomInfo.response.0
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =..selfRoomInfo.response.edge
+                            dataOut: SortPatient.selfNumber
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.SortPatient.selfNumber
+                                  string2: "0"
+                            - .Global.rootRoomInfo.edge.refid@: ""
+                            - .Global.rootRoomInfo.edge@: =..selfRoomInfo.response.edge.0
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.visitType
+                                    string2: "Telemedicine"
+                              - goto: AppointmentLobby
+                              - goto: AppointmentLobbyOfficeVisit
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "auto"
+                    border:
+                      style: "2"
+                    borderColor: "0x00000066"
+                    borderWidth: "1"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.6"
+                        marginLeft: "0.05"
+                        marginTop: "0.015"
+                        height: "auto"
+                        display: "inline-block"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.6"
+                            height: "auto"
+                          children:
+                            - type: label
+                              text=func: .builtIn.date.ShowTimeSpan
+                              dataKey: itemObject
+                              style:
+                                height: "auto"
+                                fontSize: .Nfont.h15
+                                display: "inline-block"
+                            - type: label
+                              text: (
+                              style:
+                                marginLeft: "0.03"
+                                display: "inline-block"
+                                fontSize: .Nfont.h1
+                            - type: label
+                              dataKey: itemObject.name.duration
+                              style:
+                                height: "auto"
+                                fontSize: .Nfont.h1
+                                display: "inline-block"
+                            - type: label
+                              text: min)
+                              style:
+                                fontSize: .Nfont.h1
+                                display: "inline-block"
+                                marginLeft: "0.01"
+                        - type: label
+                          dataKey: itemObject.name.patientName
+                          style:
+                            height: "auto"
+                            marginTop: "0.005"
+                            width: "0.4"
+                            fontSize: .Nfont.n2
+                    - type: view
+                      style:
+                        width: "0.3"
+                        marginTop: "0.015"
+                        height: "auto"
+                        display: "inline-block"
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.visitType
+                          style:
+                            fontSize: .Nfont.h1
+                            width: "0.3"
+                            textAlign:
+                              x: right
+                            color: itemObject.name.fontColor
+                        - type: label
+                          dataKey: itemObject.name.Reason
+                          style:
+                            fontSize: .Nfont.h1
+                            wordWrap: break-word
+                            width: "0.3"
+                            marginTop: "0.01"
+                            textAlign:
+                              x: right
+                    - type: view
+                      style:
+                        width: "1"
+                        left: "0"
+                        height: "0.01"

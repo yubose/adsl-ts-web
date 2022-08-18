@@ -1,0 +1,296 @@
+MedicalDocuments:
+  title: "Medical Documents"
+  pageNumber: ""
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..listData.get
+    - ..listData.store
+    - =.builtIn.array.transformPage:
+        dataIn:
+          array: =..listData.sharedDoc.doc
+          type: "Review"
+          dataKey: "name.title"
+        dataOut: MedicalDocuments.formData.docList
+
+  formData:
+    docList: [] # 用于接收处理过的
+  listData:
+    sharedDoc:
+      document: ""
+    get:
+      .DocAPI.get: ""
+      api: rd
+      dataKey: listData.sharedDoc
+      ids:
+        - .Global.roomInfo.edge.id
+      xfname: eid
+      sCondition: "type in (1025,1537,1793,2305,2049,84480,87040,92161,94721,107521,110081,112641,115201,117761,120321,122881,125441,128001,130561,133121,143361)" #87040,84480
+      maxcount: "20"
+      obfname: ctime
+      _nonce: =.Global._nonce
+  dataObject: .Global.roomInfo.edge
+
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.75"
+        backgroundColor: "#f0f0f0"
+      children:
+        - type: label
+          text: "Medical Documents"
+          style:
+            marginTop: "0"
+            left: "0.08"
+            width: "0.92"
+            height: "0.04"
+            fontSize: "15"
+            fontWeight: 400
+            color: "#4b4b4b"
+            textAlign:
+              y: center
+        - type: view
+          style:
+            marginTop: "0"
+            left: "0"
+            width: "1"
+            height: "0.71"
+            backgroundColor: "#ffffff"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..formData.docList
+              iteratorVar: itemObject
+              style:
+                left: "0"
+                width: "1"
+                height: "0.7"
+                margin: "0"
+                marginTop: "0"
+                overflow: scroll
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - actionType: updateObject
+                      dataObject: itemObject
+                      dataKey: Global.DocReference.document
+                    # - emit:
+                    #     dataKey:
+                    #       var: itemObject
+                    #     actions:
+                    #       - if:
+                    #         - true
+                    #         - goto: $var.pageName
+                    #         - goto: $var.pageName
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 1025
+                            - goto: DocumentDetail
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 1537
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: BlankNoteShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 1793
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: EvaluationNoteShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 2049
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: PrescriptionShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 2305
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: AbsentNoteShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 122881
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: WorkStatusFormShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 125441
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: PROneShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 128001
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: PRTwoShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 130561
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: DWCFormRFAShared
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 133121
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: SurgeryAuthorizationReviewPage1
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 143361
+                            - actionType: evalObject
+                              object:
+                                - .Global.Note@: =.Global.DocReference.document
+                                - goto: FluVaccinationConsentFormEnglishShared
+                            - continue
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - true
+                              - goto: $var.pageName
+                              - goto: $var.pageName
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "0.1"
+                    borderBottom: "1px solid #dbdbdb"
+                    border:
+                      style: "2"
+                      width: "1"
+                  children:
+                    - type: label
+                      text: "Invalid date"
+                      dataKey: itemObject.name.title
+                      style:
+                        top: "0.02"
+                        fontSize: "15"
+                        fontWeight: 400
+                        left: "0.08"
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtime_en
+                      dataKey: itemObject.ctime
+                      style:
+                        top: "0.055"
+                        fontSize: .Nfont.h14
+                        fontWeight: 350
+                        left: "0.08"
+                    # - type: label
+                    #   text: "From:"
+                    #   style:
+                    #     top: "0.02"
+                    #     fontSize: "15"
+                    #     fontWeight: 350
+                    #     left: "0.55"
+                    #     textAlign:
+                    #       x: right
+                    #     width: "0.35"
+                    - type: label
+                      dataKey: itemObject.name.user
+                      style:
+                        top: "0.055"
+                        fontSize: "15"
+                        fontWeight: 350
+                        width: "0.35"
+                        left: "0.55"
+                        textAlign:
+                          x: right
+    - type: view
+      style:
+        top: "0.88"
+        width: "1"
+        height: "0.12"
+        left: "0"
+        position: fixed
+        backgroundColor: "0xffffff"
+      children:
+        - type: view
+          style:
+            left: "0.075"
+            top: "0"
+            width: "80vw"
+            height: "0.1"
+            border:
+              style: "3"
+              color: "#2eb355"
+            borderWidth: "2"
+            borderColor: "#2eb355"
+            borderRadius: "15"
+            boxShadow: "0px 2px 5px 2px #dededf"
+          onClick:
+            - goto: UploadMedicalRecord2
+          children:
+            - type: image
+              path: greenAdd.svg
+              style:
+                left: "10vw"
+                top: "0.015"
+                height: "0.07"
+            - type: label
+              text: "Upload new document"
+              style:
+                left: "28vw"
+                top: "0.015"
+                width: "50vw"
+                height: "0.07"
+                fontSize: "4vw"
+                textAlign:
+                  y: center

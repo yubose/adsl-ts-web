@@ -1,0 +1,2300 @@
+EditMyProfile:
+  title: "Edit Profile"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.MyProfile
+              string2: "=..profile.docResponse.doc.0"
+        - actionType: evalObject
+          object:
+            - =..apiRequest.profile.docAPI.store: ""
+            - .Global.MyProfile@: =..apiRequest.profile.response.doc
+        - continue
+    - ..apiRequest.profile.document@: =.Global.MyProfile
+    - .Global.formData.editProfileImageId@: =..apiRequest.profile.document.name.data.cv
+    - =..apiRequest.publicProfile.docAPI.get: "" #use publicProfile id
+    - if:
+        - =..apiRequest.publicProfile.docResponse.doc.0
+        - continue
+        - actionType: evalObject
+          object:
+            - =..apiRequest.publicProfile.docAPI.store: ""
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =..apiRequest.publicProfile.docAPI.get: "" #use publicProfile id
+    - ..apiRequest.publicProfile.document@: =..apiRequest.publicProfile.docResponse.doc.0
+    - =.builtIn.object.getObjKey:
+        dataIn:
+          objects: =..apiRequest.publicProfile.document.name.data
+        dataOut: Global.selected
+    # - =..apiRequest.connections.docAPI.get: ""
+    # - ..formData.FacilityData@: =..apiRequest.connections.connectionList.doc
+    - =.builtIn.object.setProperty:
+        dataIn:
+          obj: =..formDataTemp.titleData
+          label: "title"
+          text: .Global.providerProfileVar
+          arr: ["fontColor", "fontWeight", "block"]
+          valueArr: ["0x2988e6", "500", "block"]
+          errorArr: ["0x333333", "400", "none"]
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.providerProfileVar
+              string2: "About"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.leftStyle@: "11.5vw"
+            - ..formDataTemp.blockCredentialsInfo@: "none"
+            - ..formDataTemp.blockFacilityInfo@: "none"
+            - ..formDataTemp.blockAboutInfo@: "block"
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.providerProfileVar
+              string2: "Credentials"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.blockAboutInfo@: "none"
+            - ..formDataTemp.leftStyle@: "44vw"
+            - ..formDataTemp.blockFacilityInfo@: "none"
+            - ..formDataTemp.blockCredentialsInfo@: "block"
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.providerProfileVar
+              string2: "Facility"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.leftStyle@: "78vw"
+            - ..formDataTemp.blockFacilityInfo@: "block"
+            - ..formDataTemp.blockCredentialsInfo@: "none"
+            - ..formDataTemp.blockAboutInfo@: "none"
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.editProfileImageId
+              string2: ""
+        - ..formData.isCvShow@: "none"
+        - actionType: evalObject
+          object:
+            - ..apiRequest.profile.document.name.data.cv@: =.Global.formData.editProfileImageId
+            - ..formData.isCvShow@: "block"
+    # get current facility profile
+    - actionType: evalObject
+      object:
+        - =..apiRequest.facilityProfile.docAPI.get: ""
+        - ..formData.FacilityData@: =..apiRequest.facilityProfile.docQueryResp.doc
+    # 是否存在facility
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..formData.FacilityData
+            dataOut: EditMyProfile.formData.facilityLength
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.facilityLength
+                  string2: "0"
+            - actionType: evalObject
+              object:
+                - ..formDataTemp.facilityInfo@: "none"
+                - ..formDataTemp.emptyfacility@: "block"
+            - actionType: evalObject
+              object:
+                - ..formDataTemp.facilityInfo@: "block"
+                - ..formDataTemp.emptyfacility@: "none"
+  formData:
+    cv: ""
+    language: ""
+    #juide the display show of the cv is show or not?
+    isCvShow: "none"
+    res: ""
+    currentFacility: []
+    FacilityData: []
+    facilityLength: ""
+  formDataTemp:
+    titleData:
+      - title: About
+        fontColor: "0x2988e6"
+        fontWeight: "500"
+        # width: "31vw"
+        # leftStyle: "11.5vw"
+        block: "block"
+      - title: Credentials
+        fontColor: "0x333333"
+        fontWeight: "400"
+        # leftStyle: "44vw"
+        # width: "33vw"
+        block: "none"
+      - title: Facility
+        fontColor: "0x333333"
+        fontWeight: "400"
+        # leftStyle: "77vw"
+        # width: "35vw"
+        block: "none"
+    blockAboutInfo: "block"
+    blockCredentialsInfo: "none"
+    blockFacilityInfo: "none"
+    emptyfacility: "block"
+    facilityInfo: "none"
+    leftStyle: "11.5vw"
+    providerProfileVar: "About"
+    gender:
+      - key: gender
+        value: Male
+      - key: gender
+        value: Female
+      - key: gender
+        value: Other
+  apiRequest:
+    # get current facility profile
+    facilityProfile:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.currentUser.vertex.id
+        xfname: (E.bvid|E.evid)&(!D.ovid)
+        ObjType: 12
+        obfname: "ctime"
+        type: .DocType.FacilityProfile
+        sCondition: E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x30000
+      docAPI:
+        get:
+          api: rd
+          dataIn: EditMyProfile.apiRequest.facilityProfile.docQueryReq
+          dataOut: EditMyProfile.apiRequest.facilityProfile.docQueryResp
+    # connections:
+    #   connectionList:
+    #     edge: ""
+    #   docAPI:
+    #     get:
+    #       api: rd
+    #       type: 271361
+    #       xfname: E.bvid|E.evid
+    #       id: .Global.currentUser.vertex.id
+    #       ObjType: 12
+    #       _nonce: =.Global._nonce
+    #       dataKey: apiRequest.connections.connectionList
+    #       sCondition: E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x30000 #AND V.type=1
+
+    publicProfile:
+      docResponse: ""
+      document:
+        type: .DocType.DoctorPublicProfile
+        eid: .Global.rootNotebookID
+        name:
+          data:
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataKey: apiRequest.publicProfile.document
+          subtype:
+            mediaType: "application/json"
+        get:
+          .DocAPI.get: ""
+          api: rd
+          id: .Global.rootNotebookID
+          xfname: eid
+          type: .DocType.DoctorPublicProfile
+          dataKey: apiRequest.publicProfile.docResponse
+          maxcount: "1"
+          obfname: "ctime"
+          _nonce: =.Global._nonce
+    profile:
+      specialty: ""
+      docResponse: ""
+      response: ""
+      document:
+        eid: .Global.rootNotebookID
+        type: .DocType.DoctorProfile
+        name:
+          data:
+            firstName: ""
+            middleName: ""
+            lastName: ""
+            title: ""
+            userName: ""
+            phone: ""
+            email: ""
+            fullName: ""
+            address: ""
+            languages: []
+            gender: ""
+            specialty: []
+            selectedSpecialty: []
+            description: ""
+            education: ""
+            cv: ""
+            insurance: ""
+            NPI: ""
+            fax: ""
+            medicalLicense: ""
+            MedicalLicense: []
+            DEA: ""
+            avatar: ""
+          type: "application/json"
+      docAPI:
+        get:
+          .DocAPI.get: ""
+          api: rd
+          id: .Global.rootNotebookID
+          xfname: eid
+          type: .DocType.DoctorProfile
+          maxcount: "1"
+          obfname: "ctime"
+          dataKey: apiRequest.profile.docResponse
+          _nonce: =.Global._nonce
+        store:
+          api: cd
+          dataIn: apiRequest.profile.document
+          dataOut: apiRequest.profile.response
+    cv:
+      showDoc: ""
+      docRes: ""
+      deleteDocReq:
+        id: ""
+      docReq:
+        eid: .Global.rootNotebookID
+        name:
+          data: binFile
+          type: ..apiRequest.cv.docAPI.store.subtype.mediaType
+        type: .DocType.CV
+      docGetReq:
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.CV
+        obfname: ctime
+        maxcount: "1"
+        _nonce: =.Global._nonce
+      docAPI:
+        store:
+          api: cd
+          dataIn: EditMyProfile.apiRequest.cv.docReq
+          dataOut: EditMyProfile.apiRequest.cv.docRes
+          subtype:
+            mediaType: ""
+        delete:
+          api: dx
+          dataIn: EditMyProfile.apiRequest.cv.deleteDocReq
+    avatar:
+      url: providerImage.svg
+      document:
+        .Document: ""
+        subtype:
+          isEncrypted: "0"
+          isOnServer: "0"
+        type: .DocType.UserAvatar
+        name:
+          title: ""
+          data: binFile
+        deat:
+          sig: ""
+          url: ""
+        eid: .Global.rootNotebookID
+      resp: ""
+      docIn:
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.UserAvatar
+        maxcount: "1"
+        obfname: "ctime"
+        _nonce: =.Global._nonce
+      docAPI:
+        store:
+          api: cd
+          dataIn: EditMyProfile.apiRequest.avatar.document
+          dataOut: EditMyProfile.apiRequest.avatar.resp
+  # style:
+
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - ..event.button_saveUpdate
+        # - goto: MenuBars
+    - .HeaderSaveButton:
+      onClick:
+        #error popup
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.profile.document.name.data.firstName
+                      string2: ""
+                - actionType: popUp
+                  popUpView: formCheckPopup
+                  wait: true
+                - continue
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.profile.document.name.data.lastName
+                      string2: ""
+                - actionType: popUp
+                  popUpView: formCheckPopup
+                  wait: true
+                - continue
+            - if:
+                - =..apiRequest.profile.document.name.data.specialty.0
+                - continue
+                - actionType: popUp
+                  popUpView: formCheckPopup
+                  wait: true
+            - if:
+                - =..apiRequest.profile.document.name.data.MedicalLicense.0
+                - continue
+                - actionType: popUp
+                  popUpView: formCheckPopup
+                  wait: true
+        - actionType: evalObject
+          object:
+            - if:
+                - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                - continue
+            - if:
+                - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                - .EditMyProfile.apiRequest.publicProfile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                - continue
+            - .EditMyProfile.apiRequest.publicProfile.document.id@: =.EditMyProfile.apiRequest.publicProfile.docResponse.doc.0.id
+            - =.builtIn.string.concat: #create fullName
+                dataIn:
+                  - =..apiRequest.profile.document.name.data.firstName
+                  - " "
+                  - =..apiRequest.profile.document.name.data.middleName
+                  - " "
+                  - =..apiRequest.profile.document.name.data.lastName
+                dataOut: EditMyProfile.apiRequest.profile.document.name.data.fullName
+            - =.builtIn.object.getObjValueAndKey: #for public profile
+                dataIn:
+                  objects: =..apiRequest.profile.document.name.data
+                  objStr: =.Global.selected
+                dataOut: EditMyProfile.apiRequest.publicProfile.document.name.data
+        - actionType: evalObject
+          object:
+            - =.EditMyProfile.apiRequest.profile.docAPI.store: ""
+            - =.EditMyProfile.apiRequest.publicProfile.docAPI.store: ""
+            - .Global.currentUser.vertex.name.userName@: =..apiRequest.profile.document.name.data.userName
+            - .Global.MyProfile@: =.EditMyProfile.apiRequest.profile.response.doc
+            - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.hasOrganization
+                    string2: true
+              - =.builtIn.search.updateEsData:
+                  dataIn:
+                    id: =.Global.currentUser.vertex.id
+                    type: "35841"
+                  dataOut: EditMyProfile.formData.res
+              - continue
+            - .Global.nonFirstProfile@: true
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - goto: MyProfile
+    #  body
+    - type: view
+      viewTag: blockImageTag
+      style:
+        width: "1"
+        marginTop: "0.1"
+        height: "auto"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            marginTop: "0.03"
+            width: "0.85"
+            height: "auto"
+            marginLeft: "0.1"
+            # backgroundColor: "pink"
+          children:
+            - type: view
+              style:
+                display: "inline-block"
+                height: "18vw"
+                width: "0.18"
+                border:
+                  style: "1"
+                borderWidth: "1"
+                borderRadius: "5"
+                # backgroundColor: "pink"
+              children:
+                - type: image
+                  dataKey: apiRequest.profile.document.name.data.avatar
+                  path=func: =.builtIn.utils.prepareDocToPath
+                  path: ava_Provder.svg
+                  viewTag: avatar
+                  style:
+                    width: "18vw"
+                    height: "18vw"
+                    textAlign:
+                      x: center
+                  onClick:
+                    - actionType: popUp
+                      popUpView: selectView
+            - type: view
+              style:
+                display: "inline-block"
+                width: "0.67"
+                height: "18vw"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    marginLeft: "0.05"
+                    height: "auto"
+                    width: "0.62"
+                  children:
+                    - type: label
+                      text: "User Name:"
+                      style:
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                        color: "0x333333"
+                        fontWeight: "600"
+
+                    - type: label
+                      dataKey: apiRequest.profile.document.name.data.userName
+                      style:
+                        marginLeft: "0.02"
+                        fontSize: .Nfont.h12
+                        display: "inline-block"
+                        color: "0x333333"
+                        height: "auto"
+
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    marginLeft: "0.05"
+                    height: "auto"
+                    width: "0.62"
+                  children:
+                    - type: label
+                      text: "Phone #:"
+                      style:
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                        color: "0x000000"
+                        height: "auto"
+                        fontWeight: "600"
+
+                    - type: label
+                      dataKey: apiRequest.profile.document.name.data.phone
+                      style:
+                        marginLeft: "0.02"
+                        display: "inline-block"
+                        fontSize: .Nfont.h12
+                        color: "0x333333"
+                        height: "auto"
+
+    - type: view
+      viewTag: blockMarginTag
+      style:
+        marginTop: "0.03"
+        width: "1"
+        height: "0.05"
+        zIndex: "100"
+        # backgroundColor: "yellow"
+        borderTop: "2px solid #dededf"
+        border:
+          style: 2
+          color: "0xDEDEDF"
+        borderWidth: "2px"
+        # boxShadow: "0px 2px 8px 0px #eeeeee"
+      children:
+        - type: list
+          scrollable: false
+          viewTag: profileInfoTag
+          contentType: listObject
+          listObject: ..formDataTemp.titleData
+          iteratorVar: itemObject
+          style:
+            width: "1"
+            margin: "0"
+            axis: horizontal
+            height: auto
+            border:
+              style: "2"
+            borderColor: "0xdededf"
+            borderWidth: "2"
+            zIndex: 100
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                width: "0.33"
+                height: "auto"
+                marginTop: "0"
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - =.builtIn.object.setProperty:
+                          dataIn:
+                            obj: =..formDataTemp.titleData
+                            label: "title"
+                            text: $var.title
+                            arr: ["fontColor", "fontWeight", "block"]
+                            valueArr: ["0x2988e6", "500", "block"]
+                            errorArr: ["0x333333", "400", "none"]
+                      # - ..formDataTemp.leftStyle@: $var.leftStyle
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockAboutInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockCredentialsInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockFacilityInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.providerProfileVar@: "About"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Credentials"
+                          - ..formDataTemp.blockAboutInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Credentials"
+                          - ..formDataTemp.blockCredentialsInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Credentials"
+                          - ..formDataTemp.blockFacilityInfo@: "none"
+                          - continue
+
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Credentials"
+                          - ..formDataTemp.providerProfileVar@: "Credentials"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Facility"
+                          - ..formDataTemp.blockFacilityInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Facility"
+                          - ..formDataTemp.blockAboutInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Facility"
+                          - ..formDataTemp.blockCredentialsInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Facility"
+                          - ..formDataTemp.providerProfileVar@: "Facility"
+                          - continue
+                - actionType: evalObject
+                  object:
+                    - .Global.providerProfileVar@: =..formDataTemp.providerProfileVar
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: leftBlockTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: profileInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: AboutInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: CredentialsInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: FacilityInfoTag
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: blockImageTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockMarginTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockHeightTag
+
+              children:
+                - type: label
+                  dataKey: itemObject.title
+                  style:
+                    color: itemObject.fontColor
+                    lineHeight: "6vh"
+                    height: "0.05"
+                    # width: itemObject.width
+                    width: "0.333"
+                    fontWeight: itemObject.fontWeight
+                    display: "inline-block"
+                    textAlign:
+                      x: center
+                    fontSize: .Nfont.n2
+                - type: view
+                  viewTag: leftBlockTag
+                  style:
+                    display: itemObject.block
+                    top: "0.045"
+                    left: "0.12"
+                    width: "0.08"
+                    height: "0.005"
+                    backgroundColor: "0x2988e6"
+                    borderRadius: "20"
+    - type: scrollView
+      viewTag: blockHeightTag
+      style:
+        margin: "0.01"
+        height: "0.7"
+
+        width: "1"
+        backgroundColor: "0xffffff"
+        overflow: scroll
+      children:
+        - type: view
+          viewTag: AboutInfoTag
+          style:
+            width: "1"
+            display: ..formDataTemp.blockAboutInfo
+            height: "auto"
+            fontSize: .Nfont.n2
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                margin: "0"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: Basic Info
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.9"
+                    marginLeft: "0.05"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: view
+                  style:
+                    width: "0.4"
+                    display: "inline-block"
+                  children:
+                    - type: label
+                      text: First Name
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        fontSize: .Nfont.h14
+                        width: "auto"
+                        # marginLeft: "0.05"
+                        lineHeight: "4.5vh"
+                        verticalAlign: middle
+                        display: "inline-block"
+                        height: "0.045"
+                    - type: label
+                      text: "*"
+                      style:
+                        color: "0xff0000"
+                        marginLeft: "0.02"
+                        display: "inline-block"
+                        verticalAlign: middle
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.profile.document.name.data.firstName
+                  style:
+                    # left: "0.4"
+                    color: "0x333333"
+                    height: "0.045"
+                    width: "0.48"
+                    display: "inline-block"
+                    boxSizing: border-box
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "10px"
+                    fontSize: .Nfont.h12
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: Middle Name
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.4"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.profile.document.name.data.middleName
+                  style:
+                    color: "0x333333"
+                    height: "0.045"
+                    display: "inline-block"
+                    boxSizing: border-box
+                    width: "0.48"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "10px"
+                    fontSize: .Nfont.h12
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: view
+                  style:
+                    width: "0.4"
+                    display: "inline-block"
+                  children:
+                    - type: label
+                      text: Last Name
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        fontSize: .Nfont.h14
+                        width: "auto"
+                        lineHeight: "4.5vh"
+                        display: "inline-block"
+                        verticalAlign: middle
+                        height: "0.045"
+                    - type: label
+                      text: "*"
+                      style:
+                        color: "0xff0000"
+                        marginLeft: "0.02"
+                        display: "inline-block"
+                        verticalAlign: middle
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.profile.document.name.data.lastName
+                  style:
+                    # left: "0.4"
+                    color: "0x333333"
+                    height: "0.045"
+                    display: "inline-block"
+                    boxSizing: border-box
+                    width: "0.48"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "10px"
+                    fontSize: .Nfont.h12
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: view
+                  style:
+                    width: "0.4"
+                    display: inline-block
+                  children:
+                    - type: label
+                      text: Title/Training
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        fontSize: .Nfont.h14
+                        width: "auto"
+                        lineHeight: "4.5vh"
+                        display: "inline-block"
+                        verticalAlign: middle
+                        height: "0.045"
+                        textDecoration: underline
+                        textDecorationColor: "0x000000"
+                    - type: image
+                      path: questionMark.svg
+                      style:
+                        marginLeft: "0.05"
+                        width: "0.04"
+                        height: "0.05"
+                        verticalAlign: middle
+                        display: "inline-block"
+                    - type: label
+                      text: "*"
+                      style:
+                        color: "0xff0000"
+                        marginLeft: "0.02"
+                        display: "inline-block"
+                        verticalAlign: middle
+                  onClick:
+                    # store the user input temporary
+                    - actionType: evalObject
+                      object:
+                        - .Global.MyProfile.name.data@: =..apiRequest.profile.document.name.data
+                    - goto: TitleOrTrainingDoc
+                - type: select
+                  dataKey: apiRequest.profile.document.name.data.title
+                  options: .SelectINformationDM.title
+                  style:
+                    width: "0.48"
+                    height: "0.045"
+                    boxSizing: border-box
+                    display: "inline-block"
+                    backgroundColor: "0xffffff"
+                    border:
+                      style: 3
+                    borderColor: "0xD8D8D8"
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    textIndent: "5px"
+                    color: "0x333333"
+                    fontSize: .Nfont.h12
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: Languages Spoken
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.8"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  text: Edit
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.MyProfile.name.data@: =..apiRequest.profile.document.name.data
+                    - goto: SelectLanguages
+                  style:
+                    width: "0.1"
+                    height: "0.045"
+                    lineHeight: "4.5vh"
+                    color: "0x2988e6"
+                    textDecoration: underline
+                    textDecorationColor: "0x2988e6"
+                    textAlign:
+                      x: center
+                    display: "inline-block"
+            - type: label
+              dataKey: EditMyProfile.apiRequest.profile.document.name.data.languages
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+                fontSize: .Nfont.n2
+                wordWrap: break-word
+                color: "0x333333"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: Gender
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.2"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: view
+                  style:
+                    display: "inline-block"
+                    width: "0.7"
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.gender
+                      iteratorVar: itemObject
+                      viewTag: sexView
+                      style:
+                        margin: "0"
+                        width: "0.7"
+                        marginTop: "0.01"
+                        height: "0.03"
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            height: "0.03"
+                            width: "0.23"
+                          children:
+                            - type: image
+                              style:
+                                marginLeft: "0.02"
+                                width: "0.05"
+                                display: "inline-block"
+                                verticalAlign: middle
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: $var.value
+                                              string2: =..apiRequest.profile.document.name.data.gender
+                                        - selectOnBlack.svg
+                                        - selectOffBlack.svg
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..apiRequest.profile.document.name.data.gender@: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: sexView
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                marginLeft: "0.01"
+                                display: "inline-block"
+                                verticalAlign: middle
+                                fontSize: .Nfont.n2
+                                color: "0x333333"
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                marginTop: "0.02"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: Contact
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.9"
+                    marginLeft: "0.05"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: Email
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.4"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: textField
+                  text: First Name
+                  placeholder: Enter here
+                  dataKey: apiRequest.profile.document.name.data.email
+                  style:
+                    color: "0x333333"
+                    height: "0.045"
+                    width: "0.48"
+                    display: "inline-block"
+                    boxSizing: border-box
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "10px"
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.2"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: "Fax #"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.4"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.profile.document.name.data.fax
+                  style:
+                    color: "0x333333"
+                    height: "0.045"
+                    boxSizing: border-box
+                    width: "0.48"
+                    display: "inline-block"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "10px"
+
+        - type: view
+          viewTag: CredentialsInfoTag
+          style:
+            width: "1"
+            height: "auto"
+            fontSize: .Nfont.n2
+            display: ..formDataTemp.blockCredentialsInfo
+          children:
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: view
+                  style:
+                    width: "0.8"
+                    height: "0.045"
+                    display: "inline-block"
+                  children:
+                    - type: label
+                      text: Specialty and board certified
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        fontSize: .Nfont.h14
+                        width: "auto"
+                        lineHeight: "4.5vh"
+                        display: "inline-block"
+                        height: "0.045"
+                        verticalAlign: middle
+                    - type: label
+                      text: "*"
+                      style:
+                        color: "0xff0000"
+                        marginLeft: "0.02"
+                        display: "inline-block"
+                        verticalAlign: middle
+                - type: label
+                  text: Edit
+                  style:
+                    width: "0.1"
+                    height: "0.045"
+                    lineHeight: "4.5vh"
+                    color: "0x2988e6"
+                    textDecoration: underline
+                    textDecorationColor: "0x2988e6"
+                    textAlign:
+                      x: center
+                    display: "inline-block"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.MyProfile.name.data@: =..apiRequest.profile.document.name.data
+                    - goto: SelectSpecialty
+            - type: list
+              scrollable: "false"
+              contentType: listObject
+              listObject: ..apiRequest.profile.document.name.data.specialty
+              iteratorVar: itemObject
+              style:
+                width: "1"
+                margin: "0"
+                left: "0"
+                marginTop: "0.01"
+                height: auto
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "1"
+                    fontSize: "0"
+                  children:
+                    - type: label
+                      dataKey: itemObject.specialty
+                      style:
+                        fontWeight: "400"
+                        display: inline-block
+                        marginTop: "0.01"
+                        fontFamily: "Arial"
+                        width: "0.7"
+                        fontSize: .Nfont.h12
+                        marginLeft: "0.05"
+                    - type: label
+                      dataKey: itemObject.boardCertified
+                      style:
+                        fontWeight: "400"
+                        marginLeft: "0.05"
+                        marginTop: "0.01"
+                        fontFamily: "Arial"
+                        display: inline-block
+                        fontSize: .Nfont.h12
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: view
+                  style:
+                    width: "0.8"
+                    height: "0.045"
+                    display: "inline-block"
+                  children:
+                    - type: label
+                      text: Medical License
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        fontSize: .Nfont.h14
+                        width: "auto"
+                        lineHeight: "4.5vh"
+                        display: "inline-block"
+                        height: "0.045"
+                        verticalAlign: middle
+                    - type: label
+                      text: "*"
+                      style:
+                        color: "0xff0000"
+                        marginLeft: "0.02"
+                        display: "inline-block"
+                        verticalAlign: middle
+                - type: label
+                  text: Edit
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.MyProfile.name.data@: =..profile.document.name.data
+                    - goto: SelectMedicalLicense
+                  style:
+                    width: "0.1"
+                    height: "0.045"
+                    color: "0x2988e6"
+                    lineHeight: "4.5vh"
+                    textDecoration: underline
+                    textDecorationColor: "0x2988e6"
+                    textAlign:
+                      x: center
+                    display: "inline-block"
+            - type: list
+              scrollable: "false"
+              contentType: listObject
+              listObject: ..apiRequest.profile.document.name.data.MedicalLicense
+              iteratorVar: itemObject
+              style:
+                width: "0.9"
+                margin: "0"
+                left: "0.05"
+                marginTop: "0.02"
+                height: "auto"
+                overflow: hidden
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "0.9"
+                    height: "auto"
+                    left: "0"
+                    marginTop: "0"
+                  children:
+                    - type: label
+                      dataKey: itemObject.medicalLicense
+                      style:
+                        display: "inline-block"
+                        width: "0.3"
+                        fontWeight: "400"
+                        height: "auto"
+                        fontSize: .Nfont.h12
+                        wordWrap: break-word
+                        textAlign:
+                          x: left
+                    - type: label
+                      dataKey: itemObject.state
+                      style:
+                        marginLeft: "0.05"
+                        display: "inline-block"
+                        width: "0.15"
+                        fontWeight: "400"
+                        height: "auto"
+                        fontSize: .Nfont.h12
+                        wordWrap: break-word
+                        textAlign:
+                          x: left
+                    - type: label
+                      dataKey: itemObject.expiration
+                      style:
+                        display: "inline-block"
+                        width: "0.385"
+                        fontWeight: "400"
+                        height: "auto"
+                        fontSize: .Nfont.h12
+                        wordWrap: break-word
+                        textAlign:
+                          x: right
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: "NPI #"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.4"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.profile.document.name.data.NPI
+                  style:
+                    color: "0x333333"
+                    height: "0.045"
+                    width: "0.48"
+                    display: "inline-block"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "10px"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: "DEA #"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.4"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.profile.document.name.data.DEA
+                  style:
+                    color: "0x333333"
+                    height: "0.045"
+                    display: "inline-block"
+                    width: "0.48"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "10px"
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: "Description"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.9"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+
+                - type: textView
+                  dataKey: apiRequest.profile.document.name.data.description
+                  style:
+                    color: "0x333333"
+                    height: "0.15"
+                    width: "0.9"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    fontFamily: "Arial"
+                    textIndent: "12px"
+                    paddingTop: "9px"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: "Education and training"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.9"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+
+                - type: textView
+                  dataKey: apiRequest.profile.document.name.data.education
+                  style:
+                    color: "0x333333"
+                    height: "0.15"
+                    width: "0.9"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    fontFamily: "Arial"
+                    textIndent: "12px"
+                    paddingTop: "9px"
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.1"
+                marginLeft: "0.05"
+                marginTop: "0.02"
+              children:
+                - type: label
+                  text: CV
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.7"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  text: Upload
+                  style:
+                    width: "0.2"
+                    height: "0.045"
+                    color: "0x2988e6"
+                    lineHeight: "4.5vh"
+                    textDecoration: underline
+                    textDecorationColor: "0x2988e6"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.EditMyProfile.apiRequest.profile.document.name.data.cv
+                            - actionType: popUp
+                              popUpView: filePopUpView
+                            - actionType: popUp
+                              popUpView: selectCvUP
+            - type: view
+              viewTag: cvBox
+              style:
+                width: "0.9"
+                height: "0.15"
+                marginLeft: "0.05"
+                marginTop: "0.03"
+                display: ..formData.isCvShow
+              children:
+                - type: image
+                  viewTag: cvTag
+                  path: null.png
+                  path=func: =.builtIn.utils.prepareDocToPath
+                  dataKey: EditMyProfile.apiRequest.profile.document.name.data.cv
+                  style:
+                    left: "0"
+                    top: "0"
+                    height: "0.1"
+                    width: "0.2"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..formData.cv@: =..apiRequest.profile.document.name.data.cv
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: imgBlockBigTag
+                    - actionType: popUp
+                      popUpView: imgBlockBigTag
+                - type: image
+                  path: x.svg
+                  style:
+                    top: "0"
+                    left: "0.2"
+                    height: "0.025"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.cv.deleteDocReq.id@: =..apiRequest.profile.document.name.data.cv
+                        - =..apiRequest.cv.docAPI.delete: ""
+                        - ..apiRequest.profile.document.name.data.cv@: ""
+                        - ..formData.isCvShow@: none
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: cvBox
+        - type: view
+          viewTag: FacilityInfoTag
+          style:
+            display: ..formDataTemp.blockFacilityInfo
+            width: "1"
+            height: "auto"
+            fontSize: .Nfont.n2
+          children:
+            - type: view
+              style:
+                display: ..formDataTemp.emptyfacility
+                width: "1"
+                height: "auto"
+                overflow: hidden
+                textAlign:
+                  x: center
+              children:
+                - type: image
+                  path: emptyPage.svg
+                  style:
+                    marginTop: "0.0911"
+                    width: "0.6453"
+                - type: label
+                  text: "There is no facility now."
+                  style:
+                    marginTop: "0.0467"
+                    width: "1"
+                    height: "auto"
+                    fontSize: .Nfont.h14
+                    textAlign:
+                      x: center
+
+            - type: list
+              contentType: listObject
+              listObject: ..apiRequest.facilityProfile.docQueryResp.doc
+              iteratorVar: itemObject
+              style:
+                display: ..formDataTemp.facilityInfo
+                width: "1"
+                margin: "0"
+                height: "auto"
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "1"
+                    height: "0.12"
+                    margin: "0"
+                    boxShadow: "0px 3px 0px 0px #eeeeee"
+                  # onClick:
+                  #   - actionType: updateObject
+                  #     dataKey: Global.formData.temporaryFacilityId
+                  #     dataObject: itemObject
+                  #   - goto: OrganizationInfo
+                  children:
+                    - type: view
+                      style:
+                        height: "16vw"
+                        marginLeft: "0.05"
+                        top: "0.01"
+                        width: "0.9"
+                        marginTop: "0.02"
+                        border:
+                          style: "1"
+                        borderWidth: "1"
+                        borderColor: "0x333333"
+                      children:
+                        - type: image
+                          path=func: =.builtIn.utils.prepareDocToPath
+                          path: office-building.svg
+                          dataKey: itemObject.name.data.basicInfo.businessLogo
+                          style:
+                            height: "15vw"
+                            width: "0.15"
+                            textAlign:
+                              x: center
+                        - type: label
+                          text: A&C Urgentcare
+                          dataKey: itemObject.name.data.basicInfo.medicalFacilityName
+                          style:
+                            top: "0.005"
+                            left: "0.2"
+                            width: "0.7"
+                            fontSize: .Nfont.h14
+                            color: "0x333333"
+                            fontWeight: "600"
+                        - type: label
+                          text: Accepted Insurance
+                          # dataKey: itemObject.name.basicInfo.medicalFacilityName
+                          style:
+                            top: "0.04"
+                            fontSize: .Nfont.h14
+                            width: "0.7"
+                            left: "0.2"
+                            color: "0x2988e6"
+                            fontWeight: "400"
+                            textDecoration: underline
+                            textDecorationColor: "0x2988e6"
+
+    - type: popUp
+      viewTag: zhuanquanViewTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333366"
+        top: "0"
+      children:
+        - type: view
+          style:
+            backgroundColor: "0xffffff"
+            height: "0.2"
+            width: "0.6"
+            left: "0.2"
+            top: "0.3"
+            border:
+              style: ""
+            borderWidth: "1"
+            borderColor: ""
+            borderRadius: "10"
+          children:
+            - type: image
+              path: zhuanquan.gif
+              style:
+                width: "0.4"
+                left: "0.1"
+                top: "0.04"
+
+    - type: popUp
+      viewTag: uploadImageSuccTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333366"
+        top: "0"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: uploadImageSuccTag
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.profile.document.name.data.cv
+                      string2: ""
+                - continue
+                - .Global.formData.editProfileImageId@: =..apiRequest.profile.document.name.data.cv
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: imgBlockBigTag
+      children:
+        - type: view
+          style:
+            backgroundColor: "0xe6e6e6"
+            height: "0.2"
+            width: "0.6"
+            left: "0.2"
+            top: "0.3"
+            border:
+              style: ""
+            borderWidth: "1"
+            borderColor: ""
+            borderRadius: "10"
+          children:
+            - type: image
+              path: successMark.png
+              style:
+                width: "0.15"
+                left: "0.225"
+                top: "0.04"
+            - type: label
+              text: Upload Successfully
+              style:
+                width: "0.6"
+                height: "0.1"
+                lineHeight: "10vh"
+                marginTop: "0.1"
+                textAlign:
+                  x: center
+    - type: popUp
+      viewTag: imgBlockBigTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333366"
+        top: "0"
+        textAlign:
+          x: center
+          y: center
+      children:
+        - type: image
+          path=func: =.builtIn.utils.prepareDocToPath
+          dataKey: formData.cv
+          style:
+            width: "0.8"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: imgBlockBigTag
+    # 表单校验
+    - type: popUp
+      viewTag: formCheckPopup
+      style:
+        width: "1"
+        height: "1"
+        top: "0"
+        left: "0"
+        zIndex: "1000"
+        backgroundColor: "0x33333366"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: formCheckPopup
+      children:
+        - type: view
+          style:
+            backgroundColor: "0xe6e6e6"
+            height: "0.2"
+            width: "0.7"
+            left: "0.15"
+            top: "0.3"
+            border:
+              style: ""
+            borderWidth: "1"
+            borderColor: ""
+            borderRadius: "10"
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                width: "0.15"
+                left: "0.275"
+                top: "0.04"
+            - type: label
+              text: "Please complete the required items."
+              style:
+                height: "0.05"
+                lineHeight: "5vh"
+                color: "0x333333"
+                fontWeight: "400"
+                top: "0.12"
+                textAlign:
+                  x: center
+                width: "0.7"
+                fontSize: .Nfont.n2
+    #  头像上传
+    - type: popUp
+      viewTag: selectView
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        zIndex: 110
+        backgroundColor: "0x00000033"
+      children:
+        - type: view
+          style:
+            top: "0.72"
+            width: "0.9"
+            height: "0.15"
+            left: "0.05"
+            border:
+              style: "1"
+            borderRadius: "20"
+            backgroundColor: "0xe9e9e9"
+            zIndex: 1000
+            overflow: hidden
+          children:
+            - type: button
+              text: Camera
+              contentType: file
+              style:
+                top: "0"
+                width: "0.9"
+                height: "0.07"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                  y: center
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000066"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: openCamera
+                  dataObject: BLOB
+                  requireClip: true
+                  dataKey: EditMyProfile.apiRequest.avatar.document.name.data
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.avatar.docAPI.store: ""
+                    - .EditMyProfile.apiRequest.profile.document.name.data.avatar@: =.EditMyProfile.apiRequest.avatar.resp.doc.id
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 1000
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: avatar
+
+            - type: button
+              text: Photo Library
+              contentType: file
+              style:
+                top: "0.08"
+                width: "0.9"
+                height: "0.07"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                  y: center
+                border:
+                  style: "1"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: openPhotoLibrary
+                  dataObject: BLOB
+                  dataKey: EditMyProfile.apiRequest.avatar.document.name.data
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.avatar.docAPI.store: ""
+                    - .EditMyProfile.apiRequest.profile.document.name.data.avatar@: =.EditMyProfile.apiRequest.avatar.resp.doc.id
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag                      
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 1000
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: avatar
+
+        - type: button
+          text: Cancel
+          style:
+            top: "0.9"
+            left: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x1d88fc"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            borderRadius: "20"
+            border:
+              style: 1
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: selectView
+    #   cv 上传
+    - type: popUp
+      viewTag: selectCvUP
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        zIndex: 110
+        backgroundColor: "0xa9a9a990"
+      children:
+        - type: view
+          style:
+            top: "0.59"
+            width: "0.9"
+            height: "0.275"
+            left: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "0xe9e9e9"
+            zIndex: 1000
+            overflow: hidden
+          children:
+            - type: label
+              textBoard:
+                - text: Medical Records
+                  color: "0x00000099"
+                - br:
+                - text: "Upload an image or document"
+                  color: "0x00000066"
+              style:
+                top: "0.02"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h2
+                color: "0x"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000066"
+            - type: button
+              text: Camera
+              contentType: file
+              style:
+                top: "0.085"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000066"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectCvUP
+                - actionType: openCamera
+                  dataObject: BLOB
+                  requireClip: true
+                  dataKey: EditMyProfile.apiRequest.cv.docReq.name.data
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.cv.docAPI.store: ""
+                    - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =..apiRequest.cv.docRes.doc.id
+                    - ..formData.isCvShow@: ""
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: cvBox
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: cvTag
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 1000
+            - type: button
+              text: Photo Library
+              contentType: file
+              style:
+                top: "0.146"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000066"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectCvUP
+                - actionType: openPhotoLibrary
+                  dataObject: BLOB
+                  dataKey: EditMyProfile.apiRequest.cv.docReq.name.data
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =.builtIn.math.lessthanSize:
+                #             dataIn:
+                #               object: =..apiRequest.cv.docReq.name.data # obejct
+                #               key: 2 #mb
+                #         - ..formData.flag@: false
+                #         - actionType: evalObject
+                #           object:
+                #             - =.builtIn.utils.getFileSize:
+                #                 dataIn:
+                #                   object: =..apiRequest.cv.docReq.name.data
+                #                   units: mb
+                #                 dataOut: EditMyProfile.formData.fileSize
+                #             - =.builtIn.string.concat:
+                #                 dataIn:
+                #                   - "Your file size:"
+                #                   - =..formData.fileSize
+                #                   - "Mb"
+                #                 dataOut: Global.formData.fileSize
+                #             - ..formData.flag@: true
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: overSize
+
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =..formData.flag
+                #         - actionType: popUp
+                #           popUpView: overSize
+                #           wait: true
+                #         - continue
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.cv.docAPI.store: ""
+                    - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =..apiRequest.cv.docRes.doc.id
+                    - ..formData.isCvShow@: ""
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 1000
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: cvBox
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: cvTag
+                # - actionType: popUp
+                #   popUpView: uploadImageSuccTag
+            - type: button
+              text: Files
+              contentType: file
+              style:
+                top: "0.21"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: 1
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: selectCvUP
+                - actionType: openDocumentManager
+                  dataObject: BLOB
+                  dataKey: EditMyProfile.apiRequest.cv.docReq.name.data
+                - actionType: popUp
+                  popUpView: zhuanquanViewTag
+                - actionType: evalObject
+                  object:
+                    # - if:
+                    #     - =.builtIn.math.lessthanSize:
+                    #         dataIn:
+                    #           object: =..apiRequest.cv.docReq.name.data # obejct
+                    #           key: 2 #mb
+                    #     - ..formData.flag@: false
+                    #     - actionType: evalObject
+                    #       object:
+                    #         - =.builtIn.utils.getFileSize:
+                    #             dataIn:
+                    #               object: =..apiRequest.cv.docReq.name.data
+                    #               units: mb
+                    #             dataOut: EditMyProfile.formData.fileSize
+                    #         - =.builtIn.string.concat:
+                    #             dataIn:
+                    #               - "Your file size:"
+                    #               - =..formData.fileSize
+                    #               - "Mb"
+                    #             dataOut: Global.formData.fileSize
+                    #         - ..formData.flag@: true
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: overSize
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =..formData.flag
+                #         - actionType: popUp
+                #           popUpView: overSize
+                #           wait: true
+                #         - continue
+                # - actionType: popUp
+                #   popUpView: zhuanquanViewTag
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.cv.docAPI.store: ""
+                    - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =..apiRequest.cv.docRes.doc.id
+                    - ..formData.isCvShow@: ""
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: cvBox
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: cvTag
+                - actionType: popUpDismiss
+                  popUpView: zhuanquanViewTag
+                - actionType: popUp
+                  popUpView: uploadSuccess
+                  wait: 1000
+        - type: button
+          text: Cancel
+          style:
+            top: "0.9"
+            left: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: .Nfont.h3
+            color: "0x007aff"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+            borderRadius: "10"
+            border:
+              style: 1
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: selectCvUP
+    - .simplePopup:
+      viewTag: filePopUpView
+      children:
+        - .simplePopupView:
+          style:
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: Are you sure you want to overwrite the original files?
+              dataKey:
+              style:
+                marginTop: "0.04"
+                marginLeft: "0.03"
+                width: "0.64"
+                height: "auto"
+                color: "0x4b4b4b"
+                fontSize: .Nfont.h2
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                marginTop: "0.04"
+                height: "0.001"
+                width: "0.72"
+                backgroundColor: "0x8f8f90"
+            - type: view
+              style:
+                height: "0.06"
+                width: "0.72"
+              children:
+                - .simplePopupSplit1:
+                  style:
+                    top: "0"
+                    height: "0.06"
+                - .simplePopupLeftButton:
+                  text: "NO"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: filePopUpView
+                  style:
+                    top: "0.01"
+                - .simplePopupRightButton:
+                  text: "Yes"
+                  style:
+                    top: "0.01"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: filePopUpView
+                    - actionType: popUp
+                      popUpView: selectCvUP
+    - .Normal:
+      viewTag: tag_saveUpdate
+      message: Save your update?
+      style:
+        zIndex: 1000
+      leftButton:
+        - goto: MyProfile
+      rightButton:
+        ..event.rightButton_saveUpdate
+    - .BaseoverSize:
+    - .SuccessfulOneLine:
+      style:
+        zIndex: "110"
+      viewTag: "uploadSuccess"
+      message: "Upload Successfully"
+  event:
+    button_saveUpdate:
+      - actionType: popUp
+        popUpView: tag_saveUpdate
+    rightButton_saveUpdate:
+      - actionType: popUpDismiss
+        popUpView: tag_saveUpdate
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.array.allComplete:
+                dataIn:
+                  - =..apiRequest.profile.document.name.data.firstName
+                  - =..apiRequest.profile.document.name.data.lastName
+                  - =..apiRequest.profile.document.name.data.specialty.0
+                  - =..apiRequest.profile.document.name.data.MedicalLicense.0
+            - continue
+            - actionType: popUp
+              popUpView: formCheckPopup
+              wait: true
+              popUpDismiss: 2000
+          - if:
+            - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+            - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+            - continue
+          - if:
+            - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+            - .EditMyProfile.apiRequest.publicProfile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+            - continue
+          - .EditMyProfile.apiRequest.publicProfile.document.id@: =.EditMyProfile.apiRequest.publicProfile.docResponse.doc.0.id
+          - =.builtIn.string.concat: #create fullName
+              dataIn:
+                - =..apiRequest.profile.document.name.data.firstName
+                - " "
+                - =..apiRequest.profile.document.name.data.middleName
+                - " "
+                - =..apiRequest.profile.document.name.data.lastName
+              dataOut: EditMyProfile.apiRequest.profile.document.name.data.fullName
+          - =.builtIn.object.getObjValueAndKey: #for public profile
+              dataIn:
+                objects: =..apiRequest.profile.document.name.data
+                objStr: =.Global.selected
+              dataOut: EditMyProfile.apiRequest.publicProfile.document.name.data
+      - actionType: evalObject
+        object:
+          - =.EditMyProfile.apiRequest.profile.docAPI.store: ""
+          - =.EditMyProfile.apiRequest.publicProfile.docAPI.store: ""
+          - .Global.currentUser.vertex.name.userName@: =..apiRequest.profile.document.name.data.userName
+          - .Global.MyProfile@: =.EditMyProfile.apiRequest.profile.response.doc
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.hasOrganization
+                  string2: true
+            - =.builtIn.search.updateEsData:
+                dataIn:
+                  id: =.Global.currentUser.vertex.id
+                  type: "35841"
+                dataOut: EditMyProfile.formData.res
+            - continue
+          - .Global.nonFirstProfile@: true
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+      - goto: MyProfile

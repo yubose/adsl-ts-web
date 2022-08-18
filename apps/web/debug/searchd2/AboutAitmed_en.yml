@@ -1,0 +1,180 @@
+AboutAitmed: 
+  pageNumber: "490"  # xd page  43
+  init: ""
+  title: "About"
+  components:
+    - .main
+    - type: view
+      style:
+        top: "0"
+        # margin: auto
+        left: "0"
+        width: "1"
+      children:
+        - .webHeader:
+        # - .SubMenuView:
+        #   children:
+        #     - .SubMenuButton:
+        #       style:
+        #         color: "0xffffffff"
+        #     - .SubMenuButton:
+        #       text: "Create"
+        #       style:
+        #         left: "0.1"
+        #       onClick:
+        #         - goto: MeetingRoomCreate
+        #     - .SubMenuButton:
+        #       text: "History"
+        #       style:
+        #         left: "0.2"
+        #       onClick:
+        #         - goto: MeetingRoomHistory
+        - .webSub:
+    # - .BaseHeader3:
+    # - .HeaderLeftButton:
+    - .mainView:
+      children:
+        # - type: view
+        #   style: 
+        #     marginTop: "2%"
+        #     width: "0.64"
+        #     display: flex
+        #     justifyContent: "center"
+        #   children: 
+        #     - type: label
+        #       text: About AiTmed
+        #       style: 
+        #         .BigLabelStyle:
+        #         backgroundColor: "0xcdcdcd"
+        #     - type: label
+        #       text: The company began in 2015 as a telemedicine platform. In 2019 it developed its own ECOS (Edge Computing Operating System) platform, which is integrating blockchain encryption and artificial intelligence technology.
+        #       style: 
+        #         .LittleLabelStyle: 
+        - type: view
+          style:
+            top: "0"
+            left: "0"
+          children:
+            - type: label 
+              text: About AiTmed
+              style: 
+                left: "0.0"
+                top: "0.025"
+                width: "0.64"
+                height: "0.05"
+                fontSize: "18"    
+                fontFamily: sans-serif
+                letterSpacing: "2"
+                textAlign: 
+                  x: center
+                color: "0x6dacdaff"
+                border: 
+                  style: "2"
+                  color: "0xb7b7b7ff"
+                borderWidth: "1"
+        - type: view
+          style:
+            top: "0.11"
+            width: "0.64"
+            height: "1.61"
+            left: "0.0"
+            # border:
+            #   style: '3'
+            #   color: '0x9f9f9f'
+          children:
+            - type: view
+              style: 
+                width: "0.615"
+                left: "0.02"
+                top: "0.02"
+              children:
+                - .AboutAiTmedTitle: 
+                  text: "Our Vision and Mission"
+                  style: 
+                    top: "0"
+                - .AboutAiTmedText: 
+                  style: 
+                    top: "70px"
+                  text: Our vision is to become the premier and world leader in telehealth service by using blockchain and Artificial Intelligence technology to give people the most secure and highest level of personal privacy in a faster, more convenient platform that will produce better outcomes for our consumers, physicians, employers, employees, and medical institutions that we serve.
+                - .AboutAiTmedTitle: 
+                  text: " AiTmed's History"
+                  style: 
+                    top: "230px"
+                - .AboutAiTmedText: 
+                  style: 
+                    top: "300px"
+                  text: The company began in 2015 as a telemedicine platform. In 2019 it developed its own ECOS (Edge Computing Operating System) platform, which is integrating blockchain encryption and artificial intelligence technology.
+                - .AboutAiTmedTitle: 
+                  text: "AiTmed's Foundational Core Technology"
+                  style: 
+                    top: "400px"
+                - .AboutAiTmedText: 
+                  style: 
+                    top: "470px"
+                  text: The ECOS provides fast, secure, and personal privacy, under HIPAA compliance. The core technology was integrated into the companies new Prynote product, where anyone can store and share private notes on a highly secure domain/database, similar to Bitcoin. This revolutionary technology was integrated into the telehealth industry will enable the medical community to share critical information in a secure private setting at high speed with ease. This will then allow compatibility with Electronic Medical Record (EMR) systems to improve the continuum of care process for the consumer, patient, insurance companies, medical providers, or any third parties involved in the patient care.
+                - .AboutAiTmedTitle: 
+                  text: AiTmed's Products and Services
+                  style: 
+                    top: "690px"
+                - .AboutAiTmedText: 
+                  style: 
+                    top: "760px"
+                  text: AiTmed is designed to be the telehealth platform for people's illness and wellness.
+                - .AboutAiTmedTitle: 
+                  text: "For Providers:"
+                  style: 
+                    top: "830px"
+                - .AboutAiTmedText: 
+                  style: 
+                    top: "900px"
+                    textAlign: 
+                      x: left
+                  textBoard: 
+                    - text: "AiTmed's platform offers services to solo/group practices, clinics, nursing homes, surgery centers, hospitals, imaging centers, labs, etc. AiTmed provides many comprehensive telehealth solutions designed to enhance the provider's use:"
+                    - text: ● Virtual waiting room
+                    - br: 
+                    - text: ● HD Video
+                    - br: 
+                    - text: ● E-prescription service add-on
+                    - br: 
+                    - text: ● Blockchain Encrypted Documentation
+                    - br: 
+                    - text: ● Premium E-Referral Network
+                    - br: 
+                    - text: ● Self-scheduling for both providers and patients
+                    - br: 
+                    - text: ● Customized dashboard for each provider and clinic
+                - .AboutAiTmedTitle: 
+                  text: "AiTmed Store"
+                  style: 
+                    top: "1330px"
+                - .AboutAiTmedText: 
+                  text: AiTmed's E-commerce Store will provide vital monitoring kits that can be integrated directly into our platform. AiTmed also supplies the highest quality nutrition, supplements, and durable medical equipment (DME) for patients/users to benefit their wellness and give them support.
+                  style: 
+                    top: "1400px"
+                    textAlign: 
+                      x: left
+   
+    - type: button
+      text: Done
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+      style:
+        top: "1.92"  
+        width: "0.25"
+        backgroundColor: "0x388ecc"
+        height: "0.06"
+        color: "0xffffff"
+        left: "0.38"
+        textAlign:
+          x: center
+      # empty view
+    - type: view
+      style:
+        width: "1"
+        height: "0.1"
+        top: "2.23"
+    - .webSubRight:
+          children:
+            - .publicButton:

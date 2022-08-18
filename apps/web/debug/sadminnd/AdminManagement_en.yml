@@ -1,0 +1,714 @@
+AdminManagement:
+  title: Admin
+  init: #Page initialization
+    - .Global.menuBar.listData@: =.SideMenuBarTemp.Management
+    - =..apiRequest.providerList.docAPI.get: ""
+    - =.builtIn.array.splitTableList: 
+        dataIn: 
+          arrObj: =..apiRequest.providerList.list.0.doc
+          numX: "9"
+          numY: "1"
+        dataOut: AdminManagement.formData.tableData
+    - ..formData.tableList@: =..formData.tableData.0 
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.tablePageNum # page num
+          - " / "
+          - =..formData.tableData.1 # total page
+        dataOut: AdminManagement.formData.tableCurrentPage # current page                           
+    - =.builtIn.number.addition: # get totalPage+1 to verify legitimacy of gotoPageNum
+        dataIn:
+          num: =..formData.tableData.1
+          step: "1"
+        dataOut: AdminManagement.formData.totalPageMore # update page num  
+  formData: #Input data here/
+    tableData: []           # sdk 返回的数组,包括当前显示第几页的数据list 和 被切分成总共多少页面
+    tableList: []
+    tablePageNum: "1"     # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: ""       # goto 后面的文本显示
+    totalPageMore: ""     #totalPage(tableData.1) + 1 
+  formDataTemp: #Input data temp here/
+    typePatientFlag: "0"
+    typePatient: Type
+    imagePatientPath: editBlue.svg
+    patient:
+      - typePatient: All
+        fontColor: "0x000000"
+        backgroundColor: ""
+        typePatientWidth: "4vw"
+      - typePatient: Telemedicine
+        fontColor: "0x7eb559"
+        typePatientWidth: "5vw"
+        backgroundColor: ""
+      - typePatient: Office Visit
+        typePatientWidth: "5vw"
+        backgroundColor: ""
+        fontColor: "0xee8a46"
+      - typePatient: COVID-19 Testing
+        typePatientWidth: "7vw"
+        backgroundColor: ""
+        fontColor: "0xbf0000"
+      - typePatient: COVID-19 Vaccine
+        fontColor: "0xbf0000"
+        backgroundColor: ""
+        typePatientWidth: "8vw"
+
+  apiRequest: #Input data request here/
+    providerList:
+      list: []
+      docAPI:
+        get: 
+          api: rd
+          dataKey: apiRequest.providerList.list
+          ObjType: 12
+          type: .DocType.DoctorProfile
+          id: 2+nJvS2oR6YAb8/dAN27wQ==
+          xfname: E.bvid|E.evid
+          obfname: "ctime"
+          sCondition: E.type=10002 AND E.tage=1
+          maxcount: "10000"
+          _nonce: =.Global._nonce
+  style: #Input style fragment here/
+
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+        - .BodyView: 
+          children:
+            - .TopBar: 
+            - .InnerBodyView:
+              children:
+                - .PageTitle:
+                - .ContentView:
+                  children:
+                    - type: view
+                      viewTag: tableView
+                      style: 
+                        height: auto
+                        display: flex
+                        flexWrap: wrap
+                        justifyContent: center
+                        alignItems: center
+                      children: 
+                        - type: view
+                          style: 
+                            width: "0.75"
+                            marginTop: "2vw"
+                            display: flex
+                            justifyContent: space-between
+                          children:
+                            - type: view
+                              style:
+                                width: "0.37"
+                                border: 
+                                  style: "3"
+                                borderWidth: "2"
+                                borderColor: "0xe0e0e0"
+                                borderRadius: "5px"
+                                height: '0.036'
+                                display: flex
+                                
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.03"
+                                    # boxSizing: content-box
+                                    display: flex
+                                    justifyContent: center
+                                  children:
+                                    - type: image
+                                      path: awesomeSearch.svg
+                                      style: 
+                                        width: "0.0125"
+                                - type: textField
+                                  placeholder: "Search"
+                                  style:
+                                    border: 
+                                      style: "1"
+                                    placeHolder: "Search"
+                            - type: view
+                              style:
+                                width: "0.37"
+                                margin: '0'
+                                boxSizing: border-box
+                                height: '0.04'
+                                border: 
+                                  style: "3"
+                                borderWidth: "2"
+                                borderColor: "0xe0e0e0"
+                                borderRadius: "5px"
+                                axis: horizontal
+                              children:
+                                - type: view
+                                  style:
+                                    width: "5vw"
+                                    height: "0.035"
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                  children:
+                                    - type: image
+                                      path: awesomeType.svg
+                                      style:
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                        width: "1vw"
+                                    - type: label
+                                      text: ..formDataTemp.typePatient
+                                      style:
+                                        width: "2vw"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                        color: "0x045795"
+                                - type: list
+                                  viewTag: titleViewPatient
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.patient
+                                  iteratorVar: itemObject
+                                  style:
+                                    axis: horizontal
+                                    width: "0.37"
+                                    margin: '0'
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      onClick: 
+                                        - actionType: evalObject
+                                          object:
+                                        - emit:
+                                            dataKey: 
+                                              var: itemObject
+                                            actions:
+                                              # - =.builtIn.array.add:
+                                              #     dataIn:
+                                              #       object: =..formDataTemp.flagColor
+                                              #       value: $var.fontColor
+                                              - =.builtIn.object.setProperty: 
+                                                  dataIn: 
+                                                    obj: =..formDataTemp.patient
+                                                    label: "typePatient"
+                                                    text: $var.typePatient
+                                                    # arr: ["backgroundColor","fontColor"]
+                                                    arr: ["backgroundColor"]
+                                                    valueArr: ["0x045795"]
+                                                    errorArr: [""]
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: titleViewPatient
+                                      style:
+                                        display: "flex"
+                                        justifyContent: center
+                                        width: itemObject.typePatientWidth
+                                        height: "0.035"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.typePatient
+                                          style:
+                                            backgroundColor: itemObject.backgroundColor
+                                            color: itemObject.fontColor
+                                            borderWidth: "1"
+                                            height: "0.035"
+                                            borderRadius: "5"
+                                            fontSize: "0.6vw"
+                                            width: itemObject.typePatientWidth
+                                            textAlign:
+                                              x: center
+                                              y: center
+                                          
+                        #TableTitle
+                        - type: view
+                          style: 
+                            marginTop: "0.03"
+                            
+                            width:  "0.75"
+                            height:  "0.04"
+                            backgroundColor: "0x014c82" 
+                            fontSize: "1vw" 
+                            boxSizing: "border-box"
+                            color: "0xffffff" 
+                            borderTopLeftRadius: "3px"
+                            borderTopRightRadius: "3px"
+                            textAlign:
+                              y: center
+                          children:
+
+                            - type: label
+                              viewTag: tableTitle
+                              text: Admin List
+                              style: 
+                                paddingLeft: "25px" 
+
+                        - type: view
+                          style:
+                            width: "0.75"
+                            margin: '0'
+                            backgroundColor: "0xefefef"
+                          children:
+                            - type: view
+                              style:
+                                display: flex
+                                flex: "1"
+                                borderBottomStyle: solid
+                                borderBottomColor: "#c0cbd3"
+                                borderBottomWidth: 1px
+                                borderLeftStyle: solid
+                                borderLeftColor: "#c0cbd3"
+                                borderLeftWidth: 1px
+                                height: "0.05"
+                                width: "0.75"
+                                justifyContent: center
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: Name
+                                  style: 
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    flex: "2 1"
+                                    height: "0.05"
+                                    justifyContent: center
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                - type: label
+                                  text: State
+                                  style: 
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    justifyContent: center
+                                    flex: "1 1"
+                                    height: "0.05"
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                - type: label
+                                  text: "# of Provider"
+                                  style: 
+                                    display: flex
+                                    flex: "1.2 1"
+                                    fontSize: "0.8vw"
+                                    height: "0.05"
+                                    justifyContent: center
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                - type: label
+                                  text: "# of patient"
+                                  style: 
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    flex: "1.2 1"
+                                    justifyContent: center
+                                    height: "0.05"
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                - type: label
+                                  text: Plan&Billing
+                                  style: 
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    justifyContent: center
+                                    height: "0.05"
+                                    alignItems: center
+                                    flex: "1.2 1"
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px                                    
+                                - type: label
+                                  text: Edit
+                                  style: 
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    justifyContent: center
+                                    height: "0.05"
+                                    alignItems: center
+                                    flex: "1 1"
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px                                
+                                - type: label
+                                  text: Inbox
+                                  style: 
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    justifyContent: center
+                                    alignItems: center
+                                    height: "0.05"
+                                    borderRightStyle: solid
+                                    flex: "1 1"
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px                      
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.tableList
+                          iteratorVar: itemObject
+                          style:
+                            margin: "0"
+                            height: "auto"
+                            width: "0.75"
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                display: flex
+                                height: "0.05"
+                                width: "0.75"
+                                borderBottomStyle: solid
+                                borderBottomColor: "#c0cbd3"
+                                borderBottomWidth: 1px
+                                borderLeftStyle: solid
+                                borderLeftColor: "#c0cbd3"
+                                borderLeftWidth: 1px
+                                justifyContent: center
+                                alignItems: center
+                              children:
+
+                                - type: view
+                                  style:
+                                    width: "0.75"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.name.data.fullName
+                                      onClick: 
+                                        - goto: FacilityProfile
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        color: "0x517086"
+                                        textDecoration: underline
+                                        justifyContent: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        alignItems: center
+                                        flex: "2 1"
+                                    - type: label
+                                      dataKey: itemObject.name.data.gender
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        flex: "1 1"
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                    - type: label
+                                      dataKey: itemObject.name.data.phone
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        flex: "1.2 1"
+                                    - type: label
+                                      dataKey: itemObject.name.data.NPI
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        flex: "1.2 1"
+                                    - type: label
+                                      dataKey: itemObject.name.data.NPI
+                                      onClick: 
+                                        - goto: PlanAndBilling
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        flex: "1.2 1"                                        
+                                    - type: label
+                                      text: Edit
+                                      onClick: 
+                                        - goto: FacilityProfileEdit
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        color: "0x1492e6"
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        justifyContent: center
+                                        alignItems: center
+                                        textDecoration: underline
+                                        flex: "1 1"                              
+                                    - type: view
+                                      style:
+                                        display: flex
+                                        flex: "1 1"
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        justifyContent: center
+                                        alignItems: center
+                                        
+                                      children:
+                                        - type: image
+                                          path: inboxDeepBule.svg
+                                          style:
+                                            display: flex
+                                            height: "0.05"
+                                            width: '1vw'
+                                            justifyContent: center
+                                            alignItems: center
+                            #TableFooter
+        
+                          #TableFooter
+                        - type: view
+                          viewTag: tableFooter
+                          style: 
+                            top: "0.72"
+                            left: "0.05"
+                            width: "0.72"
+                            height: "0.05"
+                          children: 
+                            - type: view
+                              style: 
+                                top: "0.015"
+                                left: "0.465"
+                                width: "0.1"
+                                height: "0.02"
+                              children: 
+                                - type: label
+                                  text: "Current page:"
+                                  style: 
+                                    top: "0"
+                                    left: "0"
+                                    width: "0.07"
+                                    height: "0.02"
+                                    fontSize: "0.8vw"
+                                    color: "0x6b7280"
+                                    textAlign:
+                                      x: "center"
+                                      y: "center"
+                                - type: label
+                                  dataKey: formData.tableCurrentPage
+                                  style: 
+                                    top: "0"
+                                    left: "0.06"
+                                    width: "0.05"
+                                    height: "0.02"
+                                    fontSize: "0.8vw"
+                                    fontWeight: "500"
+                                    color: "0x6b7280"
+                                    textAlign:
+                                      x: "center"
+                                      y: "center"
+                            - type: view
+                              style: 
+                                top: "0.015"
+                                left: "0.58"
+                                width: "0.047"
+                                height: "0.022"
+                                border: 
+                                  style: "3"
+                                borderRadius: "8"
+                                borderWidth: "1"
+                                borderColor: "0x7070704f"
+                              children: 
+                                - type: image
+                                  path: tableLeft.svg
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        - if: 
+                                          - =.builtIn.number.less: 
+                                              dataIn: 
+                                                num1: =..formData.tablePageNum 
+                                                num2: 2 
+                                          - continue 
+                                          - actionType: evalObject 
+                                            object: 
+                                              - =.builtIn.number.Subtraction: 
+                                                  dataIn: 
+                                                    num: =..formData.tablePageNum 
+                                                    step: "1"
+                                                  dataOut: AdminManagement.formData.tablePageNum
+                                              - =.builtIn.array.splitTableList: 
+                                                  dataIn: 
+                                                    arrObj: =..apiRequest.providerList.list.0.doc
+                                                    numX: "7"
+                                                    numY: =..formData.tablePageNum
+                                                  dataOut: AdminManagement.formData.tableData
+                                              - ..formData.tableList@: =..formData.tableData.0 
+                                              - =.builtIn.string.concat: 
+                                                  dataIn: 
+                                                    - =..formData.tablePageNum
+                                                    - " / "
+                                                    - =..formData.tableData.1
+                                                  dataOut: AdminManagement.formData.tableCurrentPage
+                                    - actionType: builtIn 
+                                      funcName: redraw
+                                      viewTag: tableView
+                                  style: 
+                                    top: "0.005"
+                                    left: "0.005"
+                                    width: "0.007"
+                                    color: "0x6b7280"
+                                    fontSize: "0.8vw"
+                                    backgroundColor: "0xffffff"
+                                    border:
+                                      style: "1"
+                                - type: label
+                                  dataKey: formData.tablePageNum
+                                  style: 
+                                    top: "0"
+                                    left: "0.017"
+                                    width: "0.013"
+                                    height: "0.022"
+                                    borderLeft: "solid 1px  #7070704f"
+                                    borderRight: "solid 1px  #7070704f"
+                                    fontSize: "0.8vw"
+                                    fontWeight: "500"
+                                    color: "0x6b7280"
+                                    textAlign:
+                                      x: "center"
+                                      y: "center"
+                                - type: image
+                                  path: tableRight.svg
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        - if: 
+                                          - =.builtIn.number.less: 
+                                              dataIn: 
+                                                num1: =..formData.tablePageNum 
+                                                num2: =..formData.tableData.1 
+                                          - actionType: evalObject 
+                                            object: 
+                                              - =.builtIn.number.addition: 
+                                                  dataIn: 
+                                                    num: =..formData.tablePageNum 
+                                                    step: "1"
+                                                  dataOut: AdminManagement.formData.tablePageNum
+                                              - =.builtIn.array.splitTableList: 
+                                                  dataIn: 
+                                                    arrObj: =..apiRequest.providerList.list.0.doc
+                                                    numX: "7"
+                                                    numY: =..formData.tablePageNum
+                                                  dataOut: AdminManagement.formData.tableData
+                                              - ..formData.tableList@: =..formData.tableData.0 
+                                              - =.builtIn.string.concat: 
+                                                  dataIn: 
+                                                    - =..formData.tablePageNum
+                                                    - " / "
+                                                    - =..formData.tableData.1
+                                                  dataOut: AdminManagement.formData.tableCurrentPage
+                                          - continue 
+                                    - actionType: builtIn 
+                                      funcName: redraw
+                                      viewTag: tableView
+                                  style: 
+                                    top: "0.005"
+                                    left: "0.036"
+                                    width: "0.007"
+                                    color: "0x6b7280"
+                                    fontSize: "0.8vw"
+                                    backgroundColor: "0xffffff"
+                                    border:
+                                      style: "1"
+                            # Goto
+                            - type: view
+                              style: 
+                                top: "0.015"
+                                left: "0.65"
+                                width: "0.06"
+                                height: "0.022"
+                                border: 
+                                  style: "1"
+                              children: 
+                                - type: textField
+                                  viewTag: gotoView
+                                  dataKey: formData.gotoPageNum
+                                  style:
+                                    left: "0.004"
+                                    width: "0.02"
+                                    top: "0"
+                                    height: "0.018"
+                                    borderRadius: "6"
+                                    borderWidth: "1"
+                                    borderColor: "0x7070704f"
+                                    fontSize: "0.8vw"
+                                    fontWeight: "500"
+                                    color: "0x6b7280"
+                                    textAlign: 
+                                      x: center 
+                                      y: center 
+                                - type: button
+                                  text: "Go to" 
+                                  style:
+                                    textDecoration: underline
+                                    left: "0.03"
+                                    width: "0.03"
+                                    top: "0"
+                                    height: "0.02"
+                                    border:
+                                      style: "1"
+                                    fontSize: "0.8vw"
+                                    color: "0x6b7280"
+                                    backgroundColor: "0xffffff00"
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        .Global._nonce@: 
+                                          =.builtIn.math.random: "" 
+                                    - actionType: evalObject
+                                      object: 
+                                        - if: 
+                                          - =.builtIn.number.less: 
+                                              dataIn: 
+                                                num1: =..formData.gotoPageNum 
+                                                num2: 1
+                                          - continue 
+                                          - actionType: evalObject 
+                                            object: 
+                                              - if: 
+                                                - =.builtIn.number.less: 
+                                                    dataIn: 
+                                                      num1: =..formData.gotoPageNum 
+                                                      num2: =..formData.totalPageMore 
+                                                - actionType: evalObject 
+                                                  object: 
+                                                    - =.builtIn.array.splitTableList: 
+                                                        dataIn: 
+                                                          arrObj: =..apiRequest.providerList.list.0.doc
+                                                          numX: "7"
+                                                          numY: =..formData.gotoPageNum
+                                                        dataOut: AdminManagement.formData.tableData
+                                                    - ..formData.tableList@: =..formData.tableData.0 
+                                                    - =.builtIn.string.concat: 
+                                                        dataIn: 
+                                                          - =..formData.gotoPageNum
+                                                          - " / "
+                                                          - =..formData.tableData.1
+                                                        dataOut: AdminManagement.formData.tableCurrentPage
+                                                    - ..formData.tablePageNum@: =..formData.gotoPageNum
+                                                    - ..formData.gotoPageNum@: ""                                                
+                                                - continue
+                                    - actionType: builtIn 
+                                      funcName: redraw
+                                      viewTag: tableView

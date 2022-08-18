@@ -1,0 +1,670 @@
+CareSignUp: # This is page name
+  module: patient, provider, admin
+  pageNumber: "20"
+  formData:
+    countryCode: "+1"
+    phoneNumber: ""
+    code: ""
+  apiData:
+    phoneNumber: ""  
+  verificationCode:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1010
+      name:
+        phone_number: =..apiData.phoneNumber
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: CareSignUp.verificationCode.edge
+        dataOut: CareSignUp.verificationCode.response
+  # init:
+  #   - actionType: evalObject
+  #     object: =.builtIn.cleanLocalStorage       
+  save:
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.CareSignUp.formData.countryCode
+          - " "
+          - =.CareSignUp.formData.phoneNumber
+        dataOut: CareSignUp.apiData.phoneNumber  
+    - =.CareSignUp.verificationCode.edgeAPI.store: "" 
+    - =.builtIn.string.retainNumber:
+        dataIn:
+          value: =.CareSignUp.verificationCode.response.edge.tage
+        dataOut: CareSignUp.formData.code
+  check:
+    - ..loginNewDevice.edge.name.verification_code@: =..formData.code
+    - =.CareSignUp.loginNewDevice.edgeAPI.store: ""
+    - if:
+        - =.builtIn.string.equal:  # check vCode correct
+            dataIn:
+              string1: =..loginNewDevice.response.code
+              string2: 112
+        - actionType: popUp
+          popUpView: wrongCode
+          wait: true
+        - continue
+    - if:
+        - =.CareSignUp.loginNewDevice.response.edge.deat.pk # check PK exist
+        - actionType: popUp
+          popUpView: existUser
+          wait: true
+        - continue
+    # - if:
+    #   - =.builtIn.string.equal:
+    #       dataIn:
+    #         string1: =..loginNewDevice.response.code
+    #         string2: 0
+    #   - actionType: popUp
+    #     popUpView: existUser
+    #     wait: true
+    #   - continue
+  update:
+    - .Global.newAccountFlag@: "-1"
+    # - =.CareSignUp.loginUser.edgeAPI.store: ""
+    # - =.CareSignUp.retrieveVertex.vertexAPI.store: ""
+  retrieveVertex:
+    response: ""
+    vertex:
+      .Vertex: ""
+      type : "-1"
+      id: =..loginNewDevice.response.edge.deat.user_id
+      name:
+        countryCode: =.CareSignUp.formData.countryCode
+        phoneNumber: =..loginNewDevice.response.edge.name.phone_number
+        verificationCode: =..loginNewDevice.response.edge.name.verification_code
+      uid: =.CareSignUp.apiData.phoneNumber
+    jwt: =..loginUser.response.jwt
+    vertexAPI:
+      .VertexAPI: ""
+      store:
+        api: cv
+        dataIn: CareSignUp.retrieveVertex.vertex 
+        dataOut: CareSignUp.retrieveVertex.response
+      delete:
+        api: dx
+        dataIn: CareSignUp.retrieveVertex.vertex      
+  loginNewDevice:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1040
+      _handledCode: 1020
+      name:
+        phone_number: =..apiData.phoneNumber
+        verification_code: ""
+      deat:
+        UserId: ""
+        Pk: ""
+        Esk: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: CareSignUp.loginNewDevice.edge
+        dataOut: CareSignUp.loginNewDevice.response
+  loginUser:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1030
+      bvid: =..loginNewDevice.response.edge.deat.user_id
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: CareSignUp.loginUser.edge
+        dataOut: CareSignUp.loginUser.response
+  components:
+    - type: view
+      style:
+        width : "1"
+        height: "1"
+        margin: auto
+      children:
+        - type: popUp
+          viewTag: existUser
+          style:
+            top: "0"
+            width : "1"
+            height: "1"
+            backgroundColor: "0x00000040"
+            display: flex
+            flexDirection: column
+            justifyContent: center
+            alignItems: center  
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: 23vw
+                height: 16vw
+                borderRadius: "10"
+                backgroundColor: '0xffffff'
+                display: flex
+                flexDirection: column
+                justifyContent: space-between
+              children:
+                - type: label
+                  text: "You already had an account or have been invited"
+                  style:
+                    marginTop: 1vw
+                    width: 23vw
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: 1vw
+                    fontFamily: "sans-serif"
+                    textAlign:  
+                      x: center
+                - type: label
+                  text: "Do you want to register for a new account?"
+                  style:
+                    width: 22vw
+                    color: "0x333333"
+                    fontSize: 1vw
+                    textAlign:
+                      x: center
+                - type: view
+                  style:
+                    width: 23vw
+                    height: 2.5vw
+                    display: flex
+                    flexDirection: row
+                    justifyContent: space-between
+                    borderTop: "1px solid #333333"
+                    borderWidth: 1px
+                  children:
+                    - type: button
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: existUser
+                        - goto: CareSignIn  
+                      text: CANCEL
+                      style:
+                        width: 11.5vw
+                        height: 2.5vw
+                        fontSize: 1vw
+                        color: '#0062FF'
+                        backgroundColor: "0xffffff"
+                        display: inline
+                        fontWeight: "600"
+                        textAlign:
+                          x: center
+                          y: center
+                        borderRadius: 5px
+                    - type: divider
+                      style: 
+                        width: 1px
+                        height: 2.5vw
+                        backgroundColor: "#333333"
+                        marginTop: 0
+                        zIndex: "10"
+                    - type: button
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: existUser
+                        - actionType: evalObject
+                          object: ..update
+                        - actionType: evalObject
+                          object:
+                            - .Global.patientSign.countryCode@: =..formData.countryCode
+                            - .Global.patientSign.phoneNumber@: =..formData.phoneNumber
+                            - .Global.patientSign.key@: =.CareSignUp.formData.code
+                        - goto: CreateNewAccount  ###########
+                      text: OKAY
+                      style:
+                        width: 11.5vw
+                        height: 2.5vw
+                        fontSize: 1vw
+                        color: '#0062FF'
+                        backgroundColor: "0xffffff"
+                        display: inline
+                        fontWeight: "600"
+                        textAlign:
+                          x: center
+                          y: center
+                        borderRadius: 5px
+        - type: popUp
+          viewTag: confirmView
+          style:
+            top: "0"
+            width : "1"
+            height: "1"
+            backgroundColor: "0x00000040"
+            display: flex
+            flexDirection: column
+            justifyContent: center
+            alignItems: center  
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: 23vw
+                height: 16vw
+                borderRadius: "10"
+                backgroundColor: '0xffffff'
+                display: flex
+                flexDirection: column
+                justifyContent: space-around
+                alignItems: center
+              children:
+                - type: label
+                  text: "Enter the 6-digit verification code"
+                  style:
+                    width: 22vw
+                    color: "0x333333"
+                    fontSize: .Nfont.h0_1
+                    display: inline
+                    # fontStyle: "bold"
+                    fontFamily: "sans-serif"
+                    textAlign:
+                      x: center
+                      y: center
+                - type: view
+                  style: 
+                    width: 14vw
+                    height: 2.5vw
+                    border: 
+                      style: "3"
+                      color: "0xb5b5b8"
+                    borderWidth: "1"
+                    textAlign:
+                      x: center
+                      y: center     
+                  children:
+                    - type: textField
+                      contentType: text
+                      dataKey: formData.code 
+                      required: "true"
+                      style:
+                        width: 13vw
+                        height: 2.4vw
+                        color: "0x33333388"
+                        fontSize: .Nfont.h0_1
+                        display: inline
+                        textAlign: 
+                          x: center
+                          y: center
+                - type: view
+                  style:
+                    width: 14vw
+                    height: 3vw 
+                    display: flex
+                    flexDirection: row
+                  children:
+                    - type: button
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: confirmView
+                      text: CANCEL
+                      style:
+                        width: 7vw
+                        height: 3vw
+                        fontSize: .Nfont.h0_0
+                        color: '0x333333cc'
+                        backgroundColor: "0xffffff"
+                        display: inline
+                        textAlign:
+                          x: center
+                          y: center
+                        border:
+                          style: "5"
+                          borderRadius: "5" 
+                    - type: button
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: confirmView
+                        # - actionType: evalObject
+                        #   object: 
+                        #     - if:
+                        #       - =.builtIn.string.equal:
+                        #           dataIn:
+                        #             string1: =..verificationCode.response.edge.deat.verification_code
+                        #             string2: =..formData.code
+                        #       - continue
+                        #       - actionType: popUp
+                        #         popUpView: wrongCode
+                        #         wait: true
+                        - actionType: evalObject
+                          object: ..check
+                        - goto: CreateNewAccount
+                      text: SUBMIT
+                      style:
+                        width: 7vw
+                        height: 3vw
+                        fontSize: .Nfont.h0_0
+                        backgroundColor: "0x388ecc"
+                        color: '0xffffff'
+                        borderRadius: 5px
+                        display: inline
+                        textAlign:
+                          x: center
+                          y: center
+                        border:
+                          style: "5"
+        
+        - .BaseWarningViewOne: ""
+          msg2: Invalid phone number format Use numbers only, 10 digits required
+          viewTag: WrongPhoneNum
+          style: 
+            width: "1"
+            height: "1"
+        - .BaseWarningViewOne: ""
+          msg2: "Incorrect verificationCode"
+          viewTag: wrongCode
+          style: 
+            width: "1"
+            height: "1"
+        - type: view
+          style:
+            width : "1"
+            height: "1"
+            display: flex
+            flexDirection: row
+            justifyContent: space-between
+          children:
+            - type: view
+              style:
+                width: "0.56"
+                height: "1"
+              children:
+                - type: image
+                  path: bg.png
+                  style:
+                    top: 0
+                    width: "0.555"
+                    height: "1"
+                - type: image
+                  path: bgColor.svg
+                  style:
+                    top: 0
+                    width: "0.555"
+                    height: "1"
+                - type: view
+                  style:
+                    display: flex
+                    flexDirection: column
+                    alignItems: center
+                    top: 0
+                    left: 0
+                    width: 60vw
+                    height: 50vw
+                  children:
+                    - type: view
+                      style:
+                        display: flex
+                        flexDirection: row
+                        width: 50vw
+                        marginTop: 2vw
+                      children:
+                        - type: image
+                          path: white.svg
+                          style:
+                            width: 1.3vw
+                            hieght: 1.3vw
+                          onClick:
+                            - actionType: builtIn
+                              funcName: goBack
+                              reload: true
+                        - type: label
+                          text: "Back"
+                          style:
+                            marginLeft: 0.5vw
+                            color: "#ffffff"
+                            fontSize: .Nfont.h3
+                            fontWeight: 500
+                          onClick:
+                            - actionType: builtIn
+                              funcName: goBack
+                              reload: true
+                    - type: label
+                      textBoard: 
+                        - text: Welcome To 
+                        - br: 
+                        - text: Aitmed
+                          fontWeight: 700 
+                      style: 
+                        marginTop: "0.3"
+                        color: "0xffffff"
+                        textAlign: 
+                          x: center
+                        fontSize: "6.6vh"
+                        lineHeight: "1.5"
+                        letterSpacing: "2.5px"
+                    - type: label
+                      text: "WWW.AITMED.COM"
+                      style: 
+                        width: "0.46"
+                        marginTop: "0.35"
+                        color: "0xffffff"
+                        textAlign: 
+                          x: center
+                        fontSize: "2.5vh"
+                        lineHeight: "1.5"
+                        letterSpacing: "2.5px"
+
+            - type: view
+              style:
+                width: "0.41"
+                height: '1'
+                marginLeft: "0.1"
+                display: flex
+                flexDirection: column
+              children:
+                - type: image
+                  path: aitmedCare.svg
+                  style:
+                    marginTop: 6vw
+                    width: 10vw
+                - type: view
+                  style:
+                    width: "0.3"
+                    height: "0.6"
+                    marginTop: "0.04"
+                    backgroundColor: "#ffffff"
+                    borderRadius: "7px"
+                    border: 
+                      style: "3"
+                    borderColor: "#EEF6FD"
+                    boxShadow: "0px 0px  8px 5px #EEF6FD"
+                    display: flex
+                    flexDirection: column
+                    alignItems: center
+                  children:
+                    - type: view
+                      style:
+                        width: "20vw"
+                        marginTop: 1.5vw
+                        fontSize: 1.5vw
+                        fontWeight: "500"
+                        textAlign:
+                          x: left
+                      children:
+                        - type: label
+                          text: Hello!
+                          style:
+                            width: "20vw"
+                            marginTop: 1.5vw
+                            fontSize: .Nfont.h6
+                            fontWeight: "500"
+                            textAlign:
+                              x: left
+                        - type: label
+                          text: Create a new patient account
+                          style:
+                            marginTop: 0.5vw
+                            width: "20vw"
+                            fontSize: .Nfont.h1
+                            textAlign:
+                              x: left
+                    - .ViewColumn:
+                      style:
+                        marginTop: 2vw
+                        width: "20vw"
+                        marginLeft: 0
+                        alignItems: center
+                        justifyContent: space-between
+                      children:
+                        - .ViewRow:
+                          style:
+                            width: "20vw"
+                            justifyContent: flex-start
+                          children:
+                            - type: label
+                              textBoard: 
+                                - text: Country
+                                  fontWeight: 600
+                                - text: "*"
+                                  color: "0xFB5051"
+                              style:
+                                width: 5vw
+                                fontSize: .Nfont.h0
+                                fontWeight: "500"
+
+                            - type: label
+                              textBoard: 
+                                - text: Phone
+                                  fontWeight: 600
+                                - text: "*"
+                                  color: "0xFB5051"
+                              style:
+                                marginLeft: 0.5vw
+                                width: 2.5vw
+                                fontSize: .Nfont.h0
+                                fontWeight: "500"
+                        - .ViewRow:
+                          style:
+                            marginTop: 0.3vw
+                            width: "20vw"
+                            justifyContent: center
+                          children:
+                            - type: select
+                              contentType: countryCode
+                              placeholder: ..formData.countryCode
+                              dataKey: formData.countryCode # formData.countryCode : inputValue
+                              options:
+                                .CountryCode
+                              required: "true"
+                              style:
+                                width: 4vw
+                                height: "0.043"
+                                fontSize: .Nfont.h0
+                                placeholder: "US +1"
+                                borderWidth: "2"
+                                border:
+                                  style: "3"
+                                  color: "0xDEDEDE"  
+                                borderRadius: "7px"
+                            # - type: divider
+                            #   style:
+                            #     width: 1px
+                            #     height: 2.5vw 
+                            #     backgroundColor: "#DEDEDE" 
+                            - type: textField
+                              contentType: phoneNumber
+                              placeholder: "Input phoneNumber"
+                              dataKey: formData.phoneNumber # formData.countryCode : inputValue
+                              required: "true"
+                              style: 
+                                textIndent: 0.5em
+                                marginLeft: 0.5vw
+                                fontSize: .Nfont.h0
+                                width: 13vw
+                                height: "0.04"
+                                borderWidth: "2"
+                                border:
+                                  style: "3"
+                                  color: "0xDEDEDE"  
+                                borderRadius: "7px"     
+                                textAlign: 
+                                  y: center
+                    - type: button
+                      text: Next
+                      style:
+                        color: "0xffffffff"
+                        fontSize: .Nfont.h0
+                        marginTop: 10vw
+                        width: "20vw"
+                        height: 2.5vw
+                        backgroundColor: "0x2988E6"
+                        border:
+                          style: "1"
+                        display: inline
+                        borderRadius: "5px"
+                        textAlign:
+                          x: center
+                          y: center
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.phoneNumber
+                                    string2: ""   
+                              - actionType: popUp
+                                popUpView: WrongPhoneNum
+                                wait: true
+                              - continue
+                        - actionType: evalObject
+                          object: ..save
+                        - actionType: evalObject
+                          object:
+                            - .Global.patientSign.countryCode@: =..formData.countryCode
+                            - .Global.patientSign.phoneNumber@: =..formData.phoneNumber
+                            - .Global.patientSign.key@: =..formData.code
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: confirmView
+                        - actionType: popUp
+                          popUpView: confirmView
+                    - .ViewRow:
+                      style:
+                        alignItems: center
+                        width: "20vw"
+                        justifyContent: space-between
+                        marginTop: 1vw
+                        marginLeft: 0
+                      children: 
+                        - type: label
+                          style:
+                            height: 0.1vw
+                            width: 8vw
+                            backgroundColor: "#C4C4C4"      
+                        - type: label
+                          text: OR
+                          style:
+                            fontSize: .Nfont.h0_0
+                            color: "#333333"          
+                        - type: label
+                          style:
+                            height: 0.1vw
+                            width: 8vw
+                            backgroundColor: "#C4C4C4"
+                    - .ViewRow:
+                      style:
+                        width: "20vw"
+                        justifyContent: center
+                        marginLeft: 0
+                        marginTop: 1.5vw
+                      children:
+                        - type: label
+                          text: Already have an account?
+                          style:
+                            color: "0x333333"
+                            fontSize: .Nfont.h0_1
+                        - type: button
+                          text: Sign In
+                          style:
+                            marginLeft: 0.5vw
+                            backgroundColor: "#ffffff"
+                            color: "#143459"
+                            fontSize: .Nfont.h0_1
+                            fontWeight: 550
+                            lineHeight: 1.5vw
+                          onClick: 
+                            - goto: CareSignIn
+    

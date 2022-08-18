@@ -1,0 +1,36 @@
+TestRightAlign:
+  pageNumber: "176.5"
+  title: "TestRightAlign"
+  flag: "1"
+  components: 
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+    - type: view
+      style: 
+        left: "0"
+        top: "0.1"
+        width: "1"
+        height: "0.9"
+      children: 
+        - type: label
+          text: Test Right Align
+          onClick: 
+            - actionType: evalObject
+              object: 
+                - if: 
+                  - =.builtIn.string.equal: 
+                      dataIn: 
+                        string1: =..flag
+                        string2: "1"
+                  - goto: TestSearch
+                  - goto: TestRedraw
+          style: 
+            top: "0.1"
+            width: "0.1"
+            height: "0.05"
+            left: "0.45"
+            fontSize: "18"
+            color: "0xffffff"
+            backgroundColor: "0x2988e6"
+            textAlign: 
+              x: center

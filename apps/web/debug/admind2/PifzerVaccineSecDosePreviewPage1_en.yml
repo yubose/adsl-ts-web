@@ -1,0 +1,277 @@
+PifzerVaccineSecDosePreviewPage1:
+  title: "Pifzer-BioNTech Vaccine - Second Dose"
+  pageNumber: "450" 
+
+  init: # Page initialization
+    - .SignInCheck
+
+  formData: # Input data here
+    consent: 
+      - key: consent
+        value1: ""
+        value2: "Yes"
+      - key: consent
+        value1: ""
+        value2: "No"
+    consentTwo: 
+      - key: consent
+        value1: ""
+        value2: "Yes"
+      - key: consent
+        value1: ""
+        value2: "No"
+
+  formDataTemp: # Input data temp here, datatemp should not mix with formData
+    single:
+      - consent: "1"
+    singleTwo:
+      - consent: "1"
+
+  apiRequest: # Input data request here
+
+  style: # Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBackPreview:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormRight: 
+                  onClick:
+                    - goto: PifzerVaccineSecDosePreviewPage2 
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - type: image
+                      path: secDose2_1.svg
+                      style:
+                        marginTop: "0.025"
+                        width: "0.39"
+                    # TYPE TITLE
+                    - .FormsTypeTitle:
+                    - .FormsContentTitle:
+                      text: Screening for Vaccine Eligibility
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.578"
+                        overflow: scroll
+                        marginTop: "0.01"
+                      children: 
+                        - type: label
+                          text: "Please answer the following questions:"
+                          dataKey: 
+                          style:
+                            width: "0.39"
+                            height: "0.04"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.5"
+                            marginTop: "0.01"
+                        - type: label
+                          text: Have you had a severe allergic reaction after receiving a previous dose of COVID-19 vaccine?
+                          style:
+                            width: "0.39"
+                            height: "7vw"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.5"
+                            color: "0x818181"
+                        - type: view
+                          style:
+                            width: "12vw"
+                            height: "2vw"
+                            top: "0.11"
+                            left: "0.25"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.consent
+                              viewTag: consentView
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.12'
+                                margin: '0'
+                                display: flex
+                                axis: horizontal
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '7vw'
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    - type: image
+                                      style:
+                                        width: "0.013"
+                                        height: "0.023"
+                                      path: 
+                                        emit:
+                                          dataKey: 
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..formDataTemp.single.0.consent
+                                                    string2: $var.value1
+                                              - selectBlue.svg
+                                              - selectGray.svg 
+                                      # onClick: 
+                                      #   - emit:
+                                      #       dataKey:
+                                      #         var: itemObject
+                                      #       actions: 
+                                      #         - if:
+                                      #           - =.builtIn.string.equal:
+                                      #               dataIn:
+                                      #                 string1: =..formDataTemp.single.0.consent
+                                      #                 string2: $var.value1
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.single.0
+                                      #                 key: $var.key
+                                      #                 value: ""
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.single.0
+                                      #                 key: $var.key
+                                      #                 value: $var.value1
+                                      #   - actionType: builtIn
+                                      #     funcName: redraw
+                                      #     viewTag: consentView
+                                    - type: label
+                                      dataKey: itemObject.value2
+                                      style: 
+                                        width: "6vw"    
+                                        height: "2vw"
+                                        display: flex
+                                        justifyContent: center
+                                        alignItems: center
+                                        fontSize: .Nfont.nf4
+                                        
+                        - type: label
+                          text: Have you had a severe allergic reaction to any ingredient in the Pfizer-BioNtech COVID-19 vaccine?
+                          style:
+                            width: "0.39"
+                            height: "7vw"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.5"
+                            color: "0x818181"
+                        - type: view
+                          style:
+                            width: "12vw"
+                            height: "2vw"
+                            display: flex
+                            top: "0.24"
+                            left: "0.25"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.consentTwo
+                              viewTag: consentView
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.12'
+                                margin: '0'
+                                display: flex
+                                axis: horizontal
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '7vw'
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    - type: image
+                                      style:
+                                        width: "0.013"
+                                        height: "0.023"
+                                      path: 
+                                        emit:
+                                          dataKey: 
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..formDataTemp.singleTwo.0.consent
+                                                    string2: $var.value1
+                                              - selectBlue.svg
+                                              - selectGray.svg 
+                                      # onClick: 
+                                      #   - emit:
+                                      #       dataKey:
+                                      #         var: itemObject
+                                      #       actions: 
+                                      #         - if:
+                                      #           - =.builtIn.string.equal:
+                                      #               dataIn:
+                                      #                 string1: =..formDataTemp.singleTwo.0.consent
+                                      #                 string2: $var.value1
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.singleTwo.0
+                                      #                 key: $var.key
+                                      #                 value: ""
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.singleTwo.0
+                                      #                 key: $var.key
+                                      #                 value: $var.value1
+                                      #   - actionType: builtIn
+                                      #     funcName: redraw
+                                      #     viewTag: consentView
+                                    - type: label
+                                      dataKey: itemObject.value2
+                                      style: 
+                                        width: "6vw"    
+                                        height: "2vw"
+                                        display: flex
+                                        justifyContent: center
+                                        alignItems: center
+                                        fontSize: .Nfont.nf4
+                        - type: label
+                          text: "Components of the Pfizer-BioNTech COVID-19 vaccine: nucleoside modified messenger RNA (modRNA) encoding the viral spike (S) glycoprotein of SARS-CoV-2, sodium chloride, lipids, polyethylene glycol, potassium chloride, monobasic potassium phosphate, dibasic sodium phosphate dihydrate, and sucrose."
+                          style:
+                            width: "0.39"
+                            height: "0.12"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.7"
+                            color: "0x818181"
+                # - .FormsCloseButton: 
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      style: 
+                        backgroundColor: "0xc1c1c1"

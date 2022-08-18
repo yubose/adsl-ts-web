@@ -1,0 +1,647 @@
+PatientConsentFormHIPPAEdit:
+  title: "Patient Consent Form - HIPPA"
+  pageNumber: 
+  init: #Page initialization
+    - .SignInCheck
+    - =..apiRequest.patientConsentForm.docAPI.store: ""
+    - ..apiRequest.patientConsentForm.docReq@: =..apiRequest.patientConsentForm.docResp.doc
+    
+    - =.builtIn.string.concat:
+        dataIn:
+          - "+1 "
+          - =.Global.currentFacility.name.basicInfo.phoneNumber
+        dataOut: PatientConsentFormHIPPAEdit.formData.facilityPhone
+    - actionType: evalObject
+      object:
+        - ..apiRequest.patientConsentForm.docReq.name.data.date@: =..apiRequest.patientConsentForm.docReq.ctime
+  formData: #Input data here
+    facilityPhone: ""
+    whetherSign: ""
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    privateTag: 
+      display: "block"
+      backgroundColor: "0xececee"
+      fontColor: "0x4c5264"
+      name: "Private"
+    publicTag: 
+      display: "block"
+      backgroundColor: "0xdfedfc"
+      fontColor: "0x2988e6"
+      name: "Released"
+  apiRequest: #Input data request here
+    patientConsentForm:
+      deleteReq: 
+        id: ""
+      docResp: ""
+      docReq: 
+        eid: .Global.formData.meetingDocEid
+        reid: ""
+        type: .DocType.PatientConsentForm
+        name:
+          data: 
+            classTag:
+              name: Admin
+              fontColor: "0x005795"
+              backgroundColor: "0xe9f2fc"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"    
+            signatureId: ""  
+            signatureTime: ""
+            whetherSign: "true"
+            proxyInfo: ""
+            patientName: .Global.formData.patientInfo.name.data.basicInfo.fullName
+            data: ""
+          title: "Patient Consent Form - HIPPA"            
+          user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          type: "application/json"
+
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientConsentFormHIPPAEdit.apiRequest.patientConsentForm.docReq
+          dataOut: PatientConsentFormHIPPAEdit.apiRequest.patientConsentForm.docResp
+        delete: 
+          api: dx
+          dataIn: PatientConsentFormHIPPAEdit.apiRequest.patientConsentForm.deleteReq
+    newSign:
+      docRes: ""
+      document: #DOC
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.document.subtype.mediaType
+          data: "" 
+        eid: .Global.formData.meetingDocEid
+        subtype:
+          mediaType: "" # mediaType : "image/jpeg"              
+      docAPI: # DOCAPI 
+        store:
+          api: cd
+          dataIn: apiRequest.newSign.document 
+          dataOut: PatientConsentFormHIPPAEdit.apiRequest.newSign.docRes  
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.patientConsentForm.deleteReq.id@: =..apiRequest.patientConsentForm.docResp.doc.id
+                    - =..apiRequest.patientConsentForm.docAPI.delete: ""
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true 
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - .FormsTypeTitle:
+                      style:
+                        height: "0.055"
+                        marginTop: "0.04"
+                        fontWeight: "600"
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.64"
+                        overflow: scroll
+                      children: 
+                        - type: view
+                          style:
+                            width: "0.39"
+                            left: "0"
+                            height: "auto"
+                            border: 
+                              style: "2"
+                            borderWidth: "4"
+                            borderColor: "0xdedede"
+                          children:   
+                            - type: view
+                              style:
+                                marginTop: "0.012"
+                                height: "0.116"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - type: image
+                                  path: "office-building.svg"
+                                  path=func: =.builtIn.utils.prepareDocToPath
+                                  dataKey: Global.facilityAvatarID
+                                  style:
+                                    width: "0.03"
+                                    marginLeft: "0"
+                                    marginTop: "0.01"
+                                    display: "inline-block"
+                                - type: view
+                                  style:
+                                    width: "0.14"
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                  children: 
+                                    - type: label
+                                      dataKey: Global.currentFacility.name.basicInfo.medicalFacilityName
+                                      style:
+                                        marginTop: "0.01"
+                                        fontSize: .Nfont.nf5 
+                                        fontWeight: "500"
+                                        display: "flex"
+                                        color: "0x333333"
+                                    - type: label
+                                      dataKey: Global.currentFacility.name.basicInfo.location
+                                      style:
+                                        fontSize: .Nfont.nf2
+                                        display: "flex"
+                                        marginTop: "0.01"
+                                        color: "0x333333"
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    marginLeft: "0"
+                                    height: "0.1"
+                                    width: "0.12"
+                                    overflow: hidden
+                                    display: "inline-block"
+                                  children:
+                                    - type: view 
+                                      style:
+                                        marginTop: "0.02"
+                                        display: "flex"
+                                      children: 
+                                        - type: label
+                                          text: Email
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            color: "0x757575"
+                                            display: "inline-block"
+                                        - type: label
+                                          dataKey: Global.currentFacility.name.basicInfo.email
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            marginLeft: "0.002"
+                                            display: "inline-block"
+                                            color: "0x333333"
+                                    - type: view 
+                                      style:
+                                          marginTop: "0.01"
+                                          display: "flex"
+                                      children: 
+                                        - type: label
+                                          text: "Website"
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            color: "0x757575"
+                                            display: "inline-block"
+                                        - type: label
+                                          dataKey: Global.currentFacility.name.basicInfo.website
+                                          style:
+                                            fontSize: .Nfont.nf2   
+                                            marginLeft: "0.002"
+                                            display: "inline-block"
+                                            color: "0x333333"
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    height: "0.1"
+                                    overflow: hidden
+                                    display: "inline-block" 
+                                  children:            
+                                    - type: view 
+                                      viewTag: facilityPhoneTag
+                                      style:
+                                          marginTop: "0.02"
+                                          display: "flex"
+                                      children: 
+                                        - type: label
+                                          text: Main#
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            color: "0x757575"
+                                            display: "inline-block"
+                                        - type: label
+                                          dataKey: formData.facilityPhone
+                                          style:
+                                            fontSize: .Nfont.nf2 
+                                            marginLeft: "0.002"
+                                            display: "inline-block"
+                                            color: "0x333333"
+                                    - type: view 
+                                      style:
+                                        marginTop: "0.01"
+                                        display: "flex"
+                                      children: 
+                                        - type: label
+                                          text: Fax#
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            color: "0x757575"
+                                            display: "inline-block"
+                                        - type: label
+                                          dataKey: Global.currentFacility.name.basicInfo.fax
+                                          style:
+                                            fontSize: .Nfont.nf2 
+                                            marginLeft: "0.002"
+                                            display: "inline-block"
+                                            color: "0x333333"
+                                          # admin profile end
+                            - type: view
+                              style:
+                                marginTop: "0"
+                                height: "0.165"
+                                width: "0.39"
+                                overflow: hidden   
+                                # backgroundColor: "#30b35433"
+                              children: 
+                                - type: view
+                                  style:
+                                    height: "auto"
+                                    width: "0.39"
+                                    marginLeft: "0"
+                                  children:   
+                                    - type: view
+                                      style:
+                                        height: "auto"
+                                        width: "0.39"
+                                        left: "0"
+                                      children:
+                                        - type: view
+                                          style:
+                                            marginTop: "0"
+                                            left: "0" 
+                                            height: "auto"
+                                          children:   
+                                            - type: view
+                                              style:
+                                                height: "0.022"
+                                                width: "0.39"
+                                                left: "0"
+                                              children:
+                                                - type: label
+                                                  text: Exam Date
+                                                  style:
+                                                    fontSize: .Nfont.nf0
+                                                    color: "0x757575"  
+                                                    display: "inline-block"  
+                                                - type: label
+                                                  text=func: .builtIn.string.formatUnixtimeL_en
+                                                  dataKey: Global.formData.appointment.stime
+                                                  style:
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf1
+                                                    wordBreak: break-all
+                                                    color: "0x0f0f0f"   
+                                                    fontWeight: "500"
+                                                    display: "inline-block"
+                                            - type: view
+                                              style:
+                                                height: "0.022"
+                                                width: "0.39"
+                                                left: "0"
+                                              children:             
+                                                - type: label
+                                                  text: Patient Name
+                                                  style:
+                                                    fontSize: .Nfont.nf0
+                                                    color: "0x757575" 
+                                                    display: "inline-block"
+                                                - type: label
+                                                  dataKey: Global.formData.patientInfo.name.data.basicInfo.fullName
+                                                  style:
+                                                    marginLeft: "0.01"
+                                                    width: "0.2"
+                                                    fontSize: .Nfont.nf1
+                                                    wordBreak: break-all
+                                                    color: "0x0f0f0f"    
+                                                    fontWeight: "500" 
+                                                    display: "inline-block"  
+                                            - type: view
+                                              style:
+                                                height: "0.022"
+                                                width: "0.39"
+                                                left: "0"
+                                              children:
+                                                - type: label
+                                                  text: DOB
+                                                  style:
+                                                    fontSize: .Nfont.nf0
+                                                    color: "0x757575" 
+                                                    display: "inline-block" 
+                                                - type: label
+                                                  dataKey: Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+                                                  style:
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf1
+                                                    wordBreak: break-all
+                                                    color: "0x0f0f0f"  
+                                                    fontWeight: "500"  
+                                                    display: "inline-block"  
+                                            - type: view
+                                              style:
+                                                height: "0.022"
+                                                width: "0.39"
+                                                left: "0"
+                                              children:
+                                                - type: label
+                                                  text: Phone#
+                                                  style:
+                                                    fontSize: .Nfont.nf0
+                                                    color: "0x757575"   
+                                                    display: "inline-block"  
+                                                - type: label
+                                                  dataKey: Global.formData.patientInfo.name.data.basicInfo.phone
+                                                  style:
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf1
+                                                    wordBreak: break-all
+                                                    color: "0x0f0f0f"   
+                                                    fontWeight: "500"   
+                                                    display: "inline-block"                              
+                                            - type: view
+                                              style:
+                                                height: "0.022"
+                                                width: "0.39"
+                                                left: "0"
+                                              children:
+                                                - type: label
+                                                  text: "Email"
+                                                  style:
+                                                    fontSize: .Nfont.nf0
+                                                    color: "0x757575"  
+                                                    display: "inline-block" 
+                                                - type: label
+                                                  dataKey: Global.formData.patientInfo.name.data.contactInfo.email
+                                                  style:
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf1
+                                                    wordBreak: break-all
+                                                    fontWeight: "500"
+                                                    display: "inline-block" 
+                                            - type: view
+                                              style:
+                                                height: "0.022"
+                                                width: "0.39"
+                                                left: "0"
+                                              children:
+                                                - type: label
+                                                  text: County of Residence
+                                                  style:
+                                                    fontSize: .Nfont.nf0
+                                                    color: "0x757575" 
+                                                    display: "inline-block"      
+                                                - type: label
+                                                  dataKey: Global.formData.patientInfo.name.data.contactInfo.address.county
+                                                  style:
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf1
+                                                    wordBreak: break-all
+                                                    color: "0x0f0f0f"   
+                                                    fontWeight: "500"
+                                                    display: "inline-block" 
+                        - type: view
+                          style: 
+                            width: "0.39"
+                            marginTop: "0.02"
+                            color: "#333333"
+                            height: "auto"
+
+                          children:
+                            - .FormsBlockText:
+                              text: The Department of Health and Human Services has established a "Privacy Rule" to help insure that personal health care information is protected for privacy. The Privacy Rule was also created in order to provide a standard for certain health care providers to obtain their patients' consent for uses and disclosures of health information about the patient to carry out treatment, payment or health care operations. 
+                              style:
+                                marginTop: "0"
+                            - .FormsBlockText:
+                              text: As our patient we want you to know that we respect the privacy of your personal medical records and will do all we can to secure and protect that privacy. We strive to always take reasonable precautions to protect your privacy. When it is appropriate and necessary, we provide the minimum necessary information to only those we feel are in need of your healthcare information and information about treatment, payment or health care operations, in order to provide health care that is in your best interest. 
+                              style:
+                            - .FormsBlockText:
+                              text: We also want you to know that we support your full access to your personal medical records. We may have indirect treatments relationships with you (such as laboratories that only interact with physicians and not patients), and may have to disclose personal health information for purposes of treatment, payment, or health operations, These entities are most often not required to obtain patient consent.
+                              style:
+                            - .FormsBlockText:
+                              text:  You may refuse to consent to the use or disclosure of your personal health information but this must be in writing. Under this law, we have the right to refuse to treat you should you choose to refuse to disclose your Personal Health Information (PIH). If you choose to give consent in this document, at some future time you may request to refuse all or part of your PHI. You may not revoke actions that have already been taken which relied on this or a previously signed consent.
+                              style:
+                            - .FormsBlockText:
+                              text: If your have objections to this form, please ask to speak with out HIPPA Compliance Officer. 
+                              style:
+                            - .FormsBlockText:
+                              text: You have the right to review our privacy notice to request restrictions and revoke consent in writing after you have reviewed our privacy notice.  
+                              style:
+                            - .FormsBlockText:
+                              text: "HIPPA Notice of Privacy Practices"
+                              style:
+                                fontSize: .Nfont.nf4
+                                color: "0x000000"
+                            - .FormsBlockText:
+                              text: "Signature below is only acknowledgement that you have received this Notice of our Privacy Practices:"
+                              style: 
+                                marginTop: "0.01"
+                                fontSize: .Nfont.nf2
+                                color: "0x707070"    
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: flex
+                            flexDirection: column
+                            flexWrap: wrap
+                            alignContent: space-around
+                            justifyContent: center
+                          children: 
+                            # Name of Recipient/Healthcare Proxy
+                            - .RecipientName:
+                              style:
+                                width: "0.39"
+                              children:
+                                - .RecipientNameLabel:
+                                  style:
+                                    fontWeight: "500"
+                                - .RecipientNameTextField:
+                                  placeholder: "Enter here"
+                                  isEditable: "true"
+                                  dataKey: apiRequest.patientConsentForm.docReq.name.data.proxyInfo
+                                  style:
+                                    width: "0.18954"
+                                    height: "0.04048"
+                                
+                            # sign area
+                            - .RecipientNameLabel:
+                              text: "Signature"
+                              style:
+                                marginTop: "0.03"
+                                fontWeight: "500"
+                            - type: view
+                              style:
+                              children:
+                                - .SignAreaClickText:
+                                  style:
+                                    marginTop: "0.01"
+                                    display: "inline-block"
+                                - type: label
+                                  text: "Clear"
+                                  style:
+                                    color: "0xe24445"
+                                    marginTop: "0.01"
+                                    display: "inline-block"
+                                    marginLeft: "0.14"
+                                  onClick: 
+                                  # 移除签名
+                                    - actionType: removeSignature
+                                      dataObject: BLOB
+                                      dataKey: apiRequest.newSign.document.name.data   
+                                      viewTag: signatureTag   
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: signatureTag
+                            - .SignAreaView:
+                              style:
+                              children:             
+                                - type: canvas
+                                  viewTag: signatureTag  
+                                  dataKey: apiRequest.newSign.document.name.data 
+                                  style:
+                                    .SignCanvasStyle:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+                            # patientName & date              
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                width: "0.39" 
+                                height: "0.08"
+                                border: 
+                                  style: "2"
+                                borderWidth: "4"
+                                borderColor: "0xdedede"
+                              children:
+                                - .PatName:
+                                - .PatNameValue:
+                                  dataKey: apiRequest.patientConsentForm.docReq.name.data.patientName
+                                - .PatDate:
+                                - type: label   
+                                  text=func: .builtIn.string.formatUnixtimeL_en
+                                  dataKey: apiRequest.patientConsentForm.docReq.name.data.date
+                                  style:
+                                    marginLeft: "0.045"
+                                    top: "0.03"
+                                    fontSize: .Nfont.nf4
+                                    color: "0x707070"
+                                    textAlign:
+                                      x: left
+                                      y: center
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick:
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: apiRequest.newSign.document.name.data
+                          isEmpty: formData.whetherSign
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =..formData.whetherSign
+                              - continue
+                              - actionType: evalObject
+                                object:
+                                  #签名的reid指向patient Consent Form doc的id
+                                  - ..apiRequest.newSign.document.reid@: =..apiRequest.patientConsentForm.docResp.doc.id
+                                  - =..apiRequest.newSign.docAPI.store: ""  
+                                  # 存放签名的id 到patientConsentForm
+                                  - ..apiRequest.patientConsentForm.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                                  - ..apiRequest.patientConsentForm.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime 
+                                  - ..apiRequest.patientConsentForm.docReq.name.data.whetherSign@: =..formData.whetherSign
+                          # 指定 eid 
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.patientConsentForm.docReq.reid@: =.Global.formData.meetingDocReid
+                        # 修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.patientConsentForm.docReq.type
+                                  index: 1
+                                  hex: 0
+                                dataOut: PatientConsentFormHIPPAEdit.apiRequest.patientConsentForm.docReq.type
+                        # 保存patientConsentForm
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.patientConsentForm.docReq.name.data.statusTag@: =..formDataTemp.privateTag 
+                            - =..apiRequest.patientConsentForm.docAPI.store: ""     
+                        # 清缓存
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""    
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true 
+                    # release button
+                    - .FormsBottomRightButton:     
+                      onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: apiRequest.newSign.document.name.data
+                          isEmpty: formData.whetherSign 
+                        # 保存签名
+                        
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =..formData.whetherSign
+                              - actionType: popUp
+                                popUpView: signatureWarningTag
+                                wait: true
+                              - continue
+                            # 签名的reid指向文档的id
+                            - ..apiRequest.newSign.document.reid@: =..apiRequest.patientConsentForm.docResp.doc.id
+                            - =..apiRequest.newSign.docAPI.store: ""
+                            - ..apiRequest.patientConsentForm.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                            - ..apiRequest.patientConsentForm.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                            - ..apiRequest.patientConsentForm.docReq.name.data.whetherSign@: =..formData.whetherSign 
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.patientConsentForm.docReq.reid@: =.Global.formData.meetingDocReid 
+                            - ..apiRequest.patientConsentForm.docReq.name.data.statusTag@: =..formDataTemp.publicTag      
+                            - =..apiRequest.patientConsentForm.docAPI.store: ""
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true 
+        - .BaseWarningView:
+          msg2: "You haven't signed the form."
+          viewTag: signatureWarningTag

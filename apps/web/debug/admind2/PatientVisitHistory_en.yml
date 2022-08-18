@@ -1,0 +1,3946 @@
+PatientVisitHistory: 
+  title: "Visit History"
+  init: 
+    - .SignInCheck
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    - actionType: updateObject
+      dataKey: Global.formData.medicalRecords
+      dataObject: {}  
+    # 初始化回复邮件为空  
+    - .Global.formData.reply.name.data.receiverName@: ""
+    - .Global.formData.reply.name.data.receiverAvatarId@: ""
+    - .Global.formData.reply.eid@: =.Global.fac_rootNotebook         
+    # 获取开会边的信息
+    - =..inMeeting.edgeAPI.get: ""
+    # 获取patientChart信息
+    - =..apiRequest.patientChart.docAPI.get: ""
+    # 获取medicalDocuments记录文档
+    - ..formData.patientChart@: =..apiRequest.patientChart.docResp.doc.0
+    # #获取会议中provider的个人信息
+    # - ..formData.providerInfo@: =..apiRequest.providerInfo.docResp.doc.0
+    # provider文档
+    - =..providerList.docAPI.get: ""
+    - =.builtIn.array.keepLatestDoc: 
+        dataIn: 
+          docList: =..providerList.list.doc
+          path: bsig
+        dataOut: PatientVisitHistory.providerList.list.doc
+    - if: 
+      - ..inMeeting.edgeResp.edge.0
+      - actionType: evalObject
+        object: 
+          - ..apiRequest.inviteParticipant.edgeIn.id.0@: =.Global.currentFacility.id
+          - ..apiRequest.inviteParticipant.edgeIn.id.1@: =..inMeeting.edgeResp.edge.0.id
+          # - =.builtIn.string.concat:
+          #     dataIn:
+          #       - "subtype=10"
+          #       - " "
+          #       - "AND"
+          #       - " "
+          #       - "refid="
+          #       - =..inMeeting.docResponse.edge.0.id
+          #     dataOut: PatientVisitHistoryRoom.apiRequest.inviteParticipant.edgeIn.sCondition
+
+          - =..apiRequest.inviteParticipant.edgeAPI.get: "" 
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.currentFacility.id
+                  string2: =..apiRequest.inviteParticipant.edgeGetResp.edge.0.bvid
+            - actionType: evalObject
+              object:
+                - ..formData.judgeAppointmentBvid@: block
+                - ..formData.providerNameShowOrHide@: none
+            - actionType: evalObject
+              object:
+                - ..formData.judgeAppointmentBvid@: none
+                - ..formData.providerNameShowOrHide@: block
+          - if: 
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..inMeeting.edgeResp.edge.0.bvid
+                  string2: =.Global.currentFacility.id
+            - actionType: evalObject
+              object:
+                - .Global.formData.meetingDocEid@: =..inMeeting.edgeResp.edge.0.id
+                - .Global.formData.meetingDocReid@: =..inMeeting.edgeResp.edge.0.id
+                - ..profile.docIn.id@: =..inMeeting.edgeResp.edge.0.evid
+
+            - actionType: evalObject
+              object:
+                - ..apiRequest.getBelongEdge.edgeIn.id.0@: =.Global.currentFacility.id
+                - ..apiRequest.getBelongEdge.edgeIn.id.1@: =..inMeeting.edgeResp.edge.0.id
+                - =..apiRequest.getBelongEdge.edgeAPI.get: ""
+                - .Global.formData.meetingDocEid@: =..apiRequest.getBelongEdge.edgeResp.edge.0.id
+                - .Global.formData.meetingDocReid@: =..inMeeting.edgeResp.edge.0.id
+          - ..profile.docIn.id@: =..inMeeting.edgeResp.edge.0.id
+          - =..profile.docAPI.get: ""
+          - .Global.formData.patientInfo@: =..profile.docResponse.doc.0
+          - ..dataObject@: =..inMeeting.edgeResp.edge.0
+          - ..apiRequest.providerInfo.docIn.id@: =..dataObject.name.providerId
+          - =..apiRequest.providerInfo.docAPI.get: ""
+          - .Global.roomInfo.edge@: =..inMeeting.edgeResp.edge.0
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..profile.docResponse.doc.0.name.data.basicInfo.fullName   
+                - " ("
+                - =..profile.docResponse.doc.0.name.data.basicInfo.gender
+                - ")"
+              dataOut: PatientVisitHistory.info
+          # - =.builtIn.date.getDurationByMinute: 
+          #     dataIn: 
+          #       ctime: dataObject.ctime
+          #       stime: dataObject.stime
+          #     dataOut:  PatientVisitHistory.formData.duration
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..dataObject.name.providerName     
+                - " 、 "
+                - =..dataObject.name.patientName   
+                # - " 、 "  
+                # - =..dataObject.name.patientName     
+              dataOut: PatientVisitHistory.participants
+          - =.builtIn.date.getDurationByMinute:
+              dataIn:
+                stime: =..dataObject.stime
+                etime: =..dataObject.etime
+              dataOut: PatientVisitHistory.formData.duration
+          - ..getLocation.edge.id@: =..dataObject.name.facilityId
+          - =..getLocation.get: ""
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..dataObject.name.visitType
+                  string2: "Telemedicine"
+            - actionType: evalObject
+              object:
+                - ..key@: "Duration"
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =..formData.duration
+                      - " Min"
+                    dataOut: PatientVisitHistory.value
+            - actionType: evalObject
+              object:
+                - ..key@: "Location"
+                - ..value@: =..getLocation.response.vertex.0.name.basicInfo.location
+      - continue
+    - .Global.patientInfo@: ..profile.docResponse.doc.0
+    - .Global.formData.patientPage@: VitalSigns
+    # 判断tage以显示/隐藏Finish
+    - if:
+      - =.builtIn.number.less: 
+          dataIn: 
+            num1: 0
+            num2: =..inMeeting.edgeResp.edge.0.tage
+      - ..inMeetingEdgeFlag@: "true"
+      - continue
+    # 查询facility 和 inMeeting的evid 之间10002的边
+    - ..apiRequest.emailEdge.edgeReq.id.0@: =.Global.currentFacility.id
+    - ..apiRequest.emailEdge.edgeReq.id.1@: =..inMeeting.edgeResp.edge.0.evid
+    - =..apiRequest.emailEdge.edgeAPI.get: ""
+    - ..formData@: =..PatientVisitHistory.apiRequest.providerInfo.docResp.doc
+    - ..apiRequest.emailEdge.edgeReq@: =..apiRequest.emailEdge.edgeReqIn
+
+    - if: 
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..inMeeting.edgeResp.edge.0.evid
+            string2: =..inMeeting.edgeResp.edge.0.name.providerId
+      # 若evid 和 providerId相等，profile文档的bsig是patient的id
+      - actionType: evalObject
+        object:          
+          - ..apiRequest.email.docStoreReq.name.data.receiverName@: =..inMeeting.edgeResp.edge.0.name.providerName
+          - ..apiRequest.emailEdge.edgeReq.id.1@: =..profile.docResponse.doc.0.bsig
+      # 若evid 和 providerId 不等， 再provider
+      - actionType: evalObject
+        object:   
+          - ..apiRequest.emailEdge.edgeReq.id.1@: =..inMeeting.edgeResp.edge.0.name.providerId
+          - ..apiRequest.email.docStoreReq.name.data.receiverName@: =..inMeeting.edgeResp.edge.0.name.patientName
+
+    - ..apiRequest.emailEdge.edgeReq.id.0@: =.Global.currentFacility.id
+    - =..apiRequest.emailEdge.edgeAPI.reGet: ""
+
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: "Telemedicine"
+            string2: =..dataObject.name.visitType 
+      - ..formData.isHiddenLocation@: none
+      - ..formData.isHiddenLocation@: block  
+ 
+    # 分割手机号
+    - =.builtIn.string.phoneNumberSplit: 
+        dataIn: 
+          phoneNumber: =..dataObject.name.patientPhoneNumber
+          sign: " "
+        dataOut: PatientVisitHistory.formData.splitPatPhoneNumber    
+    - =.builtIn.date.formatDataPro: 
+        dataIn: 
+          date: =..dataObject.stime
+          separator: "/"
+        dataOut: PatientVisitHistory.formData.sendMessageSTime
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: "" 
+    - =..apiRequest.medicalDocuments.docAPI.get: ""
+    # 有记录文档的话 title加上 Review跳转页面
+    - if: 
+      - =..apiRequest.medicalDocuments.docResp.doc.0
+      - =.builtIn.array.setFormJumpPage:
+          dataIn:
+            objArry: =..apiRequest.medicalDocuments.docResp.doc
+            docFormObj: =..DocumentList
+          dataOut: PatientVisitHistory.formData.medicalDocuments
+      - continue
+
+ 
+
+  inMeetingEdgeFlag: "false"
+  formData:
+    judgeAppointmentBvid: ""
+    providerNameShowOrHide: ""
+    nextBtnColor: "0xd3dde9"   # 预约时不选时间就不许下一步
+    sendMessageSTime: ""  # 发送邮件的开始时间
+    patientChart: "" # 获取patient formData.patientChart.name.data
+    goPatdForm: false  # 判断medicalDocuments 里面的列表是否去Patient form
+    medicalDocuments: []   # 所有开会时的文档
+    judgeStatus: ""
+    currentSubtype: ""
+    splitTime: []  # availablity 里的具体每一个时间段""
+    duration: ""
+    scheduleScondition: "" # For schedule to get all E1
+    availScheduleScondition: "" # For getFirstAvailSchedule to get the nearest available time
+    currentLocalTime: ""
+    adjacentEdgeTime: ""
+    changeAppointmentTime: {} # 暂存更改的时间$var的信息
+    splitPatPhoneNumber: ""
+    # originalTimeString: ""
+    currentTimeString: "" # 改变预约发送的邮件
+    reasonForCancelation: ""
+    cancelSingle:
+      cancelSelect: ""
+    isHiddenLocation: ""
+    isHiddenCalAndChange: false
+    isHiddenFinish: true
+    cancelByPatientOrProvider: ""
+    concatProviderName: ""
+    concatPatientName: ""
+    sendMessageContent:
+      msg1: "Hello, "
+      msg2: ""
+      msg3: "Reason: "
+      res: ""
+      cancelTime: ""
+    sendMessageChange: ""
+    isStartMeeting: "true"
+    startIf: ""
+    patdInfo: "" # for displaying patdInfo in popUp
+    patdInfoInsuranceId: ""
+    patInfoEmerContactFullName: ""
+    patdInfoEmploymentAddress: ""
+    patdInfoMedicalInsurance: []
+    providerInfo: ""
+    isShowDownArrowGray: block
+    isShowUpArrowGray: none
+    isShowMedicalInsuranceInfo: none
+  formDataTemp: 
+    notesList: 
+      - title: COVID-19 Results & Flu A&B Results
+        pageName: Cov19ResultsAndFluResultsEdit         
+      - title: Progress Report
+        pageName: ProgressReportEdit      
+      - title: Initial Evaluation Report
+        pageName: InitEvalReportEdit        
+      - title: Evaluation Note
+        pageName: EvaluationNoteEdit   
+      # - title: Prescription
+      #   pageName: Prescription2             
+      - title: Absence / Excuse Note
+        pageName: AbsentNoteEdit      
+      - title: Blank Note/form
+        pageName: BlankNoteEdit
+      - title: Work Status Form
+        pageName: WorkStatusFormEdit
+      - title: PR-1
+        pageName: PROneEdit
+      - title: PR-2
+        pageName: PRTwoEdit
+      - title: DWC Form RFA
+        pageName: DWCFormRFAEdit
+      - title: Surgery Authorization
+        pageName: SurgeryAuthorizationEdit  
+      - title: Patient Consent Form - HIPPA
+        pageName: PatientConsentFormHIPPAEdit
+      # - title: Prescription
+      #   pageName: Prescription2
+      # - title: Absence Note
+      #   pageName: AbsentNoteReview
+      # - title: Evaluation Note
+      #   pageName: EvaluationNoteEdit
+      # - title: New Patient Form
+      #   pageName: NewPatFormEditPage1
+      # - title: COVID-19 Testing Consent
+      #   pageName: Cov19TestFormEditPage1
+      # - title: COVID-19 Testing Consent - New Patient
+      #   pageName: Cov19TestNewPatEditPage1
+      # - title: Pifzer-BioNTech Vaccine - First Dose
+      #   pageName: PifzerVaccineFirDoseEditPage1
+      # - title: Pifzer-BioNTech Vaccine - Second Dose
+      #   pageName: PifzerVaccineSecDoseEditPage1
+      # - title: Moderna Vaccine Form - First Dose
+      #   pageName: ModernaVaccineFirDoseEditPage1
+      # - title: Moderna Vaccine Form - Second Dose
+      #   pageName: ModernaVaccineSecDoseEditPage1
+    cancelAppointmentSelect:
+      - key: cancelSelect
+        value: Patient
+      - key: cancelSelect
+        value: Provider
+
+    assignType: 
+      - text: "All"
+        textColor: "0x000000"
+        borderColor: "0x2986e3"
+        backgroundColor: "0xffffff"
+        tagCategory: "All"
+        value: All
+      - text: "@Me"
+        textColor: "0xfc3a3a"
+        borderColor: "0xffeaea"
+        backgroundColor: "0xffeaea" 
+        tagCategory: ""
+        value: "@Me"
+      - text: "Patient"
+        textColor: "0x30b354"
+        borderColor: "0xe4f5e9"
+        backgroundColor: "0xe4f5e9"
+        tagCategory: classTag
+        value: "Patient"
+      - text: "Provider"
+        textColor: "0xf8ae29"
+        borderColor: "0xfff4e0"
+        backgroundColor: "0xfff4e0"
+        tagCategory: classTag
+        value: "Provider"
+      - text: "Admin"
+        textColor: "0x2988e6"
+        borderColor: "0xdfedfc"
+        backgroundColor: "0xdfedfc"
+        tagCategory: classTag
+        value: "Admin"
+      - text: "Private"
+        textColor: "0x4c5264"
+        borderColor: "0xececee"
+        backgroundColor: "0xececee"
+        tagCategory: statusTag
+        value: "Private"
+      - text: "Released"
+        textColor: "0x2988e6"
+        borderColor: "0xdfedfc"
+        backgroundColor: "0xdfedfc" 
+        tagCategory: statusTag
+        value: "Released"
+  apiRequest:
+    # 获取Facility 和provider以及patient之间的E10002，用于发邮件
+    connection: 
+      edgeResp: ""
+      edgeIn: 
+        id: 
+          - .Global.currentFacility.id
+        xfname: Bvid,Evid
+        type: 10002
+        obfname: mtime
+        tage: "1"
+        _nonce: =.Global._nonce
+        maxcount: "1"
+      edgeAPI: 
+        get: 
+          api: re
+          dataIn: apiRequest.connection.edgeIn
+          dataOut: PatientVisitHistory.apiRequest.connection.edgeResp
+    #保险卡信息
+    insuranceCard:
+      docQueryResp: ""
+      docQueryReq:
+        xfname: reid
+        id: ""
+        type: .DocType.InsuranceCard
+        name:
+          data:
+            #是否未默认保险卡 
+            default: false
+            #保险公司名称
+            companyName: ""
+            #保险计划或者医疗组织
+            planOrMedicalGroup: ""
+            #成员名称
+            memberName: ""
+            #成员id
+            memberId: ""
+            #组织号码
+            groupNumber: ""
+            #政策号码
+            policyNumber: ""
+            #政策持有者名字
+            policyHolderName: ""
+            #与患者的关系
+            relation: ""
+            #保险卡正面照片docId
+            front_InsuranceCardId: ""
+            #保险卡反面照片docId
+            back_InsuranceCardId: ""
+      docAPI:
+        get:  
+          api: rd
+          dataIn: PatientVisitHistory.apiRequest.insuranceCard.docQueryReq
+          dataOut: PatientVisitHistory.apiRequest.insuranceCard.docQueryResp           
+    # 获取当前会议里的provider profile
+    providerInfo: 
+      docResp: ""
+      docIn:
+        id: ""
+        xfname: "ovid"
+        type: .DocType.DoctorProfile
+        obfname: mtime
+        _nonce: =.Global._nonce
+      docAPI: 
+        get: 
+          api: rd
+          dataIn: apiRequest.providerInfo.docIn
+          dataOut: PatientVisitHistory.apiRequest.providerInfo.docResp
+    #获取最近可预约时间段
+    getFirstAvail:
+      response: ""
+      edge:
+        type: 40000
+        id: []
+        sCondition: ..formData.availScheduleScondition
+        maxcount: "1"
+        xfname: "evid,bvid"
+        obfname: "stime"
+        asc: true
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          .EdgeAPI.get: ""
+          api: re
+          dataIn: PatientVisitHistory.apiRequest.getFirstAvail.edge
+          dataOut: PatientVisitHistory.apiRequest.getFirstAvail.response  
+    changeAppointment:
+      response: ""
+      edgeIn:
+        type: 40000
+        subtype: 8
+        refid: "" # 指向原来的E2，存储取消的记录
+        bvid: .Global.currentFacility.id
+        evid: "" # 为改变的新的预约时间的eid
+        stime: ""
+        etime: ""
+        name: ""
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: PatientVisitHistory.apiRequest.changeAppointment.edgeIn
+          dataOut: PatientVisitHistory.apiRequest.changeAppointment.response
+    patientChart: 
+      docResp: ""
+      docIn: 
+        id: .Global.formData.patientHistoryInfo.id
+        xfname: eid
+        type: .DocType.PatientChart
+        maxcount: "1"
+        obfname: "mtime"
+      docAPI: 
+        get: 
+          api: rd
+          dataIn: apiRequest.patientChart.docIn
+          dataOut: PatientVisitHistory.apiRequest.patientChart.docResp
+    medicalDocuments: 
+      docResp: ""
+      docIn: 
+        id: .Global.formData.patientHistoryInfo.id
+        xfname: reid
+        sCondition: .DocumentQuery.AdminAllMeetingDocuments
+        maxcount : "500"
+        obfname : "mtime" 
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: apiRequest.medicalDocuments.docIn
+          dataOut: PatientVisitHistory.apiRequest.medicalDocuments.docResp
+    # 如果是facility创建的E2，文档挂E2；否则文档挂E10 ，此处获取E10
+    getBelongEdge: 
+      edgeResp: ""
+      edgeIn: 
+        id: 
+        xfname: evid,refid
+        type: 40000
+        sCondition: "subtype=10"
+        obfname: ctime
+        maxcount: "1"
+      edgeAPI: 
+        get:  
+          api: re
+          dataIn: apiRequest.getBelongEdge.edgeIn
+          dataOut: PatientVisitHistory.apiRequest.getBelongEdge.edgeResp
+    # 创建新的预约邀请参与者
+    inviteParticipant: 
+      edgeResp: ""
+      edgeGetResp: ""
+      edgeIn: 
+        id: 
+        xfname: bvid,refid
+        type: 40000
+        sCondition: "subtype=10"
+        obfname: ctime
+        asc: true
+        _nonce: =.Global._nonce  
+      edge: 
+        .Edge: ""
+        evid: ""
+        refid: ""
+        type: 40000
+        subtype: 10
+        stime: ""
+        etime: ""
+      edgeAPI: 
+        store: 
+          api: ce 
+          dataIn: apiRequest.inviteParticipant.edge
+          dataOut: PatientVisitHistory.apiRequest.inviteParticipant.edgeResp    
+        get: 
+          api: re
+          dataIn: apiRequest.inviteParticipant.edgeIn
+          dataOut: PatientVisitHistory.apiRequest.inviteParticipant.edgeGetResp 
+    # 取消会议发送邮件
+    email: 
+      docStoreIn:
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(是10002) 默认挂在 rootNotebookID 10000，当点击send的时候再修改为 10002
+        eid: ""
+        name: 
+          data: 
+            #邮件内容
+            content: ""
+            #收件人姓名 
+            receiverName: ""
+            #发送人姓名 
+            senderName: ""
+            #发件人头像的id
+            senderAvatarId: ""
+            #是否携带附件
+            haveAttachment: false
+          #邮件标题
+          title: ""
+          #收件人头像的id 
+          user: ""
+      docQueryRes: ""
+      docQueryReq: 
+        ObjType: 544
+        #邮件类型，默认1281
+        type: 1281
+        id: .Global.currentFacility.id
+        # 查询条件
+        sCondition: E.type=10002 AND (D2.type & 0xFF18 =0xE00 OR D2.reid is NULL OR D2.Type = 66561)
+        # 发送者id  接收者id  邮件的发送者id
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        _nonce: =.Global._nonce
+        maxcount: "100"
+      docQueryRegetResp: ""
+      # 这里用原先的get会让列表数据消失，换一个
+      docQueryReGet: 
+        # 使得当emailTag变化时，email type就会变化
+        ObjType: 544
+        #邮件类型，默认1281
+        type: 1281
+        id: .Global.currentFacility.id
+        # 查询条件
+        sCondition: E.type=10002 AND (D2.type & 0xFF18 =0xE00 OR D2.reid is NULL OR D2.Type = 66561)
+        # 发送者id  接收者id  邮件的发送者id
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        _nonce: =.Global._nonce
+        maxcount: "100"
+      docStoreRes: ""
+      docStoreReq:
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(是10002) 默认挂在 rootNotebookID 10000，当点击send的时候再修改为 10002
+        eid: .Global.rootNotebookID 
+        name: 
+          data: 
+            #邮件内容
+            content: ""
+            #收件人姓名 
+            receiverName: ""
+            #发送人姓名 
+            senderName: ""
+            #发件人头像的id
+            senderAvatarId: ""
+            #是否携带附件
+            haveAttachment: false
+          #邮件标题
+          title: ""
+          #收件人头像的id 
+          user: ""
+      docAPI:
+        reget:
+          api: rd
+          dataIn: PatientVisitHistory.apiRequest.email.docQueryReGet
+          dataOut: PatientVisitHistory.apiRequest.email.docQueryRegetResp      
+        get:
+          api: rd
+          dataIn: PatientVisitHistory.apiRequest.email.docQueryReq
+          dataOut: PatientVisitHistory.apiRequest.email.docQueryRes
+        store:
+          api: cd
+          dataIn: PatientVisitHistory.apiRequest.email.docStoreReq
+          dataOut: PatientVisitHistory.apiRequest.email.docStoreRes
+    # 获取邮件的边
+    emailEdge:
+      edgeReqIn:
+        id: []
+        type: 10002
+        xfname: bvid,evid
+        obfname: "ctime"
+        _nonce: =.Global._nonce
+      edgeResp: ""
+      reEdgeResp: ""
+      edgeReq:
+        id: []
+        type: 10002
+        xfname: bvid,evid
+        obfname: "ctime"
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: PatientVisitHistory.apiRequest.emailEdge.edgeReq
+          dataOut: PatientVisitHistory.apiRequest.emailEdge.edgeResp
+        reGet:
+          api: re
+          dataIn: PatientVisitHistory.apiRequest.emailEdge.edgeReq
+          dataOut: PatientVisitHistory.apiRequest.emailEdge.reEdgeResp
+    # 结束会议
+    finishMeeting:
+      docResp: ""
+      document:
+        type: "10496"
+        tage: "256"
+        eid: ""
+        reid: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientVisitHistory.apiRequest.finishMeeting.document
+          dataOut: PatientVisitHistory.apiRequest.finishMeeting.docResp
+  # 获取provider list
+  providerList:
+    list: ""
+    edge:
+      ObjType: 12
+      type: .DocType.DoctorProfile
+      id: .Global.currentFacility.id
+      xfname: E.bvid|E.evid
+      sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+      maxcount: "10000"
+      _nonce: =.Global._nonce
+    docAPI:
+      get: 
+        api: rd
+        dataOut: providerList.list
+        dataIn: providerList.edge          
+  deleteMeeting: #删除当前房间
+    response: 
+    edge:
+      ..dataObject: ""
+      id: ""
+      bvid: .Global.currentFacility.id
+      refid: ..dataObject.id
+      evid: ""
+      subtype: 7
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: deleteMeeting.edge
+        dataOut: deleteMeeting.response
+  getLocation:
+    response: 
+    edge:
+      id: ""
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    get:
+      api: rv
+      dataIn: getLocation.edge
+      dataOut: getLocation.response
+  dataObject: ""
+  participants: ""
+  info: ""
+  patientPage: "VisitQuestionnaire"
+  inMeeting:  # 同意预约后，正在开会的40000那条边（subtype为6或者100）
+    edgeResp: ""
+    edge:
+      id: .Global.formData.patientHistoryInfo.id
+      xfname: "id"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+      maxcount: "100"
+      type: 40000
+    edgeAPI: 
+      get: 
+        api: re
+        dataIn: inMeeting.edge
+        dataOut: PatientVisitHistory.inMeeting.edgeResp
+  profile:
+    docResponse: ""
+    docIn: 
+      id: .Global.formData.patientHistoryInfo.id
+      xfname: E.id
+      type: .DocType.PatientProfile #  type: "257"
+      obfname: "mtime"
+      ObjType: 12
+      sCondition: "E.type=40000"
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI: 
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        dataIn: profile.docIn
+        dataOut: PatientVisitHistory.profile.docResponse
+  patientName: ""
+  # pagePath: VisitQuestionnaire
+  infor: 
+    - img: remoteHealth0.svg
+      title: Vital Signs
+      bgc: "0xf0f6fc"
+      pageName: VitalSigns
+    - img: patientChart.svg
+      title: Patient Chart
+      bgc: "0xffffff"
+      pageName: PatientChart      
+    - img: providerNotes.svg
+      title: Provider Notes
+      bgc: "0xffffff"
+      pageName: ProviderNotes
+    - img: medicalRecords.svg
+      title: Medical Documents
+      bgc: "0xffffff"
+      pageName: MedicalRecords
+
+  # 获取Availability，可用时间的        
+  schedule:     
+    scheduleList:
+      edge: []
+    get:
+      api: re
+      dataIn: PatientVisitHistory.schedule.edge
+      dataOut: PatientVisitHistory.schedule.scheduleList
+    edge:
+      type: 40000
+      id: []
+      sCondition: PatientVisitHistory.formData.scheduleScondition
+      xfname: "evid,bvid"
+      maxcount: "10000"
+      obfname: "stime"
+      asc: true
+      _nonce: =.Global._nonce
+  # 获取当前E2指向的E1，
+  originSchedule:     
+    scheduleList:
+      edge: []
+    edgeIn:
+      type: 40000
+      id: ""
+      xfname: "id"
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: PatientVisitHistory.originSchedule.edgeIn
+        dataOut: PatientVisitHistory.originSchedule.scheduleList       
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          children:
+            - .AppointmentLobby:
+              text: Visit History
+            - .GotoBack:
+              onClick:
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+            - type: view
+              style:
+                width: "0.824"
+                top: "0.035"
+              children:
+                - type: view
+                  style: 
+                    left: "0.008"
+                    width: "0.824"
+                    height: "0.15"
+                    top: "0.06"
+                    border:   
+                      style: "5"
+                    backgroundColor: "0xffffff"
+                  children: 
+                    - type: image
+                      path: patientDefault.svg
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: profile.docResponse.doc.0.name.data.basicInfo.avatar
+                      style: 
+                        left: "0.03"
+                        width: "0.06"
+                        top: "0.027"
+                        height: "0.1"
+                    - type: view
+                      style: 
+                        left: "0.11"
+                        width: "0.2"
+                        top: "0"
+                      children: 
+                        - .PatientHistoryTextNewUI: 
+                          dataKey: info
+                          style:
+                            fontWeight: "600"
+                            fontSize: "1.4vw"
+                            color: "#005795"
+                            marginTop: "0.008"
+                            textDecoration: underline
+                          onClick:  
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.string.concat:
+                                    dataIn:
+                                      - =..profile.docResponse.doc.0.name.data.emergencyContact.firstName
+                                      - =..profile.docResponse.doc.0.name.data.emergencyContact.middleName
+                                      - =..profile.docResponse.doc.0.name.data.emergencyContact.lastName
+                                    dataOut: PatientVisitHistory.formData.patInfoEmerContactFullName   
+                                - ..apiRequest.connection.edgeIn.id.1@: =..profile.docResponse.doc.0.bsig
+                                - =..apiRequest.connection.edgeAPI.get: ""       
+                                - ..apiRequest.insuranceCard.docQueryReq.id@: =..apiRequest.connection.edgeResp.edge.0.id
+                                - =..apiRequest.insuranceCard.docAPI.get: ""
+                                - =.builtIn.object.setObjectKey:
+                                    dataIn:
+                                      objectArr: =..apiRequest.insuranceCard.docQueryResp.doc
+                                      key: isShowDownArrowGray
+                                      value: block
+                                    dataOut: PatientVisitHistory.formData.patdInfoMedicalInsurance                                  
+                                - =.builtIn.object.setObjectKey:
+                                    dataIn:
+                                      objectArr: =..formData.patdInfoMedicalInsurance
+                                      key: isShowUpArrowGray
+                                      value: none
+                                    dataOut: PatientVisitHistory.formData.patdInfoMedicalInsurance
+                                - =.builtIn.object.setObjectKey:
+                                    dataIn:
+                                      objectArr: =..formData.patdInfoMedicalInsurance
+                                      key: isShowMedicalInsuranceInfo
+                                      value: none
+                                    dataOut: PatientVisitHistory.formData.patdInfoMedicalInsurance    
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: patientProfile 
+                            - actionType: popUp
+                              popUpView: patientProfile    
+                        - type: view
+                          style:
+                            marginTop: "0.05"
+                          children:
+                            - type: label
+                              text: "User Name: "
+                              dataKey: 
+                              style:
+                                fontSize: .Nfont.nf2
+                                fontWeight: "500"
+                                display: inline-block
+                            - type: label
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.userName
+                              style: 
+                                marginLeft: "0.01"
+                                top: "0"
+                                width: "0.21"
+                                fontSize: .Nfont.nf2
+                                display: inline-block
+                        - type: view
+                          style:
+                            marginTop: "0"
+                          children:
+                            - type: label
+                              text: "DOB: "
+                              dataKey: 
+                              style:
+                                fontSize: .Nfont.nf2
+                                fontWeight: "500"
+                                display: inline-block
+                            - type: label
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.dateOfBirth
+                              style: 
+                                marginLeft: "0.01"
+                                top: "0"
+                                width: "0.21"
+                                display: inline-block
+                                fontSize: .Nfont.nf2
+                        - type: view
+                          style:
+                            marginTop: "0"
+                          children:
+                            - type: label
+                              text: "Phone #: "
+                              dataKey: 
+                              style:
+                                display: inline-block
+                                fontSize: .Nfont.nf2
+                                fontWeight: "500"
+                            - type: label
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.phone
+                              style: 
+                                marginLeft: "0.01"
+                                top: "0"
+                                display: inline-block
+                                width: "0.21"
+                                fontSize: .Nfont.nf2
+                        - type: view
+                          style:
+                            marginTop: "0"
+                          children:
+                            - type: label
+                              text: "Address: "
+                              dataKey: 
+                              style:
+                                display: inline-block
+                                fontSize: .Nfont.nf2
+                                fontWeight: "500"
+                            - type: label
+                              dataKey: profile.docResponse.doc.0.name.data.contactInfo.address.fullAddress
+                              style: 
+                                marginLeft: "0.01"
+                                top: "0"
+                                display: inline-block
+                                width: "0.23"
+                                fontSize: .Nfont.nf2
+                            
+                - type: view
+                  style: 
+                    left: "0.008"
+                    width: "0.824"
+                    height: "0.662"
+                    top: "0.21"
+                    border:   
+                      style: "5"
+                    backgroundColor: "0xffffff"
+                  children: 
+                    - type: view
+                      style: 
+                        left: "0"
+                        width: "0.38"
+                        height: "0.64"
+                        top: "0"
+                        border:   
+                          style: "5"
+                        borderRadius: "5"
+                        # boxShadow: "#dededf 0px 0px 10px"
+                        backgroundColor: "0xffffff"
+                      children:
+                        - .PatientVisitHistoryTitleLabel: ""
+                          style: 
+                            marginTop: "0"
+                        - .PatientVisitHistoryBlueLabel: ""
+                          style:
+                            top: "0.007"
+                        - type: view
+                          viewTag: appointmentInfoTag
+                          style: 
+                            left: "0.03"
+                            width: "0.35"
+                            marginTop: "0.01"
+                            height: "auto"
+                          children: 
+                            - type: view
+                              style:
+                                width: "0.34"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - .PatientVisitHistoryTitleNewUI: 
+                                  text: Provider Name
+                                  style: 
+                                    left: "0.012"
+                                - .PatientVisitHistoryTextNewUI: 
+                                  style:
+                                    textIndent: "0px"
+                                    display: flex
+                                    justifyContent: flex-end
+                                    textDecoration: underline
+                                    color: "#005795"
+                                    borderBottom: "#005795"
+                                  dataKey: dataObject.name.providerName
+                                  onClick:
+                                    # - actionType: evalObject
+                                    #   object:
+                                    #     - ..formData.providerInfo@: PatientVisitHistory.apiRequest.providerInfo.docResp.doc
+                                    
+                                    - actionType: popUp
+                                      popUpView: providerProfile
+                            # - type: view
+                            #   style:
+                            #     width: "0.34"
+                            #     display: flex
+                            #     justifyContent: space-between
+                            #     alignItems: center
+                            #   children:
+                            #     - .PatientVisitHistoryTitleNewUI: 
+                            #       text: DOB
+                            #       style: 
+                            #         left: "0.012"
+                            #     - .PatientVisitHistoryTextNewUI: 
+                            #       style:
+                            #         textIndent: "0px"
+                            #         # width: "0.07"
+                            #         display: flex
+                            #         justifyContent: flex-end
+                            #       dataKey: dataObject.name.dateOfBirth
+                            - type: view
+                              style:
+                                width: "0.34"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - .PatientVisitHistoryTitleNewUI: 
+                                  text: Visit Type
+                                  style: 
+                                    left: "0.012"
+                                - .PatientVisitHistoryTextNewUI: 
+                                  style:
+                                    textIndent: "0px"
+                                    width: "0.2"
+                                    display: flex
+                                    justifyContent: flex-end
+                                  dataKey: dataObject.name.visitType
+                            
+                            - type: view
+                              style:
+                                width: "0.34"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - .PatientVisitHistoryTitleNewUI: 
+                                  text: Reason for Visit
+                                  style: 
+                                    left: "0.012"
+                                - .PatientVisitHistoryTextNewUI: 
+                                  style:
+                                    display: flex
+                                    justifyContent: flex-end
+                                  dataKey: dataObject.name.visitReason
+                            - type: view
+                              style:
+                                width: "0.34"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - .PatientVisitHistoryTitleNewUI: 
+                                  text: Date
+                                  style: 
+                                    left: "0.012"
+                                - .PatientVisitHistoryTextNewUI: 
+                                  style:
+                                    textIndent: "0px"
+                                    display: flex
+                                    justifyContent: flex-end
+                                  text=func: .builtIn.string.formatUnixtimeL_en
+                                  dataKey: dataObject.stime  
+                            - type: view
+                              style:
+                                width: "0.34"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - .PatientVisitHistoryTitleNewUI: 
+                                  text: Time
+                                  style: 
+                                    left: "0.012"
+                                - .PatientVisitHistoryTextNewUI: 
+                                  style:
+                                    textIndent: "0px"
+                                    display: flex
+                                    justifyContent: flex-end
+                                  text=func: .builtIn.date.ShowTimeSpan
+                                  dataKey: dataObject  
+                            - type: view
+                              style:
+                                width: "0.34"
+                                display: ..formData.isHiddenLocation
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.34"
+                                    display: flex
+                                    justifyContent: space-between
+                                    # alignItems: center
+                                    # isHidden: ..formData.isHiddenLocation
+                                  children:
+                                    - .PatientVisitHistoryTitleNewUI: 
+                                      text: Location Name
+                                      style: 
+                                        left: "0.012"
+                                    - .PatientVisitHistoryTextNewUI: 
+                                      style:
+                                        width: "0.25"
+                                        display: flex
+                                        justifyContent: flex-end
+                                      dataKey: dataObject.name.locationName
+                                - type: view
+                                  style:
+                                    width: "0.34"
+                                    display: flex
+                                    justifyContent: space-between
+                                    # alignItems: center
+                                    # isHidden: ..formData.isHiddenLocation
+                                  children:
+                                    - .PatientVisitHistoryTitleNewUI: 
+                                      text: Address
+                                      style: 
+                                        left: "0.012"
+                                    - .PatientVisitHistoryTextNewUI: 
+                                      style:
+                                        width: "0.25"
+                                        height: "0.045"
+                                        display: flex
+                                        justifyContent: flex-end
+                                      dataKey: dataObject.name.location                                      
+                        
+                        - type: view
+                          style:
+                            width: "0.35"
+                            height: "0.035"
+                            backgroundColor: "0xeff0f2"
+                            borderRadius: "5"
+                            marginTop: "0.01"
+                            left: '0.03'
+                            display: flex
+                            justifyContent: space-between
+                            alignItems: center
+                          children:
+                            - .PatientVisitHistoryTitleLabel: ""
+                              text: Medical Info
+                              style: 
+                                marginTop: "0"
+                                left: '0'
+                                width: auto
+                            - type: label
+                              text: "Document History"
+                              dataKey: 
+                              style:
+                                color: "0x4094e7"
+                                width: "0.07"
+                                fontSize: .Nfont.nf0
+                                textDecoration: underline
+                            # - .PatientVisitHistoryTitle: 
+                            #   style: 
+                            #     top: "0.08"
+                            #   text: Participants
+                            # - .PatientVisitHistoryText: 
+                            #   style: 
+                            #     top: "0.11"
+                            #     textIndent: "0px"
+                            #   dataKey: participants                      
+                            # - .PatientVisitHistoryTitle: 
+                            #   style: 
+                            #     top: "0.24"
+                            #     left: "0.13"
+                            #   # text: Duration
+                            #   dataKey: key
+                            # - .PatientVisitHistoryText: 
+                            #   style: 
+                            #     top: "0.27"
+                            #     left: "0.13"
+                            #     width: "0.2"
+                            #     height: "0.04"
+                            #     border: 
+                            #       style: "1"
+                            #     textIndent: "0px"
+                            #   dataKey: value
+                        - type: view
+                          style: 
+                            left: "0.037"
+                            width: "0.34"
+                            height: "0.13"
+                            marginTop: "0.025"
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: ..infor
+                              iteratorVar: itemObject
+                              viewTag: medicalInfoView
+                              style:
+                                width: '0.34'
+                                left: "0"
+                                top: "0"
+                                height: "0.105"
+                                axis: horizontal
+                                margin: '0'
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  viewTag: infoView
+                                  onClick: 
+                                    - actionType: popUpDismiss
+                                      popUpView: patientChartView              
+                                    - actionType: popUpDismiss
+                                      popUpView: providerNotesView
+                                    - actionType: popUpDismiss
+                                      popUpView: medicalDocumentsView                                      
+                                    - emit: 
+                                        dataKey: 
+                                          var: itemObject
+                                        actions: 
+                                          - =.builtIn.object.setProperty: 
+                                              dataIn: 
+                                                obj: =..infor
+                                                label: "pageName"
+                                                text: $var.pageName
+                                                arr: ["bgc"]
+                                                valueArr: ["0xf0f6fc"]
+                                                errorArr: ["0xffffff"] 
+                                          - if: 
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: $var.pageName
+                                                  string2: "VitalSigns"
+                                            - ..formData.judgeStatus@: "1"
+                                            - continue
+                                          - if: 
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: $var.pageName
+                                                  string2: "PatientChart"                                                                                              
+                                            - ..formData.judgeStatus@: "2"
+                                            - continue  
+                                          - if: 
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: $var.pageName
+                                                  string2: "ProviderNotes"
+                                            - ..formData.judgeStatus@: "3"
+                                            - continue
+                                          - if: 
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: $var.pageName
+                                                  string2: "MedicalRecords"
+                                            - ..formData.judgeStatus@: "4"
+                                            - continue
+                                          - .Global.formData.patientPage@: $var.pageName
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: medicalInfoView 
+                                    - actionType: evalObject
+                                      object:
+                                        - if: 
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.judgeStatus
+                                                string2: '1'
+                                          - actionType: popUp
+                                            popUpView: vitalSignsView
+                                            wait: true
+                                          - continue
+                                        - if: 
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.judgeStatus
+                                                string2: '2'
+                                          - actionType: popUp
+                                            popUpView: patientChartView
+                                            wait: true
+                                          - continue
+                                        - if: 
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.judgeStatus
+                                                string2: '3'
+                                          - actionType: popUp
+                                            popUpView: providerNotesView
+                                            wait: true
+                                          - continue
+                                        - if: 
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.judgeStatus
+                                                string2: '4'
+                                          - actionType: popUp
+                                            popUpView: medicalDocumentsView
+                                            wait: true
+                                          - continue
+                                  style:
+                                    width: '0.071'
+                                    height: '0.105'
+                                    marginLeft: "17px"
+                                    backgroundColor: itemObject.bgc
+                                    boxShadow: "#dededf 0px 0px 10px"
+                                    border: 
+                                      style: "5"
+                                    borderRadius: "5"
+                                  children:
+                                    - type: image
+                                      path: 
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                              - true
+                                              - $var.img
+                                              - $var.img
+                                      style: 
+                                        left: "0.022"
+                                        width: "0.028"
+                                        height: "0.05"
+                                        top: "0.01"
+                                    - type: label
+                                      dataKey: itemObject.title
+                                      style: 
+                                        left: "0"
+                                        width: "0.072"
+                                        top: "0.07"
+                                        height: "0.025"
+                                        fontSize: .Nfont.nf0
+                                        textAlign: 
+                                          x: center
+                        - type: view
+                          style:
+                            width: "0.35"
+                            height: "0.035"
+                            backgroundColor: "0xeff0f2"
+                            borderRadius: "5"
+                            marginTop: "0.01"
+                            left: '0.03'
+                            display: flex
+                            justifyContent: space-between
+                            alignItems: center
+                          children:
+                            - .PatientVisitHistoryTitleLabel: ""
+                              text: Participants
+                              style: 
+                                marginTop: "0"
+                                left: '0'
+                                width: auto
+                            - type: label
+                              text: "+ Invite"
+                              onClick: 
+                                - actionType: popUp
+                                  popUpView: ProviderListTag
+                              style:
+                                color: "0x4094e7"
+                                width: "0.04"
+                                fontSize: .Nfont.nf0
+                                textDecoration: underline
+
+                        - type: scrollView
+                          style: 
+                            left: "0.03"
+                            width: "0.34"
+                            marginTop: "0.01"
+                            height: "0.09"
+                          children: 
+                            - type: view
+                              style:
+                                width: "0.34"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - .PatientVisitHistoryTitleNewUI: 
+                                  text: Patient
+                                  style: 
+                                    left: "0.012"
+                                - .PatientVisitHistoryTextNewUI: 
+                                  style:
+                                    textIndent: "0px"
+                                    display: flex
+                                    justifyContent: flex-end
+                                  dataKey: dataObject.name.patientName
+                            - type: view
+                              style:
+                                width: "0.34"
+                                height: auto
+                                display: ..formData.providerNameShowOrHide
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.34"
+                                    display: flex
+                                    justifyContent: space-between
+                                    alignItems: center
+                                  children:
+                                    - .PatientVisitHistoryTitleNewUI: 
+                                      text: Provider
+                                      style: 
+                                        left: "0.012"
+                                    - .PatientVisitHistoryTextNewUI: 
+                                      style:
+                                        textIndent: "0px"
+                                        display: flex
+                                        justifyContent: flex-end
+                                      dataKey: dataObject.name.providerName
+                            
+                            - type: list
+                              contentType: listObject
+                              listObject: ..apiRequest.inviteParticipant.edgeGetResp.edge
+                              iteratorVar: itemObject
+                              viewTag: participantsView
+                              style:
+                                width: '0.34'
+                                margin: '0'
+                                height: auto
+                                display: ..formData.judgeAppointmentBvid
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: "0.34"
+                                    display: flex
+                                    justifyContent: space-between
+                                    alignItems: center
+                                  children:
+                                    - .PatientVisitHistoryTitleNewUI: 
+                                      dataKey: itemObject.name.role
+                                      style: 
+                                        left: "0.012"
+                                    - .PatientVisitHistoryTextNewUI: 
+                                      style:
+                                        display: flex
+                                        justifyContent: flex-end
+                                      dataKey: itemObject.name.roleName                                  
+                    # provider notes
+                    - type: popUp
+                      viewTag: providerNotesView
+                      style: 
+                        left: '0.41'
+                        width: "0.39"
+                        top: "0"
+                        height: "0.64"
+                        zIndex: "10"
+                        border: 
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0xeff0f2"
+                        borderRadius: "5"
+                        boxSizing: border-box
+                        backgroundColor: "0xeff0f2"    
+                      children: 
+                        - type: label
+                          text: Provider Notes
+                          dataKey: 
+                          style:
+                            left: "0.013"
+                            width: "0.36"
+                            textIndent: "1em"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf4
+                            fontFamily: "Roboto"
+                            fontWeight: "500"
+                        - type: view
+                          onClick: 
+                            - goto: AddMedicalDocument
+                          style:
+                            left: "0.013"
+                            marginTop: "0.01"
+                            width: "0.364"
+                            height: "0.055"
+                            backgroundColor: "0xffffff"
+                            borderRadius: "5" 
+                            display: flex
+                            justifyContent: center
+                            alignItems: center
+                          children: 
+                            - type: image
+                              path: addCircleBlue.svg
+                              style:
+                                width: "0.01"
+                            - type: label
+                              text: Add Documents
+                              dataKey: 
+                              style:
+                                marginLeft: "0.01"
+                                color: "0x2988e6"
+                                fontSize: .Nfont.nf2
+                                fontFamily: "Roboto"
+                        - type: scrollView
+                          style:
+                            left: "0.013"
+                            width: "0.364"
+                            marginTop: "0.015"
+                            height: "0.505"
+                            border: 
+                              style: "5"
+                            borderWidth: "1"
+                            borderColor: "0xffffff"
+                            borderRadius: "3"
+                            boxSizing: border-box
+                            backgroundColor: "0xffffff"
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.notesList
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.334'
+                                left: "0.015"
+                                margin: '0'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  onClick: 
+                                    - emit: 
+                                        dataKey: 
+                                          var: itemObject
+                                        actions: 
+                                          - if: 
+                                            - true
+                                            - goto: $var.pageName
+                                            - goto: $var.pageName
+                                  itemObject: 
+                                  style:
+                                    width: '0.334'
+                                    height: '0.08'
+                                    border: 
+                                      style: "2"
+                                    borderWidth: "1"
+                                    borderColor: "0xd4d4d4"
+                                    marginTop: ''
+                                    textAlign: 
+                                      y: center
+                                  children:
+                                    - type: label
+                                      text: 
+                                      dataKey: itemObject.title
+                                      style:
+                                        width: "0.30"
+                                        display: inline-block
+                                    - type: image
+                                      path: enterInLi.svg
+                                      style:
+                                        width: "0.007"
+                                        display: inline-block
+                    # Medical Documents
+                    - type: popUp
+                      viewTag: medicalDocumentsView
+                      style: 
+                        left: '0.41'
+                        width: "0.39"
+                        top: "0"
+                        height: "0.64"
+                        zIndex: "10"
+                        border: 
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0xeff0f2"
+                        borderRadius: "5"
+                        boxSizing: border-box
+                        backgroundColor: "0xeff0f2"    
+                      children: 
+                        - type: view
+                          style:
+                            width: "0.364"
+                            marginTop: "0.01"
+                            left: "0.013"
+                            display: flex
+                            justifyContent: space-around
+                            alignItems: center
+                          children: 
+                            - type: label
+                              text: Medical Document
+                              dataKey: 
+                              style:                                
+                                width: "0.324"
+                                left: "0.004"
+                                fontSize: .Nfont.nf4
+                                fontFamily: "Roboto"
+                                fontWeight: "500"
+                            - type: view
+                              onClick: 
+                                - goto: AddMedicalDocument
+                              style:
+                                width: "0.03"
+                                display: flex
+                                justifyContent: space-around
+                                alignItems: center
+                              children: 
+                                - type: image
+                                  path: addBlue.png
+                                  style:
+                                    width: "0.008"
+                                    display: inline-block
+                                - type: label
+                                  text: Add
+                                  dataKey: 
+                                  style:
+                                    marginLeft: "0.005"
+                                    color: "0x2988e6"
+                                    display: inline-block
+                        - type: scrollView
+                          style:
+                            left: "0.013"
+                            width: "0.364"
+                            marginTop: "0.015"
+                            height: "0.56"
+                            border: 
+                              style: "5"
+                            borderWidth: "1"
+                            borderColor: "0xffffff"
+                            borderRadius: "3"
+                            boxSizing: border-box
+                            backgroundColor: "0xffffff"
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.assignType
+                              iteratorVar: itemObject
+                              viewTag: assignTypeTag
+                              style:
+                                margin: '0'
+                                width: "0.334"
+                                left: "0.015"
+                                marginTop: "0.015"
+                                height: "0.04"
+                                axis: horizontal
+                                alignItems: center
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    height: '0.025'
+                                    marginRight: "0.01"
+                                    marginTop: ''
+                                    backgroundColor: itemObject.backgroundColor
+                                    border: 
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderRadius: "3"
+                                    borderColor: itemObject.borderColor
+                                    boxSizing: border-box
+                                    color: itemObject.textColor
+                                    textAlign:  
+                                      y: center
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:  
+                                          - =.builtIn.object.setProperty:
+                                              dataIn:
+                                                obj: =..formDataTemp.assignType
+                                                label: "text"
+                                                text: $var.text
+                                                arr: ["borderColor"]
+                                                valueArr: $var.textColor
+                                                errorArr: ["0x00000000"] 
+                                          - =.builtIn.array.filterByTag:
+                                              dataIn:
+                                                sourceDoc: =..apiRequest.medicalDocuments.docResp.doc
+                                                tagCategory: $var.tagCategory
+                                                tagName: $var.value
+                                              dataOut: PatientVisitHistory.formData.medicalDocuments
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: assignTypeTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: medicalDocumentsListTag
+                                  children:
+                                    - type: label
+                                      text: 
+                                      dataKey: itemObject.text
+                                      style:
+                                        marginLeft: "0.005"
+                                        marginRight: "0.005"
+                                        fontSize: .Nfont.nf2
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.medicalDocuments
+                              iteratorVar: itemObject
+                              viewTag: medicalDocumentsListTag
+                              style:
+                                width: '0.334'
+                                left: "0.015"
+                                margin: '0'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  onClick: 
+                                    - actionType: updateObject
+                                      dataKey: Global.formData.medicalRecords
+                                      dataObject: itemObject                                  
+                                    - emit: 
+                                        dataKey: 
+                                          var: itemObject
+                                        actions: 
+                                          - .Global.formData.reviewFromProvider@: true
+                                          - goto: $var.pageName
+                                  itemObject: 
+                                  style:
+                                    width: '0.334'
+                                    height: '0.08'
+                                    border: 
+                                      style: "2"
+                                    borderWidth: "1"
+                                    borderColor: "0xd4d4d4"
+                                    marginTop: ''
+                                    display: flex
+                                    flexDirection: column
+                                    justifyContent: center
+                                  children:
+                                    - type: view
+                                      style:
+                                        width: "0.334"
+                                      children: 
+                                        - type: label
+                                          text: 
+                                          dataKey: itemObject.name.title
+                                          style:
+                                            width: "0.30"
+                                            display: inline-block
+                                            fontSize: .Nfont.nf3
+                                    - type: view
+                                      style:
+                                        marginLeft: "0.02"
+                                        height: "2.5vh"
+                                        width: "0.11"
+                                        left: "0.203"
+                                        top: "0.017"
+                                        display: flex
+                                        justifyContent: space-between
+                                        alignItems: center
+                                        overflow: hidden
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.name.data.classTag.name
+                                          style:
+                                            height: "0.028"
+                                            width: "0.06"
+                                            color: itemObject.name.data.classTag.fontColor
+                                            fontFamily: "Poppins"
+                                            fontSize: .Nfont.nf0
+                                            backgroundColor: itemObject.name.data.classTag.backgroundColor
+                                            borderRadius: "5"
+                                            textAlign:
+                                              x: center
+                                              y: center
+                                        - type: label
+                                          dataKey: itemObject.name.data.statusTag.name
+                                          style:
+                                            display: itemObject.name.data.statusTag.display
+                                            height: "0.028"
+                                            width: "0.04"
+                                            color: itemObject.name.data.statusTag.fontColor
+                                            fontFamily: "Poppins"
+                                            fontSize: .Nfont.nf0
+                                            borderRadius: "5"
+                                            backgroundColor: itemObject.name.data.statusTag.backgroundColor
+                                            textAlign:
+                                              x: center
+                                            lineHeight: "2"
+
+                                    - type: view
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.334"
+                                        display: flex
+                                        justifyContent: space-between
+                                        alignItems: center
+                                      children: 
+                                        - type: label
+                                          dataKey: itemObject.name.user
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                        - type: label
+                                          text=func: .builtIn.string.formatUnixtime_en
+                                          dataKey: itemObject.ctime
+                                          style:
+                                            color: "0x666666"
+                                            fontSize: .Nfont.nf1
+                    # Vital Signs
+                    - type: view
+                      viewTag: vitalSignsView
+                      style: 
+                        left: '0.41'
+                        width: "0.39"
+                        top: "0"
+                        height: "0.64"
+                        border: 
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0xeff0f2"
+                        borderRadius: "5"
+                        boxSizing: border-box
+                        backgroundColor: "0xeff0f2"  
+                      children: 
+                        - type: label
+                          text: Vital Signs
+                          dataKey: 
+                          style:
+                            left: "0.013"
+                            width: "0.36"
+                            textIndent: "1em"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf4
+                            fontFamily: "Roboto"
+                            fontWeight: "500"         
+                        - type: scrollView
+                          style:
+                            left: "0.013"
+                            width: "0.364"
+                            marginTop: "0.015"
+                            height: "0.565"
+                            border: 
+                              style: "5"
+                            borderWidth: "1"
+                            borderColor: "0xffffff"
+                            borderRadius: "3"
+                            boxSizing: border-box
+                            backgroundColor: "0xffffff"
+                          children:          
+                            - .VitalSignsView: 
+                              style: 
+                                marginTop: "0.02"
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Blood Pressure(mmHg)"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - .VitalSignsView:
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Heart Rate(bpm)"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - .VitalSignsView: 
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Respiratory Rate(breaths/min)"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - .VitalSignsView: 
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Pulse Oximetry(O2%)"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - .VitalSignsView: 
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Temperature"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - .VitalSignsView: 
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Height(ft.in.)"
+                                - .VitalSignsTextField: 
+                            - .VitalSignsView: 
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Weight(Ibs)"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - .VitalSignsView:
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Body Mass Index(BMI)"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - .VitalSignsView: 
+                              children:
+                                - .VitalSignsText: 
+                                  text: "Blood Glucose levels"
+                                - .VitalSignsTextField: 
+                                  placeholder: "Enter here"
+                            - type: button
+                              text: Confirm
+                              style:
+                                width: "0.1"
+                                marginLeft: "0.132"
+                                height: "0.04"
+                                marginTop: "0.03"
+                                color: "0xffffff"
+                                fontSize: .Nfont.nf2
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0x1263a8"
+                                borderRadius: "5"
+                                backgroundColor: "0x1263a8"
+                                textAlign:
+                                  x: center
+                                  y: center
+                    # Patient Chart
+                    - type: popUp
+                      viewTag: patientChartView
+                      style: 
+                        left: '0.41'
+                        width: "0.39"
+                        top: "0"
+                        height: "0.64"
+                        zIndex: "10"
+                        border: 
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0xeff0f2"
+                        borderRadius: "5"
+                        boxSizing: border-box
+                        backgroundColor: "0xeff0f2"  
+                      children: 
+                        - type: label
+                          text: Patient Chart
+                          dataKey: 
+                          style:
+                            left: "0.013"
+                            width: "0.36"
+                            textIndent: "1em"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf4
+                            fontFamily: "Roboto"
+                            fontWeight: "500"         
+                        - type: scrollView
+                          style:
+                            left: "0.013"
+                            width: "0.364"
+                            marginTop: "0.015"
+                            height: "0.565"
+                            border: 
+                              style: "5"
+                            borderWidth: "1"
+                            borderColor: "0xffffff"
+                            borderRadius: "3"
+                            boxSizing: border-box
+                            backgroundColor: "0xffffff"
+                          children:     
+                            - .PatientChartTitle: 
+                              text: "General Information"
+                            - type: view
+                              style:
+                                width: "0.34"
+                                height: auto
+                                left: "0.017"
+                              children:
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: First name
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.firstName
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Middle name or initial
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.middleNameAndInitial
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Last name
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.lastName
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Preferred name
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.preferredName
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Gender
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.gender
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Date of birth
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.dateOfBirth
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Occupation
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.occupation
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Relationship status
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.relationshipStatus
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Primary Care Physician
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.primaryCarePhysician
+                                - .PatientChartShowLine:
+                                  children:
+                                    - .PatientChartShowTitle:
+                                      text: Primary Care clinic
+                                    - .PatientChartShowData:
+                                      dataKey: formData.patientChart.name.data.generalInfo.primaryCareClinic
+
+                            - .PatientChartTitle: 
+                              text: Past Medical History
+                            - .PatientChartListView:
+                              children:   
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.patientChart.name.data.pastMedicalHistory # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  style: 
+                                    width: "0.34"
+                                    height: "auto"
+                                    left: "0.01"
+                                    margin: "0"
+                                  children: 
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.33" 
+                                        height: "0.03"
+                                      children:
+                                        - type: label
+                                          text: '-'
+                                          style: 
+                                            top: "0"
+                                            width: "0.05"
+                                            fontSize: .Nfont.nf2
+                                        - type: label
+                                          dataKey: itemObject
+                                          style: 
+                                            marginLeft: "0.01"
+                                            top: "0"
+                                            width: "0.25"
+                                            fontSize: .Nfont.nf2
+                            - .PatientChartTitle: 
+                              text: "Allergies"
+                            - type: view
+                              style: 
+                                width: "0.34"
+                                height: "0.03"
+                                left: "0.017"
+                                textAlign: 
+                                  y: center
+                              children:   
+                                - type: label
+                                  text: Allergen/Irritant
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.17"
+                                    display: inline-block
+                                - type: label
+                                  text: What happens       
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.17"
+                                    display: inline-block
+                            - .PatientChartListView:
+                              children:   
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.patientChart.name.data.allergies # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  style: 
+                                    width: "0.34"
+                                    height: "auto"
+                                    left: "0"
+                                    margin: "0"
+                                  children: 
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.34" 
+                                        height: "0.03"
+                                        left: "0"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.allergy
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            textAlign: 
+                                              x: center
+                                            width: "0.17"
+                                            display: inline-block
+                                        - type: label
+                                          dataKey: itemObject.happen
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            textAlign: 
+                                              x: center
+                                            width: "0.17"
+                                            display: inline-block
+                            - .PatientChartTitle: 
+                              text: Current Medications
+                            - type: view
+                              style: 
+                                width: "0.34"
+                                left: "0.017"
+                                height: "0.03"
+                                textAlign: 
+                                  y: center
+                              children:   
+                                - type: label
+                                  text: Name
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                                - type: label
+                                  text: Strength
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                                - type: label
+                                  text: Amount
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                                - type: label
+                                  text: Frequency
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                            - .PatientChartListView:
+                              children:   
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.patientChart.name.data.currentMedications # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  style: 
+                                    width: "0.9"
+                                    height: "auto"
+                                    left: "0"
+                                  children: 
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.9" 
+                                        height: "0.03"
+                                        left: "0"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.name
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085"
+                                        - type: label
+                                          dataKey: itemObject.strength
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085" 
+                                        - type: label
+                                          dataKey: itemObject.amount
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085" 
+                                        - type: label
+                                          dataKey: itemObject.frequency
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085"
+                            - .PatientChartTitle: 
+                              text: Immunizations
+                            - type: view
+                              style: 
+                                width: "0.34"
+                                left: "0.017"
+                                height: "0.03"
+                                textAlign: 
+                                  y: center
+                              children:   
+                                - type: label
+                                  text: Name
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                                - type: label
+                                  text: 1st Dose
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                                - type: label
+                                  text: 2st Dose
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                                - type: label
+                                  text: Recent
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    display: inline-block
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.085"
+                            - .PatientChartListView:
+                              children:   
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.patientChart.name.data.immunizations # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  style: 
+                                    width: "0.34"
+                                    height: "auto"
+                                    left: "0"
+                                  children: 
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.34" 
+                                        height: "0.03"
+                                        left: "0"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.name
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085"
+                                        - type: label
+                                          dataKey: itemObject.firstDose
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085" 
+                                        - type: label
+                                          dataKey: itemObject.secondDose
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085" 
+                                        - type: label 
+                                          dataKey: itemObject.mostRecent
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            display: inline-block
+                                            textAlign: 
+                                              x: center
+                                            width: "0.085"  
+                            - .PatientChartTitle: 
+                              text: "Hospitalizations"
+                            - type: view
+                              style: 
+                                width: "0.34"
+                                height: "0.03"
+                                left: "0.017"
+                                textAlign: 
+                                  y: center
+                              children:   
+                                - type: label
+                                  text: Date
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.17"
+                                    display: inline-block
+                                - type: label
+                                  text: Reason
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.17"
+                                    display: inline-block
+                            - .PatientChartListView:
+                              children:   
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.patientChart.name.data.hospitalizations # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  style: 
+                                    width: "0.34"
+                                    height: "auto"
+                                    left: "0"
+                                    margin: "0"
+                                  children: 
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.34" 
+                                        height: "0.03"
+                                        left: "0"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.date
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            textAlign: 
+                                              x: center
+                                            width: "0.17"
+                                            display: inline-block
+                                        - type: label
+                                          dataKey: itemObject.reason
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            textAlign: 
+                                              x: center
+                                            width: "0.17"
+                                            display: inline-block                                                  
+                            - .PatientChartTitle: 
+                              text: " Surgical History"
+                            - type: view
+                              style: 
+                                width: "0.34"
+                                height: "0.03"
+                                left: "0.017"
+                                textAlign: 
+                                  y: center
+                              children:   
+                                - type: label
+                                  text: Date
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.17"
+                                    display: inline-block
+                                - type: label
+                                  text: Reason
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: center
+                                    width: "0.17"
+                                    display: inline-block
+                            - .PatientChartListView:
+                              children:   
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.patientChart.name.data.surgicalHistory # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  style: 
+                                    width: "0.34"
+                                    height: "auto"
+                                    left: "0"
+                                    margin: "0"
+                                  children: 
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.34" 
+                                        height: "0.03"
+                                        left: "0"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.date
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            textAlign: 
+                                              x: center
+                                            width: "0.17"
+                                            display: inline-block
+                                        - type: label
+                                          dataKey: itemObject.reason
+                                          style: 
+                                            fontSize: .Nfont.nf2
+                                            textAlign: 
+                                              x: center
+                                            width: "0.17"
+                                            display: inline-block 
+                            - .PatientChartTitle: 
+                              text: Family History
+                            - .PatientChartListView:
+                              children:   
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formData.patientChart.name.data.familyHistory # to dataObject to enumerate the list
+                                  iteratorVar: itemObject
+                                  style: 
+                                    width: "0.34"
+                                    height: "auto"
+                                    left: "0.01"
+                                    margin: "0"
+                                  children: 
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: "0.33" 
+                                        height: "0.03"
+                                      children:
+                                        - type: label
+                                          text: '-'
+                                          style: 
+                                            top: "0"
+                                            width: "0.05"
+                                            fontSize: .Nfont.nf2
+                                        - type: label
+                                          # text: badsa fsa 
+                                          dataKey: itemObject
+                                          style: 
+                                            marginLeft: "0.01"
+                                            top: "0"
+                                            width: "0.25"
+                                            fontSize: .Nfont.nf2
+                            - .PatientChartTitle: 
+                              text: Obstetrical History
+                            - .PatientChartView:
+                              children: 
+                                - .PatientChartLittleTitle: 
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.pregnancy.currentlyPregnant
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: How many times have you been pregnant?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.pregnancy.pregnantsTimes
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: How many children?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.pregnancy.children
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: How many abortions? 
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.pregnancy.abortionsTime
+                                - .PatientChartLittleTitle: 
+                                  text: Menses
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: How often?
+                                    - .PatientChartLittleData:
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.menses.howOften
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: For how many days?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.menses.howlong
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Do they occur every month?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.menses.isEveryMonth
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Heavy flow?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.menses.isHeavyFlow
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Any spotting or clots?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.menses.spottingOrClots
+                                - .PatientChartLittleTitle: 
+                                  text: Mammogram
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Have you had a mammogram?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.mammogram.haveMammogram
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: When was the last one?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.mammogram.lastTime
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Ever have an abnormal result?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.mammogram.abnormalResult
+                                - .PatientChartLittleView:  
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: If yes, please describe?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.obstetricalHistory.mammogram.abnormalResultDescribe
+                      
+                            - .PatientChartTitle: 
+                              text: Sexual History
+                            - .PatientChartView:
+                              children: 
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Are you sexually active?
+                                    - .PatientChartLittleData: 
+                                      style: 
+                                        textAlign: 
+                                          x: right
+                                      dataKey: formData.patientChart.name.data.sexualHistoryDM.sexuallyActive
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Use condoms for protection?
+                                    - .PatientChartLittleData: 
+                                      style: 
+                                        textAlign: 
+                                          x: right
+                                      dataKey: formData.patientChart.name.data.sexualHistoryDM.useCondom
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: History of STD(s)?
+                                    - .PatientChartLittleData: 
+                                      style: 
+                                        textAlign: 
+                                          x: right
+                                      dataKey: formData.patientChart.name.data.sexualHistoryDM.STDSHistory
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Are you currently on birth control?
+                                    - .PatientChartLittleData: 
+                                      style: 
+                                        textAlign: 
+                                          x: right
+                                      dataKey: formData.patientChart.name.data.sexualHistoryDM.birthControl
+                                - .PatientChartLittleTitle: 
+                                  text: Pap smear
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Have you had a pap smear?
+                                    - .PatientChartLittleData:
+                                      style: 
+                                        textAlign: 
+                                          x: right
+                                      dataKey: formData.patientChart.name.data.sexualHistoryDM.papSmear.havePapSmear
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: When was the last one?
+                                    - .PatientChartLittleData: 
+                                      style: 
+                                        textAlign: 
+                                          x: right
+                                      dataKey: formData.patientChart.name.data.sexualHistoryDM.papSmear.lastTime
+                                - .PatientChartLittleView: 
+                                  style: 
+                                    marginBottom: "0.02"
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Ever have an abnormal result?
+                                    - .PatientChartLittleData:
+                                      style: 
+                                        textAlign: 
+                                          x: right 
+                                      dataKey: formData.patientChart.name.data.sexualHistoryDM.papSmear.abnormalResult
+                            - .PatientChartTitle: 
+                              text: Socical History
+                            - .PatientChartView:
+                              children: 
+                                - .PatientChartLittleTitle: 
+                                  text: Alcohol
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Do you drink?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.alcohol.drink
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: What type?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.alcohol.types
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: How many drinks per week?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.alcohol.timesPerWeek
+                                - .PatientChartLittleTitle: 
+                                  text: Tobacco
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Do you currently use tobacco?
+                                    - .PatientChartLittleData:
+                                      dataKey: formData.patientChart.name.data.socialHistory.tobacco.currently
+                                - .PatientChartLittleTitle: 
+                                  text: Caffeine
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Do you have caffeine?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.caffeine.haveCaffeine
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: What type?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.caffeine.types
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: How many drinks per week?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.caffeine.timesPreDay
+                                - .PatientChartLittleTitle: 
+                                  text: Recreational Drugs
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Do you use illicit drugs?
+                                    - .PatientChartLittleData:
+                                      dataKey: formData.patientChart.name.data.socialHistory.recreationalDrug.haveIllicitDrugs   
+                                - .PatientChartLittleTitle: 
+                                  text: Exerise
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Do you exercise?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.exercise.haveExercise
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: What type?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.exercise.type
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: How many days per week?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.exercise.daysPerWeek
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: How many hours per day?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.exercise.hoursPerDay     
+                                - .PatientChartLittleTitle: 
+                                  text: Nutrition/Diet
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Do you follow a diet?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.nutrition.haveDiet
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: What type?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.nutrition.type
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: How many meals on average per day?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.nutrition.mealsPerDay
+                                - .PatientChartLittleTitle: 
+                                  text: Personal Safety
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Do you live alone?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.personalSafety.liveAlone
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Do you frequently fall?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.personalSafety.frequentlyFall
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText: 
+                                      text: Need assistance walking?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.personalSafety.needAssistanceWalking
+                                - .PatientChartLittleView: 
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Have you ever been abused?
+                                    - .PatientChartLittleData: 
+                                      dataKey: formData.patientChart.name.data.socialHistory.personalSafety.abused
+                                - .PatientChartLittleView: 
+                                  style: 
+                                    marginBottom: "0.01"
+                                  children: 
+                                    - .PatientChartLittleText:
+                                      text: Do you wear a seatbelt?
+                                    - .PatientChartLittleData:
+                                      dataKey: formData.patientChart.name.data.socialHistory.personalSafety.seatBelt
+                            - type: view
+                              style:
+                                height: "0.06"
+                                marginTop: "0.03"
+                              children: 
+                                - type: button
+                                  text: Confirm
+                                  style:
+                                    width: "0.1"
+                                    marginLeft: "0.132"
+                                    height: "0.04"
+                                    color: "0xffffff"
+                                    fontSize: .Nfont.nf2
+                                    border: 
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0x1263a8"
+                                    borderRadius: "5"
+                                    backgroundColor: "0x1263a8"
+                                    textAlign:
+                                      x: center
+                                      y: center
+        
+        
+        # invite button——provider 列表
+        - type: popUp
+          style:
+            width: '1' 
+            height: '1'
+            top: '0'
+            left: '0'     
+            backgroundColor: '0x00000033'
+            zIndex: "1000"
+          viewTag: ProviderListTag
+          children:
+            - .PopUphead:
+              style: 
+                left: "0.6"
+              children:
+                - .CreateLabel:
+                  text: 'Invite'
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: ProviderListTag    
+            - type: view
+              style:
+                height: '0.92'
+                width: '0.4'
+                left: "0.6"
+                top: '0.08'
+                backgroundColor: '0xffffff'
+              viewTag: ProviderDataTag
+              children:
+                - type: view
+                  style: 
+                    left: "0.03"
+                    width: "0.34"
+                    top: "0.02"
+                    height: "0.04"
+                    border: 
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xbbbbbb"
+                    borderRadius: "10"
+                  children: 
+                    - type: textField
+                      placeholder: Search
+                      style: 
+                        left: "0.007"
+                        width: "0.2"
+                        top: "0"
+                        height: "0.038"
+                        fontSize: .Nfont.nf2
+                        border: 
+                          style: "1"
+                    - type: button
+                      text: Search
+                      style: 
+                        left: "0.28"
+                        width: "0.06"
+                        height: "0.04"
+                        fontSize: .Nfont.nf2
+                        color: "0xffffff"
+                        backgroundColor: "0x2988e6"
+                        border: 
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0x2988e6"
+                        borderRadius: "10"
+                - type: label
+                  text: Provider List
+                  style: 
+                    left: "0.03"
+                    width: "0.34"
+                    top: "0.08"
+                    height: "0.04"
+                    fontSize: .Nfont.nf4
+                    fontFamily: sans-serif
+                    fontWeight: "500"
+                    textAlign: 
+                      y: center
+                - type: scrollView
+                  style:
+                    width: '0.36'
+                    height: '0.78'  
+                    top: '0.12'   
+                    left: '0.02'
+                    overflow: scroll
+                  children:
+                    - .BaseList:
+                      listObject: ..providerList.list.doc
+                      style:
+                        width: '0.36'
+                        height: "auto" 
+                        display: flex
+                        margin: "0"
+                      children:
+                        - .BaseListItem:
+                          style:
+                            height: '0.05'
+                            width: '0.36'
+                            display: inline-block
+                            border: 
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0xbbbbbb"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..afterAgree.edgeResp@: []
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..apiRequest.inviteParticipant.edge.evid@: $var.bsig
+                                  - ..apiRequest.inviteParticipant.edge.refid@: =..inMeeting.edgeResp.edge.0.id
+                                  - ..apiRequest.inviteParticipant.edge.stime@: =..inMeeting.edgeResp.edge.0.stime
+                                  - ..apiRequest.inviteParticipant.edge.etime@: =..inMeeting.edgeResp.edge.0.etime
+                                  - ..apiRequest.inviteParticipant.edge.name.role@: "Provider"
+                                  - ..apiRequest.inviteParticipant.edge.name.roleName@: $var.name.data.fullName
+                                  - =..apiRequest.inviteParticipant.edgeAPI.store: ""
+                            - actionType: evalObject
+                              object: 
+                                .Global._nonce@: 
+                                  =.builtIn.math.random: "" 
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.inviteParticipant.edgeGetResp.edge@: []
+                                - =..apiRequest.inviteParticipant.edgeAPI.get: "" 
+                            - actionType: popUpDismiss
+                              popUpView: ProviderListTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: participantsView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: providerInfo2Tag
+                          children:
+                            - .Label1:
+                              dataKey: itemObject.name.data.fullName
+                              style: 
+                                height: '0.05'
+                                textAlign:
+                                  y: center
+                                left: '0.04'
+                                fontSize: .Nfont.nf1
+                            - .Label1:
+                              text=func: .builtIn.string.formatUnixtimeL_en
+                              dataKey: itemObject.ctime
+                              style:
+                                top: "0"  
+                                height: '0.05'
+                                textAlign:
+                                  y: center
+                                left: '0.25'
+                                fontSize: .Nfont.nf1
+        
+      # patient profile popUp
+        - type: popUp
+          viewTag: patientProfile
+          style:
+            width: '1' 
+            height: '1'
+            top: '0'  
+            backgroundColor: '0x00000033'
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                backgroundColor: "0xFFFFFF" 
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Patient Profile"
+                    - .Closebutton:
+                      onClick:
+                        # Clear current patient information
+                        - actionType: evalObject
+                          object:
+                            - ..formData.patdInfo@: ""
+                            - ..formData.patInfoEmerContactFullName@: ""
+                            - ..formData.patdInfoEmploymentAddress@: ""
+                        - actionType: popUpDismiss
+                          popUpView: patientProfile
+                # information
+                - type: view
+                  viewTag: infoView
+                  style:
+                    height: '0.92'
+                    width: '0.31'
+                    top: '0.08'
+                    left: "0.055"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.295"
+                        height: "auto"
+                        left: "0"
+                        marginTop: "0.03"
+                      children:
+                        - type: image
+                          path: patientDefault.svg
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: profile.docResponse.doc.0.name.data.basicInfo.avatar
+                          style:
+                            width: "0.05"
+                            height: "0.082"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          dataKey: profile.docResponse.doc.0.name.data.basicInfo.fullName
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            marginTop: "0"
+                            fontSize: .Nfont.nf5
+                            fontFamily: "Roboto"
+                            fontWeight: "600"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf2
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "User Name:"
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.userName
+                              style:
+                                marginLeft: "0.01"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf2
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "Phone #:"
+                              dataKey: 
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.phone
+                              style:
+                                marginLeft: "0.01"
+                    - type: view
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - .Global.formData.reply.eid@: =..apiRequest.connection.edgeResp.edge.0.id
+                            - .Global.formData.reply.name.data.receiverAvatarId@: =..profile.docResponse.doc.0.name.data.basicInfo.avatar
+                            - .Global.formData.reply.name.data.receiverName@: =..profile.docResponse.doc.0.name.data.basicInfo.fullName
+                        - goto: NewMessage
+                      style:
+                        top: "0.04"
+                        left: "0.295"
+                        height: "auto"
+                      children:
+                        - type: image
+                          path: Inbox.svg
+                          style:
+                            height: "0.016"
+                            marginTop: "0"
+                        - type: label
+                          text: Mail
+                          style:
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                    - type: scrollView
+                      style:
+                        width: "0.295"
+                        height: "0.74"
+                        left: "0"
+                        marginTop: "0.02"
+                        overflow: hidden
+                      children:
+                        # Basic Info Start
+                        - .ProfileInfoTitle:
+                          text: "Basic Info"
+                          style:
+                            marginTop: "0"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "User Name"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.userName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Date of Birth"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.dateOfBirth
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Gender"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.gender
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Social Security #"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.socialSecurity
+                        # Basic Info End
+
+                        # Contact Start
+                        - .ProfileInfoTitle:
+                          text: "Contact"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Alternate Phone #"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.contactInfo.alternatePhone.fullPhone
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Email"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.contactInfo.email
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Address"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.contactInfo.address.fullAddress
+                        # Contact End
+
+
+                        # Emergency Contact Start
+                        - .ProfileInfoTitle:
+                          text: "Emergency Contact"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Name"
+                            - .ProfileInfoRightText:
+                              dataKey: formData.patInfoEmerContactFullName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Relation"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.emergencyContact.relation
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Phone #"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.emergencyContact.phone.fullPhone
+                        # Emergency Contact End
+
+                        # Employment Information Start
+                        - .ProfileInfoTitle:
+                          text: "Employment Information"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Employer Name"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.employerName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Dept."
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.dept
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Nature of business"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.NatureBusiness
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Occupation"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.Occupation
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Telephone #"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.Telephone
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Fax #"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.fax
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Email"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.email
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Address"
+                            - .ProfileInfoRightText:
+                              dataKey: profile.docResponse.doc.0.name.data.employment.address.fullAddress
+                        # Employment Information End  
+
+                        # Medical Insurance Start
+                        - .ProfileInfoTitle:
+                          text: "Medical Insurance"
+
+                        - type: view
+                          viewTag: medicalInsuranceTag
+                          style:
+                            marginTop: "0"
+                            width: "0.28"
+                            height: "auto"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.patdInfoMedicalInsurance
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.28"
+                                margin: "0"
+                                left: "0"
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: "0.28"
+                                    left: "0"
+                                    marginTop: "0.01"
+                                    backgroundColor: "0xf0f2f4"
+                                  children:
+                                    - type: view
+                                      style: 
+                                        marginTop: "0.015"
+                                        width: "0.26"
+                                        left: "0.01"
+                                        height: "0.09"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.name.data.memberName
+                                          style:
+                                            top: "0.01"
+                                            width: "0.13"
+                                            fonSize: .Nfont.h1
+                                        - type: label
+                                          text: "1630163102673210104701"
+                                          dataKey: itemObject.name.data.memberId
+                                          style:
+                                            top: "0.01"
+                                            marginLeft: "0.13"
+                                            width: "0.13"
+                                            fonSize: .Nfont.n6_3
+                                            textAlign:
+                                              x: right
+                                        - .MedicInsuranceLeftText:
+                                          text: "UnitedHealth Group Inc."
+                                          dataKey: itemObject.name.data.companyName
+                                          style:
+                                            top: "0.05"
+                                        - .MedicInsuranceLeftText:
+                                          text: "Stomatology Department Plan"
+                                          dataKey: itemObject.name.data.planOrMedicalGroup
+                                          style:
+                                            top: "0.07"
+                                    - type: view
+                                      style:
+                                        height: "0.01"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                      children:
+                                        - type: image
+                                          path: downArrowGray.svg
+                                          style:
+                                            height: "0.008"
+                                            width: "0.012"
+                                            display: itemObject.isShowDownArrowGray
+                                          onClick:
+                                            - emit: 
+                                                dataKey: 
+                                                  var: itemObject
+                                                actions: 
+                                                  - =.builtIn.object.setProperty: 
+                                                      dataIn: 
+                                                        obj: =..formData.patdInfoMedicalInsurance
+                                                        label: "id"
+                                                        text: $var.id
+                                                        arr: ["isShowDownArrowGray","isShowMedicalInsuranceInfo","isShowUpArrowGray"]
+                                                        valueArr: ["none","block","block"]
+                                                        errorArr: ["block","none","none"]                                             
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: medicalInsuranceTag
+                                    - type: view
+                                      dataKey:
+                                      style:
+                                        width: "0.24"
+                                        height: "auto"
+                                        left: "0.01"
+                                        marginTop: "0"
+                                        fontSize: .Nfont.nf0
+                                        fontFamily: "Roboto"
+                                        display: itemObject.isShowMedicalInsuranceInfo
+                                      children:
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Medical Insurance Company Name"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.companyName
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Insurance plan or medical group"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.planOrMedicalGroup
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Member Name"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.memberName
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Insurance Member ID"
+                                            - .MedicInsuranceRightText:          
+                                              dataKey: itemObject.name.data.memberId
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Group number #"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.groupNumber
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Policy number #"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.policyNumber
+                                        - .MedicInsuranceTextView:
+                                          children:
+                                            - .MedicInsuranceLeftText:
+                                              text: "Relationship to Patient"
+                                            - .MedicInsuranceRightText:
+                                              dataKey: itemObject.name.data.relation                                            
+                                        - .MedicInsuranceTextView: 
+                                          style:
+                                            marginTop: "0.02"
+                                            width: "0.26"
+                                            height: "0.12"
+                                          children:
+                                            - type: view
+                                              style:
+                                                width: "0.13"
+                                              children:
+                                                - type: image
+                                                  path: driverLicense.svg
+                                                  dataKey: itemObject.name.data.front_InsuranceCardId
+                                                  path=func: .builtIn.utils.prepareDocToPath
+                                                  style:
+                                                    width: "0.09"
+                                                    borderRadius: "5"
+                                                    height: "0.1"
+                                                - type: label
+                                                  text: "Front of Insurance Card"
+                                                  style:
+                                                    color: "0x666666"
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf0 
+                                                    fontFamily: "Roboto"   
+                                            - type: view
+                                              style:
+                                                width: "0.13"
+                                              children:                                             
+                                                - type: image
+                                                  path: driverLicense.svg
+                                                  dataKey: itemObject.name.data.back_InsuranceCardId
+                                                  path=func: .builtIn.utils.prepareDocToPath
+                                                  style:
+                                                    width: "0.09"
+                                                    borderRadius: "5"
+                                                    height: "0.1"
+                                                - type: label
+                                                  text: "Back of Insurance Card"
+                                                  style:
+                                                    color: "0x666666"
+                                                    marginLeft: "0.01"
+                                                    fontSize: .Nfont.nf0 
+                                                    fontFamily: "Roboto"
+                                    - type: view
+                                      style:
+                                        height: "0.02"
+                                        textAlign:
+                                          x: center
+                                          y: center
+                                      children:                                                                 
+                                        - type: image
+                                          path: upArrowGray.svg
+                                          style:
+                                            height: "0.008"
+                                            width: "0.012"
+                                            display: itemObject.isShowUpArrowGray
+                                          onClick:
+                                            - emit: 
+                                                dataKey: 
+                                                  var: itemObject
+                                                actions: 
+                                                  - =.builtIn.object.setProperty: 
+                                                      dataIn: 
+                                                        obj: =..formData.patdInfoMedicalInsurance
+                                                        label: "id"
+                                                        text: $var.id
+                                                        arr: ["isShowDownArrowGray","isShowMedicalInsuranceInfo","isShowUpArrowGray"]
+                                                        valueArr: ["block","none","none"]                                                        
+                                                        errorArr: ["none","block","block"]
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: medicalInsuranceTag
+                        # Medical Insurance End
+
+                        # Identification Start
+                        - .ProfileInfoTitle:
+                          text: "Identification"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "ID type"
+                            - .ProfileInfoRightText:
+                              dataKey:  profile.docResponse.doc.0.name.data.identification.type
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "ID #"
+                            - .ProfileInfoRightText:
+                              dataKey:  profile.docResponse.doc.0.name.data.identification.id
+                        - type: image
+                          dataKey:  profile.docResponse.doc.0.name.data.identification.imageId
+                          path=func: .builtIn.utils.prepareDocToPath
+                          style:
+                            marginTop: "0.01"
+                            width: "0.15"
+                            height: "0.17"
+                            borderRadius: "3"
+                          onClick:
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: idImgView
+                            - actionType: popUp
+                              popUpView: idImgView
+                        - type: label
+                          text: "ID Image Upload"
+                          style:
+                            marginTop: "0"
+                            width: "0.15"
+                            fontSize: .Nfont.nf1
+                            textAlign:
+                              x: center
+                        # Identification End 
+        # Provider的个人信息
+        - type: popUp
+          viewTag: providerProfile
+          style:
+            width: "1" 
+            height: "1"
+            top: "0"
+            left: "0"     
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                backgroundColor: "0xFFFFFF" 
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: "Provider Profile"
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: providerProfile
+                - type: view
+                  viewTag: infoView
+                  style:
+                    height: "0.92"
+                    width: "0.31"
+                    top: "0.08"
+                    left: "0.055"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.295"
+                        height: "auto"
+                        left: "0"
+                        marginTop: "0.03"
+                      children:
+                        - type: image
+                          path: providerDefault.svg
+                          dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.avatar
+                          path=func: .builtIn.utils.prepareDocToPath
+                          style:
+                            height: "0.082"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.fullName
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            marginTop: "0"
+                            fontSize: .Nfont.nf5
+                            fontFamily: "Roboto"
+                            fontWeight: "600"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf2
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "User Name:"
+                              dataKey: 
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.userName
+                              style:
+                                marginLeft: "0.01"
+                        - type: view
+                          style:
+                            left: "0.062"
+                            width: "0.14"
+                            height: "auto"
+                            marginTop: "0.01"
+                            fontSize: .Nfont.nf2
+                            fontFamily: "Roboto"
+                            display: flex
+                            alignItems: center
+                          children:
+                            - type: label
+                              text: "Phone #:"
+                              dataKey: 
+                              style:
+                                marginLeft: "0"
+                            - type: label
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.phone
+                              style:
+                                marginLeft: "0.01"
+                    - type: view
+                      onClick: 
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.connection.edgeIn.id.1@: =..apiRequest.providerInfo.docResp.doc.0.bsig
+                            - =..apiRequest.connection.edgeAPI.get: ""
+                            - .Global.formData.reply.eid@: =..apiRequest.connection.edgeResp.edge.0.id
+                            - .Global.formData.reply.name.data.receiverAvatarId@: =..apiRequest.providerInfo.docResp.doc.0.name.data.avatar
+                            - .Global.formData.reply.name.data.receiverName@: =..apiRequest.providerInfo.docResp.doc.0.name.data.fullName
+                        - goto: NewMessage                    
+                      style:
+                        top: "0.04"
+                        left: "0.295"
+                        height: "auto"
+                      children:
+                        - type: image
+                          path: Inbox.svg
+                          style:
+                            height: "0.016"
+                            marginTop: "0"
+                        - type: label
+                          text: Mail
+                          style:
+                            fontSize: .Nfont.nf0
+                            fontFamily: "Roboto"
+                    - type: scrollView
+                      viewTag: prodInfoTag
+                      style:
+                        width: "0.295"
+                        height: "0.74"
+                        left: "0"
+                        marginTop: "0.02"
+                        overflow: hidden
+                      children:
+                        # Basic Info Start
+                        - .ProfileInfoTitle:
+                          text: "Basic Info"
+                          style:
+                            marginTop: "0"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "First Name"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.firstName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Middle Name"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.middleName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Last Name"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.lastName
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Title Training"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.title
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Language Spoken"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.languages
+                              style: 
+                                wordBreak: break-all
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Gender"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.gender
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Email"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.email
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Fax #"
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.fax
+                        # Basic Info End
+
+                        # Credentials Start
+                        - .ProfileInfoTitle:
+                          text: "Credentials"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Specialty and board certified"
+                              style:
+                                width: "0.295"
+                        - type: list
+                          contentType: listObject
+                          listObject: ..apiRequest.providerInfo.docResp.doc.0.name.data.specialty
+                          iteratorVar: itemObject
+                          style:
+                            width: "0.295"
+                            margin: "0"
+                            left: "0"
+                            height: "auto"
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                width: "0.295"
+                                height: "auto"
+                                left: "0"
+                                marginTop: ""
+                              children:
+                                - .ProfileInfoTextView:
+                                  children:
+                                    - .ProfileInfoLeftText:
+                                      dataKey: itemObject.specialty
+                                      style:
+                                        width: "auto"
+                                        fontWeight: ""
+                                    - .ProfileInfoRightText:
+                                      dataKey: itemObject.boardCertified
+                                      style:
+                                        marginLeft: "0.02"
+                                        width: "0.02"
+                                        borderLeft: "1px solid #666666"
+                                        fontSize: .Nfont.nf0
+                                        textAlign:
+                                          x: center
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Medical License"
+                              style:
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..apiRequest.providerInfo.docResp.doc.0.name.data.MedicalLicense
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.23"
+                                marginLeft: "0.01"
+                                margin: "0"
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: "0.23"
+                                    height: "0.03"
+                                    marginTop: ""
+                                    display: flex
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.medicalLicense
+                                      style:
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top  
+                                    - type: label
+                                      text: "|"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top  
+                                    - type: label
+                                      dataKey: itemObject.state
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top    
+                                    - type: label
+                                      text: "|"
+                                      dataKey: 
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top  
+                                    - type: label
+                                      dataKey: itemObject.expiration
+                                      style:
+                                        marginLeft: "0.005"
+                                        height: "0.03"
+                                        fontFamily: "Roboto"
+                                        fontSize: .Nfont.nf2
+                                        color: "0x333333"
+                                        textAlign:
+                                          y: top
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "NPI #"
+                              style:
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.NPI
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "DEA #"
+                              style:
+                            - .ProfileInfoRightText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.DEA
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Description"
+                              style:
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.description
+                              style:
+                                fontWeight: ""
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "Education and training"
+                              style:
+                                width: "0.295"
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.education
+                              style:
+                                left: "0"
+                                width: "0.295"
+                                fontWeight: ""
+                        - .ProfileInfoTextView:
+                          children:
+                            - .ProfileInfoLeftText:
+                              text: "CV"
+                              style:
+                                width: "0.295"
+                            - .ProfileInfoRightText:
+                              text: "View"
+                              style:
+                                color: "0x004779"
+                                textDecoration: underline
+                                isHidden: ..formData.cvViewFlag
+                              onClick:
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: viewCvTag
+                                - actionType: popUp
+                                  popUpView: viewCvTag
+                        # Credentials End
+        # 查看图片的弹框 
+        - type: popUp
+          viewTag: searchCvView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children: 
+            - type: view
+              style: 
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"   
+              children: 
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children: 
+                    - type: image
+                      path: close.svg
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children: 
+                    - type: image
+                      path: null.png
+                      dataKey: formData.searchProd.name.data.cv
+                      path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"                        
+                           
+        - type: popUp
+          viewTag: viewCvTag
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children: 
+            - type: view
+              style: 
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"   
+              children: 
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children: 
+                    - type: image
+                      path: close.svg
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children: 
+                    - type: image
+                      path: null.png
+                      dataKey: apiRequest.providerInfo.docResp.doc.0.name.data.cv
+                      path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+
+    
+
+              
+
+
+
+

@@ -1,0 +1,272 @@
+ModernaVaccineFirDoseReviewPage3:
+  title: "Moderna Vaccine Form - First Dose"
+  pageNumber: "450" 
+
+  init: # Page initialization
+    - .SignInCheck
+    - ..formData.screeningEligibility@: =.Global.formData.modernaVaccineFirDoseForm.name.data.screeningEligibility
+  formData: # Input data here
+    screeningEligibility: {}
+
+  formDataTemp: # Input data temp here, datatemp should not mix with formData
+    recevingDose: 
+      - key: recevingDose
+        value: "Yes"
+      - key: recevingDose
+        value: "No"
+    ingredient: 
+      - key: ingredient
+        value: "Yes"
+      - key: ingredient
+        value: "No"  
+
+  apiRequest: # Input data request here
+
+  style: # Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormLeft:
+                  onClick:
+                    goto: ModernaVaccineFirDoseReviewPage2
+                - .SwitchFormRight:
+                  onClick:
+                    goto: ModernaVaccineFirDoseReviewPage4        
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - type: image
+                      path: firDose5_3.svg
+                      style:
+                        marginTop: "0.025"
+                        width: "0.39"
+                    # TYPE TITLE
+                    - .FormsTypeTitle:
+                    - .FormsContentTitle:
+                      text: Screening for Vaccine Eligibility
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.57"
+                        overflow: scroll
+                        marginTop: "1vw"
+                      children: 
+                        - type: label
+                          text: "Please answer the following questions:"
+                          dataKey: 
+                          style:
+                            width: "0.39"
+                            height: "4vw"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.5"
+                            color: "0x000000"
+                        - type: label
+                          text: Have you had a severe allergic reaction after receiving a previous dose of COVID-19 vaccine?
+                          style:
+                            width: "0.39"
+                            height: "7vw"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.5"
+                            color: "0x818181"
+                        - type: view
+                          style:
+                            width: "0vw"
+                            height: "3vw"
+                            top: "7vw"
+                            left: "0.25"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.recevingDose
+                              viewTag: screeningView
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.12'
+                                margin: '0'
+                                display: flex
+                                axis: horizontal
+                        
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '7vw'
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    - type: image
+                                      style:
+                                        width: "1.5vw"
+                                      path: 
+                                        emit:
+                                          dataKey: 
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..formData.screeningEligibility.recevingDose
+                                                    string2: $var.value
+                                              - selectBlue.svg
+                                              - selectGray.svg 
+                                      # onClick: 
+                                      #   - emit:
+                                      #       dataKey:
+                                      #         var: itemObject
+                                      #       actions: 
+                                      #         - if:
+                                      #           - =.builtIn.string.equal:
+                                      #               dataIn:
+                                      #                 string1: =..formDataTemp.single.0.consent
+                                      #                 string2: $var.value1
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.single.0
+                                      #                 key: $var.key
+                                      #                 value: ""
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.single.0
+                                      #                 key: $var.key
+                                      #                 value: $var.value1
+                                        # - actionType: builtIn
+                                        #   funcName: redraw
+                                        #   viewTag: screeningView
+                                    - type: label
+                                      dataKey: itemObject.value
+                                      style: 
+                                        width: "6vw"    
+                                        height: "2vw"
+                                        display: flex
+                                        justifyContent: center
+                                        alignItems:  center
+                                        fontSize: .Nfont.nf4
+                                        
+                        - type: label
+                          text: Have you had a severe allergic reaction to any ingredient in the Moderna COVID-19 vaccine?
+                          style:
+                            width: "0.39"
+                            height: "7vw"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.5"
+                            color: "0x818181"
+                        - type: view
+                          style:
+                            width: "10vw"
+                            height: "3vw"
+                            display: flex
+                            top: "13.5vw"
+                            left: "0.25"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.ingredient
+                              viewTag: screeningView
+                              iteratorVar: itemObject
+                              style:
+                                width: '20vw'
+                                margin: '0'
+                                display: flex
+                                axis: horizontal
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '7vw'
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    - type: image
+                                      style:
+                                        width: "1.5vw"
+                                      path: 
+                                        emit:
+                                          dataKey: 
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..formData.screeningEligibility.ingredient
+                                                    string2: $var.value
+                                              - selectBlue.svg
+                                              - selectGray.svg 
+                                      # onClick: 
+                                      #   - emit:
+                                      #       dataKey:
+                                      #         var: itemObject
+                                      #       actions: 
+                                      #         - if:
+                                      #           - =.builtIn.string.equal:
+                                      #               dataIn:
+                                      #                 string1: =..formDataTemp.singleTwo.0.consent
+                                      #                 string2: $var.value1
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.singleTwo.0
+                                      #                 key: $var.key
+                                      #                 value: ""
+                                      #           - =.builtIn.object.set:
+                                      #               dataIn:
+                                      #                 object: =..formDataTemp.singleTwo.0
+                                      #                 key: $var.key
+                                      #                 value: $var.value1
+                                        # - actionType: builtIn
+                                        #   funcName: redraw
+                                        #   viewTag: screeningView
+                                    - type: label
+                                      dataKey: itemObject.value
+                                      style: 
+                                        width: "6vw"    
+                                        height: "2vw"
+                                        display: flex
+                                        justifyContent: center
+                                        alignItems: center
+                                        fontSize: .Nfont.nf4
+                        - type: label
+                          text: "Components of the Moderna COVID-19 vaccine: nucleoside modified messenger RNA (modRNA) encoding the viral spike (S) glycoprotein of SARS-CoV-2, sodium chloride, lipids, polyethylene glycol, potassium chloride, monobasic potassium phosphate, dibasic sodium phosphate dihydrate, and sucrose."
+                          style:
+                            width: "0.39"
+                            height: "auto"
+                            fontSize: .Nfont.nf4
+                            lineHeight: "1.7"
+                            color: "0x818181"                                                        
+                    # - .FormsCloseButton:                    
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      style: 
+                        backgroundColor: "0xc1c1c1"

@@ -1,0 +1,1534 @@
+DWCFormRFAPrivate:
+  title: DWC Form RFA
+  init: #Page initialization
+    - .SignInCheck
+    #  判断medicalLicense是否为空
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =.Global.formData.providerInfo.name.data.MedicalLicense
+        dataOut: DWCFormRFAPrivate.formData.licenseLength
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..formData.licenseLength
+              string2: "0"
+        - .DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.name.data.providerInfo.stateNumber@: ""
+        - .DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.name.data.providerInfo.stateNumber@: .Global.formData.providerInfo.name.data.MedicalLicense.0.medicalLicense
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =.Global.formData.providerInfo.name.data.specialty
+        dataOut: DWCFormRFAPrivate.formData.specialtyLength
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..formData.specialtyLength
+              string2: "0"
+        - .DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.name.data.providerInfo.specialty@: ""
+        - .DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.name.data.providerInfo.specialty@: .Global.formData.providerInfo.name.data.specialty.0.specialty
+    
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.Global.currentFacility.name.basicInfo.city
+          - ","
+          - =.Global.currentFacility.name.basicInfo.state
+          - ","
+          - =.Global.currentFacility.name.basicInfo.zipCode
+        dataOut: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.name.data.providerInfo.CSZ
+    # 传入已经填过的数据
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - ..apiRequest.dWCFormRFA.docReq@: =.Global.formData.medicalRecords
+        - actionType: evalObject
+          object:
+            #页面进入时就创建文档
+            - =..apiRequest.dWCFormRFA.docAPI.store: ""
+            # 将创建的文档数据重新给dWCFormRFA进行update
+            - ..apiRequest.dWCFormRFA.docReq@: =..apiRequest.dWCFormRFA.docResp.doc
+    - ..formData.checkBox.select@: =..apiRequest.dWCFormRFA.docReq.name.data.checkBox
+    - if:
+        - =..apiRequest.dWCFormRFA.docReq.name.data.providerInfo.whetherSign
+        - continue
+        - actionType: evalObject
+          object:
+          # 签名的时间
+            - ..formData.temporarySignature@: =..apiRequest.dWCFormRFA.docReq.name.data.signatureId
+            - ..formData.flag@: "block"
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+
+
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    dayLable: []
+    todayDate: ""
+    monthName: ""
+
+  formDataTemp:
+    checkBoxTemp:
+      - key: select
+        value: "Check box if the patient faces an imminent and serious threat to his or her health."
+        tag: "1"
+      - key: select
+        value: "Check box if request is written confirmation of a prior oral request."
+        tag: "2"
+
+  formData:
+    proFlag: "none"
+    agentFlag: "none"
+    flag: "none"
+    temporaryProSignature: ""
+    temporaryAgentSignature: ""
+    specialtyLength: ""
+    licenseLength: ""
+    whetherProSign: true
+    whetherAgentSign: ""
+    checkBox:
+      select: ""
+    requestBox: []
+  apiRequest:
+    # 签名文档
+    newSign:
+      docResp: ""
+      docReq: #DOC
+        .Document: ""
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.docReq.subtype.mediaType
+          data:
+            size: ""
+        eid: .Global.formData.meetingDocEid
+        fid: ""
+        reid: ""
+        subtype:
+          mediaType: "" # mediaType : "image/jpeg"
+      docAPI: # DOCAPI
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: DWCFormRFAPrivate.apiRequest.newSign.docReq
+          dataOut: DWCFormRFAPrivate.apiRequest.newSign.docResp
+
+    # dWCFormRFA文档
+    dWCFormRFA:
+      docResp: ""
+      docReq:
+        .Document: ""
+        eid: .Global.formData.meetingDocEid
+        reid: ""
+        type: .DocType.dWCFormRFA
+        subtype:
+          mediaType: "application/json"
+        name:
+          title: "DWC Form RFA"
+          user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          type: "text/plain"
+          subtype:
+            isEncrypt: true
+          data:
+            classTag:
+              name: Admin
+              fontColor: "0x005795"
+              backgroundColor: "0xe9f2fc"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"
+              backgroundColor: "0xececee"
+              display: block
+            fontcolor: ""
+            authority: ""
+            checkBox: ""
+            requestBox: ""
+            patientInfo:
+              patientName: .Global.formData.patientInfo.name.data.basicInfo.fullName
+              birth: .Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+              employer: .Global.formData.patientInfo.name.data.employment.employerName
+              injuryDate: ""
+              claimNumber: ""
+            providerInfo:
+              providerName: .Global.formData.providerInfo.name.data.fullName
+              practiceName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+              address: .Global.currentFacility.name.basicInfo.location
+              CSZ: ""
+              phoneNumber: .Global.currentFacility.name.basicInfo.phoneNumber
+              faxNumber: .Global.currentFacility.name.basicInfo.fax
+              specialty: ""
+              stateNumber: ""
+              idNumber: .Global.formData.providerInfo.name.data.NPI
+              signatureId: ""
+              whetherSign: "true"
+            administratorInfo:
+              signatureId: ""
+              whetherSign: ""
+              administrator: ""
+              claimsNumber: ""
+              claimsAddress: ""
+              city: .Global.formData.patientInfo.name.data.employment.address.city
+              state: "AK"
+              zipCode: .Global.formData.patientInfo.name.data.employment.address.zipCode
+              phone: .Global.formData.patientInfo.name.data.employment.Telephone
+              fax: .Global.formData.patientInfo.name.data.employment.fax
+              diagnosis: ""
+              ICD: ""
+              pequested: ""
+              CPT: ""
+              otherInfo: ""
+              dateRequest: ""
+              dateReceived: ""
+              dateResponse: ""
+              agentName: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq
+          dataOut: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docResp
+          subtype:
+            mediaType: "text/plain"
+        delete:
+          api: dx
+          dataIn: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq
+
+
+  components:
+
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                    # backgroundColor: "0xff000033"
+                  children:
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.74"
+                        overflow: scroll
+                      children:
+                        - type: view 
+                          style: 
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: auto
+                          children:
+                            - type: label
+                              text: State of California
+                              style:
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf4
+                                height: auto
+                                width: "0.39"
+                                textAlign: 
+                                  x: center
+                                  y: center
+                            - type: label
+                              text: DIVISION OF WORKERS’ COMPENSATION REQUEST FOR AUTHORIZATION FOR MEDICAL TREATMENT (DWC FORM RFA)
+                              style:
+                                marginTop: "0.01"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                                textAlign: 
+                                  x: center
+                                  y: center
+                            - type: label
+                              text: To accompany the Doctor's First Report of Occupational Injury or Illness, Form DLSR 5021, a Treating Physician's Progress Report, DWC Form PR-2, or narrative report substantiating the requested treatment.
+                              style:
+                                marginTop: "0.02"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf4
+                                height: auto
+                                left: "0"
+                                width: "0.39"    
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                width: auto
+                                height: "auto"
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.checkBoxTemp
+                                  iteratorVar: itemObject
+                                  viewTag: checkBoxTag
+                                  style:
+                                    width: "0.39"
+                                    height: "auto"
+                                  children:
+                                    - type: listItem
+                                      itemObject:
+                                      style:
+                                        width: "0.39"
+                                        height: "auto"
+                                        left: "0"
+                                        marginTop: "0.01"
+                                      children:
+                                        - type: image
+                                          style:
+                                            left: "0"
+                                            top: "0.003"
+                                            height: "0.024"
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.checkBox.select
+                                                          string2: $var.tag
+                                                    - selectBlue.svg
+                                                    - selectGray.svg
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..formData.checkBox.select
+                                                            string2: $var.tag
+                                                      - =.builtIn.object.clear:
+                                                          dataIn:
+                                                            object: =..formData.checkBox
+                                                            key: $var.key
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..formData.checkBox
+                                                            key: $var.key
+                                                            value: $var.tag
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: checkBoxTag
+
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style:
+                                            fontFamily: Poppins
+                                            fontSize: 1.5vh
+                                            height: "0.03"
+                                            left: "0.03"
+                                            width: "0.36" 
+                                            marginTop: "0.01"
+                                            textAlign:
+                                              y: center
+                    
+                        - type: view
+                          style:
+                            marginTop: "0.04"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                            # backgroundColor: "pink"
+                          children:
+                            - type: view
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                # backgroundColor: "pink"
+                              children: 
+                                - type: label
+                                  text: Patient Info
+                                  style:
+                                    fontFamily: Poppins
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "600"
+                                    height: auto
+                                    width: "0.39"  
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "0.002"
+                                    width: "0.39"  
+                                    backgroundColor: "0xdededf"      
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: auto
+                                width: "0.39"
+                                # backgroundColor: "pink"
+                              children:
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Patient Name
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.patientInfo.patientName
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Date of Birth
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.patientInfo.birth
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Date of injury
+                                    - type: view
+                                      viewTag: selectInjuryDateTag
+                                      style:
+                                        display: flex
+                                        flexDirection: column
+                                        flexWrap: wrap
+                                        justifyContent: center
+                                        alignItems: flex-start                                     
+                                        top: "0"
+                                        left: "0.24"
+                                        width: "0.15"
+                                        height: "0.03"
+                                        border:
+                                          style: "3"
+                                        borderRadius: "3"
+                                        borderColor: "0xdedede"
+                                        boxSizing: border-box
+                                        overflow: hidden
+                                      children:
+                                        - type: textField
+                                          isEditable: false
+                                          placeholder: Select Date
+                                          dataKey: apiRequest.dWCFormRFA.docReq.name.data.patientInfo.injuryDate
+                                          style:
+                                            textIndent: "0.5em"
+                                            width: "0.13"
+                                            height: "0.03"
+                                            boxSizing: border-box
+                                            fontSize: .Nfont.nf1
+                                            border:
+                                              style: "5"
+                                            display: inline-block
+                                            backgroundColor: "0xffffff"
+                                            color: "0x333333" 
+                                        - type: image
+                                          path: calendarBlue.svg
+                                          style:
+                                            width: "0.009"
+                                      onClick:
+                                        - actionType: popUp
+                                          popUpView: selectInjuryDate                                        
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Employer
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.patientInfo.employer
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Claim Number
+                                    - type: textField
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.patientInfo.claimNumber
+                                      style:
+                                        width: "0.13"
+                                        textIndent: "0.5em"
+                                        marginLeft: "0.1"
+                                        boxSizing: border-box
+                                        height: "0.03"
+                                        border:
+                                          style: 3
+                                        borderColor: "0xdededf"
+                                        # backgroundColor: "0xdededf"
+                                        borderWidth: "1"
+                                        borderRadius: "3"                   
+                        - type: view
+                          style:
+                            marginTop: "0.04"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                            # backgroundColor: "pink"
+                          children:
+                            - type: view
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                # backgroundColor: "pink"
+                              children: 
+                                - type: label
+                                  text: Provider Info
+                                  style:
+                                    fontFamily: Poppins
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "600"
+                                    height: auto
+                                    width: "0.39"  
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "0.002"
+                                    width: "0.39"  
+                                    backgroundColor: "0xdededf"      
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: auto
+                                width: "0.39"
+                                # backgroundColor: "pink"
+                              children:
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Provider Name
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.providerName
+                                      text: Provider Name
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Practice Name
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.practiceName
+                                      text: Practice Name
+                                - .prOneLabelViewNewUI:
+                                  style:
+                                    display: flex
+                                    justifyContent: space-between
+                                    alignItems: center
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Address
+                                    - type: label
+                                      isEditable: false
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.address
+                                      text: Address
+                                      style:
+                                        border:
+                                          style: 1
+                                        resize: "none"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf2
+                                        color: "0x000000"
+                                        backgroundColor: "0xffffff"
+                                        textAlign: "right"
+
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: City, State, Zip Code
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.CSZ
+                                      text: City, State, Zip Code
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Telephone Number
+                                    - .prOneLabelRightNewUI:
+                                      text: Telephone Number
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.phoneNumber
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Fax Number
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.faxNumber
+                                      text: Fax Number
+                                - .prOneLabelViewNewUI:
+                                  style:
+                                    display: flex
+                                    justifyContent: space-between
+                                    alignItems: center
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Provider Specialty
+                                    - type: label
+                                      isEditable: false
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.specialty
+                                      text: Provider Specialty
+                                      style:
+                                        border:
+                                          style: 1
+                                        resize: "none"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf2
+                                        color: "0x000000"
+                                        backgroundColor: "0xffffff"
+                                        textAlign: "right"
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: Provider State License Number
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.stateNumber
+                                      text: Provider State License Number
+                                - .prOneLabelViewNewUI:
+                                  children:
+                                    - .prOneLabelLeftNewUI:
+                                      text: National Provider ID Number
+                                    - .prOneLabelRightNewUI:
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.providerInfo.idNumber
+                                      text: National Provider ID Number
+                        
+                        - type: view
+                          style:
+                            marginTop: "0.05"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                            # backgroundColor: "pink"
+                          children:
+                            - type: view
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                # backgroundColor: "pink"
+                              children: 
+                                - type: label
+                                  text: Claims Administrator Info
+                                  style:
+                                    fontFamily: Poppins
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "600"
+                                    height: auto
+                                    width: "0.39"  
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    height: "0.002"
+                                    width: "0.39"  
+                                    backgroundColor: "0xdededf"    
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: auto
+                                width: "0.39"
+                                # backgroundColor: "pink"
+                              children:
+                              - .prOneListViewNewUI:
+                                children:
+                                  - .prOneListLabelNewUI:
+                                    text: Claims Administrator
+                                  - .prTwoListField:
+                                    isEditable: "true"
+                                    dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.administrator
+                              - .prOneListViewNewUI:
+                                children:
+                                  - .prOneListLabelNewUI:
+                                    text: Adjustor Name (if known)
+                                  - .prTwoListField:
+                                    isEditable: "true"
+                                    dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.claimsNumber
+                              - .prOneListViewNewUI:
+                                children:
+                                  - .prOneListLabelNewUI:
+                                    text: Address
+                                  - .prTwoListField:
+                                    isEditable: "true"
+                                    dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.claimsAddress
+                              - .prOneListViewNewUI:
+                                style:
+                                  display: flex
+                                  justifyContent: space-between
+                                  alignItems: center
+                                children:
+                                  - type: view
+                                    style:
+                                    children:
+                                      - type: label
+                                        text: City
+                                        style:
+                                          height: "auto"
+                                          fontFamily: Poppins
+                                          fontSize: .Nfont.nf2  
+                                      - type: textField
+                                        placeholder: Enter here
+                                        dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.city
+                                        style:
+                                          marginTop: "0.01"
+                                          height: "0.035"
+                                          width: "0.12"
+                                          border:
+                                            style: 3
+                                          borderColor: "0xdededf"
+                                          borderWidth: "1"
+                                          borderRadius: "3"          
+                                  - type: view
+                                    style:
+                                    children:
+                                      - type: label
+                                        text: State
+                                        style:
+                                          height: "auto"
+                                          fontFamily: Poppins
+                                          fontSize: .Nfont.nf2          
+                                      - type: select                                
+                                        dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.state
+                                        options:
+                                          .SelectData.state
+                                        style:
+                                          marginTop: "0.01"
+                                          height: "0.035"
+                                          width: "0.12"
+                                          fontSize: .Nfont.nf2
+                                          textAlign: 
+                                            y: center
+                                          border:
+                                            style: 3
+                                          borderColor: "0xdededf"
+                                          borderWidth: "1"
+                                          borderRadius: "3"  
+                                  - type: view
+                                    style:
+                                    children:
+                                      - type: label
+                                        text: Zip
+                                        style:
+                                          height: "auto"     
+                                          fontFamily: Poppins
+                                          fontSize: .Nfont.nf2          
+                                      - type: textField
+                                        placeholder: Enter here
+                                        dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.zipCode
+                                        style:
+                                          marginTop: "0.01"
+                                          height: "0.035"
+                                          width: "0.12"
+                                          border:
+                                            style: 3
+                                          borderColor: "0xdededf"
+                                          # backgroundColor: "0xdededf"
+                                          borderWidth: "1"
+                                          borderRadius: "3"  
+                              - .prOneListViewNewUI:
+                                style: 
+                                  marginTop: "0.03"
+                                children:
+                                  - .prOneListLabelNewUI:
+                                    text: Telephone Number
+                                  - .prTwoListField:
+                                    isEditable: "true"
+                                    dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.phone
+                                    style: 
+                                      width: "0.388"
+                              - .prOneListViewNewUI:
+                                children:
+                                  - .prOneListLabelNewUI:
+                                    text: Fax Number
+                                  - .prTwoListField:
+                                    isEditable: "true"
+                                    dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.fax
+                                    style: 
+                                      width: "0.388"
+                              - type: label
+                                text: "Requested Treatment: (See Instructions for guidance; attach additional pages if more space is required.) Either state the requested treatment in the below space or indicate the specific page number(s) of the accompanying medical report on which the requested treatment can be found. Include supporting evidence as necessary. More than one treatment request may be included."
+                                style:
+                                  marginTop: "0.04"
+                                  fontFamily: Poppins
+                                  fontSize: .Nfont.nf2
+                                  height: "auto"
+                                  width: "0.39"
+
+                        - type: view
+                          style:
+                            marginTop: "0.05"
+                            left: "0"
+                            height: "0.65"
+                            width: "0.39"
+                            overflow: hidden
+                            backgroundColor: "0xefefef"
+                          children: 
+                            - type: view
+                              style:
+                                marginTop: "0"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                                backgroundColor: "0xefefef"
+                              children:
+                                - .prOneListViewNewUI:
+                                  style:
+                                    left: "0.015"
+                                  children:
+                                    - .prOneListLabelNewUI:
+                                      text: Diagnosis
+                                    - .prTwoListField:
+                                      isEditable: "true"
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.diagnosis
+                                      style: 
+                                        width: "0.36"
+                                - .prOneListViewNewUI:
+                                  style:
+                                    left: "0.015"
+                                  children:
+                                    - .prOneListLabelNewUI:
+                                      text: ICD Code
+                                    - .prTwoListField:
+                                      isEditable: "true"
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.ICD
+                                      style: 
+                                        width: "0.36"
+                                - .prOneListViewNewUI:
+                                  style:
+                                    left: "0.015"
+                                  children:
+                                    - .prOneListLabelNewUI:
+                                      text: Procedure Requested
+                                    - type: textView
+                                      placeholder: Enter here
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.pequested
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.36"
+                                        height: "0.1"
+                                        fontFamily: Arial
+                                        border:
+                                          style: 3
+                                        borderColor: "0xd4d4d4"
+                                        borderWidth: "1"
+                                        borderRadius: "3"
+                                        resize: "none"           
+                                - .prOneListViewNewUI:
+                                  style:
+                                    left: "0.015"
+                                  children:
+                                    - .prOneListLabelNewUI:
+                                      text: CPT/HCPCS Code
+                                    - type: textView
+                                      placeholder: Enter here
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.CPT
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.36"
+                                        height: "0.1"
+                                        fontFamily: Arial
+                                        border:
+                                          style: 3
+                                        borderColor: "0xd4d4d4"
+                                        borderWidth: "1"
+                                        borderRadius: "3"
+                                        resize: "none"  
+                                - .prOneListViewNewUI:
+                                  style:
+                                    left: "0.015"
+                                  children:
+                                    - .prOneListLabelNewUI:
+                                      text: "Other Information: (Frequency, Duration Quantity, Facility, etc.)"
+                                    - type: textView
+                                      placeholder: Enter here
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.otherInfo
+                                      style:
+                                        marginTop: "0.01"
+                                        width: "0.36"
+                                        height: "0.1"
+                                        fontFamily: Arial
+                                        border:
+                                          style: 3
+                                        borderColor: "0xd4d4d4"
+                                        borderWidth: "1"
+                                        borderRadius: "3"
+                                        resize: "none"  
+                                - type: view
+                                  style:
+                                    marginTop: "0.025"
+                        
+                        - type: view
+                          style:
+                            marginTop: "0"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                          children:
+                            - .prOneListViewNewUI:
+                              children:
+                                - .prOneListLabelNewUI:
+                                  text: Date of Request
+                                - type: view
+                                  viewTag: requestDateTag
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                    height: "0.035"             
+                                  children:  
+                                    - .prOneListFieldNewUI:
+                                      isEditable: false
+                                      placeholder: Select Date
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.dateRequest
+                                      style:
+                                        top: "0"
+                                        left: "0"
+                                        width: "0.39"
+                                        height: "0.035"
+                                        fontSize: .Nfont.nf2
+                                        fontFamily: Roboto
+                                        color: "0x0f0f0f"  
+                                        borderRadius: "3" 
+                                        borderColor: "0xdededf"
+                                        backgroundColor: "0xffffff"
+                                        borderWidth: "1"
+                                        boxSizing: border-box
+                                    - type: image
+                                      path: calendarBlue.svg
+                                      style:
+                                        top: "0.02"
+                                        left: "0.37"
+                                        width: "0.009"     
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: requestDate 
+                            - .prTwoLabelView:
+                              style:
+                                marginTop: "0.02"
+                              children:
+                                - type: label
+                                  text: Physician signature
+                                  style:
+                                    height: "auto"
+                                    width: "0.3"
+                                    fontSize: .Nfont.nf4 
+                                    fontWeight: "500"
+                                    color: "0x333333"
+                                - type: label
+                                  text: "Clear"
+                                  dataKey: 
+                                  style:
+                                    left: "0.37"
+                                    .SignClearStyle: 
+                                  onClick:
+                                    - actionType: removeSignature
+                                      dataObject: BLOB
+                                      dataKey: DWCFormRFAPrivate.apiRequest.newSign.docReq.name.data
+                                      viewTag: signatureTag
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.temporarySignature@: ""
+                                    # 显示签名区域隐藏
+                                    - actionType: builtIn
+                                      funcName: hide
+                                      viewTag: signatureShowTag
+                                    - actionType: builtIn
+                                      funcName: show
+                                      viewTag: signatureTag  
+                            - type: view
+                              style:     
+                                marginTop: "0.01"
+                                width: "0.388"
+                                height: "0.18"
+                                border: 
+                                  style: 4
+                                borderColor: "0xababab"
+                                borderWidth: "2"
+                              children:
+                                - type: canvas
+                                  dataKey: DWCFormRFAPrivate.apiRequest.newSign.docReq.name.data
+                                  viewTag: signatureTag  
+                                  style: 
+                                    .SignCanvasStyle:
+                                      height: "0.18"   
+                                # 显示暂存的签名
+                                - type: label
+                                  text: X
+                                  style: 
+                                    .SignLabelStyle:
+                                    width: "0.32"
+                                    top: "0.115"
+                                # 显示暂存的签名
+                                - type: image
+                                  viewTag: signatureShowTag
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  # 传入签名文档的id
+                                  dataKey: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.name.data.providerInfo.signatureId
+                                  style:
+                                    # 控制显示
+                                    display: ..formData.flag
+                                    left: "0"
+                                    width: "0.39"
+                                    top: "0"
+                                    height: "0.18"
+                                    overflow: scroll
+                                    zIndex: "110"  
+                            - type: label
+                              text: "Claim Administrator Response Approving Treatment: You may use this form for approving a treatment request. A request for additional information, or a decision to modify, delay, or deny a request for authorization cannot be made using this form. Please review all timeframes and requirements set forth in California Labor Code section 4610 and California Code of Regulations, title 8, sections 9792.9 and 9792.9.1."
+                              dataKey: 
+                              style:
+                                marginTop: "0.04"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "A decision on the requested medical treatment must be made within five (5) working days from receipt of this request for authorization, or 14 calendar days with a timely request for information necessary to render a decision. For an expedited request, one made in a case of imminent or serious health threat, the maximum is 72 hours. Authorization may not be denied on the basis of lack of information without documentation reflecting an attempt to obtain the necessary information."
+                              dataKey: 
+                              style:
+                                marginTop: "0.04"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                                textDecoration: "underline"
+                            - type: view
+                              style:
+                                marginTop: "0.05"
+                                width: "0.39"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  text: The requested treatment(s) is approved
+                                  dataKey: 
+                                  style:
+                                    fontFamily: Poppins
+                                    fontSize: 1.5vh
+                                    height: "0.03"
+                                    left: "0.02"
+                                    width: "0.3"
+                                    color: "0x666666"
+                                    textAlign:
+                                      y: center
+                                - type: image
+                                  viewTag: requestBoxOneTag
+                                  style:
+                                    top: "0.003"
+                                    left: "0"
+                                    height: "0.024"
+                                  path: 
+                                    emit:
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.array.has:
+                                              dataIn:
+                                                object: =..formData.requestBox
+                                                value: 1
+                                          - selectBlue.svg
+                                          - selectGray.svg
+                               
+                                  
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                width: "0.39"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  text: The request has been previously denied by utilization review
+                                  dataKey: 
+                                  style:
+                                    fontFamily: Poppins
+                                    fontSize: 1.5vh
+                                    left: "0.02"
+                                    width: "0.3" 
+                                    color: "0x666666"
+                                    textAlign:
+                                      y: center
+                                - type: image
+                                  viewTag: requestBoxTwoTag
+                                  style:
+                                    top: "0.003"
+                                    left: "0"
+                                    height: "0.024"
+                                  path: 
+                                    emit:
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.requestBox
+                                                string2: "2"
+                                          - selectBlue.svg
+                                          - selectGray.svg
+                                  
+                            - .prOneListViewNewUI:
+                              children:
+                                - .prOneListLabelNewUI:
+                                  text: Date request for authorization received
+                                  style:
+                                    marginTop: "0.03"
+                                - type: view
+                                  viewTag: receiveDateTag
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                    height: "0.035"             
+                                  children:  
+                                    # - type: image
+                                    #   path: calendarBlue.svg
+                                    #   style:
+                                    #     top: "0.006"
+                                    #     left: "0.82"
+                                    #     # width: "5vw"
+                                    #     height: '0.02'
+                                    #     zIndex: "1000"
+                                    - .BaseTextField:
+                                      placeholder: Select Date
+                                      isEditable: false
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.dateReceived
+                                      style:
+                                        top: "0"
+                                        left: "0"
+                                        width: "0.388"
+                                        height: "0.035"
+                                        fontSize: .Nfont.nf2
+                                        fontFamily: Roboto
+                                        color: "0x0f0f0f"  
+                                        borderRadius: "3" 
+                                        borderColor: "0xdededf"
+                                        backgroundColor: "0xfafafa"
+                                        borderWidth: "1"
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: receiveDate 
+                            - .prOneListViewNewUI:
+                              children:
+                                - .prOneListLabelNewUI:
+                                  text: Date of response to request
+                                - type: view
+                                  viewTag: responseDateTag
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                    height: "0.035"             
+                                  children:  
+                                    # - type: image
+                                    #   path: calendarBlue.svg
+                                    #   style:
+                                    #     top: "0.006"
+                                    #     left: "0.82"
+                                    #     # width: "5vw"
+                                    #     height: '0.02'
+                                    #     zIndex: "1000"
+                                    - .BaseTextField:
+                                      isEditable: false
+                                      placeholder: Select Date
+                                      dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.dateResponse
+                                      style:
+                                        top: "0"
+                                        left: "0"
+                                        width: "0.388"
+                                        height: "0.035"
+                                        fontSize: .Nfont.nf2
+                                        fontFamily: Roboto
+                                        color: "0x0f0f0f"  
+                                        borderRadius: "3" 
+                                        borderColor: "0xdededf"
+                                        backgroundColor: "0xfafafa"
+                                        borderWidth: "1"
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: responseDate
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - type: label
+                                  text: Claims Administrator/Authorized Agent Signature
+                                  style:
+                                    height: "auto"
+                                    width: "0.39"
+                                    fontSize: .Nfont.nf2
+                            - type: view
+                              style:     
+                                marginTop: "0.01"
+                                width: "0.39"
+                                height: "0.16"
+                                boxSizing: border-box
+                                border: 
+                                  style: 4
+                                borderColor: "0xababab"
+                                borderWidth: "2"
+                                backgroundColor: "0xfafafa"
+                              children:
+                                # - type: canvas
+                                #   dataKey: DWCFormRFAPrivate.apiRequest.agentNewSign.docReq.name.data
+                                #   viewTag: signatureAgentTag  
+                                #   style: 
+                                #     .SignCanvasStyle: 
+                                # # 显示暂存的签名
+                                # - type: 
+                                #   viewTag: signatureAgentShowTag
+                                #   path=func: .builtIn.utils.prepareDocToPath
+                                #   # 传入签名文档的id
+                                #   dataKey: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.signatureId
+                                #   style:
+                                #     # 控制显示
+                                #     display: ..formData.agentFlag
+                                #     left: "0"
+                                #     width: "0.388"
+                                #     top: "0"
+                                #     height: "0.156"
+                                #     overflow: scroll
+                                #     zIndex: "110"
+                                - type: label
+                                  text: X
+                                  style: 
+                                    .SignLabelStyle:
+                                    width: "0.32"
+                                    top: "0.08"
+                            - .prOneListViewNewUI:
+                              style:
+                                marginTop: "0.04"
+                              children:
+                                - .prOneListLabelNewUI:
+                                  text: Adjuster/Authorized Agent Name (print)
+                                - .prOneListFieldNewUI:
+                                  style: 
+                                    backgroundColor: "0xfafafa"
+                                  dataKey: apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.agentName
+                            - type: label
+                              text: "Instructions for the Request for Authorization for Medical Treatment (DWC Form RFA)"
+                              dataKey: 
+                              style:
+                                marginTop: "0.04"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                                textDecoration: "underline"
+                            - type: label
+                              text: "Warning: Private healthcare information is contained in the Request for Authorization for Medical Treatment, DWC Form RFA. The form can only go to other treating providers and to the claims administrator."
+                              dataKey: 
+                              style:
+                                marginTop: "0.02"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Overview"
+                              style:
+                                marginTop: "0.03"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "The Request for Authorization for Medical Treatment (DWC Form RFA) is required to initiate the utilization review process required by Labor Code section 4610. This form is used as an attachment to the Treating Physician’s Progress Report – DWC Form PR-2, Doctor’s First Report of Occupational Injury – Form DLSR 5021, or an equivalent to request authorization for treatment."
+                              style:
+                                marginTop: "0.014"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                                textDecoration: "underline"
+                            - type: label
+                              text: "The intent of the form is to facilitate communication back and forth between the provider and the claims administrator, and also to furnish a verification of authorization for the requesting provider. To minimize the amount of information repeated onto the request form by the provider office, it is best to state the treatment request, other details of the treatment (e.g. frequency and duration), and the reason (a diagnosis or a clinical problem or concern). Such a request should speed the utilization review process. The provider can indicate single requests or multiple requests on the same form. Use additional sheets if necessary."
+                              style:
+                                marginTop: "0.04"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Expedited Review Checkbox"
+                              style:
+                                marginTop: "0.04"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "The first checkbox indicates whether review should be expedited based on an imminent and serious threat to the patient’s health."
+                              style:
+                                marginTop: "0.014"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Written Confirmation Checkbox"
+                              style:
+                                marginTop: "0.02"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "The second checkbox indicates whether the request made on the form is a written confirmation of an earlier oral request."
+                              style:
+                                marginTop: "0.014"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Routing Information"
+                              style:
+                                marginTop: "0.02"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "The DWC Form RFA can either be mailed or faxed to the claims administrator. The requesting provider must complete: (1) the patient’s name, date of birth, date of injury, employer, and claim number; (2) the claims administrator’s name, adjustor name (if known), address, telephone number, and fax number; and (3) the provider’s name, practice name, address, telephone number, fax number, specialty, state license number, and National Provider ID number."
+                              style:
+                                marginTop: "0.014"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Instructions"
+                              style:
+                                marginTop: "0.02"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "The DWC Form RFA must contain all the information needed to substantiate the request for authorization."
+                              style:
+                                marginTop: "0.014"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              textBoard:
+                                - text: "● List the diagnosis, the ICD Code, and the procedure requested (per CPT/HCPCS code)."
+                                - br:
+                                - br:
+                                - text: "● For surgery requests, attach or include full surgery orders, pre- and post-operative orders (if known)."
+                                - br:
+                                - br:
+                                - text: "● If request is to continue a treatment plan or therapy, please attach documentation for functional improvement, if applicable."
+                                - br:
+                                - br:
+                                - text: "● For requested medical treatment that is: (a) inconsistent with the Medical Treatment Utilization Schedule (MTUS) found at California Code of Regulations, title 8, section 9792.20, et seq.; or (b) for a condition or injury not addressed by the MTUS, include scientifically based evidence published in peer-reviewed, nationally recognized journals to recommend specific medical treatment or diagnostic services:"
+                              style:
+                                marginTop: "0.03"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Physician Signature"
+                              style:
+                                marginTop: "0.04"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Signature/Date line is located under the requested treatment box."
+                              style:
+                                marginTop: "0.014"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              text: "Claims Administrator Response"
+                              style:
+                                marginTop: "0.04"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+                            - type: label
+                              textBoard:
+                                - text: "Upon receipt of the DWC Form RFA, a claims administrator must respond within the timeframes set forth in Labor Code section 4610 and California Code of Regulations, title 8, sections 9792.9 or 9792.9.1. To communicate its approval on requested treatment, the claims administrator may complete the lower portion of the DWC Form RFA and fax it back to the requesting provider. (Use of the DWC Form RFA is optional; a claims administrator may utilize other means of written notification.)"
+                                - text: "Note: It is advised that the claims administrator review and familiarize themselves with the timeframes set forth in Labor Code section 4610 and California Code of Regulations, title 8, sections 9792.9 and 9792.9.1 upon receipt of a completed Form RFA."
+                              style:
+                                marginTop: "0.014"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf2
+                                height: "auto"
+                                width: "0.39"
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: DWCFormRFAPrivate.apiRequest.newSign.docReq.name.data
+                          isEmpty: DWCFormRFAPrivate.formData.whetherProSign
+                        # 保存签名
+                        - actionType: evalObject
+                          object:
+                            # 签名reid指向 doc 的id
+                            - ..apiRequest.newSign.docReq.reid@: =.DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.id
+                            - if: 
+                              - =..formData.whetherProSign
+                              - continue
+                              - =..apiRequest.newSign.docAPI.store: ""
+
+                        #  指定 eid 和 reid
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.providerInfo.signatureId@: =..apiRequest.newSign.docResp.doc.id
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.providerInfo.whetherSign@: =..formData.whetherProSign                            
+                            - ..apiRequest.dWCFormRFA.docReq.eid@: =.Global.formData.meetingDocEid
+                            - ..apiRequest.dWCFormRFA.docReq.reid@: =.Global.formData.meetingDocReid
+                            #  处理选择状态
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.checkBox@: =..formData.checkBox.select
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.requestBox@: =..formData.requestBox
+
+                        #  修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.dWCFormRFA.docReq.type
+                                  index: 1
+                                  hex: 0
+                                dataOut: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.type
+                            # 保存pRTwo
+                            - =..apiRequest.dWCFormRFA.docAPI.store: ""                
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.Global.formData.reviewFromProvider
+                              - goto: PatientSummary
+                              - goto: PatientSummaryRoom
+                    - .FormsBottomRightButton:                
+                      onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: DWCFormRFAPrivate.apiRequest.newSign.docReq.name.data
+                          isEmpty: DWCFormRFAPrivate.formData.whetherProSign                        
+                        #   # 保存签名
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =..formData.whetherProSign
+                              - actionType: popUp
+                                popUpView: notSignedTag
+                                wait: true
+                              - continue                          
+                            # 签名reid指向 doc 的id
+                            - ..apiRequest.newSign.docReq.reid@: =..apiRequest.dWCFormRFA.docReq.id
+                            - =..apiRequest.newSign.docAPI.store: ""
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.providerInfo.signatureId@: =..apiRequest.newSign.docResp.doc.id
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.providerInfo.whetherSign@: =..formData.whetherProSign                             
+                            - ..apiRequest.dWCFormRFA.docReq.eid@: =.Global.formData.meetingDocEid
+                            - ..apiRequest.dWCFormRFA.docReq.reid@: =.Global.formData.meetingDocReid
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.checkBox@: =..formData.checkBox.select
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.requestBox@: =..formData.requestBox                            
+                        - actionType: evalObject
+                          object:
+                            # 更新文档状态
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.statusTag.name@: "Released"
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+                            - ..apiRequest.dWCFormRFA.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"                      
+                        #  修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.dWCFormRFA.docReq.type
+                                  index: 1
+                                  hex: 1
+                                dataOut: DWCFormRFAPrivate.apiRequest.dWCFormRFA.docReq.type
+                            # 保存
+                            - =..apiRequest.dWCFormRFA.docAPI.store: ""
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.Global.formData.reviewFromProvider
+                              - goto: PatientSummary
+                              - goto: PatientSummaryRoom     
+        - .BaseWarningView:  
+          msg2: "You haven't signed the form"  
+          viewTag: notSignedTag                              
+        - type: popUp
+          viewTag: selectInjuryDate
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1" 
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - .BaseDate.calendar:
+              children:
+                - .BaseDate.calendarTitle:
+                - .BaseDate.calendarCancel:
+                - .BaseDate.calendarHeader:
+                  children:
+                    - .BaseDate.newMonthView:
+                    - .BaseDate.newYearView:
+                - .BaseDate.weekView:
+                - .BaseDate.dayView:
+                - .BaseDate.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.dWCFormRFA.docReq.name.data.patientInfo.injuryDate@: =.BaseDate.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: selectInjuryDateTag
+                    - actionType: popUpDismiss
+                      popUpView: selectInjuryDate
+                - .BaseDate.cancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: selectInjuryDate                              
+        - type: popUp
+          viewTag: requestDate
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1" 
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - .BaseDate.calendar:
+              children:
+                - .BaseDate.calendarTitle:
+                - .BaseDate.calendarCancel:
+                - .BaseDate.calendarHeader:
+                  children:
+                    - .BaseDate.newMonthView:
+                    - .BaseDate.newYearView:
+                - .BaseDate.weekView:
+                - .BaseDate.dayView:
+                - .BaseDate.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.dWCFormRFA.docReq.name.data.administratorInfo.dateRequest@: =.BaseDate.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: requestDateTag
+                    - actionType: popUpDismiss
+                      popUpView: requestDate
+                - .BaseDate.cancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: requestDate                       

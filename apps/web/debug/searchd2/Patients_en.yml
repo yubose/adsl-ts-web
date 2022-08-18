@@ -1,0 +1,536 @@
+Patients: 
+  pageNumber: "451" 
+  viewPort: top
+  init:
+    # - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..patient.docAPI.get
+    - ..invite.edgeAPI.get
+    - =.builtIn.array.formatProfile:
+          dataIn:
+            objArr: =..patient.list.doc
+          dataOut: Patients.formData.parseProfile
+    - =.builtIn.array.keepLatestDoc:
+        dataIn:
+          docList: =..formData.parseProfile
+          path: bsig
+        dataOut: Patients.formData.patientList
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =..formData.patientList
+        dataOut: Patients.formData.PatientLength
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =..invite.inviteList.edge
+        dataOut: Patients.formData.appointmentLength
+    
+  formData:
+    appointmentLength: 
+    PatientLength: 
+    parseProfile:
+    patientList:
+  invite:
+    inviteList: 
+      edge: ""
+    edgeAPI:
+      get:
+        api: re
+        type: .EdgeType.InviteInfo
+        xfname: evid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        dataKey: invite.inviteList
+        sCondition: subtype=65536 
+        _nonce: =.Global._nonce
+      delete: 
+        api: dx
+        dataIn: Patients.dataObject
+  patient:  # 获取所有的病人
+    list: ""
+    docAPI:
+      get: 
+        api: rd
+        type: .DocType.PatientProfile
+        xfname: E.bvid|E.evid
+        id: .Global.currentUser.vertex.id
+        ObjType: 8
+        dataKey: patient.list
+        sCondition: E.type=10002 AND E.tage>0
+        _nonce: =.Global._nonce
+  accept:
+    response: ""
+    edge:
+      type: .EdgeType.Accept
+      bvid: .Global.currentUser.vertex.id
+      name: ""
+      refid: ""
+    edgeAPI: 
+      store:
+        api: ce
+        dataIn: Patients.accept.edge
+        dataOut: Patients.accept.response
+  refuse:
+    edge:
+      .Edge: ""
+      type: .EdgeType.Refuse
+      bvid: .Global.currentUser.vertex.id
+      name: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: refuse.edge
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - type: view
+          style:
+            background-image: 'linear-gradient(#0063a8, #004371)'   
+            height: "1"
+            width: "0.16"
+          children:
+            - .aitLogo:
+            - .Menu:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            backgroundColor: "#f4f8fa"
+            width: "0.84"
+            height: "0.92"
+            left: '0.16'
+            top: "0.08"
+          children:
+            - .Label1:
+              type: label
+              text: "My Connections"
+              style:
+                marginLeft: "2vw"
+                fontSize: "1.5vw"
+                marginTop: "1.008vw"
+            - type: view
+              style:
+                width: 80vw
+                marginLeft: "2vw"
+                marginTop: "1vw"
+              children:
+                - type: view
+                  style:
+                    display: "inline-block"
+                  children:
+                    
+                    - type: view
+                      style:
+                        width: 20vw
+                        height: "0.15"
+                        backgroundColor: "0xffffff"
+                        boxShadow: "0px 0px 3px 3px #e9ebec"
+                        padding: "1px"
+                      children:
+                        - type: label
+                          text: My Patients
+                          style: 
+                            left: "0"
+                            marginTop: "1.008vw"
+                            width: "19.756vw"
+                            height: "2.52vw"
+                            fontSize: "1vw"
+                            color: '0x333333'
+                            fontFamily: "Poppins"
+                            display: flex
+                            justify-content: center
+                            textAlign:
+                              x: center
+                        - type: label
+                          dataKey: Patients.formData.PatientLength
+                          style:
+                            left: "9.429vw"
+                            marginTop: "0.252vw"
+                            width: "4.49vw"
+                            height: "2.52vw"
+                            color: "#fed25a"
+                            fontSize: "2vw"
+                            fontFamily: "Arial"
+                    - type: view
+                      style: 
+                        width: 20vw
+                        height: "37vw"
+                        backgroundColor: "#ffffff"
+                        boxShadow: "0px 0px 3px 3px #e9ebec"
+                        marginTop: "1vw"
+                      children: 
+                        - .Label1: 
+                          text: New Patients
+                          style: 
+                            left: "1vw"
+                            color: "#030303"
+                            top: "0.8vw"
+                            fontWeight: 400
+                            fontSize: 1vw
+                            display: flex
+                            flexFlow: row wrap
+                            
+                        - .Label1:
+                          dataKey: Patients.formData.appointmentLength
+                          style: 
+                            left: '1vw'
+                            color: '#0063A8'
+                            top: '2.6vw'
+                            fontWeight: 300
+                            fontSize: 0.8vw
+                        - .Label1:
+                          text: pending request
+                          style:
+                            left: '2vw'
+                            color: '#0063A8'
+                            fontSize: 0.8vw
+                            top: '2.5vw'
+                        - type: scrollView
+                          style: 
+                            left: "1vw"
+                            top: "4vw"
+                            width: "20vw"
+                            height: "32vw"
+                            # backgroundColor: "red"
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: ..invite.inviteList.edge
+                              iteratorVar: itemObject
+                              viewTag: inviteTag
+                              style: 
+                                width: "17.96vw"
+                                minHeight: "31vw"
+                                borderBottom: "1px solid #0c5599"
+                                borderWidth: 1px
+                                # backgroundColor: "red"
+                              children: 
+                                - type: listItem
+                                  itemObject: ""
+                                  style: 
+                                    marginTop: "1vw"
+                                    width: "17.96vw"
+                                    height: "6.048vw"
+                                    border: 
+                                      style: 3
+                                    borderWidth: 1px
+                                    borderRight: "1px solid #d0dce5"
+                                    borderColor: "#d0dce5"
+                                  children:
+                                    - type: view
+                                      style: 
+                                        height: "4.032vw"
+                                        width: "17.96vw"
+                                        
+                                      children: 
+                                        - type: image
+                                          path=func: =.builtIn.utils.prepareDocToPath
+                                          dataKey: itemObject.name.inviterAvatar
+                                          path: touxiang.svg
+                                          style: 
+                                            height: "3.024vw"
+                                            left: "0.898vw"
+                                            top: "0.504vw"
+                                        - type: label
+                                          dataKey: itemObject.name.inviterName
+                                          style: 
+                                            top: "1.152vw"
+                                            left: "4.49vw"
+                                            height: "1.008vw"
+                                            textAlign: 
+                                              y: center
+                                            color: "#1484cd"
+                                            fontWeight: 500
+                                            borderBottom: "solid 1px  #1484cd"
+                                            borderWidth: "1px"
+                                    - type: view 
+                                      style: 
+                                        top: "4.032w"
+                                        width: "17.96vw"
+                                        height: "2.016vw"
+                                      children:
+                                        - type: button
+                                          style: 
+                                            left: "0vw"
+                                            width: "8.98vw"
+                                            height: "2.016vw"
+                                            top: "0vw"
+                                            border: 
+                                              style: 3
+                                            borderWidth: "2px"
+                                            borderColor: "#e6eaeb"
+                                            textAlign: 
+                                              y: center
+                                          onClick: 
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions: 
+                                                  - if:
+                                                    - =.builtIn.array.isExist:
+                                                        dataIn:
+                                                          array: =..formData.patientList
+                                                          phoneNumber: $var.name.inviterPhoneNumber
+                                                    - =..invite.edgeAPI.delete: ""
+                                                    - continue
+                                                  - ..accept.edge.evid@: $var.bvid
+                                                  - ..accept.edge.name@: $var.name
+                                                  - ..accept.edge.refid@: $var.id
+                                                  - =..accept.edgeAPI.store: ""
+                                            - actionType: evalObject
+                                              object:
+                                                .Global._nonce@:
+                                                  =.builtIn.math.random: ""
+                                            - actionType: evalObject
+                                              object:    
+                                                - =..invite.edgeAPI.get: ""
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.goto:
+                                                    dataIn:
+                                                      destination: Patients
+                                                      pageReload: true
+                                          children: 
+                                            - type: image
+                                              path: Icon awesome-check.png
+                                              style: 
+                                                left: " 1.796vw"
+                                                height: "1.008vw"
+                                                width: "0.898vw"
+                                            - type: label
+                                              text: Approve
+                                              style: 
+                                                left: "2.694vw"
+                                                width: "3.592vw"
+                                                color:  "#8e95a5"
+                                                fontSize: "1vh"
+                                                # backgroundColor: "red"
+                                        - type: button
+                                          style: 
+                                            left: "8.98vw"
+                                            width: "8.98vw"
+                                            height: "2.016vw"
+                                            top: "0vw"
+                                            border: 
+                                              style: 3
+                                            borderWidth: "2px"
+                                            borderColor: "#e6eaeb"
+                                            textAlign: 
+                                              y: center
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions: 
+                                                  - if:
+                                                    - =.builtIn.array.isExist:
+                                                        dataIn:
+                                                          array: =..formData.parseProfile
+                                                          phoneNumber: $var.name.inviterPhoneNumber
+                                                    - =..invite.edgeAPI.delete: ""
+                                                    - continue
+                                                  - ..refuse.edge.evid@: $var.bvid
+                                                  - ..refuse.edge.name@: $var.name
+                                                  - ..refuse.edge.refid@: $var.id
+                                                  - =..refuse.edgeAPI.store: ""
+                                            - actionType: evalObject
+                                              object:
+                                                .Global._nonce@:
+                                                  =.builtIn.math.random: ""
+                                            - actionType: evalObject
+                                              object:    
+                                                - =..invite.edgeAPI.get: ""
+                                          children: 
+                                            - type: image
+                                              path: Icon material-close.png
+                                              style: 
+                                                left: " 1.796vw"
+                                                height: "1.008vw"
+                                                width: "0.898vw"
+                                            - type: label
+                                              text: Deny
+                                              style: 
+                                                left: "2.694vw"
+                                                width: "3.592vw"
+                                                color:  "#8e95a5"
+                                                fontSize: "1vh"            
+                - type: view
+                  viewTag: chartContent
+                  style:
+                    display: "inline-block"
+                    marginLeft: "2vw" 
+                    width: '57vw'
+                    height: '46vw'
+                    backgroundColor: "0xffffff"
+                    overflowY: scroll
+                    isHidden: false
+                    boxShadow: "0px 0px 3px 3px #e9ebec"
+                  children: 
+                    - type: view 
+                      style: 
+                        left: "3vw"
+                        width: "52vw"
+                        top: "1vw"
+                        height: "40vw"
+                      children: 
+                        - type: view
+                          style:
+                            width: "52vw"
+                            height: "2.55vw" 
+                            background-image: 'linear-gradient(#378fcd, #054b90)' 
+                          children: 
+                            - .Label1: 
+                              text: Patients List
+                              style: 
+                                left: "1.8vw"
+                                width: "17vw"
+                                height: "2.5vw"
+                                color: "#ffffff"
+                                fontSize: "1vw"
+                                textAlign:
+                                  y: center
+                        - type: view
+                          style: 
+                            height: "2.6vw"
+                            marginTop: "0"
+                            width: "52vw"
+                            backgroundColor: "#f3f3f3"
+                          children: 
+                            - type: view
+                              style: 
+                                display: "inline-block"
+                                width: "17.3vw"
+                                height: "2.6vw"
+                                border:
+                                  style: 3
+                                borderWidth: 1px
+                                borderColor: "#d0dce5"
+                              children: 
+                                - .Label1: 
+                                  text: patient Name
+                                  style: 
+                                    height: "2.6vw"
+                                    left: "1.8vw"
+                                    fontSize: "0.9vw"
+                                    textAlign:
+                                      y: center
+                            - type: view
+                              style: 
+                                display: "inline-block"
+                                width: "12.75vw"
+                                height: "2.6vw"
+                                border:
+                                  style: 3
+                                borderWidth: 1px
+                                borderColor: "#d0dce5"
+                              children: 
+                                - .Label1: 
+                                  text: "Phone Number"
+                                  style: 
+                                    height: "2.6vw"
+                                    left: "1.9vw"
+                                    fontSize: "0.9vw"
+                                    textAlign:
+                                      y: center
+                            - type: view
+                              style: 
+                                display: "inline-block"
+                                width: "21.5vw"
+                                height: "2.6vw"
+                                border:
+                                  style: 3
+                                borderWidth: 1px
+                                borderColor: "#d0dce5"
+                              children: 
+                                - .Label1: 
+                                  text: Address
+                                  style: 
+                                    height: "2.6vw"
+                                    left: "0.9vw"
+                                    fontSize: "0.9vw"
+                                    textAlign:
+                                      y: center
+                        - type: scroll
+                          style: 
+                            top: "4.4vw"
+                            width: "52vw"
+                            height: "36vw"
+                          children:    
+                            # the following code is real code
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.parseProfile
+                              iteratorVar: itemObject
+                              viewTag: Patients List
+                              style: 
+                                width: "52vw"
+                                margin: "0"
+                                top: "0.8vw"
+                              children: 
+                                - type: listItem
+                                  itemObject: ""
+                                  style: 
+                                    marginTop: "0"
+                                    width: "52vw"
+                                    backgroundColor: "#ffffff"
+                                    height: "2.6vw"
+                                  children: 
+                                    - type: view
+                                      style: 
+                                        display: "inline-block"
+                                        width: "17.3vw"
+                                        height: "2.55vw"
+                                        border:
+                                          style: 3
+                                        borderWidth: 1px
+                                        borderColor: "#d0dce5"
+                                      children: 
+                                        - .Label1: 
+                                          dataKey: itemObject.name.data.basicInfo.fullName
+                                          style: 
+                                            height: "2.6vw"
+                                            left: "1.8vw"
+                                            fontSize: "0.9vw"
+                                            textAlign:
+                                              y: center
+                                    - type: view
+                                      style: 
+                                        display: "inline-block"
+                                        width: "12.75vw"
+                                        height: "2.55vw"
+                                        border:
+                                          style: 3
+                                        borderWidth: 1px
+                                        borderColor: "#d0dce5"
+                                      children: 
+                                        - .Label1: 
+                                          dataKey: itemObject.name.data.basicInfo.phone
+                                          style: 
+                                            height: "2.52vw"
+                                            left: "1.8vw"
+                                            fontSize: "0.9vw"
+                                            textAlign:
+                                              y: center
+                                    - type: view
+                                      style: 
+                                        display: "inline-block"
+                                        width: "21.5vw"
+                                        height: "2.55vw"
+                                        border:
+                                          style: 3
+                                        borderWidth: 1px
+                                        borderColor: "#d0dce5"
+                                      children: 
+                                        - .Label1: 
+                                          dataKey: itemObject.name.data.contactInfo.address.fullAddress
+                                          style: 
+                                            height: "2.53vw"
+                                            fontSize: "0.85vw"
+                                            left: "0.8vw"
+                                            textAlign:
+                                              y: center

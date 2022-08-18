@@ -1,0 +1,243 @@
+PaymentRequest:
+    module: Subscriptions
+    pageNumber: "62" #xd   
+    title: Payment Method
+    init:
+      - .SignInCheck
+      - ..listData.get
+    save:
+      - =.PaymentRequest.CreatePayment.docAPI.store: ""
+    CreatePayment:
+      document:
+        .Document: ""
+        eid: .Global.rootNotebookID
+        type: .DocType.PayToSquare # 2
+        subtype:
+          isEncrypted: "1"
+          isOnServer: "0"
+        name:
+          title: ""
+          nonce: ""
+          type: ..CreatePayment.docAPI.store.subtype.mediaType
+          data:
+            cardNumber: .Global.DocReference.document.name.data.cardNumber
+            expDate: "12/21"
+            cvv: .Global.DocReference.document.name.data.cvv
+            sign: .Global.DocReference.document.name.data.sign
+            zipCode: .Global.DocReference.document.name.data.zipCode
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataKey: CreatePayment.document
+          subtype:
+            mediaType: "application/json"             
+    listData:
+      paymentMethod:
+        doc:
+          name:
+            title: "No Title in DocumentList"
+      get:
+        .DocAPI.get : ""
+        api: rd
+        dataKey: listData.paymentMethod
+        ids: 
+          - .Global.rootNotebookID
+        sCondition: .DocType.CreditCard # all the uploaded documents
+        xfname: eid
+        #xfname: refid
+        obfname : "mtime" 
+        maxcount : "40"
+        _nonce: =.Global._nonce 
+    components: 
+      - type: view
+        style:
+          left: "0"
+          top: "0"
+          width: "1"
+          height: "1"
+        children:
+          - .BaseHeader3:
+          - .HeaderLeftButton:
+          - .HeaderRightImg:
+            path: addMeeting.png
+            onClick:
+              - goto: AddPaymentMethod
+          - type: view
+            style:
+              top: "0.02"
+              left: "0.05"
+              width: "0.9"
+              height: "0.08"
+            children:
+              - type: label
+                text: "Select from the payment options below:"
+                style:
+                  height: "0.06"
+                  width: "1"
+                  color: "0xB1B1B1"
+                  # fontWeight: "6"
+                  backgroundColor: "0xffffff"
+                  textAlign:
+                    x: center
+                  top: "0.1"
+                  border:
+                    style: "2"
+                  borderWidth: "0.9"
+                  borderColor: "0x000000"                       
+          - type: view
+            style: 
+              top: "0.17"
+            children:
+              - type: list
+                contentType: listObject
+                listObject: ..listData.paymentMethod.doc
+                iteratorVar: itemObject
+                style:
+                  left: "0.05"
+                  top: "0"
+                  width: "0.9"
+                  height: "0.7"
+                children:
+                  - type: listItem
+                    itemObject: ""
+                    style:
+                      left: "0"
+                      top: "0"
+                      width: "1"
+                      height: "0.1"
+                      border:
+                        style: "2"
+                      borderWidth: "1"
+                      borderColor: "0x00000011"
+                    onClick:
+                      - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                        dataKey: Global.DocReference.document
+                        dataObject: itemObject # this must be a rootRoom
+                      - actionType: popUp
+                        popUpView: confirmView                        
+                    children:
+                      - type: label
+                        # text=func: .builtIn.string.formatUnixtime_en
+                        dataKey: itemObject.name.data.cardNumber
+                        style:
+                          left: "0.05"
+                          top: "0.03"
+                          width: "0.5"
+                          height: "0.02"
+                          fontSize: "16"
+                          fontWeight: "500" 
+                          textAlign:
+                            y: center
+                      - type: label
+                        dataKey: itemObject.name.data.expDate
+                        style:
+                          color: "0x808080"
+                          left: "0.7"
+                          top: "0.03"
+                          width: "0.4"
+                          height: "0.02"
+                          fontSize: "16"  
+                          textAlign:
+                            y: center
+      - type: popUp
+        viewTag: confirmView
+        style:
+          left: "0.1"
+          top: "0.1"
+          width: "0.8"
+          height: "1" 
+          # backgroundColor: "0x00000066" 
+        children:
+          - type: view
+            style:
+              left: "0.0"
+              top: "0.15"
+              width: "0.8"
+              height: "0.35"
+              backgroundColor: "0xeeeeeeff"
+              border:
+                style: "5"
+              borderRadius: "15"
+            children:
+              - type: label
+                text: "Are you sure you want to use this card as payment?"
+                style:
+                  .LabelStyle:
+                    left: "0.05"
+                    top: "0.1"
+                    width: "0.7"
+                    height: "0.04"
+                    color: "0x00000088"
+                    fontSize: "20"
+                    # fontStyle: bold
+                    display: inline
+                    textAlign:
+                      x: center
+                      y: center                        
+              - type: divider
+                style:
+                  .DividerStyle:
+                    left: "0"
+                    top: "0.25436"
+                    width: "0.8"
+                    height: "0.001"
+                    backgroundColor: "0x00000088"
+              - type: button
+                onClick: 
+                  - actionType: popUpDismiss
+                    popUpView: confirmView
+                text: Cancel
+                style:
+                  .LabelStyle:
+                    left: "0"
+                    top: "0.275"
+                    width: "0.4"
+                    height: "0.06812"
+                    color: "0x007affff"
+                    fontSize: "17"
+                    display: inline
+                    textAlign:
+                      x: center
+                      y: center 
+                    border:
+                      style: "5"
+                    borderRadius: "15"
+
+              - type: button
+                onClick:                                 
+                  - actionType: popUpDismiss
+                    popUpView: confirmView
+                  - actionType: evalObject
+                    object: ..save
+                  - actionType: evalObject
+                    object: 
+                      .Global._nonce@: 
+                        =.builtIn.math.random: ""  
+                  - actionType: builtIn
+                    funcName: goBack
+                    reload: true                                                                                                                                           
+                text: Confirm
+                style:
+                  .LabelStyle:
+                    left: "0.4"
+                    top: "0.275"
+                    width: "0.4"
+                    height: "0.06812"
+                    color: "0x007affff"
+                    fontSize: "17"
+                    display: inline
+                    textAlign:
+                      x: center
+                      y: center 
+                    border:
+                      style: "5"
+                    borderRadius: "15"
+              - type: divider
+                style:
+                  .DividerStyle:
+                    left: "0.4"
+                    top: "0.26"
+                    width: "0.001"
+                    height: "0.07"
+                    backgroundColor: "0x00000088" 

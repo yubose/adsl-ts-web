@@ -1,0 +1,132 @@
+Index:
+  title: "Test Home Page"
+  pageNumber: "80"
+  test: 'VideoChat'
+  pageGoto:
+    - title: TestPagejumpInIframe
+      pageName: TestPage
+    - title: vwvh
+      pageName: Vwvh
+    - title: pageGoto
+      pageName: TestTypePage
+    - title: ShowInInitIsInvalid
+      pageName: ShowInInitIsInvalid
+    - title: RedrawPage
+      pageName: RedrawPage
+    - title: TestTypePage
+      pageName: TestTypePage
+    - title: TestSelectOfListitem
+      pageName: TestSelectOfListitem
+    - title: TestChangeButtonColor
+      pageName: TestChangeButtonColor
+    - title: TestRightAlign
+      pageName: TestRightAlign
+    - title: ViewInList
+      pageName: ViewInList
+    - title: TestTopAlign
+      pageName: TestTopAlign
+    - title: EmitRedraw
+      pageName: EmitRedraw
+    - title: Noodl Layout
+      pageName: NoodlLayout
+    - title: PatientChart
+      pageName: PatientChart
+    - title: PatientChartAddAllergies
+      pageName: PatientChartAddAllergies
+    - title: PatientChartAddHospitalization
+      pageName: PatientChartAddHospitalization
+    - title: PatientChartAddMedications
+      pageName: PatientChartAddMedications
+    - title: PatientChartGeneralInfo
+      pageName: PatientChartGeneralInfo
+    - title: PatientChartImmunizations
+      pageName: PatientChartImmunizations
+    - title: PatientChartObstetrical
+      pageName: PatientChartObstetrical
+    - title: PatientChartPastMedicalHistory
+      pageName: PatientChartPastMedicalHistory
+    - title: PopUpPage
+      pageName: PopUpPage
+    - title: SelectKey
+      pageName: SelectKey
+    - title: SelectRedraw
+      pageName: SelectRedraw
+    - title: StyleObject
+      pageName: StyleObject
+    - title: TestEchart
+      pageName: TestEchart
+    - title: TestSearch
+      pageName: TestSearch
+    - title: TestRedraw
+      pageName: TestRedraw
+    - title: DoubleLoop
+      pageName: DoubleLoop
+
+  components:
+    - .BaseHeader:
+    - .HeaderRightImg:
+      path: sideNav2.png
+    - type: view
+      style:
+        #top: "0.1"
+        marginTop: "0.1"
+        width: "0.9"
+        left: "0.05"
+      #  height: "0.8"
+      #  display: flex
+      #  flexFlow: "row wrap"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..pageGoto
+          iteratorVar: itemObject
+          style:
+            width: "0.9"
+      #      display: block
+      #      position: static
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                width: "0.9"
+                height: "0.06"
+                borderBottom: "1px solid"
+                borderColor: "0x00000022"
+      #          display: block
+      #          position: static
+              onClick:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      actions:
+                        - if:
+                          - true
+                          - goto: $var.pageName
+                          - goto: $var.pageName
+              children:
+                - type: label
+                  dataKey: itemObject.title
+                  style:
+                    width: "0.7"
+                    height: '0.06'
+                    fontSize: "20"
+                    textIndent: "20px"
+                    textAlign:
+                      y: center
+                - type: image
+                  path: rightArrow.png
+                  style:
+                    # marginTop: "0.02"
+                    top: "0.02"
+                    height: "0.03"
+                    left: "0.8"
+    - type: view
+      style:
+        width: 0.3
+        height: 0.3
+        border: 2px solid black
+    - type: view
+      style:
+        width: 0.3
+        height: 0.3
+        border: 2px solid black

@@ -1,0 +1,143 @@
+ScheduleQRcode:
+  components:
+    - type: view
+      viewTag: ScheduleQRcode
+      style:
+        top: "0"
+        width: "1"
+        left: "0"
+        height: "1"
+        backgroundColor: "0x00000033"
+      children:
+        - type: view
+          style:
+            top: "0"
+            left: "0.6"
+            width: "0.4"
+            height: "1"
+            backgroundColor: '0xffffff'
+          children:
+            - type: view
+              style: 
+                top: '0'
+                width: '0.4'
+                left: '0'
+                height: '0.08'
+                backgroundColor: '0x005089'
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Schedule QR code'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ScheduleQRcode
+                
+            - type: view
+              style: 
+                top: '0.08'
+                height: '0.92'
+                width: '0.4'
+                left: '0'
+              children:
+                - type: view
+                  style: 
+                    top: '0.02'
+                    left: '0'
+                    width: '0.4'
+                    height: '0.08'
+                    # backgroundColor: '0x000000'
+                  children:
+                    - type: label
+                      text: 'Scheduling Profile for:'
+                      style:
+                        width: '0.15'
+                        left: '0.03'
+                        height: '0.08'
+                        top: '0'
+                        textAlign:
+                          # x: center
+                          y: center
+                    - type: view
+                      style:
+                        top: '0'
+                        width: '0.1'
+                        left: '0.3'
+                        height: '0.08'
+                        # backgroundColor: '0x000000'
+                      children:
+                        - type: image
+                          path: download.svg
+                          style:
+                            top: '0.03'
+                            height: '0.025'
+                            left: '0'
+                        - type: label
+                          text: "Download"
+                          style:
+                            top: '0'
+                            height: '0.08'
+                            left: '0.01'
+                            width: '0.1'
+                            fontSize: '18'
+                            textAlign:
+                              x: center
+                              y: center
+                - type: label
+                  text: 'Thomas Mueller M.D.'
+                  style:
+                    top: '0.12'
+                    width: '0.4'
+                    left: '0'
+                    height: '0.08'
+                    fontSize: '22'
+                    textAlign:
+                      x: center
+                      y: center
+                - type: view
+                  style: 
+                    width: '0.25'
+                    left: '0.075'
+                    height: '0.33'
+                    top: '0.2'
+                    boxShadow: "0px 0px 1px 1px #eaeaea"
+                  children:
+                    - type: image
+                      path: qr.svg
+                      style:
+                        top: '0.03'
+                        width: '0.12'
+                        left: '0.065'
+                    - type: label
+                      textBoard:
+                        - text: "scan the QR code to view your set availability"
+                        - br:
+                        - text: "settings using AiTmed"
+                      style:
+                        top: '0.27'
+                        height: '0.08'
+                        fontSize: '14'
+                        width: '0.25'
+                        left: '0'
+                        color: '0x949494'
+                        textAlign:
+                          x: center
+                - type: button
+                  text: "Done"
+                  style:
+                    top: '0.58'
+                    width: '0.08'
+                    left: '0.16'
+                    height: '0.04'
+                    color: '0xffffff'
+                    fontSize: '16'
+                    borderRadius: '5px'
+                    backgroundColor: '0x005795'
+                    borderWidth: '0'
+
+
+
+
+
+

@@ -1,0 +1,102 @@
+PaymentInformation:
+  title: "PaymentInformation"
+  init:
+    - .SignInCheck
+  listData:
+    - key: "NAME ON CARD"
+      value1: "Melissa West"
+    - key: "CARD NUMBER"
+      value1: "1234-5678-9012-3456"
+    - key: "EXP"
+      value1: "01/2100" 
+    - key: "BILLING ADDRESS"
+      value1: "123 Cherry Lane"
+      value2: "Ahaheim,CA 92805"   
+    - key2: "CVV"
+      value3: "123"        
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      children:
+        - type: label
+          text: Back
+          style: 
+            left: "0.08"
+            top: "0"
+            height: "0.1"
+            zIndex: 100
+            fontSize: "15"
+            color: "0xffffffff"
+            textAlign: 
+              x: left
+              y: center
+    - type: view
+      style:
+        top: "0.14"
+        left: "0.12"
+        width: "0.75"
+        height: "0.35"
+        # backgroundColor: "red"    
+        border:
+          style: "3"
+        borderRadius: "15"  
+        boxShadow: "1px 1px 10px 1px #cecece"  
+      children:
+        - type: list
+          contentType: listObject
+          iteratorVar: itemObject
+          listObject: ..listData
+          style:
+            top: "0"            
+            left: "0.04"
+            width: "0.5"
+            height: "0.4"
+          children: 
+            - type: listItem
+              itemObject: ""
+              style:
+                left: "0"
+                width: "0.5"
+                height: "0.062"
+              children:
+                - type: label
+                  dataKey: itemObject.key
+                  style:
+                    top: "0"
+                    left: "0"
+                    width: "0.5"
+                    height: "0.04"   
+                - type: label
+                  dataKey: itemObject.key2
+                  style:
+                    top: "-0.125"
+                    left: "0.25"
+                    width: "0.5"
+                    height: "0.04"        
+                - type: label
+                  dataKey: itemObject.value3
+                  style:
+                    top: "-0.1"
+                    left: "0.25"
+                    width: "0.5"
+                    height: "0.04"                                    
+                - type: label
+                  dataKey: itemObject.value1
+                  style:
+                    top: "0.025"
+                    left: "0"
+                    width: "0.5"
+                    height: "0.1"     
+                - type: label
+                  dataKey: itemObject.value2
+                  style:
+                    top: "0.05"
+                    left: "0"
+                    width: "0.5"
+                    height: "0.1"
+        - type: image
+          path: visa.png
+          style:
+            top: "0.09"
+            width: ""
+            left: "0.5"                                   

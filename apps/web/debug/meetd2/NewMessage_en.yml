@@ -1,0 +1,250 @@
+NewMessage: 
+  title: "New Message"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object: 
+        .Global._nonce@: 
+          =.builtIn.math.random: ""
+    - ..emailList.get
+    - if:
+      - =..emailList.email.edge.0
+      - .Global.email.id@: =..emailList.email.edge.0.id
+      - continue          
+  hid: "true"      
+  attachmentNumber: "0"
+  emailList: 
+    email: 
+      edge:
+    get: 
+      .EdgeAPI.get: ""
+      api: re
+      dataKey: emailList.email
+      id: 
+        - .Global.inboxContact.id
+        - .Global.currentUser.vertex.id
+      xfname: "evid,bvid|bvid,evid"
+      type: .EdgeType.Email
+      _nonce: =.Global._nonce
+      sCondition: "subtype=9"
+  NewInboxMessage:
+    document:
+      # # .Document: ""
+      eid: .Global.email.id
+      type: .DocType.InboxMessage
+      name:
+        title: ""
+        type: "application/json"
+        data: ""
+        user: .Global.currentUser.vertex.name.fullName
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        eid: .Global.email.id
+        dataIn: NewMessage.NewInboxMessage.document
+        dataOut: NewMessage.NewInboxMessage.document
+        subtype:
+          mediaType: "application/json"  
+  components: 
+    - .ProgressCheckView: ""
+      message: "Uploading in progress ..."
+      viewTag: uploading
+    - .BaseCheckView: ""
+      message: "Please choose contacts"
+      viewTag: noContact         
+    - .BaseHeader:
+    - .HeaderLeftTextButton:
+      text: Cancel
+      onClick: 
+        - actionType: evalObject
+          object:
+            - .NewMessage.email.edge.tage@: "-1"
+        - actionType: evalObject
+          object: 
+            - =..email.edgeAPI.delete: ""
+        - goto: InboxDashboard
+    # - .HeaderRightButton:
+    #   text: Save
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - =..NewInboxMessage.docAPI.store: ""
+    #     - goto: Drafts
+    - type: view
+      style:
+        top: "0.1"
+        width: "1"
+        left: "0"
+        height: "0.14"
+        # backgroundColor: "0x000ccc"
+        border:
+          style: "2"
+          width: "2"
+          color: "#d6d6d6"
+      children:
+        - type: view
+          style: 
+            left: "0.07"
+            top: "0.02"
+            width: "0.74"
+            height: "0.04"
+            border: 
+              style: "2"
+            borderWidth: "0.001"
+            borderColor: "0x00000055"
+          children:
+            - type: label
+              text: "To:"
+              height: "0.04"
+              style:
+                fontSize: "13"
+                height: "0.04"
+                left: "0"
+                width: "0.05"
+                textAlign: 
+                  y: center
+            - type: textField
+              # placeholder: "Receiver" 
+              placeholder: "click to search contacts"
+              # text: "receiver"
+              onClick:
+                # - actionType: evalObject
+                #   object:
+                #     - .Global.email@: =.NewMessage.email.edge
+                #     - .Global.inboxMessage@: =..NewInboxMessage.document 
+                - goto: InboxContacts                 
+              dataKey: Global.inboxContact.name.firstName
+              style: 
+                left: "0.17"
+                top: "0"
+                height: "0.037"
+                border: 
+                  style: "1"
+                fontSize: "14"
+                width: "1"
+        - type: view
+          style: 
+            left: "0.07"
+            top: "0.07"
+            width: "0.74"
+            height: "0.04"
+            border: 
+              style: "2"
+            borderWidth: "1"
+            borderColor: "0x00000055"
+          children:
+            - type: label
+              text: "Subject:"
+              style:
+                fontSize: "13"
+                left: "0"
+                width: "0.13"
+                height: "0.04"
+                textAlign: 
+                  y: center
+            - type: textField
+              dataKey: NewInboxMessage.document.name.title
+              placeholder: "Enter title here"
+              style: 
+                top: "0"
+                left: "0.17"
+                height: "0.035"
+                border: 
+                  style: "1"
+                fontSize: "14"   
+        - type: image
+          contentType: file
+          onClick:
+            # - actionType: evalObject
+            #   object:
+            #     - .Global.email@: =.NewMessage.email.edge
+            #     - .Global.inboxMessage@: =..NewInboxMessage.document
+            # - actionType: evalObject
+            #   object:
+            #     .Global.roomInfo.edge.id@: =..email.edge.id
+              # For repeated use AddMedicalRecordsToMeeting, the data is converted into room format
+            - goto: UploadEmailDocuments
+          path: pin.png
+          style: 
+            top: "0.075"
+            left: "0.87"
+            height: "0.03"
+        - type: label
+          dataKey: NewMessage.attachmentNumber
+          style: 
+            left: "0.93"
+            top: "0.075"
+            width: "0.05"
+            isHidden: ..hid
+            height: "0.025"
+            fontSize: "14"
+            backgroundColor: "0xfd3a3a"
+            border:
+              style: "3"
+            borderColor: "0xfd3a3a"
+            borderRadius: "50"
+            color: "0xffffff"
+            textAlign: 
+              x: center
+    - type: textView
+      isEditable: "true"
+      placeholder: "Write message here"
+      dataKey: NewInboxMessage.document.name.data
+      style:
+        left: "0.02"
+        width: "0.96"
+        height: "0.6"
+        top: "0.27" 
+        fontFamily: sans-sarif
+        textAlign: 
+          y: top
+        border:
+          style: "5"  
+          width: "1"  
+    - type: button
+      text: Send
+      style:
+        width: '0.3'
+        left: "0.6"
+        height: "0.05"
+        top: "0.8"
+        fontSize: "16"
+        backgroundColor: "0x388eccff"
+        color: "0xffffff"
+        border: "none"
+        borderRadius: "15"
+        textAlign: 
+          x: center
+      onClick:
+        - actionType: evalObject
+          object:
+            - if:
+                - =.Global.inboxContact.id
+                - continue
+                - actionType: popUp
+                  popUpView: noContact
+                  wait: true      
+        - actionType: popUp
+          popUpView: uploading      
+        - actionType: evalObject
+          object:  
+            - =..NewInboxMessage.docAPI.store: ""
+        - actionType: evalObject
+          object: 
+            .Global._nonce@: 
+              =.builtIn.math.random: ""  
+        - actionType: evalObject     # to download the selected document and using target eid & fid
+          object:                    # to encrypt new document with the same content
+            =.builtIn.ecos.shareDocList: 
+              dataIn:                
+                sourceDocList: =.UploadEmailDocuments.sharedDocList
+                targetEdgeID: =.Global.email.id
+                targetFileID: =..NewInboxMessage.document.doc.id                            
+        - actionType: evalObject
+          object: 
+            .Global._nonce@: 
+              =.builtIn.math.random: ""
+        - actionType: builtIn
+          funcName: goBack
+          reload: true     

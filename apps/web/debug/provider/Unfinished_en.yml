@@ -1,0 +1,272 @@
+Unfinished:
+  title: "Medical Document"
+  init:
+    - .SignInCheck
+    # - ..listNotes.docAPI.get
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..apiRequest.unfinishedDoc.docAPI.get
+  apiRequest:
+    # get all unfinished doc
+    unfinishedDoc:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.currentUser.vertex.id
+        xfname: E.bvid&D.ovid
+        ObjType: 12
+        sCondition: D.type in (1792,125440,128000,130560,133120,135680,151040,140800,2048,2304,2560)
+        _nonce: =.Global._nonce
+        obfname: "mtime"
+        asc: true
+      docAPI:
+        get:
+          api: rd
+          dataIn: Unfinished.apiRequest.unfinishedDoc.docQueryReq
+          dataOut: Unfinished.apiRequest.unfinishedDoc.docQueryResp
+  # getRoom:
+  #   response:
+  #   edge:
+  #     id: ""
+  #     xfname: id
+  #     _nonce: =.Global._nonce
+  #   edgeAPI:
+  #     get:
+  #       api: re
+  #       dataIn: getRoom.edge
+  #       dataOut: getRoom.response
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: view
+      style:
+        top: "0.22"
+        width: "1"
+        height: "0.78"
+        backgroundColor: "#ffffff"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..apiRequest.unfinishedDoc.docQueryResp.doc
+          iteratorVar: itemObject
+          style:
+            top: "0"
+            left: "0"
+            width: "1"
+            height: "0.78"
+            margin: "0"
+            overflow: scroll
+            boxShadow: "0px 0px 1px #dededf"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                left: "0"
+                width: "1"
+                height: "0.1"
+                border:
+                  style: "2"
+                borderColor: "0x00000066"
+                borderWidth: "1"
+              children:
+                - type: label
+                  dataKey: itemObject.name.title
+                  style:
+                    top: "0.02"
+                    fontSize: "18"
+                    fontWeight: 400
+                    left: "0.08"
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: itemObject.ctime
+                  style:
+                    top: "0.055"
+                    fontSize: .Nfont.h14
+                    fontWeight: 350
+                    left: "0.08"
+                - type: label
+                  dataKey: itemObject.name.data.visitType
+                  style:
+                    top: "0.02"
+                    fontSize: .Nfont.h16
+                    fontWeight: 400
+                    left: "0.64"
+                    textAlign:
+                      x: center
+                    width: "0.35"
+                    # color: itemObject.name.data.color
+                - type: label
+                  dataKey: itemObject.name.data.statusTag.name
+                  style:
+                    style:
+                    top: "0.055"
+                    fontSize: .Nfont.h16
+                    fontWeight: 350
+                    left: "0.64"
+                    textAlign:
+                      x: center
+                    width: "0.35"
+                    # color: itemObject.name.data.fontcolor
+              onClick:
+                # - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                #   dataKey: Global.Note
+                #   dataObject: itemObject
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - .Global.Note@: ""
+                      - .Global.Note@: $var
+                - actionType: evalObject
+                  object:
+                    - .Global.currentRoom.edge.id@: =.Global.Note.esig
+                    - .Global.roomInfo.edge.eid@: =.Global.Note.eid
+                    - .Global.formData.unPageName@: "Unfinished"
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 151040
+                        - goto: DocumentPrivate
+                        - continue
+                    # 1536
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 1536
+                        - goto: BlankNotePrivate
+                        - continue
+                    # 1792
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 1792
+                        - goto: EvaluationNotePrivate
+                        - continue
+                    # 2049
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 2048
+                        - goto: PrescriptionPrivate
+                        - continue
+                    #  2304
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 2304
+                        - goto: AbsentNotePrivate
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 133120
+                        - goto: SurgeryAuthorizationPrivate
+                        - continue
+                    #  122880
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 122880
+                        - goto: WorkStatusFormPrivate
+                        - continue
+                    # 125440
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 125440
+                        - goto: PROnePrivate
+                        - continue
+                    #  128000
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 128000
+                        - goto: PRTwoPrivate
+                        - continue
+                    #  130560
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 130560
+                        - goto: DWCFormRFAPrivate
+                        - continue
+
+                    #  135680
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 135680
+                        - goto: InitEvalReportPrivate
+                        - continue
+
+                    #  140801
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 140800
+                        - goto: ProgressReportPrivate
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 138241
+                        - goto: Cov19Results
+                        - continue
+    - .Basesearch:
+    - type: view
+      style:
+        width: "1"
+        left: "0"
+        height: "0.06"
+        top: "0.16"
+        border:
+          style: "2"
+        borderWidth: "1"
+        borderColor: "0xe6e6e6"
+        backgroundColor: "0xffffff"
+      children:
+        - type: label
+          text: "Unfinished"
+          style:
+            left: "0"
+            top: "0.02"
+            width: "0.5"
+            height: "0.038"
+            color: "0x2988e6"
+            fontWeight: "700"
+            border:
+              style: "2"
+              # width: "2"
+            borderWidth: "1"
+            borderColor: "0x2988e6"
+            textAlign:
+              x: center
+        - type: label
+          text: "Visit History"
+          onClick:
+            - goto: VisitHistory
+          style:
+            left: "0.5"
+            top: "0.02"
+            width: "0.5"
+            height: "0.04"
+            color: "0x2988e6"
+            fontWeight: "400"
+            textAlign:
+              x: center

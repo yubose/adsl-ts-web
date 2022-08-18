@@ -1,0 +1,614 @@
+# BaseecosObj: # This is page name
+# root level object start with a upper case letter
+VoidObj: vVoOiIdD # {}
+EmptyObj: "" # {""} FALSE
+EcosObj : 
+  id : "" # base64 id
+  name : "" # JSON string
+  type : "0" # data type
+  ctime : "0" # Unix_TimeStamp when data created.
+Vertex: 
+  .EcosObj : "" # inherit an object value only, not the key
+  uid : ""
+  pk : ""
+  esk : ""
+  deat : ""
+# line 8,9 is equivelent to line 11 to 15
+#  id : "" # base64 id
+#  name : "" # JSON string
+#  type : "0" # data type
+#  ctime : "0" # Unix_TimeStamp when data created.
+#  uid : ""
+
+VertexAPI:
+  get :
+    api: rv
+  store:
+    api: cv
+Edge:
+  .EcosObj : ""
+  subtype : ""
+  bvid : ""
+  evid : ""
+  ctime : ""
+  tage : ""
+
+EdgeAPI:
+  get:
+    api: re
+    xfname: bvid
+    maxcount: "1"
+  store: # create or update
+    api: ce
+
+Document:
+  .EcosObj : ""
+  eid : "" #EDGE ID
+  fid : ""  # 
+  subtype:
+    isOnServer: "1" # 1 ECOS server and limited size after compression under 32k;  0  S3
+    isZipped: auto  # 0 not gziped  1  gziped
+    isBinary: "0" # 0 Base64       1  binary
+    isEncryped: "0"  #0 no         1  encryped
+    isExtraKeyNeeded: "0"  #0 no   1  yes
+    isEditable: "0"  #0  no        1  yes
+    isCached: "1"
+    applicationDataType: "0"   #0 data
+    mediaType: "0" # 0 others
+    size: auto  
+
+DocAPI:
+  get: 
+    api: rd
+    ids: "" # 
+    xfname: "" # default is "id", optional "eid", "fid"
+    type: "0" # 0 data application data type 0 - 1023
+    maxcount: "1" # default is 20, max 1000
+  store:
+    api: cd
+     
+
+Message:
+  avatar : "https://public.aitmed.com/avatar/JohnDoe.jpg"
+  to: ""
+  from : =.Global.currentUser.name.firstName # evaluate when access
+  createDate : ""
+  createTime : ""
+  subject : "A Subject"
+  content : "The message"
+  applicationLink : ""
+
+Const:
+  profile : "1"
+  w9 : "101"
+  workComp : "102"
+  share : "103"
+  contact : "104"
+  
+
+ErrorMessage: ""   
+
+DataCache : 
+  loadingDateTime : "0"
+  expireTime : "24hr" # need reload
+TitleInfo:
+Global : # name of an object
+  specialties: ""
+  payDisplay: ""
+  roomInfo: []
+  FirstIns: false
+  PatientProfile:
+    front_IDCard:
+  selfMedicalLicense: []
+  currentSelectTime: ""
+  totals:
+  color:
+    accountColor: "0x33333320"
+    scheduleColor: "0x33333300"
+    orgaColor: "0x33333300"
+    availColor: "0x33333300"
+    patientColor: "0x33333300"
+  patientSign: 
+    countryCode: ""
+    phoneNumber: ""
+    key: ""
+  providerSign: 
+    countryCode: ""
+    phoneNumber: ""
+    key: ""
+  FacilityImage: ""
+  Insurances: []
+  addressName: ""
+  chooseType: ""
+  newAccountFlag: "1"
+  reasonObj: []
+  ProviderInfo: ""
+  showChangeAll: []
+  vaccine: []
+  vaccineDoc: []
+  titleProfile: ""
+  localDocuLength: ""
+  AppointmentvisitType: ""
+  AppointmentvisitTypeShow: ""
+  MedicalFacilityVertex: ""
+  newCareUser: false
+  FacilityLink: false
+  RoomLocationId: ""
+  FormGoUrl: ""
+  providerFirstSignIn: true
+  isSearchSym: false
+  searchCond: ""
+  jwt:
+    edge:
+      .Edge: ""
+      type: 1030
+      bvid: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: Global.jwt.edge
+  relation:
+    edgeResponse: ""
+    edgeReq:
+      xfname: bvid,evid
+      id: []
+      sCondition: type in (1100,1200)
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: Global.relation.edgeReq
+        dataOut: Global.relation.edgeResponse
+  locationAll: []
+  formData:
+    currentRequest: ""
+    medicalFacility: ""
+    patientHistoryId: ""
+    patientHistoryInfo: ""
+    scheduleLocationId: ""
+    patientPage: "VisitQuestionnaire"
+    medicalRecords: ""
+    scheduleType: ""
+    firstLogin: true
+    LogoOutuid: ""
+    profile:
+      firstName: ""
+    scheduleManageProdName: ""   # 用来在切换页面的时候，保持头部的providername 相同
+    scheduleManageProdId: ""     # 用来在切换页面的时候，保持头部的providername 相同
+    scheduleManagePatdId: ""     # 用来在切换页面的时候，获取到patient的profile信息
+    appointmentId:     # 由预约表格跳转appointmentLobby那个页面需要的边id
+    locationId: "" # from ScheduleSettings to next page,and make the location be the only one
+    patientChartShare: false
+    firstToCov19Test: true
+    firstToNewPatientForm: true
+    firstToCov19TestForm: true
+    firstToCov19TestNewPatForm: true
+    firstToFinancialForm: true
+    firstToPfizerVaccineFirDoseForm: true
+    firstToPfizerVaccineSecDose: true
+    firstToModernaVaccineFirDoseForm: true
+    firstToModernaVaccineSecDoseForm: true
+    visitQuestionnaireDoc: ""
+    pifzerBioNTech: ""
+    moderna: ""
+    attachment: ""
+    signature_moderna: ""
+    signature_pifzerBioNTech: ""
+    dateOfBirth: ""
+    newPatientForm: ""
+    cov19TestNewPatForm: ""
+    cov19TestForm: ""
+    pifzerVaccineFirDoseForm: ""
+    modernaVaccineFirDoseForm: ""
+    financialForm: ""
+    modernaVaccineSecDoseForm: ""
+    cov19TestNewPat: 
+      hippa: ""
+      coronavirus: ""
+  # 用于保存当前系统正在使用的各种ID 用户选择facility登陆时 默认的facility和location id都是当前facilityid
+  currentId:
+    facility: ""
+    location: ""
+    provider: ""
+    patient: ""
+    staff: ""
+  currentFacility: ""
+  showAllSplitTime: "" 
+  currentDateTime : =.builtIn.currentDateTime # long integer of Unix_TimeStamp in millsecond
+  currentUser : 
+    dataCache : 
+      .DataCache: ""
+      expireTime : "2hr"
+    vertex: 
+      .Vertex: ""
+      name:
+        userName: "username"
+        firstName: ""
+        lastName: ""
+        fullName: ""
+    JWT : ""
+#      .edge.get :       #override {"get":{"api":"re","type":"10002", "xfname":"bvid", "scondition":"subtype=1", "maxcount":"1000"}}
+  rootNotebookID: "" # Get Root Notebook Base64 formated ID
+    # edge:
+    #   .Edge: ""
+    #   type: 10000 #rootNotebook
+    #   bvid: .Global.currentUser.vertex.id
+    #   name: 
+    #     isEncrypted: "1"
+    # edgeAPI:
+    #   .EdgeAPI: ""
+    #   store:
+    #     api: ce
+    #     dataIn: Global.rootNotebook.edge
+    #     dataOut: Global.rootNotebook.response
+    #   get: 
+    #     dataIn: Global.rootNotebook.edge
+    #     dataOut: Global.rootNotebook.response
+    #     id: .Global.currentUser.vertex.id
+    #     type : 10000
+    #     xfname : bvid
+
+        
+  # contactsList:
+  #   edge:
+  #     .Edge: ""
+  #     type: 10001
+  #     bvid: .Global.currentUser.vertex.id
+  #     refid: .Global.rootNotebook.edge.id 
+  #   edgeAPI:
+  #     .EdgeAPI: ""
+  #     store:
+  #       api: ce
+  #       dataKey: Global.contactsList.edge
+
+  actingUser : # representing business identity
+    DataCache :
+      expireTime : "2hr"
+    vertex : .Vertex
+      #get : # loginUser refer to the login page
+  menuBar:
+  listData: .SideMenuBarDM.Dashboard
+  rootRoomInfo:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 40000
+      bvid: .Global.currentUser.vertex.id 
+      name:
+        roomName: "Test Room 1"
+        videoProvider: "twilio"
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataKey: Global.rootRoomInfo.edge
+  
+  profile:
+    document: ""
+  contact:
+    document: 
+      name:
+        data:
+          firstName: ""
+          lastName: "" 
+          phoneNumber: ""
+  phoneNumber: "" 
+
+  _nonce: 0
+
+  VideoChatObjStore:
+    reference:
+      edge: ""
+  DocReference:
+    document: ""
+  DocProfile:
+    document: "" 
+  popUpMessage: "" 
+
+
+CountryCode:
+  - "+1" #US Canada
+  - "+52" #Mexico
+  - "+86" #China
+  - "+965" #Kuwait
+
+DocType:
+  HashTag: "281600" # 1100<<8+0
+  DoctorPublicProfile: "35840" 
+  PubProfile: "256" # 0x100
+  Profile:  "257" #  0x101private, 1
+  PatientProfile: 102401
+  UploadProfile: "258"
+  Contact:  "513" # 0x201, 2
+  ContactFav:  "515" # 0x203 3
+  GetAllContact: "type in (513,515)"
+  GetFavContact: "type=515"
+  UploadFile: "1025" # 4<<8+1 4
+  MeetingNote: "1537" # 6<<8+1 6
+  VisitReason: "79360"    #310<<8+1
+  LocationOfFacility: "38401" #   150<<8+1
+  VitalQuestionnaire: "30721" # 0x7801 120<<8+1
+  Moderna: "84480"  #330<<8
+  PifzerBioNTech: "87040"  #340<<8
+  DocumentSignature: "89601" #350<<8+1
+  DoctorProfile: "35841" #0x8c01 140<<8+1 # 140<<8+0 
+  UserAvatar: "40960" #0xA000 160<<8
+  FacilityProfile: "271361" #1060<<8+1
+  CV: "1027" #4<<8+2
+  F_IDCard: "58881" #230<<8+1
+  Covid19Questionnaire: "61441" # 0xf001 240<<8+1
+  License: "56321" #0XDC01 220<<8+1
+  Signature1: "53761" #210<<8+1
+  F_InsuranceCard: "71681" #280<<8+1
+  B_InsuranceCard: "74241" #290<<8+1
+  Intake4Signature: "76801" #300<<8+1
+  Cov19Chart: "92161" #360<<8+1
+  RoomProfile: "273921"     #1070<<8+1
+  PatientForm: "94721"   #370<<8+1 
+  AcceptedInsurance: "97280"     #380
+  Cov19TestNewPatForm: "107521"
+  Cov19TestForm: "110081"
+  PfizerVaccineFirDoseForm: "112641"   # 0x440  8+1     Pifzer-BioNTech Vaccine - First Dose
+  PfizerVaccineSecDoseForm: "115201"   # 0x450  8+1     Pifzer-BioNTech Vaccine - Second Dose
+  ModernaVaccineFirDoseForm: "117761"   # 0x460  8+1    Moderna Vaccine Form - First Dose
+  ModernaVaccineSecDoseForm: "120321"   # 0x470  8+1    Moderna Vaccine Form - Second Dose
+  FluVaccinationConsentFormEnglish: 143361 #690<<8+1
+  FluVaccinationConsent: "176641" # 690<<8+1
+  InsuranceCard: 148481 #580<<8+1
+  InboxMessage: "1281" #5<<8+1
+  CheckOrder: "2001"
+  FinancialForm: "174081"
+  RelatedAppTag: "284160" #1110<<8+0   related appoinment tag
+EdgeType:
+  JWT: "1030"
+  Relation: "1100"
+  StaffToFacility: "1200"
+  InviteInfo: "1053"   # 添加好友最新逻辑
+  Invite: "1050"
+  Accept: "1060"
+  Refuse: "1052"
+  RootNotebook: "10000"
+  Email: "10002"  # 250<<8+1     10002
+  organization: "256001" # 1000<<8+1 3E801-->
+  WaitingRoom: "40000"
+  SquareCheckout: "1113"
+FriendsType:
+  PatientProvider: 65536 #1<<16 0x10000
+  PatientFacility: 131072 #2<<16 0x20000
+  ProviderFacility: 196608 #3<<16 0x30000
+  ProviderProvider: 262144 #4<<16 0x40000
+  ProviderStaff: 327680 # 5<<16 0x5000
+SpecialtyList:
+  - Allergy and Immunology
+  - Anatomic and Clinical Pathology
+  - Anesthesiology
+  - Colon and Rectal Surgery
+  - Dermatology
+  - Diagnostic Radiology
+  - Emergency Medicine
+  - Family Medicine/Family Practice
+  - General Surgery
+  - Hospice and Palliative Medicine
+  - Infectious Disease
+  - Integrated Plastic Surgery
+  - Integrated Thoracic Surgery
+  - Internal Medicine
+  - Internal Medicine-Emergency Medicine 
+  - Medical Genetics
+  - Neurological Surgery
+  - Neurology
+  - Neuromuscular Medicine
+  - Nuclear Medicine
+  - Obstetrics and Gynecology
+  - Ophthalmology
+  - Orthopaedic Surgery
+  - Otolaryngology
+  - Pediatrics
+  - Physical Medicine and Rehabilitation
+  - Plastic Surgery
+  - Preventive Medicine
+  - Psychiatry
+  - Radiation Oncology
+  - Reproductive Endocrinology and Infertility
+  - Sleep Medicine
+  - Thoracic Surgery
+  - Urology
+MyProfile:
+  name:
+    data: 
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      title: ""
+      userName: ""
+      phone: ""
+      email: ""
+      fax: ""
+      address: ""
+      specialty: []
+      NPI: ""
+      medicalLicenseState: ""
+      medicalLicense: ""
+      licenseExpiration: ""
+      DEA: ""
+      boardCertified: ""
+      avatar: ""
+      zipCode: ""
+
+
+SelectData:
+  state:
+    - Select
+    - AK
+    - AL
+    - AR
+    - AZ
+    - CA
+    - CO
+    - CT
+    - DE
+    - FL
+    - GA
+    - HI
+    - ID
+    - IL
+    - IN
+    - IA
+    - KS
+    - KY
+    - LA
+    - ME
+    - MD
+    - MA
+    - MI
+    - MN
+    - MS
+    - MO
+    - MT
+    - NE
+    - NV
+    - NH
+    - NJ
+    - NM
+    - NY
+    - NC
+    - ND
+    - OH
+    - OK
+    - OR
+    - PA
+    - RI
+    - SC
+    - SD
+    - TN
+    - TX
+    - UT
+    - VT
+    - VA
+    - WA
+    - WV
+    - WI
+    - WY
+    - DC
+IDType:
+  - Drive License
+  - Passport
+  - Other ID
+Duration: 
+  - 5 min 
+  - 10 min
+  - 15 min
+  - 20 min 
+  - 30 min
+  - 45 min
+  - 60 min
+  - 75 min
+  - 90 min 
+  - 120 min
+state:
+    - Alabama
+    - Alaska
+    - Arkansas
+    - California
+    - Colorado
+    - Connecticut
+    - Delaware
+    - Florida
+    - Georgia
+title:
+  - 
+  - CNA
+  - D.O.
+  - DNP
+  - M.D.
+  - MA
+  - NP
+  - PA
+  - RN
+Relation:
+  - Self
+  - Spouse
+  - Children
+  - Other
+languages:
+  - English
+  - Español
+  - Português
+  - Français
+  - Deutsch
+  - Pусский
+  - اللغة العربية
+  - 日本語
+  - 한국어
+  - Italiano
+  - 简体中文
+  - 繁體中文
+  - Shqiptar
+  - Azərbaycan
+  - Gaeilge
+  - Eesti
+  - беларускі
+  - български
+  - íslenska
+  - Polskie
+  - Bosanski
+  - فارسی
+  - Afrikaans
+  - Danske
+  - Pilipino
+  - Suomi
+  - ខ្មែរ
+  - ქართული
+  - ગુજરાતી
+  - Қазақ
+  - Hausa
+  - Nederlands
+  - Galego
+  - Català
+  - čeština
+  - Hrvatski
+  - Latine
+  - Latvijā
+  - ລາວ
+  - Lietuvos
+  - Română
+  - Malti
+  - मराठी
+  - മലയാളം
+  - Melayu
+  - македонски
+  - Maori
+  - Монгол
+  - বাঙালি
+  - Burmese
+  - Zulu
+  - नेपाली
+  - Norsk
+  - ਪੰਜਾਬੀ ਦੇ
+  - Chichewa
+  - Svenska
+  - Sesotho
+  - සිංහල
+  - slovenský
+  - Slovenščina
+  - Kiswahili
+  - Soomaali
+  - тоҷик
+  - తెలుగు
+  - தமிழ்
+  - ภาษาไทย
+  - Türk
+  - اردو
+  - Український
+  - O'zbekiston
+  - עִב0רִית
+  - ελληνικά
+  - Magyar
+  - հայերեն
+  - Igbo
+  - हिंदी
+  - bahasa Indonesia
+  - Tiếng Việt
+
+PatientUrl: http://patd2.aitmed.io
+AdminUrl: http://admind2.aitmed.io

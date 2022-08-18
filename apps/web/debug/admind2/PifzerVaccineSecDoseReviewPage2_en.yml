@@ -1,0 +1,424 @@
+PifzerVaccineSecDoseReviewPage2: #xd page number: 1080
+  pageNumber: "450" 
+
+  title: "Pifzer-BioNTech Vaccine - Second Dose"
+
+  init: # Page initialization
+    - .SignInCheck
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.consent.0.value2
+          - " "
+          - =..formData.consent.0.value3
+          - " "
+          - =..formData.consent.0.value4
+        dataOut: PifzerVaccineSecDoseReviewPage2.formData.consent.0.value5
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.consent.1.value2
+          - " "
+          - =..formData.consent.1.value3
+          - " "
+          - =..formData.consent.1.value4
+        dataOut: PifzerVaccineSecDoseReviewPage2.formData.consent.1.value5
+
+  formData: # Input data here
+    consent: 
+      - key: consent
+        value1: "1"
+        value2: "I GIVE CONSENT to"
+        value3: .Global.formData.medicalRecords.name.data.medicalFacilityName
+        value4: "to vaccinate me with the COVID-19. You must electronically sign this consent to receive the COVID-19 Vaccine."
+        value5: ""
+      - key: consent
+        value1: "0"
+        value2: "I DO NOT GIVE CONSENT to"
+        value3: .Global.formData.medicalRecords.name.data.medicalFacilityName
+        value4: "to be vaccinated."
+        value5: ""
+
+  formDataTemp: # Input data temp here, datatemp should not mix with formData
+
+  apiRequest: # Input data request here
+
+  style: # Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        # backgroundColor: "0xfafafa"
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormLeft:
+                  onClick:
+                    - goto: PifzerVaccineSecDoseReviewPage1
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - type: image
+                      path: secDose2_2.svg
+                      style:
+                        marginTop: "0.025"
+                        width: "0.39"
+                    # TYPE TITLE
+                    - .FormsTypeTitle:
+                    - .FormsContentTitle:
+                      text: Consent for Vaccination
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.578"
+                        marginTop: "0.5vw"
+                        overflow: scroll
+                      children: 
+                        - type: view
+                          style:
+                            width: "0.39"
+                            # height: 6vw
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: 1.2vw
+                          children:
+                            - type: view
+                              style:
+                                width: "3vw"
+                              children:
+                                - type: image
+                                  path: point.svg
+                                  style:
+                                    width: "1.2vw"
+                                    marginTop: "0.007"
+                                    # backgroundColor: "red"
+                            - type: label
+                              text: The Fact Sheet for Patients and Parents / Caregivers for the Pfizer-BioNTech COVID-19 Vaccine I am receiving (sometimes hereafter, the COVID-19 Vaccine) has been offered to me.
+                              dataKey: 
+                              style:
+                                width: "0.36"
+                                height: auto
+                                fontSize: .Nfont.nf4
+                                color: "0x707070"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            # height: 6vw
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: 2vw
+                          children:
+                            - type: view
+                              style:
+                                width: "3vw"
+                              children:
+                                - type: image
+                                  path: point.svg
+                                  style:
+                                    width: "1.2vw"
+                                    marginTop: "0.007"
+                            - type: label
+                              text: I have read or had explained to me the Pfizer-BioNTech Fact Sheet for Patients and Parents / Caregivers for the COVID-19 Vaccine and I understand the risks and benefits.
+                              dataKey: 
+                              style:
+                                width: "0.36"
+                                height: auto
+                                fontSize: .Nfont.nf4
+                                color: "0x707070"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            # height: 6vw
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: "2vw"
+                          children:
+                            - type: view
+                              style:
+                                width: "3vw"
+                              children:
+                                - type: image
+                                  path: point.svg
+                                  style:
+                                    width: "1.2vw"
+                                    marginTop: "0.007"
+                            - type: label
+                              text: I understand the COVID-19 Vaccine has been approved by an emergency use authorization (EUA) process and has not fully been FDA reviewed or approved.
+                              dataKey: 
+                              style:
+                                width: "0.36"
+                                height: auto
+                                fontSize: .Nfont.nf4
+                                color: "0x707070"
+                        - type: view
+                          style:
+                            width: 0.39"
+                            # height: 8vw
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: "2vw"
+                          children:
+                            - type: view
+                              style:
+                                width: "3vw"
+                              children:
+                                - type: image
+                                  path: point.svg
+                                  style:
+                                    width: "1.2vw"
+                                    marginTop: "0.007"
+                            - type: label
+                              text: I understand the potential risks from the therapy including serious allergic reactions (anaphylaxis). Other adverse reactions that have been reported include injection site pain, fatigue, headache, muscle pain, chills, joint pain, fever, injection site swelling, injection site redness, nausea, malaise, and lymphadenopathy.
+                              dataKey: 
+                              style:
+                                width: "0.36"
+                                height: auto
+                                fontSize: .Nfont.nf4
+                                color: "0x707070"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            # height: 2vw
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: 5vw
+                          children:
+                            - type: view
+                              style:
+                                width: "3vw"
+                              children:
+                                - type: image
+                                  path: point.svg
+                                  style:
+                                    width: "1.2vw"
+                                    marginTop: "0.006"
+                            - type: label
+                              text: I understand that there may be other potential options to prevent COVID-19.
+                              style:
+                                width: "0.36"
+                                height: auto
+                                fontSize: .Nfont.nf4
+                                color: "0x707070"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            # height: 2vw
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: 1.2vw
+                          children:
+                            - type: view
+                              style:
+                                width: "3vw"
+                              children:
+                                - type: image
+                                  path: point.svg
+                                  style:
+                                    width: "1.2vw"
+                                    marginTop: "0.006"
+                            - type: label
+                              text: I was offered the opportunity to ask questions and all questions were answered.
+                              dataKey: 
+                              style:
+                                width: "0.36"
+                                height: auto
+                                fontSize: .Nfont.nf4
+                                color: "0x707070"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            # height: 2vw
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: 1.2vw
+                          children:
+                            - type: view
+                              style:
+                                width: "3vw"
+                              children:
+                                - type: image
+                                  path: point.svg
+                                  style:
+                                    width: "1.2vw"
+                                    marginTop: "0.006"
+                            - type: label
+                              text: I agree to proceed with receiving the Pfizer-BioNTech COVID-19 Vaccine.
+                              dataKey: 
+                              style:
+                                width: "0.36"
+                                height: auto
+                                fontSize: .Nfont.nf4
+                                color: "0x707070"
+                                
+                        - type: view
+                          style:
+                            width: "0.39"
+                            height: auto
+                            display: "flex"
+                            justifyContent: "flex-start"
+                            alignItems: "flex-start"
+                            marginTop: "3.2vw"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.consent
+                              iteratorVar: itemObject
+                              viewTag: consentView
+                              style:
+                                width: '0.39'
+                                display: flex
+                                height: "auto"
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    width: '0.39'
+                                    display: flex
+                                    height: "0.08"
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: flex
+                                        justifyContent: center
+                                        alignItems: flex-start
+                                      children:
+                                        - type: image
+                                          style:
+                                            width: "0.013"
+                                            height: "0.023"
+                                            marginTop: "0"
+                                          path: 
+                                            emit:
+                                              dataKey: 
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                  - =.builtIn.string.equal:
+                                                      dataIn:
+                                                        string1: =.Global.formData.pifzerVaccineSecDoseForm.name.data.single.0.consent
+                                                        string2: $var.value1
+                                                  - selectBlue.svg
+                                                  - selectGray.svg 
+                                          # onClick: 
+                                          #   - emit:
+                                          #       dataKey:
+                                          #         var: itemObject
+                                          #       actions: 
+                                          #         - if:
+                                          #           - =.builtIn.string.equal:
+                                          #               dataIn:
+                                          #                 string1: =..formDataTemp.single.0.consent
+                                          #                 string2: $var.value1
+                                          #           - =.builtIn.object.set:
+                                          #               dataIn:
+                                          #                 object: =..formDataTemp.single.0
+                                          #                 key: $var.key
+                                          #                 value: ""
+                                          #           - =.builtIn.object.set:
+                                          #               dataIn:
+                                          #                 object: =..formDataTemp.single.0
+                                          #                 key: $var.key
+                                          #                 value: $var.value1
+                                          #   - actionType: builtIn
+                                          #     funcName: redraw
+                                          #     viewTag: consentView
+                                        
+                                    - type: label
+                                      dataKey: itemObject.value5
+                                      style: 
+                                        width: "0.36"    
+                                        lineHeight: "1.5"
+                                        color: "0x707070"
+                                        fontSize: .Nfont.nf4
+                                        marginLeft: "1.5vw"
+
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"   
+                            display: flex
+                            flexDirection: column
+                            alignContent: space-around
+                            justifyContent: center
+                            flexWrap: wrap
+                          children:
+                            # Name of Recipient/Healthcare Proxy
+                            - .RecipientName:
+                              children:
+                                - .RecipientNameLabel:
+                                - .RecipientNameTextField:
+                                  dataKey: Global.formData.pifzerVaccineSecDoseForm.name.data.proxyName
+
+                            # sign area
+                            - .SignAreaClickText:
+                            - .SignAreaView:
+                              children:
+                                # - type: label
+                                #   text: "Clear"
+                                #   dataKey: 
+                                #   style:
+                                #     .SignClearStyle:
+                                - type: image
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: Global.formData.pifzerVaccineSecDoseForm.name.data.pifzerVaccineSecDose
+                                  style:
+                                    .SignCanvasStyle:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+                            # patientName & date              
+                            - .PatNameAndDate:
+                              children:
+                                - .PatName:
+                                - .PatNameValue:
+                                  dataKey: Global.formData.pifzerVaccineSecDoseForm.name.user
+                                - .PatDate:
+                                - .PatDateValue:     
+                                  dataKey: Global.formData.pifzerVaccineSecDoseForm.ctime
+                # - .FormsCloseButton:                          
+
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.Global.formData.reviewFromProvider
+                              - goto: PatientSummary
+                              - goto: PatientSummaryRoom    

@@ -1,0 +1,29 @@
+TestPage:
+  title: "TestPage"
+  components:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    # - .HeaderRightImg:
+    #   path: sideNav2.png
+    - type: view
+      style:
+        top: "0.1"
+        width: "1"
+        height: "0.9"
+      viewTag: reTag
+      children: 
+        - type: label
+          text: "this is a iframe"
+          style:
+            width: "1"
+            height: "0.1"
+            textAlign:
+              x: center
+              y: center
+        - type: page
+          path: TestPage1
+          style:
+            width: "1"
+            height: "0.8"
+            # border: "1"
+            border: "1px solid"

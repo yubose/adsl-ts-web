@@ -90,21 +90,6 @@ function deepMerge(a, b) {
   return merge(a, b, { arrayMerge: combineMerge })
 }
 
-/**
-Reorder headComponents so meta tags are always at the top and aren't missed by crawlers by being pushed down by large inline styles, etc.
-@see https://github.com/gatsbyjs/gatsby/issues/22206
-*/
-export const reorderHeadComponents = headComponents => {
-  const sorted = headComponents.sort((a, b) => {
-    if (a.type && a.type === `meta` && !(b.type && b.type === `meta`)) {
-      return -1
-    }
-    return 0
-  })
-
-  return sorted
-}
-
 export default async function staticPage({
   pagePath,
   pageData,
@@ -419,7 +404,15 @@ export default async function staticPage({
 
     postBodyComponents.push(...bodyScripts)
 
-    headComponents = reorderHeadComponents(headComponents)
+    // Reorder headComponents so meta tags are always at the top and aren't missed by crawlers
+    // by being pushed down by large inline styles, etc.
+    // https://github.com/gatsbyjs/gatsby/issues/22206
+    headComponents.sort((a, _) => {
+      if (a.type && a.type === `meta`) {
+        return -1
+      }
+      return 0
+    })
 
     apiRunner(`onPreRenderHTML`, {
       getHeadComponents,

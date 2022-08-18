@@ -1,0 +1,31 @@
+TestPage2:
+  pageName: "TestPage1"
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        display: "block"
+      children:
+        - type: label
+          text: this is page2
+          dataKey: 
+          style:
+            top: "0.4"
+            width: "1"
+            textAlign:
+              x: center
+              y: center
+        - type: button
+          text: go to by TestPage1
+          onClick:
+            - goto: TestPage1
+          dataKey: 
+          style:
+            top: "0.5"
+            width: "0.6"
+            left: "0.2"
+            height: "0.08"
+            textAlign:
+              x: center
+              y: center

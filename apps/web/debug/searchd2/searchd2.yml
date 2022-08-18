@@ -1,0 +1,34 @@
+apiHost: albh2.aitmed.io
+apiPort: '443'
+webApiHost: apiHost
+appApiHost: apiHost
+connectiontimeout: '5'
+loadingLevel: 1
+debug: console_log_api
+syncHost: https://syncd2.aitmed.io:443
+elasticClient: https://elasticd2.aitmed.io
+designSuffix:
+    widthHeightRatioThreshold: 1
+    greaterEqual: ""
+    less: "v"  #v disable vertical view versionß
+patientUrl: http://patd2.aitmed.io
+adminUrl: http://admind2.aitmed.io
+providerUrl: http://prod2.aitmed.io
+viewWidthHeightRatio:
+    max: 1.78
+    min: 0.4
+web:
+  cadlVersion :
+    stable: 3.68
+    test : 3.68
+ios:
+  cadlVersion:
+    stable: 3.68
+    test : 3.68
+android:
+  cadlVersion:
+    stable : 3.68
+    test : 3.68
+cadlBaseUrl: https://public.aitmed.com/cadl/searchdd${cadlVersion}${designSuffix}/
+cadlMain: cadlEndpoint.yml
+timestamp: 0225042022

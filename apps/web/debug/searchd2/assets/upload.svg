@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="175" height="110" viewBox="0 0 175 110">
+  <g id="组_10702" data-name="组 10702" transform="translate(-101 -313.131)">
+    <g id="组_10715" data-name="组 10715">
+      <rect id="矩形_18618" data-name="矩形 18618" width="175" height="110" rx="6" transform="translate(101 313.131)" fill="#f0f2f4"/>
+      <g id="组_10698" data-name="组 10698" transform="translate(167.982 338.649)">
+        <text id="Upload" transform="translate(0 51)" fill="#acafba" font-size="14" font-family="SegoeUI, Segoe UI"><tspan x="0" y="0">Upload</tspan></text>
+      </g>
+      <path id="路径_9631" data-name="路径 9631" d="M96.483,234.754c0-.106.018-.213.018-.319A10.348,10.348,0,0,0,86.235,224a10.234,10.234,0,0,0-9.254,5.945,5.256,5.256,0,0,0-2.378-.577,5.324,5.324,0,0,0-5.217,4.481,8.085,8.085,0,0,0,2.555,15.7h9.095v-7.1H76.759l7.116-7.427,7.116,7.418H86.714v7.1H96.5a7.4,7.4,0,0,0-.018-14.791Z" transform="translate(105 123.131)" fill="#ccced5"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,411 @@
+PharmacyList:
+  title: "Pharmacy"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..pharmacy.get
+  pharmacy:
+    pharmacyList:
+    vertex:
+      type: ""
+      xfname: none
+      id: ""
+      sCondition: subtype=20
+      _nonce: =.Global._nonce
+    get:
+      api: rv
+      dataOut: pharmacy.pharmacyList
+      dataIn: pharmacy.vertex
+  pharmacyProviderEdge:
+    response: ""
+    edge:
+      .Edge: ""
+      type: .EdgeType.PubEmail
+      bvid: .Global.currentUser.vertex.id
+      evid: ""
+      _nonce: =.Global._nonce
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: PharmacyList.pharmacyProviderEdge.edge
+        dataOut: PharmacyList.pharmacyProviderEdge.response
+  prescription:
+    response: ""
+    document:
+      .Document: ""
+      eid: .Global.roomInfo.edge.id
+      type: .DocType.Prescription
+      reid: ""
+      name:
+        title: "Prescription"
+        user: .Global.currentUser.vertex.name.userName
+        type: "text/plain"
+        subtype: "0" #0是未完成，1是完成
+        # data:
+        #   classTag:
+        #     name: Provider
+        #     fontColor: "0xf8ae29"
+        #     backgroundColor: "0xfff4e0"
+        #     display: block
+        #   statusTag:
+        #     name: Private
+        #     fontColor: "0x4c5264"
+        #     backgroundColor: "0xececee"
+        #     display: block
+        #   signatureId: ""
+        #   whetherSign: "true"
+        #   fontColor: ""
+        #   authority: ""
+        #   prescriptionCount: "0"
+        #   prescriptionArray: []
+        #   uploadUserName: .Global.currentUser.vertex.name.userName
+        #   providerInfo:
+        #     providerFullName: ""
+        #     LIC: ""
+        #     NPI: .Global.MyProfile.name.data.NPI
+        #     DEA: .Global.MyProfile.name.data.DEA
+        #     email: .Global.MyProfile.name.data.email
+        #     phone: .Global.MyProfile.name.data.phone
+        #     fax: .Global.MyProfile.name.data.fax
+        #     aitmedId: .Global.MyProfile.name.data.userName
+        #   patientInfo:
+        #     name: .Global.currentMeetingPatientProfile.basicInfo.fullName
+        #     dob: .Global.currentMeetingPatientProfile.basicInfo.dateOfBirth
+        #     phoneNumber: .Global.currentMeetingPatientProfile.basicInfo.phone
+        #     email: .Global.currentMeetingPatientProfile.contactInfo.email
+        #   adminInfo:
+        #     address: .Global.currentFacility.name.basicInfo.location
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: PharmacyList.prescription.document
+        dataOut: PharmacyList.prescription.response
+        subtype:
+          mediaType: "text/plain"
+      get:
+        api: rd
+        dataKey: prescription.response
+        id: .Global.Note.id
+        xfname: eid
+        type: .DocType.Prescription
+        maxcount: "1"
+      delete:
+        api: dx
+        dataIn: prescription.document
+  formData:
+    facilityInfo: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      style:
+        backgroundColor: "#2887e5"
+    - type: view
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.8"
+      children:
+        - type: view
+          style:
+            top: "0"
+            width: "1"
+            height: "0.77"
+            left: "0"
+          children:
+            - type: label
+              text: "Pharmacy List"
+              style:
+                marginTop: "0"
+                left: "0"
+                width: "1"
+                height: "0.05"
+                textIndent: "15px"
+                fontSize: .Nfont.h16 #.Nfont.h3
+                backgroundColor: "#f0f0f0"
+                textAlign:
+                  x: center
+                  y: center
+                zIndex: 1000
+            - type: list
+              contentType: listObject
+              listObject: ..pharmacy.pharmacyList.vertex
+              viewTag: connectTag
+              iteratorVar: itemObject
+              style:
+                # top: "0"
+                left: "0"
+                width: "1"
+                height: "0.8"
+                marginTop: "0"
+                overflow: scroll
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    marginTop: "0"
+                    width: "1"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+                  children:
+                    - type: image
+                      path: ava.png
+                      dataKey: itemObject.name.basicInfo.avatar
+                      path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        left: "0.08"
+                        top: "0.0275"
+                        height: "0.045"
+                        width: "0.1"
+                        zIndex: 100
+                        fontSize: .Nfont.h3
+                    - type: label
+                      onClick:
+                        # - actionType: updateObject
+                        #   dataKey: Global.temporaryId
+                        #   dataObject: itemObject
+                      dataKey: itemObject.name.basicInfo.medicalFacilityName
+                      style:
+                        left: "0.27"
+                        width: "0.4"
+                        height: "0.03"
+                        top: "0.035"
+                        # fontFamily: "Arial"
+                        color: "0x000000"
+                        fontSize: .Nfont.h2
+                        zIndex: 100
+                    - type: button
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - .Global.tempPharmacy@: $var
+                              - ..formData.facilityInfo@: $var.name.basicInfo.fullInfo
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: facilityLabel
+                        - actionType: popUp
+                          popUpView: sendView
+                          wait: true
+                        # - emit:
+                        #     dataKey:
+                        #       var: itemObject
+                        #     actions:
+                        #       - ..prescription.document@: =.Global.Note
+                        #       - ..pharmacyProviderEdge.edge.evid@: $var.id
+                        #       - =..pharmacyProviderEdge.edgeAPI.store: ""
+                        #       - ..prescription.document.eid@: =..pharmacyProviderEdge.response.edge.id
+                        #       - =..prescription.docAPI.store: ""
+                        #       - goto: PrescriptionShared
+                      text: send
+                      style:
+                        left: "0.78"
+                        width: "0.12"
+                        height: "0.03"
+                        top: "0.035"
+                        color: "0xffffff"
+                        boxSizing: border-box
+                        fontSize: .Nfont.h2
+                        # fontFamily: "Arial"
+                        border:
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "#30B354"
+                        borderRadius: "3"
+                        backgroundColor: "#30B354"
+                        textAlign:
+                          x: center
+                          y: center
+    - type: popUp
+      viewTag: sendView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.3"
+            width: "0.7"
+            height: "0.25"
+            backgroundColor: "0xefefef"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Send Prescription
+              style:
+                left: "0"
+                top: "0.03"
+                width: "0.7"
+                height: "0.05"
+                fontSize: .Nfont.h16
+                fontWeight: "500"
+                textAlign:
+                  x: center
+            - type: label
+              text: Send this Rx to
+              style:
+                left: "0"
+                top: "0.08"
+                width: "0.7"
+                height: "0.05"
+                fontSize: "13"
+                fontWeight: "500"
+                textAlign:
+                  x: center
+            - type: label
+              viewTag: facilityLabel
+              dataKey: formData.facilityInfo
+              style:
+                left: "0"
+                top: "0.12"
+                width: "0.7"
+                height: "0.02"
+                fontSize: "13"
+                fontWeight: "500"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                left: "0"
+                top: "0.18"
+                width: "0.7"
+                height: "0.003"
+                backgroundColor: "0xbebebf"
+            - type: view
+              style:
+                left: "0.348"
+                top: "0.18"
+                width: "0.004"
+                height: "0.07"
+                backgroundColor: "0xbebebf"
+            - type: button
+              text: Cancel
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: sendView
+              style:
+                left: "0"
+                top: "0.19"
+                width: "0.348"
+                height: "0.06"
+                borderRadius: "10"
+                borderWidth: "0"
+                fontSize: "17"
+                fontWeight: "500"
+                color: "0x3a96f9"
+                textAlign:
+                  x: center
+            - type: button
+              text: Confirm
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..prescription.document@: =.Global.Note
+                    - ..pharmacyProviderEdge.edge.evid@: =.Global.tempPharmacy.id
+                    - =..pharmacyProviderEdge.edgeAPI.store: ""
+                    - ..prescription.document.eid@: =..pharmacyProviderEdge.response.edge.id
+                    - =..prescription.docAPI.store: ""
+                - actionType: popUpDismiss
+                  popUpView: sendView
+                - actionType: popUp
+                  popUpView: finalView
+              style:
+                left: "0.352"
+                top: "0.19"
+                width: "0.348"
+                height: "0.06"
+                borderRadius: "10"
+                borderWidth: "0"
+                fontSize: "17"
+                fontWeight: "500"
+                color: "0x3a96f9"
+                textAlign:
+                  x: center
+    - type: popUp
+      viewTag: finalView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.29"
+            width: "0.7"
+            height: "0.26"
+            backgroundColor: "0xefefef"
+            borderRadius: "10"
+          children:
+            - type: image
+              path: close.svg
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: finalView
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+              style:
+                top: "0.01"
+                left: "0.6"
+                width: "0.05"
+            - type: image
+              path: popUpSuccess.svg
+              style:
+                top: "0"
+                height: "0.15"
+                width: "0.15"
+                left: "0.27"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: finalView
+            - type: label
+              text: Success!
+              style:
+                left: "0"
+                top: "0.125"
+                width: "0.7"
+                height: "0.05"
+                fontSize: "23"
+                fontWeight: "350"
+                textAlign:
+                  x: center
+            - type: label
+              text: Your Prescription has been sent to
+              style:
+                left: "0"
+                top: "0.18"
+                width: "0.7"
+                fontSize: "15"
+                fontWeight: "330"
+                textAlign:
+                  x: center
+            - type: label
+              viewTag: facilityLabel
+              dataKey: formData.facilityInfo
+              style:
+                left: "0"
+                top: "0.22"
+                width: "0.7"
+                height: "0.02"
+                fontSize: "13"
+                fontWeight: "500"
+                textAlign:
+                  x: center

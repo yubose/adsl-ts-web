@@ -1,0 +1,24 @@
+Vwvh:
+  title: "test vw and vh"
+  components:
+    - .BaseHeader:
+    - .HeaderRightImg:
+      path: sideNav2.png
+    - type: view
+      style:
+        width: "1"
+        height: "0.1"
+        backgroundColor: "0x282c34ff"
+        marginTop: "0.1"
+      children:
+        - type: label
+          text: "test text"
+          style:
+            fontSize: "5vmin"
+            color: "0xffffffff"
+    - type: view
+      style:
+        width: "1"
+        height: "0.1"
+        backgroundColor: "0x282c34aa"
+        marginTop: "auto"

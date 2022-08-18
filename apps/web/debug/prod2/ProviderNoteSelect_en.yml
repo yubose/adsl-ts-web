@@ -1,0 +1,207 @@
+ProviderNoteSelect:
+  title: Provider Notes
+
+  init:
+    - .SignInCheck
+    # 清空 Global.prescriptionDrug
+    - actionType: updateObject
+      dataKey: Global.prescriptionDrug
+      dataObject: .ProviderNoteSelect.formData.prescriptionDrug
+    # 清空 Global.formData.pageName
+    - actionType: updateObject
+      dataKey: Global.formData.pageName
+      dataObject: .EmptyObj
+    # 清空 Global.prescriptionArray
+    - actionType: updateObject
+      dataKey: Global.prescriptionArray
+      dataObject: []
+    # 清空 providerDoc.evaluation
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.evaluation
+      dataObject: .EmptyObj
+    # 清空 providerDoc.prescription
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.prescription
+      dataObject: .EmptyObj
+    # 清空 providerDoc.absentNote
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.absentNote
+      dataObject: .EmptyObj
+    # 清空 providerDoc.blankNote
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.blankNote
+      dataObject: .EmptyObj
+    # 清空 providerDoc.workStatusForm
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.workStatusForm
+      dataObject: .EmptyObj
+    # 清空 providerDoc.pROne
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.pROne
+      dataObject: .EmptyObj
+    # 清空 providerDoc.pRTwo
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.pRTwo
+      dataObject: .EmptyObj
+    # 清空 providerDoc.dWCFormRFA
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.dWCFormRFA
+      dataObject: .EmptyObj
+    # 清空 providerDoc.progressReport
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.progressReport
+      dataObject: .EmptyObj
+    # 清空 providerDoc.initialEvaluationReport
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.initialEvaluationReport
+      dataObject: .EmptyObj
+    # 清空 providerDoc.surgeryAuthorization
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.surgeryAuthorization
+      dataObject: .EmptyObj
+    # 清空 providerDoc.medicalRecord
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.medicalRecord
+      dataObject: .EmptyObj
+    # 清空 providerDoc.patientConsentForm
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.patientConsentForm
+      dataObject: .EmptyObj
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.formData.providerTitle
+                  string2: ""
+            - actionType: evalObject
+              object:
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =.Global.MyProfile.name.data.fullName
+                      - " - "
+                      - =.Global.MyProfile.name.data.title
+                    dataOut: Global.formData.providerTitle
+            - continue
+  dataTemp:
+    Notes:
+      - title: Progress Report
+        pageName: ProgressReport
+      - title: Initial Evaluation Report
+        pageName: InitEvalReport
+      - title: Blank Note/form
+        pageName: BlankNote
+      - title: PR-1
+        pageName: PROne
+      - title: PR-2
+        pageName: PRTwo
+      - title: Work Status Form
+        pageName: WorkStatusForm
+      - title: Absence / Excuse Note
+        pageName: AbsentNote
+      - title: DWC Form RFA
+        pageName: DWCFormRFA
+      - title: Evaluation Note
+        pageName: EvaluationNote
+      - title: Prescription (Rx)
+        pageName: Prescription
+      - title: Surgery Authorization
+        pageName: SurgeryAuthorization
+      - title: Patient Consent Form - HIPPA
+        pageName: PatientConsentForm
+  formData:
+    prescriptionDrug:
+      RXcui: ""
+      dosage: ""
+      drugCode: ""
+      genericName: ""
+      name: "Search"
+      route: ""
+      strength: ""
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: view
+      style:
+        width: "1"
+        height: "0.1"
+        overflow: hidden
+        boxShadow: "0px 0px 5px #0000001a"
+      children:
+        - type: button
+          text: Add Document
+          onClick:
+            - goto: UploadMedicalRecord2
+          style:
+            marginTop: "0.02"
+            borderRadius: "5"
+            width: "0.88"
+            height: "0.06"
+            marginLeft: "0.06"
+            border:
+              style: 3
+            borderColor: "0x2986e3"
+            color: "0x2986e3"
+            borderWidth: "1"
+            fontSize: .Nfont.h16
+            backgroundColor: "0xffffff"
+            fontFamily: "Arial"
+            textAlign:
+              x: center
+              y: center
+        - type: image
+          path: addDoc.svg
+          style:
+            top: "0.035"
+            left: "0.25"
+            height: "0.03"
+            zIndex: 10
+
+    - type: list
+      contentType: listObject
+      listObject: ..dataTemp.Notes
+      iteratorVar: itemObject
+      style:
+        width: "1"
+        margin: "0"
+        height: "0.84"
+        overflow: scroll
+      children:
+        - type: listItem
+          itemObject:
+          style:
+            marginTop: "0.01"
+            width: "0.9"
+            marginLeft: "0.05"
+            height: "auto"
+            left: "0"
+          children:
+            - type: label
+              style:
+                # top: "0.01"
+                height: "0.08"
+                left: "0.01"
+                width: "0.88"
+                fontSize: .Nfont.h16
+                boxShadow: "0px 0px 5px 1.5px #DEDEDF"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xDEDEDF"
+                borderRadius: "5"
+                fontFamily: "Arial"
+                textAlign:
+                  x: center
+                  y: center
+              dataKey: itemObject.title
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - if:
+                          - true
+                          - goto: $var.pageName
+                          - goto: $var.pageName

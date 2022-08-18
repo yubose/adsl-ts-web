@@ -1,0 +1,14 @@
+TestEchart:
+  title: "Test Echart"
+  components: 
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - type: echart
+      style:
+        width: "1"
+        height: "0.3"
+        backgroundColor: "0x388ECC"
+        top: "0.2"

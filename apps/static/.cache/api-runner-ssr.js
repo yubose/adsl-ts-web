@@ -1,26 +1,26 @@
 var plugins = [{
       name: 'gatsby-plugin-react-helmet',
-      plugin: require('C:/Users/Chris/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-react-helmet/gatsby-ssr.js'),
+      plugin: require('/Users/christ/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-react-helmet/gatsby-ssr.js'),
       options: {"plugins":[]},
     },{
       name: 'gatsby-plugin-image',
-      plugin: require('C:/Users/Chris/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-image/gatsby-ssr.js'),
+      plugin: require('/Users/christ/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-image/gatsby-ssr.js'),
       options: {"plugins":[]},
     },{
       name: 'gatsby-plugin-sitemap',
-      plugin: require('C:/Users/Chris/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-sitemap/gatsby-ssr.js'),
+      plugin: require('/Users/christ/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-sitemap/gatsby-ssr.js'),
       options: {"plugins":[],"output":"/sitemap","createLinkInHead":true,"entryLimit":45000,"query":"{ site { siteMetadata { siteUrl } } allSitePage { nodes { path } } }","excludes":[]},
     },{
       name: 'gatsby-plugin-manifest',
-      plugin: require('C:/Users/Chris/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-manifest/gatsby-ssr.js'),
-      options: {"plugins":[],"name":"AiTmed Homepage","short_name":"AiTmed","start_url":"/","background_color":"#2596be","display":"minimal-ui","icon":"C:\\Users\\Chris\\aitmed-noodl-web\\apps\\static/src/resources/images/logo.png","legacy":true,"theme_color_in_head":true,"cache_busting_mode":"query","crossOrigin":"anonymous","include_favicon":true,"cacheDigest":"b1515d058b0ca329c15ff1780f733c1c"},
+      plugin: require('/Users/christ/aitmed-noodl-web/apps/static/node_modules/gatsby-plugin-manifest/gatsby-ssr.js'),
+      options: {"plugins":[],"name":"AiTmed Homepage","short_name":"AiTmed","start_url":"/","background_color":"#2596be","display":"minimal-ui","icon":"/Users/christ/aitmed-noodl-web/apps/static/src/resources/images/logo.png","legacy":true,"theme_color_in_head":true,"cache_busting_mode":"query","crossOrigin":"anonymous","include_favicon":true,"cacheDigest":"b1515d058b0ca329c15ff1780f733c1c"},
     },{
       name: 'default-site-plugin',
-      plugin: require('C:/Users/Chris/aitmed-noodl-web/apps/static/gatsby-ssr.js'),
+      plugin: require('/Users/christ/aitmed-noodl-web/apps/static/gatsby-ssr.js'),
       options: {"plugins":[]},
     },{
       name: 'partytown',
-      plugin: require('C:/Users/Chris/aitmed-noodl-web/apps/static/node_modules/gatsby/dist/internal-plugins/partytown/gatsby-ssr.js'),
+      plugin: require('/Users/christ/aitmed-noodl-web/apps/static/node_modules/gatsby/dist/internal-plugins/partytown/gatsby-ssr.js'),
       options: {"plugins":[]},
     }]
 /* global plugins */

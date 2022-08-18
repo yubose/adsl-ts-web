@@ -1,0 +1,3846 @@
+ScheduleManagement: #xd page number: 1080
+  pageNumber: "450" 
+  viewPort: top
+  title: "ScheduleManagement"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    - actionType: evalObject
+      object: 
+        - ..selectDate@: .BaseDate.calendarDate.todayDate
+    
+    - actionType: evalObject
+      object:        
+        - .Global.currentSubtype@: '196609'
+        - .Global.visitType@: "Telemedicine"
+        - ..newAppointment.edge.name.visitType@: "Telemedicine"
+        - ..newAppointment.edge.name.visitTypeShow@: "Telemedicine"              
+    # - ..author.edgeAPI.get
+    - if:
+      - =.Global.formData.firstLogIn
+      - continue
+      - actionType: updateObject
+        dataKey: Global.relation.edgeReq.id
+        dataObject: []
+    - .Global.locationAll@: []
+    - =..locationList.vertexAPI.get: ""
+    - if:
+      - =.Global.formData.firstLogIn
+      - continue
+      - actionType: updateObject
+        dataKey: Global.auth
+        dataObject: ""
+    - if:
+      - =.Global.formData.firstLogIn
+      - continue
+      - .Global.auth@: =.Global.relation.edgeResponse.edge.0.name.auth
+    - .Global.formData.firstLogin@: false
+    - =..getAvatarID.docAPI.get: ""
+    - if: 
+      - ..getAvatarID.docResp.doc.0
+      - .Global.facilityAvatarID@: =..getAvatarID.docResp.doc.0.id
+      - continue
+    - =..fac_RootNotebook.edgeAPI.get: ""
+    - .Global.fac_rootNotebook@: =..fac_RootNotebook.edge.edge.0.id
+    - .Global.formData.reply.eid@: =.Global.fac_rootNotebook # 给reply的eid赋值    
+    - ..locationAll.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+    - ..middleList@: =..locationList.list.vertex
+    - =.builtIn.object.extractArray: 
+        dataIn: 
+          obj: =..middleList
+          arr: =..extractData
+        dataOut: ScheduleManagement.locationAll.document.name.data.allLocation
+    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+    - =.Global.jwt.edgeAPI.store: ""
+    - =..locationAll.docAPI.store: ""
+    - .Global.locationAll@: =..locationAll.document.name.data.allLocation
+    - .Global.formData.locationId@: =.Global.locationAll.0.id  # initial account management id
+    - =..patient.docAPI.get: ""
+    - ..formData.timeTable.response@: ""  #表格置空
+    - ..formData.providerSelect@: ["All Providers"]
+    - =..providerList.docAPI.get: ""
+    - =.builtIn.array.keepLatestDoc: 
+        dataIn: 
+          docList: =..providerList.list.doc
+          path: bsig
+        dataOut: ScheduleManagement.providerList.list.doc
+    - =.builtIn.array.keepLatestDoc: 
+        dataIn: 
+          docList: =..patient.list.doc
+          path: bsig
+        dataOut: ScheduleManagement.patient.list.doc
+    - if: 
+      - ..providerList.list.doc.0
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.getIdByUserName:
+              dataIn:
+                array: =..providerList.list.doc
+                userName: =..formData.providerName
+              dataOut: ScheduleManagement.formData.providerId 
+          - =.builtIn.object.extract:
+              dataIn:
+                array: =..providerList.list.doc
+                field: name.data.fullName
+              dataOut: ScheduleManagement.formData.providerList
+          - ..formData.providerSendList@: =..formData.providerList
+          - ..formData.providerSendName@: =..formData.providerSendList.0
+          - ..formData.specialty@: =..providerList.list.doc.0.name.data.specialty
+          - =.builtIn.array.getIdByUserName: # get providerSendId
+              dataIn:
+                array: =..providerList.list.doc
+                userName: =..formData.providerSendName
+              dataOut: ScheduleManagement.formData.providerSendId  
+          - if: 
+            - =..formData.specialty.0
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =..formData.providerSendName
+                  - " "
+                  - "-"
+                  - " "
+                  - =..formData.specialty.0.specialty
+                dataOut: ScheduleManagement.newAppointment.edge.name.providerFullInfo
+            - continue
+          - =.builtIn.array.push: 
+              dataIn: 
+                messages: =..formData.providerList
+                newMessage: "All Providers"
+              dataOut: ScheduleManagement.formData.providerList
+          - ..formData.providerSelect@: =..formData.providerList
+          - .Global.formData.scheduleManageProdId@: =..providerList.list.doc.0.bsig
+          - .Global.formData.scheduleManageProdName@: =..providerList.list.doc.0.name.data.fullName
+          - ..formData.providerName@: "All Providers"
+          # - ..formData.providerId@: =..providerList.list.doc.0.bsig
+          # get all providers's id
+          - =.builtIn.array.selectOneToArr:
+              dataIn:
+                arr: =..providerList.list.doc
+                key: "bsig"
+              dataOut: ScheduleManagement.formData.providerIdList
+          - ..inMeeting.edge.id@: =..formData.providerIdList
+      - continue
+    - if: 
+      - =..patient.list.doc
+      - =.builtIn.array.formatProfile:
+          dataIn: 
+            objArr: =..patient.list.doc
+          dataOut: ScheduleManagement.formData.parseProfile
+      - continue
+    - =.builtIn.array.selectOneToArr:   # 获取所有的address
+        dataIn:
+          arr: =.Global.locationAll
+          key: "medicalFacilityName"
+        dataOut: ScheduleManagement.addressName
+    - ..requestAddList@: =..addressName
+    - =.builtIn.array.push:
+        dataIn:
+          messages: =..requestAddList
+          newMessage: "All Locations"
+    - =.builtIn.array.selectOneToArr:   # 获取所有的locationId
+        dataIn:
+          arr: =.Global.locationAll
+          key: "id"
+        dataOut: Global.alllocationID
+    # get allId for get appointment
+    - ..formData.facId@: =.Global.currentFacility.id     # 获取所有的facId
+    - =.builtIn.array.selectOneToArr:                    # 获取所有的locIds
+        dataIn:
+          arr: =.Global.locationAll
+          key: "id"
+        dataOut: ScheduleManagement.formData.locIds               
+    - =.builtIn.array.selectOneToArr:                    # 获取所有的prodIds
+        dataIn:
+          arr: =..providerList.list.doc
+          key: "bsig"
+        dataOut: ScheduleManagement.formData.prodIds 
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.allId                      # store facId
+          value: =..formData.facId
+    # concat facId + locIds + prodId
+    - =.builtIn.array.concat:
+        dataIn:
+          array1: =..formData.allId
+          array2: =..formData.locIds
+        dataOut: ScheduleManagement.formData.allId  # store facId + locIds
+    - ..formData.allFacAndLocIds@: =..formData.allId # store facId & locIds
+    - =.builtIn.array.concat:
+        dataIn:
+          array1: =..formData.allId
+          array2: =..formData.prodIds
+        dataOut: ScheduleManagement.formData.allId  # store facId + locIds + prodIds
+    - ..inMeeting.edge.id@: =..formData.allId 
+    - ..inMeeting.edgeReGet.id@: =..formData.allId 
+    - actionType: evalObject  # 获取表格的数据
+      object:  
+        - if: 
+          - ..formData.providerIdList
+          - =..inMeeting.edgeAPI.get: ""
+          - continue
+    # - actionType: evalObject  # 获取表格的数据
+    #   object:   
+    - =.builtIn.object.extractArray: 
+        dataIn: 
+          obj: =..inMeeting.edgeResp.edge
+          arr:
+            - stime
+            - etime
+            - name.visitReason
+            - name.patientName
+            - name.visitType
+            - id
+            - name.duration
+            - tage
+            - subtype
+        dataOut: ScheduleManagement.formData.timeTable.chartData
+    - ..formData.allAppointment@: =..inMeeting.edgeResp.edge
+    - ..formData.appointment@: =..formData.allAppointment
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =..formData.appointment
+        dataOut: ScheduleManagement.formData.appointmentLength
+    - ..formData.providerAvatarId@: =..providerList.list.doc.0.name.data.avatar
+    - ..newAppointment.edge.name.providerAvatarId@: =..formData.providerAvatarId
+    # - if:
+    #   - =.builtIn.object.has: 
+    #       dataIn: 
+    #         object: =.Global.currentFacility.name.basicInfo
+    #         key: website
+    #   - continue
+    #   - ..formData.isShowWarningNoWebsite@: false
+    - if:
+      - =.builtIn.object.hasMultipleKeys: 
+          dataIn: 
+            object: =.Global.currentFacility.name.basicInfo
+            keyArr: ['website','fax']
+      - continue
+      - ..formData.isShowWarningNoWebsite@: false
+      
+  middleList: []
+  fac_RootNotebook:
+    edgeReq:
+      id: .Global.currentFacility.id
+      xfname: bvid
+      type: .EdgeType.RootNotebook
+    edge: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: ScheduleManagement.fac_RootNotebook.edgeReq
+        dataOut: ScheduleManagement.fac_RootNotebook.edge
+  MenuData: .menuBar.listData
+  dateList: 
+    - key: Days
+      color: "0xffffff"
+      bgc: "0x005795"
+    - key: Weeks
+      color: "0x000000"
+      bgc: "0xffffff"
+    - key: Months
+      color: "0x000000"
+      bgc: "0xffffff"
+  extractData:   
+    - id
+    - name.basicInfo.medicalFacilityName
+    - name.basicInfo.phoneNumber
+    - name.basicInfo.location
+    - name.basicInfo.locationID
+  #get 1100 or 1200
+  # author:
+  #   response: ""
+  #   edge:
+  #     id:
+  #       - .Global.currentFacility.id
+  #       - .Global.currentUser.vertex.id
+  #     xfname: "evid & bvid"
+  #     sCondition: "type in (1200,1100)"
+  #     # maxcount : ""
+  #     obfname : "ctime"
+  #     _nonce: =.Global._nonce
+  #   edgeAPI:
+  #     get:
+  #       api: re
+  #       dataOut: author.response
+  #       dataIn: author.edge 
+  locationList: 
+    list: ""
+    vertexIn: 
+      ObjType: 4
+      id: .Global.currentFacility.id
+      xfname: "E.bvid"
+      sCondition: "E.type=1100 AND V.type!=20 AND V.type!=1"
+      maxcount: "100"
+      obfname: "ctime"
+      asc: true
+      _nonce: =.Global._nonce
+    vertexAPI: 
+      get: 
+        api: rv
+        dataIn: locationList.vertexIn
+        dataOut: ScheduleManagement.locationList.list                             
+  locationAll:   # 把所有的location 信息，在schedule那边显示
+    docResp: ""   # get到的值
+    docIn:    # for geting all of the location
+      type: .DocType.LocationOfFacility
+      id: ""
+      xfname: eid
+      obfname: mtime
+      maxcount: "1"
+      name: 
+        data: 
+          allLocation: 
+    document: # for store some info of location 
+      type: .DocType.LocationOfFacility
+      eid: ""
+      name: 
+        data: 
+          allLocation: []
+        # type: "application/json"
+    docAPI:
+      .DocAPI: ""
+      store: 
+        api: cd
+        dataIn: ScheduleManagement.locationAll.document
+        subtype:
+          mediaType: "application/json"   
+      get: 
+        api: rd
+        dataIn: ScheduleManagement.locationAll.docIn
+        dataOut: ScheduleManagement.locationAll.docResp
+  getAvatarID:   # 获取facility头像的id 放入global里，随时调用（给provide，patient添加好友）
+    docResp: 
+      doc: []
+    docIn: 
+      ObjType: 12
+      type: .DocType.BusinessLogoPicture
+      id: .Global.currentFacility.id
+      xfname: E.bvid
+      sCondition: E.type=10000
+      _nonce: =.Global._nonce
+    docAPI: 
+      get: 
+        api: rd
+        dataIn: getAvatarID.docIn
+        dataOut: ScheduleManagement.getAvatarID.docResp
+  patient:  # 获取所有的病人
+    list: ""
+    docReq:
+        type: .DocType.PatientProfile
+        id: .Global.currentFacility.id
+        xfname: E.bvid|E.evid
+        sCondition: "E.type=10002 AND E.tage>0"
+        maxcount: "10000"
+        _nonce: =.Global._nonce
+        ObjType: 8
+    docAPI:
+      get: 
+        api: rd
+        dataOut: ScheduleManagement.patient.list
+        dataIn: ScheduleManagement.patient.docReq
+  schedule:     # 获取avilability，可用时间的
+    response: ""
+    scheduleList:
+      edge: []
+    get:
+      api: re
+      dataIn: ScheduleManagement.schedule.edge
+      dataOut: ScheduleManagement.schedule.scheduleList
+    edge:
+      type: 40000
+      id: []
+      sCondition: .Global.scheduleScondition
+      xfname: "evid,bvid"
+      maxcount: "10000"
+      obfname: "ctime"
+      asc: true
+      _nonce: =.Global._nonce
+  apiRequest:
+    #获取最近可预约时间段
+    getFirstAvail:
+      response: ""
+      edge:
+        type: 40000
+        id: []
+        sCondition: .Global.scheduleScondition2
+        maxcount: "1"
+        xfname: "evid,bvid"
+        obfname: "stime"
+        asc: true
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          .EdgeAPI.get: ""
+          api: re
+          dataIn: ScheduleManagement.apiRequest.getFirstAvail.edge
+          dataOut: ScheduleManagement.apiRequest.getFirstAvail.response
+    # when create appointment , auto approve
+    autoApprove:
+      response:
+      edge:
+        .Edge: ""
+        evid: ""
+        refid: ""
+        type: 40000
+        subtype: 5
+        stime: ""
+        etime: ""
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.autoApprove.edge
+          dataOut: ScheduleManagement.apiRequest.autoApprove.response
+    # invite participant when make appointment
+    inviteParticipant:
+      response:
+      edge:
+        .Edge: ""
+        evid: ""
+        refid: ""
+        type: 40000
+        subtype: 10
+        stime: ""
+        etime: ""
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.inviteParticipant.edge
+          dataOut: ScheduleManagement.apiRequest.inviteParticipant.response      
+    # E7 取消预约
+    cancelAppointmentEdge:
+      edgeResp: ""
+      storeEdge:
+        bvid: ""
+        evid: ""
+        type: .EdgeType.WaitingRoom
+        subtype: 7
+      edgeAPI:
+        store: 
+          api: ce
+          dataIn: apiRequest.cancelAppointmentEdge.storeEdge
+          dataOut: apiRequest.cancelAppointmentEdge.edgeResp
+    # 判断是否为好友
+    isContact: 
+      edgeResp: ""
+      edge:
+        id: []
+        xfname: evid,bvid
+        type: 10002
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get: 
+          api: re
+          dataIn: ScheduleManagement.apiRequest.isContact.edge
+          dataOut: ScheduleManagement.apiRequest.isContact.edgeResp
+  visitReason: 
+    docResp: ""
+    docIn:
+      type: .DocType.VisitReason
+      id: ""
+      xfname: "ovid"
+      obfname: "ctime"
+      _nonce: .Global._nonce
+      maxcount: "1"
+    docAPI: 
+      get: 
+        api: rd
+        dataIn: visitReason.docIn
+        dataOut: ScheduleManagement.visitReason.docResp
+
+  inMeeting:  # 同意预约后，正在开会的40000那条边（subtype为6或者100）
+    edgeResp: 
+      edge: []
+    edgeReGetResp: ""
+    edge:
+      .Edge: ""
+      # id include: facility id , location id , provider id
+      id: 
+        
+      ObjType: "20"
+      xfname: "E2.Bvid,E2.Evid"
+      # type: .EdgeType.WaitingRoom
+      sCondition: "E2.type=40000 AND E2.subtype&0xff in (1,9) AND E.type = 40000 AND E.subtype&0xff in (6,100)"
+      obfname: "ctime" 
+      _nonce: =.Global._nonce
+      maxcount: "100"
+    edgeReGet: 
+      .Edge: ""
+      # id include: facility id , location id , provider id
+      id: 
+        
+      ObjType: "20"
+      xfname: "E2.Bvid,E2.Evid"
+      # type: .EdgeType.WaitingRoom
+      sCondition: "E2.type=40000 AND E2.subtype&0xff in (1,9) AND E.type = 40000 AND E.subtype&0xff in (6,100) AND E.tage&0x100 in (0)"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+      maxcount: "100"
+    edgeAPI: 
+      get: 
+        api: re
+        dataIn: inMeeting.edge
+        dataOut: ScheduleManagement.inMeeting.edgeResp
+      reGet: 
+        api: re
+        dataIn: inMeeting.edgeReGet
+        dataOut: ScheduleManagement.inMeeting.edgeReGetResp
+  providerList:
+    list: ""
+    docAPI:
+      get: 
+        api: rd
+        dataKey: providerList.list
+        ObjType: 12
+        type: .DocType.DoctorProfile
+        id: .Global.currentFacility.id
+        xfname: E.bvid|E.evid
+        sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+        maxcount: "10000"
+        _nonce: =.Global._nonce
+  visitType: "Telemedicine"
+  patientInfoPage: ""
+  flagType: ""
+  
+  splitTime: []  # availablity 里的具体每一个时间段
+  locationId: .Global.locationAll.0.id # 创建预约时候location要使用的
+  requestLocationId:  .Global.locationAll.0.id # 获取所有病人给location的预约请求时候location要使用的
+  requestAddress: "All Locations"   
+  requestAddList: []
+  clock: {}
+  selectDate: ""
+  appointmentTime: ""
+  formData:
+    isShowWarningNoWebsite: true
+    parseProfile: []
+    specialty: []   # provider的专业技能，E2需要把其与名字拼串这个信息 
+    appointmentTitle: ""
+    nextBtnColor: "0xd3dde9"   # 预约时不选时间就不许下一步
+    approveProvider:   # 同意预约时展示该provider的姓名
+    faciliyLocationProviderId: []
+    allAppointImage: "Yes"
+    providerIdList: []  # for geting inMeetingAll
+    inviteMessage: ""
+    currentVisitType: "All Types"
+    locationList: ""
+    currentPatient:
+      id: ""
+      patientName: ""
+      patientPhoneNumber: ""
+      visitReason: ""
+      location: ""
+    pageName: ""
+    gotoPage: ""
+    dataStruc:
+        - reason 
+        - duration
+    appointmentInfo: ""
+    scheduleInfoAppointment: ""
+    providerList: []
+    providerSendList: []
+    providerSendName: ""
+    providerSendId: ""
+    providerSelect: []
+    providerName: "All Providers"
+    providerId: 
+    durationMinutes: ""
+    timeTable:
+      chartType: "calendarTable"
+      chartData:  []
+        #json object include  stime , etime , name , color , id , fontColor
+      response: ""
+    allId: []  # get all appointments, as E1&E9 E.Bvid,E.Evid
+    facId: [] # store facId (one) for Filtering loc
+    locId: [] # store locId when choose the location (for locationSelectView)
+    locIds: [] # store locIds(one or all) for Filtering loc
+    allFacAndLocIds: [] # # store facId&locIds
+    prodIds: [] # store prodId (one or all) for Filtering one prod or all prod
+    allAppointment: [] # store  appointment's edges via inMeeting.edgeAPI.get
+    checkedInAppointment: [] # store checkedIn appointments
+    isDisplayAllAppointment: block
+    isDisplayCheckedInAppointment: none
+    appointmentLength: "0"
+    appointmentLengthLabel: "New Appointment"
+    appointment: [] # for showing appointments list (allAppointment or checkedInAppointment)
+    providerAvatarId: ""
+  formDataTemp:
+    appointmentTitleNew:
+      title:  "New Request"
+      fontColor: "0x005795"
+      fontWeight: "600"
+      bdColor: "0x005795"
+    appointmentTitleCheck: 
+      title: "Checked in"
+      fontColor: "0x000000"
+      fontWeight: "500" 
+      bdColor: "0xf2f2f2"      
+    appointmentTitleData: 
+      - title:  "New Request"
+        fontColor: "0x005795"
+        fontWeight: "600"
+        bdColor: "0x005795"
+      - title: "Checked in"
+        fontColor: "0x000000"
+        fontWeight: "500" 
+        bdColor: "0xf2f2f2"
+  newAppointment:
+    response: ""
+    edge:
+      .Edge: ""
+      evid: ""
+      bvid: ""
+      subtype: "0x30002"        # 预约的时候会根据不同的类型给不同的subtype:  telemedicine: 0x20002
+      type: 40000
+      name:
+        patientName: "" #"" #病人名字
+        visitType: "Telemedicine" # visitType 用于判定
+        visitTypeShow: "" # visitType 用于显示 ，避免和判定冲突
+        providerName: "" # 医生名字
+        visitReason: "" # 看病原因
+        blockColor: "" #背景色
+        fontColor: "" #字体颜色
+        Reason: ""   # 看病原因的拼接，用于展示
+        document: ""    # 看病原因要填写的vaccin
+        facilityId: ""
+        providerId: ""
+        providerAvatarId: ""
+        locationName: "" # 如果是Office visit，就展示
+        finishDoc: []
+        location: ""
+      tage: 1
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: newAppointment.edge
+        dataOut: newAppointment.response
+
+  reasonForVisit: []
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        # - .BaseCheckView: ""
+        #   message: "You don't have the authority to create a new appointment"
+        #   viewTag: scheduleInfoAuthCreate
+        #   style: 
+        #     zIndex: "100000"
+        #     left: "0.425"
+        #     boxShadow: "1px 1px 5px 5px #cccccc"
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          children:
+            - .Label1:
+              type: label
+              text: "Schedule Management"
+              style:
+                left: "0.03"
+                fontSize: .Nfont.nf6
+                top: "0.02"
+              # onClick:
+              #   - actionType: popUp
+              #     popUpView: create
+            
+            - type: view
+              viewTag: selectTypeAndDocView
+              style:
+                width: '0.35'
+                height: '0.04'
+                top: '0.08'
+                left: '0.25'
+                # isHidden: true
+              children:
+                # FOR SELECT PROVIDER
+                - .Scselect1:
+                  style: 
+                    top: "0"
+                    left: "0"
+                  dataKey: formData.providerName
+                  options:
+                    ..formData.providerSelect
+                  onChange:
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@: 
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - ..requestAddress@: "All Locations"
+                        - ..formData.allAppointment@: []
+                        - ..formData.prodIds@: []
+                        - ..formData.allId@: []
+                        - ..inMeeting.edgeResp.edge@: [] 
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.providerName
+                                string2: "All Providers"
+                          # All Providers begin
+                          - actionType: evalObject
+                            object:
+                              # 获取所有的prodIds
+                              - =.builtIn.array.selectOneToArr:                   
+                                  dataIn:
+                                    arr: =..providerList.list.doc
+                                    key: "bsig"
+                                  dataOut: ScheduleManagement.formData.prodIds 
+                              - =.builtIn.array.concat:
+                                  dataIn:
+                                    array1: =..formData.allId
+                                    array2: =..formData.prodIds
+                                  dataOut: ScheduleManagement.formData.allId        # store prodIds                                                                 
+                              # All Providers & All Types
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.currentVisitType
+                                      string2: "All Types"
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.allFacAndLocIds
+                                        dataOut: ScheduleManagement.formData.allId  # store facId + locIds + prodIds                                                                          
+                                - continue
+                              # All Providers & Telemedicine
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.currentVisitType
+                                      string2: "Telemedicine"
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.add:
+                                        dataIn:
+                                          object: =..formData.allId
+                                          value: =..formData.facId                  # store facId + prodIds                                  
+                                - continue
+                              # All Providers & Office Visit
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.currentVisitType
+                                      string2: "Office Visit"
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.locIds
+                                        dataOut: ScheduleManagement.formData.allId  # store locIds + prodIds                                
+                                - continue
+                          # All Providers end
+
+                          # One Provider begin
+                          - actionType: evalObject
+                            object:
+                              - =.builtIn.array.getIdByUserName:                    # 获取一个 prodId(s) via providerName
+                                  dataIn:
+                                    array: =..providerList.list.doc
+                                    userName: =..formData.providerName
+                                  dataOut: ScheduleManagement.formData.prodIds
+                              - =.builtIn.array.add: 
+                                  dataIn: 
+                                    object: =..formData.allId
+                                    value: =..formData.prodIds                                                       
+                              # One Provider & All Types
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.currentVisitType
+                                      string2: "All Types"
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.allFacAndLocIds
+                                        dataOut: ScheduleManagement.formData.allId  # store facId + locIds + prodIds
+                                - continue
+                              # One Providers & Telemedicine
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.currentVisitType
+                                      string2: "Telemedicine"
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.add:
+                                        dataIn:
+                                          object: =..formData.allId
+                                          value: =..formData.facId                  # store facId + prodIds                                 
+                                - continue
+                              # One Providers & Office Visit
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.currentVisitType
+                                      string2: "Office Visit"
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.locIds
+                                        dataOut: ScheduleManagement.formData.allId  # store locIds + prodIds
+                                - continue
+                          # One Providers end
+                    - actionType: evalObject
+                      object:                                                                         
+                        - ..inMeeting.edge.id@: =..formData.allId
+                        - if: 
+                          - =..formData.providerIdList
+                          - =..inMeeting.edgeAPI.get: ""
+                          - continue
+                        - ..formData.allAppointment@: =..inMeeting.edgeResp.edge
+                        # - =.builtIn.array.getListLength:
+                        #     dataIn:
+                        #       object: =..formData.allAppointment
+                        #     dataOut: ScheduleManagement.formData.appointmentLength
+                        - =.builtIn.object.extractArray: 
+                            dataIn: 
+                              obj: =..inMeeting.edgeResp.edge
+                              arr:
+                                - stime
+                                - etime
+                                - name.visitReason
+                                - name.patientName
+                                - name.visitType
+                                - id
+                                - name.duration
+                            dataOut: ScheduleManagement.formData.timeTable.chartData                    
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..formData.currentVisitType
+                                string2: "Office Visit"
+                          - actionType: builtIn
+                            funcName: show
+                            viewTag: locationSelectView
+                          - actionType: builtIn
+                            funcName: hide
+                            viewTag: locationSelectView     
+                    # 切换则置为 New Request
+                    - actionType: evalObject
+                      object:        
+                        - ..formDataTemp.appointmentTitleData.0@: =..formDataTemp.appointmentTitleNew
+                        - ..formDataTemp.appointmentTitleData.1@: =..formDataTemp.appointmentTitleCheck
+                        - ..formData.appointmentLengthLabel@: "New Appointment"
+                        - ..formData.isDisplayAllAppointment@: block
+                        - ..formData.isDisplayCheckedInAppointment@: none                 
+                        - ..formData.appointment@: =..formData.allAppointment 
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =..formData.appointment
+                            dataOut: ScheduleManagement.formData.appointmentLength                       
+                    # Redraw Tag begin
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: locSelectTag   
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: calenderTableView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentLengthTag                       
+                    # Redraw Tag end
+                # FOR SELECT TYPE
+                - .Scselect1: 
+                  options:
+                    - All Types
+                    - Telemedicine
+                    - Office Visit
+                  dataKey: formData.currentVisitType
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - ..formData.allAppointment@: []
+                        - ..formData.prodIds@: []
+                        - ..formData.allId@: []
+                        - ..inMeeting.edgeResp.edge@: []                          
+                    # All Types begin 
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.currentVisitType
+                                string2: "All Types"                               
+                          - actionType: evalObject
+                            object:
+                              - =.builtIn.array.concat:
+                                  dataIn:
+                                    array1: =..formData.allId
+                                    array2: =..formData.allFacAndLocIds
+                                  dataOut: ScheduleManagement.formData.allId            # store facId + locIds                       # store facId + locIds + prodIds                                  
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.providerName
+                                      string2: "All Providers" 
+                                # All Types & All Providers
+                                - actionType: evalObject
+                                  object:
+                                    # 获取所有的prodIds
+                                    - =.builtIn.array.selectOneToArr:                   
+                                        dataIn:
+                                          arr: =..providerList.list.doc
+                                          key: "bsig"
+                                        dataOut: ScheduleManagement.formData.prodIds 
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.prodIds
+                                        dataOut: ScheduleManagement.formData.allId        # store facId + locIds + prodIds                                  
+                                # All Types & One Providers
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.getIdByUserName:                    # 获取一个 prodId(s) via providerName
+                                        dataIn:
+                                          array: =..providerList.list.doc
+                                          userName: =..formData.providerName
+                                        dataOut: ScheduleManagement.formData.prodIds
+                                    - =.builtIn.array.add: 
+                                        dataIn: 
+                                          object: =..formData.allId
+                                          value: =..formData.prodIds                                                                
+                          - continue
+                    # All Types end
+
+                    # Telemedicine begin
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.currentVisitType
+                                string2: "Telemedicine"
+                          - actionType: evalObject
+                            object:
+                              - =.builtIn.array.add:
+                                  dataIn:
+                                    object: =..formData.allId
+                                    value: =..formData.facId                            # store facId                                 
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.providerName
+                                      string2: "All Providers" 
+                                # Telemedicine & All Providers
+                                - actionType: evalObject
+                                  object:
+                                    # 获取所有的prodIds
+                                    - =.builtIn.array.selectOneToArr:                   
+                                        dataIn:
+                                          arr: =..providerList.list.doc
+                                          key: "bsig"
+                                        dataOut: ScheduleManagement.formData.prodIds 
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.prodIds
+                                        dataOut: ScheduleManagement.formData.allId        # store facId + prodIds                                  
+                                # Telemedicine & One Providers
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.getIdByUserName:                    # 获取一个 prodId(s) via providerName
+                                        dataIn:
+                                          array: =..providerList.list.doc
+                                          userName: =..formData.providerName
+                                        dataOut: ScheduleManagement.formData.prodIds
+                                    - =.builtIn.array.add: 
+                                        dataIn: 
+                                          object: =..formData.allId
+                                          value: =..formData.prodIds                                                                 
+                          - continue
+                    # Telemedicine end
+
+                    # Office Visit begin
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.currentVisitType
+                                string2: "Office Visit"
+                          - actionType: evalObject
+                            object:   
+                              - =.builtIn.array.concat:
+                                  dataIn:
+                                    array1: =..formData.allId
+                                    array2: =..formData.locIds
+                                  dataOut: ScheduleManagement.formData.allId            # store locIds
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.providerName
+                                      string2: "All Providers"
+                                # Office Visit & All Providers 
+                                - actionType: evalObject
+                                  object:
+                                    # 获取所有的prodIds
+                                    - =.builtIn.array.selectOneToArr:                   
+                                        dataIn:
+                                          arr: =..providerList.list.doc
+                                          key: "bsig"
+                                        dataOut: ScheduleManagement.formData.prodIds 
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.prodIds
+                                        dataOut: ScheduleManagement.formData.allId        # store locIds + prodIds                                  
+                                # Office Visit & One Providers
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.getIdByUserName:                  # 获取一个 prodId(s) via providerName
+                                        dataIn:
+                                          array: =..providerList.list.doc
+                                          userName: =..formData.providerName
+                                        dataOut: ScheduleManagement.formData.prodIds
+                                    - =.builtIn.array.add: 
+                                        dataIn: 
+                                          object: =..formData.allId
+                                          value: =..formData.prodIds
+                          - continue
+                    # Office Visit end
+                    
+                    - actionType: evalObject
+                      object:                                                                         
+                        - ..inMeeting.edge.id@: =..formData.allId
+                        - if: 
+                          - =..formData.providerIdList
+                          - =..inMeeting.edgeAPI.get: ""
+                          - continue
+                        - ..formData.allAppointment@: =..inMeeting.edgeResp.edge
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =..formData.allAppointment
+                            dataOut: ScheduleManagement.formData.appointmentLength
+                        - =.builtIn.object.extractArray: 
+                            dataIn: 
+                              obj: =..inMeeting.edgeResp.edge
+                              arr:
+                                - stime
+                                - etime
+                                - name.visitReason
+                                - name.patientName
+                                - name.visitType
+                                - id
+                                - name.duration
+                            dataOut: ScheduleManagement.formData.timeTable.chartData
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn: 
+                                string1: =..formData.currentVisitType
+                                string2: "Office Visit"
+                          - actionType: builtIn
+                            funcName: show
+                            viewTag: locationSelectView
+                          - actionType: builtIn
+                            funcName: hide
+                            viewTag: locationSelectView
+                    # 切换则置为 New Request
+                    - actionType: evalObject
+                      object:        
+                        - ..formDataTemp.appointmentTitleData.0@: =..formDataTemp.appointmentTitleNew
+                        - ..formDataTemp.appointmentTitleData.1@: =..formDataTemp.appointmentTitleCheck
+                        - ..formData.appointmentLengthLabel@: "New Appointment"
+                        - ..formData.isDisplayAllAppointment@: block
+                        - ..formData.isDisplayCheckedInAppointment@: none                 
+                        - ..formData.appointment@: =..formData.allAppointment 
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =..formData.appointment
+                            dataOut: ScheduleManagement.formData.appointmentLength                                
+                    # Redraw Tag begin
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: calenderTableView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentLengthTag
+                    # Redraw Tag end                            
+                  style:
+                    left: "0.17"                  
+                    top: "0"
+            # - .Scimage1:
+            - type: view
+              style: 
+                left: "0.69"
+                top: "0.08"
+                width: '0.11'
+                height: '0.04'
+                borderRadius: "5"
+                boxSizing: border-box
+                backgroundColor: "0x0b4a7e"
+                textAlign: 
+                  y: center
+                  x: center
+              children: 
+                - type: image
+                  path: addCircle.svg
+                  style:
+                    width: "0.012"
+                - type: label
+                  text: Add Appointment
+                  dataKey: 
+                  style:
+                    marginLeft: "0.005"
+                    fontSize: .Nfont.nf2
+                    fontFamily: "Roboto"
+                    color: "0xffffff"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object: 
+                    - ..splitTime@: []
+                    - ..visitReason.docResp.0.doc.0.name.data.reasonForVisit@: []
+                    - ..visitReason.docIn.id@: =..formData.providerSendId
+                    - ..newAppointment.edge.name.providerName@: =..formData.providerSendName
+                    - =..visitReason.docAPI.get: "" # get reasons
+                    # - =.builtIn.object.extractArray: 
+                    #     dataIn: 
+                    #       obj: =..visitReason.response.doc.0.name.data.reasonForVisit
+                    #       arr: =..formData.dataStruc
+                    #     dataOut: ScheduleManagement.middleStruc  
+                    - ..visitReason.document@: =..visitReason.docResp.0.doc.0
+                    - ..schedule.edge.id.0@: =..formData.providerSendId
+                    - ..schedule.edge.id.1@: =.Global.currentFacility.id
+                    #获取前一天的时间戳
+                    - =.builtIn.date.getTime:
+                        dataIn:
+                        dataOut: ScheduleManagement.formData.nowTimeStamp
+                    #添加id
+                    - ..apiRequest.getFirstAvail.edge.id.0@: =..formData.providerSendId
+                    - ..apiRequest.getFirstAvail.edge.id.1@: =.Global.currentFacility.id
+                    #获取当前时间的unix时间戳
+                    - =.builtIn.date.getNowLocalUnixTime:
+                        dataIn: ""
+                        dataOut: ScheduleManagement.formData.currentLocalTime
+                    #设置可预约时间的scondition
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "(etime>"
+                          - =..formData.currentLocalTime
+                          - ")"
+                          - " AND "
+                          - "subtype="
+                          - =.Global.currentSubtype
+                        dataOut: Global.scheduleScondition2
+                    - ..apiRequest.getFirstAvail.edge.sCondition@: =.Global.scheduleScondition2
+                    - =..apiRequest.getFirstAvail.edgeAPI.get: ""
+                - actionType: evalObject
+                  object:                     
+                    - if:
+                      - =..apiRequest.getFirstAvail.response.edge.0.id
+                      - actionType: evalObject
+                        object:      
+                          #获取最近可预约时间，刷新BaseDate和calendar         
+                          - =.builtIn.date.stampToDay:
+                              dataIn:
+                                timeStamp: =..apiRequest.getFirstAvail.response.edge.0.stime
+                              dataOut: ScheduleManagement.formData.adjacentEdgeTime
+                          - .BaseDate.calendarDate.year@: =.ScheduleManagement.formData.adjacentEdgeTime.year
+                          - .BaseDate.calendarDate.month@: =.ScheduleManagement.formData.adjacentEdgeTime.month
+                          - .BaseDate.calendarDate.day@: =.ScheduleManagement.formData.adjacentEdgeTime.day
+                      - continue
+                    - =.builtIn.date.ShowDateByNumber:
+                        dataIn:
+                          year: =.BaseDate.calendarDate.year
+                          month: =.BaseDate.calendarDate.month
+                          day: =.BaseDate.calendarDate.day
+                          formatType: "Y-M-D"
+                        dataOut: BaseDate.calendarDate.todayDate
+                    - =.builtIn.date.miniWeeklyCalendarArray:
+                        dataIn:
+                          year: =.BaseDate.calendarDate.year
+                          month: =.BaseDate.calendarDate.month
+                          today: =.BaseDate.calendarDate.day
+                          markDay: =.BaseDate.calendarDate.day
+                          color: "0x000000"
+                          backgroundColor: "0xFFFFFF6f"
+                          todayColor: "0xffffff"
+                          todayBackgroundColor: "0x2988E6"
+                        dataOut: BaseDate.calendarDate.minidayLable
+                    - =.builtIn.array.selectOneToArr:
+                        dataIn:
+                          arr: =..visitReason.document.name.data.reasonForVisit
+                          key: reason
+                        dataOut: ScheduleManagement.reasonForVisit
+                    - =.builtIn.array.getByKey:
+                        dataIn:
+                          array: =..visitReason.document.name.data.reasonForVisit
+                          key1: reason
+                          value: =..reasonForVisit.0
+                          key2: duration
+                        dataOut: ScheduleManagement.selectData.duration
+                    - =.builtIn.string.retainNumber:
+                        dataIn:
+                          value: =..selectData.duration
+                        dataOut: ScheduleManagement.formData.duration
+                    - .ScheduleManagement.selectData.reason@: =..reasonForVisit.0
+                    - =.builtIn.date.transformMonth:
+                        dataIn:
+                          month: =.BaseDate.calendarDate.month
+                        dataOut: BaseDate.calendarDate.monthName
+                    - =.builtIn.date.getTimeStampOfDate:
+                        dataIn:
+                          date: =.BaseDate.calendarDate.todayDate
+                        dataOut: BaseDate.calendarDate.todayStamp
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "(stime<"
+                          - =.BaseDate.calendarDate.todayStamp.start
+                          - " AND "
+                          - "etime>"
+                          - =.BaseDate.calendarDate.todayStamp.start
+                          - " OR "
+                          - "stime>"
+                          - =.BaseDate.calendarDate.todayStamp.start
+                          - " AND "
+                          - "etime<"
+                          - =.BaseDate.calendarDate.todayStamp.end
+                          - " OR "
+                          - "stime<"
+                          - =.BaseDate.calendarDate.todayStamp.end
+                          - " AND "
+                          - "etime>"
+                          - =.BaseDate.calendarDate.todayStamp.end
+                          - ")"
+                          - " AND "
+                          - "subtype="
+                          - =.Global.currentSubtype
+                        dataOut: Global.scheduleScondition
+                - actionType: evalObject
+                  object:
+                    - ..schedule.edge.sCondition@: =.Global.scheduleScondition
+                    - .BaseDate.schedule.scheduleList.edge@: []
+                    
+                - actionType: evalObject
+                  object:
+                    - =..schedule.get: ""
+                    - ..schedule.edge.id@: []
+                - actionType: evalObject
+                  object:           
+                    - =.builtIn.date.splitTime:
+                        dataIn:
+                          object2: =..schedule.scheduleList.edge
+                          timeSlot: =..formData.duration
+                          year: =.BaseDate.calendarDate.year
+                          month: =.BaseDate.calendarDate.month
+                          day: =.BaseDate.calendarDate.day
+                          isSplitCurrent: true
+                        dataOut: ScheduleManagement.splitTime 
+                    - =.builtIn.object.setObjectKey:
+                        dataIn:
+                          objectArr: =.ScheduleManagement.splitTime 
+                          key: fontColor
+                          value: "0x4b4b4b"
+                        dataOut: ScheduleManagement.splitTime 
+                    - =.builtIn.object.setObjectKey:
+                        dataIn:
+                          objectArr: =.ScheduleManagement.splitTime 
+                          key: borColor
+                          value: "0xebebeb"
+                        dataOut: ScheduleManagement.splitTime       
+
+                    - ..formData.nextBtnColor@: "0xd3dde9"
+
+                - actionType: evalObject
+                  object:
+                    - if: 
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..visitType
+                            string2: "Office Visit"
+                      - actionType: builtIn
+                        funcName: show
+                        viewTag: addressView
+                      - actionType: builtIn
+                        funcName: hide
+                        viewTag: addressView
+
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: btnView                                              
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: create1
+                # - actionType: evalObject
+                #   object:
+                #     - if: 
+                #       - =.builtIn.string.equal:
+                #           dataIn: 
+                #             string1: =.Global.auth.scheduleInfo.create
+                #             string2: true 
+                #       - actionType: popUp
+                #         popUpView: create1
+                #       - actionType: popUp
+                #         popUpView: scheduleInfoAuthCreate
+                - actionType: popUp
+                  popUpView: create1
+            - type: view
+              style: 
+                left: "0.69"
+                top:  '0.02'
+                width: '0.11'
+                height: '0.04'
+                border: 
+                  style: "3"
+                borderColor: "0x2960a4"
+                borderRadius: "5"
+                boxSizing: border-box
+                textAlign: 
+                  y: center
+                  x: center
+              onClick: 
+                - goto: ScheduleSettings 
+              children: 
+                - type: image
+                  path: setting.svg
+                  style:
+                    width: "0.012"
+                - type: label
+                  text: 'Schedule Settings'
+                  style:
+                    marginLeft: "0.005"
+                    fontSize: .Nfont.nf2
+                    fontFamily: "Roboto"
+                    color: "0x2888e6"            
+        - type: view
+          style: 
+            left: "0.18"
+            width: "0.22"
+            height: "0.83"
+            top: "0.149"
+            # backgroundColor: "0xffffff"
+          children:
+            - type: view
+              style: 
+                top: "0"
+                width: "0.22"
+                height: "0.12"
+                left: "0"
+                backgroundColor: "0xffffff"
+              children:    
+                - type: label
+                  text: "Provider Appointments"
+                  style: 
+                    left: "0"
+                    width: "0.22"
+                    height: "0.04"
+                    top: "0.02"
+                    textAlign:  
+                      x: center
+                    fontSize: .Nfont.nf4
+                    fontWeight: "500"
+                    fontFamily: "Popins"
+                - type: label
+                  viewTag: appointmentLengthTag
+                  dataKey: formData.appointmentLength
+                  style: 
+                    left: "0"
+                    width: "0.22"
+                    height: "0.04"
+                    top: "0.065"
+                    textAlign:  
+                      x: center
+                    fontWeight: "600"
+                    fontSize: "3vh"
+                    color: "0x30b354"
+                    fontFamily: "Popins"         
+            - type: view
+              style:
+                width: '0.22'
+                height: '0.7'
+                left: '0'
+                top: "0.13"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: '0.22'
+                    height: '0.08'
+                    left: '0'
+                    marginTop: "0"
+                    backgroundColor: "0xffffff"
+                  viewTag: appointmentLengthTag
+                  children: 
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formDataTemp.appointmentTitleData
+                      iteratorVar: itemObject
+                      style:
+                        width: '0.18'
+                        margin: '0'
+                        left: '0.02'
+                        height: "0.045"
+                        axis: horizontal
+                        display: flex
+                        alignItems: center
+                        justifyContent: space-evenly
+                        border:
+                          style: "2"
+                        borderColor: "0xf2f2f2"
+                        borderWidth: "2"
+                      children:
+                        - type: listItem
+                          itemObject: 
+                          style:
+                            width: '0.08'
+                            height: "0.045"
+                            marginTop: ''
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..formData.appointmentTitle@: $var.title
+                                  - =.builtIn.object.setProperty:
+                                      dataIn:
+                                        obj: =..formDataTemp.appointmentTitleData
+                                        label: "title"
+                                        text: $var.title
+                                        arr: ["fontColor", "fontWeight","bdColor"]
+                                        valueArr: ["0x005795", "600","0x005795"]
+                                        errorArr: ["0x000000", "500","0xf2f2f2"]
+                            - actionType: evalObject
+                              object:                                                              
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.appointmentTitle
+                                          string2: "New Request"
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.appointment@: =..formData.allAppointment        
+                                        - ..formData.appointmentLengthLabel@: "New Appointment"
+                                        - ..formData.isDisplayAllAppointment@: block
+                                        - ..formData.isDisplayCheckedInAppointment@: none
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.array.filterArrayByPath:
+                                            dataIn:
+                                              objArr: =..formData.allAppointment
+                                              path: tage
+                                              compareStr: [11]
+                                            dataOut: ScheduleManagement.formData.checkedInAppointment                                      
+                                        - ..formData.appointment@: =..formData.checkedInAppointment
+                                        - ..formData.appointmentLengthLabel@: "Checked in"
+                                        - ..formData.isDisplayAllAppointment@: none
+                                        - ..formData.isDisplayCheckedInAppointment@: block
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.appointment
+                                    dataOut: ScheduleManagement.formData.appointmentLength                                        
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: appointmentLengthTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: allAppointTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: checkedInAppointTag  
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: appointmentViewTag                                                                                                                       
+                          children:
+                            - type: label
+                              dataKey: itemObject.title
+                              style:
+                                width: "0.08"
+                                fontSize: .Nfont.nf4
+                                lineHeight: "4.5vh"
+                                display: inline-block
+                                fontFamily: "Roboto"
+                                border:
+                                  style: "2"
+                                borderColor: itemObject.bdColor
+                                color: itemObject.fontColor
+                                fontWeight: itemObject.fontWeight
+                                textAlign:
+                                  x: center
+                    - type: view
+                      viewTag: allAppointTag
+                      style:
+                        marginTop: "0.01"
+                        width: "0.22"
+                        # height: "0.035"
+                        display: ..formData.isDisplayAllAppointment
+                        textAlign:
+                          y: center
+                      children:       
+                        - type: label
+                          dataKey: formData.appointmentLength
+                          style:
+                            marginLeft: "0.027"
+                            color: '0x0063A8'
+                            fontSize: .Nfont.nf2
+                            display: inline-block
+                        - type: label
+                          text: New Appointment
+                          style:
+                            color: '0x0063A8'
+                            marginLeft: "0.008"
+                            fontSize: .Nfont.nf2
+                            display: inline-block
+                    - type: view
+                      viewTag: checkedInAppointTag
+                      style:
+                        marginTop: "0.01"
+                        width: "0.22"
+                        # height: "0.02"
+                        display: ..formData.isDisplayCheckedInAppointment
+                      children:       
+                        - type: label
+                          dataKey: formData.appointmentLength
+                          style:
+                            marginLeft: "0.027"
+                            color: '0x0063A8'
+                            fontSize: .Nfont.nf2
+                            display: inline-block
+                        - type: label
+                          dataKey: formData.appointmentLengthLabel
+                          style:
+                            color: '0x0063A8'
+                            marginLeft: "0.008"
+                            fontSize: .Nfont.nf2
+                            display: inline-block                            
+                
+                # Appointment Lobby
+                - type: scrollView
+                  viewTag: appointmentViewTag
+                  style:
+                    width: "0.22"
+                    left: "0"
+                    marginTop: "0"
+                    height: "0.6"
+                    overflow: scroll
+                    backgroundColor: "0xffffff"
+                  children:
+                    - .BaseList:
+                      viewTag: appointmentTag
+                      listObject: ..formData.appointment
+                      style:
+                        width: '0.22'
+                        left: '0'
+                        height: 'auto'
+                        top: "0"
+                        margin: "0"
+                        # position: fixed
+                      children:
+                        - .BaseListItem:
+                          onClick: 
+                            - emit:
+                                dataKey: 
+                                  var: itemObject
+                                actions:
+                                  - .Global.formData.patientHistoryInfo.id@: $var.id 
+                                  - if:
+                                    - =.Global.formData.patientHistoryInfo.id
+                                    - goto: PatientSummary
+                                    - continue
+                          style:
+                            width: '0.2'
+                            left: '0.01'
+                            height: '0.13'
+                            marginTop: "0.01"
+                            display: inline-block
+                            backgroundColor: '0xf4f8fa'
+                            borderRadius: '10'
+                            overflow: hidden
+                          children:
+                            - type: view
+                              style:
+                                width: "0.05"
+                                height: "0.1"
+                              children:
+                                - type: image
+                                  path: providerDefault.svg
+                                  dataKey: itemObject.name.providerAvatarId
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  style:
+                                    left: "0.008"
+                                    top: "0.023"
+                                    width: "0.034"
+                                    height: "0.064"
+                            - type: view
+                              style:
+                                left: '0.05'
+                                width: "0.14"
+                                height: "0.03"
+                                top: "0.02"  
+                              children:
+                                - .Label1:
+                                  dataKey: itemObject.name.providerName 
+                                  text: Provider
+                                  style:
+                                    fontSize: .Nfont.nf3
+                                    fontWeight: "600"
+                                    color: "#143459"
+                                    textDecoration: underline
+                                    display: inline-block
+
+                                - type: image
+                                  path:                            
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: $var.name.visitType
+                                                string2: Telemedicine
+                                          - telemedicine.svg
+                                          - officeVisit.svg
+                                  style:
+                                    marginLeft: "0.01"
+                                    width: "0.01"
+                                    top: "0.006"
+                                    display: inline-block
+                        # Reason 
+                            - type: label
+                              text: 
+                              dataKey: itemObject.name.Reason
+                              style:
+                                left: "0.05"
+                                top: "0.05"
+                                fontSize: .Nfont.nf1
+                       
+                            - type: view
+                              style:
+                                width: "0.2"
+                                height: "0.03"
+                                top: "0.095"
+                                left: "0"
+                                # verticalAlign: middle
+                              children:
+                                - type: view
+                                  style:
+                                    marginLeft: "0.005"
+                                    width: "0.06"
+                                    display: inline-block 
+                                    borderRight: "1px solid #999999"
+                                  children:
+                                    - type: image
+                                      path: schedule.svg
+                                      style:
+                                        width: '0.01'
+                                        marginLeft: "0.003"
+                                        display: inline-block 
+                                        verticalAlign: middle
+                                    - .Label1:
+                                      text=func: .builtIn.string.formatUnixtimeL_en
+                                      dataKey: itemObject.stime
+                                      style:
+                                        marginLeft: '0.003'
+                                        color: '#000000'
+                                        fontSize: .Nfont.nf0 
+                                        display: inline-block    
+                                        verticalAlign: middle
+                                - type: view
+                                  style:
+                                    marginLeft: "0.003"
+                                    width: "0.053"
+                                    display: inline-block 
+                                    borderRight: "1px solid #999999"                                
+                                  children:
+                                    - type: image
+                                      path: history.svg
+                                      style:
+                                        width: '0.01'
+                                        marginLeft: "0.003"
+                                        display: inline-block 
+                                        verticalAlign: middle
+                                    - type: label
+                                      text=func: .builtIn.string.formatUnixtimeLT_en
+                                      dataKey: itemObject.stime
+                                      style:
+                                        # verticalAlign: middle
+                                        marginLeft: '0.003'
+                                        color: '#000000'
+                                        fontSize: .Nfont.nf0 
+                                        display: inline-block   
+                                        verticalAlign: middle
+                                        # textAlign: 
+                                        #   y: center 
+                                - type: view
+                                  style:
+                                    marginLeft: "0.003"
+                                    width: "0.072"
+                                    display: inline-block 
+                                  children:
+                                    - type: image
+                                      path: doctor.svg
+                                      style:
+                                        width: '0.01'
+                                        marginLeft: "0.003"
+                                        display: inline-block 
+                                        verticalAlign: middle
+                                    - type: label
+                                      dataKey: itemObject.name.patientName
+                                      style:
+                                        marginLeft: '0.003'
+                                        width: "0.054"
+                                        color: '#000000'
+                                        fontSize: .Nfont.nf0 
+                                        display: inline-block 
+                                        overflow: hidden
+                                        textOverflow: ellipsis
+                                        whiteSpace: nowrap
+                                        verticalAlign: middle
+            - type: view
+              viewTag: locationSelectView
+              style:
+                width: "0.22"
+                left: "0.11"
+                height: "0.05"
+                marginTop: "0.18"
+                isHidden: true
+              children:
+                - type: select
+                  viewTag: locSelectTag
+                  dataKey: requestAddress
+                  options:
+                    ..requestAddList
+                  onChange: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - ..formData.allAppointment@: []
+                        - ..formData.prodIds@: []
+                        - ..formData.allId@: []
+                        - ..inMeeting.edgeResp.edge@: []
+                        - if: 
+                          - =.builtIn.string.equal: 
+                              dataIn: 
+                                string1: =..requestAddress
+                                string2: "All Locations"
+                          # All Locations begin
+                          - actionType: evalObject
+                            object:   
+                              - =.builtIn.array.concat:
+                                  dataIn:
+                                    array1: =..formData.allId
+                                    array2: =..formData.locIds
+                                  dataOut: ScheduleManagement.formData.allId            # store locIds
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.providerName
+                                      string2: "All Providers"
+                                # All Locations & All Providers 
+                                - actionType: evalObject
+                                  object:
+                                    # 获取所有的prodIds
+                                    - =.builtIn.array.selectOneToArr:                   
+                                        dataIn:
+                                          arr: =..providerList.list.doc
+                                          key: "bsig"
+                                        dataOut: ScheduleManagement.formData.prodIds 
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.prodIds
+                                        dataOut: ScheduleManagement.formData.allId        # store locIds + prodIds                                  
+                                # All Locations & One Providers
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.getIdByUserName:                  # 获取一个 prodId(s) via providerName
+                                        dataIn:
+                                          array: =..providerList.list.doc
+                                          userName: =..formData.providerName
+                                        dataOut: ScheduleManagement.formData.prodIds
+                                    - =.builtIn.array.add: 
+                                        dataIn: 
+                                          object: =..formData.allId
+                                          value: =..formData.prodIds
+                          # All Locations end
+                          # One Location begin
+                          - actionType: evalObject
+                            object:
+                              - =.builtIn.array.matchInArray:
+                                  dataIn:
+                                    arr: =.Global.locationAll
+                                    value: =..requestAddress
+                                    key: medicalFacilityName
+                                    key1: "id"
+                                  dataOut: ScheduleManagement.formData.locId
+                              - =.builtIn.array.add: 
+                                  dataIn: 
+                                    object: =..formData.allId
+                                    value: =..formData.locId            # store locIds
+                              - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.providerName
+                                      string2: "All Providers"
+                                # All Locations & All Providers 
+                                - actionType: evalObject
+                                  object:
+                                    # 获取所有的prodIds
+                                    - =.builtIn.array.selectOneToArr:                   
+                                        dataIn:
+                                          arr: =..providerList.list.doc
+                                          key: "bsig"
+                                        dataOut: ScheduleManagement.formData.prodIds 
+                                    - =.builtIn.array.concat:
+                                        dataIn:
+                                          array1: =..formData.allId
+                                          array2: =..formData.prodIds
+                                        dataOut: ScheduleManagement.formData.allId        # store locIds + prodIds                                  
+                                # All Locations & One Providers
+                                - actionType: evalObject
+                                  object: 
+                                    - =.builtIn.array.getIdByUserName:                  # 获取一个 prodId(s) via providerName
+                                        dataIn:
+                                          array: =..providerList.list.doc
+                                          userName: =..formData.providerName
+                                        dataOut: ScheduleManagement.formData.prodIds
+                                    - =.builtIn.array.add: 
+                                        dataIn: 
+                                          object: =..formData.allId
+                                          value: =..formData.prodIds
+                          # One Location begin
+                    - actionType: evalObject
+                      object:                                                                         
+                        - ..inMeeting.edge.id@: =..formData.allId
+                        - if: 
+                          - =..formData.providerIdList
+                          - =..inMeeting.edgeAPI.get: ""
+                          - continue
+                        - ..formData.allAppointment@: =..inMeeting.edgeResp.edge
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =..formData.allAppointment
+                            dataOut: ScheduleManagement.formData.appointmentLength
+                        - =.builtIn.object.extractArray: 
+                            dataIn: 
+                              obj: =..inMeeting.edgeResp.edge
+                              arr:
+                                - stime
+                                - etime
+                                - name.visitReason
+                                - name.patientName
+                                - name.visitType
+                                - id
+                                - name.duration
+                            dataOut: ScheduleManagement.formData.timeTable.chartData                    
+                    # Redraw Tag begin
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: calenderTableView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentLengthTag
+                    # Redraw Tag end
+                  style:
+                    width: "0.052"
+                    left: "0.0124"
+                    height: "0.025"
+                    top: "0.008"
+        # 所有开会的边，日历显示
+        - type: scrollView
+          style:
+            width: '0.55'
+            height: '0.78'
+            top: '0.2'
+            left: '0.41'
+            backgroundColor: "0xffffff"
+            overflowY: scroll
+          children: 
+            - type: chart
+              dataKey: formData.timeTable
+              viewTag: calenderTableView
+              onClick: 
+                - actionType: evalObject
+                  object: 
+                    - .Global.formData.patientHistoryInfo.id@: ""
+                - actionType: evalObject
+                  object: 
+                    - if:
+                      - =..formData.timeTable.response
+                      - actionType: evalObject
+                        object:
+                          - .Global.formData.patientHistoryInfo.id@: =..formData.timeTable.response 
+                          - goto: PatientSummary
+                      - continue
+              style:
+                width: "0.55"
+                height: "0.7"
+                left: "0"
+                top: "0"
+        # patient 好友列表
+        - .BasePopUp:
+          viewTag: Contacts
+          style: 
+            zIndex: "1000"
+          children:
+            - .PopUphead:
+              style: 
+                left: "0.6"
+              children:
+                - .CreateLabel:
+                  text: 'Invite'
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: Contacts     
+            - type: view
+              style:
+                height: '0.92'
+                width: '0.4'
+                left: "0.6"
+                top: '0.08'
+                backgroundColor: '0xffffff'
+              viewTag: ContactsTag
+              children:
+                - type: view
+                  style: 
+                    left: "0.03"
+                    width: "0.34"
+                    top: "0.02"
+                    height: "0.04"
+                    border: 
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xbbbbbb"
+                    borderRadius: "10"
+                  children: 
+                    - type: textField
+                      placeholder: Search
+                      style: 
+                        left: "0.007"
+                        width: "0.2"
+                        top: "0"
+                        height: "0.038"
+                        fontSize: .Nfont.nf2
+                        border: 
+                          style: "1"
+                    - type: button
+                      text: Search
+                      style: 
+                        left: "0.28"
+                        width: "0.06"
+                        height: "0.04"
+                        fontSize: .Nfont.nf2
+                        color: "0xffffff"
+                        backgroundColor: "0x2988e6"
+                        border: 
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0x2988e6"
+                        borderRadius: "10"
+                - type: label
+                  text: Patient List
+                  style: 
+                    left: "0.03"
+                    width: "0.34"
+                    top: "0.08"
+                    height: "0.04"
+                    fontSize: .Nfont.nf4
+                    fontFamily: sans-serif
+                    fontWeight: "500"
+                    textAlign: 
+                      y: center
+                - type: scrollView
+                  style:
+                    width: '0.36'
+                    height: '0.78'  
+                    top: '0.12'   
+                    left: '0.02'
+                    overflow: scroll
+                  children: 
+                    - .BaseList:
+                      listObject: ..formData.parseProfile
+                      style:
+                        width: '0.36'
+                        height: "auto" 
+                        display: flex
+                        margin: "0"
+                      children:
+                        - .BaseListItem:
+                          style:
+                            height: '0.05'
+                            width: '0.36'
+                            display: inline-block
+                            border: 
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0xbbbbbb"
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - ..formData.currentPatient.id@: $var.bsig
+                                  - ..formData.currentPatient.patientName@: $var.name.data.basicInfo.fullName
+                                  - ..formData.currentPatient.dateOfBirth@: $var.name.data.basicInfo.dateOfBirth
+                                  - ..formData.currentPatient.patientPhoneNumber@: $var.name.data.basicInfo.phone
+                                  - ..formData.currentPatient.location@: $var.name.data.contactInfo.address.fullAddress
+                                  - =.builtIn.string.concat:
+                                      dataIn:
+                                        - $var.name.data.basicInfo.fullName
+                                        - "-"
+                                        - =.ScheduleManagement.selectData.reason
+                                      dataOut: ScheduleManagement.formData.currentPatient.visitReason
+                            - actionType: popUpDismiss
+                              popUpView: Contacts
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: Detials
+                            - actionType: popUp
+                              popUpView: Detials
+                          children:
+                            - .Label1:
+                              dataKey: itemObject.name.data.basicInfo.fullName
+                              style: 
+                                height: '0.05'
+                                textAlign:
+                                  y: center
+                                left: '0.04'
+                                fontSize: .Nfont.nf1
+                            - .Label1:
+                              # text=func: .builtIn.string.formatUnixtimeL_en
+                              # dataKey: itemObject.ctime
+                              dataKey: itemObject.name.data.basicInfo.dateOfBirth
+                              style:
+                                top: "0"  
+                                height: '0.05'
+                                textAlign:
+                                  y: center
+                                left: '0.25'
+                                fontSize: .Nfont.nf1   
+        # 创建预约的详情页
+        - .BasePopUp:
+          viewTag: Detials
+          style: 
+            zIndex: "1000"
+          children:
+            - .PopupLightPromptRight:  
+              viewTag: noPatientTag
+              msg: You don't select a patient
+              style: 
+                zIndex: "20"          
+            - type: view
+              style:
+                top: "0"
+                left: "0.6"
+                width: "0.4"
+                height: "1"
+                # backgroundColor: "0xffffff"
+                # zIndex: "1000"
+              children:
+
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: Detials
+                - type: view
+                  style:
+                    height: '0.92'
+                    width: '0.4'
+                    top: '0.08'
+                    backgroundColor: '0xffffff'
+                  children:
+                    - type: view
+                      style:
+                        height: '0.44'
+                        width: '0.4'
+                        top: '0'
+                        backgroundColor: '#ffffff'
+                      children:
+                        - type: label
+                          text: Date & Time
+                          style:
+                            left: '0.16'
+                            top: '0.01'
+                            fontSize: '14'
+                            color: '#000000'
+                            textAlign:
+                              x: center
+                        - type: divider
+                          style:
+                            left: "0.05"
+                            top: '0.04'
+                            width: "0.3"
+                            height: "0.0001"
+                            color: "#707070"
+                        - type: label
+                          dataKey: appointmentTime
+                          style:
+                            left: '0'
+                            width: "0.4"
+                            top: '0.08'
+                            fontSize: '18'
+                            color: '#000000'
+                            textAlign:
+                              x: center
+                        - type: view
+                          style:
+                            top: "0.14"
+                            left: "0"
+                            width: "0.4"
+                            height: "0.2"
+                          children:
+                            - .ScheduleManagementText: 
+                              text: Type
+                            - .ScheduleManagementDatakey: 
+                              dataKey: newAppointment.edge.name.visitType
+                            - .ScheduleManagementText: 
+                              text: Reason for Visit
+                              style: 
+                                top: "0.05"
+                            - .ScheduleManagementDatakey: 
+                              dataKey: selectData.reason
+                              style: 
+                                top: "0.05"
+                            - .ScheduleManagementText: 
+                              text: Duration
+                              style: 
+                                top: "0.1"
+                            - .ScheduleManagementDatakey: 
+                              dataKey: selectData.duration
+                              style: 
+                                top: "0.1"
+                            # - .ScheduleManagementText: 
+                            #   text: Notes
+                            #   style: 
+                            #     top: "0.15"
+                            # - .ScheduleManagementDatakey: 
+                            #   dataKey: selectData.reason
+                            #   style: 
+                            #     top: "0.15"
+                            - type: button
+                              text: "Change Details"
+                              onClick:
+                                - actionType: popUpDismiss
+                                  popUpView: Detials
+                                - actionType: popUp
+                                  popUpView: create1
+                              style:
+                                left: "0.14"
+                                height: "0.035"
+                                top: "0.23"
+                                width: "0.1"
+                                fontSize: .Nfont.nf3
+                                border: 
+                                  style: "6"
+                                  color: "#005795"
+                                backgroundColor: "#ffffff"
+                                color: "#005795"
+                                textAlign: 
+                                  x: center
+                                  y: center
+                    - type: view
+                      style:
+                        height: '0.48'
+                        width: '0.4'
+                        top: '0.44'
+                        backgroundColor: '#F5F5F5'
+                      children:
+                        - type: label
+                          text: Add Patient
+                          style:
+                            left: '0.16'
+                            top: '0.03'
+                            fontSize: '14'
+                            color: '#000000'
+                            textAlign:
+                              x: center
+                        - type: divider
+                          style:
+                            left: "0.08"
+                            top: '0.06'
+                            width: "0.2"
+                            height: "0.0001"
+                            color: "#707070"
+                        - type: button
+                          text: "Patient List"
+                          onClick: 
+                            - actionType: popUpDismiss
+                              popUpView: Detials
+                            - actionType: popUp
+                              popUpView: Contacts
+                          style:
+                            left: "0.3"
+                            height: "0.035"
+                            top: "0.02"
+                            width: "0.07"
+                            fontSize: .Nfont.nf3
+                            border: 
+                              style: "6"
+                              color: "#005795"
+                            color: "#005795"
+                            textAlign: 
+                              x: center
+                              y: center
+                        - type: view
+                          style:
+                            top: "0.09"
+                            left: "0"
+                            width: "0.4"
+                            height: "0.2"
+                          children:
+                            - .Label1:
+                              text: Patient Name
+                              style:
+                                fontSize: .Nfont.nf1
+                                left: '0.05'
+                                top: '0'
+                            - .TextField1:
+                              placeholder: 'Enter Here' 
+                              dataKey: formData.currentPatient.patientName
+                              style:
+                                width: '0.23'
+                                left: '0.05'
+                                top: '0.04'
+                                fontSize: .Nfont.nf1
+                            - .Label1:
+                              text: 'Phone Number'
+                              style:
+                                fontSize: .Nfont.nf1
+                                left: '0.05'
+                                top: '0.11'
+                            - .TextField1:
+                              placeholder: 'Enter Here' 
+                              dataKey: formData.currentPatient.patientPhoneNumber
+                              style:
+                                width: '0.23'
+                                left: '0.05'
+                                top: '0.15'
+                                fontSize: .Nfont.nf1  
+                            - type: button
+                              text: "Create Appointment"
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    - if: 
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..formData.currentPatient.patientName
+                                            string2: ""
+                                      - actionType: popUp
+                                        popUpView: noPatientTag
+                                        wait: true
+                                        popUpDismiss: 1000
+                                      - continue
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - =..formData.currentPatient.patientName
+                                          - " "
+                                          - =..formData.currentPatient.patientPhoneNumber
+                                        dataOut: ScheduleManagement.formData.inviteMessage                                 
+                                  # set value
+                                    - ..newAppointment.edge.evid@: =..formData.currentPatient.id
+                                    - ..newAppointment.edge.name.patientName@: =..formData.currentPatient.patientName
+                                    - ..newAppointment.edge.name.dateOfBirth@: =..formData.currentPatient.dateOfBirth
+                                    - ..newAppointment.edge.name.patientPhoneNumber@: =..formData.currentPatient.patientPhoneNumber
+                                    - ..newAppointment.edge.name.location@: =..formData.currentPatient.location
+                                    - ..newAppointment.edge.name.Reason@: =..selectData.reason
+                                    - ..newAppointment.edge.name.visitReason@: =..selectData.reason
+                                    - ..newAppointment.edge.name.facilityId@: =..clock.bvid
+                                    - if:
+                                      - =.builtIn.string.equal: 
+                                          dataIn: 
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: "Telemedicine"
+                                      - ..newAppointment.edge.name.blockColor@: "0xe4f5e9" 
+                                      - ..newAppointment.edge.name.blockColor@: "0xfff7e3" 
+                                    - if:
+                                      - =.builtIn.string.equal: 
+                                          dataIn: 
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: "Telemedicine"
+                                      - ..newAppointment.edge.name.fontColor@: "0x30b354" 
+                                      - ..newAppointment.edge.name.fontColor@: "0xffc02d" 
+                                    - ..newAppointment.edge.name.providerId@: =..formData.providerSendId
+                                    # create appointment
+                                    - =..newAppointment.edgeAPI.store: ""
+                                    # auto approve create E5
+                                    - ..apiRequest.autoApprove.edge.evid@: =..newAppointment.response.edge.evid
+                                    - ..apiRequest.autoApprove.edge.refid@: =..newAppointment.response.edge.id
+                                    - ..apiRequest.autoApprove.edge.stime@: =..newAppointment.response.edge.stime
+                                    - ..apiRequest.autoApprove.edge.etime@: =..newAppointment.response.edge.etime
+                                    - =..apiRequest.autoApprove.edgeAPI.store: ""
+                                    # invite provider create E10
+                                    - ..apiRequest.inviteParticipant.edge.evid@: =..formData.providerSendId
+                                    - ..apiRequest.inviteParticipant.edge.refid@: =..newAppointment.response.edge.id
+                                    - ..apiRequest.inviteParticipant.edge.stime@: =..newAppointment.response.edge.stime
+                                    - ..apiRequest.inviteParticipant.edge.etime@: =..newAppointment.response.edge.etime
+                                    - ..apiRequest.inviteParticipant.edge.name.role@: "Provider"
+                                    - ..apiRequest.inviteParticipant.edge.name.roleName@: =..newAppointment.response.edge.name.providerName
+                                    - =..apiRequest.inviteParticipant.edgeAPI.store: ""
+                                    # old invite logic, through 1053, now change to 40000,10 
+                                    # - ..invite.edge.refid@: =..newAppointment.response.edge.id
+                                    # - =..invite.edgeAPI.store: ""
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: inviteSuccess
+                                - actionType: popUpDismiss
+                                  popUpView: Detials
+                                - actionType: popUp
+                                  popUpView: inviteSuccess
+                              style:
+                                left: "0.12"
+                                height: "0.04"
+                                top: "0.3"
+                                width: "0.14"
+                                fontSize: .Nfont.nf3
+                                backgroundColor: "#005795"
+                                borderRadius: "3"
+                                border: 
+                                  style: "6"
+                                color: "#ffffff"
+                                textAlign: 
+                                  x: center  
+        - type: view
+          msg: You need to update the facility information
+          viewTag: warningNoWebsite
+          style: 
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            isHidden: ..formData.isShowWarningNoWebsite
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children: 
+            - .BaseJudgeInnerView: 
+              children: 
+                # - .BaseJudgeCancelImg: 
+                - .BaseJudgeTxt: 
+                  style: 
+                    marginTop: "0.085"
+                - .BaseJudgeButtonView: 
+                  children: 
+                    - .BaseJudgeButtonNo: 
+                      text: Update
+                      style:
+                        left: "0.14"
+                        fontWeight: "600"
+                        textDecoration: underline
+                        color: "0x004e8f"
+                      onClick:
+                        - actionType: evalObject  
+                          object:
+                            - .Global.formData.locationId@: =.Global.locationAll.0.id
+                            - .Global.formData.firstLocation.bsig@: =.Global.locationAll.0.id
+                            - .Global.menuBar.listData@: =.SideMenuBarDM.AccountManagement
+                        - goto: EditFacilityInfo
+        # create appointment successfully
+        - .BasePopUp:
+          viewTag: inviteSuccess
+          style: 
+            zIndex: "1000"
+          children:
+            - .PopUphead:
+              style:
+                left: '0.6'
+              children:
+                - .CreateLabel:
+                  text: 'Appointment Details'
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: inviteSuccess
+            - type: view
+              style:
+                height: '0.92'
+                width: '0.4'
+                top: '0.08'
+                left: '0.6'
+                backgroundColor: '0xffffff'
+              children:
+                - type: image
+                  path: popUpSuccess.svg
+                  style:
+                    width: '0.1'
+                    top: '0.12'
+                    left: '0.155'
+                - type: label
+                  text: 'Success!'
+                  style:
+                    width: '0.1'
+                    height: '0.05'
+                    left: '0.17'
+                    top: '0.37'
+                    fontSize: '28'
+                - type: label
+                  text: 'Appointment scheduled successfully for'
+                  style:
+                    width: '0.25'
+                    height: '0.03'
+                    left: '0.12'
+                    top: '0.5'
+                    fontSize: '16'
+                - type: label
+                  dataKey: formData.inviteMessage
+                  style:
+                    width: '0.3'
+                    height: '0.05'
+                    left: '0.05'
+                    top: '0.55'
+                    fontSize: '16' 
+                    textAlign: 
+                      x: center
+                      y: center  
+                - .BottomButton:
+                  text: 'Done'
+                  style:
+                    width: '0.12'
+                    left: '0.15'
+                    top: '0.7'
+                    backgroundColor: '#005795'
+                    color: '0xffffff'
+                  onClick:
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@: 
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:   
+                        - ..appointment.list.edge@: []
+                        # - ..appointment.edge.id@: =..formData.providerId
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object: 
+                        - =.builtIn.goto:
+                            dataIn:
+                              destination: ScheduleManagement
+                              pageReload: true
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: appointmentLengthTag
+                    - actionType: popUpDismiss
+                      popUpView: inviteSuccess
+                    # - goto: ScheduleManagement    
+        # create appointment      
+        - .BasePopUp:
+          style:
+            top: "0"
+            left: "0"
+            height: "1"
+            width: "1"
+            zIndex: "1000"
+          viewTag: create1
+          children:
+            - .PopUphead:
+              style:
+                left: '0.6'
+              children:
+                - .CreateLabel:
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: create1
+                    - actionType: builtIn
+                      funcName: hide
+                      viewTag: addressView
+
+            - type: view
+              style:
+                height: '0.92'
+                width: '0.4'
+                top: '0.08'
+                left: '0.6'
+                backgroundColor: '0xffffff'
+              viewTag: DataTag
+              children:
+                - type: label
+                  text: Complete fields below
+                  style:
+                    left: '0.02'
+                    top: '0.01'
+                    fontSize: .Nfont.nf3
+                    color: '#000000'
+                # Select Provider
+                - type: label
+                  text: Select Provider
+                  style:
+                    left: '0.06'
+                    top: '0.07'
+                    fontSize: .Nfont.nf1
+                - type: select
+                  options:
+                    ..formData.providerSendList
+                  dataKey: formData.providerSendName
+                  style:
+                    left: '0.06'
+                    top: '0.1'
+                    fontSize: .Nfont.nf1
+                    borderColor: "#EAEAEA" 
+                    width: '0.083'
+                    height: '0.046'
+                    textIndent: 10px
+                  onChange:
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@: 
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:     
+                        - ..formDataOfficeVisisAddress@: =..addressName.0 
+                        - ..visitType@: "Telemedicine"
+                        - ..formData.currentSubtype@: '196609'
+                        - .Global.currentSubtype@: '196609'
+                        - .Global.visitType@: "Telemedicine"
+                        - ..newAppointment.edge.name.visitType@: "Telemedicine"
+                        - ..newAppointment.edge.name.visitTypeShow@: "Telemedicine"
+                        - ..newAppointment.edge.subtype@: "196610"  # 0x30002 表示类型为telemedicine
+                        - ..newAppointment.edge.name.locationName@: =..formDataOfficeVisisAddress                        
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: addressView
+                    - actionType: evalObject
+                      object:
+                        # 获取选中的providerId
+                        - =.builtIn.array.getIdByUserName:   # get one providerId via dataKey(name)
+                            dataIn:
+                              array: =..providerList.list.doc
+                              userName: =..formData.providerSendName
+                            dataOut: ScheduleManagement.formData.providerSendId
+                        # specialty
+                        - =.builtIn.array.getValueByKey: 
+                            dataIn:
+                              array: =..providerList.list.doc
+                              key1: "name.data.fullName"
+                              value: =..formData.providerSendNameproviderSendName
+                              key2: "name.data.specialty"
+                            dataOut: ScheduleManagement.formData.specialty
+                        # 头像id
+                        - =.builtIn.array.getValueByKey: 
+                            dataIn:
+                              array: =..providerList.list.doc
+                              key1: "name.data.fullName"
+                              value: =..formData.providerSendName
+                              key2: "name.data.avatar"
+                            dataOut: ScheduleManagement.formData.providerAvatarId
+                        - if: 
+                          - =..formData.specialty.0
+                          - =.builtIn.string.concat:
+                              dataIn:
+                                - =..formData.providerSendName
+                                - " "
+                                - "-"
+                                - " "
+                                - =..formData.specialty.0.specialty
+                              dataOut: ScheduleManagement.newAppointment.edge.name.providerFullInfo
+                          - continue
+                        - ..schedule.edge.id.0@: =..formData.providerSendId
+                        - ..schedule.edge.id.1@: =.Global.currentFacility.id
+                        - ..visitReason.docResp.0.doc.0.name.data.reasonForVisit@: []
+                        - ..newAppointment.edge.name.providerName@: =..formData.providerSendName
+                        - ..newAppointment.edge.name.providerAvatarId@: =..formData.providerAvatarId
+                        - ..visitReason.docIn.id@: =..formData.providerSendId
+                        - =..visitReason.docAPI.get: "" # get reasons                            
+                        - ..visitReason.document@: =..visitReason.docResp.0.doc.0
+                        - =.builtIn.array.convertToList:
+                            dataIn:
+                              array: =..visitReason.document.name.data.reasonForVisit
+                              key: reason
+                            dataOut: ScheduleManagement.reasonForVisit                           
+                        - ..selectData.reason@: =..visitReason.document.name.data.reasonForVisit.0.reason
+                        - =.builtIn.array.getByKey:
+                            dataIn:
+                              array: =..visitReason.document.name.data.reasonForVisit
+                              key1: reason
+                              value: =..selectData.reason
+                              key2: duration
+                            dataOut: ScheduleManagement.selectData.duration
+                        - =.builtIn.string.retainNumber:
+                            dataIn:
+                              value: =..selectData.duration
+                            dataOut: ScheduleManagement.formData.duration
+                        - .BaseDate.schedule.scheduleList.edge@: []
+                        - ..splitTime@: []
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - "(stime<"
+                              - =.BaseDate.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime>"
+                              - =.BaseDate.calendarDate.todayStamp.start
+                              - " OR "
+                              - "stime>"
+                              - =.BaseDate.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime<"
+                              - =.BaseDate.calendarDate.todayStamp.end
+                              - " OR "
+                              - "stime<"
+                              - =.BaseDate.calendarDate.todayStamp.end
+                              - " AND "
+                              - "etime>"
+                              - =.BaseDate.calendarDate.todayStamp.end
+                              - ")"
+                              - " AND "
+                              - "subtype="
+                              - =.Global.currentSubtype
+                              # - " AND "
+                              # - "name like '%"
+                              # - =..selectData.reason
+                              # - "%'"
+                            dataOut: Global.scheduleScondition
+                        - ..schedule.edge.sCondition@: =.Global.scheduleScondition                        
+                    - actionType: evalObject
+                      object: 
+                        - ..schedule.scheduleList.edge@: []
+                        - =..schedule.get: ""
+                        - if: 
+                          - ..schedule.scheduleList.edge.0
+                          - =.builtIn.date.splitTime:
+                              dataIn:
+                                object2: =..schedule.scheduleList.edge
+                                timeSlot: =..formData.duration
+                                year: =.BaseDate.calendarDate.year
+                                month: =.BaseDate.calendarDate.month
+                                day: =.BaseDate.calendarDate.day
+                                isSplitCurrent: true
+                              dataOut: ScheduleManagement.splitTime 
+                          - ..splitTime@: [] 
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =.ScheduleManagement.splitTime 
+                              key: fontColor
+                              value: "0x4b4b4b"
+                            dataOut: ScheduleManagement.splitTime 
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =.ScheduleManagement.splitTime 
+                              key: borColor
+                              value: "0xebebeb"
+                            dataOut: ScheduleManagement.splitTime                                                                                  
+                        # - =.builtIn.array.add:
+                        #     dataIn:
+                        #       object: =..schedule.edge.id
+                        #       value: =..formData.providerSendId
+                        # - =.builtIn.array.add:
+                        #     dataIn:
+                        #       object: =..schedule.edge.id
+                        #       value: =.Global.currentFacility.id
+                        # - ..apiRequest.getFirstAvail.edge.id.0@: =..formData.providerSendId
+                        # - ..apiRequest.getFirstAvail.edge.id.1@: =.Global.currentFacility.id 
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: calendarTag 
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: typeView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: reasonView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: durationTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: splitTimeTag
+                # TYPE
+                - type: label
+                  text: Type
+                  style:
+                    left: '0.15'
+                    top: '0.07'
+                    fontSize: .Nfont.nf1
+                    width: "0.1"
+                - type: select
+                  viewTag: typeView
+                  options: 
+                    - "Telemedicine"
+                    - "Office Visit"
+                  dataKey: visitType
+                  onChange:
+                    - actionType: evalObject
+                      object:     
+                        - ..formDataOfficeVisisAddress@: =..addressName.0
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: addressView 
+                    - actionType: evalObject
+                      object:
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..visitType
+                                string2: "Telemedicine"
+                          - actionType: builtIn
+                            funcName: hide
+                            viewTag: addressView
+                          - actionType: builtIn
+                            funcName: show
+                            viewTag: addressView
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..visitType
+                                string2: "Telemedicine"
+                          - actionType: evalObject
+                            object:
+                              - ..formData.currentSubtype@: '196609'
+                              - .Global.currentSubtype@: '196609'
+                              - .Global.visitType@: "Telemedicine"
+                              - ..newAppointment.edge.name.visitType@: "Telemedicine"
+                              - ..newAppointment.edge.name.visitTypeShow@: "Telemedicine"
+                              - ..newAppointment.edge.subtype@: "196610"  # 0x30002 表示类型为telemedicine
+                              - ..schedule.edge.id.1@: =.Global.currentFacility.id
+                              - ..newAppointment.edge.name.locationName@: =..formDataOfficeVisisAddress
+                              
+                          - continue
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..visitType
+                                string2: "Office Visit"
+                          - actionType: evalObject
+                            object:
+                              - .ScheduleManagement.formData.currentSubtype@: '131073'
+                              - .Global.currentSubtype@: '131073'
+                              - .Global.visitType@: "Office Visit"
+                              - ..newAppointment.edge.name.visitType@: "Office Visit"
+                              - ..newAppointment.edge.name.visitTypeShow@: "Office Visit"
+                              - ..newAppointment.edge.subtype@: "131074"  # 0x20002 表示类型为office visit
+                              - ..schedule.edge.id.1@: =..locationId
+                              - ..newAppointment.edge.name.locationName@: =..formDataOfficeVisisAddress
+                          - continue
+                    - actionType: evalObject
+                      object:
+                        - .BaseDate.schedule.scheduleList.edge@: []
+                        - ..splitTime@: []
+                        - ..selectData.reason@: =..visitReason.document.name.data.reasonForVisit.0.reason
+                        # - ..selectData.duration@: "" 
+                    - actionType: updateObject
+                      dataKey: ScheduleManagement.schedule.scheduleList.edge
+                      dataObject: []  
+                    - actionType: evalObject
+                      object:
+                        - ..selectData.duration@: =..visitReason.document.name.data.reasonForVisit.0.duration
+                        - =.builtIn.string.retainNumber:
+                            dataIn:
+                              value: =..selectData.duration
+                            dataOut: ScheduleManagement.formData.duration                                         
+                    - actionType: evalObject
+                      object:
+                        - ..schedule.edge.id.0@: =..formData.providerSendId
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - "(stime<"
+                              - =.BaseDate.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime>"
+                              - =.BaseDate.calendarDate.todayStamp.start
+                              - " OR "
+                              - "stime>"
+                              - =.BaseDate.calendarDate.todayStamp.start
+                              - " AND "
+                              - "etime<"
+                              - =.BaseDate.calendarDate.todayStamp.end
+                              - " OR "
+                              - "stime<"
+                              - =.BaseDate.calendarDate.todayStamp.end
+                              - " AND "
+                              - "etime>"
+                              - =.BaseDate.calendarDate.todayStamp.end
+                              - ")"
+                              - " AND "
+                              - "subtype="
+                              - =.Global.currentSubtype
+                              # - " AND "
+                              # - "name like '%"
+                              # - =..selectData.reason
+                              # - "%'"
+                            dataOut: Global.scheduleScondition
+                        - ..schedule.edge.sCondition@: =.Global.scheduleScondition
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@: 
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - ..schedule.scheduleList.edge@: []
+                        - =..schedule.get: ""
+                        # - ..schedule.edge.id@: []
+                    - actionType: evalObject
+                      object: 
+                        - if: 
+                          - ..schedule.scheduleList.edge.0
+                          - =.builtIn.date.splitTime:
+                              dataIn:
+                                object2: =..schedule.scheduleList.edge
+                                timeSlot: =..formData.duration
+                                year: =.BaseDate.calendarDate.year
+                                month: =.BaseDate.calendarDate.month
+                                day: =.BaseDate.calendarDate.day
+                                isSplitCurrent: true
+                              dataOut: ScheduleManagement.splitTime 
+                          - ..splitTime@: []
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =.ScheduleManagement.splitTime 
+                              key: fontColor
+                              value: "0x4b4b4b"
+                            dataOut: ScheduleManagement.splitTime 
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =.ScheduleManagement.splitTime 
+                              key: borColor
+                              value: "0xebebeb"
+                            dataOut: ScheduleManagement.splitTime  
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: calendarTag                          
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: typeView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: reasonView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: durationTag                          
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: calendarTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: splitTimeTag
+                  style:
+                    left: '0.15'
+                    top: '0.1'
+                    fontSize: .Nfont.nf1
+                    borderColor: "#EAEAEA" 
+                    width: '0.083'
+                    height: '0.046'
+                    textIndent: 10px
+                # ADDRESS
+                - type: view
+                  viewTag: addressView
+                  style: 
+                    left: '0.24'
+                    top: '0.07'
+                    width: '0.1'
+                    height: '0.15'
+                    display: none
+                  children: 
+                    - type: label
+                      text: Address
+                      style: 
+                        left: '0'
+                        top: '0'
+                        fontSize: .Nfont.nf1
+                        borderColor: "#EAEAEA" 
+                        width: '0.1'
+                        height: '0.046'
+                    - type: select
+                      dataKey: formDataOfficeVisisAddress
+                      options: 
+                        ..addressName
+                      onChange:
+                        - actionType: evalObject
+                          object: 
+                            - ..visitReason.document@: =..visitReason.docResp.0.doc.0
+                            - ..selectData.reason@: =..visitReason.document.name.data.reasonForVisit.0.reason
+                            - =.builtIn.array.getByKey:
+                                dataIn:
+                                  array: =..visitReason.document.name.data.reasonForVisit
+                                  key1: reason
+                                  value: =..selectData.reason
+                                  key2: duration
+                                dataOut: ScheduleManagement.selectData.duration
+                            - =.builtIn.string.retainNumber:
+                                dataIn:
+                                  value: =..selectData.duration
+                                dataOut: ScheduleManagement.formData.duration                            
+                            - =.builtIn.array.getIdByUserName:
+                                dataIn:
+                                  array: =..providerList.list.doc
+                                  userName: =..formData.providerSendName
+                                dataOut: ScheduleManagement.formData.providerSendId                          
+                            - =.builtIn.array.matchInArray:
+                                dataIn:
+                                  arr: =.Global.locationAll
+                                  value: =..formDataOfficeVisisAddress
+                                  key: medicalFacilityName
+                                  key1: "id"
+                                dataOut: ScheduleManagement.locationId
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "(stime<"
+                                  - =.BaseDate.calendarDate.todayStamp.start
+                                  - " AND "
+                                  - "etime>"
+                                  - =.BaseDate.calendarDate.todayStamp.start
+                                  - " OR "
+                                  - "stime>"
+                                  - =.BaseDate.calendarDate.todayStamp.start
+                                  - " AND "
+                                  - "etime<"
+                                  - =.BaseDate.calendarDate.todayStamp.end
+                                  - " OR "
+                                  - "stime<"
+                                  - =.BaseDate.calendarDate.todayStamp.end
+                                  - " AND "
+                                  - "etime>"
+                                  - =.BaseDate.calendarDate.todayStamp.end
+                                  - ")"
+                                  - " AND "
+                                  - "subtype="
+                                  - =.Global.currentSubtype
+                                  # - " AND "
+                                  # - "name like '%"
+                                  # - =..selectData.reason
+                                  # - "%'"
+                                dataOut: Global.scheduleScondition
+                            - ..schedule.edge.sCondition@: =.Global.scheduleScondition
+                            - ..newAppointment.edge.name.locationName@: =..formDataOfficeVisisAddress
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - .BaseDate.schedule.scheduleList.edge@: []
+                            - ..splitTime@: [] 
+                            # - ..schedule.edge.id@: []
+                            - ..schedule.edge.id.0@: =..formData.providerSendId
+                            - ..schedule.edge.id.1@: =..locationId
+                        - actionType: evalObject
+                          object:
+                            - ..schedule.scheduleList.edge@: []
+                            - =..schedule.get: ""
+                            # - ..schedule.edge.id@: []
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - ..schedule.scheduleList.edge.0
+                              - =.builtIn.date.splitTime:
+                                  dataIn:
+                                    object2: =..schedule.scheduleList.edge
+                                    timeSlot: =..formData.duration
+                                    year: =.BaseDate.calendarDate.year
+                                    month: =.BaseDate.calendarDate.month
+                                    day: =.BaseDate.calendarDate.day
+                                    isSplitCurrent: true
+                                  dataOut: ScheduleManagement.splitTime 
+                              - ..splitTime@: [] 
+                            - =.builtIn.object.setObjectKey:
+                                dataIn:
+                                  objectArr: =.ScheduleManagement.splitTime 
+                                  key: fontColor
+                                  value: "0x4b4b4b"
+                                dataOut: ScheduleManagement.splitTime 
+                            - =.builtIn.object.setObjectKey:
+                                dataIn:
+                                  objectArr: =.ScheduleManagement.splitTime 
+                                  key: borColor
+                                  value: "0xebebeb"
+                                dataOut: ScheduleManagement.splitTime                                
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: calendarTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: typeView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: reasonView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: durationTag                          
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: splitTimeTag
+                      style: 
+                        left: "0"
+                        width: "0.08"
+                        top: "0.03"
+                        height: "0.046"
+                        border: 
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0xdededf"
+                        borderRadius: "2"
+                        boxSizing: border-box
+                        textAlign: 
+                          y: center
+                
+                # REASON FOR VISIT(NOTES)
+                - type: label
+                  text: Reason for visit(notes)
+                  style:
+                    left: '0.06'
+                    top: '0.18'
+                    fontSize: .Nfont.nf1          
+                - type: select
+                  viewTag: reasonView
+                  dataKey: selectData.reason
+                  options:
+                    ..reasonForVisit
+                  style:
+                    width: '0.12'
+                    left: '0.06'
+                    top: '0.21'
+                    borderColor: "#EAEAEA" 
+                    fontSize: .Nfont.nf1
+                    height: '0.046'
+                    backgroundColor: "0xffffff"
+                  onChange:
+                    - emit:
+                        actions:
+                          - =.builtIn.array.getByKey:
+                              dataIn:
+                                array: =..visitReason.document.name.data.reasonForVisit
+                                key1: reason
+                                value: =..selectData.reason
+                                key2: duration
+                              dataOut: ScheduleManagement.selectData.duration
+                          - =.builtIn.string.retainNumber:
+                              dataIn:
+                                value: =..selectData.duration
+                              dataOut: ScheduleManagement.formData.duration
+                          - .BaseDate.schedule.scheduleList.edge@: []
+                          - =..schedule.get: ""
+                    - actionType: evalObject
+                      object:           
+                        - =.builtIn.date.splitTime:
+                            dataIn:
+                              object2: =..schedule.scheduleList.edge
+                              timeSlot: =..formData.duration
+                              year: =.BaseDate.calendarDate.year
+                              month: =.BaseDate.calendarDate.month
+                              day: =.BaseDate.calendarDate.day
+                              isSplitCurrent: true
+                            dataOut: ScheduleManagement.splitTime  
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =.ScheduleManagement.splitTime 
+                              key: fontColor
+                              value: "0x4b4b4b"
+                            dataOut: ScheduleManagement.splitTime 
+                        - =.builtIn.object.setObjectKey:
+                            dataIn:
+                              objectArr: =.ScheduleManagement.splitTime 
+                              key: borColor
+                              value: "0xebebeb"
+                            dataOut: ScheduleManagement.splitTime                                                      
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: calendarTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: typeView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: reasonView
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: durationTag                          
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: splitTimeTag
+
+                # DURATION
+                - type: label
+                  text: Duration
+                  style:
+                    left: '0.19'
+                    top: '0.18'
+                    fontSize: .Nfont.nf1
+                - .TextField1:
+                  dataKey: ScheduleManagement.selectData.duration
+                  isEditable: "false"
+                  viewTag: durationTag
+                  style:
+                    left: "0.19"
+                    top: "0.21"
+                    height: "0.046"
+                    width: "0.14"
+                    boxSizing: "border-box"
+                
+                # CALENDAR
+                - .BaseDate.calendar:
+                  style:
+                    top: "0.29"
+                    width: "0.4"
+                    left: "0"
+                    height: "0.19"
+                    border: 
+                      style: "1"
+                    backgroundColor: "0xf7f9fa"
+                  children:
+                    - .BaseDate.calendarHeader:
+                      style: 
+                        top: "0.02"
+                        left: "0.06"
+                        width: "0.28"
+                        height: "0.05"
+                        border: 
+                          style: "1"
+                      children:
+                        # monthView
+                        - type: view
+                          style:
+                            top: "0"
+                            left: "0.06"
+                            width: "0.06"
+                            height: "0.045"
+                          children:
+                            - type: image
+                              path: blueLeft.svg
+                              onClick:
+                                - emit:
+                                    actions:
+                                      - .BaseDate.calendarDate.day@: 1
+                                      - =.builtIn.date.loopMonth:
+                                          dataIn:
+                                            month: =.BaseDate.calendarDate.month
+                                            step: -1
+                                          dataOut: BaseDate.calendarDate.month
+                                      - =.builtIn.date.transformMonth:
+                                          dataIn:
+                                            month: =.BaseDate.calendarDate.month
+                                          dataOut: BaseDate.calendarDate.monthName
+                                      - =.builtIn.date.miniWeeklyCalendarArray:
+                                          dataIn:
+                                            year: =.BaseDate.calendarDate.year
+                                            month: =.BaseDate.calendarDate.month
+                                            today: 32
+                                            markDay: =.BaseDate.calendarDate.day
+                                            color: "0x000000"
+                                            backgroundColor: "0xFFFFFF6f"
+                                            todayColor: "0xffffff"
+                                            todayBackgroundColor: "0x2988E6"
+                                          dataOut: BaseDate.calendarDate.minidayLable
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: calendarTag
+                              style:
+                                height: "0.015"
+                                top: "0.0175"
+                            - type: label
+                              dataKey: BaseDate.calendarDate.monthName
+                              style:
+                                width: "0.02"
+                                height: "0.02"
+                                left: "0.019"
+                                top: "0.01"
+                                fontSize: .Nfont.nf3
+                                color: "0x003254"
+                                textAlign:
+                                  x: center
+                            - type: image
+                              path: blackRight.svg
+                              onClick:
+                                - emit:
+                                    actions:
+                                      - .BaseDate.calendarDate.day@: 1
+                                      - =.builtIn.date.loopMonth:
+                                          dataIn:
+                                            month: =.BaseDate.calendarDate.month
+                                            step: 1
+                                          dataOut: BaseDate.calendarDate.month
+                                      - =.builtIn.date.transformMonth:
+                                          dataIn:
+                                            month: =.BaseDate.calendarDate.month
+                                          dataOut: BaseDate.calendarDate.monthName
+                                      - =.builtIn.date.miniWeeklyCalendarArray:
+                                          dataIn:
+                                            year: =.BaseDate.calendarDate.year
+                                            month: =.BaseDate.calendarDate.month
+                                            today: 32
+                                            markDay: =.BaseDate.calendarDate.day
+                                            color: "0x000000"
+                                            backgroundColor: "0xFFFFFF6f"
+                                            todayColor: "0xffffff"
+                                            todayBackgroundColor: "0x2988E6"
+                                          dataOut: BaseDate.calendarDate.minidayLable            
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: calendarTag
+                              style:
+                                left: "0.055"
+                                height: "0.015"
+                                top: "0.0175"
+                        # yearView
+                        - type: view
+                          style:
+                            top: "0"
+                            left: "0.16"
+                            width: "0.06"
+                            height: "0.045"
+                          children:
+                            - type: image
+                              path: blueLeft.svg
+                              onClick:
+                                - emit:
+                                    actions:
+                                      - .BaseDate.calendarDate.month@: 1
+                                      - .BaseDate.calendarDate.day@: 1
+                                      - =.builtIn.number.Subtraction:
+                                          dataIn:
+                                            num: =.BaseDate.calendarDate.year
+                                            step: 1
+                                          dataOut: BaseDate.calendarDate.year
+                                      - =.builtIn.date.miniWeeklyCalendarArray:
+                                          dataIn:
+                                            year: =.BaseDate.calendarDate.year
+                                            month: =.BaseDate.calendarDate.month
+                                            today: 32
+                                            markDay: =.BaseDate.calendarDate.day
+                                            color: "0x000000"
+                                            backgroundColor: "0xFFFFFF6f"
+                                            todayColor: "0xffffff"
+                                            todayBackgroundColor: "0x2988E6"
+                                          dataOut: BaseDate.calendarDate.minidayLable  
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.date.transformMonth:
+                                        dataIn:
+                                          month: =.BaseDate.calendarDate.month
+                                        dataOut: BaseDate.calendarDate.monthName
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: calendarTag
+                                
+                              style:
+                                height: "0.015"
+                                top: "0.0175"
+                            - type: label
+                              dataKey: BaseDate.calendarDate.year
+                              style:
+                                width: "0.02"
+                                height: "0.02"
+                                left: "0.019"
+                                top: "0.01"
+                                fontSize: .Nfont.nf3
+                                color: "0x003254"
+                                textAlign:
+                                  x: center
+                            - type: image
+                              path: blackRight.svg
+                              onClick:
+                                - emit:
+                                    actions:
+                                      - .BaseDate.calendarDate.month@: 1
+                                      - .BaseDate.calendarDate.day@: 1
+                                      - =.builtIn.number.addition:
+                                          dataIn:
+                                            num: =.BaseDate.calendarDate.year
+                                            step: 1
+                                          dataOut: BaseDate.calendarDate.year
+                                      - =.builtIn.date.miniWeeklyCalendarArray:
+                                          dataIn:
+                                            year: =.BaseDate.calendarDate.year
+                                            month: =.BaseDate.calendarDate.month
+                                            today: 32
+                                            markDay: =.BaseDate.calendarDate.day
+                                            color: "0x000000"
+                                            backgroundColor: "0xFFFFFF6f"
+                                            todayColor: "0xffffff"
+                                            todayBackgroundColor: "0x2988E6"
+                                          dataOut: BaseDate.calendarDate.minidayLable 
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.date.transformMonth:
+                                        dataIn:
+                                          month: =.BaseDate.calendarDate.month
+                                        dataOut: BaseDate.calendarDate.monthName
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: calendarTag
+                              style:
+                                left: "0.055"
+                                height: "0.015"
+                                top: "0.0175"
+                        - type: list
+                          contentType: listObject
+                          listObject: 
+                            - key: SU
+                            - key: MO
+                            - key: TU
+                            - key: WE
+                            - key: TH
+                            - key: FR
+                            - key: SA
+                          iteratorVar: itemObject
+                          style:
+                            top: "0.065"
+                            width: "0.21"
+                            left: "0.035"
+                            height: "0.03"
+                            justifyContent: "space-between"
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.03"
+                                height: "0.03"
+                                boxSizing: "border-box"
+                                border: "none"
+                                padding: "0"
+                                display: "inline-block"
+                              children:
+                                - type: label 
+                                  dataKey: itemObject.key
+                                  style:
+                                    color: "0x003254"
+                                    width: "0.03"
+                                    height: "0.03"
+                                    fontSize: .Nfont.nf2
+                                    fontFamily: Poppins
+                                    # backgroundColor: "0xffffff"
+                                    textAlign:
+                                      x: center
+                                      y: center
+                        - type: list
+                          contentType: listObject
+                          listObject: =.BaseDate.calendarDate.minidayLable
+                          iteratorVar: itemObject
+                          style:
+                            top: "0.085"
+                            left: "0.035"
+                            width: "0.21"
+                            margin: "0"
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - =.builtIn.array.getIdByUserName:
+                                          dataIn:
+                                            array: =..providerList.list.doc
+                                            userName: =..formData.providerSendName
+                                          dataOut: ScheduleManagement.formData.providerSendId
+                                      - ..BaseDate.calendarDate.minidayLable@: []
+                                      - =.builtIn.date.miniWeeklyCalendarArray:
+                                          dataIn:
+                                            year: $var.year
+                                            month: $var.month
+                                            today: $var.day
+                                            markDay: $var.day
+                                            color: "0x000000"
+                                            backgroundColor: "0xFFFFFF6f"
+                                            todayColor: "0xffffff"
+                                            todayBackgroundColor: "0x2988E6"
+                                          dataOut: BaseDate.calendarDate.minidayLable
+                                      - .BaseDate.calendarDate.year@: $var.year
+                                      - .BaseDate.calendarDate.month@: $var.month
+                                      - .BaseDate.calendarDate.day@: $var.day
+                                      - =.builtIn.date.ShowDateByNumber:
+                                          dataIn:
+                                            year: =.BaseDate.calendarDate.year
+                                            month: =.BaseDate.calendarDate.month
+                                            day: =.BaseDate.calendarDate.day
+                                            formatType: "Y-M-D"
+                                          dataOut: BaseDate.calendarDate.todayDate
+                                      - =.builtIn.date.transformMonth:
+                                          dataIn:
+                                            month: =.BaseDate.calendarDate.month
+                                          dataOut: BaseDate.calendarDate.monthName
+                                      - =.builtIn.date.getTimeStampOfDate:
+                                          dataIn:
+                                            date: =.BaseDate.calendarDate.todayDate
+                                          dataOut: BaseDate.calendarDate.todayStamp
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - "(stime<"
+                                          - =.BaseDate.calendarDate.todayStamp.start
+                                          - " AND "
+                                          - "etime>"
+                                          - =.BaseDate.calendarDate.todayStamp.start
+                                          - " OR "
+                                          - "stime>"
+                                          - =.BaseDate.calendarDate.todayStamp.start
+                                          - " AND "
+                                          - "etime<"
+                                          - =.BaseDate.calendarDate.todayStamp.end
+                                          - " OR "
+                                          - "stime<"
+                                          - =.BaseDate.calendarDate.todayStamp.end
+                                          - " AND "
+                                          - "etime>"
+                                          - =.BaseDate.calendarDate.todayStamp.end
+                                          - ")"
+                                          - " AND "
+                                          - "subtype="
+                                          - =.Global.currentSubtype
+                                          # - " AND "
+                                          # - "name like '%"
+                                          # - =..selectData.reason
+                                          # - "%'"
+                                        dataOut: Global.scheduleScondition
+                                    - ..schedule.edge.sCondition@: =.Global.scheduleScondition                                  
+                                    #如果选择过去的时候，进行提示
+                                    - if:
+                                        - =.builtIn.math.greater:
+                                            dataIn:
+                                              num1: =.BaseDate.calendarDate.todayStamp.end
+                                              num2: =.ScheduleManagement.formData.nowTimeStamp
+                                        - continue
+                                        - actionType: popUp
+                                          popUpView: dateCheck
+                                          wait: true
+                                - actionType: evalObject
+                                  object: 
+                                    .Global._nonce@: 
+                                      =.builtIn.math.random: ""                                
+                                - actionType: evalObject
+                                  object:
+                                    - .BaseDate.schedule.scheduleList.edge@: []
+                                    - ..splitTime@: [] 
+                                    - ..schedule.scheduleList.edge@: []
+                                    - ..schedule.edge.id.0@: =..formData.providerSendId
+                                    - if: 
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..newAppointment.edge.name.visitType
+                                            string2: "Office Visit"
+                                      - ..schedule.edge.id.1@: =..locationId
+                                      - ..schedule.edge.id.1@: =.Global.currentFacility.id
+                                - actionType: evalObject
+                                  object:
+                                    - =..schedule.get: ""
+                                    # - ..schedule.edge.id@: []
+                                - actionType: evalObject
+                                  object: 
+                                    - if: 
+                                      - ..schedule.scheduleList.edge.0
+                                      - =.builtIn.date.splitTime:
+                                          dataIn:
+                                            object2: =..schedule.scheduleList.edge
+                                            timeSlot: =..formData.duration
+                                            year: =.BaseDate.calendarDate.year
+                                            month: =.BaseDate.calendarDate.month
+                                            day: =.BaseDate.calendarDate.day
+                                            isSplitCurrent: true
+                                          dataOut: ScheduleManagement.splitTime  
+                                      - ..splitTime@: [] 
+                                    - =.builtIn.object.setObjectKey:
+                                        dataIn:
+                                          objectArr: =.ScheduleManagement.splitTime 
+                                          key: fontColor
+                                          value: "0x4b4b4b"
+                                        dataOut: ScheduleManagement.splitTime 
+                                    - =.builtIn.object.setObjectKey:
+                                        dataIn:
+                                          objectArr: =.ScheduleManagement.splitTime 
+                                          key: borColor
+                                          value: "0xebebeb"
+                                        dataOut: ScheduleManagement.splitTime                                        
+                                    #如果没有avail，进行提示
+                                    - if:
+                                      - =.ScheduleManagement.splitTime.0.stime
+                                      - continue
+                                      - actionType: popUp
+                                        popUpView: noAvailableTag
+                                        wait: true
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: calendarTag
+                                # - actionType: builtIn
+                                #   funcName: redraw
+                                #   viewTag: DataTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: splitTimeTag
+                              style:
+                                width: "0.03"
+                                height: "0.02"
+                                # boxSizing: "border-box"
+                                # border: "none"
+                                padding: "0"
+                                margin: "0"
+                                display: "inline-block"
+                                # flex: "auto"
+                                marginTop: "0.02"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.day
+                                  style:
+                                    top: "0"
+                                    left: "0.0065"
+                                    width: "0.017"
+                                    height: "0.03"
+                                    color: itemObject.color
+                                    backgroundColor: itemObject.backgroundColor
+                                    borderRadius: "50"
+                                    fontSize: .Nfont.nf4
+                                    textAlign:
+                                      x: center
+                                      y: center
+
+                    - .BaseDate.leftWeek:
+                      style: 
+                        left: "0.06"
+                        top: "0.088"
+                    - .BaseDate.nextWeek:
+                      style: 
+                        left: "0.336"
+                        top: "0.038" 
+                
+                # AVAILABILITY
+                - type: label
+                  text: Availability
+                  style:
+                    top: "0.5"
+                    left: "0.06"
+                    width: "0.28"
+                    fontSize: .Nfont.nf2
+                    fontWeight: "600"
+                - type: scrollView                  
+                  style: 
+                    top: "0.52"
+                    height: "0.29"
+                    width: "0.32"
+                    left: "0.06"
+                    overflow: scroll
+                  children: 
+                    # - type: label
+                    #   dataKey: splitTime.0.showTime
+                    #   style:
+                    #     top: "0"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..splitTime
+                      iteratorVar: itemObject
+                      viewTag: splitTimeTag
+                      style:
+                        top: "0"
+                        width: "0.32"
+                        left: "0"
+                        margin: "0"
+                        display: inline-block
+                      children:
+                        - type: listItem
+                          itemObject: "" 
+                          onClick:
+                            - emit: 
+                                dataKey: 
+                                  var: itemObject
+                                actions: 
+                                  - =.builtIn.object.setProperty: 
+                                      dataIn: 
+                                        obj: =..splitTime
+                                        label: "showTime"
+                                        text: $var.showTime
+                                        arr: ["fontColor","bgColor","borColor"]
+                                        valueArr: ["0x005795","0xeaf1f6","0xeaf1f6"]
+                                        errorArr: ["0x4b4b4b","0xffffff","0xebebeb"]    
+                                  - =.builtIn.string.concat: 
+                                      dataIn: 
+                                        - =.BaseDate.calendarDate.monthName
+                                        - " "
+                                        - =.BaseDate.calendarDate.day
+                                        - ","
+                                        - =.BaseDate.calendarDate.year
+                                        - " "
+                                        - "at"
+                                        - " "
+                                        - $var.showTime
+                                      dataOut: ScheduleManagement.appointmentTime
+                                  - ..clock@: $var
+                                  - =.builtIn.array.getByKey:
+                                      dataIn:
+                                        array: =..visitReason.document.name.data.reasonForVisit
+                                        key1: reason
+                                        value: =..selectData.reason
+                                        key2: document
+                                      dataOut: ScheduleManagement.newAppointment.edge.name.document
+                                  
+                                  - ..newAppointment.edge.stime@: =..clock.stime
+                                  - ..newAppointment.edge.etime@: =..clock.etime
+                                  - ..newAppointment.edge.refid@: =..clock.refid
+                                  - ..formData.nextBtnColor@: "0x005795"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: splitTimeTag
+                          style:
+                            width: '0.0576'
+                            height: '0.035'
+                            marginRight: "0.015"
+                            float: left
+                            marginTop: "0.02"
+                            backgroundColor: itemObject.bgColor
+                            border:   
+                              style: '3'
+                            borderColor: itemObject.borColor
+                            borderRadius: "3"
+                          children:
+                            - type: label
+                              dataKey: itemObject.showTime
+                              style: 
+                                left: "0"
+                                height: "0.035"
+                                color: itemObject.fontColor
+                                fontSize: .Nfont.nf3
+                                textAlign:
+                                  x: center
+                                  y: center 
+                - type: button
+                  text: Next
+                  viewTag: btnView
+                  onClick: 
+                    - actionType: builtIn
+                      funcName: hide
+                      viewTag: addressView                  
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: Detials                  
+                    - actionType: evalObject
+                      object:
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.nextBtnColor
+                                string2: "0x005795"
+                          - actionType: popUpDismiss
+                            popUpView: create1
+                          - continue  
+                    - actionType: evalObject
+                      object:                        
+                        - if: 
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.nextBtnColor
+                                string2: "0x005795"
+                          - actionType: popUp
+                            popUpView: Detials  
+                          - continue                        
+                  style:
+                    top: "0.83"
+                    width: "0.28"
+                    height: "0.043"
+                    left: "0.06"
+                    color: "0xffffff"
+                    fontSize: .Nfont.nf2
+                    fontFamily: "Roboto"
+                    backgroundColor: =..formData.nextBtnColor
+                    border:
+                      style: "1"
+                    borderRadius: "3"
+                    textAlign:
+                      x: center
+                      y: center     
+        - type: popUp # popUp
+          viewTag: noMessageTag
+          msg: "You haven't choose any message"
+          img: miniRedAlert.svg
+          style:
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000033"
+            top: "0"
+            zIndex: "20"
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: noMessageTag
+          children:
+            - type: view 
+              style:
+                width: "0.32"
+                height: "0.055"
+                top: "0.04"
+                left: "0.4"
+                zIndex: "10"
+                backgroundColor: "0xffffff"
+                borderRadius: "3px"
+                textAlign:
+                  y: center
+              children:
+                - type: image
+                  path: successfulGreen.svg
+                  style:
+                    top: "0.017"
+                    left: "0.08"
+                    width: "0.015"
+                    height: "0.025"
+                - type: label
+                  text: Cancellation succeeded
+                  style:
+                    top: "0.018"
+                    left: "0.12"
+                    height: "0.055"
+                    fontSize: .Nfont.nf2
+                    color: "0x000000"  
+    - type: popUp
+      viewTag: noAvailableTag
+      message: "There is no appointment available"
+      path: aboutBlue.svg
+      style:
+        width: "0.3"
+        height: "0.4"
+        top: "0.3"
+        left: "0.415"
+        zIndex: "100000"
+        backgroundColor: "0xffffff"
+        borderRadius: "7"
+        border: 
+          style: "3"
+        borderColor: "#f4f8fa"
+        boxShadow: "1px 1px  5px 2px #cccccc"
+      children:
+        - type: image
+          path: __.path
+          style: 
+            left: "0.12"
+            width: "0.06"
+            top: "0.04"
+        - type: label
+          text: __.message
+          text2: _.text3 # "v'
+          text3: "v"
+          text4: __.children.1.text # "ok"
+          style:
+            .LabelStyle:
+              left: "0"
+              top: "0.18"
+              width: "0.3"
+              height: "0.06"
+              color: "0x000000"
+              fontSize: .Nfont.nf4
+              # fontStyle: "bold"
+              fontFamily: "sans-serif"
+              textAlign:
+                x: center
+                y: center
+        - type: button
+          text: ok
+          style:
+            width: "0.06"
+            left: "0.12"
+            height: "0.04"
+            top: "0.3"
+            color: "0xffffff"
+            backgroundColor: "#005795"
+            fontSize: .Nfont.nf4
+            border:
+              style: "3"
+              color: "#005795"
+            borderRadius: "5"
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: noAvailableTag
+    - type: popUp
+      viewTag: dateCheck
+      message: "Please don't choose the past time"
+      path: aboutBlue.svg
+      style:
+        width: "0.3"
+        height: "0.4"
+        top: "0.3"
+        left: "0.415"
+        zIndex: "100000"
+        backgroundColor: "0xffffff"
+        borderRadius: "7"
+        border: 
+          style: "3"
+        borderColor: "#f4f8fa"
+        boxShadow: "0px 0px  5px 2px #f4f8fa"
+      children:
+        - type: image
+          path: __.path
+          style: 
+            left: "0.12"
+            width: "0.06"
+            top: "0.04"
+        - type: label
+          text: __.message
+          text2: _.text3 # "v'
+          text3: "v"
+          text4: __.children.1.text # "ok"
+          style:
+            .LabelStyle:
+              left: "0"
+              top: "0.18"
+              width: "0.3"
+              height: "0.06"
+              color: "0x000000"
+              fontSize: .Nfont.nf4
+              # fontStyle: "bold"
+              fontFamily: "sans-serif"
+              textAlign:
+                x: center
+                y: center
+        - type: button
+          text: ok
+          style:
+            width: "0.06"
+            left: "0.12"
+            height: "0.04"
+            top: "0.3"
+            color: "0xffffff"
+            backgroundColor: "#005795"
+            fontSize: .Nfont.nf4
+            border:
+              style: "3"
+              color: "#005795"
+            borderRadius: "5"
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: dateCheck
+
+        

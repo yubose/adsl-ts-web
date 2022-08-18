@@ -1,0 +1,652 @@
+ContactInformation:
+  pageNumber: "380"
+  title: "Contact Info"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        - ..formData@: =.Global.ProviderInfo.name.data
+    - =.builtIn.object.getObjKey:
+        dataIn:
+          objects: =..formData
+        dataOut: ContactInformation.showList
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "email"
+            - ..emailHidden@: ""
+            - ..emailHidden@: none
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "languages"
+            - ..languagesHidden@: ""
+            - ..languagesHidden@: none
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "gender"
+            - ..genderHidden@: ""
+            - ..genderHidden@: none
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "address"
+            - ..addressHidden@: ""
+            - ..addressHidden@: none
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "NPI"
+            - ..NPIHidden@: ""
+            - ..NPIHidden@: none
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "DEA"
+            - ..DEAHidden@: ""
+            - ..DEAHidden@: none
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "description"
+            - ..descriptionHidden@: ""
+            - ..descriptionHidden@: none
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =.ContactInformation.showList
+                  value: "education"
+            - ..educationHidden@: ""
+            - ..educationHidden@: none
+    - ..facilityProfile.docAPI.get
+  # get all facility profile
+  facilityProfile:
+    docRes: ""
+    docReq:
+      id: .Global.ProviderInfo.bsig
+      xfname: E.bvid|E.evid
+      type: .DocType.FacilityProfile #  type: "257"
+      ObjType: 12
+      sCondition: "E.type=10002"
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        api: rd
+        dataIn: ContactInformation.facilityProfile.docReq
+        dataOut: ContactInformation.facilityProfile.docRes
+  descriptionHidden: "none"
+  DEAHidden: "none"
+  NPIHidden: "none"
+  emailHidden: "none"
+  genderHidden: "none"
+  formData: ""
+  publicProfile: ""
+  organizationList:
+    - ImgPath: urgentCare.png
+      Title: A&C Urgentcare
+    - ImgPath: comis.png
+      Title: Comsi
+    - ImgPath: soloPracticeBlue.svg
+      Title: Solo Practice
+  liData:
+    key: "1"
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: evalObject
+          object:
+            - .Global.ProfileType@: =.DocType.DoctorProfile
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+    - type: scrollView
+      style:
+        left: "0"
+        width: "1"
+        top: "0.1"
+        height: "0.9"
+        overflow: "scroll"
+      children:
+        - type: view
+          style:
+            width: "1"
+            marginTop: "0"
+            left: "0"
+            height: "0.25"
+            backgroundColor: "0xffffff"
+          children:
+            - type: view
+              style:
+                width: "1"
+                left: "0"
+                marginTop: "0"
+                height: "0.15"
+              children:
+                - type: image
+                  path: providerImage.svg
+                  dataKey: formData.basicInfo.avatar
+                  path=func: .builtIn.utils.prepareDocToPath
+                  style:
+                    width: "0.16"
+                    height: "0.0739"
+                    marginTop: "0.02"
+                    left: "0.42"
+                - type: label
+                  dataKey: formData.basicInfo.userName
+                  style:
+                    width: "1"
+                    height: "0.03"
+                    marginTop: "0.01"
+                    left: "0"
+                    textAlign:
+                      x: center
+                    fontSize: "20"
+                    fontFamily: "Arial"
+                    fontWeight: "600"
+                    color: "0x4B4B4B"
+                - type: image
+                  path: qr.svg
+                  style:
+                    top: "0.02"
+                    left: "0.85"
+                    width: "0.09"
+            - type: view
+              style:
+                width: "1"
+                left: "0"
+                height: "0.1"
+                marginTop: "0"
+              children:
+                - type: image
+                  path: mailIcon.svg
+                  style:
+                    left: "0.3"
+                    width: "0.15"
+                - type: label
+                  text: AiTmail
+                  style:
+                    left: "0.25"
+                    width: "0.25"
+                    top: "0.07"
+                    fontSize: .Nfont.h12
+                    fontWeight: "100"
+                    textAlign:
+                      x: center
+                - type: image
+                  path: telIcon.svg
+                  style:
+                    left: "0.55"
+                    top: "0"
+                    width: "0.15"
+                - type: label
+                  text: AiTmeet
+                  style:
+                    left: "0.5"
+                    width: "0.25"
+                    top: "0.07"
+                    fontWeight: "100"
+                    fontSize: .Nfont.h12
+                    fontFamily: "Arial"
+                    textAlign:
+                      x: center
+        - type: view
+          style:
+            marginTop: "0"
+            height: auto
+            left: "0"
+            width: "1"
+          children:
+            - .MyProfileTitle:
+              style:
+                marginTop: "0"
+              text: "       About"
+            - type: view
+              style:
+                marginTop: "0"
+                height: "auto"
+                width: "1"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "1"
+                    height: "0.035"
+                  children:
+                    - .MyProfileContentLeft2:
+                      style:
+                        top: "0"
+                        textAlign:
+                          y: center
+                      text: "First Name:"
+                    - .MyProfileContentRight2: #this textAlign: x:right and y：center can't exist at the same time ,need fix
+                      dataKey: formData.basicInfo.firstName #profile.docResponse.doc.0.name.data.firstName
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "1"
+                    height: "0.035"
+                  children:
+                    - .MyProfileContentLeft2:
+                      style:
+                        top: "0"
+                        textAlign:
+                          y: center
+                      text: "Middle Name: "
+                    - .MyProfileContentRight2:
+                      dataKey: formData.basicInfo.middleName
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "1"
+                    height: "0.035"
+                  children:
+                    - .MyProfileContentLeft2:
+                      style:
+                        top: "0"
+                        textAlign:
+                          y: center
+                      text: "Last Name: "
+                    - .MyProfileContentRight2:
+                      dataKey: formData.basicInfo.lastName
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "1"
+                    height: "0.035"
+                  children:
+                    - .MyProfileContentLeft2:
+                      style:
+                        top: "0"
+                        textAlign:
+                          y: center
+                      text: "Title/Training: "
+                    - .MyProfileContentRight2:
+                      dataKey: formData.title
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "1"
+                    display: ..emailHidden
+                    height: "0.035"
+                  children:
+                    - .MyProfileContentLeft2:
+                      text: "Email"
+                      style:
+                        fontSize: .Nfont.h12
+                        fontFamily: "Arial"
+                        top: "0"
+                    - .MyProfileContentRight2:
+                      dataKey: formData.email
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "1"
+                    display: ..languagesHidden
+                    height: "auto"
+                  children:
+                    - .MyProfileContentLeft2:
+                      text: "languages spoken"
+                      style:
+                        fontSize: .Nfont.h12
+                        fontFamily: "Arial"
+                        top: "0"
+                        left: "0.06"
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formData.languages
+                      iteratorVar: itemObject
+                      style:
+                        width: "1"
+                        margin: "0"
+                        left: "0"
+                        marginTop: "0"
+                        height: auto
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: "1"
+                            height: "0.03"
+                            left: "0.06"
+                            marginTop: "0"
+                          children:
+                            - type: label
+                              dataKey: itemObject
+                              style:
+                                width: "0.88"
+                                fontWeight: "600"
+                                fontFamily: "Arial"
+                                fontSize: "13"
+                                color: "#4B4B4B"
+                                height: "0.03"
+                                top: "0"
+                                left: "0"
+                                textAlign:
+                                  x: right
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "1"
+                    display: ..genderHidden
+                    height: "0.035"
+                  children:
+                    - .MyProfileContentLeft2:
+                      text: "Gender:"
+                      style:
+                        fontSize: .Nfont.h12
+                        fontFamily: "Arial"
+                        top: "0"
+                        left: "0.06"
+                    - .MyProfileContentRight2:
+                      dataKey: formData.gender
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    display: ..addressHidden
+                    height: "0.055"
+                    width: "1"
+                  children:
+                    - .MyProfileContentLeft3:
+                      text: Home Address
+                      style:
+                        top: "0"
+                    - .MyProfileContentRight:
+                      dataKey: formData.address
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+            - .MyProfileTitle:
+              style:
+                marginTop: "0"
+              text: "         Credentials"
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "1"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    height: "0.035"
+                    width: "1"
+                  children:
+                    - .MyProfileContentLeft3:
+                      text: Specialty
+                      style:
+                        top: "0"
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.specialty
+                  iteratorVar: itemObject
+                  style:
+                    width: "1"
+                    margin: "0"
+                    left: "0"
+                    marginTop: "0.02"
+                    height: auto
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0.06"
+                        marginTop: "0"
+                      children:
+                        - type: label
+                          dataKey: itemObject.specialty
+                          style:
+                            width: "0.78"
+                            fontWeight: "600"
+                            height: "0.03"
+                            top: "0"
+                            fontSize: .Nfont.h1
+                            left: "0"
+                        - type: label
+                          dataKey: itemObject.boardCertified
+                          style:
+                            width: "0.2"
+                            fontWeight: "600"
+                            height: "0.03"
+                            top: "0"
+                            left: "0.68"
+                            textAlign:
+                              x: right
+                - type: view
+                  style:
+                    marginTop: "0"
+                    display: ..NPIHidden
+                    height: "0.035"
+                    width: "1"
+                  children:
+                    - .MyProfileContentLeft3:
+                      text: NPI#
+                      style:
+                        top: "0"
+                    - .MyProfileContentRight:
+                      dataKey: formData.NPI
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+                        height: "0.04"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    height: "0.035"
+                    width: "1"
+                  children:
+                    - .MyProfileContentLeft3:
+                      text: "Medical License"
+                      style:
+                        top: "0"
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.MedicalLicense
+                  iteratorVar: itemObject
+                  style:
+                    width: "1"
+                    margin: "0"
+                    left: "0"
+                    marginTop: "0.02"
+                    height: auto
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: "1"
+                        height: "0.03"
+                        left: "0.06"
+                        marginTop: "0"
+                      children:
+                        - type: label
+                          dataKey: itemObject.medicalLicense
+                          style:
+                            width: "0.3"
+                            fontWeight: "600"
+                            fontFamily: "Arial"
+                            fontSize: "13"
+                            color: "#4B4B4B"
+                            height: "0.03"
+                            top: "0"
+                            left: "0"
+                        - type: label
+                          dataKey: itemObject.state
+                          style:
+                            width: "0.2"
+                            fontWeight: "600"
+                            fontFamily: "Arial"
+                            fontSize: "13"
+                            color: "#4B4B4B"
+                            height: "0.03"
+                            top: "0"
+                            left: "0.3"
+                        - type: label
+                          dataKey: itemObject.expiration
+                          style:
+                            width: "0.3"
+                            fontWeight: "600"
+                            fontFamily: "Arial"
+                            fontSize: "13"
+                            color: "#4B4B4B"
+                            height: "0.03"
+                            top: "0"
+                            left: "0.58"
+                            textAlign:
+                              x: right
+                - type: view
+                  style:
+                    marginTop: "0"
+                    height: "0.035"
+                    display: ..DEAHidden
+                    width: "1"
+                  children:
+                    - .MyProfileContentLeft3:
+                      text: "DEA #"
+                      style:
+                        top: "0"
+                    - .MyProfileContentRight:
+                      dataKey: formData.DEA
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        top: "0"
+                        height: "0.04"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    height: "0.1"
+                    width: "1"
+                    display: ..descriptionHidden
+                  children:
+                    - .MyProfileContentLeft3:
+                      text: "Description"
+                      style:
+                        marginTop: "0"
+
+                    - .MyProfileContentRight:
+                      dataKey: formData.description
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        display: ..descriptionHidden
+                        marginTop: "0.01"
+                        left: "0.06"
+                        width: "0.9"
+                        height: "auto"
+                        textAlign:
+                          x: left
+                - type: view
+                  style:
+                    marginTop: "0"
+                    height: "auto"
+                    width: "1"
+                    display: ..educationHidden
+                  children:
+                    - .MyProfileContentLeft3:
+                      text: "Education and training"
+                      style:
+                        marginTop: "0.01"
+                    - .MyProfileContentRight:
+                      dataKey: formData.education
+                      style:
+                        fontSize: "13"
+                        fontWeight: "600"
+                        marginTop: "0.01"
+                        left: "0.06"
+                        height: "auto"
+                        width: "0.9"
+                        textAlign:
+                          x: left
+                - .MyProfileTitle:
+                  style:
+                    marginTop: "0.02"
+                  text: "       Organization"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    height: "auto"
+                    width: "1"
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..facilityProfile.docRes.doc
+                      iteratorVar: itemObject
+                      viewTag: Organization
+                      style:
+                        width: "1"
+                        left: "0"
+                        top: "0"
+                        height: "0.2"
+                        margin: "0"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            width: "1"
+                            left: "0"
+                            height: "0.06"
+                            backgroundColor: "0xffffff"
+                            border:
+                              style: "2"
+                              width: "1"
+                            borderColor: "0xdededf"
+                          children:
+                            - type: image
+                              path: office-building.svg
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.name.data.basicInfo.businessLogo
+                              style:
+                                width: "0.1"
+                                height: "0.04"
+                                top: "0.015"
+                                left: "0.1"
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.medicalFacilityName
+                              style:
+                                width: "0.5"
+                                left: "0.23"
+                                top: "0"
+                                height: "0.06"
+                                fontFamily: "Arial"
+                                fontSize: .Nfont.h12
+                                color: "#4B4B4B"
+                                textAlign:
+                                  y: center

@@ -1,0 +1,594 @@
+SignUp: # This is page name
+  module: patient, provider, admin
+
+  title: SignUp # Title
+  
+  pageNumber: "1" # Page Number
+  
+  # init: # Page initialization
+  #   - actionType: evalObject
+  #     object: =.builtIn.cleanLocalStorage 
+
+  formData: # Input data here
+    countryCode: "+1"
+    phoneNumber: ""
+    code: ""
+    apiData:
+      phoneNumber: ""   
+    rvCondition: ""
+    btnColor: "0xd3dde9"
+  
+  formDataTemp: # Input data temp here 
+    flag: "false"
+  verificationCode:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1010
+      name:
+        phone_number: =..formData.apiData.phoneNumber
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: SignUp.verificationCode.edge
+        dataOut: SignUp.verificationCode.response
+  apiRequest: # Input data request here
+    getVertex:
+      response: ""
+      vertex:
+        .Vertex: ""
+        xfname: none
+        type: 1
+        sCondition: =..formData.rvCondition
+      vertexAPI:
+        get:
+          api: rv
+          dataIn: SignUp.apiRequest.getVertex.vertex
+          dataOut: SignUp.apiRequest.getVertex.response
+    loginNewDevice:
+      response: ""
+      edge:
+        .Edge: ""
+        type: 1040
+        name:
+          phone_number: =..formData.apiData.phoneNumber
+          verification_code: =..formData.code
+        deat:
+          UserId: ""
+          Pk: ""
+          Esk: ""
+      edgeAPI:
+        .EdgeAPI: ""
+        store:
+          api: ce
+          dataIn: SignUp.apiRequest.loginNewDevice.edge
+          dataOut: SignUp.apiRequest.loginNewDevice.response
+    loginUser:
+      response: ""
+      edge:
+        .Edge: ""
+        type: 1030
+        bvid: =..apiRequest.loginNewDevice.response.edge.deat.user_id
+      edgeAPI:
+        .EdgeAPI: ""
+        store:
+          api: ce
+          dataIn: SignUp.apiRequest.loginUser.edge
+          dataOut: SignUp.apiRequest.loginUser.response          
+  
+  save:
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.SignUp.formData.countryCode
+          - " "
+          - =.SignUp.formData.phoneNumber
+        dataOut: SignUp.formData.apiData.phoneNumber  
+    - =.SignUp.verificationCode.edgeAPI.store: "" 
+  check:
+    - =.SignUp.apiRequest.loginNewDevice.edgeAPI.store: ""
+    - if:
+        - =.builtIn.string.equal:  # check vCode correct
+            dataIn:
+              string1: =..apiRequest.loginNewDevice.response.code
+              string2: 112
+        - actionType: popUp
+          popUpView: wrongCode
+          wait: true
+        - continue
+  update:
+    - .Global.newAccountFlag@: "-1"
+  style: # Input style fragment here
+
+  components:
+    - .BaseCheckView: ""
+      message: "Incorrect verificationCode"
+      viewTag: wrongCode
+    - .BaseCheckView: ""
+      message: "Please input verification code"
+      viewTag: emptyCode
+    - .BaseCheckView: ""
+      message: "Invalid Phonenumber: Required length should be 6 to 16"
+      viewTag: invaliduserid
+    - .BaseCheckView: ""
+      message: "Phone number required"
+      viewTag: NoPhoneNum
+    - .BaseCheckView: ""
+      message: "Invalid phone number format. Use numbers only, 10 digits required"
+      viewTag: WrongPhoneNum
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - type: view
+          style:
+            width: "0.55"
+            height: "1"
+            top: "0"
+          children:
+            - type: image
+              path: background.svg
+              style:
+                height: "1"
+                left: "0"
+                top: "0"
+            - type: label
+              textBoard: 
+                - text: Welcome To 
+                - br: 
+                - text: AiTmed
+              style:
+                color: "0xffffff"
+                textAlign: 
+                  x: center
+                fontSize: "3.2vw"
+                # lineHeight: "4vw"
+                marginTop: "0.4"
+                # letterSpacing: "0.1vw"
+        - type: view
+          style:
+            left: "0.55"
+            # marginTop: "1vw"
+            width: "0.45"
+            height: "1"
+            # backgroundColor: "0xf1f1b8"
+            display: flex
+            flex-direction: column
+            justify-content: flex-start
+            align-items: center
+          children:
+            - type: image
+              path: aitmedBlack.svg
+              style:
+                # left: "0.19"
+                marginTop: "6vw"
+                width: "6.5vw"
+                height: "6.5vw"
+            - type: view
+              style:
+                marginTop: "5vw"
+                width: "26.1vw"
+                height: "20.2vw"
+                borderRadius: "5"
+                boxShadow: "0 0 20px #ecf4f8"
+                display: flex
+                flex-direction: column
+                justify-content: flex-start
+                align-items: center
+              children:
+                # Create A New Admin Account
+                - type: label
+                  text: Create A New Admin Account
+                  style:
+                    # width: "15.3vw"
+                    marginTop: "1.8vw"
+                    height: "2vw"
+                    fontSize: "1.4vw"
+                    fontWeight: "400"
+                    textAlign:
+                      y: center
+                - type: view
+                  style:
+                    marginTop: "2.5vw"
+                    width: "15.3vw"
+                    height: "auto"
+                    isHidden: false
+                    display: flex
+                    flex-direction: column
+                    align-content: center
+                  children:
+                    # Country Phone
+                    - type: view
+                      style:
+                        width: "15.3vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: row
+                        align-content: flex-start
+                      children:
+                        - type: label
+                          text: "Country"
+                          style:
+                            width: "3.1vw"
+                            fontSize: "0.7vw"
+                        - type: label
+                          text: "Phone"
+                          style:
+                            fontSize: "0.7vw"
+                    # Select TextField       
+                    - type: view
+                      style:
+                        marginTop: "0.4vw"
+                        width: "15.3vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: row
+                        align-content: center
+                      children:
+                        - type: select
+                          contentType: countryCode
+                          placeholder: ..formData.countryCode
+                          dataKey: formData.countryCode # formData.countryCode : inputValue
+                          options:
+                            .CountryCode
+                          required: "true"
+                          style:
+                            width: "2.2vw"
+                            height: "2.2vw"
+                            fontSize: "0.7vw"
+                            fontWeight: "500"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box" 
+                            backgroundColor: "0xffffff00"
+                        - type: textField
+                          contentType: phoneNumber
+                          placeholder: "(000) 000-0000"
+                          dataKey: formData.phoneNumber # formData.countryCode : inputValue
+                          required: "true"
+                          onInput:
+                            - emit: 
+                                actions: 
+                                  - =.builtIn.string.phoneVerification: 
+                                      dataIn: 
+                                        phoneNumber: =..formData.phoneNumber
+                                        countryCode: =..formData.countryCode
+                                      dataOut: SignUp.formDataTemp.flag   
+                                  - =.builtIn.string.concat:
+                                      dataIn:
+                                        - "uid like '%"
+                                        - =..formData.countryCode
+                                        - " "
+                                        - =..formData.phoneNumber
+                                        - "'"
+                                      dataOut: SignUp.formData.rvCondition
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn: 
+                                        string1: =..formDataTemp.flag
+                                        string2: true
+                                  - actionType: evalObject
+                                    object:
+                                      - ..formData.btnColor@: "0x235591"
+                                  - actionType: evalObject
+                                    object:
+                                      - ..formData.btnColor@: "0xd3dde9"                                      
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: btnView
+                          style: 
+                            marginLeft: "0.4vw"
+                            width: "11.8vw"
+                            height: "2.2vw"
+                            fontSize: "0.8vw"
+                            border: 
+                              style: "3"
+                            borderColor: "0xc4c4c4"
+                            borderWidth: "1"
+                            borderRadius: "5"
+                            boxSizing: "border-box"  
+                            textIndent: "0.5em"
+                            backgroundColor: "0xffffff00"
+                - type: button
+                  viewTag: btnView
+                  text: Next
+                  style:
+                    backgroundColor: ..formData.btnColor
+                    marginTop: "1.2vw"
+                    color: "0xffffffff"
+                    fontSize: "0.8vw"
+                    width: "15.2vw"
+                    height: "2.2vw"
+                    border:
+                      style: "1"
+                    display: inline
+                    borderRadius: "5"
+                  onClick: 
+                    - actionType: evalObject
+                      object: 
+                        - if:
+                          - =..formData.phoneNumber
+                          - continue
+                          - actionType: popUp
+                            popUpView: NoPhoneNum
+                            wait: true
+                    - actionType: evalObject
+                      object: 
+                        - =.builtIn.typeCheck.phoneNumber:
+                            dataIn:
+                              phoneNumber: =..formData.phoneNumber
+                              countryCode: =..formData.countryCode
+                            dataOut: SignUp.formData.checkOk
+                        - if:
+                          - ..formData.checkOk
+                          - continue
+                          - actionType: popUp
+                            popUpView: WrongPhoneNum
+                            wait: true
+                    - actionType: evalObject
+                      object:
+                        - =..apiRequest.getVertex.vertexAPI.get: ""
+                        - if:
+                          - =..apiRequest.getVertex.response.vertex.0.id
+                          - actionType: popUp
+                            popUpView: existUser
+                            wait: true
+                          - .Global.newAccountFlag@: "1"
+                    # - actionType: builtIn # reserved Value
+                    #   funcName: signUp  
+                    # To get the verificationCode
+                    - actionType: evalObject
+                      object:
+                        - ..formData.code@: =..verificationCode.response.edge.deat.verification_code                    
+                    - actionType: evalObject
+                      object: ..save
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..verificationCode.response.code
+                                  string2: 1052
+                            - actionType: popUp
+                              popUpView: invaliduserid
+                              wait: true
+                            - continue
+                    - actionType: popUp
+                      popUpView: confirmView
+                # OR
+                - type: view
+                  style:
+                    marginTop: "1vw"
+                    width: "15.3vw"
+                    height: "auto"
+                    display: flex
+                    flex-direction: row
+                    align-content: center
+                    justify-content: space-evenly
+                    align-items: center
+                  children:
+                    - type: view
+                      style:
+                        height: "0.01vw"
+                        width: "6.7vw"
+                        backgroundColor: "0xc4c4c4"  
+                    - type: label
+                      text: OR
+                      style:
+                        fontSize: "0.55vw"    
+                    - type: view
+                      style:
+                        height: "0.01vw"
+                        width: "6.7vw"
+                        backgroundColor: "0xc4c4c4"                
+                # Already have an account?
+                - type: view
+                  style:
+                    marginTop: "1vw"
+                    width: "15.2vw"
+                    height: "auto"
+                    display: flex
+                    justifyContent: center
+                  children:
+                    - type: label
+                      text: Already have an account?
+                      style:
+                        fontSize: "0.7vw"
+                    - type: label
+                      text: Sign In Now
+                      style:
+                        marginLeft: "0.4vw"
+                        color: "0x235591"
+                        fontSize: "0.7vw"
+                        fontWeight: "700"
+                      onClick: 
+                        - goto: SignIn            
+            # existUser
+            - type: popUp
+              viewTag: existUser
+              style:
+                top: "0"
+                width: "0.45"
+                height: "1" 
+                backgroundColor: "0x00000033"
+                display: flex
+                justify-content: center
+                align-items: center
+              children:
+                - type: view
+                  style:
+                    marginTop: ""
+                    width: "20vw"
+                    height: "12vw" 
+                    borderRadius: "5"
+                    backgroundColor: "0xf8f8f8"
+                    display: flex
+                    flex-direction: column
+                    justify-content: space-evenly
+                    align-items: center
+                  children:
+                    - type: label
+                      text: "You already had an account or have been invited"
+                      style:
+                        marginTop: "1.6vw"
+                        color: "0x000000"
+                        fontSize: "1.2vw"
+                        # height: "6vw"
+                        fontFamily: "sans-serif"
+                        textAlign:
+                          x: center
+                          y: center
+                    - type: label
+                      text: "Do you want to register for a new account?"
+                      style:
+                        color: "0x000000"
+                        fontSize: "0.8vw"
+                        width: "18vw"
+                        height: "4.5vw"
+                        fontFamily: "sans-serif"
+                        textAlign:
+                          x: center
+                          y: center 
+                    - type: view
+                      style:
+                        marginBottom: "0.8vw"
+                        display: flex
+                        width: "20vw"
+                        height: "5vw"
+                        flex-direction: row
+                        justify-content: space-around
+                        align-items: center
+                      children:
+                        - type: button
+                          onClick: 
+                            - actionType: popUpDismiss
+                              popUpView: existUser
+                            - goto: SignUp  
+                          text: Cancel
+                          style:
+                            .btnCancel:        
+                        - type: button 
+                          text: Okay
+                          onClick: 
+                            - actionType: popUpDismiss
+                              popUpView: existUser
+                            - actionType: evalObject
+                              object: ..update
+                            - actionType: evalObject
+                              object: ..save
+                            - actionType: popUp
+                              popUpView: confirmView
+                              wait: true 
+                          style:
+                            .btnSubmit:
+            # confirmView
+            - type: popUp
+              viewTag: confirmView
+              style:
+                top: "0"
+                width: "0.45"
+                height: "1" 
+                backgroundColor: '0x00000033'
+                display: flex
+                justify-content: center
+                align-items: center 
+              children:
+                - type: view
+                  style:
+                    marginTop: ""
+                    width: "20vw"
+                    height: "12vw" 
+                    borderRadius: "5"
+                    backgroundColor: "0xf8f8f8"
+                    display: flex
+                    flex-direction: column
+                    justify-content: space-evenly
+                    align-items: center
+                  children:
+                    - type: label
+                      text: "Please enter the 6-digit verification code"
+                      style:
+                        color: "0x000000"
+                        fontSize: "0.9vw"
+                        height: "6vw"
+                        fontFamily: "sans-serif"
+                        textAlign:
+                          x: center
+                          y: center
+                    - type: textField
+                      contentType: text
+                      dataKey: formData.code
+                      required: "true"
+                      style:
+                        color: "0x777777"
+                        width: "15vw"
+                        height: "2.5vw"
+                        backgroundColor: "0xffffff00"
+                        fontSize: "1vw"
+                        # display: inline
+                        border: 
+                          style: "3"
+                          color: "0xb5b5b8"
+                        borderWidth: "1"
+                        borderRadius: "5"
+                        textAlign:
+                          x: center
+                          y: center 
+                    - type: view
+                      style:
+                        display: flex
+                        width: "20vw"
+                        height: "6vw"
+                        flex-direction: row
+                        justify-content: space-around
+                      children:
+                        - type: button
+                          onClick: 
+                            - actionType: popUpDismiss
+                              popUpView: confirmView
+                          text: Cancel
+                          style:
+                            .btnCancel:
+                        - type: button
+                          onClick: 
+                            - actionType: popUpDismiss
+                              popUpView: confirmView
+                            # - actionType: evalObject
+                            #   object: 
+                            #     - if:
+                            #       - =.builtIn.string.equal:
+                            #           dataIn:
+                            #             string1: =..verificationCode.response.edge.deat.verification_code
+                            #             string2: =..formData.code
+                            #       - continue
+                            #       - actionType: popUp
+                            #         popUpView: wrongCode
+                            #         wait: true
+                            - actionType: evalObject
+                              object: ..check
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =..formData.code  # 1040 response  Code:3010-Error:No Verification Code in name of edge
+                                    - continue
+                                    - actionType: popUp
+                                      popUpView: emptyCode
+                                      wait: true
+                            - actionType: evalObject
+                              object:
+                                - .Global.phoneNumber@: =..formData.phoneNumber
+                            - goto: CreateNewAccount
+                          text: Submit
+                          style:
+                            .btnSubmit:

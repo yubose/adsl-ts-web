@@ -1,0 +1,761 @@
+NewMessage:
+  pageNumber: "500"
+  title: "New Message"
+  init:
+    - .SignInCheck
+    - if:
+        - =.Global.email.name
+        - actionType: evalObject
+          object:
+            - ..apiRequest.email.docReq@: =.Global.email
+        - continue
+    - if:
+        - =.Global.inboxContact.id
+        - actionType: evalObject
+          object:
+            - ..formData.startEdit@: true
+            - ..apiRequest.email.docReq.name.data.receiverId@: =.Global.inboxContact.bsig
+            - if:
+                - =.Global.inboxContact.fullName
+                - ..apiRequest.email.docReq.name.data.receiverName@: =.Global.inboxContact.fullName
+                - ..apiRequest.email.docReq.name.data.receiverName@: =.Global.inboxContact.medicalFacilityName
+            - ..apiRequest.email.docReq.name.data.receiverAvatarId@: =.Global.inboxContact.avatar
+        - continue
+    - ..formData.attachments@: =.Global.formData.attachments
+    - .Global.sendModule.selectDoc@: []
+    - .Global.sendModule.attachments@: []
+  formData:
+    startEdit: false
+    attachments: []
+    fileSize: ""
+    flag: false
+  apiRequest:
+    #邮件结构
+    email:
+      docResp: ""
+      #发送邮件请求
+      docReq:
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(10002)
+        eid: .Global.rootNotebookID
+        name:
+          data:
+            #邮件内容
+            content: ""
+            #收件人姓名
+            receiverName: ""
+            #发送人姓名
+            senderName: .Global.MyProfile.name.data.fullName
+            #收件人头像的id
+            receiverAvatarId: ""
+            #收件人id
+            receiverId: ""
+            #是否带附件
+            haveAttachment: false
+          #邮件标题
+          title: ""
+          #发件人头像的id
+          user: .Global.MyProfile.name.data.avatar
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: NewMessage.apiRequest.email.docReq
+          dataOut: NewMessage.apiRequest.email.docResp
+    #邮件挂载的edge(10002)
+    relation:
+      edgeReq:
+        type: .EdgeType.Email
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.inboxContact.bsig
+        xfname: (evid,bvid)|(bvid,evid)
+        maxcount: "2"
+        obfname: ctime
+      edgeResp: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: NewMessage.apiRequest.relation.edgeReq
+          dataOut: NewMessage.apiRequest.relation.edgeResp
+    #附件
+    attachment:
+      deleteDocReq:
+        id: ""
+      docResp: ""
+      docReq:
+        type: .DocType.Attachment
+        .Document: ""
+        subtype:
+          isEncrypted: "0"
+          isOnServer: "0"
+        eid: .Global.rootNotebookID
+        reid: ""
+        name:
+          data: binFile
+          title: ""
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: NewMessage.apiRequest.attachment.docReq
+          dataOut: NewMessage.apiRequest.attachment.docResp
+        delete:
+          api: dx
+          dataIn: NewMessage.apiRequest.attachment.deleteDocReq
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: evalObject
+          object:
+            - .Global.formData.attachments@: =..formData.attachments
+            - if:
+                - =..formData.startEdit
+                - actionType: popUp
+                  popUpView: backPopUpView
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+    - .HeaderRightButton:
+      text: Send
+      onClick:
+        - actionType: evalObject
+          object:
+            - .Global.formData.attachments@: =..formData.attachments
+            - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+            - =.Global.createjwt.edgeAPI.store: ""
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.email.docReq.name.data.receiverName
+                      string2: ""
+                - actionType: popUp
+                  popUpView: connectionCheck
+                  wait: true
+                - continue
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.email.docReq.name.title
+                      string2: ""
+                - actionType: popUp
+                  popUpView: sendPopUpView
+                  wait: true
+                - continue
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.email.docReq.name.data.content
+                      string2: ""
+                - actionType: popUp
+                  popUpView: sendPopUpView
+                  wait: true
+                - continue
+            - =..apiRequest.relation.edgeAPI.get: ""
+            - ..apiRequest.email.docReq.eid@: =..apiRequest.relation.edgeResp.edge.0.id #id 是Data类型，传入到eid还是eid
+            - if:
+                - =..formData.attachments.0
+                - ..apiRequest.email.docReq.name.data.haveAttachment@: true
+                - continue
+            - =..apiRequest.email.docAPI.store: ""
+            - if:
+                - =..formData.attachments.0
+                - =.builtIn.ecos.updateDocListReid:
+                    dataIn:
+                      sourceDocList: =..formData.attachments
+                      reid: =..apiRequest.email.docResp.doc.id
+                - continue
+        - actionType: popUp
+          popUpView: sendSuccessfullyPopUpView
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+    - type: view
+      style:
+        top: "0.1"
+        width: "1"
+        left: "0"
+        height: "0.14"
+      children:
+        - type: view
+          style:
+            left: "0.07"
+            top: "0.02"
+            width: "0.86"
+            height: "0.04"
+            border:
+              style: "2"
+            borderWidth: "1"
+            borderColor: "0x00000055"
+          children:
+            - type: label
+              text: "To:"
+              style:
+                fontSize: "13"
+                height: "0.04"
+                left: "0"
+                textAlign:
+                  y: center
+            - type: textField
+              isEditable: "false"
+              placeholder: "Add connection"
+              dataKey: apiRequest.email.docReq.name.data.receiverName
+              style:
+                left: "0.17"
+                backgroundColor: "0xFFFFFF"
+                top: "0"
+                height: "0.038"
+                border:
+                  style: "1"
+                fontSize: .Nfont.h14
+                width: "0.5"
+            - type: image
+              path: connection.svg
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.formData.attachments@: =..formData.attachments
+                    - .Global.email@: =.NewMessage.apiRequest.email.docReq
+                - goto: Maillist
+              style:
+                top: "0.01"
+                height: "0.025"
+                left: "0.8"
+        - type: view
+          style:
+            left: "0.07"
+            top: "0.07"
+            width: "0.86"
+            height: "0.04"
+            border:
+              style: "2"
+            borderWidth: "1"
+            borderColor: "0x00000055"
+          children:
+            - type: label
+              text: "Subject:"
+              style:
+                fontSize: "13"
+                left: "0"
+                width: "0.15"
+                height: "0.04"
+                textAlign:
+                  y: center
+            - type: textField
+              dataKey: apiRequest.email.docReq.name.title
+              placeholder: "Enter title here"
+              onChange:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..apiRequest.email.docReq.name.title
+                              string2: ""
+                        - ..formData.startEdit@: false
+                        - ..formData.startEdit@: true
+              style:
+                top: "0"
+                left: "0.17"
+                height: "0.037"
+                border:
+                  style: "1"
+                fontSize: .Nfont.h14
+            - type: image
+              contentType: file
+              onClick:
+                - .Global.formData.attachments@: =..formData.attachments
+                - actionType: popUp
+                  popUpView: selectView
+              path: pin.svg
+              style:
+                top: "0.01"
+                height: "0.025"
+                left: "0.8"
+    - type: textView
+      placeholder: "Write message here"
+      dataKey: apiRequest.email.docReq.name.data.content
+      onChange:
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.email.docReq.name.data.content
+                      string2: ""
+                - ..formData.startEdit@: false
+                - ..formData.startEdit@: true
+      style:
+        left: "0.07"
+        width: "0.86"
+        height: "0.6"
+        top: "0.24"
+        fontFamily: sans-sarif
+        textAlign:
+          y: top
+        border:
+          style: "5"
+          width: "1"
+        # backgroundColor: "pink"
+    # - type: scrollView
+    #   style:
+    #     left: "0.02"
+    #     width: "0.96"
+    #     height: "0.11"
+    #     top: "0.88"
+    #     overflow: scroll
+    #   children:
+    - type: list
+      contentType: listObject
+      listObject: ..formData.attachments
+      iteratorVar: itemObject
+      viewTag: attachmentList
+      style:
+        margin: "0"
+        top: "0.88"
+        left: "0"
+        width: "0.96"
+        height: "0.11"
+        overflow: scroll
+        axis: horizontal
+      children:
+        - type: listItem
+          itemObject: ""
+          style:
+            width: "0.36"
+            height: "0.11"
+          children:
+            - type: view
+              style:
+                # top: "0.01"
+                marginTop: "0.01"
+                height: "0.09"
+                marginLeft: "0.02"
+                width: "0.32"
+                backgroundColor: "0xf8f9fa"
+                borderWidth: "1"
+                borderRadius: "10"
+                border:
+                  style: "1"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.formData.attachments@: =..formData.attachments
+                - actionType: updateObject
+                  dataKey: Global.showAttachment
+                  dataObject: itemObject
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.showAttachment.name.title
+                              string2: Evaluation Note
+                        - goto: EvaluationNoteShared
+                        - continue
+                - goto: ShowAttachment
+              children:
+                - type: label
+                  dataKey: itemObject.name.title
+                  style:
+                    top: "0.01"
+                    left: "0.02"
+                    width: "0.28"
+                    height: "0.048"
+                    textOverflow: ellipsis
+                    whiteSpace: nowrap
+                    overflow: hidden
+                    fontSize: .Nfont.h2
+                    textAlign:
+                      x: left
+                - type: image
+                  path: slopedAttachment.svg
+                  style:
+                    top: "0.065"
+                    left: "0.02"
+                    height: "0.015"
+                - type: label
+                  text=func: .builtIn.string.bitFormatting
+                  dataKey: itemObject.size
+                  style:
+                    top: "0.06"
+                    left: "0.08"
+                    width: "0.22"
+                    height: auto
+                    fontSize: .Nfont.h15
+                    color: "#ced4df"
+                    textAlign:
+                      x: right
+            - type: image
+              path: greyDelete.svg
+              style:
+                top: "0.005"
+                left: "0.305"
+                height: "0.02"
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - ..apiRequest.attachment.deleteDocReq.id@: $var.id
+                      - =..apiRequest.attachment.docAPI.delete: ""
+                      - =.builtIn.array.removeById:
+                          dataIn:
+                            object: =..formData.attachments
+                            id: $var.id
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: attachmentList
+    - .simplePopup:
+      viewTag: backPopUpView
+      children:
+        - .simplePopupView:
+          children:
+            - .simplePopupLable:
+            - .simplePopupSplit1:
+            - .simplePopupSplit2:
+            - .simplePopupLeftButton:
+              onClick:
+                - goto: InboxDashboard
+            - .simplePopupRightButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.email.docAPI.store: ""
+                    # - ..apiRequest.attachment.docReq.reid@: =..apiRequest.email.docResp.doc.id
+                    # - =..apiRequest.attachment.docAPI.store: ""
+                    - if:
+                        - =..formData.attachments.0
+                        - =.builtIn.ecos.updateDocListReid:
+                            dataIn:
+                              sourceDocList: =..formData.attachments
+                              reid: =..apiRequest.email.docResp.doc.id
+                        - continue
+                - goto: InboxDashboard
+    - .simplePopup:
+      viewTag: sendPopUpView
+      message: "No subject or content,still send the Message?"
+      children:
+        - .simplePopupView:
+          children:
+            - .simplePopupLable:
+            - .simplePopupSplit1:
+            - .simplePopupSplit2:
+            - .simplePopupLeftButton:
+            - .simplePopupRightButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.relation.edgeAPI.get: ""
+                    - ..apiRequest.email.docReq.eid@: =..apiRequest.relation.edgeResp.edge.0.id
+                    - if:
+                        - =..formData.attachments.0
+                        - ..apiRequest.email.docReq.name.data.haveAttachment@: true
+                        - continue
+                    - =..apiRequest.email.docAPI.store: ""
+                    - if:
+                        - =..formData.attachments.0
+                        - =.builtIn.ecos.updateDocListReid:
+                            dataIn:
+                              sourceDocList: =..formData.attachments
+                              reid: =..apiRequest.email.docResp.doc.id
+                        - continue
+                - actionType: popUpDismiss
+                  popUpView: sendPopUpView
+                - actionType: popUp
+                  popUpView: sendSuccessfullyPopUpView
+                - goto: InboxDashboard
+    - .BaseMessageWarnPopup:
+    - .BaseMessageWarnPopup:
+      viewTag: sendSuccessfullyPopUpView
+      imagePath: popUpSuccess.svg
+      message: Send Successful!
+      # onClick:
+      #   - goto: InboxDashboard
+    - .BaseCheckView:
+      viewTag: messageCheck
+      message: "Please complete the information"
+      colorChange: "0xd81e06"
+      imgPath: delete.svg
+      style:
+        backgroundColor: "0x00000033"
+      children:
+        - type: view
+          style:
+            width: "0.8"
+            height: "0.3"
+            top: "0.3"
+            left: "0.1"
+            zIndex: "100"
+            backgroundColor: "0xffffff"
+            borderRadius: "7"
+            border:
+              style: "3"
+            borderColor: "#f4f8fa"
+            borderWidth: "3"
+          children:
+            - .BaseCheckViewImg:
+            - .BaseCheckViewLabel:
+            - .BaseCheckViewButton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag
+    - type: popUp
+      viewTag: selectView
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0xa9a9a9cc"
+        zIndex: 10000
+      children:
+        - type: view
+          style:
+            top: "0.67"
+            width: "0.9"
+            height: "0.21"
+            left: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "0xe9e9e9"
+            zIndex: 1000
+          children:
+            - type: button
+              text: Camera
+              contentType: file
+              onClick:
+                - actionType: openCamera
+                  dataObject: BLOB
+                  dataKey: NewMessage.apiRequest.attachment.docReq.name.data
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.math.lessthanSize:
+                            dataIn:
+                              object: =..apiRequest.attachment.docReq.name.data
+                              key: 2 #mb
+                        - ..formData.flag@: false
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.utils.getFileSize:
+                                dataIn:
+                                  object: =..apiRequest.attachment.docReq.name.data
+                                  units: mb
+                                dataOut: NewMessage.formData.fileSize
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "Your file size:"
+                                  - =..formData.fileSize
+                                  - "Mb"
+                                dataOut: Global.formData.fileSize
+                            - ..formData.flag@: true
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.flag
+                        - actionType: popUp
+                          popUpView: overSize
+                          wait: true
+                        - continue
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.getFileName:
+                        dataIn:
+                          object: =.NewMessage.apiRequest.attachment.docReq.name.data
+                        dataOut: NewMessage.apiRequest.attachment.docReq.name.title
+                    - =..apiRequest.attachment.docAPI.store: ""
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.attachments
+                          value: =..apiRequest.attachment.docResp.doc
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: attachmentList
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: builtIn
+                  funcName: checkField
+                  contentType: messageHidden
+              style:
+                top: "0.025"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                  width: "0.0001"
+                borderColor: "0x00000066"
+            - type: button
+              text: Photo Library
+              contentType: file
+              onClick:
+                - actionType: openPhotoLibrary
+                  dataObject: BLOB
+                  dataKey: NewMessage.apiRequest.attachment.docReq.name.data
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.math.lessthanSize:
+                            dataIn:
+                              object: =..apiRequest.attachment.docReq.name.data
+                              key: 2 #mb
+                        - ..formData.flag@: false
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.utils.getFileSize:
+                                dataIn:
+                                  object: =..apiRequest.attachment.docReq.name.data
+                                  units: mb
+                                dataOut: NewMessage.formData.fileSize
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "Your file size:"
+                                  - =..formData.fileSize
+                                  - "Mb"
+                                dataOut: Global.formData.fileSize
+                            - ..formData.flag@: true
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.flag
+                        - actionType: popUp
+                          popUpView: overSize
+                          wait: true
+                        - continue
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.getFileName:
+                        dataIn:
+                          object: =.NewMessage.apiRequest.attachment.docReq.name.data
+                        dataOut: NewMessage.apiRequest.attachment.docReq.name.title
+                    - =..apiRequest.attachment.docAPI.store: ""
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.attachments
+                          value: =..apiRequest.attachment.docResp.doc
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: attachmentList
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: builtIn
+                  funcName: checkField
+                  contentType: messageHidden
+              style:
+                top: "0.086"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: "2"
+                  width: "0.0001"
+                borderColor: "0x00000066"
+            - type: button
+              text: Files
+              contentType: file
+              onClick:
+                - actionType: openDocumentManager
+                  dataObject: BLOB
+                  dataKey: NewMessage.apiRequest.attachment.docReq.name.data
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.math.lessthanSize:
+                            dataIn:
+                              object: =..apiRequest.attachment.docReq.name.data
+                              key: 2 #mb
+                        - ..formData.flag@: false
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.utils.getFileSize:
+                                dataIn:
+                                  object: =..apiRequest.attachment.docReq.name.data
+                                  units: mb
+                                dataOut: NewMessage.formData.fileSize
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "Your file size:"
+                                  - =..formData.fileSize
+                                  - "Mb"
+                                dataOut: Global.formData.fileSize
+                            - ..formData.flag@: true
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: overSize
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.flag
+                        - actionType: popUp
+                          popUpView: overSize
+                          wait: true
+                        - continue
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.getFileName:
+                        dataIn:
+                          object: =.NewMessage.apiRequest.attachment.docReq.name.data
+                        dataOut: NewMessage.apiRequest.attachment.docReq.name.title
+                    - =..apiRequest.attachment.docAPI.store: ""
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..formData.attachments
+                          value: =..apiRequest.attachment.docResp.doc
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: attachmentList
+                - actionType: popUpDismiss
+                  popUpView: selectView
+                - actionType: builtIn
+                  funcName: checkField
+                  contentType: messageHidden
+              style:
+                top: "0.146"
+                width: "0.9"
+                height: "0.055"
+                fontSize: .Nfont.h3
+                color: "0x1d88fc"
+                backgroundColor: "0xe9e9e9"
+                textAlign:
+                  x: center
+                border:
+                  style: 1
+        - type: button
+          text: Cancel
+          style:
+            top: "0.9"
+            left: "0.05"
+            width: "0.9"
+            height: "0.06"
+            fontSize: "18"
+            color: "0x1d88fc"
+            backgroundColor: "0xe9e9e9"
+            textAlign:
+              x: center
+            borderRadius: "10"
+            border:
+              style: 1
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: selectView
+
+    - .BaseoverSize:

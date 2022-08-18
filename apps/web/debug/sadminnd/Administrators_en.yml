@@ -1,0 +1,1456 @@
+Administrators:
+  title: "Administrators"
+  pageNumber: 
+  init: # Page initialization
+    - .Global.menuBar.listData@: =.SideMenuBarTemp.Management
+    - =..apiRequest.staffList.docAPI.get: ""
+    - =.builtIn.array.splitTableList: 
+        dataIn: 
+          arrObj: # =..apiRequest.staffList.list.0.doc
+          numX: "9"
+          numY: "1"
+        dataOut: Administrators.formData.tableData
+    - ..formData.tableList@: =..formData.tableData.0 
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..formData.tablePageNum # page num
+          - " / "
+          - =..formData.tableData.1 # total page
+        dataOut: Administrators.formData.tableCurrentPage # current page                           
+    - =.builtIn.number.addition: # get totalPage+1 to verify legitimacy of gotoPageNum
+        dataIn:
+          num: =..formData.tableData.1
+          step: "1"
+        dataOut: Administrators.formData.totalPageMore # update page num
+  formData: # Input data here
+    tableData: []           # sdk 返回的数组,包括当前显示第几页的数据list 和 被切分成总共多少页面
+    tableList: []
+    tablePageNum: "1"     # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: ""       # goto 后面的文本显示
+    totalPageMore: ""     #totalPage(tableData.1) + 1   
+    countryCode: "+1"
+  formDataTemp: # Input data temp here, datatemp should not mix with formData
+    superAdminList:
+      - superAdminName: Gary Chen,MD
+        superAdminPhoneNumber: 714-233-2134
+        # superAdminAvatar: 
+      - superAdminName: Lill Zhu
+        superAdminPhoneNumber: 714-790-1324
+      - superAdminName: Mary
+        superAdminPhoneNumber: 714-001-0001             
+    gender: 
+      - key: gender
+        value: "Male"
+      - key: gender
+        value: "Female"
+    tableTitle: "Staff List"
+    staffList:
+      - name: FengXe
+        gender: Female
+        status: Active
+        phoneNumber: 123-456-7890
+        email: 34294@gmail.com     
+
+  apiRequest: #Input data request here
+    staffList: # for table
+      docResp:
+      document:
+        type:
+      docAPI:
+        store:
+          api: cd
+          dataIn: Administrators.apiRequest.staffList.document
+          dataOut: Administrators.apiRequest.staffList.document
+        get:
+          api: rd
+          dataIn:
+          dataOut:
+    staffDisplay: # for newStaffProfileView
+  style: #Input style fragment here
+    infoView: # FirstName/MiddleName/LastName/...
+      type: view
+      style:
+        width: "23vw"
+        display: flex
+        justifyContent: center
+    infoLabel:
+      type: label
+      text: Text
+      style:
+        width: "6vw"
+        fontSize: "0.8vw"
+        textAlign:
+          x: right
+          y: center
+    infoTextField:
+      type: textField
+      placeholder: Enter here
+      style: 
+        marginLeft: "1vw"
+        width: "16vw"
+        height: "0.04"
+        border: 
+          style: "3"
+        borderWidth: "1"
+        borderColor: "0xebebeb"
+        borderRadius: "4"
+        boxSizing: border-box
+        backgroundColor: "0xffffff00"   
+        textIndent: "0.5em"
+        fontFamily: "Poppins"
+    cancelBtn:
+      type: button
+      text: Cancel
+      style: 
+        width: "0.1"
+        height: "0.04"
+        fontSize: "0.9vw"
+        color: "0xffffff"
+        fontFamily: Poppins
+        backgroundColor: "0xc1c1c1"
+        border: 
+          style: "5"
+        borderRadius: "4"
+        textAlign: 
+          x: center
+          y: center
+  components:
+    - .TotalView: 
+      children: 
+        - .SideMenuBar: 
+        - .BodyView: 
+          children:
+            - .TopBar: 
+            - .InnerBodyView:
+              children:
+                - .PageTitle:
+                - .ContentView:
+                  style: 
+                    display: flex
+                    flexWrap: wrap
+                    justifyContent: space-around
+                    alignContent: flex-start
+                    # backgroundColor: "0xb8f1ed"
+                  children:
+                    # Super Administrators Title
+                    - type: view
+                      style:
+                        marginTop: "0.5vw"
+                        width: "0.75"
+                        height: "3vw"
+                        display: flex
+                        justify-content: space-between
+                        align-items: center
+                        align-content: center
+                        # backgroundColor: "0xf1f1b8"
+                      children:
+                        - type: label
+                          text: "Super Administrators"
+                          style:
+                            fontSize: "1vw"
+                            textAlign:
+                              y: center
+                              x: center
+                        - type: view
+                          style:
+                            display: flex
+                            width: "10vw"
+                            align-items: center
+                            align-content: center
+                            justify-content: space-between
+                          onClick:
+                            - actionType: popUp
+                              popUpView: addNewSuperAdminView
+                          children:
+                            - type: image
+                              path: addDeepBule.svg
+                              style:
+                                width: "0.9vw"
+                                height: "0.9vw"
+                            - type: label
+                              text: "Add New Super Admin"
+                              style:
+                                color: "0x005795"
+                                fontSize: "0.8vw"
+                                textAlign:
+                                  y: center
+                                  x: center
+                    # Super Administrators List
+                    - type: view
+                      style:
+                        marginTop: "0.01"
+                        width: "0.75"
+                        height: "auto"
+                        # backgroundColor: "0xdcff93"
+                      children:
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formDataTemp.superAdminList
+                          iteratorVar: itemObject
+                          style:
+                            margin: "1vw 0 0 0"
+                            width: "0.75"
+                            display: inline-block
+                            float: left
+                          children:
+                            - type: listItem
+                              itemObject: 
+                              style:
+                                marginLeft: "2vw"
+                                width: "12vw"
+                                height: "7.3vw"
+                                display: inline-flex
+                                flex-direction: column
+                                justify-content: space-between
+                                # backgroundColor: "0xf1f1b8"
+                              children:
+                                - type: view
+                                  style:
+                                    height: "5vw"
+                                    display: flex
+                                    justify-content: space-evenly
+                                    align-items: center
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0xebebeb"
+                                    borderRadius: "5"
+                                    box-sizing: border-box
+                                    fontFamily: "Poppins"                                  
+                                  children:
+                                    # Avatar&Name&Phone
+                                    - type: image
+                                      path: superAdminTemp.svg
+                                      style:
+                                        width: "3vw"
+                                        height: "3vw"
+                                    - type: view
+                                      style:
+                                        display: flex
+                                        flex-direction: column
+                                        align-content: flex-start
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.superAdminName
+                                          style:
+                                            fontSize: "0.8vw"
+                                        - type: label
+                                          dataKey: itemObject.superAdminPhoneNumber
+                                          style:
+                                            fontSize: "0.7vw"
+                                # Edit Profile
+                                - type: button
+                                  text: Edit Profile
+                                  style:
+                                    width: "12vw"
+                                    height: "1.8vw"
+                                    fontSize: "0.75vw"
+                                    color: "0xffffff"
+                                    fontFamily: Poppins
+                                    backgroundColor: "0x005795"
+                                    border: 
+                                      style: "5"
+                                    borderRadius: "4"
+                                    textAlign: 
+                                      x: center
+                                  onClick: 
+                                    # - emit:
+                                    #     dataKey: 
+                                    #       var: itemObject
+                                    #     actions: 
+                                    - actionType: popUp
+                                      popUpView: editProfileView
+                    # Divider
+                    - type: view
+                      style:
+                        marginTop: "1.5vw"
+                        width: "0.75"  
+                        height: "0.01vw"
+                        backgroundColor: "0xeeeeee"
+                    # Staff Title
+                    - type: view
+                      style:
+                        marginTop: "1.5vw"
+                        width: "0.75"  
+                        height: "3vw"
+                        display: flex
+                        justify-content: space-between
+                        align-items: center
+                        align-content: center
+                        # backgroundColor: "0xf1f1b8"
+                      children:
+                        - type: label
+                          text: "Staff"
+                          style:
+                            fontSize: "1vw"
+                            textAlign:
+                              y: center
+                              x: center
+                        - type: view
+                          style:
+                            display: flex
+                            width: "7vw"
+                            align-items: center
+                            align-content: center
+                            justify-content: space-between
+                          onClick:
+                            - actionType: popUp
+                              popUpView: addNewStaffView
+                          children:
+                            - type: image
+                              path: addDeepBule.svg
+                              style:
+                                width: "0.9vw"
+                                height: "0.9vw"
+                            - type: label
+                              text: "Add New Staff"
+                              style:
+                                color: "0x005795"
+                                fontSize: "0.8vw"
+                                textAlign:
+                                  y: center
+                                  x: center                  
+                    # Staff Table Start
+                    - type: view
+                      viewTag: tableView
+                      style: 
+                        height: auto
+                        display: flex
+                        flexWrap: wrap
+                        justifyContent: center
+                        alignItems: center
+                      children:                  
+                        # TableTitle
+                        - type: view
+                          style: 
+                            marginTop: "0.01"
+                            width:  "0.75"
+                            height:  "0.04"
+                            backgroundColor: "0x014c82" 
+                            fontSize: "1vw" 
+                            boxSizing: "border-box"
+                            color: "0xffffff" 
+                            borderTopLeftRadius: "3px"
+                            borderTopRightRadius: "3px"
+                            textAlign:
+                              y: center
+                          children:
+                            - type: label
+                              viewTag: tableTitle
+                              text: Staff List
+                              style: 
+                                paddingLeft: "25px"
+                                fontSize: "0.8vw" 
+                        # TableHeader      
+                        - type: view
+                          style:
+                            width: "0.75"
+                            margin: '0'
+                            backgroundColor: "0xefefef"
+                          children:
+                            - type: view
+                              style:
+                                display: flex
+                                flex: "1"
+                                borderBottomStyle: solid
+                                borderBottomColor: "#c0cbd3"
+                                borderBottomWidth: 1px
+                                borderLeftStyle: solid
+                                borderLeftColor: "#c0cbd3"
+                                borderLeftWidth: 1px
+                                height: "0.05"
+                                width: "0.75"
+                                justifyContent: center
+                                alignItems: center
+                              children:
+                                # Name
+                                - type: label
+                                  text: "Name"
+                                  style: 
+                                    color: "0x005795"
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    flex: "2 1"
+                                    height: "0.05"
+                                    justifyContent: center
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                # Gender
+                                - type: label
+                                  text: "Gender"
+                                  style: 
+                                    color: "0x005795"
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    justifyContent: center
+                                    flex: "1 1"
+                                    height: "0.05"
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                # Status
+                                - type: label
+                                  text: "Status"
+                                  style: 
+                                    color: "0x005795"
+                                    display: flex
+                                    flex: "1 1"
+                                    fontSize: "0.8vw"
+                                    height: "0.05"
+                                    justifyContent: center
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                # Phone Number
+                                - type: label
+                                  text: "Phone Number"
+                                  style: 
+                                    color: "0x005795"
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    flex: "1.6 1"
+                                    justifyContent: center
+                                    height: "0.05"
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                # Email
+                                - type: label
+                                  text: "Email"
+                                  style: 
+                                    color: "0x005795"
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    flex: "1.8 1"
+                                    justifyContent: center
+                                    height: "0.05"
+                                    alignItems: center
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                                # Edit
+                                - type: label
+                                  text: "Edit"
+                                  style: 
+                                    color: "0x005795"
+                                    display: flex
+                                    fontSize: "0.8vw"
+                                    justifyContent: center
+                                    height: "0.05"
+                                    alignItems: center
+                                    flex: "1 1"
+                                    borderRightStyle: solid
+                                    borderRightColor: "#c0cbd3"
+                                    borderRightWidth: 1px
+                        # TableData / TableBody                 
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formDataTemp.staffList # ..formData.tableList
+                          iteratorVar: itemObject
+                          style:
+                            margin: "0"
+                            height: "auto"
+                            width: "0.75"
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                display: flex
+                                height: "0.05"
+                                width: "0.75"
+                                borderBottomStyle: solid
+                                borderBottomColor: "#c0cbd3"
+                                borderBottomWidth: 1px
+                                borderLeftStyle: solid
+                                borderLeftColor: "#c0cbd3"
+                                borderLeftWidth: 1px
+                                justifyContent: center
+                                alignItems: center
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.75"
+                                    display: flex
+                                    justifyContent: center
+                                    alignItems: center
+                                  children:
+                                    # Name Data
+                                    - type: label
+                                      dataKey: itemObject.name # itemObject.name.data.fullName
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        color: "0x517086"
+                                        justifyContent: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        alignItems: center
+                                        flex: "2 1"
+                                    # Gender Data
+                                    - type: label
+                                      dataKey: itemObject.gender # itemObject.name.data.gender
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        flex: "1 1"
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                    # Status Data
+                                    - type: label
+                                      dataKey: itemObject.status # itemObject.name.data.status
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        flex: "1 1"
+                                    # Phone Data
+                                    - type: label
+                                      dataKey: itemObject.phoneNumber # itemObject.name.data.phone
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        flex: "1.6 1"
+                                    # Email Data
+                                    - type: label
+                                      dataKey: itemObject.email # itemObject.name.data.email
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        justifyContent: center
+                                        alignItems: center
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        flex: "1.8 1"
+                                    # Edit Data
+                                    - type: label
+                                      text: Edit
+                                      onClick: 
+                                        - actionType: popUp
+                                          popUpView: editStaffProfileView
+                                      style:
+                                        display: flex
+                                        height: "0.05"
+                                        color: "0x1492e6"
+                                        borderRightStyle: solid
+                                        borderRightColor: "#c0cbd3"
+                                        borderRightWidth: 1px
+                                        justifyContent: center
+                                        alignItems: center
+                                        textDecoration: underline
+                                        flex: "1 1"
+                            #TableFooter
+        
+                          #TableFooter
+                        # TableFooter
+                        - type: view
+                          viewTag: tableFooter
+                          style: 
+                            top: "0.385"
+                            left: "0.05"
+                            width: "0.72"
+                            height: "0.05"
+                          children: 
+                            # Current page
+                            - type: view
+                              style: 
+                                top: "0.015"
+                                left: "0.465"
+                                width: "0.1"
+                                height: "0.02"
+                              children: 
+                                - type: label
+                                  text: "Current page:"
+                                  style: 
+                                    top: "0"
+                                    left: "0"
+                                    width: "0.07"
+                                    height: "0.02"
+                                    fontSize: "0.8vw"
+                                    color: "0x6b7280"
+                                    textAlign:
+                                      x: "center"
+                                      y: "center"
+                                - type: label
+                                  dataKey: formData.tableCurrentPage
+                                  style: 
+                                    top: "0"
+                                    left: "0.06"
+                                    width: "0.05"
+                                    height: "0.02"
+                                    fontSize: "0.8vw"
+                                    fontWeight: "500"
+                                    color: "0x6b7280"
+                                    textAlign:
+                                      x: "center"
+                                      y: "center"
+                            # TablePageSwitch
+                            - type: view
+                              style: 
+                                top: "0.015"
+                                left: "0.58"
+                                width: "0.047"
+                                height: "0.022"
+                                border: 
+                                  style: "3"
+                                borderRadius: "8"
+                                borderWidth: "1"
+                                borderColor: "0x7070704f"
+                              children: 
+                                - type: image
+                                  path: tableLeft.svg
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        - if: 
+                                          - =.builtIn.number.less: 
+                                              dataIn: 
+                                                num1: =..formData.tablePageNum 
+                                                num2: 2 
+                                          - continue 
+                                          - actionType: evalObject 
+                                            object: 
+                                              - =.builtIn.number.Subtraction: 
+                                                  dataIn: 
+                                                    num: =..formData.tablePageNum 
+                                                    step: "1"
+                                                  dataOut: Administrators.formData.tablePageNum
+                                              - =.builtIn.array.splitTableList: 
+                                                  dataIn: 
+                                                    arrObj: =..apiRequest.staffList
+                                                    numX: "7"
+                                                    numY: =..formData.tablePageNum
+                                                  dataOut: Administrators.formData.tableData
+                                              - ..formData.tableList@: =..formData.tableData.0 
+                                              - =.builtIn.string.concat: 
+                                                  dataIn: 
+                                                    - =..formData.tablePageNum
+                                                    - " / "
+                                                    - =..formData.tableData.1
+                                                  dataOut: Administrators.formData.tableCurrentPage
+                                    - actionType: builtIn 
+                                      funcName: redraw
+                                      viewTag: tableView
+                                  style: 
+                                    top: "0.005"
+                                    left: "0.005"
+                                    width: "0.007"
+                                    color: "0x6b7280"
+                                    fontSize: "0.8vw"
+                                    backgroundColor: "0xffffff"
+                                    border:
+                                      style: "1"
+                                - type: label
+                                  dataKey: formData.tablePageNum
+                                  style: 
+                                    top: "0"
+                                    left: "0.017"
+                                    width: "0.013"
+                                    height: "0.022"
+                                    borderLeft: "solid 1px  #7070704f"
+                                    borderRight: "solid 1px  #7070704f"
+                                    fontSize: "0.8vw"
+                                    fontWeight: "500"
+                                    color: "0x6b7280"
+                                    textAlign:
+                                      x: "center"
+                                      y: "center"
+                                - type: image
+                                  path: tableRight.svg
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        - if: 
+                                          - =.builtIn.number.less: 
+                                              dataIn: 
+                                                num1: =..formData.tablePageNum 
+                                                num2: =..formData.tableData.1 
+                                          - actionType: evalObject 
+                                            object: 
+                                              - =.builtIn.number.addition: 
+                                                  dataIn: 
+                                                    num: =..formData.tablePageNum 
+                                                    step: "1"
+                                                  dataOut: Administrators.formData.tablePageNum
+                                              - =.builtIn.array.splitTableList: 
+                                                  dataIn: 
+                                                    arrObj: =..apiRequest.staffList
+                                                    numX: "7"
+                                                    numY: =..formData.tablePageNum
+                                                  dataOut: Administrators.formData.tableData
+                                              - ..formData.tableList@: =..formData.tableData.0 
+                                              - =.builtIn.string.concat: 
+                                                  dataIn: 
+                                                    - =..formData.tablePageNum
+                                                    - " / "
+                                                    - =..formData.tableData.1
+                                                  dataOut: Administrators.formData.tableCurrentPage
+                                          - continue 
+                                    - actionType: builtIn 
+                                      funcName: redraw
+                                      viewTag: tableView
+                                  style: 
+                                    top: "0.005"
+                                    left: "0.036"
+                                    width: "0.007"
+                                    color: "0x6b7280"
+                                    fontSize: "0.8vw"
+                                    backgroundColor: "0xffffff"
+                                    border:
+                                      style: "1"
+                            # Goto
+                            - type: view
+                              style: 
+                                top: "0.015"
+                                left: "0.65"
+                                width: "0.06"
+                                height: "0.022"
+                                border: 
+                                  style: "1"
+                              children: 
+                                - type: textField
+                                  viewTag: gotoView
+                                  dataKey: formData.gotoPageNum
+                                  style:
+                                    left: "0.004"
+                                    width: "0.02"
+                                    top: "0"
+                                    height: "0.018"
+                                    borderRadius: "6"
+                                    borderWidth: "1"
+                                    borderColor: "0x7070704f"
+                                    fontSize: "0.8vw"
+                                    fontWeight: "500"
+                                    color: "0x6b7280"
+                                    textAlign: 
+                                      x: center 
+                                      y: center 
+                                - type: button
+                                  text: "Go to" 
+                                  style:
+                                    textDecoration: underline
+                                    left: "0.03"
+                                    width: "0.03"
+                                    top: "0"
+                                    height: "0.02"
+                                    border:
+                                      style: "1"
+                                    fontSize: "0.8vw"
+                                    color: "0x6b7280"
+                                    backgroundColor: "0xffffff00"
+                                  onClick:
+                                    - actionType: evalObject
+                                      object: 
+                                        .Global._nonce@: 
+                                          =.builtIn.math.random: "" 
+                                    - actionType: evalObject
+                                      object: 
+                                        - if: 
+                                          - =.builtIn.number.less: 
+                                              dataIn: 
+                                                num1: =..formData.gotoPageNum 
+                                                num2: 1
+                                          - continue 
+                                          - actionType: evalObject 
+                                            object: 
+                                              - if: 
+                                                - =.builtIn.number.less: 
+                                                    dataIn: 
+                                                      num1: =..formData.gotoPageNum 
+                                                      num2: =..formData.totalPageMore 
+                                                - actionType: evalObject 
+                                                  object: 
+                                                    - =.builtIn.array.splitTableList: 
+                                                        dataIn: 
+                                                          arrObj: =..apiRequest.staffList
+                                                          numX: "7"
+                                                          numY: =..formData.gotoPageNum
+                                                        dataOut: Administrators.formData.tableData
+                                                    - ..formData.tableList@: =..formData.tableData.0 
+                                                    - =.builtIn.string.concat: 
+                                                        dataIn: 
+                                                          - =..formData.gotoPageNum
+                                                          - " / "
+                                                          - =..formData.tableData.1
+                                                        dataOut: Administrators.formData.tableCurrentPage
+                                                    - ..formData.tablePageNum@: =..formData.gotoPageNum
+                                                    - ..formData.gotoPageNum@: ""                                                
+                                                - continue
+                                    - actionType: builtIn 
+                                      funcName: redraw
+                                      viewTag: tableView                                   
+                    # Staff Table End
+        # addNewSuperAdminView
+        - .BaseDetailPop: 
+          viewTag: addNewSuperAdminView
+          children: 
+            - .BaseDetailPopView: 
+              children: 
+                - .BaseDetailPopImg: 
+                - .BaseDetailPopLabel: 
+                  text: Super Administrators profile
+                - .BaseDetailPopInnerView:
+                  style: 
+                    display: flex
+                    width: "0.33"
+                    left: "0.025"
+                    # backgroundColor: "0xf2debd"
+                    justifyContent: space-evenly
+                    align-items: center
+                    flex-direction: column
+                  children:
+                    # Camera&Info
+                    - type: view
+                      style:
+                        display: flex
+                        justify-content: space-evenly
+                      children:
+                        - type: image
+                          path: camera.svg
+                          style: 
+                            width: "5vw"
+                            height: "5vw"
+                        - type: view
+                          style: 
+                            width: "23vw"
+                            height: "16vw"
+                            display: flex
+                            justifyContent: space-between
+                            flex-direction: column
+                            # backgroundColor: "0xcdcdcd"
+                          children:
+                            # First Name
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: First Name
+                                - ..style.infoTextField:
+                            # Middle Name
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Middle Name
+                                - ..style.infoTextField:
+                            # Last Name
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Last Name
+                                - ..style.infoTextField:
+                            # Gender
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Gender
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.gender
+                                  iteratorVar: itemObject
+                                  style:
+                                    axis: horizontal
+                                    width: "16vw"
+                                    height: "0.04"
+                                    margin: "0 0 0 1vw"
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        display: flex
+                                        align-items: center
+                                      children:
+                                        - type: image
+                                          path: checkOff.svg
+                                          style:
+                                            width: "1vw"
+                                            height: "1vw"
+                                        - type: label
+                                          dataKey: itemObject.value 
+                                          style:
+                                            marginLeft: "0.4vw"
+                                            fontSize: "0.7vw"
+                                            width: "4vw"                                   
+                            # Phone Number
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Phone Number
+                                - ..style.infoTextField:
+                            # Email
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Email
+                                - ..style.infoTextField:
+                    # Cancel & Save
+                    - type: view
+                      style: 
+                        width: "0.33"
+                        height: "0.06"
+                        display: flex
+                        justifyContent: space-around
+                        align-items: center
+                      children: 
+                        # Cancel
+                        - ..style.cancelBtn:
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: addNewSuperAdminView                        
+                        # Save
+                        - ..style.cancelBtn:
+                          text: Save
+                          style:
+                            backgroundColor: "0x005795"
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: addNewSuperAdminView                            
+
+        # editProfileView
+        - .BaseDetailPop: 
+          viewTag: editProfileView
+          children: 
+            - .BaseDetailPopView: 
+              children: 
+                - .BaseDetailPopImg: 
+                - .BaseDetailPopLabel: 
+                  text: Super Administrators profile
+                - .BaseDetailPopInnerView:
+                  style: 
+                    display: flex
+                    width: "0.33"
+                    left: "0.025"
+                    # backgroundColor: "0xf2debd"
+                    justifyContent: space-evenly
+                    align-items: center
+                    flex-direction: column
+                  children:
+                    # Camera&Info
+                    - type: view
+                      style:
+                        display: flex
+                        justify-content: space-evenly
+                      children:
+                        - type: image
+                          path: camera.svg
+                          style: 
+                            width: "5vw"
+                            height: "5vw"
+                        - type: view
+                          style: 
+                            width: "23vw"
+                            height: "16vw"
+                            display: flex
+                            justifyContent: space-between
+                            flex-direction: column
+                            # backgroundColor: "0xcdcdcd"
+                          children:
+                            # First Name
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: First Name
+                                - ..style.infoTextField:
+                            # Middle Name
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Middle Name
+                                - ..style.infoTextField:
+                            # Last Name
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Last Name
+                                - ..style.infoTextField:
+                            # Gender
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Gender
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.gender
+                                  iteratorVar: itemObject
+                                  style:
+                                    axis: horizontal
+                                    width: "16vw"
+                                    height: "0.04"
+                                    margin: "0 0 0 1vw"
+                                  children:
+                                    - type: listItem
+                                      itemObject: 
+                                      style:
+                                        display: flex
+                                        align-items: center
+                                      children:
+                                        - type: image
+                                          path: checkOff.svg
+                                          style:
+                                            width: "1vw"
+                                            height: "1vw"
+                                        - type: label
+                                          dataKey: itemObject.value 
+                                          style:
+                                            marginLeft: "0.4vw"
+                                            fontSize: "0.7vw"
+                                            width: "4vw"                                   
+                            # Phone Number
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Phone Number
+                                - ..style.infoTextField:
+                            # Email
+                            - ..style.infoView:
+                              children:
+                                - ..style.infoLabel:
+                                  text: Email
+                                - ..style.infoTextField:
+                    # Delete & Save
+                    - type: view
+                      style: 
+                        width: "0.33"
+                        height: "0.06"
+                        display: flex
+                        justifyContent: space-around
+                        align-items: center
+                      children: 
+                        # Delete
+                        - ..style.cancelBtn:
+                          text: Delete
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: editProfileView
+                        # Save
+                        - ..style.cancelBtn:
+                          text: Save
+                          style:
+                            backgroundColor: "0x005795"
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: editProfileView                            
+
+        # addNewStaffView
+        - type: popUp
+          viewTag: addNewStaffView
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+            display: flex
+            justify-content: center
+            align-items: center
+          children:
+            - type: view
+              style:
+                marginLeft: "14vw"
+                width: "30vw"
+                height: "18vw"
+                backgroundColor: "0xffffff"
+                border: 
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0x00000033"
+                borderRadius: "8"
+                display: flex
+                flex-direction: column
+                align-items: center
+                align-content: center
+                justify-content: flex-start
+              children: 
+                - type: view
+                  style:
+                    marginTop: "0.8vw"
+                    width: "28.2vw"
+                    display: flex
+                    justifyContent: flex-end
+                  children: 
+                    - type: image
+                      path: popUpClose.svg
+                      style:
+                        width: "1vw"
+                        height: "1vw"
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: addNewStaffView
+                - type: label 
+                  text: Staff profile
+                  style:
+                    height: "3vw"
+                    fontSize: "1.2vw"
+                    fontFamily: "Poppins"
+                    textAlign:
+                      y: center
+                      x: center
+                - type: view
+                  viewTag: phoneNumberView
+                  style: 
+                    display: flex
+                    width: "20vw"
+                    height: "10vw"
+                    flex-direction: column
+                    justifyContent: center
+                    align-items: center
+                    # backgroundColor: "0xdcff93"
+                  children:
+                    # Phone Number
+                    - type: label
+                      text: "Phone Number"
+                      style:
+                        width: "23vw"
+                        fontSize: "0.8vw"        
+                    # Select TextField
+                    - type: view
+                      style:
+                        marginTop: "0.4vw"
+                        width: "23vw"
+                        height: "auto"
+                        display: flex
+                        flex-direction: row
+                        align-content: center
+                      children:
+                        - type: select
+                          contentType: countryCode
+                          placeholder: ..formData.countryCode
+                          # dataKey: formData.countryCode # formData.countryCode : inputValue
+                          options:
+                            .CountryCode
+                          required: "true"
+                          style:
+                            width: "3vw"
+                            height: "2vw"
+                            fontSize: "0.7vw"
+                            fontWeight: "500"
+                            border: 
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "0xebebeb"
+                            borderRadius: "4"
+                            boxSizing: border-box      
+                        - type: textField
+                          contentType: phoneNumber
+                          placeholder: "Enter here"
+                          dataKey:
+                          style:
+                            marginLeft: "0.8vw"
+                            width: "15.4vw"
+                            height: "2vw"
+                            fontSize: "0.8vw"
+                            fontFamily: "Poppins"
+                            textIndent: "0.5em"
+                            border: 
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "0xebebeb"
+                            borderRadius: "4"
+                            boxSizing: border-box             
+                        - type: button
+                          text: Search
+                          style:
+                            ..style.cancelBtn.style:
+                              marginLeft: "0.8vw"
+                              width: "4vw"
+                              backgroundColor: "0x005795"
+                              fontSize: "0.8vw"
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: addNewStaffView
+                            - actionType: popUp
+                              popUpView: newStaffProfileView
+        
+        # newStaffProfileView
+        - .BaseDetailPop: 
+          viewTag: newStaffProfileView
+          children: 
+            - .BaseDetailPopView: 
+              children: 
+                - .BaseDetailPopImg: 
+                - .BaseDetailPopLabel: 
+                  text: Staff profile
+                - .BaseDetailPopInnerView:
+                  style: 
+                    display: flex
+                    width: "0.33"
+                    left: "0.025"
+                    # backgroundColor: "0xf2debd"
+                    justifyContent: space-evenly
+                    align-items: center
+                    flex-direction: column
+                  children:
+                    # Info
+                    - type: view
+                      style: 
+                        width: "27vw"
+                        height: "16vw"
+                        display: flex
+                        justifyContent: space-between
+                        flex-direction: column
+                        align-items: center
+                        # backgroundColor: "0xcdcdcd"
+                      children:                               
+                        # Phone Number
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Phone Number
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # First Name
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: First Name
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # Middle Name
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Middle Name
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # Last Name
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Last Name
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # Gender
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Gender
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.gender
+                              iteratorVar: itemObject
+                              style:
+                                axis: horizontal
+                                width: "20vw"
+                                height: "0.04"
+                                margin: "0 0 0 1vw"
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    display: flex
+                                    align-items: center
+                                  children:
+                                    - type: image
+                                      path: checkOff.svg
+                                      style:
+                                        width: "1vw"
+                                        height: "1vw"
+                                    - type: label
+                                      dataKey: itemObject.value 
+                                      style:
+                                        marginLeft: "0.4vw"
+                                        fontSize: "0.7vw"
+                                        width: "4vw"    
+                        # Email
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Email
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                    # Cancel & Save
+                    - type: view
+                      style: 
+                        width: "0.33"
+                        height: "0.06"
+                        display: flex
+                        justifyContent: space-around
+                        align-items: center
+                      children: 
+                        # Cancel
+                        - ..style.cancelBtn:
+                          text: Cancel
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: newStaffProfileView
+                        # Save
+                        - ..style.cancelBtn:
+                          text: Save
+                          style:
+                            backgroundColor: "0x005795"
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: newStaffProfileView
+
+        # editStaffProfileView
+        - .BaseDetailPop: 
+          viewTag: editStaffProfileView
+          children: 
+            - .BaseDetailPopView: 
+              children: 
+                - .BaseDetailPopImg: 
+                - .BaseDetailPopLabel: 
+                  text: Staff profile
+                - .BaseDetailPopInnerView:
+                  style: 
+                    display: flex
+                    width: "0.33"
+                    left: "0.025"
+                    # backgroundColor: "0xf2debd"
+                    justifyContent: space-evenly
+                    align-items: center
+                    flex-direction: column
+                  children:
+                    # Info
+                    - type: view
+                      style: 
+                        width: "27vw"
+                        height: "16vw"
+                        display: flex
+                        justifyContent: space-between
+                        flex-direction: column
+                        align-items: center
+                        # backgroundColor: "0xcdcdcd"
+                      children:                               
+                        # Phone Number
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Phone Number
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # First Name
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: First Name
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # Middle Name
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Middle Name
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # Last Name
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Last Name
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                        # Gender
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Gender
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.gender
+                              iteratorVar: itemObject
+                              style:
+                                axis: horizontal
+                                width: "20vw"
+                                height: "0.04"
+                                margin: "0 0 0 1vw"
+                              children:
+                                - type: listItem
+                                  itemObject: 
+                                  style:
+                                    display: flex
+                                    align-items: center
+                                  children:
+                                    - type: image
+                                      path: checkOff.svg
+                                      style:
+                                        width: "1vw"
+                                        height: "1vw"
+                                    - type: label
+                                      dataKey: itemObject.value 
+                                      style:
+                                        marginLeft: "0.4vw"
+                                        fontSize: "0.7vw"
+                                        width: "4vw"    
+                        # Email
+                        - ..style.infoView:
+                          style:
+                            width: "27vw"
+                          children:
+                            - ..style.infoLabel:
+                              text: Email
+                            - ..style.infoTextField:
+                              style:
+                                width: "20vw"
+                    # Delete & Save
+                    - type: view
+                      style: 
+                        width: "0.33"
+                        height: "0.06"
+                        display: flex
+                        justifyContent: space-around
+                        align-items: center
+                      children: 
+                        # Delete
+                        - ..style.cancelBtn:
+                          text: Delete
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: editStaffProfileView
+                        # Save
+                        - ..style.cancelBtn:
+                          text: Save
+                          style:
+                            backgroundColor: "0x005795"
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: editStaffProfileView                                                       

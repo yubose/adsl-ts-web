@@ -1,0 +1,89 @@
+TestPage1:
+  pageName: "TestPage2"
+  list:
+    - pageName: "TestPage2"
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        display: "block"
+      children:
+        - type: label
+          text: this is page1
+          dataKey: 
+          style:
+            top: "0.4"
+            width: "1"
+            textAlign:
+              x: center
+              y: center
+        - type: button
+          text: go to TestPage2 by pageName
+          onClick:
+            - goto: TestPage2
+          dataKey: 
+          style:
+            top: "0.5"
+            width: "0.6"
+            left: "0.2"
+            height: "0.08"
+            textAlign:
+              x: center
+              y: center
+        - type: button
+          text: go to TestPage2 in evalobejct&if
+          onClick:
+            - actionType: evalObject
+              object:
+                - if:
+                  - true
+                  - goto: ..pageName
+                  - goto: ..pageName
+          dataKey: 
+          style:
+            top: "0.6"
+            width: "0.6"
+            left: "0.2"
+            height: "0.08"
+            textAlign:
+              x: center
+              y: center
+        - type: list
+          contentType: listObject
+          listObject: ..list
+          iteratorVar: itemObject
+          style: 
+            axis: horizontal
+            top: "0.7"
+            left: "0"
+            width: "1"
+            height: "0.1"
+            margin: "0"
+            padding: "0"
+          children:    
+            - type: listItem
+              itemObject: ""
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - if:
+                        - true
+                        - goto: $var.pageName
+                        - goto: $var.pageName
+              style:
+                width: "1"
+                height: "0.1"
+              children:
+                - type: button
+                  text: go to TestPage2 in emit&if
+                  dataKey: 
+                  style:
+                    width: "0.6"
+                    left: "0.2"
+                    height: "0.08"
+                    textAlign:
+                      x: center
+                      y: center

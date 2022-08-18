@@ -1,0 +1,36 @@
+TestTopAlign: # This is page name
+  module: patient
+  pageNumber: "65" # xd page 10
+  formData:
+    isCheck: false
+  components:
+    - type: view # the whole page
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: label
+          text: TextBlock1
+          style:
+            marginTop: "0.03"
+            top: "0.5"
+            left: "0.1"
+            height: "0.2"
+            backgroundColor: "#00FF00"
+        - type: textField
+          placeholder: TextBlock2
+          style:
+            top: align
+            left: "0.4"
+            height: "0.2"
+            backgroundColor: "#00FF00"
+        - type: textField
+          placeholder: TextBlock3
+          style:
+            top: align
+            left: "0.8"
+            height: "0.2"
+            marginTop: "-0.4"
+            backgroundColor: "#00FF00"

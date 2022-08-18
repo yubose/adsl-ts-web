@@ -1,0 +1,342 @@
+PatientInfoShow1:
+  title: "Patient Info 1"
+  init:
+    - .SignInCheck
+
+    - if:
+      - =.Global.roomInfo.edge.id
+      - ..cov19Test.docAPI.get
+      - continue
+  cov19Test:
+    docRes: ""
+    docReq:
+      id: .Global.roomInfo.edge.id
+      type: .DocType.Cov19Chart
+      xfname: eid
+    docAPI:
+      get:
+        api: rd
+        dataIn: PatientInfoShow1.cov19Test.docReq
+        dataOut: Global.formData.cov19Test
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: scrollView
+      style:
+        left: "0"
+        width: "1"
+        height: "0.9"
+        top: "0.1"
+        overflow: scroll
+      children:
+        - type: image
+          path: patientInfo5_1.svg
+          style:
+            top: "0"
+            height: "0.05"
+            width: "0.9"
+            left: "0.05"
+        - type: view
+          style:
+            top: "0.05"
+            left: "0"
+            height: "1.4"
+            width: "1"
+            overflow: scroll
+          children:
+            - type: label
+              text: Patient Info
+              style:
+                fontFamily: "Poppins"
+                left: "0.08"
+                top: "0"
+                width: "0.9"
+                fontStyle: bold
+                height: "0.05"
+                fontSize: "20"
+            - type: divider
+              style:
+                width: "0.84"
+                left: "0.08"
+                height: "0.001"
+                top: "0.04"
+                border:
+                  style: "5"
+                backgroundColor: "#dededf"
+            - type: view
+              style:
+                top: "0.07"
+                left: "0.08"
+                width: "0.28"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: First name
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.firstName
+            - type: view
+              style:
+                top: "0.07"
+                left: "0.37"
+                width: "0.28"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Middle name
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.middleName
+            - type: view
+              style:
+                top: "0.07"
+                left: "0.66"
+                width: "0.28"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Last name
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.lastName
+            - type: view
+              style:
+                top: "0.15"
+                left: "0.08"
+                width: "0.42"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Date of Birth
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.dateOfBirth
+                  style: 
+                    width: "0.4"
+            - type: view
+              style:
+                top: "0.15"
+                left: "0.55"
+                width: "0.42"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Gender
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.gender
+                  style: 
+                    width: "0.3"
+                    height: "0.035"
+                    left: "0"
+                    top: "0.03"
+                    border:
+                      style: "3"
+                      color: "#dededf"
+            - type: view
+              style:
+                top: "0.23"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Patient's address
+                  style:
+                    width: "0.3"
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.address
+                  style: 
+                    width: "0.82"
+            - type: view
+              style:
+                top: "0.31"
+                left: "0.08"
+                width: "0.42"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: City
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.city
+                  style: 
+                    width: "0.4"
+            - type: view
+              style:
+                top: "0.31"
+                left: "0.55"
+                width: "0.2"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: State
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.state
+                  style: 
+                    width: "0.15"
+                    height: "0.035"
+                    left: "0"
+                    top: "0.03"
+                    border:
+                      style: "3"
+                      color: "#dededf"
+            - type: view
+              style:
+                top: "0.31"
+                left: "0.75"
+                width: "0.2"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Zip code
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.zipCode
+                  style: 
+                    width: "0.15"
+                    height: "0.035"
+            - type: view
+              style:
+                top: "0.39"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Patient county of residence
+                  style: 
+                    width: "0.8"
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.residence
+                  style: 
+                    width: "0.82"     
+            - type: view
+              style:
+                top: "0.47"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Phone number (Main Contact)
+                  style: 
+                    width: "0.8"
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.mainContact
+                  style: 
+                    width: "0.82"     
+            - type: view
+              style:
+                top: "0.55"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Alternative phone number
+                  style: 
+                    width: "0.8"
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.alternativePhone
+                  style: 
+                    width: "0.82" 
+            - type: view
+              style:
+                top: "0.63"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Email
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.email
+                  style: 
+                    width: "0.82" 
+            - type: view
+              style:
+                top: "0.71"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Employer
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.employer
+                  style: 
+                    width: "0.82" 
+            - type: view
+              style:
+                top: "0.79"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Occupation
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.occupation
+                  style: 
+                    width: "0.82" 
+            - type: label
+              text: Emergency Contact
+              style:
+                fontFamily: "Poppins"
+                left: "0.08"
+                top: "0.9"
+                width: "0.9"
+                fontStyle: bold
+                height: "0.05"
+                fontSize: "16"
+            - type: view
+              style:
+                top: "0.95"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Name
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.name
+                  style: 
+                    width: "0.82" 
+            - type: view
+              style:
+                top: "1.03"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Relation
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.relation
+                  style: 
+                    width: "0.82" 
+            - type: view
+              style:
+                top: "1.11"
+                left: "0.08"
+                width: "0.92"
+                height: "0.07"
+              children:
+                - .patientInfo1_Label:
+                  text: Phone number
+                - .patientInfo1_TextFieldNoEdit:
+                  dataKey: Global.formData.cov19Test.doc.0.name.data.patientInfo.phoneNumber
+                  style: 
+                    width: "0.82" 
+        - type: button
+          text: "Next"
+          onClick:
+            - goto: PatientInfoShow2
+            # - goto: HippaConsentShow
+          style:
+            left: "0.11"
+            width: "0.76"
+            top: "1.3"
+            height: "0.05"
+            color: "0xffffff"
+            border:
+              style: "3"
+            borderColor: "0x2988e6"
+            backgroundColor: "0x2988e6"
+            borderRadius: "3"
+            textAlign:
+              x: center

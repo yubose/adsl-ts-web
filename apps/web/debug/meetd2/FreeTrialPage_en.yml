@@ -1,0 +1,228 @@
+FreeTrialPage:
+  title: "Start your free trial"
+  pageNumber: "" # xd page 13 
+  viewPort: "top"
+  components: 
+    - type: view
+      style: 
+        top: "0"
+        width: "1"
+        height: "0.1"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          onClick:
+            - goto: SideMenuBar
+    - type: label
+      style: 
+        left: "0.1"
+        width: "0.8"
+        height: "0.1"
+        top: "0.12"
+        fontStyle: "bold"
+        fontSize: "16"
+        fontFamily: "sans-serif"
+        color: "0x388ecc"
+        textAlign: 
+          x: center
+      textBoard:  
+        - text: "Expand your business"
+        - text: "\u00A0"
+        - text: "24/7"
+          color: "0x2fb355"
+        - text: "\u00A0"
+        - text: "virtually"
+        - br: 
+        - text: "with blockchain-secured"
+        - br: 
+        - text: "telecommunications"
+    - type: label
+      text: "FREE  TRIAL 120 MINUTES"
+      style: 
+        left: "0.05"
+        width: "0.9"
+        height: "0.15"
+        top: "0.22"
+        backgroundColor: "0x2fb355"
+        fontSize: "40"
+        fontStyle: "bold"
+        color: "0xffffff"
+        border: 
+          style: "3"
+        borderRadius: "3"
+        borderColor: "0x2fb355"
+        textAlign: 
+          x: center
+          y: center
+    - type: label
+      text: "No credit card required"
+      style: 
+        width: "1"
+        top: "0.38"
+        height: "0.04"
+        fontStyle: "bold"
+        fontSize: "18"
+        fontFamily: "sans-serif"
+        textAlign: 
+          x: center
+    - type: image
+      path: "FreePage.png"
+      style: 
+        top: "0.43"
+        width: "1"
+    - .FreeTrialPageChoice
+    - type: button 
+      text: "Start your free trial now!"
+      onClick: 
+        - actionType: popUp
+          popUpView: confirmView
+      style: 
+        left: "0.15"
+        width: "0.7"
+        top: "0.87"
+        height: "0.06"
+        color: "0xffffff"
+        backgroundColor: "0x388ecc"
+        fontSize: "18"
+        border: 
+          style: "3"
+        borderColor: "0x388ecc"
+        borderRadius: "3"
+        textAlign: 
+          x: center
+    - type: button
+      text: "Ready to subscribe?"
+      onClick: 
+        - goto: FreeTrialPageEnded
+      style: 
+        left: "0.25"
+        width: "0.5"
+        top: "0.95"
+        height: "0.05"
+        color: "0xffffff"
+        backgroundColor: "0x2fb355"
+        fontSize: "18"
+        border: 
+          style: "3"
+        borderColor: "0x2fb355"
+        borderRadius: "3"
+        textAlign: 
+          x: center
+    - type: popUp # view
+      viewTag: confirmView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1" 
+        backgroundColor: "0x00000066" 
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.3"
+            width: "0.88"
+            height: "0.35"
+            backgroundColor: "0xeeeeeeff"
+            border:
+              style: "5"
+            borderRadius: "15"
+          children:
+            - type: label
+              text: "Create Room Name"
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.055"
+                  width: "0.88"
+                  height: "0.05"
+                  color: "0x000000"
+                  fontSize: "20"
+                  fontWeight: "500"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center
+            - type: textField
+              contentType: text
+              placeholder: "Please type the title here"
+              dataKey: newRoomInfo.edge.name.title  
+              style:
+                .LabelStyle:
+                  left: "0.085"
+                  top: "0.145"
+                  width: "0.7"
+                  height: "0.05"
+                  color: "0x00000088"
+                  fontSize: "20"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+                  border: 
+                    style: "3"
+                    color: "0xb5b5b8"
+                  borderWidth: "1"
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0"
+                  top: "0.25436"
+                  width: "0.88"
+                  height: "0.001"
+                  backgroundColor: "0x00000088"   
+            - type: button
+              onClick: 
+                - actionType: popUpDismiss
+                  popUpView: confirmView
+              text: Cancel
+              style:
+                .LabelStyle:
+                  left: "0"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x388eccff"
+                  fontSize: "18"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+                  border:
+                    style: "5"
+                  borderRadius: "15"          
+            - type: button
+              onClick: 
+                - actionType: saveObject
+                  object: ..save
+                - actionType: evalObject
+                  object: 
+                    .Global.rootRoomInfo@: =..createdRoomInfo.edge         
+                - actionType: popUpDismiss
+                  popUpView: confirmView
+                - goto: MeetingLobby
+              text: Confirm
+              style:
+                .LabelStyle:
+                  left: "0.45"
+                  top: "0.275"
+                  width: "0.42"
+                  height: "0.06812"
+                  color: "0x388eccff"
+                  fontSize: "18"
+                  display: inline
+                  textAlign:
+                    x: center
+                    y: center 
+                  border:
+                    style: "5"
+                  borderRadius: "15"
+            - type: divider
+              style:
+                .DividerStyle:
+                  left: "0.45"
+                  top: "0.25436"
+                  width: "0.002"
+                  height: "0.08"
+                  backgroundColor: "0x00000088"

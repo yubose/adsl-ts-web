@@ -1,0 +1,125 @@
+MasterSubscriptionSigned:
+  title: "Agreement"
+  pageNumber: "75"
+  init:
+    - .SignInCheck
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: scrollView
+      style:
+        top: "0.1"
+        width: "1"
+        height: "0.9"
+        left: "0"
+        overflow: "scroll"
+      children:
+        - type: view
+          style:
+            top: "0"
+            width: "1"
+            height: "0.2"
+          children:
+            - type: label
+              text: "Matser Subscription"
+              style:
+                top: "0.05"
+                fontSize: "18"
+                fontWeight: 600
+                width: "1"
+                textAlign:
+                  x: center
+            - type: label
+              text: "Review the document below and sign with your finger at the bottom"
+              style:
+                top: "0.12"
+                fontSize: .Nfont.h16
+                fontWeight: 300
+                width: "0.8"
+                left: "0.1"
+                color: "0xB1B1B1"
+                textAlign:
+                  x: center
+        - type: view
+          style:
+            top: "0.23"
+            width: "0.9"
+            height: "2.17"
+            left: "0.05"
+            borderWidth: "1"
+            # backgroundColor: "0"
+            border:
+              style: "3"
+              color: "0x939393"
+          children:
+            - .p:
+              text: Our Vision and Mission
+              style:
+                top: "0.03"
+            - .p:
+              text: Our vision is to become the premier and world leader in telehealth service by using blockchain and Artificial Intelligence technology to give people the most secure and highest level of personal privacy in a faster, more convenient platform that will produce better outcomes for our consumers, physicians, employers, employees, and medical institutions that we serve.
+              style:
+                top: "0.1"
+            - .p:
+              text: The company began in 2015 as a telemedicine platform. In 2019 it developed its own ECOS (Edge Computing Operating System) platform, which is integrating blockchain encryption and artificial intelligence technology.
+              style:
+                top: "0.45"
+            - .p:
+              text: The ECOS provides fast, secure, and personal privacy, under HIPAA compliance. The core technology was integrated into the companies new Prynote product, where anyone can store and share private notes on a highly secure domain/database, similar to Bitcoin. This revolutionary technology was integrated into the telehealth industry will enable the medical community to share critical information in a secure private setting at high speed with ease.  This will then allow compatibility with Electronic Medical Record (EMR) systems to improve the continuum of care process for the consumer, patient, insurance companies, medical providers, or any third parties involved in the patient care.
+              style:
+                top: "0.68"
+            - .p:
+              text: AiTmed encourages patients to continue a healthy lifestyle everyday through the AiTmed Wellness platform. This service allows patients to utilize the most private and secure blockchain-encryption technology to store your medical records and personal information, while allowing you to share documents of your choice instantly. AiTmed has a provider's network that allows users/patients to find a doctor of their choice and the ability to self-schedule.
+              style:
+                top: "1.28"
+            - .p:
+              text: iTmed's E-commerce Store will provide vital monitoring kits that can be integrated directly into our platform. AiTmed also supplies the highest quality nutrition, supplements, and durable medical equipment (DME) for patients/users to benefit their wellness and give them support.
+              style:
+                top: "1.7"
+            - type: view
+              onClick:
+                - goto: SubmitMasterSubscription
+              style:
+                top: "2.01"
+                width: "0.8"
+                left: "0.05"
+                height: "0.05"
+                # backgroundColor: "0x000000"
+                borderWidth: "1"
+                border:
+                  style: "2"
+                  color: "0x939393"
+            - type: label
+              text: x
+              style:
+                top: "2.01"
+                width: "0.02"
+                left: "0.02"
+                fontSize: "19"
+            - type: image
+              path: signature.png
+              style:
+                top: "1.97"
+                left: "0.1"
+                width: "0.5"
+
+            - .p:
+              text: "choice and the ability to self-schedule."
+              style:
+                top: "2.1"
+                textAlign:
+                  x: center
+        - type: view
+          style:
+            top: "2.55"
+            height: "0.2"
+          children:
+            - .SmallButton:
+              onClick:
+                - goto: CreateNewAccount
+              text: Submit
+              style:
+                width: "0.7"
+                left: "0.15"
+                height: "0.06"
+                backgroundColor: "0x2988e6"

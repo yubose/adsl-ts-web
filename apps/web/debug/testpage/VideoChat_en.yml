@@ -1,0 +1,25 @@
+VideoChat:
+  pageNumber: "190"
+  title: "Test Page Redraw"
+  pageName: RightPage
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+    - type: page
+      path: LeftPage
+      style:
+        left: "0"
+        top: "0.1"
+        width: "0.5"
+        height: "0.8"    
+    - type: page
+      path: RightPage
+      style:
+        left: "0.5"
+        top: "0.1"
+        width: "0.5"
+        height: "0.8"  
+    

@@ -1,0 +1,209 @@
+MeetingRoomInvited:
+  pageNumber: "80" # xd pages 4
+  init:
+    - if: 
+        - =.Global.version
+        - continue
+        - .Global.version@: =.Config.web.cadlVersion.stable
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.version
+              string2: =.Config.web.cadlVersion.stable
+        - continue
+        - =.builtIn.cleanLocalStorage    
+    - .SignInCheck
+    - ..listData.get
+    - if:
+      - =..listData.invitedroom.edge.0
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100 
+    - actionType: evalObject
+      object:
+        =.builtIn.string.concat:
+          dataIn:
+            - =.Global.currentUser.vertex.name.firstName
+            - " "
+            - =.Global.currentUser.vertex.name.lastName
+          dataOut: Global.currentUser.vertex.name.fullName
+  inviteesInfo:
+    response: ""
+    edge:
+      .Edge: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: inviteesInfo.edge
+        dataOut: inviteesInfo.response                         
+  lastTop: "0.0" # keep updated for list rendering.
+  title: "Meeting Rooms"
+  listData: 
+    invitedroom:
+      edge:
+        # - .Edge:
+        #   name: 
+        #     hostName: "Invited Room 1"
+        #     title: "Test Room 1"
+    get:
+      .EdgeAPI.get : ""
+      api: re
+      dataKey: listData.invitedroom
+      id: .Global.currentUser.vertex.id
+      type : "1053"
+      xfname : evid
+      # sCondition: "tage=0 AND ctime>UNIX_TIMESTAMP()-7200" # active invite, it will be closed when host closed the meeting room
+      sCondition: "subtype=0 AND tage=0 AND ctime>UNIX_TIMESTAMP()-86400" # active invite, it will be closed when host closed the meeting room
+      maxcount : "20"
+      obfname : "mtime" 
+      _nonce: =.Global._nonce
+  components:
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        position: "fixed"  
+      children:
+        - .MenuHeader:
+        - .SubMenuView:
+          children:
+            - .SubMenuButton:
+              style:
+                color: "0xffffffff"
+            - .SubMenuButton:
+              text: "Create"
+              style:
+                left: "0.34"
+              onClick:
+                - goto: MeetingRoomCreate
+            - .SubMenuButton:
+              text: "Activity"
+              style:
+                left: "0.67"
+              onClick:
+                - goto: MeetingRoomHistory
+        - type: label
+          contentType: messageHidden
+          text: "No current invitations"
+          style:
+            left: "0"
+            top: "0.25"
+            width: "1"
+            height: "0.04"
+            color: "0x000058"
+            fontSize: "16"
+            isHidden: "true"
+            textAlign:
+              x: center
+        - type: list
+          contentType: listObject
+          listObject: ..listData.invitedroom.edge
+          iteratorVar: itemObject
+          style:
+            left: "0"
+            top: "0.19"
+            width: "1"
+            height: "0.8"            
+          children:
+            - type: listItem
+              itemObject: ""
+              onClick:
+                - =.builtIn.phoneService.stopVibrate
+                - =.builtIn.phoneService.stopRingtone
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.VideoChatObjStore.reference.edge
+                  dataObject: itemObject
+                - actionType: evalObject
+                  object: 
+                    .Global._nonce@: 
+                      =.builtIn.math.random: ""   
+                - actionType: evalObject
+                  object: 
+                    - .Global.rootRoomInfo.edge.refid@: ""
+                    - .Global.timer@: 0                                   
+                - goto: VideoChat
+              style:
+                left: "0.0"
+                # top: "0"
+                width: "1"
+                height: "0.15"
+                backgroundColor: "0xFAFAFA"  
+                border:
+                  style: "2" 
+                borderWidth: "1"
+                borderColor: "0x00000011"             
+              children:
+                - type: label
+                  dataKey: itemObject.name.hostName
+                  #text: "Room 8"
+                  style:
+                    left: "0.12"
+                    top: "0.01"
+                    width: "0.8"
+                    height: "0.04"
+                    fontSize: "16"
+                    fontWeight: 400
+                    color: "0x000000"
+                    display: inline
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  text: has invited you to join
+                  style:
+                    left: "0.14"
+                    top: "0.05"
+                    width: "0.74"
+                    height: "0.03"
+                    fontSize: "14"
+                    fontWeight: 400
+                    color: "0x00000058"
+                    display: inline
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  dataKey: itemObject.name.title
+                  style:
+                    left: "0.13"
+                    top: "0.09"
+                    width: "0.74"
+                    height: "0.03"
+                    fontSize: "16"
+                    fontWeight: 400
+                    color: "0x000000"
+                    display: inline
+                    textAlign:
+                      x: center
+                      y: center
+                - type: label
+                  text: Dismiss
+                  onClick:
+                    - =.builtIn.phoneService.stopVibrate
+                    - =.builtIn.phoneService.stopRingtone
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: MeetingRoomInvited.inviteesInfo.edge
+                      dataObject: itemObject # this must be a rootRoom
+                    - actionType: evalObject
+                      object: 
+                        .MeetingRoomInvited.inviteesInfo.edge.tage@: -1 
+                    - actionType: evalObject
+                      object:
+                        - =.MeetingRoomInvited.inviteesInfo.edgeAPI.store: ""
+                    - actionType: refresh
+                  style:
+                    left: "0.88"
+                    top: "0"
+                    width: "0.1"
+                    height: "0.05"
+                    fontSize: "15"
+                    fontWeight: 400
+                    color: "0xd53d42ff"
+                    display: inline
+                    textAlign:
+                      x: left                  

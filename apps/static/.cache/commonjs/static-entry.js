@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 exports.__esModule = true;
 exports.default = staticPage;
 exports.getPageChunk = getPageChunk;
-exports.sanitizeComponents = exports.reorderHeadComponents = void 0;
+exports.sanitizeComponents = void 0;
 
 var _extends2 = _interopRequireDefault(require("@babel/runtime/helpers/extends"));
 
@@ -134,24 +134,6 @@ function deepMerge(a, b) {
     arrayMerge: combineMerge
   });
 }
-/**
-Reorder headComponents so meta tags are always at the top and aren't missed by crawlers by being pushed down by large inline styles, etc.
-@see https://github.com/gatsbyjs/gatsby/issues/22206
-*/
-
-
-const reorderHeadComponents = headComponents => {
-  const sorted = headComponents.sort((a, b) => {
-    if (a.type && a.type === `meta` && !(b.type && b.type === `meta`)) {
-      return -1;
-    }
-
-    return 0;
-  });
-  return sorted;
-};
-
-exports.reorderHeadComponents = reorderHeadComponents;
 
 async function staticPage({
   pagePath,
@@ -440,8 +422,17 @@ async function staticPage({
         async: true
       });
     }));
-    postBodyComponents.push(...bodyScripts);
-    headComponents = reorderHeadComponents(headComponents);
+    postBodyComponents.push(...bodyScripts); // Reorder headComponents so meta tags are always at the top and aren't missed by crawlers
+    // by being pushed down by large inline styles, etc.
+    // https://github.com/gatsbyjs/gatsby/issues/22206
+
+    headComponents.sort((a, _) => {
+      if (a.type && a.type === `meta`) {
+        return -1;
+      }
+
+      return 0;
+    });
     apiRunner(`onPreRenderHTML`, {
       getHeadComponents,
       replaceHeadComponents,

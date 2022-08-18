@@ -1,0 +1,287 @@
+PatientChartAddAllergies:
+  title: Patient Chart
+  pageNumber: "173"
+  init:
+    - .SignInCheck
+  allergies: []
+  #  .PatientChartDM.patientChart.allergies  #引用用户总表单对象
+  allergySelectedObj:
+    allergy: ""
+    happen: ""
+  allergiesList:
+    - please select
+    - peanut
+    - bees
+  generalInfo:
+    isKnown: false
+  components:
+    - type: view
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        position: fixed
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton: 
+        - .HeaderRightButton:
+          text: Skip
+          onClick:
+            - goto: PatientChartAddMedications
+        - type: image
+          path: progresspercent20.png
+          style: 
+            width: "0.9"
+            top: "0.12"
+            height: "0.035"
+            left: "0.05"
+        - type: view
+          style:
+            top: "0.17"
+            width: "1"
+          children:
+            - type: label
+              text: Allergies
+              style:
+                fontSize: "18"
+                color: "0x000000"
+                width: "0.6"
+                left: "0.05"
+            - type: label
+              textBoard:
+                - text: Please enter all enviromental and drug allergies,
+                - br:
+                - text: along width what happened during the reaction
+              style:
+                top: "0.05"
+                fontSize: "15"
+                fontWeight: "300"
+                width: "0.9"
+                left: "0.05"
+                textAlign:
+                  x: left
+            - type: view
+              style:
+                top: "0.15"
+                width: "1"
+              children:
+                - type: image
+                  # dataKey: allergies.edge.name.isKnown
+                  viewTag: NoneTag
+                  path: 
+                    emit:
+                      actions:                        
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: true
+                                string2: =..generalInfo.isKnown 
+                          - https://public.aitmed.com/commonRes/selectOn.png
+                          - https://public.aitmed.com/commonRes/selectOff.png
+                  onClick:
+                    # - emit:
+                    #   actions:
+                    #     - if:
+                    #       - =.builtIn.string.equal:
+                    #         dataIn:
+                    #           string1: true
+                    #           string2: =..generalInfo.isKnown 
+                    #       - =.builtIn.object.set:
+                    #           dataIn:
+                    #             object: =..generalInfo
+                    #             key: isKnown 
+                    #             value: false
+                    #       - =.builtIn.object.set:
+                    #           dataIn:
+                    #             object: =..generalInfo
+                    #             key: isKnown 
+                    #             value: true
+                    # - actionType: builtIn
+                    #   funcName: redraw
+                    #   viewTag: NoneTag
+                    - goto: PatientChartAddMedications
+                  style:
+                    width: "0.05"
+                    left: "0.05"
+                - type: label
+                  text: No known allergies (including drug)
+                  style:
+                    # top: "0.05"
+                    left: "0.15"
+                    fontSize: "15"
+                    fontWeight: "300"
+                    width: "0.8"
+                    textAlign:
+                      x: left
+            - type: view
+              style:
+                width: "1"
+                height: "0.08"
+                left: "0"
+                top: "0.2"
+              children:
+                - type: select
+                  dataKey: allergySelectedObj.allergy
+                  style: 
+                    width: "0.3"
+                    left: "0.13"
+                    height: "0.04"
+                    top: "0.02"
+                    borderWidth: "1"
+                    outline: none
+                    boxSizing: 'content-box'
+                  options:
+                    .allergiesList
+                - type: textView
+                  dataKey: allergySelectedObj.happen
+                  isEditable: "false"
+                  contentType: text
+                  style: 
+                    width: "0.3"
+                    left: "0.57"
+                    padding: "0px"
+                    height: "0.04"
+                    outline: none
+                    top: "0.02"
+                    borderWidth: "1"
+            - .SmallButton:
+              text: Add Allergy
+              onClick:
+                - emit:
+                    actions:
+                      - =.builtIn.array.add:
+                          dataIn:
+                            object: =..allergies
+                            value: =..allergySelectedObj  # create copy .create by value ,not reference         
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: allergiesShow
+              style:
+                top: "0.3" 
+                width: "0.4"
+                height: "0.06"
+                left: "0.3"
+                color: "0xffffff"
+            - type: divider
+              style:
+                top: "0.4"
+                height: "0.001"
+                width: "1"
+                left: "0"
+                color: "0xDEDEDE"
+            - type: view
+              style:
+                width: "1"
+                left: "0"
+                height: "0.04"
+                top: "0.45"
+              children:
+                - type: label
+                  text: Allergy/Irritant
+                  style:
+                    width: "0.4"
+                    left: "0.1"
+                    height: "0.04"
+                    top: "0"
+                    fontSize: "15"
+                    fontWeight: "500"
+                    textAlign:
+                      x: center
+                - type: label
+                  text: What happens?
+                  style:
+                    width: "0.4"
+                    left: "0.5"
+                    height: "0.04"
+                    top: "0"
+                    fontSize: "15"
+                    fontWeight: "500"
+                    textAlign:
+                      x: center
+                - type: view
+                  viewTag: allergiesShow
+                  style:
+                    width: "1"
+                    left: "0"
+                    top: "0.04"
+                    height: "0.3"
+                  # viewTag: delete
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..allergies # to dataObject to enumerate the list
+                      iteratorVar: itemObject
+                      style:
+                        top: "0"
+                        width: "1"
+                        height: "0.16"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            top: "0.01"
+                            width: "1"
+                            height: '0.05'
+                          children:
+                            - type: label
+                              dataKey: itemObject.allergy
+                              style:
+                                fontSize: "14"
+                                color: "0x373737"
+                                fontWeight: 400
+                                top: "0"
+                                left: "0.15"
+                                height: "0.05"
+                            - type: textView
+                              dataKey: itemObject.happen
+                              style:
+                                fontSize: "14"
+                                color: "0x373737"
+                                fontWeight: 400
+                                top: "0"
+                                width: "0.35"
+                                left: "0.5"
+                                height: "0.04"
+                                border: "none"
+                                # backgroundColor: "0xcdcdcd"
+                            - type: image
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - =.builtIn.array.removeByName:
+                                          dataIn:
+                                            object: =..allergies
+                                            key: "allergy"
+                                            name: $var.allergy
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: allergiesShow
+                                # - actionType: refresh
+                              path: delete.png
+                              style:
+                                left: "0.9"
+                                top: "0.005"
+                                height: "15px"
+                                fontSize: "14"
+            - type: button
+              text: Next
+              onClick: 
+                - actionType: evalObject
+                  object:
+                    - .PatientChartDM.patientChart.allergies@: ""
+                    - .PatientChartDM.patientChart.allergies@: =..allergies
+                - goto: PatientChartAddMedications
+              style:
+                left: "0.12"
+                width: "0.76"
+                top: "0.75"
+                height: "0.05"
+                color: "0xffffffff"
+                border: 
+                  style: "3"
+                borderColor: "0x388ecc"
+                backgroundColor: "0x388ecc"
+                borderRadius: "3"

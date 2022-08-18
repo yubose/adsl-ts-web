@@ -1,0 +1,744 @@
+MedicalLicense:
+  title: "Medical License"
+  pageNumber:
+  init:
+    - .SignInCheck
+    - if:
+        - =.Global.MyProfile.id
+        - actionType: evalObject
+          object:
+            - ..MedicalLicense.document.name.data.MedicalLicense@: =.Global.MyProfile.name.data.MedicalLicense
+        - continue
+    # judgesFillinAll
+    - actionType: evalObject #android use calendar init
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getShow
+    - actionType: evalObject
+      object:
+        - ..calendarDate@: =.BaseComponents.calendarDate
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: MedicalLicense.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: MedicalLicense.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: MedicalLicense.calendarDate.day
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.MedicalLicense.calendarDate.year
+              month: =.MedicalLicense.calendarDate.month
+              today: =.MedicalLicense.calendarDate.day
+            dataOut: MedicalLicense.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.MedicalLicense.calendarDate.month
+            dataOut: MedicalLicense.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.MedicalLicense.calendarDate.year
+              month: =.MedicalLicense.calendarDate.month
+              day: =.MedicalLicense.calendarDate.day
+              formatType: "M-D-Y"
+            dataOut: MedicalLicense.calendarDate.todayDate
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    dayLable: []
+    todayDate: ""
+    monthName: ""
+
+  formData:
+    flagOff: "block"
+    flagOn: "none"
+    MedicalLicense:
+      document:
+        name:
+          data:
+            MedicalLicense: []
+    medicalLicenseObj:
+      state: "AK"
+      medicalLicense: ""
+      expiration: "2"
+    selectedMedicalLicense:
+      document:
+        name:
+          data:
+            MedicalLicense: []
+  formDataTemp:
+
+  apiRequest:
+
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderSaveButton:
+    - type: view
+      style:
+        top: "0.1"
+        width: "1"
+        height: "0.88"
+      children:
+        - type: label
+          text: "Please add all your Medical License"
+          style:
+            marginTop: "0.03"
+            width: "1"
+            height: "auto"
+            fontFamily: "Arial"
+            fontSize: .Nfont.h2
+            color: "0x000000"
+            textAlign:
+              x: center
+              y: center
+        - type: view
+          style:
+            marginTop: "0.03"
+            width: "1"
+            height: "0.002"
+            backgroundColor: "0xdededf"
+        - type: view
+          style:
+            height: "auto"
+            width: "1"
+            # backgroundColor: "pink"
+          children:
+            - type: view
+              viewTag: medicineLicenseTag
+              style:
+                marginTop: "0.02"
+                marginLeft: "0.05"
+                height: "auto"
+                width: "0.95"
+              children:
+                - type: label
+                  text: "Medical License #"
+                  style:
+                    display: "inline-block"
+                    height: "0.05"
+                    lineHeight: "5vh"
+                    width: "0.4"
+                    fontFamily: "Arial"
+                    fontSize: .Nfont.h15
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: formData.medicalLicenseObj.medicalLicense
+                  style:
+                    display: "inline-block"
+                    height: "0.05"
+                    width: "0.5"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                  # onInput:
+                  #   - actionType: evalObject
+                  #     object:
+                  #       - if:
+                  #           - =.builtIn.string.checkObject:
+                  #               dataIn:
+                  #                 object: =.MedicalLicense.formData.medicalLicenseObj
+                  #           - actionType: evalObject
+                  #             object:
+                  #               - ..formData.flagOff@: "block"
+                  #               - ..formData.flagOn@: "none"
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOff
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOn
+                  #           - actionType: evalObject
+                  #             object:
+                  #               - ..formData.flagOff@: "none"
+                  #               - ..formData.flagOn@: "block"
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOn
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOff
+            - type: view
+              style:
+                marginTop: "0.02"
+                marginLeft: "0.05"
+                height: "auto"
+                width: "0.95"
+              children:
+                - type: label
+                  text: "State"
+                  style:
+                    display: "inline-block"
+                    height: "0.05"
+                    lineHeight: "5vh"
+                    width: "0.4"
+                    fontFamily: "Arial"
+                    fontSize: .Nfont.h15
+
+                - type: select
+                  dataKey: formData.medicalLicenseObj.state
+                  options: .SelectINformationDM.state
+                  style:
+                    display: "inline-block"
+                    height: "0.05"
+                    width: "0.5"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    backgroundColor: "0xffffff"
+                  # onInput:
+                  #   - actionType: evalObject
+                  #     object:
+                  #       - if:
+                  #           - =.builtIn.string.checkObject:
+                  #               dataIn:
+                  #                 object: =.MedicalLicense.formData.medicalLicenseObj
+                  #           - actionType: evalObject
+                  #             object:
+                  #               - ..formData.flagOff@: "block"
+                  #               - ..formData.flagOn@: "none"
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOff
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOn
+                  #           - actionType: evalObject
+                  #             object:
+                  #               - ..formData.flagOff@: "none"
+                  #               - ..formData.flagOn@: "block"
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOff
+                  #               - actionType: builtIn
+                  #                 funcName: redraw
+                  #                 viewTag: buttonViewOn
+
+            - type: view
+              style:
+                marginTop: "0.02"
+                marginLeft: "0.05"
+                height: "auto"
+                width: "0.95"
+              children:
+                - type: label
+                  text: "License Expiration"
+                  style:
+                    display: "inline-block"
+                    height: "0.05"
+                    lineHeight: "5vh"
+                    width: "0.4"
+                    fontFamily: "Arial"
+                    fontSize: .Nfont.h15
+                - type: view
+                  viewTag: expirationTag
+                  style:
+                    display: "inline-block"
+                    width: "0.5"
+                    height: "0.05"
+                  children:
+                    - type: image
+                      path: calendarBlue.svg
+                      style:
+                        top: "0.012"
+                        left: "0.42"
+                        height: "0.025"
+                    - .BaseTextField:
+                      isEditable: false
+                      placeholder: Select Date
+                      dataKey: formData.medicalLicenseObj.expiration
+                      style:
+                        height: "0.05"
+                        width: "0.5"
+                        fontSize: .Nfont.h1
+                        fontFamily: "Arial"
+                        color: "0x0f0f0f"
+                        border:
+                          style: "3"
+                        borderWidth: "1"
+                        borderColor: "0xD8D8D8"
+                        borderRadius: "5"
+                      # onInput:
+                      #   - actionType: evalObject
+                      #     object:
+                      #       - if:
+                      #           - =.builtIn.string.checkObject:
+                      #               dataIn:
+                      #                 object: =.MedicalLicense.formData.medicalLicenseObj
+                      #           - actionType: evalObject
+                      #             object:
+                      #               - ..formData.flagOff@: "block"
+                      #               - ..formData.flagOn@: "none"
+                      #               - actionType: builtIn
+                      #                 funcName: redraw
+                      #                 viewTag: buttonViewOff
+                      #               - actionType: builtIn
+                      #                 funcName: redraw
+                      #                 viewTag: buttonViewOn
+                      #           - actionType: evalObject
+                      #             object:
+                      #               - ..formData.flagOff@: "none"
+                      #               - ..formData.flagOn@: "block"
+                      #               - actionType: builtIn
+                      #                 funcName: redraw
+                      #                 viewTag: buttonViewOff
+                      #               - actionType: builtIn
+                      #                 funcName: redraw
+                      #                 viewTag: buttonViewOn
+                  onClick:
+                    - actionType: popUp
+                      popUpView: expirationDay
+            - type: view
+              style:
+                marginTop: "0.02"
+                marginLeft: "0.05"
+                height: "auto"
+                width: "0.95"
+              children:
+                - type: button
+                  text: "+ Medical License"
+                  viewTag: buttonViewOff
+                  style:
+                    display: ..formData.flagOff
+                    marginTop: "0.03"
+                    height: "0.055"
+                    width: "0.9"
+                    color: "0x2988e6"
+                    fontSize: .Nfont.h15
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0x2988e6"
+                    borderRadius: "5"
+                    backgroundColor: "0xffffff"
+                    textAlign:
+                      x: center
+                      # y: center
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: ""
+                                  string2: =..formData.medicalLicenseObj.medicalLicense
+                            - actionType: popUp
+                              popUpView: licenseisNullTag
+                              wait: true
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: ""
+                                  string2: =..formData.medicalLicenseObj.expiration
+                            - actionType: popUp
+                              popUpView: ExpirationisNullTag
+                              wait: true
+                            - continue
+                        - if:
+                            - =.builtIn.array.checkElememtExist:
+                                dataIn:
+                                  objArr: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                                  values: =..formData.medicalLicenseObj.medicalLicense
+                            - actionType: popUp
+                              popUpView: licenseRepeatView
+                              wait: true
+                            - continue
+                        - if:
+                            - =.builtIn.array.checkElememtExist:
+                                dataIn:
+                                  objArr: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                                  values: =..formData.medicalLicenseObj.state
+                            - actionType: popUp
+                              popUpView: licenseStateView
+                              wait: true
+                            - continue
+
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                              value: =..formData.medicalLicenseObj
+                    - actionType: evalObject
+                      object:
+                        - .Global.MyProfile.name.data.MedicalLicense@: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                        - ..formData.medicalLicenseObj.expiration@: ""
+                        - ..formData.medicalLicenseObj.medicalLicense@: ""
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: medicineLicenseTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: expirationTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: specialtyTag
+
+                # - type: button
+                #   text: "+ Medical License"
+                #   viewTag: buttonViewOn
+                #   style:
+                #     display: ..formData.flagOn
+                #     marginTop: "0.03"
+                #     height: "0.055"
+                #     width: "0.9"
+                #     color: "0xffffff"
+                #     fontSize: .Nfont.h15
+                #     border:
+                #       style: "3"
+                #     borderWidth: "1"
+                #     borderColor: "0x2988e6"
+                #     borderRadius: "5"
+                #     backgroundColor: "0x2988e6"
+                #     textAlign:
+                #       x: center
+                #       # y: center
+                #   onClick:
+                #     - actionType: evalObject
+                #       object:
+                #         - if:
+                #             - =.builtIn.string.equal:
+                #                 dataIn:
+                #                   string1: ""
+                #                   string2: =..formData.medicalLicenseObj.medicalLicense
+                #             - actionType: popUp
+                #               popUpView: licenseisNullTag
+                #               wait: true
+                #             - continue
+                #         - if:
+                #             - =.builtIn.string.equal:
+                #                 dataIn:
+                #                   string1: ""
+                #                   string2: =..formData.medicalLicenseObj.expiration
+                #             - actionType: popUp
+                #               popUpView: ExpirationisNullTag
+                #               wait: true
+                #             - continue
+                #         - if:
+                #             - =.builtIn.array.checkElememtExist:
+                #                 dataIn:
+                #                   objArr: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                #                   values: =..formData.medicalLicenseObj.medicalLicense
+                #             - actionType: popUp
+                #               popUpView: licenseRepeatView
+                #               wait: true
+                #             - continue
+                #         - if:
+                #             - =.builtIn.array.checkElememtExist:
+                #                 dataIn:
+                #                   objArr: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                #                   values: =..formData.medicalLicenseObj.state
+                #             - actionType: popUp
+                #               popUpView: licenseStateView
+                #               wait: true
+                #             - continue
+
+                #     - actionType: evalObject
+                #       object:
+                #         - =.builtIn.array.add:
+                #             dataIn:
+                #               object: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                #               value: =..formData.medicalLicenseObj
+                #     - actionType: evalObject
+                #       object:
+                #         - .Global.MyProfile.name.data.MedicalLicense@: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                #         - ..formData.medicalLicenseObj.expiration@: ""
+                #         - ..formData.medicalLicenseObj.medicalLicense@: ""
+                #     - actionType: builtIn
+                #       funcName: redraw
+                #       viewTag: medicineLicenseTag
+                #     - actionType: builtIn
+                #       funcName: redraw
+                #       viewTag: expirationTag
+                #     - actionType: builtIn
+                #       funcName: redraw
+                #       viewTag: specialtyTag
+
+        - type: view
+          style:
+            marginTop: "0.03"
+            height: "auto"
+            width: "0.9"
+            marginLeft: "0.05"
+          children:
+            - type: label
+              text: "Medical License #"
+              style:
+                display: "inline-block"
+                height: "0.04"
+                lineHeight: "4vh"
+                width: "0.4"
+                fontFamily: "Arial"
+                fontSize: .Nfont.h1
+                color: "0x000000"
+            - type: label
+              text: "State"
+              style:
+                display: "inline-block"
+                height: "0.04"
+                lineHeight: "4vh"
+                width: "0.25"
+                fontFamily: "Arial"
+                fontSize: .Nfont.h1
+                color: "0x000000"
+            - type: label
+              text: "Expiration"
+              style:
+                display: "inline-block"
+                height: "0.04"
+                lineHeight: "4vh"
+                width: "0.25"
+                fontFamily: "Arial"
+                fontSize: .Nfont.h1
+                color: "0x000000"
+        - type: scrollView
+          style:
+            marginTop: "0.01"
+            height: "0.4"
+            width: "0.9"
+            marginLeft: "0.045"
+            overflow: "scroll"
+          children:
+            - type: list
+              viewTag: specialtyTag
+              contentType: listObject
+              listObject: ..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+              iteratorVar: itemObject
+              style:
+                width: "0.9"
+                margin: "0"
+                height: "auto"
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "0.9"
+                    height: "auto"
+                    marginTop: "0.02"
+                  children:
+                    - type: image
+                      path: x.svg
+                      style:
+                        display: "inline-block"
+                        height: "0.025"
+                        width: "0.08"
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - =.builtIn.array.removeByName:
+                                  dataIn:
+                                    object: =..formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                                    key: "medicalLicense"
+                                    name: $var.medicalLicense
+                        - actionType: evalObject
+                          object:
+                            - .Global.MyProfile.name.data.MedicalLicense@: =.MedicalLicense.formData.selectedMedicalLicense.document.name.data.MedicalLicense
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: specialtyTag
+                    - type: label
+                      dataKey: itemObject.medicalLicense
+                      style:
+                        marginLeft: "0.02"
+                        display: "inline-block"
+                        width: "0.25"
+                        height: "auto"
+                        fontSize: .Nfont.h1
+                        wordWrap: break-word
+                        textAlign:
+                          x: left
+                    - type: label
+                      dataKey: itemObject.state
+                      style:
+                        marginLeft: "0.05"
+                        display: "inline-block"
+                        width: "0.25"
+                        height: "auto"
+                        fontSize: .Nfont.h1
+                        wordWrap: break-word
+                        textAlign:
+                          x: left
+                    - type: label
+                      dataKey: itemObject.expiration
+                      style:
+                        display: "inline-block"
+                        width: "0.25"
+                        height: "auto"
+                        fontSize: .Nfont.h1
+                        wordWrap: break-word
+                        textAlign:
+                          x: left
+    - type: popUp
+      viewTag: expirationDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.9"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..formData.medicalLicenseObj.expiration@: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: expirationTag
+                - actionType: popUpDismiss
+                  popUpView: expirationDay
+
+    - .BaseCheckView:
+      message: "Please set State differently!"
+      viewTag: licenseStateView
+      colorChange: "0xd81e06"
+      imgPath: delete.svg
+      children:
+        - type: view
+          style:
+            width: "0.8"
+            height: "0.3"
+            top: "0.3"
+            left: "0.1"
+            zIndex: "100"
+            backgroundColor: "0xffffff"
+            borderRadius: "7"
+            border:
+              style: "3"
+            borderColor: "#f4f8fa"
+            borderWidth: "3"
+          children:
+            - .BaseCheckViewImg:
+            - .BaseCheckViewLabel:
+            - .BaseCheckViewButton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag
+
+    - .BaseCheckView:
+      message: "Please input the License!"
+      viewTag: licenseisNullTag
+      colorChange: "0xd81e06"
+      imgPath: delete.svg
+      children:
+        - type: view
+          style:
+            width: "0.8"
+            height: "0.3"
+            top: "0.3"
+            left: "0.1"
+            zIndex: "100"
+            backgroundColor: "0xffffff"
+            borderRadius: "7"
+            border:
+            style: "3"
+            borderColor: "#f4f8fa"
+            borderWidth: "3"
+          children:
+            - .BaseCheckViewImg:
+            - .BaseCheckViewLabel:
+            - .BaseCheckViewButton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag
+
+    - .BaseCheckView:
+      message: "Please input the Expiration!"
+      viewTag: ExpirationisNullTag
+      colorChange: "0xd81e06"
+      imgPath: delete.svg
+      children:
+        - type: view
+          style:
+            width: "0.8"
+            height: "0.3"
+            top: "0.3"
+            left: "0.1"
+            zIndex: "100"
+            backgroundColor: "0xffffff"
+            borderRadius: "7"
+            border:
+            style: "3"
+            borderColor: "#f4f8fa"
+            borderWidth: "3"
+          children:
+            - .BaseCheckViewImg:
+            - .BaseCheckViewLabel:
+            - .BaseCheckViewButton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag
+
+    - .BaseCheckView:
+      message: "Please set License differently!"
+      viewTag: licenseRepeatView
+      colorChange: "0xd81e06"
+      imgPath: delete.svg
+      children:
+        - type: view
+          style:
+            width: "0.8"
+            height: "0.3"
+            top: "0.3"
+            left: "0.1"
+            zIndex: "100"
+            backgroundColor: "0xffffff"
+            borderRadius: "7"
+            border:
+              style: "3"
+            borderColor: "#f4f8fa"
+            borderWidth: "3"
+          children:
+            - .BaseCheckViewImg:
+            - .BaseCheckViewLabel:
+            - .BaseCheckViewButton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag

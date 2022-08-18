@@ -1,0 +1,122 @@
+MeetingDocument:
+  title: 
+  pageNumber: 
+  init: #Page initialization
+    - .SignInCheck
+    - ..formData.meetingDocument@: =.Global.formData.medicalRecords
+    - if: 
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.meetingDocument.name.data.classTag.name
+            string2: "Admin" 
+      - ..formData.isBtnHide@: false
+      - ..formData.isBtnHide@: true
+
+  formData: #Input data here
+    meetingDocument: {}
+    isBtnHide: "false"
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  apiRequest: #Input data request here
+    deleteMeetingDoc:
+      docIn:
+        id: ""
+      docAPI: 
+        delete:
+          api: dx
+          dataIn: MeetingDocument.apiRequest.deleteMeetingDoc.docIn
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+              style:
+                width: "0.18"
+            - type: button
+              text: Delete
+              style:
+                top: "0.058"
+                left: "0.7"  
+                width: '0.05'
+                height: '0.035'
+                borderRadius: "5"
+                boxSizing: border-box
+                backgroundColor: "0x0b4a7e"
+                textAlign: 
+                  y: center
+                  x: center                            
+                fontSize: .Nfont.nf2
+                fontFamily: "Roboto"
+                color: "0xffffff"
+                isHidden: =..formData.isBtnHide
+              onClick: 
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.deleteMeetingDoc.docIn.id@: =..formData.meetingDocument.id
+                    - =..apiRequest.deleteMeetingDoc.docAPI.delete: ""
+                - actionType: popUp
+                  popUpView: deleteSuccessTag
+            - .GotoBack:                  
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.815"
+                top: "0.1"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style: 
+                    left: "0.245"
+                    width: "0.334"
+                    height: "0.712"
+                  children: 
+                    - type: view
+                      style:
+                        marginTop: "0.07"
+                        width: "0.334"
+                        height: "0.6"
+                      children: 
+                        - type: label
+                          dataKey: formData.meetingDocument.name.title                  
+                          style:
+                            fontSize: .Nfont.nf4
+                            fontFamily: "Roboto"
+                            width: "0.334"
+                            height: "0.04"
+                            border: 
+                              style: "2"
+                            borderWidth: "1"
+                            borderColor: "0xf0f0f0"
+                            borderRadius: ""
+                            textAlign: 
+                              x: center
+                        - type: image
+                          path: squareDefaultPicture.svg
+                          dataKey: formData.meetingDocument.name.data.fileId
+                          path=func: .builtIn.utils.prepareDocToPath                          
+                          style:
+                            marginTop: "0.02"
+                            width: "0.334"
+                            height: "0.68"
+        - .BaseSuccessfulView: ""
+          msg: "successful!"
+          viewTag: deleteSuccessTag
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+              reload: true                                      

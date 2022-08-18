@@ -1,0 +1,895 @@
+PersonalDocuments:
+  pageNumber: "410"  # xd page 32
+  title: "My Documents"
+  init:
+    - .SignInCheck
+    - ..listData.get
+    - ..userData.get 
+    - if:
+      - =..listData.personalDoc.doc.0
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100    
+    #  get today date (get month --> get year ---> get day ) ---> get stamp of this date ---> sCondition ---> ce
+    #  cache
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: PersonalDocuments.calendarDate.month
+    # get Year for calendar
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getYear:
+            dataIn: ""
+            dataOut: PersonalDocuments.calendarDate.year
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getDate:
+            dataIn: ""
+            dataOut: PersonalDocuments.calendarDate.day
+    # generate calendar according month and year
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =..calendarDate.year
+              month: =..calendarDate.month
+              day: =..calendarDate.day
+            dataOut: PersonalDocuments.selectDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =..calendarDate.month
+            dataOut: PersonalDocuments.calendarDate.monthName
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.miniWeeklyCalendarArray:
+            dataIn:
+              year: =..calendarDate.year
+              month: =..calendarDate.month
+              today: =..calendarDate.day
+              markDay: =..calendarDate.day
+              color: "0x000000"
+              backgroundColor: "0x388ECC"
+              todayColor: "0xffffff"
+              todayBackgroundColor: "0xFFFFFF6f"
+            dataOut: PersonalDocuments.calendarDate.dayLable
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+              dataIn:
+                - =..calendarDate.year
+                - "-"
+                - =..calendarDate.month
+                - "-"
+                - =..calendarDate.day
+              dataOut: PersonalDocuments.calendarDate.todayDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getTimeStampOfDate:
+              dataIn: 
+                date: =..calendarDate.todayDate
+              dataOut: PersonalDocuments.calendarDate.todayStamp
+  searchScondition: "E.type in (10000,40000)"
+  listUserGet:
+    personalDoc:
+      doc:
+        ObjType: 8
+        id: .Global.currentUser.vertex.id
+        xfname: "E.bvid|E.evid"
+        type: .DocType.UploadFile
+        obfname : "mtime" 
+        maxcount : "50"
+        _nonce: =.Global._nonce    
+        sCondition: "=.Global.timeScondition"
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataIn: listReGet.personalDoc.doc
+      dataOut: PersonalDocuments.listData.personalDoc             
+  listReGet :
+    personalDoc:
+      doc:
+        ObjType: 8
+        id: .Global.currentUser.vertex.id
+        xfname: "E.bvid|E.evid"
+        type: .DocType.UploadFile
+        obfname : "mtime" 
+        maxcount : "50"
+        _nonce: =.Global._nonce    
+        sCondition: "=.Global.timeScondition"
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataIn: listReGet.personalDoc.doc
+      dataOut: PersonalDocuments.listData.personalDoc
+  userData:
+    userVertex:
+      vertex:
+    get:
+      .VertexAPI.get : ""
+      api: rv
+      dataKey: userData.userVertex
+      ids: 
+        - .Global.currentUser.vertex.id
+      ObjType: 4
+      sCondition: "E.type=1053"
+      xfname : E.bvid
+      obfname : "mtime" 
+      maxcount : "20"
+      _nonce: =.Global._nonce        
+  listData:
+    personalDoc:
+      doc:
+        name:
+          title: "No Title in DocumentList"
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataKey: listData.personalDoc
+      ObjType: 8
+      ids: 
+        - .Global.currentUser.vertex.id
+      sCondition: .EdgeType.GetMyEdge # all the uploaded documents
+      xfname: "E.bvid|E.evid"
+      type: .DocType.UploadFile
+      obfname : "mtime" 
+      maxcount : "40"
+      _nonce: =.Global._nonce
+  selectDate: ""
+  timeSlot: 60
+  splitTime: []      
+  todaySchedule: ""
+  formData:
+    response: []
+  calendarDate:
+    month: ""
+    year:  ""
+    day: ""
+    dayLable: []
+    weekLabel:
+      - key: SU
+      - key: MO
+      - key: TU
+      - key: WE
+      - key: TH
+      - key: FR
+      - key: SA
+    todayDate: "YYYY-MM-DD"
+    calendarDate: 
+    Scondition: ""
+    flag: true   
+  components: 
+    - type: view
+      style:
+        left: "0"
+        marginTop: "0"
+        width: "1"
+        height: "0.1"
+      children:
+        - .BaseHeader3:
+        - .HeaderLeftButton:
+        - .HeaderRightImg:
+          path: calendar.png
+          onClick:
+            - actionType: evalObject
+              object:
+                - if: 
+                  - ..flag
+                  - actionType: evalObject
+                    object:
+                      - actionType: builtIn
+                        funcName: hide
+                        viewTag: schedule
+                      - ..flag@: false
+                  - actionType: evalObject
+                    object:
+                      - actionType: builtIn
+                        funcName: show
+                        viewTag: schedule
+                      - ..flag@: true
+        - type: label
+          contentType: messageHidden
+          text: "No documents added"
+          style:
+            left: "0"
+            top: '0.4'
+            width: "1"
+            height: "0.04"
+            color: "0x000058"
+            fontSize: "16"
+            isHidden: "true" 
+            textAlign: 
+              x: center 
+            zIndex: 1000    
+    - type: view
+      viewTag: schedule
+      style:
+        isHidden: true
+        display: none
+      children:                                                    
+        - type: view
+          viewTag: setSchedule
+          style:
+            width: "1"
+            height: "0.18"
+            backgroundColor: "0x388ECC"
+            marginTop: '0'
+            left: "0"
+          children:
+            - type: view
+              style:
+                left: "0.25"
+                width: "0.18"
+                height: "0.03"
+              children:
+                - type: image
+                  path: iconOutlineArrowLeft.png
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.date.loopMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                                step: -1
+                              dataOut: PersonalDocuments.calendarDate.month
+                          - =.builtIn.date.transformMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                              dataOut: PersonalDocuments.calendarDate.monthName
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: =..calendarDate.month
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x388ECC"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: PersonalDocuments.calendarDate.dayLable
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    height: "0.02"
+                    top: "0.005"
+                - type: label
+                  dataKey: calendarDate.monthName
+                  style:
+                    width: "0.05"
+                    height: "0.02"
+                    left: "0.07"
+                    fontSize: "18"
+                    color: "0xffffff"
+                    textAlign:
+                      x: center
+                - type: image
+                  path: iconOutlineArrowRight.png
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.date.loopMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                                step: 1
+                              dataOut: PersonalDocuments.calendarDate.month
+                          - =.builtIn.date.transformMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                              dataOut: PersonalDocuments.calendarDate.monthName
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: =..calendarDate.month
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x388ECC"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: PersonalDocuments.calendarDate.dayLable             
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    left: "0.16"
+                    height: "0.02"
+                    top: "0.005"
+            - type: view
+              style:
+                top: "0"
+                left: "0.5"
+                width: "0.4"
+                height: "0.03"
+              children:
+                - type: image
+                  path: iconOutlineArrowLeft.png
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.number.Subtraction:
+                              dataIn:
+                                num: =..calendarDate.year
+                                step: 1
+                              dataOut: PersonalDocuments.calendarDate.year
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: 1
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x388ECC"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: PersonalDocuments.calendarDate.dayLable
+                    - actionType: evalObject
+                      object: 
+                        - .PersonalDocuments.calendarDate.month@: 1
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: PersonalDocuments.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                    
+                  style:
+                    left: "0"
+                    height: "0.02"
+                    top: "0.005"
+                - type: label
+                  dataKey: calendarDate.year
+                  style:
+                    width: "0.05"
+                    height: "0.03"
+                    top: "0"
+                    left: "0.08"
+                    fontSize: "18"
+                    color: "0xffffff"
+                    textAlign:
+                      x: center
+                - type: image
+                  path: iconOutlineArrowRight.png
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.number.addition:
+                              dataIn:
+                                num: =..calendarDate.year
+                                step: 1
+                              dataOut: PersonalDocuments.calendarDate.year
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.year
+                                month: 1
+                                today: 33
+                                markDay: 1
+                                color: "0x000000"
+                                backgroundColor: "0x388ECC"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: PersonalDocuments.calendarDate.dayLable
+                    - actionType: evalObject
+                      object: 
+                        .PersonalDocuments.calendarDate.month@: 1
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: PersonalDocuments.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    left: "0.2"
+                    height: "0.02"
+                    top: "0.005"
+            - type: view
+              style:
+                top: "0"
+                width: "0.08"
+                height: "0.08"
+              children:
+                - type: image
+                  path: iconOutlineArrowLeft.png
+                  onClick:
+                    - emit:
+                        actions:
+                            - =.builtIn.date.LastWeek:
+                                dataIn:
+                                  year: =..calendarDate.dayLable.0.year
+                                  month: =..calendarDate.dayLable.0.month
+                                  day: =..calendarDate.dayLable.0.day
+                                dataOut: calendarDate.tempDate
+                            - =.builtIn.date.miniWeeklyCalendarArray:
+                                dataIn:
+                                  year: =..calendarDate.tempDate.year
+                                  month: =..calendarDate.tempDate.month
+                                  today: =..calendarDate.day
+                                  markDay: =..calendarDate.tempDate.day
+                                  color: "0x000000"
+                                  backgroundColor: "0x388ECC"
+                                  todayColor: "0xffffff"
+                                  todayBackgroundColor: "0xFFFFFF6f"
+                                dataOut: PersonalDocuments.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        - ..calendarDate.year@: =..calendarDate.tempDate.year
+                        - ..calendarDate.month@: =..calendarDate.tempDate.month
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: PersonalDocuments.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                  style:
+                    top: "0.07"
+                    height: "0.02"
+            - type: list
+              contentType: listObject
+              listObject: ..calendarDate.dayLable
+              iteratorVar: itemObject
+              viewTag: calendarColor
+              style:
+                top: "0.03"
+                left: "0.08"
+                width: "0.84"
+                display: "flex"
+                height: "100px"
+                justifyContent: "space-between"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions: 
+                          # - ..formData.response@: []
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: $var.year
+                                month: $var.month
+                                today: $var.day
+                                markDay: $var.day
+                                color: "0x000000"
+                                backgroundColor: "0x388ECC"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: PersonalDocuments.calendarDate.dayLable
+                          # - .PersonalDocuments.formData.response@: []
+                          - .PersonalDocuments.listData.personalDoc.doc@: []
+                          - ..calendarDate.year@: $var.year
+                          - ..calendarDate.month@: $var.month
+                          - ..calendarDate.day@: $var.day
+                          - =.builtIn.date.ShowDateByNumber:
+                                dataIn:
+                                  year: =..calendarDate.year
+                                  month: =..calendarDate.month
+                                  day: =..calendarDate.day
+                                dataOut: PersonalDocuments.selectDate
+                          - =.builtIn.date.transformMonth:
+                              dataIn:
+                                month: =..calendarDate.month
+                              dataOut: PersonalDocuments.calendarDate.monthName
+                          - =.builtIn.string.concat:
+                              dataIn:
+                                - =..calendarDate.year
+                                - "-"
+                                - =..calendarDate.month
+                                - "-"
+                                - $var.day
+                              dataOut: PersonalDocuments.calendarDate.todayDate
+                          - =.builtIn.date.getTimeStampOfDate:
+                              dataIn:
+                                date: =..calendarDate.todayDate
+                              dataOut: PersonalDocuments.calendarDate.todayStamp
+                          # get subtype=1 or subtype=5   userId = evid | bvid
+                          - =.builtIn.string.concat:
+                                dataIn:
+                                  # - "D.ctime>"
+                                  # - =..calendarDate.todayStamp.start
+                                  # - " AND "
+                                  - "D.ctime<"
+                                  - =..calendarDate.todayStamp.end
+                                  - " AND "
+                                  - =..searchScondition
+                                # dataOut: PersonalDocuments.calendarDate.Scondition   
+                                dataOut: Global.timeScondition
+                    - actionType: evalObject
+                      object:
+                        - .PersonalDocuments.listData.personalDoc.doc@: []                              
+                    - actionType: evalObject        #modify
+                      object: 
+                        - .Global._nonce@: 
+                            =.builtIn.math.random: ""                        
+                        - =..listReGet.get: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - =.builtIn.date.AddHeightByTimeSpan:
+                    #         dataIn:
+                    #           object: =..listReGet.personalDoc.doc
+                    #         dataOut: PersonalDocuments.listData.personalDoc
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: DocList                                             
+                  style:
+                    width: "0.12"
+                    height: "0.08"
+                    boxSizing: "border-box"
+                    border: "none"
+                    padding: "0px"
+                    display: "inline-block"
+                    flex: "auto"
+                    # borderRadius: "21px" 
+                  children:
+                    - type: label
+                      dataKey: itemObject.weekDay
+                      style:
+                        width: "0.1"
+                        color: "0xffffff"
+                        fontSize: "12px"
+                        textAlign:
+                          x: center
+                        height: "0.04"
+                        top: "0"
+                    - type: label
+                      dataKey: itemObject.day
+                      style:
+                        width: "0.1"
+                        color: "0xffffff"
+                        backgroundColor: itemObject.backgroundColor
+                        borderRadius: "50"
+                        fontSize: "18px"
+                        textAlign:
+                          x: center
+                        height: "30px"
+                        lineHeight: "30px"
+                        top: "0.04"
+            - type: view
+              style:
+                top: "0"
+                left: "0.92"
+                width: "0.08"
+                height: "0.08"
+              children:
+                - type: image
+                  path: iconOutlineArrowRight.png
+                  style:
+                    top: "0.07"
+                    height: "0.02"
+                  onClick:
+                    - emit:
+                        actions:
+                          - =.builtIn.date.NextWeek:
+                                dataIn:
+                                  year: =..calendarDate.dayLable.6.year
+                                  month: =..calendarDate.dayLable.6.month
+                                  day: =..calendarDate.dayLable.6.day
+                                dataOut: calendarDate.tempDate
+                          - =.builtIn.date.miniWeeklyCalendarArray:
+                              dataIn:
+                                year: =..calendarDate.tempDate.year
+                                month: =..calendarDate.tempDate.month
+                                today: =..calendarDate.day
+                                markDay: =..calendarDate.tempDate.day
+                                color: "0x000000"
+                                backgroundColor: "0x388ECC"
+                                todayColor: "0xffffff"
+                                todayBackgroundColor: "0xFFFFFF6f"
+                              dataOut: PersonalDocuments.calendarDate.dayLable
+                    - actionType: evalObject
+                      object:
+                        - ..calendarDate.year@: =..calendarDate.tempDate.year
+                        - ..calendarDate.month@: =..calendarDate.tempDate.month
+                        - =.builtIn.date.transformMonth:
+                            dataIn:
+                              month: =..calendarDate.month
+                            dataOut: PersonalDocuments.calendarDate.monthName
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: setSchedule
+            - type: label
+              dataKey: PersonalDocuments.selectDate
+              style:
+                width: "1"
+                top: "0.14"
+                fontSize: "15"
+                color: "0xffffff"
+                fontWeight: "550"
+                textAlign:
+                  x: center
+
+    - type: view
+      style:  
+        width: "1"
+        height: "0.72"
+        marginTop: "0"
+        left: "0" 
+        backgroundColor: "0xffffff"        
+      children:
+        - type: view
+          style:
+            top: "0"
+            left: "0.05"
+            width: "1"
+            height: "0.72"
+          children:
+            - .SearchField:
+              text: "  Search Documents"
+              style:
+                left: "0.08"
+                top: "0.024"
+            - type: image
+              path: search3.png
+              # onClick:
+              #   - goto: AddDocuments
+              style:
+                top: "0.024"
+                left: "0.7"
+                height: "0.03"  
+            - type: image
+              path: user.png
+              onClick:
+                - actionType: popUp
+                  popUpView: participantView
+                  dismissOnTouchOutside: true  
+              style:
+                top: "0.024"
+                left: "0.82"
+                height: "0.03"                                    
+            # - .SearchDoc: 
+            #   text: Search
+            #   style:
+            #     top: "0.026"
+            #     left: "0.75"                                                 
+            - type: image
+              path: add3.png
+              onClick:
+                - goto: AddDocuments
+              style:
+                top: "0.024"
+                left: "0"
+                height: "0.03"                          
+            - type: view
+              style:
+                top: "0.06"
+                # left: "0.05"
+                width: "1"
+                height: "0.71"
+                # backgroundColor: "#f0f0f0"
+              children:
+                - type: scrollView
+                  style:
+                    top: "0.01"
+                    # left: "0.05"
+                    width: "1"
+                    height: "0.75"
+                    backgroundColor: "#ffffff"
+                    overflow: scroll
+                  children:
+                    - type: list
+                      viewTag: DocList
+                      contentType: listObject
+                      listObject: ..listData.personalDoc.doc
+                      iteratorVar: itemObject
+                      style:
+                        # left: "0.05"
+                        top: "0"
+                        width: "0.9"
+                        height: "0.7"
+                      children:
+                        - type: listItem
+                          itemObject: ""
+                          style:
+                            left: "0"
+                            # top: "0"
+                            width: "0.9"
+                            height: "0.1"
+                            border:
+                              style: "2"
+                            borderWidth: "0.8"
+                            borderColor: "0x00000011"
+                            textAlign:
+                              y: center                      
+                          onClick:
+                            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                              dataKey: Global.DocReference.document
+                              dataObject: itemObject # this must be a rootRoom
+                            - actionType: evalObject
+                              object:                            
+                                - .Global.VideoChatObjStore.reference.edge.refid@: =.Global.DocReference.document.eid                              
+                            - goto: DocumentDetail
+                            # - actionType: evalObject
+                            #   object:
+                            #     - if:
+                            #       - =.builtIn.string.equal:
+                            #           dataIn:
+                            #             string1: =.Global.DocReference.document.name.type
+                            #             string2: "application/json"  
+                            #       - goto: MyDocumentNotes
+                            #       - goto: MyDocumentDetail
+                          children:
+                            - type: label
+                              # text=func: .builtIn.string.formatUnixtime_en
+                              text: Urgent Care Evaluation Report
+                              dataKey: itemObject.name.title
+                              style:
+                                left: "0.05"
+                                top: "0.02"
+                                width: "0.7"
+                                height: "0.02"
+                                fontSize: "13"
+                                fontWeight: "500" 
+                                textAlign:
+                                  y: center
+                            - type: label
+                              text: 10.30am
+                              text=func: =.builtIn.string.formatUnixtime_en
+                              dataKey: itemObject.ctime # Mon Day, Year hh:mm:ss
+                              style:
+                                color: "0x808080"
+                                left: "0.05"
+                                top: "0.06"
+                                width: "0.4"
+                                height: "0.02"
+                                fontSize: "12"
+                            - type: label
+                              dataKey: itemObject.name.targetRoomName
+                              style:
+                                color: "0x808080"
+                                left: "0.7"
+                                top: "0.05"
+                                width: "0.3"
+                                height: "0.02"
+                                fontSize: "12"
+                                textAlign:
+                                  y: center 
+    - type: popUp # view
+      viewTag: participantView
+      style:
+        left: "0.05"
+        top: "0.2"
+        width: "0.9"
+        height: "0.6"
+        backgroundColor: "0xeeeeeeff"
+        border:
+          style: "5"
+        borderRadius: "15"       
+      children:
+        - type: scrollView
+          viewTag: DocList
+          style:
+            top: "0.01"
+            # left: "0.05"
+            width: "1"
+            height: "0.55"
+            # backgroundColor: "#ffffff"
+            overflow: scroll
+          children:         
+            - type: label
+              text: "Search by Contacts: "
+              style:
+                left: "0.05"
+                top: "0.02"
+                width: "0.8"
+                height: "0.03"
+                fontSize: "18"
+                fontStyle: bold
+                color: "0x000000ff"            
+            - type: list # hardcoded listObject
+              contentType: listObject
+              listObject: ..userData.userVertex.vertex # to dataObject to enumerate the list
+              iteratorVar: itemObject # iteratorVar is a reserve key of CADL
+              #for (itemObject in listObject) do something
+              #  ..messageDoc@ = itemObject
+              style:
+                left: "0.05"
+                top: "0.03"
+                width: "0.8"
+                # backgroundColor: "0xcdcdcd"
+                height: "0.48"
+              #for loop through listObject, we got each itemObject
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    # top: "0"
+                    width: "0.8"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                      color: "0x000000ff"
+                    borderWidth: "0.8"
+                    textAlign: 
+                      y: center
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: participantView
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions: 
+                          - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..SearchScondition
+                                  string2: "E.type in (10000,40000)" 
+                            - continue      
+                            - ..SearchScondition@: "E.type in (10000,40000)"                         
+                          - .PersonalDocuments.listData.personalDoc.doc@: []
+                          - =.builtIn.string.concat:
+                                dataIn:
+                                  - "D.ovid in (from_base64('"
+                                  - $var.id
+                                  - "')) AND "
+                                  - =..SearchScondition
+                                # dataOut: PersonalDocuments.calendarDate.Scondition   
+                                dataOut: Global.timeScondition
+                          - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..SearchScondition
+                                  string2: "E.type in (10000,40000)" 
+                            - ..SearchScondition@: =.Global.timeScondition
+                            - continue                              
+                    - actionType: evalObject
+                      object:
+                        - .PersonalDocuments.listData.personalDoc.doc@: []                              
+                    - actionType: evalObject        #modify
+                      object: 
+                        - .Global._nonce@: 
+                            =.builtIn.math.random: ""                        
+                        - =..listUserGet.get: ""
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: DocList
+                  children:
+                    # - type: label
+                    #   dataKey: itemObject.name.firstName
+                    #   style:
+                    #     left: "0.27"
+                    #     # top: "0.04"
+                    #     width: "0.1"
+                    #     height: "0.03"
+                    #     fontSize: "16"
+                    #     # fontStyle: bold
+                    #     color: "0x000000ff"
+                    #     textAlign: 
+                    #       x: center
+                    #       y: center
+                    - type: label
+                      dataKey: itemObject.name.userName
+                      style:
+                        # left: "0.3"
+                        left: "0.33"
+                        # top: "0.04"
+                        width: "0.1"
+                        height: "0.03"
+                        fontSize: "16"
+                        # fontStyle: bold
+                        color: "0x000000ff"
+                        textAlign: 
+                          x: center
+                          y: center                                                                                       
+
+
+

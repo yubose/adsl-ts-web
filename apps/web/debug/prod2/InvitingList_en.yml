@@ -1,0 +1,244 @@
+InvitingList:
+  pageNumber: "360"
+  title: "Email Contacts"
+  init:
+    - .SignInCheck
+    - ..listData.get
+    - if:
+        - ..listData.invitingList.edge.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
+  listData:
+    invitingList: ""
+    get:
+      .DocAPI.get: ""
+      api: re
+      dataKey: listData.invitingList
+      id: .Global.currentUser.vertex.id
+      type: .EdgeType.InviteInbox
+      xfname: bvid
+      maxcount: "200"
+      _nonce: =.Global._nonce
+  components:
+    - .BaseHeader:
+    - type: view
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+      children:
+        - .BaseHeader3:
+        - .HeaderLeftButton:
+          onClick:
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+        - .HeaderRightImg:
+          path: sideNav.svg
+          onClick:
+            - goto: InboxMenu
+        - .SubMenuView:
+          style:
+            top: "0.07"
+            backgroundColor: "0x2988e6"
+            height: "0.1"
+            zIndex: "10"
+          children:
+            - .SubMenuButton:
+              text: "Invite"
+              style:
+                top: "0"
+                height: "0.08"
+                color: "0xffffffff"
+              onClick:
+                - goto: InvitingList
+            - .SubMenuButton:
+              text: "Accept"
+              style:
+                top: "0"
+                height: "0.08"
+                left: "0.33"
+              onClick:
+                - goto: InviteList
+            - .SubMenuButton:
+              text: "Contacts"
+              style:
+                top: "0"
+                height: "0.08"
+                left: "0.66"
+              onClick:
+                - goto: PatientContacts
+        - type: view
+          style:
+            top: "0.18"
+            left: "0"
+            width: "1"
+            height: "0.09"
+          children:
+            - type: view
+              style:
+                marginTop: "0"
+                left: "0.05"
+                width: "1"
+                height: "0.05"
+              children:
+                - .SearchField:
+                  placeHolder: "search contacts"
+                  style:
+                    left: "0.2"
+                    top: "0"
+                    width: "0.72"
+                - .SearchDoc:
+                  style:
+                    left: "0"
+                    top: "0.005"
+                - type: image
+                  path: addBlue.svg
+                  onClick:
+                    - goto: AddContact
+                  style:
+                    top: "0.005"
+                    left: "0.83"
+                    height: "0.03"
+                - type: label
+                  contentType: messageHidden
+                  text: "No favorited contacts to show"
+                  style:
+                    left: "0.1"
+                    top: "0.05"
+                    width: "0.72"
+                    height: "0.04"
+                    color: "0x000058"
+                    fontSize: .Nfont.h16
+                    isHidden: "true"
+                    border:
+                      style: "1"
+                    display: inline
+                    textAlign:
+                      x: center
+                      y: center
+        - type: view
+          style:
+            top: "0.22"
+            left: "0.05"
+            width: "0.9"
+            height: "0.6"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..listData.invitingList.edge # to dataObject to enumerate the list
+              iteratorVar: itemObject
+              style:
+                top: "0"
+                left: "0"
+                width: "0.9"
+                height: "0.7"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    width: "0.9"
+                    height: "0.1"
+                    marginTop: "0"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+                  children:
+                    - type: image
+                      viewTag: select
+                      style:
+                        top: "0.03"
+                        left: "0"
+                        height: "0.04"
+                      onClick:
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                          dataKey: FavoriteList.contactInfo.document
+                          dataObject: itemObject # this must be a rootRoom
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..generalInfo.value
+                                        string2: $var.name.data.isFavorite
+                                  - =.builtIn.object.set:
+                                      dataIn:
+                                        object: $var
+                                        key: name.data.isFavorite
+                                        value: false
+                                  - =.builtIn.object.set:
+                                      dataIn:
+                                        object: $var
+                                        key: name.data.isFavorite
+                                        value: true
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.FavoriteList.contactInfo.document.name.data.isFavorite
+                                - .FavoriteList.contactInfo.document.type@: =.DocType.ContactFav
+                                - .FavoriteList.contactInfo.document.type@: =.DocType.Contact
+                            - .Global._nonce@:
+                                =.builtIn.math.random: ""
+                            - .FavoriteList.contactInfo.document._nonce@:
+                                =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: select
+                        - actionType: evalObject
+                          object: ..save
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                    - type: label
+                      dataKey: itemObject.name.inviteeName
+                      onClick:
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                          dataKey: Global.DocReference.document
+                          dataObject: itemObject # this must be a rootRoom
+                        - goto: ContactInformation
+                      style:
+                        left: "0.05"
+                        height: "0.1"
+                        width: "0.2"
+                        top: "0"
+                        fontStyle: bold
+                        textAlign:
+                          y: center
+                    - type: label
+                      dataKey: itemObject.name.inviteePhoneNumber
+                      style:
+                        left: "0.3"
+                        height: "0.06"
+                        width: "0.42"
+                        top: "0"
+                        fontSize: "17"
+                        textAlign:
+                          y: center
+                    - type: label
+                      text: Waiting for accept
+                      style:
+                        left: "0.3"
+                        height: "0.04"
+                        color: "0xff0000"
+                        width: "0.4"
+                        top: "0.06"
+                        textAlign:
+                          y: center
+                    - type: image
+                      path: rightYellowArrow.svg
+                      style:
+                        left: "0.82"
+                        top: "0.035"
+                        height: "0.02"
+                        # zIndex: 1000
+                      onClick:
+                        - goto: ContactInformation

@@ -1,0 +1,524 @@
+ProviderMacros:
+  title: "Macros"
+  pageNumber: ""
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =.builtIn.utils.setTimer:
+        dataIn:
+          timeUnix: 1000
+    - ..listNotes.Remoteget
+    # - ..listNotes.Localget
+    # - ..patientNotes.Dataget
+    # - =.builtIn.array.concatArray:
+    #     dataIn:
+    #       array1: =..listNotes.Notes1.doc
+    #       array2: =..listNotes.Notes2.doc
+    #       sortby: "ctime"
+    #       orders: "desc"
+    #     dataOut: ProviderNotes.formData.noteList
+    - actionType: updateObject
+      dataKey: Global.Macro
+      dataObject: .EmptyObj
+    - ..provider.docAPI.get
+    - actionType: evalObject
+      object:
+        # - .Global.getDoc.patient@: =..patient.docReponse
+        - .Global.getDoc.provider@: =..provider.docReponse
+    - actionType: updateObject
+      dataKey: Global.formData.signature
+      dataObject: ""
+  provider:
+    docReponse: ""
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        api: rd
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.DoctorProfile
+        dataKey: provider.docReponse
+        _nonce: =.Global._nonce
+  formData:
+    noteList: ""
+    patient: ""
+    provider: ""
+    macroList: ""
+    copied: ""
+  # - ..listData.store
+  listNotes:
+    Notes1:
+      document: ""
+    Notes2:
+      document: ""
+      # doc:
+      #   name:
+      #     title: "Urgent Care Evaluation Report"
+    Remoteget:
+      .DocAPI.get: ""
+      api: rd
+      dataKey: formData.noteList
+      # type: .DocType.UploadFile
+      ids:
+        # - .Global.VideoChatObjStore.reference.edge.refid
+        - .Global.rootNotebookID
+        # - .Global.VideoChatObjStore.reference.edge.id
+      xfname: eid
+      maxcount: "20"
+      type: .DocType.Macro
+      # sCondition: "type in (9216)"
+      _nonce: =.Global._nonce
+    Localget:
+      .DocAPI.get: ""
+      api: rd
+      obfname: ctime
+      dataKey: listNotes.Notes2
+      # type: .DocType.UploadFile
+      ids:
+        # - .Global.VideoChatObjStore.reference.edge.refid
+        # - .Global.rootNotebookID
+        # - .AppointmentLobby.roomInfo.response.edge.id
+        - .Global.rootRoomInfo.edge.id
+        # - .Global.VideoChatObjStore.reference.edge.id
+      xfname: eid
+      maxcount: "20"
+      # type: "1537"
+      sCondition: "type in (1537,1793,2049,2305,122881,125441,128001,130561)"
+      _nonce: =.Global._nonce
+  patientNotes:
+    resData:
+      document: ""
+    Dataget:
+      .DocAPI.get: ""
+      api: rd
+      dataKey: patientNotes.resData
+      # type: .DocType.UploadFile
+      ids:
+        # - .Global.VideoChatObjStore.reference.edge.refid
+        - .Global.roomInfo.edge.id
+        # - .Global.VideoChatObjStore.reference.edge.id
+      xfname: eid
+      maxcount: "20"
+      sCondition: "type in (2561)"
+      _nonce: =.Global._nonce
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+    - type: list
+      contentType: listObject
+      listObject: ..formData.noteList.doc
+      iteratorVar: itemObject
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.75"
+        margin: "0"
+        overflow: scroll
+      children:
+        - type: listItem
+          itemObject:
+          style:
+            width: "1"
+            height: "auto"
+            marginTop: "0"
+            boxSizing: "border-box"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginLeft: "0.04"
+                width: "0.92"
+                height: "auto"
+                boxSizing: "border-box"
+              children:
+                - type: view
+                  style:
+                    verticalAlign: middle
+                    display: "inline-block"
+                    width: "0.78"
+                    height: "auto"
+                    boxSizing: "border-box"
+                    overflow: hidden
+                  children:
+                    - type: label
+                      dataKey: itemObject.name.title
+                      style:
+                        marginTop: "0.01"
+                        width: "0.78"
+                        height: "auto"
+                        fontSize: .Nfont.h16
+                        boxSizing: "border-box"
+                        fontWeight: "600"
+                        wordBreak: "break-all"
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtime_en
+                      dataKey: itemObject.ctime
+                      style:
+                        marginTop: "0.01"
+                        height: "auto"
+                        width: "0.78"
+                        fontSize: .Nfont.h14
+                        color: "0x999999"
+                  onClick:
+                    - actionType: updateObject
+                      dataObject: itemObject
+                      dataKey: Global.DocReference.document
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.DocReference.document.type
+                                  string2: 9216
+                            - actionType: evalObject
+                              object:
+                                - .Global.Macro@: =.Global.DocReference.document
+                                - goto: ProviderMacroDetail
+                            - continue
+                - type: image
+                  path: copy.svg
+                  style:
+                    marginLeft: "0.02"
+                    verticalAlign: middle
+                    display: "inline-block"
+                    height: "0.03"
+                    boxSizing: "border-box"
+                  onClick:
+                    - actionType: updateObject
+                      dataObject: itemObject
+                      dataKey: Global.DocReference.document
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.utils.copyToClip:
+                            dataIn:
+                              object: =.Global.DocReference.document.name.data.content
+                            dataOut: ProviderMacros.formData.copied
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: "0.01"
+                height: "0.0013"
+                width: "1"
+                backgroundColor: "0xdedede"
+
+    - type: view
+      style:
+        top: "0.85"
+        height: "0.15"
+        width: "1"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            marginTop: "0.02"
+            marginLeft: "0.1"
+            width: "0.8"
+            height: "auto"
+            boxSizing: "border-box"
+            border:
+              style: 3
+            borderWidth: "1"
+            borderColor: "0x2fb355"
+            borderRadius: "15"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.015"
+                width: "0.8"
+                height: "auto"
+                boxSizing: "border-box"
+              children:
+                - type: image
+                  path: greenAdd.svg
+                  style:
+                    display: "inline-block"
+                    marginLeft: "0.05"
+                    verticalAlign: middle
+                    width: "0.13"
+                - type: label
+                  text: "Add new macro"
+                  style:
+                    marginLeft: "0.08"
+                    display: "inline-block"
+                    verticalAlign: middle
+                    color: "0x000000"
+                    fontSize: .Nfont.h18
+            - type: view
+              style:
+                marginTop: "0.015"
+          onClick:
+            - emit:
+                actions:
+                  - actionType: evalObject
+                    object:
+                      .Global.Macro@: []
+            - actionType: evalObject
+              object:
+                .Global.Macro@: []
+            - actionType: updateObject
+              dataKey: Global.Macro
+              dataObject:
+                .EmptyObj
+                # .@: []
+            # - actionType: popUp
+            #   popUpView: selectView
+
+            - actionType: evalObject
+              object:
+                - goto: ProviderMacroDetail
+
+    # 不要删除
+    # - type: scrollView
+    #   style:
+    #     top: "0.1"
+    #     width: "1"
+    #     height: "0.75"
+    #     left: "0"
+    #     overflow: "scroll"
+    #   children:
+    #     # - type: view
+    #     #   style:
+    #     #     width: "1"
+    #     #     # top: "auto"
+    #     #     marginTop: "0"
+    #     #     left: "0"
+    #     #     height: "0.05"
+    #     #     backgroundColor: "#f0f0f0"
+    #     #   children:
+    #     #     - type: label
+    #     #       text: "Provider Notes"
+    #     #       style:
+    #     #         left: "0.1"
+    #     #         width: "0.9"
+    #     #         height: "0.05"
+    #     #         fontSize: .Nfont.h14
+    #     #         fontWeight: 400
+    #     #         color: "#4b4b4b"
+    #     #         textAlign:
+    #     #           y: center
+    #     - type: list
+    #       contentType: listObject
+    #       listObject: ..formData.noteList.doc
+    #       iteratorVar: itemObject
+    #       style:
+    #         left: "0"
+    #         width: "1"
+    #         marginTop: "0"
+    #         height: "auto"
+    #         # boxShadow: "0px 0px 1px #dededf"
+    #         margin: "0"
+    #       children:
+    #         - type: listItem
+    #           itemObject: ""
+    #           zIndex: -1
+    #           onClick:
+    #             - actionType: updateObject
+    #               dataObject: itemObject
+    #               dataKey: Global.DocReference.document
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.string.equal:
+    #                         dataIn:
+    #                           string1: =.Global.DocReference.document.type
+    #                           string2: 9216
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - .Global.Macro@: =.Global.DocReference.document
+    #                         - goto: ProviderMacroDetail
+    #                     - continue
+    #           style:
+    #             width: "1"
+    #             left: "0"
+    #             height: "0.1"
+    #             border:
+    #               style: "2"
+    #             borderWidth: "1"
+    #             borderColor: "0xdededf"
+    #           children:
+    #             - type: label
+    #               dataKey: itemObject.name.title
+    #               style:
+    #                 fontSize: "18"
+    #                 top: "0.015"
+    #                 height: "auto"
+    #                 left: "0.1"
+    #                 fontWeight: 400
+    #                 width: "0.5"
+    #             - type: image
+    #               zIndex: 99999
+    #               path: copy.svg
+    #               onClick:
+    #                 - actionType: updateObject
+    #                   dataObject: itemObject
+    #                   dataKey: Global.DocReference.document
+    #                 - actionType: evalObject
+    #                   object:
+    #                     - =.builtIn.utils.copyToClip:
+    #                         dataIn:
+    #                           object: =.Global.DocReference.document.name.data.content
+    #                         dataOut: ProviderMacros.formData.copied
+    #                 - actionType: builtIn
+    #                   funcName: goBack
+    #                   reload: true
+    #               style:
+    #                 top: "0.04"
+    #                 height: "0.03"
+    #                 left: "0.7"
+    #                 width: "0.25"
+    #                 color: itemObject.name.data.fontcolor
+    #             - type: label
+    #               text=func: .builtIn.string.formatUnixtime_en
+    #               dataKey: itemObject.ctime
+    #               style:
+    #                 width: "0.5"
+    #                 top: "0.055"
+    #                 height: "auto"
+    #                 left: "0.1"
+    #     # - type: view
+    #     #   style:
+    #     #     width: "1"
+    #     #     # top: "auto"
+    #     #     marginTop: "0"
+    #     #     left: "0"
+    #     #     height: "0.05"
+    #     #     backgroundColor: "#f0f0f0"
+    #     #   children:
+    #     #     - type: label
+    #     #       text: "Patient Notes"
+    #     #       style:
+    #     #         width: "0.9"
+    #     #         height: "0.05"
+    #     #         left: "0.1"
+    #     #         fontSize: .Nfont.h14
+    #     #         fontWeight: 400
+    #     #         color: "#4b4b4b"
+    #     #         textAlign:
+    #     #           y: center
+    #     # - type: list
+    #     #   contentType: listObject
+    #     #   listObject: ..patientNotes.resData.doc
+    #     #   iteratorVar: itemObject
+    #     #   style:
+    #     #     left: "0"
+    #     #     # top: "auto"
+    #     #     marginTop: "0"
+    #     #     width: "1"
+    #     #     height: "auto"
+    #     #     boxShadow: "0px 0px 1px #dededf"
+    #     #     margin: "0"
+    #     #   children:
+    #     #     - type: listItem
+    #     #       itemObject: ""
+    #     #       onClick:
+    #     #         - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+    #     #           dataKey: Global.Macro
+    #     #           dataObject: itemObject
+    #     #         - goto: PatientBlankNote
+    #     #       style:
+    #     #         width: "1"
+    #     #         left: "0"
+    #     #         height: "0.1"
+    #     #         border:
+    #     #           style: "2"
+    #     #           width: "1"
+    #     #         borderColor: "0xdededf"
+    #     #       children:
+    #     #         - type: label
+    #     #           dataKey: itemObject.name.title
+    #     #           style:
+    #     #             fontSize: "18"
+    #     #             top: "0.015"
+    #     #             height: "0.03"
+    #     #             left: "0.1"
+    #     #             fontWeight: 400
+    #     #             width: "0.5"
+    #     #         - type: label
+    #     #           text: "Shared"
+    #     #           # dataKey: itemObject.name.data.authority
+    #     #           style:
+    #     #             fontSize: .Nfont.h16
+    #     #             top: "0.04"
+    #     #             height: "0.03"
+    #     #             left: "0.7"
+    #     #             fontWeight: 400
+    #     #             textAlign:
+    #     #               x: left
+    #     #             width: "0.35"
+    #     #             # color: itemObject.name.data.fontcolor
+    #     #         - type: label
+    #     #           text=func: .builtIn.string.formatUnixtime_en
+    #     #           # text: "ala"
+    #     #           dataKey: itemObject.ctime
+    #     #           style:
+    #     #             width: "0.5"
+    #     #             top: "0.055"
+    #     #             height: "0.03"
+    #     #             left: "0.1"
+    # - type: view
+    #   style:
+    #     top: "0.85"
+    #     width: "1"
+    #     height: "0.14"
+    #     # backgroundColor: "#80b3ff"
+    #     position: fixed
+    #   children:
+    #     - type: view
+    #       style:
+    #         left: "0.07"
+    #         top: "0.01"
+    #         width: "0.85"
+    #         height: "0.098"
+    #         border:
+    #           style: "3"
+    #           color: "0x2fb355"
+    #         borderWidth: "1"
+    #         # borderColor: "0x2fb355"
+    #         borderRadius: "15"
+    #         # boxShadow: "0px 2px 5px 2px #dededf"
+    #       onClick:
+    #         - emit:
+    #             actions:
+    #               - actionType: evalObject
+    #                 object:
+    #                   .Global.Macro@: []
+    #         - actionType: evalObject
+    #           object:
+    #             .Global.Macro@: []
+    #         - actionType: updateObject
+    #           dataKey: Global.Macro
+    #           dataObject:
+    #             .EmptyObj
+    #             # .@: []
+    #         # - actionType: popUp
+    #         #   popUpView: selectView
+
+    #         - actionType: evalObject
+    #           object:
+    #             - goto: ProviderMacroDetail
+    #       children:
+    #         - type: image
+    #           path: greenAdd.svg
+    #           style:
+    #             left: "0.08"
+    #             top: "0.02"
+    #             width: "0.13"
+    #         - type: label
+    #           text: "Add new macro"
+    #           style:
+    #             left: "0.3"
+    #             top: "0.03"
+    #             # width: "0.13"
+    #             fontSize: "20"
+    #             color: "0x000000"

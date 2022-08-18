@@ -1,0 +1,368 @@
+AbsentNoteReview:
+  title: Absence Note
+  # pageNumber: "184"
+  init: 
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - ..absentNote.document@: =.Global.formData.medicalRecords
+        - continue
+  absentNote:
+    response: "" 
+    document: 
+      .Global.Note: ""
+      type: .DocType.AbsentNote
+      name:
+        data:
+          signatureId: ""
+          whetherSign: ""        
+    docAPI:
+      .DocAPI: ""
+      store: 
+        api: cd
+        dataIn: absentNote.document
+        dataOut: AbsentNoteReview.absentNote.response
+        subtype: 
+          mediaType: "text/plain"
+      delete: 
+        api: dx
+        dataIn: AbsentNoteReview.absentNote.document
+  save: 
+    - =.AbsentNoteReview.absentNote.docAPI.store: ""
+  delete: 
+    - =.AbsentNoteReview.absentNote.docAPI.delete: ""
+  place: 
+    - key: place
+      value: School
+    - key: place
+      value: Work
+    - key: place
+      value: Other
+  reason: 
+    - key: reason
+      value: injury
+    - key: reason
+      value: illness
+    - key: reason
+      value: Other
+  # 签名显示,默认为none
+  formData:
+    flag: "none"
+    temporarySignature: ""
+    whetherSign: ""
+    signIsHidden: true
+  components: 
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - type: view
+              style:
+                top: "0.06"
+                left: "0.665"
+                width: "0.065"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView                
+              children:
+                - type: image
+                  path: downLoadBlue.svg
+                  style:
+                    marginTop: "0.006"
+                    display: inline-block
+                    width: "0.009"
+                    height: "0.015"
+                - type: label
+                  text: "Download"
+                  style:
+                    display: inline-block
+                    width: "0.055"
+                    color: "0x0063A8"
+                    fontSize: .Nfont.nf4
+                    fontWeight: "600"
+                    textAlign:
+                      x: center
+                      y: center  
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    margin: "auto"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - type: scrollView
+                          style:
+                            width: "0.39"
+                            height: "0.74"
+                            overflow: scroll
+                          children:
+                            - type: view 
+                              style: 
+                                marginTop: "0.02"
+                                width: "0.39"
+                                height: "0.1"
+                              children: 
+                                - type: image
+                                  path: medicalrecords.png
+                                  style: 
+                                    top: "0"
+                                    width: "0.056"
+                                    height: "0.1"
+                                - type: label
+                                  text=func: .builtIn.string.formatUnixtime_en
+                                  dataKey: Global.roomInfo.edge.stime
+                                  style:
+                                    marginLeft: "0.056"
+                                    height: "0.1"
+                                    width: "0.334"
+                                    top: "0"
+                                    fontSize: .Nfont.nf2
+                                    textAlign: 
+                                      x: right
+                                      y: center
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                width: "0.39"
+                                height: auto
+                              children:
+                                - .PrescriptionListBox:
+                                  children: 
+                                    - .PrescriptionLabel:
+                                      text: Patient Name
+                                    - .PrescriptionDatakey:
+                                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.name
+                                - .PrescriptionListBox:
+                                  children: 
+                                    - .PrescriptionLabel:
+                                      text: DOB
+                                    - .PrescriptionDatakey:
+                                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.dob
+                                - .PrescriptionListBox:
+                                  children: 
+                                    - .PrescriptionLabel:
+                                      text: Phone
+                                    - .PrescriptionDatakey:
+                                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.phoneNumber
+                                - .PrescriptionListBox:
+                                  children: 
+                                    - .PrescriptionLabel:
+                                      text: Email
+                                    - .PrescriptionDatakey:
+                                      dataKey: Global.formData.medicalRecords.name.data.patientInfo.email
+                            - type: view 
+                              style:  
+                                marginTop: "0.02"
+                                width: "0.39"
+                                height: "0.002"
+                                backgroundColor: "0x707070"
+                            - type: view
+                              style: 
+                                marginTop: "0.01"
+                                width: "0.39"
+                                height: auto
+                              children: 
+                                - type: label
+                                  text: Leave of Absence
+                                  style: 
+                                    width: "0.39"
+                                    fontFamily: "sans-serif"
+                                    fontSize: .Nfont.nf3
+                                    fontWeight: "600"
+                                    textAlign: 
+                                      x: center
+                                - .PrescriptionListBox:
+                                  children:
+                                    - .PrescriptionLabel:
+                                      text: Please Excuse
+                                    - .PrescriptionDatakey:
+                                      dataKey: Global.formData.medicalRecords.name.data.name
+                                - .PrescriptionListBox:
+                                  children:
+                                    - .PrescriptionLabel:
+                                      text: as of
+                                    - .PrescriptionDatakey:
+                                      dataKey: Global.formData.medicalRecords.name.data.date                                  
+
+                                - .PrescriptionListBox:
+                                  children:
+                                    - .PrescriptionLabel:
+                                      text: from
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..place
+                                      iteratorVar: itemObject
+                                      style: 
+                                        marginLeft: "0.21"
+                                        axis: horizontal
+                                        width: "0.18"
+                                        height: "0.03"
+                                      children:    
+                                        - type: listItem
+                                          itemObject: ""
+                                          viewTag: placeTag
+                                          style:    
+                                            marginLeft: "0.01"                   
+                                            width: "0.05"
+                                            height: "0.03"
+                                            textAlign:
+                                              y: center
+                                          children: 
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:        
+                                                    - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =.Global.formData.medicalRecords.name.data.place
+                                                            string2: $var.value
+                                                      - selectBlue.png
+                                                      - selectGray.png
+                                              style:
+                                                width: "0.013"    
+                                                height: "0.023"
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style: 
+                                                marginLeft: "0.015"
+                                                fontSize: .Nfont.nf4
+                                                top: "0"
+                                                height: "0.03"
+                                                width: "0.03"
+                                                textAlign: 
+                                                  x: right
+                                                  y: center
+                                - .PrescriptionListBox:
+                                  children:
+                                    - .PrescriptionLabel:
+                                      text: Due to
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..reason
+                                      iteratorVar: itemObject
+                                      style: 
+                                        marginLeft: "0.21"
+                                        axis: horizontal
+                                        width: "0.18"
+                                        height: "0.03"
+                                      children:    
+                                        - type: listItem
+                                          itemObject: ""
+                                          viewTag: reasonTag
+                                          style:  
+                                            marginLeft: "0.01"                   
+                                            width: "0.05"
+                                            height: "0.03"
+                                            textAlign:
+                                              y: center
+                                          children: 
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:                        
+                                                    - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =.Global.formData.medicalRecords.name.data.reason
+                                                            string2: $var.value
+                                                      - selectBlue.png
+                                                      - selectGray.png
+                                              style:
+                                                width: "0.013"    
+                                                height: "0.023"   
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:  
+                                                marginLeft: "0.015"
+                                                top: "0"
+                                                fontSize: .Nfont.nf4
+                                                height: "0.03"
+                                                width: "0.03"
+                                                textAlign: 
+                                                  x: right
+                                                  y: center
+                            - type: view 
+                              style: 
+                                marginTop: "0.02"
+                                width: "0.39"
+                                height: "0.002"
+                                backgroundColor: "0x707070"
+                            - type: label
+                              text: "Confidentiality Notice:The documents accompanying this facsimile Transmission contain confidential information belonging to the sender, which is privilege.The information is intended only for the use of the Individual or entity below.If you are not the intended recipient, you are Hereby notified that any disclosure.copying distribution or the taking of any action in reliance of the contents of this telescoped information is strictly prohibited. If you have received this facsimile in error,please Notify us immediately by telephone to arrange for the return of said documents."
+                              style:  
+                                marginTop: "0.02"
+                                width: "0.39"
+                                fontSize: .Nfont.nf2
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                width: "0.39"
+                                height: auto
+                              children:
+                                - .PrescriptionLabel:
+                                  text: "Signature:"
+                                  style:
+                                    width: "0.39"
+                            - type: view
+                              style:
+                                marginTop: "0.05"
+                                width: "0.39"
+                                display: flex
+                                flexDirection: column
+                                flexWrap: wrap
+                                alignContent: space-around
+                                justifyContent: center
+                              children:
+                                - .SignAreaView:
+                                  children:
+                                    - type: image
+                                      viewTag: signatureShowTag
+                                      path=func: =.builtIn.utils.prepareDocToPath
+                                      dataKey: absentNote.document.name.data.signatureId
+                                      style:
+                                        .SignCanvasStyle:
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true         

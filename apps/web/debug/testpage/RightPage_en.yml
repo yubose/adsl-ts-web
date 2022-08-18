@@ -1,0 +1,9 @@
+RightPage:
+  components:
+    - type: image
+      path: doctorman.png
+      style:
+        left: "0"
+        width: "1"
+        height: "1"
+        top: "0"

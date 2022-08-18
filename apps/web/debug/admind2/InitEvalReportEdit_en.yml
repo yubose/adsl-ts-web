@@ -1,0 +1,1586 @@
+InitEvalReportEdit:
+  title: Initial Evaluation Report
+  init: #Page initialization
+    - .SignInCheck
+    - =..apiRequest.initialEvaluationReport.docAPI.store: ""
+    - ..apiRequest.initialEvaluationReport.docReq@: =..apiRequest.initialEvaluationReport.docResp.doc
+    
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.Global.formData.providerInfo.name.data.fullName
+          - ","
+          - =.Global.formData.providerInfo.name.data.title
+        dataOut: InitEvalReportEdit.apiRequest.initialEvaluationReport.docReq.name.data.providerInfo.providerFullName
+  #  判断medicalLicense是否为空
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =.Global.formData.providerInfo.name.data.MedicalLicense
+            dataOut: InitEvalReportEdit.formData.licenseLength
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.licenseLength
+                  string2: "0"
+            - .InitEvalReportEdit.apiRequest.initialEvaluationReport.docReq.name.data.providerInfo.LIC@: ""
+            - actionType: evalObject
+              object:
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =.Global.formData.providerInfo.name.data.MedicalLicense.0.state
+                      - " "
+                      - =.Global.formData.providerInfo.name.data.MedicalLicense.0.medicalLicense
+                    dataOut: InitEvalReportEdit.apiRequest.initialEvaluationReport.docReq.name.data.providerInfo.LIC
+    # 判断Diagnoses
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+            dataOut: InitEvalReport.formData.listDatalength
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.listDatalength
+                  string2: "0"
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: listData
+            - actionType: evalObject
+              object:
+                - ..formData.listDataflag@: "block"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: listData   
+  formData: #Input data here
+    facilityPhone: ""
+    whetherSign: ""
+    licenseLength: ""
+    selectedDiagnosis: ""
+    diagnosis:
+      descriptiveList:
+        code: ""
+        description: ""
+        comment: ""
+    listDataflag: "none"
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+    allListInfo: []
+    allListString: []
+    vitalTempOne:
+      - key: bloodPressure
+        value: Blood Pressure
+      - key: heartRate
+        value: Heart Rate
+      - key: resRate
+        value: Respiratory Rate  
+    vitalTempTwo:  
+      - key: pulseOx
+        value: Pulse Oximetry 
+      - key: temperature
+        value: Temperature   
+      - key: height
+        value: Height 
+    vitalTempThree:  
+      - key: weight
+        value: Weight
+      - key: BMI
+        value: BMI 
+    privateTag: 
+      display: "block"
+      backgroundColor: "0xececee"
+      fontColor: "0x4c5264"
+      name: "Private"
+    publicTag: 
+      display: "block"
+      backgroundColor: "0xdfedfc"
+      fontColor: "0x2988e6"
+      name: "Released"
+  apiRequest: #Input data request here
+    initialEvaluationReport: 
+      deleteReq: 
+        id: ""
+      docResp: ""
+      docReq: 
+        type: .DocType.InitEvalReport
+        eid: .Global.formData.meetingDocEid
+        reid: ""
+        name:
+          title: Initial Evaluation Report
+          user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          type: "application/json"
+          data:
+            facilityInfo: 
+              facilityName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+              location: .Global.currentFacility.name.basicInfo.location
+              email: .Global.currentFacility.name.basicInfo.email
+              aiTmedID: .Global.currentFacility.name.basicInfo.locationID
+              phone: .Global.currentFacility.name.basicInfo.phoneNumber
+              fax: .Global.currentFacility.name.basicInfo.fax
+              website: .Global.currentFacility.name.basicInfo.website
+            classTag:
+              name: Admin
+              fontColor: "0x005795"
+              backgroundColor: "0xe9f2fc"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264" 
+            providerInfo:
+              providerFullName: ""
+              LIC: ""
+            patientInfo: 
+              examDate: .Global.formData.appointment.stime
+              patientName: .Global.formData.patientInfo.name.data.basicInfo.fullName
+              dob: .Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+              aiTmedID: .Global.formData.patientInfo.name.data.basicInfo.userName
+              phone: .Global.formData.patientInfo.name.data.basicInfo.phone
+              email: .Global.formData.patientInfo.name.data.contactInfo.email
+            signatureId: ""
+            fontcolor: "0xFD3A3A"
+            whetherSign: "true"
+            authority: Private
+            referralFrom: ""
+            toWhomMayConcern: ""
+            reasonForEnvaluation: ""
+            historyOfIllness: ""
+            pastMedicalHistory: ""
+            pastSurgicalHistory: ""
+            allergies: ""
+            familyHistory: ""
+            socialHistory: ""
+            medications: ""
+            vitalSigns:
+              BP: ""
+              HR: ""
+              RR: ""
+              PO: ""
+              temperature: ""
+              height: ""
+              weight: ""
+              BMI: ""
+            objectiveFindings: ""
+            bloodGlucose: ""
+            imageStudies: ""
+            diagnosis:
+              descriptiveList: []
+            planAndRecommendations: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: InitEvalReportEdit.apiRequest.initialEvaluationReport.docReq
+          dataOut: InitEvalReportEdit.apiRequest.initialEvaluationReport.docResp
+        delete: 
+          api: dx
+          dataIn: InitEvalReportEdit.apiRequest.initialEvaluationReport.deleteReq
+    newSign:
+      docRes: ""
+      document: #DOC
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.document.subtype.mediaType
+          data: "" 
+        eid: .Global.formData.meetingDocEid
+        subtype:
+          mediaType: "" # mediaType : "image/jpeg"              
+      docAPI: # DOCAPI 
+        store:
+          api: cd
+          dataIn: apiRequest.newSign.document 
+          dataOut: InitEvalReportEdit.apiRequest.newSign.docRes 
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.initialEvaluationReport.deleteReq.id@: =..apiRequest.initialEvaluationReport.docResp.doc.id
+                    - =..apiRequest.initialEvaluationReport.docAPI.delete: ""
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true 
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                  children:
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.74"
+                        overflow: scroll 
+                      children:
+                        - type: view
+                          style:
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children: 
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                height: "0.15"
+                                width: "0.39"
+                              children: 
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0.1"
+                                    height: "auto"
+                                    width: "0.28"
+                                    overflow: hidden
+                                  children: 
+                                    - type: label
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.facilityName
+                                      style:
+                                        height: "auto"         
+                                        color: "0x0f0f0f"   
+                                        fontSize: .Nfont.nf6
+                                        fontFamily: "Roboto"
+                                        fontWeight: "500"
+                                    - type: label
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.location
+                                      style:
+                                        marginTop: '0.01'
+                                        height: "auto"
+                                        color: "0x0f0f0f"   
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Roboto"  
+                                    - type: label
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.website
+                                      style:
+                                        marginTop: '0.01'
+                                        height: "auto"
+                                        color: "0x0f0f0f"   
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Roboto"                                  
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    height: "0.1"
+                                    width: "0.056"
+                                  children:
+                                    - type: image
+                                      path: hospital.png
+                                      dataKey:               
+                                      style:
+                                        height: "0.1"
+                                        width: "0.056"
+                            - type: view
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                left: "0"
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0.035"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabelTwo:
+                                      text: Email
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.email
+                                                         
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.aiTmedID
+                                    - .ProNoteInitLabelTwo:
+                                      text: AiTmed ID
+                                
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.phone
+                                    - .ProNoteInitLabelTwo:
+                                      text: Phone
+                                                   
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.fax
+                                    - .ProNoteInitLabelTwo:
+                                      text: Fax
+                                                
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                left: "0"
+                                width: "0.39" 
+                                height: "0.002"      
+                                backgroundColor: "0x707070"
+                        - type: view
+                          style:
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:   
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "auto"
+                                width: "0.39"
+                                left: "0"
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      text=func: .builtIn.string.formatUnixtimeL_en
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.patientInfo.examDate
+                                      
+                                    - .ProNoteInitLabelTwo:
+                                      text: Exam Date
+                                                 
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.patientInfo.patientName
+                                
+                                    - .ProNoteInitLabelTwo:
+                                      text: Patient Name
+                                                 
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.patientInfo.dob
+                                      
+                                    - .ProNoteInitLabelTwo:
+                                      text: DOB
+                                                             
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.patientInfo.aiTmedID
+                                     
+                                    - .ProNoteInitLabelTwo:
+                                      text: AiTmed ID
+                                          
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.patientInfo.phone
+                                       
+                                    - .ProNoteInitLabelTwo:
+                                      text: Phone
+                                 
+                                - type: view
+                                  style:
+                                    marginTop: "0.016"
+                                    left: "0"
+                                    width: "0.39" 
+                                    height: "0.03"
+                                  children:
+                                    - .ProNoteInitLabel:
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.patientInfo.email
+                                    - .ProNoteInitLabelTwo:
+                                      text: Email
+                                                
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                left: "0"
+                                width: "0.39" 
+                                height: "0.002"      
+                                backgroundColor: "0x707070"
+
+                        - type: view
+                          style:
+                            marginTop: "0.04"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Referral from
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"   
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.referralFrom
+                     
+                  
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: To whom it may concern
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"                
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.toWhomMayConcern
+                           
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                            # backgroundColor: 'yellow'
+                          children:
+                            - type: label
+                              text: Reason for evaluation
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"         
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"             
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.reasonForEnvaluation
+                        
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                            # backgroundColor: 'yellow'
+                          children:
+                            - type: label
+                              text: History of Present Illness
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"           
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.historyOfIllness
+               
+
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                            # backgroundColor: 'yellow'
+                          children:
+                            - type: label
+                              text: Past Medical History
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"             
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.pastMedicalHistory
+                     
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                            # backgroundColor: 'yellow'
+                          children:
+                            - type: label
+                              text: Past Surgical History
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.pastSurgicalHistory
+                           
+
+
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Allergies
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.allergies
+                        
+
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Family History
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.familyHistory
+                         
+
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Social History
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.socialHistory
+                        
+
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Medications 
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.medications
+                             
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Objective Findings 
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"    
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Vital Signs 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"   
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                height: "0.06"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: Blood Pressure
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.BP
+                                
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0.15"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: Heart Rate
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.HR
+                                      
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0.28"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: Respiratory Rate
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.RR
+                                   
+                            - type: view
+                              style:
+                                marginTop: "0.04"
+                                height: "0.06"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: Pulse Oximetry
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.PO
+                                 
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0.15"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: Temperature
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.temperature
+                                      
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0.28"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: Height
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.height
+                                  
+                            - type: view
+                              style:
+                                marginTop: "0.04"
+                                height: "0.06"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: Weight
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.weight
+                                  
+                                - type: view
+                                  style:
+                                    top: "0"
+                                    left: "0.15"
+                                    width: "0.1"
+                                    height: "auto"
+                                  children: 
+                                    - type: label
+                                      text: BMI
+                                      style:
+                                        width: "0.1"
+                                        height: "auto"
+                                        fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                    - .ProNoteInitTextFieldNewUI:
+                                      isEditable: true
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.BMI
+                        - .ProNoteInitTextView:
+                           isEditable: true
+                           dataKey: apiRequest.initialEvaluationReport.docReq.name.data.objectiveFindings
+                        - type: view
+                          style:
+                            marginTop: "0.045"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Labs
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto" 
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                width: "0.39"
+                                height: "0.06"
+                              children:
+                                - type: label
+                                  text: Blood Glucose
+                                  dataKey: 
+                                  style:
+                                    top: "0.015"
+                                    left: "0"
+                                    width: "0.28"
+                                    height: "0.03"
+                                    fontSize: .Nfont.nf4
+                                    fontFamily: "Roboto"          
+                                    textAlign:
+                                      y: center
+                                - .ProNoteInitTextView:
+                                  isEditable: true
+                                  placeholder: ""
+                                  dataKey: apiRequest.initialEvaluationReport.docReq.name.data.bloodGlucose
+                                  style:
+                                    top: "0"
+                                    left: "0.1"
+                                    width: "0.04"
+                                    height: "0.03"
+                                       
+                
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Imaging Studies
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"            
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.imageStudies
+                              style:
+                                height: "0.15"
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Diagnoses  
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto" 
+                          # 搜索框
+                            - type: view
+                              viewTag: searchBox
+                              style:
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                    height: "auto"
+                                    boxSizing: border-box
+                                  children:
+                                    - type: view
+                                      viewTag: selectDateTag
+                                      style:
+                                        display: "inline-block"
+                                        height: "auto"
+                                        width: "0.1"
+                                        boxSizing: border-box
+                                      children:
+                                        - type: image
+                                          path: searchBlue.svg
+                                          style:
+                                            top: "0.01"
+                                            left: "0.08"
+                                            height: "0.02"
+                                            zIndex: 10
+                                        - type: textField
+                                          viewTag: CodeListTag
+                                          placeholder: Search
+                                          dataKey: formData.diagnosis.descriptiveList.code
+                                          style:
+                                            height: "0.04"
+                                            width: "0.1"
+                                            boxSizing: border-box
+                                            border:
+                                              style: 3
+                                            borderRadius: "3"
+                                            borderWidth: "1"
+                                            borderColor: "0xcdcdcd"
+                                          onInput:
+                                            - actionType: evalObject
+                                              object:
+                                                - ..formDataTemp.allListInfo@: []
+                                                - ..formDataTemp.allListString@: []
+                                            - actionType: evalObject
+                                              object:
+                                                - =.builtIn.search.queryCode:
+                                                    dataIn:
+                                                      query: =..formData.diagnosis.descriptiveList.code
+                                                    dataOut: InitEvalReportEdit.formDataTemp.allListInfo
+                                                - ..formDataTemp.allListString@: =..formDataTemp.allListInfo
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: CodeTag
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: CodeTags
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: CodeTag
+                                            - actionType: builtIn
+                                              funcName: hide
+                                              viewTag: listData
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: ShowTag
+                                            - actionType: popUp
+                                              popUpView: CodeTag
+                                              dismissOnTouchOutside: true
+                                    - type: textField
+                                      viewTag: descriptionTag
+                                      placeholder: Description
+                                      dataKey: formData.diagnosis.descriptiveList.description
+                                      style:
+                                        marginLeft: "0.02"
+                                        display: "inline-block"
+                                        height: "0.04"
+                                        width: "0.27"
+                                        boxSizing: border-box
+                                        border:
+                                          style: 3
+                                        borderRadius: "3"
+                                        borderWidth: "1"
+                                        borderColor: "0xcdcdcd"
+                                - .ProNoteInitTextView:
+                                  viewTag: CommentsTag
+                                  placeholder: Comments
+                                  isEditable: true
+                                  dataKey: formData.diagnosis.descriptiveList.comment
+
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                height: "0.02"
+                              children:
+                                - type: label
+                                  text: + add more
+                                  style:
+                                    marginTop: "0"
+                                    fontFamily: "Arial"
+                                    fontSize: "1.5vh"
+                                    color: "0x1492e6"
+                                    height: "0.02"
+                                    width: "0.39"
+                                    textAlign:
+                                      x: right
+                                    fontWeight: "550"
+                                  onClick:
+                                    - emit:
+                                        actions:
+                                          - =.builtIn.array.add:
+                                              dataIn:
+                                                object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+                                                value: =..formData.diagnosis.descriptiveList # create copy .create by value ,not reference
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.diagnosis.descriptiveList.code@: ""
+                                        - ..formData.diagnosis.descriptiveList.description@: ""
+                                        - ..formData.diagnosis.descriptiveList.comment@: ""
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: listData
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: CodeListTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: descriptionTag
+                                    - actionType: builtIn
+                                      funcName: hide
+                                      viewTag: ShowTag
+                                    - actionType: builtIn
+                                      funcName: show
+                                      viewTag: listData
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: CommentsTag
+                                
+                            # debug
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - type: view
+                                  viewTag: CodeTag
+                                  style:
+                                    display: "none"
+                                    width: "0.39"
+                                    height: "auto"
+                                    fontFamily: "Poppins"
+                                    border:
+                                      style: 3
+                                      color: "0xeeeeee"
+                                    borderWidth: "1"
+                                    boxSizing: border-box
+                                    zIndex: 10
+                                  children:
+                                    - type: scrollView
+                                      viewTag: ShowTag
+                                      style:
+                                        height: "0.3"
+                                        left: "0.02"
+                                        overflow: scroll
+                                      children:
+                                        - type: list
+                                          contentType: listObject
+                                          listObject: ..formDataTemp.allListString
+                                          iteratorVar: itemObject
+                                          viewTag: CodeTags
+                                          style:
+                                            width: "0.39"
+                                            height: "auto"
+                                            margin: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - type: listItem
+                                              itemObject: ""
+                                              style:
+                                                width: "0.39"
+                                                marginTop: "0.002"
+                                                height: "auto"
+                                              children:
+                                                - type: label
+                                                  dataKey: itemObject.0.2
+                                                  style:
+                                                    width: "0.39"
+                                                    left: "0"
+                                                    textIndent: 20px
+                                                    marginTop: "0"
+                                                    textAlign:
+                                                      x: left
+                                                      y: center
+                                                    height: "auto"
+                                                    fontSize: "1.7vh"
+                                                    color: "0x143459"
+                                                  onClick:
+                                                    - emit:
+                                                        dataKey:
+                                                          var: itemObject
+                                                        actions:
+                                                          - ..formData.diagnosis.descriptiveList.code@: $var.0.0
+                                                          - ..formData.diagnosis.descriptiveList.description@: $var.0.1
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: CodeListTag
+                                                    - actionType: builtIn
+                                                      funcName: redraw
+                                                      viewTag: descriptionTag
+                                                    - actionType: builtIn
+                                                      funcName: hide
+                                                      viewTag: ShowTag
+                                                    - actionType: builtIn
+                                                      funcName: show
+                                                      viewTag: listData
+                                                    - actionType: builtIn
+                                                      funcName: hide
+                                                      viewTag: CodeTag
+                                - type: view
+                                  viewTag: listData
+                                  style:
+                                    width: "0.39"
+                                    left: "0"
+                                    height: "auto"
+                                    marginTop: "0.01"
+                                    display: ..formData.listDataflag
+                                  children:
+                                    - type: view
+                                      style:
+                                        marginTop: "0.01"
+                                        height: "0.002"
+                                        width: "0.39"
+                                        backgroundColor: "0xd8d8d8"
+                                    - type: list
+                                      viewTag: listData
+                                      contentType: listObject
+                                      listObject: ..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                                      iteratorVar: itemObject
+                                      style:
+                                        left: "0"
+                                        width: "0.39"
+                                        marginTop: "0.03"
+                                        height: "auto"
+                                        margin: "0"
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          style:
+                                            marginTop: "0.01"
+                                            width: "0.39"
+                                            height: "auto"
+                                            left: "0"
+                                            overflow: hidden
+                                          children:
+                                            - type: view
+                                              style:
+                                                width: "0.39"
+                                                height: "auto"
+                                              children:
+                                                - type: image
+                                                  path: deletePhoto.svg
+                                                  style:
+                                                    display: "inline-block"
+                                                    height: "0.025"
+                                                    zIndex: 10
+                                                    verticalAlign: middle
+                                                  onClick:
+                                                    - actionType: popUp
+                                                      popUpView: BaseDelWarningView
+                                                    - actionType: updateObject
+                                                      dataKey: formData.selectedDiagnosis
+                                                      dataObject: itemObject
+                                                - type: label
+                                                  dataKey: itemObject.code
+                                                  style:
+                                                    display: "inline-block"
+                                                    marginLeft: "0.02"
+                                                    height: "auto"
+                                                    width: "0.1"
+                                                    textAlign:
+                                                      x: left
+                                                    fontFamily: "Arial"
+                                                    backgroundColor: "0xffffff"
+                                                    wordBreak: break-all
+                                                    fontSize: .Nfont.h1
+                                                    fontWeight: "550"
+                                                    verticalAlign: middle
+                                                - type: label
+                                                  text: "-"
+                                                  style:
+                                                    verticalAlign: middle
+                                                    display: "inline-block"
+                                                    width: "auto"
+                                                    height: "auto"
+                                                    fontSize: .Nfont.h2
+                                                - type: label
+                                                  dataKey: itemObject.description
+                                                  style:
+                                                    verticalAlign: middle
+                                                    marginLeft: "0.02"
+                                                    display: "inline-block"
+                                                    height: "auto"
+                                                    width: "0.2"
+                                                    textAlign:
+                                                      x: left
+                                                    backgroundColor: "0xffffff"
+                                                    fontFamily: "Arial"
+                                                    wordBreak: break-all
+                                                    fontSize: .Nfont.h1
+                                            - type: label
+                                              dataKey: itemObject.comment
+                                              style:
+                                                marginTop: "0.002"
+                                                marginLeft: "0.03"
+                                                width: "0.34"
+                                                height: "auto"
+                                                color: "0x666666"
+                                                fontFamily: "Arial"
+                                                wordBreak: break-all
+                                                fontSize: .Nfont.h1                     
+                        
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Plan and Recommendations
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"               
+                            - .ProNoteInitTextView:
+                              isEditable: true
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.planAndRecommendations
+                              style:
+                                height: "0.22"
+                        
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                          children:
+                            - type: label
+                              text: Signature      
+                              dataKey: 
+                              style:
+                                height: "auto"
+                                width: "0.39"        
+                                color: "0x0f0f0f"   
+                                fontSize: .Nfont.nf5
+                                fontStyle: bold
+                                fontFamily: "Roboto"  
+                        # 签名
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            display: flex
+                            flexDirection: column
+                            flexWrap: wrap
+                            alignContent: space-around
+                            justifyContent: center
+                          children:
+                            - type: view
+                              style:
+                                marginLeft: "0"
+                                width: "0.39"
+                              children:
+                                - type: label
+                                  text: "Clear"
+                                  style:
+                                    color: "0xe24445"
+                                    marginTop: "0.01"
+                                    display: "inline-block"
+                                    marginLeft: "0.3"
+                                  onClick: 
+                                  # 移除签名
+                                    - actionType: removeSignature
+                                      dataObject: BLOB
+                                      dataKey: apiRequest.newSign.document.name.data   
+                                      viewTag: signatureTag   
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: signatureTag
+                            - .SignAreaView:
+                              children:             
+                                - type: canvas
+                                  viewTag: signatureTag  
+                                  dataKey: apiRequest.newSign.document.name.data 
+                                  style:
+                                    .SignCanvasStyle:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+                   
+
+                      # 签名下面
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            height: "auto"
+                            width: "0.39"
+                            left: "0"
+                            overflow: hidden
+                          children:
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                left: "0"
+                                width: "0.3"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  dataKey: apiRequest.initialEvaluationReport.docReq.name.data.providerInfo.providerFullName
+                                  style:
+                                    height: "auto"
+                                    width: "0.3"
+                                    fontSize: .Nfont.nf5
+                                    wordBreak: break-all
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                left: "0.05"
+                                width: "0.3" 
+                                height: "auto"      
+                              children:
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    left: "0"
+                                    width: "0.12" 
+                                    height: "auto"
+                                  children:
+                                    - type: label
+                                      text: Family Medicine
+                                      style:
+                                        height: "auto"
+                                        width: "0.12"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: Roboto
+                                        color: "0x0f0f0f"
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    left: "0"
+                                    width: "0.3" 
+                                    height: "0.03"
+                                  children:
+                                    - type: label
+                                      dataKey: apiRequest.initialEvaluationReport.docReq.name.data.providerInfo.LIC
+                                      style:
+                                        left: "0.04"
+                                        width: "0.12"
+                                        fontSize: .Nfont.nf4
+                                        wordBreak: break-all
+                                        fontFamily: Roboto
+                                        color: "0x0f0f0f"   
+                                                     
+                                    - type: label
+                                      text: "LIC#"
+                                      style:
+                                        top: "0"
+                                        left: "0"
+                                        height: "auto"
+                                        width: "0.06"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: Roboto
+                                        color: "0x757575"
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                left: "0"
+                                width: "0.39" 
+                                height: "0.002"      
+                                backgroundColor: "0x707070"
+                            - type: label
+                              viewTag: websiteTag
+                              dataKey: apiRequest.initialEvaluationReport.docReq.name.data.facilityInfo.website
+                              style:
+                                marginTop: "0.01"
+                                height: "auto"
+                                width: "0.39"
+                                left: "0"
+                                fontSize: .Nfont.nf5
+                                color: "0x707070"    
+                                textAlign:
+                                  x: center
+                                  y: center 
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick:
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: apiRequest.newSign.document.name.data
+                          isEmpty: formData.whetherSign
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =..formData.whetherSign
+                              - continue
+                              - actionType: evalObject
+                                object:
+                                  - ..apiRequest.newSign.document.reid@: =..apiRequest.initialEvaluationReport.docResp.doc.id
+                                  - =..apiRequest.newSign.docAPI.store: "" 
+                                  - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                                  - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                                  - ..apiRequest.initialEvaluationReport.docReq.name.data.whetherSign@: =..formData.whetherSign
+                      # 指定reid
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.initialEvaluationReport.docReq.reid@: =.Global.formData.meetingDocReid
+                        # 修改Type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.initialEvaluationReport.docReq.type
+                                  index: 1
+                                  hex: 0
+                                dataOut: InitEvalReportEdit.apiRequest.initialEvaluationReport.docReq.type
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag@: =..formDataTemp.privateTag                         
+                            - =..apiRequest.initialEvaluationReport.docAPI.store: ""   
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""    
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true 
+                    # release button
+                    - .FormsBottomRightButton: 
+                      onClick:
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: apiRequest.newSign.document.name.data
+                          isEmpty: formData.whetherSign
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =..formData.whetherSign
+                              - actionType: popUp
+                                popUpView: signatureWarningTag
+                                wait: true
+                              - continue
+                            - ..apiRequest.newSign.document.reid@: =..apiRequest.initialEvaluationReport.docResp.doc.id
+                            - =..apiRequest.newSign.docAPI.store: ""
+                            - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                            - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                            - ..apiRequest.initialEvaluationReport.docReq.name.data.whetherSign@: =..formData.whetherSign 
+                      # 指定reid
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.initialEvaluationReport.docReq.reid@: =.Global.formData.meetingDocReid
+                      # 判断是否签名       
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag@: =..formDataTemp.publicTag       
+                            - =..apiRequest.initialEvaluationReport.docAPI.store: ""
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true 
+        - .BaseWarningView:
+          msg2: "You haven't signed the form."
+          viewTag: signatureWarningTag
+        - .DeleteWarningPopUp:
+          msg: Are you sure you want to delete it ?
+          viewTag: BaseDelWarningView
+          .BackgroundPopUp: 
+          children:
+            - .BackgroundWhite:
+              children: 
+                - .WarningRedLine:
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.28"
+                    left: "0"
+                    height: "0.267"
+                  children: 
+                    - .DeleteWarningImg:
+                    - .WarningLabel:
+                    - .DeleteWarningLabel:  
+                - .CancelButton: 
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: BaseDelWarningView
+                - .DeleteButton: 
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.removeByName:
+                            dataIn:
+                              object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+                              key: code
+                              name: =..formData.selectedDiagnosis.code
+                        - ..formData.listDataflag@: "block"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: listData
+                    - actionType: popUpDismiss
+                      popUpView: BaseDelWarningView

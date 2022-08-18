@@ -1,0 +1,29 @@
+apiHost: ecosapip1.aitmed.io
+apiPort: '443'
+webApiHost: apiHost
+appApiHost: apiHost
+connectiontimeout: '5'
+loadingLevel: 1
+debug: console_log_api
+syncHost: https://sync.aitmed.io:443
+elasticClient: https://elastic.aitmed.io
+isGetPosition: false
+prResetUrl: https://passwordresetp.aitmed.com
+viewWidthHeightRatio:
+    min: 0.45 # iphone 12 9:19.5 Samsung Galaxy A71 5G 9:20
+    max: 0.5 # normal 3:4 ratio ipad
+web:
+  cadlVersion:
+    stable: 8.61.4
+    test : 8.61.4
+ios:
+  cadlVersion:
+    stable: 8.61.4
+    test : 8.61.4
+android:
+  cadlVersion:
+    stable : 8.61.4
+    test : 8.61.4
+cadlBaseUrl: https://public.aitmed.com/cadl/patdd${cadlVersion}/
+cadlMain: cadlEndpoint.yml
+timestamp: 03242022PDT

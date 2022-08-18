@@ -1,0 +1,426 @@
+ModernaVaccineFirDosePreviewPage2:
+  viewPort: top
+  title: ModernaVaccineFirDosePreviewPage2
+  init:
+    
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: "1"
+        margin: "auto"
+        overflow: "hidden"
+      children: 
+        - type: view
+          style: 
+            position: fixed
+            height: 6vw
+            width: "100%"
+            zIndex: 100
+            right: 0
+          children: 
+            - type: view
+              style:
+                width: 89.8vw
+                height: "6vw"
+                marginTop: '0'
+                color: "#143459"
+                margin: 'auto'
+                backgroundColor: "0xffffff"
+                boxShadow: "0px 20px 20px -20px #5e5e5e"
+                display: flex
+                flexDirection: row
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    height:  "6vw"
+                    width: 20vw
+                    display: flex
+                    flexDirection: row
+                  children:
+                    - type: image
+                      path: aitmedLogo3.png
+                      style:
+                        width: '3.5vw'
+                        marginTop: '1vw'
+                        marginLeft: 5vw
+                    - type: label
+                      text: AiTmed   
+                      style:
+                        width: "15vw"
+                        height: "2.5vw"
+                        marginLeft: "1vw"
+                        marginTop: "2vw"
+                        fontFamily: "Arial"
+                        fontSize: "1.5vw"
+                        fontWeight: 650
+                        textAlign: 
+                          y: center
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1        
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "Moderna Vaccine - First Dose"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "2/5"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+        - type: view 
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: scrollView
+              style:
+                width: 89.8vw
+                height: 39vw
+                marginTop: 0.5vw
+              children:   
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - type: view
+                      style:
+                        width: 40vw
+                        backgroundColor: "#ffffff"
+                        marginTop: 0.1vw
+                        justifyContent: flex-start
+                      children:
+                        - .NewFirstTitle:
+                          text: Patient Consent Form - HIPPA
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h1
+                            textAlign: 
+                                x: center
+                                y: center
+                        - .VQSecondTitle:
+                          text: "Please carefully read the following informed consent:"
+                          style:
+                            marginTop: "0.025"
+                            fontSize: .Nfont.h0_1
+                            fontWeight: "550"
+                            color: "#333333"
+                        - .VQSecondTitle:
+                          text: The Department of Health and Human Services has established a “Privacy Rule” to help insure that personal health care information is protected for privacy. The Privacy Rule was also created in order to provide a standard for certain health care providers to obtain their patients’ consent for uses and disclosures of health information about the patient to carry out treatment, payment or health care operations.
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - .VQSecondTitle:
+                          text: As our patient we want you to know that we respect the privacy of your personal medical records and will do all we can to secure and protect that privacy. We strive to always take reasonable precautions to protect your privacy. When it is appropriate and necessary, we provide the minimum necessary information to only those we feel are in need of your healthcare information and information about treatment, payment or health care operations, in order to provide health care that is in your best interest. 
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - .VQSecondTitle:
+                          text: We also want you to know that we support your full access to your personal medical records. We may have indirect treatments relationships with you (such as laboratories that only interact with physicians and not patients), and may have to disclose personal health information for purposes of treatment, payment, or health operations, These entities are most often not required to obtain patient consent. 
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - .VQSecondTitle:
+                          text: You may refuse to consent to the use or disclosure of your personal health information but this must be in writing. Under this law, we have the right to refuse to treat you should you choose to refuse to disclose your Personal Health Information (PIH). If you choose to give consent in this document, at some future time you may request to refuse all or part of your PHI. You may not revoke actions that have already been taken which relied on this or a previously signed consent.
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - .VQSecondTitle:
+                          text: If your have objections to this form, please ask to speak with out HIPPA Compliance Officer. 
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - .VQSecondTitle:
+                          text: You have the right to review our privacy notice to request restrictions and revoke consent in writing after you have reviewed our privacy notice.  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - .VQSecondTitle:
+                          text: HIPPA Notice of Privacy Practices  
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        - .VQSecondTitle:
+                          text: "Signature below is only acknowledgement that you have received this Notice of our Privacy Practices:"
+                          style:
+                            width: "40vw"
+                            # left: '0.07'
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "0x666666"
+                        
+                    # - type: label
+                    #   text: "Click on the signature box below to finger sign"
+                    #   style:
+                    #     width: "0.34"
+                    #     # left: '0.07'
+                    #     marginTop: '0.02'
+                    #     fontSize: "15"
+                    #     color: "#333333"
+                    #     textAlign: 
+                    #       x: center
+                    - type: view
+                      style:
+                        marginTop: 1vw
+                        width: 29vw
+                        height: "3.5vw"
+                        # backgroundColor: "red"
+                      children:
+                        - .VQSecondTitle:
+                          text: "Name of Recipient/Healthcare Proxy"
+                          style:
+                            marginTop: '0.02'
+                            fontSize: .Nfont.h0_1
+                            color: "#333333"
+                            fontWeight: 550
+                        - type: textField
+                          dataKey: recipientName
+                          placeholder: " Enter here"
+                          isEditable: false 
+                          style: 
+                            height: "2.5vw"
+                            width: 20vw
+                            fontSize: .Nfont.h0_1
+                            border: 
+                              style: "3"
+                            borderRadius: "5"
+                            borderColor: "#DEDEDE"
+                    - type: view
+                      style: 
+                        # left: "0.085"
+                        marginTop: 1vw
+                        width: "40vw"
+                        border:
+                          style: "1"
+                          width: "1"
+                          color: "#DEDEDE"
+                      children: 
+                        - .VQSecondTitle:
+                          text: Signature
+                          style: 
+                            marginTop: 2vw
+                            fontSize: .Nfont.h0_1
+                            color: "#333333"
+                            fontWeight: 550
+                        - .ViewRow:
+                          style:
+                            justifyContent: space-between
+                            alignItems: center
+                            width: "30vw"
+                          children:
+                            - .VQSecondTitle:
+                              text: "Click on the signature box below to finger sign"
+                              style: 
+                                marginTop: 0.5vw
+                            - type: button
+                              text: "Clear"
+                              
+                              style:
+                                marginTop: 0.5vw
+                                width: "4vw"
+                                fontSize: .Nfont.h0_1
+                                height: '1vw'
+                                color: "#E24445"
+                                border: 'none'
+                                borderRadius: "2"
+                                backgroundColor: '0xffffff'
+                                textAlign:
+                                  y: center
+                                  x: center         
+                        - type: view
+                          style: 
+                            marginTop: "0.01"
+                            width: "28.9vw"
+                            height: "0.2"
+                            border:
+                              style: "4"
+                              width: "1.5"
+                              color: "0xDEDEDE"
+                          children:
+                            - .ViewRow:
+                              style:
+                                margin: "auto"
+                                marginTop: "0.16"
+                                width: "24vw"
+                              children:
+                                - type: label
+                                  text: "x"
+                                  style:
+                                    height: "1vw"
+                                - type: label
+                                  style:
+                                    height: "1vw"
+                                    width: "24vw"
+                                    borderBottom: "1px solid #666666"
+                                    borderWidth: "1px"
+                                   
+                            
+                    - .ViewColumn:
+                      style:
+                        marginTop: 1vw
+                        width: 29vw
+                      children:
+                        - .ViewRow:
+                          style:
+                            justifyContent: flex-start
+                          children:
+                            - .VQSecondTitle: 
+                              text: "Patient Name"
+                              style:
+                                fontSize: .Nfont.h0
+                            - .VQSecondTitle:
+                              dataKey: profile.docResponse.doc.0.name.data.basicInfo.fullName
+                              style:
+                                color: "#333333"
+                                marginLeft: 1vw
+                                fontSize: .Nfont.h0
+                        - .ViewRow:
+                          style: 
+                            marginTop: 1vw
+                            justifyContent: flex-start
+                          children:
+                            - .VQSecondTitle: 
+                              text: "Date"
+                            - .VQSecondTitle:
+                              
+                              style:
+                                color: "#333333"
+                                marginLeft: 1vw
+                                fontSize: .Nfont.h0
+            - type: view
+              style:
+                height: 2.3vw
+                left: 15.5vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Leftbutton.svg
+                  style:
+                    height: 3vw
+                  onClick: 
+                    
+                    - goto: ModernaVaccineFirDosePreviewPage1
+                       
+            - type: view
+              style:
+                height: 2.3vw
+                left: 60.3vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Rightbutton.svg
+                  style:
+                    height: 3vw
+                    left: 10vw
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                  
+                    - goto: ModernaVaccineFirDosePreviewPage3

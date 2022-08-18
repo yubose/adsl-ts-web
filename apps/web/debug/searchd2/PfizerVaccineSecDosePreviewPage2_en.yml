@@ -1,0 +1,615 @@
+PfizerVaccineSecDosePreviewPage2:
+  title: "PfizerVaccineSecDosePreviewPage2"
+  init:
+    
+  formData: 
+    consent: 
+      - key: consent
+        value: "1"
+        text1: "I GIVE CONSENT to&nbsp;"
+        text2: "&nbsp;to vaccinate me with the COVID-19. You must electronically sign this consent to receive the COVID-19 Vaccine."
+      - key: consent
+        value: "0"
+        text1: "I DO NOT GIVE CONSENT to&nbsp;"
+        text2: "&nbsp;to be vaccinated."
+    
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: "auto"
+        margin: "auto"
+      children: 
+        - type: view
+          style: 
+            position: fixed
+            height: 6vw
+            width: "100%"
+            zIndex: 100
+            right: 0
+          children: 
+            - type: view
+              style:
+                width: 89.8vw
+                height: "6vw"
+                marginTop: '0'
+                color: "#143459"
+                margin: 'auto'
+                backgroundColor: "0xffffff"
+                boxShadow: "0px 20px 20px -20px #5e5e5e"
+                display: flex
+                flexDirection: row
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    height:  "6vw"
+                    width: 20vw
+                    display: flex
+                    flexDirection: row
+                  children:
+                    - type: image
+                      path: aitmedLogo3.png
+                      style:
+                        width: '3.5vw'
+                        marginTop: '1vw'
+                        marginLeft: 5vw
+                    - type: label
+                      text: AiTmed   
+                      style:
+                        width: "15vw"
+                        height: "2.5vw"
+                        marginLeft: "1vw"
+                        marginTop: "2vw"
+                        fontFamily: "Arial"
+                        fontSize: "1.5vw"
+                        fontWeight: 650
+                        textAlign: 
+                          y: center
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1         
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "Pfizer-BioNTech Vaccine - Second Dose"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "2/2"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+          
+        - type: view 
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "0.5vw"
+          children:
+            - type: scrollView
+              style:
+                width: 89.8vw
+                height: 39vw
+                marginTop: 0.5vw
+              children:   
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - type: view
+                      style:
+                        width: 40vw
+                        backgroundColor: "#ffffff"
+                        marginTop: 0.1vw
+                        justifyContent: flex-start
+                      children:
+                        - .NewFirstTitle:
+                          text: Pfizer-BioNTech COVID-19 Vaccine Consent Form
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h1
+                            textAlign: 
+                                x: center
+                                y: center
+                        - .NewFirstTitle:
+                          text: 2.Consent for Vaccination
+                          style:
+                            marginTop: "1vw"
+                            fontSize: .Nfont.h0
+                            textAlign: 
+                                x: center
+                                y: center
+                        - type: view
+                          style: 
+                            width: "40vw"
+                            height: auto
+                            # backgroundColor: "red"
+                          children: 
+                            - .VaccineTextView:
+                              style:
+                                width: "40vw"
+                                marginTop: 0.5vw
+                                height: 3vw
+                              children: 
+                                - .VaccineTextDot:
+                                  text: a.
+                                  style:
+                                    fontSize: .Nfont.h0 
+                                    color: "#143459"                       
+                                - .VaccineText:
+                                  text: The Fact Sheet for Patients and Parents / Caregivers for the Pfizer-BioNTech COVID-19 Vaccine I am receiving (sometimes hereafter, the COVID-19 Vaccine) has been offered to me.
+                                  style:
+                                    marginTop: '0'
+                                    left: "0.8vw"
+                                    # height: "3vw"
+                                    width: "40vw"
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                                    lineHeight: 1.2vw
+                            - .VaccineTextView:
+                              style:
+                                width: "40vw"
+                                marginTop: 1vw
+                                height: 3vw
+                              children: 
+                                - .VaccineTextDot:
+                                  text: b.
+                                  style:
+                                    fontSize: .Nfont.h0 
+                                    color: "#143459" 
+                                - .VaccineText:
+                                  text: I have read or had explained to me the Pfizer-BioNTech Fact Sheet for Patients and Parents / Caregivers for the COVID-19 Vaccine and I understand the risks and benefits.
+                                  style:
+                                    marginTop: '0'
+                                    left: "0.8vw"
+                                    # height: "3vw"
+                                    width: "40vw"
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                                    lineHeight: 1.2vw
+                            - .VaccineTextView:
+                              style:
+                                width: "40vw"
+                                marginTop: 1vw
+                                height: 3vw
+                              children: 
+                                - .VaccineTextDot:
+                                  text: c.
+                                  style:
+                                    fontSize: .Nfont.h0 
+                                    color: "#143459" 
+                                - .VaccineText:
+                                  text: I understand the COVID-19 Vaccine has been approved by an emergency use authorization (EUA) process and has not fully been FDA reviewed or approved.
+                                  style:
+                                    marginTop: '0'
+                                    left: "0.8vw"
+                                    # height: "3vw"
+                                    width: "40vw"
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                                    lineHeight: 1.2vw
+                            - .VaccineTextView:
+                              style:
+                                width: "40vw"
+                                height: 3vw
+                              children: 
+                                - .VaccineTextDot:
+                                  text: d.
+                                  style:
+                                    fontSize: .Nfont.h0 
+                                    color: "#143459" 
+                                - .VaccineText:
+                                  text: I understand the potential risks from the therapy including serious allergic reactions (anaphylaxis). Other adverse reactions that have been reported include injection site pain, fatigue, headache, muscle pain, chills, joint pain, fever, injection site swelling, injection site redness, nausea, malaise, and lymphadenopathy.
+                                  style:
+                                    marginTop: '0'
+                                    left: "0.8vw"
+                                    # height: "3vw"
+                                    width: "40vw"
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                                    lineHeight: 1.2vw
+                            - .VaccineTextView:
+                              style:
+                                width: "40vw"
+                                height: 3vw
+                                marginTop: 2vw
+                              children: 
+                                - .VaccineTextDot:
+                                  text: e.
+                                  style:
+                                    fontSize: .Nfont.h0 
+                                    color: "#143459" 
+                                    marginTop: '0.03'
+                                - .VaccineText:
+                                  text: I understand that there may be other potential options to prevent COVID-19.
+                                  style:
+                                    marginTop: '0.03'
+                                    left: "0.8vw"
+                                    # height: "2.7vw"
+                                    width: "40vw"
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                            - .VaccineTextView:
+                              style:
+                                width: "40vw"
+                                height: 3vw
+                              children: 
+                                - .VaccineTextDot:
+                                  text: g.
+                                  style:
+                                    fontSize: .Nfont.h0 
+                                    color: "#143459" 
+                                    marginTop: '0.02'
+                                - .VaccineText:
+                                  text: I was offered the opportunity to ask questions and all questions were answered.
+                                  style:
+                                    marginTop: '0.02'
+                                    left: "0.8vw"
+                                    # height: "3vw"
+                                    width: "40vw"
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                            - .VaccineTextView:
+                              style:
+                                width: "40vw"
+                                height: 3vw
+                              children: 
+                                - .VaccineTextDot:
+                                  text: h.
+                                  style:
+                                    fontSize: .Nfont.h0 
+                                    color: "#143459"
+                                    marginTop: '0.02'
+                                - .VaccineText:
+                                  text: I agree to proceed with receiving the Pfizer-BioNTech COVID-19 Vaccine.
+                                  style:
+                                    marginTop: '0.02'
+                                    left: "0.8vw"
+                                    # height: "3vw"
+                                    width: "40vw"
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                        
+                        - type: view
+                          style: 
+                            left: "0"
+                            marginTop: "0.02"
+                            width: "40vw"
+                            height: "0.1" 
+                          children: 
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formData.consent
+                              iteratorVar: itemObject
+                              viewTag: consentView
+                              style: 
+                                margin: "0"
+                                top: "0"
+                                width: "40vw"
+                                left: "0"
+                              children: 
+                                - type: listItem
+                                  itemObject: ""
+                                  style: 
+                                    left: "0"
+                                    width: "40vw"
+                                    marginTop: "0.01"
+                                    # backgroundColor: "red"
+                                  children: 
+                                    - type: image
+                                      path: 
+                                        emit:
+                                          dataKey:
+                                              var: itemObject
+                                          actions:                        
+                                            - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..formDataTemp.single.0.consent
+                                                    string2: $var.value
+                                              - selectOnblue.svg
+                                              - selectBlack.svg
+                                      style: 
+                                        left: "0.2vw"
+                                        width: 1vw
+                                        top: "0.0035"
+                                      onClick: 
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions: 
+                                              - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..formDataTemp.single.0.consent
+                                                      string2: $var.value
+                                                - =.builtIn.object.set:
+                                                    dataIn:
+                                                      object: =..formDataTemp.single.0
+                                                      key: $var.key
+                                                      value: ""
+                                                - =.builtIn.object.set:
+                                                    dataIn:
+                                                      object: =..formDataTemp.single.0
+                                                      key: $var.key
+                                                      value: $var.value
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: consentView
+                                    - type: label
+                                      textBoard:
+                                        - text:
+                                          dataKey: itemObject.text1
+                                        - text: ""
+                                          dataKey: formDataTemp.facilityName
+                                        - text: ""
+                                          dataKey: itemObject.text2
+                                      style: 
+                                        left: 2vw
+                                        width: "40vw"
+                                        marginTop: "0.005"
+                                        fontSize: .Nfont.h0
+                                        lineHeight: 1.2vw
+                                        textAlign: 
+                                          x: left
+                                        
+                                        height: "auto"
+                                        color: "#333333"       
+                        
+                        - type: view
+                          style:
+                            marginTop: 1vw
+                            width: 29vw
+                            height: "3.5vw"
+                            # backgroundColor: "red"
+                          children:
+                            - type: label
+                              text: "Name of Recipient/Healthcare Proxy"
+                              style:
+                                marginTop: '0.02'
+                                fontSize: .Nfont.h0_1
+                                color: "#333333"
+                                fontWeight: 550
+                            - type: textField
+                              dataKey: formData.recipientName
+                              isEditable: "false" 
+                              placeholder: " Enter here"
+                              style: 
+                                height: "2.5vw"
+                                width: 20vw
+                                fontSize: .Nfont.h0_1
+                                border: 
+                                  style: "3"
+                                borderRadius: "5"
+                                borderColor: "#DEDEDE"
+                  
+                        - type: view
+                          style: 
+                            marginTop: 1vw
+                            width: "40vw"
+                            border:
+                              style: "1"
+                              width: "1"
+                              color: "#DEDEDE"
+                            # backgroundColor: "red"
+                          children:
+                            - .VQSecondTitle:
+                              text: Signature
+                              style: 
+                                marginTop: 2vw
+                                fontSize: .Nfont.h0_1
+                                color: "#333333"
+                                fontWeight: 550
+                            - .ViewRow:
+                              style:
+                                justifyContent: space-between
+                                alignItems: center
+                                width: "30vw"
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Click on the signature box below to finger sign"
+                                  style: 
+                                    marginTop: 0.5vw
+                                - type: button
+                                  text: "Clear"
+                                  
+                                  style:
+                                    marginTop: 0.5vw
+                                    width: "4vw"
+                                    fontSize: .Nfont.h0_1
+                                    height: '1vw'
+                                    color: "#E24445"
+                                    border: 'none'
+                                    borderRadius: "2"
+                                    backgroundColor: '0xffffff'
+                                    textAlign:
+                                      y: center
+                                      x: center      
+                            - type: view
+                              style: 
+                                marginTop: "0.01"
+                                width: "28.9vw"
+                                height: "0.2"
+                                border:
+                                  style: "4"
+                                  width: "1.5"
+                                  color: "0xDEDEDE"
+                              children:
+                                - .ViewRow:
+                                  style:
+                                    margin: "auto"
+                                    marginTop: "0.16"
+                                    width: "24vw"
+                                  children:
+                                    - type: label
+                                      text: "x"
+                                      style:
+                                        height: "1vw"
+                                    - type: label
+                                      style:
+                                        height: "1vw"
+                                        width: "24vw"
+                                        borderBottom: "1px solid #666666"
+                                        borderWidth: "1px"
+                                 
+                        
+                    
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            height: "5.1vw"
+                            width: "31vw"
+                          children:        
+                            - .ViewRow:
+                              style:
+                                justifyContent: flex-start
+                                marginTop: 1vw
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Patient Name:"
+                                  style: 
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                                    marginTop: 0
+                                - .VQSecondTitle:
+                                  dataKey: profile.patientdocument.name.data.basicInfo.fullName
+                                  style: 
+                                    marginTop: 0
+                                    fontSize: .Nfont.h0
+                            - .ViewRow:
+                              style:
+                                justifyContent: flex-start
+                                marginTop: 1vw
+                                marginBottom: 1vw
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Date:"
+                                  style: 
+                                    color: "#333333"
+                                    fontSize: .Nfont.h0
+                                    marginTop: 0
+                                - .VQSecondTitle:
+                                  
+                                  style: 
+                                    marginTop: 0
+                                    fontSize: .Nfont.h0
+                
+            - type: view
+              style:
+                height: 2.3vw
+                left: 15.5vw
+                top: 15.5vw
+              children:
+                - type: image
+                  path: Leftbutton.svg
+                  style:
+                    height: 3vw
+                  onClick:  
+                    
+                    - goto: PfizerVaccineSecDosePreviewPage1
+            - type: view
+              style:
+                width: "90vw"
+                height: 4.5vw
+                borderTop: "2px solid #E3E3E3"
+                borderWidth: 2px
+                margin: auto
+              children:
+                - type: button
+                  text: Done
+                  style:
+                    width: 12.3vw
+                    height: 2.3vw
+                    margin: auto
+                    marginTop: 1.5vw
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h1
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - goto: ProviderAvailability

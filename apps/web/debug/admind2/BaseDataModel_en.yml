@@ -1,0 +1,615 @@
+# BaseecosObj: # This is page name
+# root level object start with a upper case letter
+VoidObj: vVoOiIdD # {}
+EmptyObj: "" # {""} FALSE
+EcosObj : 
+  id : "" # base64 id
+  name : "" # JSON string
+  type : "0" # data type
+  ctime : "0" # Unix_TimeStamp when data created.
+Vertex: 
+  .EcosObj : "" # inherit an object value only, not the key
+  uid : ""
+  pk : ""
+  esk : ""
+  deat : ""
+# line 8,9 is equivelent to line 11 to 15
+#  id : "" # base64 id
+#  name : "" # JSON string
+#  type : "0" # data type
+#  ctime : "0" # Unix_TimeStamp when data created.
+#  uid : ""
+
+VertexAPI:
+  get :
+    api: rv
+  store:
+    api: cv
+Edge:
+  .EcosObj : ""
+  subtype : ""
+  bvid : ""
+  evid : ""
+  ctime : ""
+  tage : ""
+
+EdgeAPI:
+  get:
+    api: re
+    xfname: bvid
+    maxcount: "1"
+  store: # create or update
+    api: ce
+
+Document:
+  .EcosObj : ""
+  eid : "" #EDGE ID
+  fid : ""  # 
+  subtype:
+    isOnServer: "1" # 1 ECOS server and limited size after compression under 32k;  0  S3
+    isZipped: auto  # 0 not gziped  1  gziped
+    isBinary: "0" # 0 Base64       1  binary
+    isEncryped: "0"  #0 no         1  encryped
+    isExtraKeyNeeded: "0"  #0 no   1  yes
+    isEditable: "0"  #0  no        1  yes
+    isCached: "1"
+    applicationDataType: "0"   #0 data
+    mediaType: "0" # 0 others
+    size: auto  
+
+DocAPI:
+  get: 
+    api: rd
+    ids: "" # 
+    xfname: "" # default is "id", optional "eid", "fid"
+    type: "0" # 0 data application data type 0 - 1023
+    maxcount: "1" # default is 20, max 1000
+  store:
+    api: cd
+     
+
+DataCache : 
+  loadingDateTime : "0"
+  expireTime : "24hr" # need reload
+
+Global: # name of an object
+  jwt:
+    edge:
+      .Edge: ""
+      type: 1030
+      bvid: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: Global.jwt.edge
+  relation:
+    edgeResponse: ""
+    edgeReq:
+      xfname: bvid,evid
+      id: []
+      sCondition: type in (1100,1200)
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: Global.relation.edgeReq
+        dataOut: Global.relation.edgeResponse
+  menuBar:
+    listData: .SideMenuBarDM.ScheduleManagement
+  locationAll: []
+  alllocationID: []
+  facilityAvatarID: ""  # facility头像的id 放入global里，随时调用（给provide，patientr添加好友）
+  patientInfo: ""
+  formData:   
+    facility: ""     # 注册facility时用到的Global,带入下一个页面的
+    appointment: ""    # 当前的会议，E2(PatientSummary和PatientSummaryRoom)
+    firstLocation: "" # 记录第一个location
+    reviewFromProvider: true  # 是否从provider点进去的review的页面，如果不是，就代表是room点进去
+    previewFromProvider: true # 是否从provider点进去的preview的页面，如果不是，就代表是room点进去
+    patientInfo:     # 会议中Patient的信息，用于填充表格和文档中的patient的个人信息
+      name: 
+        data: 
+          basicInfo: 
+            avatar: ""
+            dateOfBirth: ""
+            firstName: ""
+            fullName: ""
+            gender: ""
+            lastName: ""
+            middleName: ""
+            phone: ""
+            socialSecurity: ""
+            userName: ""
+          contactInfo: 
+            address: 
+              city: ""
+              county: ""
+              fullAddress: ""
+              line: ""
+              secondLine: ""
+              state: ""
+              zipCode: ""
+            alternatePhone: ""
+            email: ""
+          emergencyContact: 
+            firstName: ""
+            lastName: ""
+            middleName: ""
+            phone: ""
+            relation: ""
+          employment: 
+            employerName: ""
+            dept: ""
+            NatureBusiness: ""
+            Occupation: ""
+            Telephone: ""
+            fax: ""
+            email: ""
+            address: 
+              city: ""
+              county: ""
+              fullAddress: ""
+              line: ""
+              secondLine: ""
+              state: ""
+              zipCode: ""
+          identification: 
+            id: ""
+            imageId: ""
+            type: ""
+          insuranceId: ""
+          isFirstCreateProfile: ""
+          version: ""
+    meetingDocEid: ""  # 开会时 由facility 创建的文档，所有都挂在这条边上
+    meetingDocReid: ""  # 开会时 由facility 创建的文档，所有的Reid 都指向开会这条边上 
+    facilityPhoto:   #### the three photo in creating or editing facility
+      profilePhoto: ""
+      dea: ""
+      medicalLicense: ""
+    cancelAppointment: ""
+    providerInfo:    # providermanagement 页面里点击某一项具体provider的信息
+      name: 
+        data: 
+          Address: 
+            city: ""
+            state: ""
+            street: ""
+            zip: ""
+          DEA: ""
+          MedicalLicense: []
+          NPI: ""
+          address: ""
+          avatar: ""
+          cv: ""
+          description: ""
+          education: ""
+          email: ""
+          fax: ""
+          firstName: ""
+          fullName: ""
+          gender: ""
+          insurance: ""
+          languages: []
+          lastName: ""
+          medicalLicense: ""
+          middleName: ""
+          phone: ""
+          selectedSpecialty: []
+          specialty: []
+          title: ""
+          userName: ""
+    roomScheduleLocation: ""  # room 预约里 房间内的room所属的location信息
+    folder: ""
+    reply:  # 回复邮件
+      eid: 
+      name: 
+        data: 
+          receiverAvatarId: ""
+          receiverName: ""
+        title: ""
+    relationID: ""  # 跳转附件页面会丢失id，用此变量暂存
+    attachments: []  # 暂存附件
+    email: ""  # 添加附件时，暂存email
+    facilityLink: ""
+    isAttach: false
+    cov19Test: ""
+    medicalFacility: ""
+    patientHistoryId: ""
+    patientHistoryInfo: ""
+    scheduleLocationId: ""
+    patientPage: "VitalSigns"
+    patientPageDetail: ''
+    medicalRecords: ""
+    scheduleType: ""
+    serviceType: "655363"
+    service: "COVID-19 Testing"
+    firstLogin: true
+    currentAppointmentProdSchedule: ""
+    scheduleManageProdName: ""   # 用来在切换页面的时候，保持头部的providername 相同
+    scheduleManageProdId: ""     # 用来在切换页面的时候，保持头部的providername 相同
+    scheduleManagePatdId: ""     # 用来在切换页面的时候，获取到patient的profile信息
+    appointmentId:     # 由预约表格跳转appointmentLobby那个页面需要的边id
+    locationId: "" # from ScheduleSettings to next page,and make the location be the only one
+    inMeetingId: "" # for get all the meetingroom in page
+    accountID:     # for adding list color in account management
+    newPatientForm: ""
+    cov19TestForm: ""
+    cov19TestNewPatForm: ""
+    pifzerVaccineFirDoseForm: ""
+    pifzerVaccineSecDoseForm: ""
+    modernaVaccineFirDoseForm: ""
+    modernaVaccineSecDoseForm: ""
+    # 下面的form是facility新建form的格式
+    newPatientFormEdit: ""
+    cov19TestFormEdit: ""
+    cov19TestNewPatFormEdit: ""
+    pifzerVaccineFirDoseFormEdit: ""
+    pifzerVaccineSecDoseFormEdit: ""
+    modernaVaccineFirDoseFormEdit: ""
+    modernaVaccineSecDoseFormEdit: ""    
+    firstToCov19Test: true
+    firstToNewPatientForm: true
+    firstToCov19TestForm: true
+    firstToCov19TestNewPatForm: true
+    firstToPifzerVaccineFirDoseForm: true
+    firstToPifzerVaccineSecDose: true
+    firstToModernaVaccineFirDoseForm: true
+    firstToModernaVaccineSecDoseForm: true    
+    fileSize: "" # 用来记录上传图片的大小
+    
+  signInLocationId: ""  # 用来在创建facility的时候，把facility的图片和logo复制挂在location上
+  signInLocationRootId: "" # 用来在创建facility的时候，拿到location的rootNotebookId
+  signInLocationRootNoteId: "" # 用来在创建facility的时候，把facility的图片和logo复制挂在location上
+  newAccountFlag: "1"
+  phoneNumber: ""
+  currentSchedule: []
+  facilityList: []
+  DEAUrl: ""
+  MedicalLicenseUrl: ""
+  BusinessLogoUrl: ""
+  ProfileUrl: ""
+  currentPageCount: 5
+  acceptInfo: ""
+  providerId: ""
+  staffInfo: 
+    name: 
+      gender: "Male"
+  auth: ""
+  # 用于保存当前系统正在使用的各种ID 用户选择facility登陆时 默认的facility和location id都是当前facilityid
+  currentId:
+    facility: ""
+    location: ""
+    provider: ""
+    patient: ""
+    staff: ""
+  currentFacility: ""
+  currentDateTime : =.builtIn.currentDateTime # long integer of Unix_TimeStamp in millsecond
+  currentUser : 
+    dataCache : 
+      .DataCache: ""
+      expireTime : "2hr"
+    vertex: 
+      .Vertex: ""
+      name:
+        userName: ""
+        firstName: ""
+        lastName: ""
+        fullName: ""
+    JWT : ""
+#      .edge.get :       #override {"get":{"api":"re","type":"10002", "xfname":"bvid", "scondition":"subtype=1", "maxcount":"1000"}}
+  rootNotebookID: "" # Get Root Notebook Base64 formated ID
+  fac_rootNotebook: ""
+
+CountryCode:
+  - "+1" #US Canada
+  - "+52" #Mexico
+  - "+86" #China
+  - "+965" #Kuwait
+
+GovermentHoliday:
+  - New Year’s Eve 
+  - New Year’s Day
+  - Martin Luther King 
+  - President’s Day
+  - Good Friday
+  - Memorial Day
+  - Independence Day
+  - Labor Day
+  - Veteran’s Day 
+  - Thanksgiving Day 
+  - Day after Thanksgiving 
+  - Day before Christmas 
+  - Christmas Day
+
+# document type
+DocType:
+  Profile:  257 #  0x101private, 1
+  CV: "1027" #4<<8+2  
+  DoctorProfile: "35841" #0x8c01 140<<8+1 # 140<<8+0 
+  DoctorPublicProfile: "35840" 
+  PatientProfile: 102401
+  UploadProfile: "258"
+  UploadFile: "1025" # 4<<8+1 4
+  DEAPicture: "258561" # 1010<<8+1 
+  MedicalLicensePicture: "28901" #1020<<8+1
+  BusinessLogoPicture: "263680" #1030<<8
+  ProfilePicture: "266241" #1040<<8+1
+  Auth: "268801" #1050<<8+1
+  FacilityProfile: "271361" #1060<<8+1
+  CPTCode: "271617"     #0x42501 == 1061<<8+1
+  RoomProfile: "273921"     #1070<<8+1
+  InboxMessage: "1281" #5<<8+1
+  MeetingNote: "1537" # 6<<8+1 6 comment
+  EvaluationNote: "1793" # 7<<8+1 7
+  Prescription: "2049" # 8<<8+1 8
+  AbsentNote: "2305" # 9<<8+1 9
+  GroupBitAndTage: "10240" # 40<<8  tag of meeting room , can change tage of meeting room , AND calculate with tage
+  GroupBitOrTage: "10496" # 41<<8
+  UserAvatar: "40960" #0xA000 160<<8
+  VisitReason: "79360"    #310<<8+1
+  PatientChart: "25601" # 0x6401 100<<8+1
+  VitalSigns: "28161" # 0x6e01 110<<8+1
+  VisitQuestionnaire: "30721" # 0x7801 120<<8+1
+  MedicalRecord: "33281" # 0x8201  130<<8+1
+  LocationOfFacility: "38401" #   150<<8+1
+  DocumentSignature: "89601"
+  Intake3Signature: "53761" #210<<8+1
+  Cov19Chart: "92161" #360<<8+1
+  F_IDCard: "58881" #230<<8+1
+  Folder: "66560" # 260<<8       10001
+  Attachment: "66561"    #260<<8+1
+  MailFolder: "3328" #13<<8 0xD00   # get folder id:  
+  F_InsuranceCard: "71681" #280<<8+1
+  B_InsuranceCard: "74241" #290<<8+1
+  Covid19Questionnaire: "61441" # 0xf001 240<<8+1
+  Moderna: "84480"  #330<<8
+  PifzerBioNTech: "87040"  #340<<8
+  PatientForm: "94721"   #370<<8+1s
+  AcceptedInsurance: "97280"     #380
+  #virtual folder (1000~2000)<<8
+  PatientGeneralInfo:  "104961" #  0x410 public, 8+1
+  Cov19TestNewPatForm: "107521"    # 0x420  8+1         COVID-19 Testing Consent - New Patient
+  Cov19TestForm: "110081"  # 0x430 8+1                  COVID-19 Testing Consent Form
+  PifzerVaccineFirDoseForm: "112641"   # 0x440  8+1     Pifzer-BioNTech Vaccine - First Dose
+  PifzerVaccineSecDoseForm: "115201"   # 0x450  8+1     Pifzer-BioNTech Vaccine - Second Dose
+  ModernaVaccineFirDoseForm: "117761"   # 0x460  8+1    Moderna Vaccine Form - First Dose
+  ModernaVaccineSecDoseForm: "120321"
+  MailTag: "3584" # 0xE02
+  workStatusForm: "122881"  # 0x480 8+1  WorkStatusForm
+  pROne: "125441"  #0x490 8+1  PR-1
+  pRTwo: "128001" #0x500 8+1  PR-2
+  dWCFormRFA: "130561"  #0x510 8+1   DWCFormRFA 
+  surgeryForm: "133121"  #0x520  8+1  Surgery Authorization
+  InitEvalReport: "135681" #0x530<<8+1
+  covResultAndFluResult: "138241"    # 0x540 8+1   
+  ProgressReport: "140801" #0x550<<8+1
+  FluVaccinationConsentFormEnglish: "143361" #560<<8+1
+  FluVaccinationConsentFormSpanish: "145921" #570<<8+1
+  InsuranceCard: 148481 #580<<8+1
+  PatMedicalUpload: 153601 # 600<< 8+ 1  
+  PatientConsentForm: 156161 
+  AdminMedicalUpload: 163841 # 640<<8+ 1
+  CancelMeeting: 166401  # 650<<8+1 
+EdgeType:
+  JWT: "1030"
+  Relation: "1100"
+  StaffToFacility: "1200"
+  InviteInfo: "1053"   # 添加好友最新逻辑
+  Invite: "1050"
+  Accept: "1060"
+  RootNotebook: "10000"
+  Email: "10002"  # 250<<8+1     10002
+  PubEmail: "10004" # the same as inbox=10002, the difference is that it can be created from sender without going through invite logic.
+  organization: "256001" # 1000<<8+1 3E801-->
+  WaitingRoom: "40000"
+DocumentQuery:
+  ProviderAllMeetingDocuments: type NOT IN (102401,10496,10240,770)
+  PatientAllMeetingDocuments: type NOT IN (102401,10496,10240,770) AND type & 0xff = 1
+  AdminAllMeetingDocuments: type NOT IN (102401,10496,10240,770,25601,166401) # PatientChart是单独提出来的
+  meetingDocument: "type in (1025,1537,1793,2305,2049,30721,84480,87040,92161,94721,107521,110081,112641,115201,117761,120321,122881,125441,128001,130561,133121,135681,140801,143361,145921)"
+Duration: 
+  - 5 min 
+  - 10 min
+  - 15 min
+  - 20 min 
+  - 30 min
+  - 45 min
+  - 60 min
+  - 75 min
+  - 90 min 
+  - 120 min
+
+RoomSubtype: 
+  Telemedicine: "196611"    # 0x30003        3-> 0011
+  OfficeVisit: "131075"     # 0x20003        2-> 0010
+  Covid19Vaccine: "393219"  # 0x60003        6-> 0110
+  Covid19Testing: "655363"  # 0xa0003        a-> 1010
+  FluShot: "786435"         # 0xc0003        c-> 1100
+
+BusinessSubtype:
+# all of them v.type=20
+  facility: "1"
+  imageCenter: "2"
+  lab: "3"
+  pharmacy: "4"
+  employer: "5"
+  medicalSupplier: "6"
+  lawOffice: "7"
+
+# payment patient 支付Doc的结构
+OrderInfo:
+  name: 
+    data: 
+      orderInfo: 
+        squareID: ""
+        squareURL: ""
+        amount: ""
+        balance: ""
+        status: ""
+        processFee: ""    # 手续费
+        payer: ""
+      appointmentInfo: 
+        reason: ""
+        providerName: ""  
+        visitType: ""     # appointment type: egg.Telemedicine,Office Visit
+        appTime: ""       # appointment Date&TIme
+
+EInboxSubtype: # subtype pass from E1053(inviteToMeeting) to E10002(inbox)
+  PatientFacility: 131072 #2<<16 0x20000
+  ProviderFacility: 196608 #3<<16 0x30000
+
+DocumentList:
+  # provider type默认为私有状态
+  Provider:
+    - title: "Documents"
+      type: 151040
+      privateJump: MeetingDocument
+      releaseJump: MeetingDocument  
+    - title: "Progress Report"
+      type: 140800
+      privateJump: ProgressReportReview
+      releaseJump: ProgressReportReview     
+    - title: "Initial Evaluation Report"
+      type: 135680
+      privateJump: InitEvalReportReview
+      releaseJump: InitEvalReportReview    
+    - title: "Evaluation Note"
+      type: 1792
+      privateJump: EvaluationNoteReview
+      releaseJump: EvaluationNoteReview
+    # - title: "Prescription"
+    #   type: 2048
+    #   privateJump: 
+    #   releaseJump: 
+    - title: "Absence Note"
+      type: 2304
+      privateJump: AbsentNoteReview
+      releaseJump: AbsentNoteReview
+    - title: "Provider Note"
+      type: 1536
+      privateJump: BlankNoteReview
+      releaseJump: BlankNoteReview  
+    - title: "Work Status Form"
+      type: 122880
+      privateJump: WorkStatusFormReview
+      releaseJump: WorkStatusFormReview
+    - title: "PR-1"
+      type: 125440
+      privateJump: PROneReview
+      releaseJump: PROneReview
+    - title: "PR-2"
+      type: 128000
+      privateJump: PRTwoReview
+      releaseJump: PRTwoReview
+    - title: "DWC Form RFA"
+      type: 130560
+      privateJump: DWCFormRFAReview
+      releaseJump: DWCFormRFAReview
+    - title: "Surgery Authorization"
+      type: 133120
+      privateJump: SurgeryAuthorizationReview
+      releaseJump: SurgeryAuthorizationReview  
+    - title: "Patient Consent Form - HIPPA "
+      type: 156160
+      privateJump: PatientConsentFormHIPPAReview
+      releaseJump: PatientConsentFormHIPPAReview     
+  # patient type默认为Share状态
+  Patient:
+    - title: "Documents"
+      type: 153601
+      privateJump: ""
+      releaseJump: MeetingDocument
+    - title: "Visit Questionnaire"
+      type: 30721
+      privateJump: ""
+      releaseJump: VisitQuestionnaire
+    - title: "New Patient Forms"
+      type: 94721
+      privateJump: ""
+      releaseJump: NewPatFormReviewPage1
+    - title: "COVID-19 Testing Consent - New Patient"
+      type: 107521
+      privateJump: ""
+      releaseJump: Cov19TestNewPatReviewPage1
+    - title: "COVID-19 Testing Consent Form"
+      type: 110081
+      privateJump: ""
+      releaseJump: Cov19TestFormReviewPage1
+    - title: "COVID-19 Testing Consent Form"
+      type: 110081
+      privateJump: ""
+      releaseJump: Cov19TestFormReviewPage1
+    - title: "Pifzer-BioNTech Vaccine - First Dose"
+      type: 112641
+      privateJump: ""
+      releaseJump: PifzerVaccineFirDoseReviewPage1
+    - title: "Pifzer-BioNTech Vaccine - Second Dose"
+      type: 115201
+      privateJump: ""
+      releaseJump: PifzerVaccineSecDoseReviewPage1
+    - title: "Moderna Vaccine Form - First Dose"
+      type: 117761
+      privateJump: ""
+      releaseJump: ModernaVaccineFirDoseReviewPage1
+    - title: "Moderna Vaccine Form - Second Dose"
+      type: 120321
+      privateJump: ""
+      releaseJump: ModernaVaccineSecDoseReviewPage1
+  # Admin type默认为Share状态
+  Admin:
+    - title: "Document"
+      type: 163841
+      privateJump: MeetingDocument
+      releaseJump: MeetingDocument
+    - title: "COVID-19 Results & Flu A&B Results"
+      type: 138241
+      privateJump: Cov19ResultsAndFluResultsPrivate
+      releaseJump: Cov19ResultsAndFluResultsReview  
+    - title: "Progress Report"
+      type: 140800
+      privateJump: ProgressReportPrivate
+      releaseJump: ProgressReportReview    
+    - title: "Initial Evaluation Report"
+      type: 135680
+      privateJump: InitEvalReportPrivate
+      releaseJump: InitEvalReportReview  
+    - title: "Evaluation Note"
+      type: 1792
+      privateJump: EvaluationNotePrivate
+      releaseJump: EvaluationNoteReview
+    # - title: "Prescription"
+    #   type: 2048
+    #   privateJump: 
+    #   releaseJump: 
+    - title: "Absence Note"
+      type: 2304
+      privateJump: AbsentNotePrivate
+      releaseJump: AbsentNoteReview
+    - title: "Provider Note"
+      type: 1536
+      privateJump: BlankNotePrivate
+      releaseJump: BlankNoteReview
+    - title: "Work Status Form"
+      type: 122880
+      privateJump: WorkStatusFormPrivate
+      releaseJump: WorkStatusFormReview
+    - title: "PR-1"
+      type: 125440
+      privateJump: PROnePrivate
+      releaseJump: PROneReview
+    - title: "PR-2"
+      type: 128000
+      privateJump: PRTwoPrivate
+      releaseJump: PRTwoReview
+    - title: "DWC Form RFA"
+      type: 130560
+      privateJump: DWCFormRFAPrivate
+      releaseJump: DWCFormRFAReview
+    - title: "Surgery Authorization"
+      type: 133120
+      privateJump: SurgeryAuthorizationPrivate
+      releaseJump: SurgeryAuthorizationReview 
+    - title: "Patient Consent Form - HIPPA "
+      type: 156160
+      privateJump: PatientConsentFormHIPPAPrivate
+      releaseJump: PatientConsentFormHIPPAReview        

@@ -1,0 +1,277 @@
+UploadSharedDocuments:
+  pageNumber: "415"
+  title: "Meeting Documents"
+  init:
+    - .SignInCheck
+    - ..listData.get 
+    - if:
+        - =.Global.rootRoomInfo.edge.refid
+        - continue
+        - =.builtIn.hide:
+            dataIn:
+              viewTag: videoTimer
+              wait: 0    
+  listData:
+    sharedDoc:
+      doc:
+        name:
+          title: "Urgent Care Evaluation Report"
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataKey: listData.sharedDoc
+      ids: 
+        - .Global.VideoChatObjStore.reference.edge.refid
+      type: .DocType.UploadFile
+      # ObjType: 4
+      # sCondition: .DocType.GetAllDocument
+      xfname : eid
+      obfname : "mtime" 
+      maxcount : "20"
+      _nonce: =.Global._nonce
+  popUpList:
+    - text: "Share MyDocument"
+      pageName: "UploadDocuments"
+    - text: "Upload Document"
+      pageName: "SharedDocuments"
+    - text: "Start New Note"
+      pageName: "MeetingDocumentsNotes"      
+  popUpListTemp:                
+  components: 
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        left: "0"
+        top: "0"
+        position: "fixed"
+      children:
+        - .BaseHeader3:
+        - .HeaderLeftButton:
+          onClick:
+            - actionType: evalObject
+              object:
+                .Global._nonce@:
+                  =.builtIn.math.random: ""                  
+            - actionType: builtIn
+              funcName: goBack  
+        - type: label
+          contentType: timer
+          viewTag: "videoTimer"
+          text=func: =.builtIn.string.formatTimer
+          dataKey: Global.timer # to be remove after implemented builtIn   
+          style:
+            left: "0.8"
+            top: "0"
+            width: "0.1"
+            height: "0.1"
+            zIndex: 100
+            #marginTop: "0.05"
+            color: "0xffffff"
+            fontSize: "17"
+            textAlign:
+              x: right
+              y: center                      
+        - type: image
+          zIndex: 1
+          path: addMeeting.png
+          onClick:
+            - actionType: popUp
+              popUpView: selectView
+              dismissOnTouchOutside: true
+          style:
+            left: "0.8"
+            top: "0.89"
+            width: "0.13"
+            backgroundColor: "0x388eccff"
+            border:
+              style: "5"
+            borderRadius: "100"
+        # - type: view
+        #   style:
+        #     top: "0.1"
+        #     left: "0"
+        #     width: "1"
+        #     height: "0.1"
+        #   children:
+        #     - type: button
+        #       onClick:               
+        #         - goto: UploadDocuments2 
+        #       text: "My Documents"
+        #       style:
+        #         color: "0x388eccff"
+        #         left: "0.07"
+        #         top: "0.02"
+        #         width: "0.4"
+        #         height: "0.05"
+        #         border:
+        #           style: "3"
+        #         borderRadius: "50"
+        #         borderWidth: "1"
+        #         backgroundColor: "0xffffff"
+        #         display: inline
+        #         borderColor: "0x388eccff"
+        #         textAlign:
+        #           x: center
+        #           y: center
+        #     - type: button
+        #       onClick:               
+        #         - goto: SharedDocuments2
+        #       text: "Upload"
+        #       style:
+        #         color: "0x388eccff"
+        #         left: "0.53"
+        #         top: "0.02"
+        #         width: "0.4"
+        #         height: "0.05"
+        #         border:
+        #           style: "3"
+        #         borderRadius: "50"
+        #         display: inline
+        #         borderWidth: "0.8"
+        #         backgroundColor: "0xffffff"
+        #         borderColor: "0x388eccff"
+        #         textAlign:
+        #           x: center
+        #           y: center
+        - type: view
+          style:
+            top: "0.1"
+            height: "0.78"
+          children:
+            - type: scrollView
+              style:
+                top: "0.01"
+                # left: "0.05"
+                width: "1"
+                height: "0.77"
+                backgroundColor: "#ffffff"
+                overflow: scroll
+              children:            
+                - type: list
+                  contentType: listObject
+                  listObject: ..listData.sharedDoc.doc
+                  iteratorVar: itemObject
+                  style:
+                    color: "0x000000"
+                    backgroundColor: "0xFFFFFF"
+                    left: "0.05"
+                    top: "0"
+                    width: "0.9"
+                    height: "0.7"
+                  children:
+                  - type: listItem
+                    itemObject: ""
+                    onClick:
+                      - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                        dataKey: Global.DocReference.document
+                        dataObject: itemObject # this must be a rootRoom
+                      - goto: DocumentDetail                       
+                      # - actionType: evalObject
+                      #   object:                    
+                      #     - if:
+                      #       - =.builtIn.string.equal:
+                      #           dataIn:
+                      #             string1: =.Global.DocReference.document.name.type
+                      #             string2: "application/json"                         
+                      #       - goto: DocumentNotes
+                            
+                    style:
+                      color: "0x000000"
+                      backgroundColor: "0xFFFFFF"
+                      left: "0"
+                      # top: "0"
+                      width: "0.9"
+                      height: "0.07"
+                      border:
+                        style: "2"
+                      borderWidth: "1"
+                      borderColor: "0x00000011"
+                      textAlign:
+                        x: left
+                        y: center
+                    children:
+                      - type: label
+                        text: Urgent Care Evaluation Report
+                        dataKey: itemObject.name.title
+                        style:
+                          left: "0.1"
+                          # top: "0.02"
+                          width: "0.5"
+                          height: "0.02"
+                          fontSize: "13"
+                          fontWeight: "500" 
+                          textAlign:
+                            y: center
+                      - type: label
+                        text: 10.30am
+                        text=func: =.builtIn.string.formatUnixtime_en
+                        dataKey: itemObject.ctime # Mon Day, Year hh:mm:ss
+                        style:
+                          color: "0x808080"
+                          left: "0.6"
+                          top: "0.02"
+                          width: "0.3"
+                          height: "0.02"
+                          fontSize: "12"
+                        textAlign:
+                          y: center
+    - type: popUp
+      viewTag: selectView
+      style:
+        left: "0.5"
+        width: "0.45"
+        height: "0.15"
+        top: "0.71"
+        backgroundColor: "0xf4f4f4"
+        border:
+          style: "3"
+        borderColor: "0x388eccff"
+        borderWidth: "0.8"
+        borderRadius: "9"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..popUpList
+          iteratorVar: itemObject
+          style:
+            marginTop: "0"
+            width: "0.45"
+            height: "0.198"
+            top: "0"
+            left: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                width: "0.45"
+                height: "0.049"                                
+              children:
+                - type: label
+                  dataKey: itemObject.text  
+                  onClick:  
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: UploadSharedDocuments.popUpListTemp
+                      dataObject: itemObject
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.UploadSharedDocuments.popUpListTemp.pageName
+                                  string2: "..."
+                            - continue
+                            - goto: .UploadSharedDocuments.popUpListTemp.pageName                                
+                  style:
+                    width: "0.45"
+                    height: "0.03"
+                    top: "0.011"
+                    fontWeight: "500"
+                    color: "0x388eccff"
+                    textAlign:
+                      x: center
+                    fontSize: "14"
+                    border:
+                      style: "5"
+                    borderColor: "0x000000"
+                    borderWidth: "0.8"                                      

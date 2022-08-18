@@ -1,0 +1,800 @@
+SearchProviderNew:
+  viewPort: top
+  pageNumber: '1'
+  init:
+    - .Global.baseFontColor@: "0x333333"
+    - actionType: evalObject
+      object:
+      .Global._nonce@: 
+          =.builtIn.math.random: ""
+    - if:
+      - =.Global.newCareUser
+      - .Global.formData.profile.firstName@: ""
+      - continue
+    - if:
+      - =.Global.currentUser.vertex.id
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.currentUser.vertex.id
+                  string2: "zgT+cgx7QFopl+JPC2WOeA=="
+            - continue
+            - actionType: evalObject
+              object:
+                - if:
+                  - =.Global.titleProfile.id
+                  - ..profile.patientdocument@: =.Global.titleProfile
+                  - actionType: evalObject
+                    object:
+                      - =..profile.docAPI.get: ""
+                      - ..profile.patientdocument@: =..profile.docResponse.doc.0
+                      - .Global.titleProfile@: =..profile.patientdocument
+      - continue
+    
+    - .Global.currentUser.vertex.name.fullName@: =..profile.patientdocument.name.data.basicInfo.fullName
+    - .Global.GoSignUp@: "SearchProviderNew"
+    - if:
+      - =.Global.isSignIn
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "false"
+          - ..isSignIn@: "true"
+      - actionType: evalObject
+        object:
+          - ..isPersonal@: "true"
+          - ..isSignIn@: "false"
+    - if:
+      - =.Global.newCareUser
+      - actionType: evalObject
+        object:
+          - ..formData.newCare@: false
+      - continue
+  save:
+    - =.builtIn.eccNaCl.decryptAES:
+        dataIn:
+          key: =..formData.password
+          message: =.Global.currentUser.vertex.esk
+        dataOut: SearchProviderNew.formData.sk
+    - =.builtIn.eccNaCl.skCheck:
+        dataIn:
+          pk: =.Global.currentUser.vertex.pk
+          sk: =..formData.sk
+        dataOut: SearchProviderNew.formData.pass  
+  formData:
+    fullPhone: []
+    countryCode: "+1"   
+    phoneNumber: "8881307128"
+    password: "123456"
+    code: ""
+    sk: ""
+    pass: ""
+    showName: ""
+    address: ""
+    addressDetail: ""
+    phone: ["+1"]
+    newCare: true
+ 
+
+  profile:
+    docResponse: ""
+    patientdocument:
+      type: .DocType.PatientProfile
+      eid: .Global.rootNotebookID
+      name:
+    docAPI:
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.rootNotebookID
+        xfname: eid
+        type: .DocType.PatientProfile
+        obfname: mtime
+        dataKey: profile.docResponse
+        _nonce: =.Global._nonce 
+  
+  components: 
+    - type: view
+      style:
+        width: '1'
+        margin: 'auto'
+        display: flex
+        flexDirection: column
+        justifyContent: center
+      children:
+        - type: view
+          viewTag: topView
+          style: 
+            top: 0  
+        - .baseTopBar:
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .ViewRow:
+                  style:
+                    height: '6vw'
+                    alignItems: center
+                    float: right
+                  children:
+                    - .UserBar:
+        - type: view
+          style:
+            width: "1"
+            margin: auto
+            marginTop: 6vw
+            left: 0
+            right:  0
+          children:
+            - type: image
+              path: 'photosNew.png'
+              style:
+                width: "1"
+                # top: '0.12'
+                left: '0'
+                marginTop: "0"
+            - type: view
+              style: 
+                left: "52vw"
+                width: 32vw
+                top: "11vw"
+                textAlign: 
+                  x: right
+              children:
+                - type: label
+                  text: 'Get more exposure'
+                  dataKey: 
+                  style:
+                    # left: '0.52'
+                    # top: '0.2'
+                    color: '#ffffff'
+                    fontSize: .Nfont.h14
+                    fontWeight: 650
+                    textShadow: "#a9a9a9 3px 4px 5px"
+                - type: label
+                  textBoard:
+                    - text: "For&nbsp"
+                    - text: " FREE"
+                      color: '#2FB355'
+                  style:
+                    # left: '0.683'
+                    # top: '0.3'
+                    color: '#ffffff'
+                    fontSize: .Nfont.h14
+                    fontWeight: 650
+                    textShadow: "#a9a9a9 3px 4px 5px"
+                    marginTop: "0"
+
+                - type: button
+                  text: 'Sign Up'
+                  style:
+                    width: "0.12"
+                    height: '0.058'
+                    backgroundColor: '#2FB355'
+                    textAlign:
+                      x: center
+                      y: center
+                    color: '0xffffff'
+                    fontSize: .Nfont.h6
+                    borderRadius: '5'
+                    float: right
+                    marginTop: "2.5vw"
+                    boxShadow: "10px 10px 20px -10px #5e5e5e"
+                  onClick:
+                    - goto: ..config.adminUrl
+              
+        - type: view
+          style:
+            width: "1"
+            height: 40vw
+            margin: auto
+          children: 
+            - type: label
+              text: How to sign up
+              style: 
+                width: "1"
+                height: 10vw
+                color: "#143459"
+                fontSize: .Nfont.h8
+                fontWeight: "650"
+                textAlign:
+                  y: center
+                  x: center
+            - type: view
+              style: 
+                # width: 61vw
+                height: 30vw
+                margin: "auto"
+                display: flex
+                flexDirection: row
+                justifyContent: center
+              children:
+                - type: view
+                  style: 
+                    width: "0.2"
+                    height: 30vw
+                    display: flex
+                    flexDirection: column
+                    alignItems: center
+                  children: 
+                    - type: image
+                      path: imageOne.svg
+                      style:
+                        width: 16vw
+                    - type: image
+                      path: stepOne.svg
+                      style: 
+                        width: 2vw
+                        marginTop: "1vw"
+                    - type: view
+                      style:
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-start
+                        marginTop: "2vw"
+                        marginLeft: 1vw
+                      children:
+                        - type: image
+                          path: dot.svg
+                          style: 
+                            marginTop: 0.5vw
+                        - type: view
+                          children:
+                            - .aLabel: 
+                              text: 'Each provider sets up their own&nbsp'
+                            - .aLabel: 
+                              text: "provider's account&nbsp"
+                              style:
+                                color: "#2988E6"
+                          style:
+                            textAlign: 
+                              x: left
+                            fontSize: .Nfont.h3
+                            color: "0x333333"
+                            marginLeft: 1vw
+                    - type: view
+                      style:
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-start
+                        marginTop: "1vw"
+                        marginLeft: -2.5vw
+                      children:
+                        - type: image
+                          path: dot.svg
+                          style:
+                            marginTop: 0.5vw
+                        - type: view
+                          children:
+                            - .aLabel: 
+                              text: 'Fill out the provider &nbsp'
+                            - .aLabel: 
+                              text: "Profile"
+                              style:
+                                color: "#2988E6"
+                          style:
+                            textAlign: 
+                              x: left
+                            fontSize: .Nfont.h3
+                            color: "0x333333"
+                            marginLeft: 1vw
+                
+                - type: view
+                  style: 
+                    width: 7vw
+                  children:
+                    - type: image
+                      path: forward.svg
+                      style: 
+                        width: 4vw
+                        marginTop: 18vw
+                - type: view
+                  style: 
+                    width: "0.23"
+                    height: 30vw
+                    display: flex
+                    flexDirection: column
+                    alignItems: center
+                    alignContent: center
+                  children: 
+                    - type: image
+                      path: imageTwo.svg
+                      style:
+                        width: 16vw
+                    - type: image
+                      path: stepTwo.svg
+                      style: 
+                        width: 2vw
+                        marginTop: "1vw"
+                    - type: view
+                      children:
+                        - type: view
+                          style:
+                            display: flex
+                            flexDirection: row
+                            marginTop: "1vw"
+                            alignItems: flex-start
+                            marginLeft: 2.5vw
+                          children:
+                            - type: image
+                              path: dot.svg
+                              style:
+                                marginTop: 0.5vw
+                            - type: view
+                              children:
+                                - .aLabel: 
+                                  text: 'The admin sets up an &nbsp'
+                                - .aLabel: 
+                                  text: "admin account&nbsp"
+                                  style:
+                                    color: "#2988E6"
+                                - .aLabel: 
+                                  text: "for the organization"
+                              style:
+                                textAlign: 
+                                  x: left
+                                fontSize: .Nfont.h3
+                                color: "0x333333"
+                                marginLeft: 1vw
+                                # fontFamily: "Arial"
+                        - type: view
+                          style:
+                            display: flex
+                            flexDirection: row
+                            alignItems: flex-start
+                            marginTop: "0.01"
+                            marginLeft: 2.5vw
+                          children:
+                            - type: image
+                              path: dot.svg
+                              style: 
+                                marginTop: 0.5vw
+                            - type: label
+                              children:
+                                - .aLabel: 
+                                  text: 'The admin creates a&nbsp'
+                                - .aLabel: 
+                                  text: "Facility"
+                                  style:
+                                    color: "#2988E6"
+                              style:
+                                textAlign: 
+                                  x: left
+                                fontSize: .Nfont.h3
+                                color: "0x333333"
+                                marginLeft: 1vw
+                        - type: view
+                          style:
+                            display: flex
+                            flexDirection: row
+                            alignItems: flex-start
+                            marginTop: "0.01"
+                            marginLeft: 2.5vw
+                          children:
+                            - type: image
+                              path: dot.svg
+                              style: 
+                                marginTop: 0.5vw
+                            - type: view
+                              children:
+                                - .aLabel: 
+                                  text: 'Admin invites Providers to join their facility'
+                              style:
+                                textAlign: 
+                                  x: left
+                                fontSize: .Nfont.h3
+                                color: "0x333333"
+                                marginLeft: 1vw
+                        - type: view
+                          style:
+                            display: flex
+                            flexDirection: row
+                            alignItems: flex-start
+                            marginTop: "0.01"
+                            marginLeft: 2.5vw
+                          children:
+                            - type: image
+                              path: dot.svg
+                              style: 
+                                marginTop: 0.5vw
+                            - type: view
+                              children:
+                                - .aLabel: 
+                                  text: 'Providers accecpt the'
+                                - .aLabel: 
+                                  text: '&nbspinvitation'
+                                  style:
+                                    color: "#2988E6"
+                              style:
+                                textAlign: 
+                                  x: left
+                                fontSize: .Nfont.h3
+                                color: "0x333333"
+                                marginLeft: 1vw
+                        
+                - type: view
+                  style: 
+                    width: 7vw
+                  children:
+                    - type: image
+                      path: forward.svg
+                      style: 
+                        width: 4vw
+                        marginTop: 18vw
+                - type: view
+                  style: 
+                    width: "0.2"
+                    height: 30vw
+                    display: flex
+                    flexDirection: column
+                    alignItems: center
+                  children: 
+                    - type: image
+                      path: imageThree.svg
+                      style:
+                        width: 16vw
+                    - type: image
+                      path: stepThree.svg
+                      style: 
+                        width: 2vw
+                        marginTop: "1vw"
+                    - type: view
+                      style:
+                        display: flex
+                        flexDirection: row
+                        marginTop: "1vw"
+                        alignItems: flex-start
+                        marginLeft: 1.5vw
+                      children:
+                        - type: image
+                          path: dot.svg
+                          style: 
+                            marginTop: 0.5vw
+                        - type: view
+                          children:
+                            - .aLabel: 
+                              text: 'Set up the&nbsp'
+                            - .aLabel: 
+                              text: "reason for visit"
+                              style:
+                                color: "#2988E6"
+                            - .aLabel: 
+                              text: "&nbsp and&nbsp"
+                            - .aLabel: 
+                              text: "availability"
+                              style:
+                                color: "#2988E6"
+                            - .aLabel: 
+                              text: "&nbspin either provider or andmin account"
+                          style:
+                            textAlign: 
+                              x: left
+                            fontSize: .Nfont.h3
+                            color: "0x333333"
+                            marginLeft: 1vw
+        
+        - type: view
+          style:
+            width: "1"
+            height: 37vw
+            margin: 'auto'
+            background-image: 'linear-gradient(#378fcd, #054b90)'   
+            display: flex
+            flexDirection: column
+            alignItems: center
+          children: 
+            - type: label
+              text: 'What we can Do'
+              style:
+                width: "1"
+                height: 12vw
+                fontSize: .Nfont.h8
+                fontWeight: "650"
+                color: '#ffffff'
+                textAlign: 
+                  x: center
+                  y: center
+            - type: view
+              style:
+                width: 72vw
+                height: 25vw
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:
+                - type: view
+                  style:
+                    width: 18vw
+                    height: 25vw
+                    display: flex
+                    flexDirection: column
+                    justifyContent: flex-start
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: undraw_Web_search_re_efla.png
+                      style:
+                        height: 9vw
+                    - type: label
+                      text: 'Hassle-free exposure for your practice with no costs'
+                      style:
+                        marginTop: 4vw
+                        width: 17vw
+                        fontSize: .Nfont.h3
+                        color: '#ffffff'
+                        
+                        textAlign: 
+                          x: center
+                - type: view
+                  style:
+                    width: 18vw
+                    height: 25vw
+                    display: flex
+                    flexDirection: column
+                    justifyContent: flex-start
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: undraw_Investment_data_re_sh9x.png
+                      style:
+                        height: 9vw
+                    - type: label
+                      text: 'Increase your office efficiency'
+                      dataKey: 
+                      style:
+                        marginTop: 4vw
+                        width: 18vw
+                        fontSize: .Nfont.h3
+                        color: '#ffffff'
+                        
+                        textAlign: 
+                          x: center 
+                - type: view
+                  style:
+                    width: 18vw
+                    height: 25vw
+                    display: flex
+                    flexDirection: column
+                    justifyContent: flex-start
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: undraw_Online_calendar_re_wk3t.png
+                      style:
+                        height: 9vw
+                    - type: label
+                      text: 'Convert vacant slots to booked appointments'
+                      dataKey: 
+                      style:
+                        marginTop: 4vw
+                        width: 18vw
+                        fontSize: .Nfont.h3
+                        color: '#ffffff'
+                        
+                        textAlign: 
+                          x: center   
+        
+        - type: view
+          style:
+            width: "1"
+            height: 32vw
+            margin: 'auto'
+            display: flex
+            flexDirection: column
+            alignItems: center
+          children:
+            - type: label
+              text: 'Providers'
+              dataKey: 
+              style:
+                width: "1"
+                height: 8vw
+                color: "#143459"
+                fontSize: .Nfont.h8
+                fontWeight: "650"
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style: 
+                width: 61vw
+                height: 21vw
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+                alignItems: center
+              children:
+                - type: image
+                  path: undraw_medical_care_movn (1).png
+                  style:  
+                    width: 22.5vw
+                - type: view
+                  style:
+                    width: 30vw
+                    height: 18.5vw
+                    display: flex
+                    flexDirection: column
+                    justifyContent: center
+                  children:
+                    - type: view
+                      style:
+                        width: 30vw
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-start
+                      children:
+                        - type: image
+                          path: Tick.svg
+                          style:
+                            width: 2vw
+                            marginTop: 0.5vw
+                        - type: label
+                          text: 'Build your own healthcare network with all of your healthcare professionals'
+                          dataKey: 
+                          style:
+                            width: "0.315"
+                            fontWeight: 400
+                            fontSize: .Nfont.h1
+                            color: '0x333333'
+                            lineHeight: 2vw
+                            marginLeft: 1vw
+                    - type: view
+                      style:
+                        marginTop: 2.6vw
+                        width: 30vw
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-start
+                      children:
+                        - type: image
+                          path: Tick.svg
+                          style:
+                            width: 2vw
+                            marginTop: 0.5vw
+                        - type: label
+                          text: 'Share your professional profile and availability to leverage our healthcare e-referral platform'
+                          dataKey: 
+                          style:
+                            width: "0.315"
+                            fontWeight: 400
+                            fontSize: .Nfont.h1
+                            color: '0x333333'
+                            lineHeight: 2vw
+                            marginLeft: 1vw
+                    - type: view
+                      style:
+                        marginTop: 2.6vw
+                        width: 34vw
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-start
+                      children:
+                        - type: image
+                          path: Tick.svg
+                          style:
+                            width: 2vw
+                            marginTop: 0.5vw
+                        - type: label
+                          text: "Come be a part of our new and improved medical practice marketing, reputation management, and patient e-referral program"
+                          dataKey: 
+                          style:
+                            marginLeft: 1vw
+                            width: "0.315"
+                            fontWeight: 400
+                            fontSize: .Nfont.h1
+                            color: '0x333333'
+                            lineHeight: 2vw
+                    
+        - type: view
+          style:
+            width: "1"
+            height: 37vw 
+            margin: 'auto'  
+            backgroundColor: "#f7f7f7"
+            display: flex
+            flexDirection: column
+            alignItems: center
+          children:
+            - type: label
+              text: 'Organizations'
+              dataKey: 
+              style:
+                width: "1"
+                height: 8vw
+                fontSize: .Nfont.h8
+                fontWeight: "650"
+                color: '0x143459'
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style:
+                width: 61vw
+                height: 20vw
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+                alignItems: center
+              children:
+                - type: view
+                  style:
+                    width: 32vw
+                    height: 25vw
+                    display: flex
+                    flexDirection: column
+                    justifyContent: center
+                  children:
+                    - type: view
+                      style:
+                        display: flex
+                        flexDirection: row
+                        alignItems: flex-start
+                      children:
+                        - type: image
+                          path: Icon awesome-check_blue.png
+                          style:
+                            width: 1.5vw
+                            marginTop: 0.6vw
+                        - type: label
+                          text: 'Reach more providers with AiTmed search  to best accommodate all of your patient’s healthcare needs'
+                          dataKey: 
+                          style:
+                            width: "0.315"
+                            marginLeft: 1vw
+                            fontWeight: 400
+                            fontSize: .Nfont.h1
+                            color: '0x333333'
+                            lineHeight: 2vw
+                    - type: view
+                      style:
+                        display: flex
+                        flexDirection: row
+                        marginTop: 2.6vw
+                        alignItems: flex-start
+                      children:
+                        - type: image
+                          path: Icon awesome-check_blue.png
+                          style:
+                            width: 1.5vw
+                            marginTop: 0.6vw
+                        - type: label
+                          text: 'Deliver the highest quality care by improving the coordination between the patient and specialist'
+                          dataKey: 
+                          style:
+                            width: "0.315"
+                            marginLeft: 1vw
+                            fontWeight: 400
+                            fontSize: .Nfont.h1
+                            color: '0x333333'
+                            lineHeight: 2vw
+                    - type: view
+                      style:
+                        display: flex
+                        flexDirection: row
+                        marginTop: 2.6vw
+                        alignItems: flex-start
+                      children:
+                        - type: image
+                          path: Icon awesome-check_blue.png
+                          style:
+                            width: 1.5vw
+                            marginTop: 0.6vw
+                        - type: label
+                          text: 'Maximize the power of AiTmed’s ecosystem with advanced schedule management and patient-provider-organization communication tools'
+                          dataKey: 
+                          style:
+                            width: "0.315"
+                            marginLeft: 1vw
+                            fontWeight: 400
+                            fontSize: .Nfont.h1
+                            color: '0x333333'
+                            lineHeight: 2vw
+                - type: image
+                  path: undraw_coming_home_52ir.png
+                  style:
+                    width: 25vw
+        - .Bottom:
+          style: 
+            margin: auto
+            width: "1"

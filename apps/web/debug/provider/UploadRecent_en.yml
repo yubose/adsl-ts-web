@@ -1,0 +1,177 @@
+UploadRecent:
+  pageNumber: "340"
+  title: "Invite" # xd page 36
+  init:
+    - .SignInCheck
+    - ..listData.get
+    - if:
+        - ..listData.response.edge.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
+  listData:
+    response:
+      edge:
+    edge:
+      .Edge: ""
+      type: 1053
+      maxcount: "20"
+      id: .Global.currentUser.vertex.id
+      obfname: "mtime"
+      xfname: bvid
+      sCondition: "tage=0"
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: listData.edge
+      dataOut: listData.response
+      _nonce: =.Global._nonce
+  inviteMeeting:
+    edge: ""
+  generalInfo:
+    value: true
+  components:
+    - type: view
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+      children:
+        - .BaseHeader:
+        - .HeaderLeftButton:
+          # onClick:
+          #   - goto: MeetingLobby
+        - .SubMenuView:
+          style:
+            top: "0.09"
+            backgroundColor: "0x2988e6"
+            height: "0.1"
+            zIndex: "10"
+          children:
+            - .SubMenuButton:
+              text: "Favorites"
+              style:
+                top: "0.03"
+              onClick:
+                - goto: UploadFavorite
+            - .SubMenuButton:
+              text: "Recents"
+              style:
+                top: "0.03"
+                left: "0.33"
+                color: "0xffffffff"
+              onClick:
+                - goto: UploadRecent
+            - .SubMenuButton:
+              text: "Contacts"
+              style:
+                top: "0.03"
+                left: "0.66"
+              onClick:
+                - goto: UploadContact
+
+        - type: view
+          style:
+            top: "0.1"
+            left: "0"
+            width: "0.8"
+            height: "0.08"
+          children:
+            - type: view
+              style:
+                top: "0.1"
+                left: "0.05"
+                width: "0.9"
+                height: "0.71"
+              children:
+                - type: label
+                  text: Recents
+                  style:
+                    left: "0"
+                    width: "0.6"
+                    height: "0.03"
+                    fontSize: "20"
+                    textAlign:
+                      x: left
+                      y: center
+            - type: label
+              contentType: messageHidden
+              text: "No current invitations"
+              style:
+                # left: "0.31"
+                top: "0.25"
+                width: "1"
+                height: "0.04"
+                color: "0x000058"
+                fontSize: .Nfont.h16
+                isHidden: "true"
+                textAlign:
+                  x: center
+            - type: list
+              contentType: listObject
+              listObject: ..listData.response.edge # to dataObject to enumerate the list
+              iteratorVar: itemObject
+              style:
+                top: "0.15"
+                left: "0.05"
+                width: "0.9"
+                height: "0.7"
+                overflow: scroll
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+                  children:
+                    - type: image
+                      viewTag: select
+                      path: rightYellowArrow.svg
+                      style:
+                        top: "0.03"
+                        left: "0"
+                        height: "0.04"
+                    - type: image
+                      path: drImg.png
+                      style:
+                        borderRadius: "10000"
+                        height: "0.07"
+                        top: "0.015"
+                        left: "0.13"
+                    - type: label
+                      dataKey: itemObject.name.firstName
+                      onClick:
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                          dataKey: UploadRecent.inviteMeeting.edge
+                          dataObject: itemObject
+                        - actionType: evalObject
+                          object:
+                            - .Global.contact.document.name.data.phoneNumber@: =..inviteMeeting.edge.name.phoneNumber
+                            - .Global.contact.document.name.data.firstName@: =..inviteMeeting.edge.name.firstName
+                            - .Global.contact.document.name.data.lastName@: =..inviteMeeting.edge.name.lastName
+                        - goto: InvitePatient
+                      style:
+                        left: "0.3"
+                        height: "0.1"
+                        width: "0.45"
+                        textAlign:
+                          y: center
+                    - type: label
+                      # if .buildIn.string.formatUnixtime_en(itemObject.ctime) is not valid
+                      # keep the 'text' field, otherwise, replace the 'text' field with the return value.
+                      text=func: .builtIn.string.formatUnixtime_en
+                      dataKey: itemObject.ctime # Mon Day, Year hh:mm:ss
+                      style:
+                        left: "0.52"
+                        top: "0.04"
+                        height: "0.03"
+                        fontSize: .Nfont.h12
+                        zIndex: 1000

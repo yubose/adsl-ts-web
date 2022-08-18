@@ -1,0 +1,956 @@
+CreateAppointment:
+  title: "CreateAppointment"
+  init:
+    - .SignInCheck
+    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id #change provider jwt
+    - =.Global.createjwt.edgeAPI.store: ""
+    - =.builtIn.object.setObjectKey:
+        dataIn:
+          objectArr: =..formDataTemp.appointmentTitle
+          key: isSelected
+          value: false
+    - =.builtIn.object.setObjectKey:
+        dataIn:
+          objectArr: =..formDataTemp.optionalForms
+          key: isSelected
+          value: false
+    - =.builtIn.string.retainNumber:
+        dataIn:
+          value: =.Global.formData.appointment.selectData.duration
+        dataOut: CreateAppointment.apiRequest.appointment.edgeCreateReq.name.duration
+    - if:
+        - =.Global.middleInformation.PatientVisitInfo.id
+        - actionType: evalObject
+          object:
+            - ..formData.patientInfo.firstName@: =.Global.middleInformation.PatientVisitInfo.name.data.basicInfo.firstName
+            - ..formData.patientInfo.middleName@: =.Global.middleInformation.PatientVisitInfo.name.data.basicInfo.middleName
+            - ..formData.patientInfo.lastName@: =.Global.middleInformation.PatientVisitInfo.name.data.basicInfo.lastName
+            - ..apiRequest.appointment.edgeCreateReq.evid@: =.Global.middleInformation.PatientVisitInfo.bsig
+            - ..formData.patientInfo.country@: =.Global.middleInformation.PatientVisitInfo.phoneNumber.0
+            - ..formData.patientInfo.phone@: =.Global.middleInformation.PatientVisitInfo.phoneNumber.1
+            - ..formData.patientInfo.avatar@: =.Global.middleInformation.PatientVisitInfo.name.data.avatar
+        - continue
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.Global.MyProfile.name.data.fullName
+          - " - "
+          - =.Global.MyProfile.name.data.specialty.0.specialty
+        dataOut: CreateAppointment.apiRequest.appointment.edgeCreateReq.name.providerFullInfo
+
+    #judge the appointment visitType, then assign the E2 subtype and location option style
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.appointment.visitType
+              string2: Telemedicine
+        - actionType: evalObject
+          object:
+            - ..apiRequest.appointment.edgeCreateReq.subtype@: =.EdgeSubtype.schedule.createAppointment.Telemedicine
+            - ..formData.facilityName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.appointment.visitType
+              string2: Office Visits
+        - actionType: evalObject
+          object:
+            - ..formData.facilityName@: =.Global.formData.location.name.basicInfo.medicalFacilityName
+            - ..apiRequest.appointment.edgeCreateReq.name.fontColor@: "0xff8c00"
+            - ..formData.locationDisplay@: ""
+            - ..apiRequest.appointment.edgeCreateReq.subtype@: =.EdgeSubtype.schedule.createAppointment.OfficeVisit
+        - continue
+    # judge the fields which have to fill are all filled and then control the create appointment button
+    - if:
+        - =.builtIn.array.allComplete:
+            dataIn:
+              - =..formData.patientInfo.phone
+              - =..formData.patientInfo.country
+        - actionType: evalObject
+          object:
+            - ..formData.backgroundColor@: "#2988e6"
+            - ..formData.isOnClick@: ""
+        - continue
+    - =..apiRequest.relation.edgeAPI.get: ""
+    - ..apiRequest.reasonForVisit.docQueryReq.id@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+    - =..apiRequest.reasonForVisit.docAPI.get: ""
+    - if:
+      - =..apiRequest.reasonForVisit.docQueryResp.doc.0
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.formData.appointment.visitType
+                  string2: "Telemedicine"
+            - ..formData.reasonList@: =..apiRequest.reasonForVisit.docQueryResp.doc.0.name.data.reasonForVisit.Telemedicine
+            - ..formData.reasonList@: =..apiRequest.reasonForVisit.docQueryResp.doc.0.name.data.reasonForVisit.OfficeVisits
+          - =.builtIn.array.getByKey:
+              dataIn:
+                array: =..formData.reasonList
+                key1: reason
+                value: =.Global.formData.appointment.selectData.reason
+                key2: fee
+              dataOut: CreateAppointment.apiRequest.appointment.edgeCreateReq.name.fee
+      - continue
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: buttonView
+  formData:
+    reasonList: []
+    #根据预约类型来赋facility还是location的名字
+    facilityName: ""
+    # judge the location is show or not
+    locationDisplay: none
+    # temporary storage the patient information
+    patientInfo:
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      country: ""
+      phone: ""
+      avatar: ""
+    # control the create appointment button's backgroundColor
+    backgroundColor: "0xcecfd0"
+    # control the create appointment button's onclick is valid or not
+    isOnClick: none
+  formDataTemp:
+    generalInfo: true
+    generalInfoForms: true
+    optionalForms:
+      - title: Patient Chart
+      - title: General Information
+    appointmentTitle:
+      - title: Visit Questionnaire
+      - title: PifzerBioNTech
+      - title: Moderna
+      - title: COVID-19 Testing
+  apiRequest:
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - =.Global.currentUser.vertex.id
+          - =.Global.currentFacility.id
+        xfname: (bvid,evid)|(evid,bvid)
+        type: 10002
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: CreateAppointment.apiRequest.relation.edgeQueryReq
+          dataOut: CreateAppointment.apiRequest.relation.edgeQueryResp
+    reasonForVisit:
+      docQueryResp: ""
+      docQueryReq:
+        id: ""
+        xfname: eid
+        type: .DocType.VisitReason
+        obfname: mtime
+        maxcount: "1"
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: CreateAppointment.apiRequest.reasonForVisit.docQueryReq
+          dataOut: CreateAppointment.apiRequest.reasonForVisit.docQueryResp
+    appointment:
+      edgeCreateResp: ""
+      edgeCreateReq:
+        # the provider id
+        evid: ""
+        # the patient id
+        bvid: .Global.currentUser.vertex.id
+        #E3 id
+        refid: .Global.clock.refid
+        subtype: ""
+        type: .EdgeType.WaitingRoom
+        stime: .Global.clock.stime
+        etime: .Global.clock.etime
+        tage: "1"
+        name:
+          fee: "0.00"
+          finishDoc: []
+          Reason: .Global.formData.appointment.selectData.reason
+          patientName: ""
+          patientPhoneNumber: ""
+          # .CreateAppointment.formData.avatar
+          patientAvatarId: ""
+          providerName: .Global.MyProfile.name.data.fullName
+          visitType: .Global.formData.appointment.visitType
+          visitReason: .Global.formData.appointment.selectData.reason
+          location: .Global.currentFacility.name.basicInfo.location
+          locationName: .Global.formData.appointment.addressName
+          facilityId: .Global.clock.bvid
+          document: .Global.formData.appointment.selectData.docu
+          duration: ""
+          fontColor: "#30b354"
+          # show the border color in the waiting room
+          borderColor: "0xdededf"
+          providerId: =.Global.currentUser.vertex.id
+          providerFullInfo: ""
+          providerAvatar: .Global.MyProfile.name.data.avatar
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: CreateAppointment.apiRequest.appointment.edgeCreateReq
+          dataOut: CreateAppointment.apiRequest.appointment.edgeCreateResp
+    isContact: # 判断是否为好友
+      response: ""
+      edge:
+        id: []
+        xfname: bvid,evid
+        type: 10002
+        _nonce: =.Global._nonce
+      docIn:
+        type: 10002
+        subtype: 65536
+        tage: 1
+        bvid: .Global.currentUser.vertex.id
+        evid: ""
+        name: ""
+        refid: ""
+      docOut: ""
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: CreateAppointment.apiRequest.isContact.docIn
+          dataOut: CreateAppointment.apiRequest.isContact.docOut
+        get:
+          api: re
+          dataIn: CreateAppointment.apiRequest.isContact.edge
+          dataOut: CreateAppointment.apiRequest.isContact.response
+    getPatientProfile:
+      response: ""
+      docIn:
+        type: 102401
+        id: .Global.currentUser.vertex.id
+        xfname: ovid
+        obfname: "ctime"
+        maxcount: "1"
+      docOut: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: CreateAppointment.apiRequest.getPatientProfile.docIn
+          dataOut: CreateAppointment.apiRequest.getPatientProfile.docOut
+    approveAppointment:
+      response: ""
+      edge:
+        bvid: .Global.currentUser.vertex.id
+        evid: ""
+        refid: ""
+        type: 40000
+        subtype: 5
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.approveAppointment.edge
+          dataOut: apiRequest.approveAppointment.response
+    inviteFacility:
+      response: ""
+      edge:
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.clock.bvid
+        refid: ""
+        type: .EdgeType.InviteInfo
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.inviteFacility.edge
+          dataOut: apiRequest.inviteFacility.response
+    inviteFacilityInofficeVisit:
+      response: ""
+      edge:
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.currentFacility.id
+        refid: ""
+        type: 40000
+        subtype: 10
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.inviteFacilityInofficeVisit.edge
+          dataOut: apiRequest.inviteFacilityInofficeVisit.response
+  sendNotification:
+    document:
+      .Document: ""
+      # eid: =.CreateAppointment.apiRequest.inviteFacility.response.edge.id
+      subtype:
+        isOnServer: 1
+        isZipped: 0
+        isBinary: 0
+        isEncrypted: 0
+        isExtraKeyNeeded: 0
+        isEditable: 0
+        applicationDataType: 0
+        # 7 th bit
+        notification: 1
+        ringToneNotify: 0
+        sendtoSelf: 0
+        # 10 bit
+        textMessage: 0
+        mediaType: 8
+      type: .DocType.Notification
+      tage: 5
+      name:
+        data: ""
+        notification:
+          title: Appointment Reminder
+          context: Click to check your appointment
+          body: Click to check your appointment
+          onClickLandingPage: AppointmentLobby
+          targetApp: =.Global.prodAPPID
+    docAPI:
+      store:
+        api: cd
+        dataIn: sendNotification.document
+  components:
+    - .ProgressCheckView:
+      message: "loading ..."
+      viewTag: uploading
+    - type: view
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "0.1"
+        backgroundColor: "0x2988e6ff"
+      children:
+        - type: label
+          text: =..title
+          style:
+            left: "0.15"
+            width: "0.7"
+            fontWeight: 300
+            height: "0.1"
+            fontSize: .Nfont.h3
+            color: "0xffffffff"
+            textAlign:
+              x: center
+              y: center
+            backgroundColor: "0x2988e6ff"
+            border:
+              style: "1"
+    - type: button
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+      style:
+        top: "0"
+        left: "0.05"
+        width: "0.1"
+        height: "0.1"
+        backgroundColor: "0x2988e6"
+        zIndex: 100
+        border:
+          style: "1"
+      children:
+        - type: image
+          path: falseWhite.svg
+          style:
+            top: "0.04"
+            left: "0.02"
+            height: "0.02"
+            zIndex: 100
+    #  body
+    - type: view
+      style:
+        width: "1"
+        height: "auto"
+        top: "0.1"
+      children:
+        - type: view
+          viewTag: blockImageTag
+          style:
+            width: "1"
+            marginTop: "0"
+            height: "auto"
+            backgroundColor: "0x2988e6"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                borderRadius: "6"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.84"
+                    height: "auto"
+                    marginTop: "0.015"
+                    marginLeft: "0.03"
+                    fontSize: .Nfont.n1
+                  children:
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "0.05"
+                        marginLeft: "0.01"
+                        border:
+                          style: "2"
+                        borderWidth: "1"
+                        borderColor: "0xf8f8f8"
+                      children:
+                        - type: label
+                          text: "Appointment info"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.77"
+                            height: "0.05"
+                            display: "inline-block"
+                            lineHeight: "5vh"
+                        - type: image
+                          path: editBlue.svg
+                          style:
+                            width: "0.05"
+                            display: "inline-block"
+                            marginTop: "0.015"
+                          onClick:
+                            - actionType: builtIn
+                              funcName: goBack
+                              reload: true
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "0.04"
+                        marginLeft: "0.01"
+                        marginTop: "0.015"
+                      children:
+                        - type: label
+                          text: "Date"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.1"
+                            height: "0.04"
+                            display: "inline-block"
+                            lineHeight: "4vh"
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtimeL_en
+                          dataKey: Global.clock.stime
+                          style:
+                            fontSize: .Nfont.n2
+                            textAlign:
+                              x: right
+                            width: "0.72"
+                            height: "0.04"
+                            display: "inline-block"
+                            lineHeight: "4vh"
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "0.035"
+                        marginLeft: "0.01"
+                      children:
+                        - type: label
+                          text: "Time"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.1"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                        - type: label
+                          text: "9:45am-10:00am"
+                          text=func: .builtIn.date.ShowTimeSpan
+                          dataKey: Global.clock
+                          style:
+                            fontSize: .Nfont.n2
+                            textAlign:
+                              x: right
+                            width: "0.72"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "0.035"
+                        marginLeft: "0.01"
+                      children:
+                        - type: label
+                          text: "Reason for visit"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.3"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                        - type: label
+                          text: "Fever"
+                          dataKey: Global.formData.appointment.selectData.reason
+                          style:
+                            fontSize: .Nfont.n2
+                            textAlign:
+                              x: right
+                            width: "0.52"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "0.035"
+                        marginLeft: "0.01"
+                      children:
+                        - type: label
+                          text: "Appointment Type"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.4"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                        - type: label
+                          text: "Office Visits"
+                          dataKey: Global.formData.appointment.visitType
+                          style:
+                            fontSize: .Nfont.n2
+                            textAlign:
+                              x: right
+                            width: "0.42"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "0.035"
+                        marginLeft: "0.01"
+                      children:
+                        - type: label
+                          text: "Provider"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.2"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                        - type: label
+                          text: "Aomas Mueller"
+                          dataKey: Global.MyProfile.name.data.fullName
+                          style:
+                            fontSize: .Nfont.n2
+                            textAlign:
+                              x: right
+                            width: "0.62"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "0.035"
+                        marginLeft: "0.01"
+                      children:
+                        - type: label
+                          text: "Facility"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.2"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                        - type: label
+                          text: "A&C Urgentcare"
+                          dataKey: formData.facilityName
+                          style:
+                            fontSize: .Nfont.n2
+                            textAlign:
+                              x: right
+                            width: "0.62"
+                            height: "0.035"
+                            display: "inline-block"
+                            lineHeight: "3.5vh"
+                    - type: view
+                      style:
+                        width: "0.82"
+                        height: "auto"
+                        marginLeft: "0.01"
+                        display: ..formData.locationDisplay
+                      children:
+                        - type: label
+                          text: "Location"
+                          style:
+                            fontSize: .Nfont.n2
+                            width: "0.82"
+                            height: "0.035"
+                            lineHeight: "3.5vh"
+                        - type: label
+                          text: "A&C Urgentcare"
+                          dataKey: Global.currentFacility.name.basicInfo.location
+                          style:
+                            fontSize: .Nfont.n3
+                            textAlign:
+                              x: left
+                            width: "0.82"
+                            height: "0.045"
+                            wordWrap: break-word
+            - type: view
+              style:
+                marginTop: "0.04"
+                width: "1"
+                height: "auto"
+        - type: view
+          style:
+            width: "0.82"
+            marginLeft: "0.08"
+            marginTop: "0.01"
+            height: "auto"
+          children:
+            - type: label
+              text: "Add Patient"
+              style:
+                lineHeight: "5vh"
+                width: "0.41"
+                height: "0.05"
+                color: "0x333333"
+                display: "inline-block"
+                fontSize: .Nfont.n2
+            - type: label
+              text: "Add/Change"
+              style:
+                lineHeight: "5vh"
+                width: "0.41"
+                height: "0.05"
+                display: "inline-block"
+                textAlign:
+                  x: right
+                color: "0x2680eb"
+                fontSize: .Nfont.n2
+              onClick:
+                - goto: PatientList
+        - type: view
+          style:
+            width: "0.85"
+            marginLeft: "0.075"
+            marginTop: "0.01"
+            height: "auto"
+          children:
+            - type: view
+              style:
+                width: "0.27"
+                marginTop: "0.01"
+                display: "inline-block"
+              children:
+                - type: label
+                  text: "First Name"
+                  style:
+                    fontSize: .Nfont.n2
+                    width: "0.2"
+                - type: textField
+                  placeholder: "Enter here"
+                  dataKey: formData.patientInfo.firstName
+                  style:
+                    width: "0.25"
+                    color: "0x000000"
+                    height: "0.04"
+                    marginTop: "0.01"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "12px"
+            - type: view
+              style:
+                width: "0.27"
+                display: "inline-block"
+                marginTop: "0.01"
+                marginLeft: "0.015"
+              children:
+                - type: label
+                  text: "Middle Name"
+                  style:
+                    width: "0.25"
+                    fontSize: .Nfont.n2
+                - type: textField
+                  placeholder: "Enter here"
+                  dataKey: formData.patientInfo.middleName
+                  style:
+                    width: "0.25"
+                    color: "0x000000"
+                    height: "0.04"
+                    marginTop: "0.01"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "12px"
+
+            - type: view
+              style:
+                width: "0.27"
+                display: "inline-block"
+                marginTop: "0.01"
+                marginLeft: "0.015"
+              children:
+                - type: label
+                  text: "last Name"
+                  style:
+                    width: "0.25"
+                    fontSize: .Nfont.n2
+                - type: textField
+                  placeholder: "Enter here"
+                  dataKey: formData.patientInfo.lastName
+                  style:
+                    width: "0.25"
+                    color: "0x000000"
+                    height: "0.04"
+                    marginTop: "0.01"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "12px"
+
+        - type: view
+          style:
+            width: "auto"
+            marginLeft: "0.075"
+            marginTop: "0.01"
+            height: "auto"
+          children:
+            - type: view
+              style:
+                width: "0.24"
+                height: "auto"
+                marginTop: "0.01"
+                display: "inline-block"
+              children:
+                - type: label
+                  text: "Country"
+                  style:
+                    width: "0.2"
+                    fontSize: .Nfont.n2
+                - type: select
+                  dataKey: formData.patientInfo.country
+                  options: .Global.CountryCode
+                  style:
+                    pointerEvents: "none"
+                    width: "0.2"
+                    color: "0x000000"
+                    height: "0.042"
+                    marginTop: "0.01"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "12px"
+
+            - type: view
+              style:
+                width: "auto"
+                height: "0.1"
+                marginTop: "0.01"
+                marginLeft: "0"
+                display: "inline-block"
+              children:
+                - type: label
+                  text: "Phone Number"
+                  style:
+                    width: "0.5"
+                    fontSize: .Nfont.n2
+                - type: textField
+                  placeholder: "Enter here"
+                  isEditable: false
+                  dataKey: formData.patientInfo.phone
+                  onInput:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.array.allComplete:
+                                dataIn:
+                                  - =..formData.patientInfo.phone
+                                  - =..formData.patientInfo.country
+                            - actionType: evalObject
+                              object:
+                                - ..formData.backgroundColor@: "#2988e6"
+                                - ..formData.isOnClick@: ""
+                            - continue
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: buttonView
+                  style:
+                    width: "0.58"
+                    color: "0x000000"
+                    height: "0.04"
+                    marginTop: "0.01"
+                    backgroundColor: "0xffffff"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xD8D8D8"
+                    borderRadius: "5"
+                    textIndent: "12px"
+
+    - type: view
+      style:
+        width: "0.9"
+        top: "0.9"
+        left: "0.05"
+        height: "0.09"
+      children:
+        - type: button
+          viewTag: buttonView
+          text: "Create Appointment"
+          style:
+            pointerEvents: ..formData.isOnClick
+            width: "0.9"
+            height: "0.05"
+            color: "0xffffff"
+            fontSize: .Nfont.n2
+            marginLeft: "0"
+            marginTop: "0.025"
+            textAlign:
+              x: center
+            lineHeight: "5vh"
+            border:
+              style: "5"
+            borderWidth: "1"
+            backgroundColor: ..formData.backgroundColor
+            borderRadius: "5"
+          onClick:
+            - actionType: popUp
+              popUpView: uploading
+            - actionType: evalObject
+              object:
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =..formData.patientInfo.firstName
+                      - " "
+                      - =..formData.patientInfo.middleName
+                      - " "
+                      - =..formData.patientInfo.lastName
+                    dataOut: CreateAppointment.apiRequest.appointment.edgeCreateReq.name.patientName
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =..formData.patientInfo.country
+                      - " "
+                      - =..formData.patientInfo.phone
+                    dataOut: CreateAppointment.apiRequest.appointment.edgeCreateReq.name.patientPhoneNumber
+                - .CreateAppointment.apiRequest.appointment.edgeCreateReq.name.patientAvatarId@: =..formData.patientInfo.avatar
+                - =..apiRequest.appointment.edgeAPI.store: ""
+                - .CreateAppointment.apiRequest.approveAppointment.edge@: =.CreateAppointment.apiRequest.appointment.edgeCreateResp.edge
+                - .CreateAppointment.apiRequest.approveAppointment.edge.refid@: =.CreateAppointment.apiRequest.appointment.edgeCreateResp.edge.id
+                - .CreateAppointment.apiRequest.approveAppointment.edge.id@: ""
+                - .CreateAppointment.apiRequest.approveAppointment.edge.tage@: 0
+                - .CreateAppointment.apiRequest.approveAppointment.edge.subtype@: 5
+                #建立E5
+                - =.CreateAppointment.apiRequest.approveAppointment.edgeAPI.store: ""
+                - .CreateAppointment.apiRequest.inviteFacility.edge.refid@: =.CreateAppointment.apiRequest.appointment.edgeCreateResp.edge.id
+                #建立E10，邀请facility
+                - =.CreateAppointment.apiRequest.inviteFacility.edgeAPI.store: ""
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.Global.clock.bvid
+                          string2: =.Global.currentFacility.id
+                    - continue
+                    - =.CreateAppointment.apiRequest.inviteFacilityInofficeVisit.edgeAPI.store: ""
+            - actionType: evalObject
+              object:
+                - ..formData.patientName@: ""
+                - ..formData.patientPhoneNumber@: ""
+                - .Global.middleInformation.PatientVisitInfo.phoneNumber.1@: ""
+                - .Global.middleInformation.PatientVisitInfo.name.data.fullName@: ""
+                # send to Doctor 
+                - ..sendNotification.document.fid@: =.Global.prodAPPID
+                - ..sendNotification.document.eid@: =.CreateAppointment.apiRequest.appointment.edgeCreateResp.edge.id
+                - =..sendNotification.docAPI.store: ""
+                # remind appointment time to provider 提醒会议开始了
+                - =.builtIn.notification.delayCalculation:
+                    dataIn:
+                      stime: =..apiRequest.appointment.edgeCreateResp.edge.stime
+                      period: 5
+                    dataOut: sendNotification.document.tage
+                - ..sendNotification.document.name.notification.title@: "The meeting is about to begin"
+                - ..sendNotification.document.name.notification.context@: "Click to enter the appointment"                    
+                - =..sendNotification.docAPI.store: ""
+                # send to Patient to check in
+                - =.builtIn.notification.delayCalculation:
+                    dataIn:
+                      stime: =..apiRequest.appointment.edgeCreateResp.edge.stime
+                      period: 43200
+                    dataOut: sendNotification.document.tage
+                - ..sendNotification.document.name.notification.title@: "Start check-in now"
+                - ..sendNotification.document.name.notification.context@: "Click to check in appointment"
+                - ..sendNotification.document.fid@: =.Global.patdAPPID
+                - ..sendNotification.document.eid@: =.CreateAppointment.apiRequest.appointment.edgeCreateResp.edge.id
+                - =..sendNotification.docAPI.store: ""
+
+                # send to Patient for get apppointment
+                - ..sendNotification.document.tage@: 5
+                - ..sendNotification.document.name.notification.title@: "Appointment Reminder"
+                - ..sendNotification.document.name.notification.context@: "Click to check your appointment"  
+                - =..sendNotification.docAPI.store: ""
+                # remind appointment time to patient 提醒会议开始了
+                - =.builtIn.notification.delayCalculation:
+                    dataIn:
+                      stime: =..apiRequest.appointment.edgeCreateResp.edge.stime
+                      period: 5
+                    dataOut: sendNotification.document.tage
+                - ..sendNotification.document.name.notification.title@: "The meeting is about to begin"
+                - ..sendNotification.document.name.notification.context@: "Click to enter the appointment"  
+                - =..sendNotification.docAPI.store: ""
+            - actionType: popUpDismiss
+              popUpView: uploading
+            - actionType: popUp
+              popUpView: markSuccessfullyPopUpView
+              wait: 2000
+            - goto: AppointmentSchedule
+    - .BaseMessageWarnPopup:
+      viewTag: markSuccessfullyPopUpView
+      imagePath: popUpSuccess.svg
+      message: "Create Successfully!"
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - type: view
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+          children:
+            - type: view
+              style:
+                left: "0.3"
+                width: "0.4"
+                top: "0.35"
+                height: "0.14"
+                backgroundColor: "0xe5e5e5"
+                border:
+                  style: "5"
+                borderWidth: "1"
+                borderRadius: "10"
+              children:
+                - type: image
+                  path: ____.imagePath
+                  style:
+                    top: "0.02"
+                    left: "0.15"
+                    height: "0.05"
+                - type: label
+                  text: ____.message
+                  style:
+                    top: "0.07"
+                    left: "0.02"
+                    height: "0.06"
+                    width: "0.36"
+                    fontSize: .Nfont.h1
+                    textAlign:
+                      x: center
+                      y: center

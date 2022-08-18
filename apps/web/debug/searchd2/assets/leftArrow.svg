@@ -1,0 +1,7 @@
+<svg id="buttons_square_green" data-name="buttons/square/green" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+  <path id="bg" d="M2,30H28a2,2,0,0,0,2-2V2a2,2,0,0,0-2-2H2A2,2,0,0,0,0,2V28A2,2,0,0,0,2,30Z" transform="translate(0 0)" fill="#2988e6"/>
+  <g id="icons_back-light" data-name="icons/back-light" transform="translate(3.811 5)">
+    <rect id="bg-2" data-name="bg" width="21.189" height="21.189" transform="translate(0 0)" fill="none"/>
+    <path id="icon" d="M6.353,14.562.314,8.062a.79.79,0,0,1-.079-.074.828.828,0,0,1-.183-.313.822.822,0,0,1,.265-.938L6.353.24a.726.726,0,0,1,1.079,0,.866.866,0,0,1,0,1.163l-4.8,5.161H15.466a.822.822,0,1,1,0,1.643H2.608L7.432,13.4a.866.866,0,0,1,0,1.163.726.726,0,0,1-1.079,0Z" transform="translate(2.748 2.905)" fill="#fff"/>
+  </g>
+</svg>

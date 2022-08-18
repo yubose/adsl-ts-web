@@ -1,0 +1,770 @@
+BaseComponents:
+  flag: ""
+  month:
+    - Jan
+    - Feb
+    - Mar
+    - Apr
+    - May
+    - Jun
+    - Jul
+    - Aug
+    - Sep
+    - Oct
+    - Nov
+    - Dec
+  dayName:
+    - key: SU
+    - key: MO
+    - key: TU
+    - key: WE
+    - key: TH
+    - key: FR
+    - key: SA
+  # calendarDate: #android maybe should this
+  #   year: ""
+  #   month: ""
+  #   day: ""
+  #   monthName: ""
+  #   todayDate: ""
+  #   flag: ""
+  #   dayLable: []
+  # year: []
+  getDate:
+    - =.builtIn.date.getMonth:
+        dataIn:
+        dataOut: BaseComponents.calendarDate.month
+    # get Year for calendar
+    - =.builtIn.date.getYear:
+        dataIn:
+        dataOut: BaseComponents.calendarDate.year
+    - =.builtIn.date.getDate:
+        dataIn:
+        dataOut: BaseComponents.calendarDate.day
+  getShow:
+    - =.builtIn.date.calendarArray:
+        dataIn:
+          year: =.BaseComponents.calendarDate.year
+          month: =.BaseComponents.calendarDate.month
+          today: =.BaseComponents.calendarDate.day
+        dataOut: BaseComponents.calendarDate.dayLable
+    - =.builtIn.date.transformMonth:
+        dataIn:
+          month: =.BaseComponents.calendarDate.month
+        dataOut: BaseComponents.calendarDate.monthName
+    - =.builtIn.date.ShowDateByNumber:
+        dataIn:
+          year: =.BaseComponents.calendarDate.year
+          month: =.BaseComponents.calendarDate.month
+          day: =.BaseComponents.calendarDate.day
+          formatType: "M/D/Y"
+        dataOut: BaseComponents.calendarDate.todayDate
+  calendar:
+    type: view
+    style:
+      width: "0.9"
+      left: "0.05"
+      top: "0.23"
+      borderRadius: "7"
+      backgroundColor: "0xffffff"
+
+      # backgroundColor: "0x2988e6"
+      height: "120vw"
+    viewTag: calendarTag
+  calendarHeader:
+    type: view
+    style:
+      marginTop: "0"
+      width: "0.9"
+      height: "24vw"
+      borderRadius: "5"
+      backgroundColor: "0xffffff"
+  monthView:
+    type: view
+    style:
+      top: "0.05"
+      left: "0"
+      width: "0.45"
+      height: "0.03"
+    children:
+      - type: image
+        path: whiteLeft.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                      step: -1
+                    dataOut: BaseComponents.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                    dataOut: BaseComponents.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: =.BaseComponents.calendarDate.month
+                      today: 1
+                    dataOut: BaseComponents.calendarDate.dayLable
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.15"
+          top: "0.005"
+          height: "0.025"
+          width: "0.05"
+      - type: label
+        dataKey: BaseComponents.calendarDate.monthName
+        style:
+          width: "0.15"
+          height: "0.03"
+          left: "0.20"
+          top: "0.003"
+          fontWeight: "500"
+          fontSize: "18"
+          color: "0xffffff"
+          textAlign:
+            x: center
+      - type: image
+        path: whiteRight.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                      step: 1
+                    dataOut: BaseComponents.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                    dataOut: BaseComponents.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: =.BaseComponents.calendarDate.month
+                      today: 1
+                    dataOut: BaseComponents.calendarDate.dayLable
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.35"
+          width: "0.05"
+          height: "0.025"
+          top: "0.005"
+  newMonthView:
+    type: view
+    style:
+      marginTop: "0"
+      left: "0"
+      width: "0.45"
+      height: "0.035"
+    children:
+      - type: image
+        path: greyLeft.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                      step: -1
+                    dataOut: BaseComponents.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                    dataOut: BaseComponents.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: =.BaseComponents.calendarDate.month
+                      today: 1
+                    dataOut: BaseComponents.calendarDate.dayLable
+                - .BaseComponents.calendarDate.day@: 1
+                - =.builtIn.date.ShowDateByNumber:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: =.BaseComponents.calendarDate.month
+                      day: =.BaseComponents.calendarDate.day
+                      formatType: "M/D/Y" #elaine change order of date to us
+                    dataOut: BaseComponents.calendarDate.todayDate
+          - actionType: evalObject
+            object:
+              - ..calendarDate.monthName@: =.BaseComponents.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.05"
+          top: "0.01"
+          height: "0.015"
+          width: "0.05"
+      - type: select
+        dataKey: calendarDate.monthName #android baseComponents.calendarDate.monthName
+        options: .BaseComponents.month
+        onChange:
+          - actionType: evalObject
+            object:
+              - .BaseComponents.calendarDate.monthName@: =..calendarDate.monthName
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseComponents.calendarDate.monthName
+                    flag: 2
+                  dataOut: BaseComponents.calendarDate.month
+              - =.builtIn.date.calendarArray:
+                  dataIn:
+                    year: =.BaseComponents.calendarDate.year
+                    month: =.BaseComponents.calendarDate.month
+                    today: 1
+                  dataOut: BaseComponents.calendarDate.dayLable
+              - .BaseComponents.calendarDate.day@: 1
+              - =.builtIn.date.ShowDateByNumber:
+                  dataIn:
+                    year: =.BaseComponents.calendarDate.year
+                    month: =.BaseComponents.calendarDate.month
+                    day: =.BaseComponents.calendarDate.day
+                    formatType: "M/D/Y" #elaine change order of date to us
+                  dataOut: BaseComponents.calendarDate.todayDate
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          backgroundColor: "0xFFFFFF"
+          width: "0.25"
+          height: "0.035"
+          left: "0.12"
+          top: "0"
+          fontWeight: "500"
+          fontSize: .Nfont.h14
+          color: "0x464646"
+          border:
+            style: 3
+          borderColor: "0xD8D8D8"
+          textIndent: 1em
+          borderWidth: "1"
+          borderRadius: "6"
+      - type: image
+        path: greyRight.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.date.loopMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                      step: 1
+                    dataOut: BaseComponents.calendarDate.month
+                - =.builtIn.date.transformMonth:
+                    dataIn:
+                      month: =.BaseComponents.calendarDate.month
+                    dataOut: BaseComponents.calendarDate.monthName
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: =.BaseComponents.calendarDate.month
+                      today: 1
+                    dataOut: BaseComponents.calendarDate.dayLable
+                - .BaseComponents.calendarDate.day@: 1
+                - =.builtIn.date.ShowDateByNumber:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: =.BaseComponents.calendarDate.month
+                      day: =.BaseComponents.calendarDate.day
+                      formatType: "M/D/Y" #elaine change order of date to us
+                    dataOut: BaseComponents.calendarDate.todayDate
+          - actionType: evalObject
+            object:
+              - ..calendarDate.monthName@: =.BaseComponents.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.39"
+          width: "0.05"
+          height: "0.015"
+          top: "0.01"
+  yearView:
+    type: view
+    style:
+      top: "0.05"
+      left: "0.45"
+      width: "0.45"
+      height: "0.03"
+    children:
+      - type: image
+        path: whiteLeft.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.number.Subtraction:
+                    dataIn:
+                      num: =.BaseComponents.calendarDate.year
+                      step: 1
+                    dataOut: BaseComponents.calendarDate.year
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: 1
+                      today: 1
+                    dataOut: BaseComponents.calendarDate.dayLable
+          - actionType: evalObject
+            object:
+              - .BaseComponents.calendarDate.month@: 1
+          - actionType: evalObject
+            object:
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseComponents.calendarDate.month
+                  dataOut: BaseComponents.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+
+        style:
+          left: "0.05"
+          width: "0.05"
+          top: "0.005"
+          height: "0.025"
+      - type: label
+        dataKey: BaseComponents.calendarDate.year
+        style:
+          fontWeight: "500"
+          width: "0.15"
+          height: "0.03"
+          top: "0.003"
+          left: "0.1"
+          fontSize: "18"
+          color: "0xffffff"
+          textAlign:
+            x: center
+      - type: image
+        path: whiteRight.svg
+        onClick:
+          - emit:
+              actions:
+                - =.builtIn.number.addition:
+                    dataIn:
+                      num: =.BaseComponents.calendarDate.year
+                      step: 1
+                    dataOut: BaseComponents.calendarDate.year
+                - =.builtIn.date.calendarArray:
+                    dataIn:
+                      year: =.BaseComponents.calendarDate.year
+                      month: 1
+                      today: 1
+                    dataOut: BaseComponents.calendarDate.dayLable
+          - actionType: evalObject
+            object:
+              .BaseComponents.calendarDate.month@: 1
+          - actionType: evalObject
+            object:
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseComponents.calendarDate.month
+                  dataOut: BaseComponents.calendarDate.monthName
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          left: "0.25"
+          width: "0.05"
+          top: "0.005"
+          height: "0.025"
+  newYearView:
+    type: view
+    style:
+      top: "0"
+      marginTop: "0"
+      left: "0.45"
+      width: "0.45"
+      height: "0.035"
+    children:
+      - type: select
+        dataKey: calendarDate.year
+        options: .BaseComponents.year
+        onChange:
+          - actionType: evalObject
+            object:
+              - =.builtIn.date.transformYear:
+                  dataIn:
+                    year: =..calendarDate.year
+                  dataOut: BaseComponents.calendarDate.year
+              - =.builtIn.date.calendarArray:
+                  dataIn:
+                    year: =.BaseComponents.calendarDate.year
+                    month: =.BaseComponents.calendarDate.month
+                    today: =.BaseComponents.calendarDate.day
+                  dataOut: BaseComponents.calendarDate.dayLable
+              - =.builtIn.date.transformMonth:
+                  dataIn:
+                    month: =.BaseComponents.calendarDate.month
+                  dataOut: BaseComponents.calendarDate.monthName
+              - ..calendarDate.monthName@: =.BaseComponents.calendarDate.monthName
+              - ..calendarDate.year@: =.BaseComponents.calendarDate.year
+              - =.builtIn.date.ShowDateByNumber:
+                  dataIn:
+                    year: =.BaseComponents.calendarDate.year
+                    month: =.BaseComponents.calendarDate.month
+                    day: =.BaseComponents.calendarDate.day
+                    formatType: "M/D/Y" #elaine change order of date to us
+                  dataOut: BaseComponents.calendarDate.todayDate
+          - actionType: builtIn
+            funcName: redraw
+            viewTag: calendarTag
+        style:
+          backgroundColor: "0xFFFFFF"
+          width: "0.25"
+          height: "0.035"
+          left: "0.10"
+          top: "0"
+          fontWeight: "500"
+          fontSize: .Nfont.h14
+          color: "0x464646"
+          border:
+            style: 3
+          borderColor: "0xD8D8D8"
+          textIndent: 1em
+          borderWidth: "1"
+          borderRadius: "6"
+  weekView:
+    type: view
+    style:
+      marginTop: "0.015"
+      left: "0.03"
+      height: "6vw"
+      width: "0.84"
+    children:
+      - type: list
+        contentType: listObject
+        listObject: .BaseComponents.dayName
+        iteratorVar: itemObject
+        style:
+          marginTop: "0"
+          width: "0.84"
+          left: "0"
+          height: "6vw"
+          axis: horizontal
+          justifyContent: "space-between"
+        children:
+          - type: listItem
+            itemObject: ""
+            style:
+              width: "0.119"
+              height: "6vw"
+              boxSizing: "border-box"
+              border: "none"
+              padding: "0"
+              display: "inline-block"
+            children:
+              - type: label
+                dataKey: itemObject.key
+                style:
+                  color: "0x5A5A5A"
+                  width: "0.119"
+                  height: "6vw"
+                  fontWeight: "500"
+                  # backgroundColor: "0xffffff"
+                  textAlign:
+                    x: center
+  dayView:
+    # viewTag: calendarTag
+    type: view
+    style:
+      left: "0.03"
+      width: "0.841"
+      marginTop: "0.01"
+      height: "79vw"
+    children:
+      - type: list
+        androidGrid: true
+        contentType: listObject
+        listObject: =.BaseComponents.calendarDate.dayLable
+        iteratorVar: itemObject
+        style:
+          # top: "0.13"
+          left: "0"
+          width: "0.841"
+          margin: "0"
+          # height: "auto"
+          # justifyContent: "space-between"
+        children:
+          - type: listItem
+            itemObject: ""
+            onClick:
+              - emit:
+                  dataKey:
+                    var: itemObject
+                  actions:
+                    - .BaseComponents.flag@: $var.key
+                    - if:
+                        - =.BaseComponents.flag
+                        - .BaseComponents.calendarDate.day@: $var.key
+                        - continue
+                    - =.builtIn.date.calendarArray:
+                        dataIn:
+                          year: =.BaseComponents.calendarDate.year
+                          month: =.BaseComponents.calendarDate.month
+                          today: =.BaseComponents.calendarDate.day
+                        dataOut: BaseComponents.calendarDate.dayLable
+                    - =.builtIn.date.ShowDateByNumber:
+                        dataIn:
+                          year: =.BaseComponents.calendarDate.year
+                          month: =.BaseComponents.calendarDate.month
+                          day: =.BaseComponents.calendarDate.day
+                          formatType: "M/D/Y" #elaine change order of date to us
+                        dataOut: BaseComponents.calendarDate.todayDate
+              - actionType: builtIn
+                funcName: redraw
+                viewTag: calendarTag
+            style:
+              width: "12vw"
+              height: "12vw"
+              # boxSizing: "border-box"
+              # border: "none"
+              padding: "0"
+              margin: "0"
+              display: "inline-block"
+              # flex: "auto"
+            children:
+              - type: label
+                dataKey: itemObject.key
+                style:
+                  top: "0"
+                  left: "0"
+                  width: "12vw"
+                  height: "12vw"
+                  color: itemObject.color
+                  backgroundColor: itemObject.backgroundColor
+                  borderRadius: "50"
+                  fontSize: "18"
+                  textAlign:
+                    x: center
+                    y: center
+  addButton:
+    type: button
+    text: Add
+    style:
+      # top: "0.5"
+      marginTop: "0"
+      borderWidth: "0"
+      width: "0.72"
+      left: "0.09"
+      fontWeight: "500"
+      color: "0xffffff"
+      height: "8vw"
+      backgroundColor: "0x2988e6"
+      borderRadius: "5"
+      textAlign:
+        x: center
+        y: center
+  calendarView:
+    type: view
+    style:
+      top: "0"
+      width: "0.9"
+      height: "0.13"
+      backgroundColor: "0x2988e6"
+    children:
+      - type: view
+        style:
+          top: "0.05"
+          left: "0.25"
+          width: "0.18"
+          height: "0.03"
+        children:
+          - type: image
+            path: whiteLeft.svg
+            onClick:
+              - emit:
+                  actions:
+                    - =.builtIn.date.loopMonth:
+                        dataIn:
+                          month: =.BaseComponents.calendarDate.month
+                          step: -1
+                        dataOut: BaseComponents.calendarDate.month
+                    - =.builtIn.date.transformMonth:
+                        dataIn:
+                          month: =.BaseComponents.calendarDate.month
+                        dataOut: BaseComponents.calendarDate.monthName
+                    - =.builtIn.date.calendarArray:
+                        dataIn:
+                          year: =.BaseComponents.calendarDate.year
+                          month: =.BaseComponents.calendarDate.month
+                          today: 1
+                        dataOut: BaseComponents.calendarDate.dayLable
+              - actionType: builtIn
+                funcName: redraw
+                viewTag: calendarTag
+            style:
+              height: "0.02"
+              top: "0.005"
+          - type: label
+            dataKey: BaseComponents.calendarDate.monthName
+            style:
+              width: "0.05"
+              height: "0.02"
+              left: "0.07"
+              fontWeight: "500"
+              fontSize: "18"
+              color: "0xffffff"
+              textAlign:
+                x: center
+          - type: image
+            path: whiteRight.svg
+            onClick:
+              - emit:
+                  actions:
+                    - =.builtIn.date.loopMonth:
+                        dataIn:
+                          month: =.BaseComponents.calendarDate.month
+                          step: 1
+                        dataOut: BaseComponents.calendarDate.month
+                    - =.builtIn.date.transformMonth:
+                        dataIn:
+                          month: =.BaseComponents.calendarDate.month
+                        dataOut: BaseComponents.calendarDate.monthName
+                    - =.builtIn.date.calendarArray:
+                        dataIn:
+                          year: =.BaseComponents.calendarDate.year
+                          month: =.BaseComponents.calendarDate.month
+                          today: 1
+                        dataOut: BaseComponents.calendarDate.dayLable
+              - actionType: builtIn
+                funcName: redraw
+                viewTag: calendarTag
+            style:
+              left: "0.16"
+              height: "0.02"
+              top: "0.005"
+      - type: view
+        style:
+          top: "0.05"
+          left: "0.5"
+          width: "0.4"
+          height: "0.03"
+        children:
+          - type: image
+            path: whiteLeft.svg
+            onClick:
+              - emit:
+                  actions:
+                    - =.builtIn.number.Subtraction:
+                        dataIn:
+                          num: =.BaseComponents.calendarDate.year
+                          step: 1
+                        dataOut: BaseComponents.calendarDate.year
+                    - =.builtIn.date.calendarArray:
+                        dataIn:
+                          year: =.BaseComponents.calendarDate.year
+                          month: 1
+                          today: 1
+                        dataOut: BaseComponents.calendarDate.dayLable
+              - actionType: evalObject
+                object:
+                  - .BaseComponents.calendarDate.month@: 1
+              - actionType: evalObject
+                object:
+                  - =.builtIn.date.transformMonth:
+                      dataIn:
+                        month: =.BaseComponents.calendarDate.month
+                      dataOut: BaseComponents.calendarDate.monthName
+              - actionType: builtIn
+                funcName: redraw
+                viewTag: calendarTag
+            style:
+              left: "0"
+              height: "0.02"
+              top: "0.005"
+          - type: label
+            dataKey: BaseComponents.calendarDate.year
+            style:
+              fontWeight: "500"
+              width: "0"
+              height: "0.03"
+              top: "0"
+              left: "0.08"
+              fontSize: "18"
+              color: "0xffffff"
+              textAlign:
+                x: center
+          - type: image
+            path: whiteRight.svg
+            onClick:
+              - emit:
+                  actions:
+                    - =.builtIn.number.addition:
+                        dataIn:
+                          num: =.BaseComponents.calendarDate.year
+                          step: 1
+                        dataOut: BaseComponents.calendarDate.year
+                    - =.builtIn.date.calendarArray:
+                        dataIn:
+                          year: =.BaseComponents.calendarDate.year
+                          month: 1
+                          today: 1
+                        dataOut: BaseComponents.calendarDate.dayLable
+              - actionType: evalObject
+                object:
+                  .BaseComponents.calendarDate.month@: 1
+              - actionType: evalObject
+                object:
+                  - =.builtIn.date.transformMonth:
+                      dataIn:
+                        month: =.BaseComponents.calendarDate.month
+                      dataOut: BaseComponents.calendarDate.monthName
+              - actionType: builtIn
+                funcName: redraw
+                viewTag: calendarTag
+            style:
+              left: "0.2"
+              height: "0.02"
+              top: "0.005"
+      - type: list
+        contentType: listObject
+        listObject:
+          - key: SU
+          - key: MO
+          - key: TU
+          - key: WE
+          - key: TH
+          - key: FR
+          - key: SA
+        iteratorVar: itemObject
+        style:
+          top: "0.08"
+          width: "0.84"
+          left: "0.03"
+          height: "0.05"
+          justifyContent: "space-between"
+        children:
+          - type: listItem
+            itemObject: ""
+            style:
+              width: "0.12"
+              height: "0.05"
+              boxSizing: "border-box"
+              border: "none"
+              padding: "0"
+              display: "inline-block"
+            children:
+              - type: label
+                dataKey: itemObject.key
+                style:
+                  color: "0xffffff"
+                  width: "0.12"
+                  height: "0.05"
+                  fontWeight: "500"
+                  # backgroundColor: "0xffffff"
+                  textAlign:
+                    x: center
+  #分割线
+  newdevider:
+    type: view
+    style:
+      marginTop: "0.015"
+      height: "0.001"
+      width: "0.82"
+      left: "0.04"
+      backgroundColor: "0xEAEAEA"

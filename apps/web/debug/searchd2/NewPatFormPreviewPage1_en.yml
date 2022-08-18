@@ -1,0 +1,630 @@
+NewPatFormPreviewPage1:
+  viewPort: top
+  title: NewPatFormPreviewPage1
+  init:
+  gender:
+    - key: gender
+      value: Male
+    - key: gender
+      value: Female 
+    - key: gender
+      value: Other  
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: "auto"
+        margin: "auto"
+      children: 
+        - type: view
+          style: 
+            position: fixed
+            height: 6vw
+            width: "100%"
+            zIndex: 100
+            right: 0
+          children: 
+            - type: view
+              style:
+                width: 89.8vw
+                height: "6vw"
+                marginTop: '0'
+                color: "#143459"
+                margin: 'auto'
+                backgroundColor: "0xffffff"
+                boxShadow: "0px 20px 20px -20px #5e5e5e"
+                display: flex
+                flexDirection: row
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    height:  "6vw"
+                    width: 20vw
+                    display: flex
+                    flexDirection: row
+                  children:
+                    - type: image
+                      path: aitmedLogo3.png
+                      style:
+                        width: '3.5vw'
+                        marginTop: '1vw'
+                        marginLeft: 5vw
+                    - type: label
+                      text: AiTmed   
+                      style:
+                        width: "15vw"
+                        height: "2.5vw"
+                        marginLeft: "1vw"
+                        marginTop: "2vw"
+                        fontFamily: "Arial"
+                        fontSize: "1.5vw"
+                        fontWeight: 650
+                        textAlign: 
+                          y: center
+
+                - type: view
+                  style: 
+                    marginLeft: 30vw
+                    height: 6vw
+                    width: 39.8vw
+                    display: flex
+                    flexDirection: row
+                    justifyContent: center
+                  children:
+                    - type: view
+                      style: 
+                        height: 6vw
+                        width: 14vw
+                        marginLeft: 11vw  
+                        justifyContent: flex-start
+                      children:
+                        - type: popUp
+                          viewTag: redict 
+                          style:
+                            width: 16.9vw
+                            height: 9vw
+                            marginTop: "-1vw"
+                            zIndex: 1000
+                            marginLeft: 
+                            backgroundColor: "0xffffff"
+                            border:
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "#E1E1E4"
+                            display: flex
+                            flexDirection: column
+                            alignItems: center
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1        
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "New Patient Form"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "1/3"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+                
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "1vw"
+          children:
+            - type: scrollView
+              viewTag: page1
+              style:
+                width: 89.8vw
+                height: 39vw
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - .NewFirstTitle:
+                      text: Patient Info
+                      style:
+                        textAlign: 
+                            x: center
+                            y: center
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                      children:
+                        - .VQSecondTitle:
+                          text: About
+                          style:
+                            fontWeight: 550
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: First Name
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Middle Name
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Last Name
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Date of Birth
+                                - type: view
+                                  children: 
+                                    - .NPITextField:
+                                      viewTag: showBirth
+                                      isEditable: false
+                                      style:
+                                        height: 2.3vw
+                                        cursor: "pointer"
+                                        backgroundColor: "0xffffff"
+                                        width: 13vw
+                                        marginTop: 0.5vw
+                                        border: "1px solid #DEDEDE"
+                                        borderWidth: 1px
+                                        borderRadius: 5px
+                                        textIndent: 0.5em
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Gender
+                                - type: view 
+                                  dataKey: patientForm.docReq.name.data.patientInfo.gender
+                                  style:
+                                    width: 26vw
+                                    height: 2.2vw
+                                    fontSize: .Nfont.h0
+                                    fontWeight: 400
+                                  children:
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..gender
+                                      iteratorVar: itemObject
+                                      viewTag: isToEmergency
+                                      style:
+                                        marginTop: 0.5vw
+                                        height: 1vw
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          style:
+                                            height: 0.8vw
+                                            display: flex
+                                            flexDirection: row
+                                            width: "0.06"
+                                          children:
+                                            - type: image
+                                              style:
+                                                height: 0.8vw
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..patientForm.docReq.name.data.patientInfo.gender
+                                                              string2: $var.value
+                                                        - blue.svg
+                                                        - black.svg
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - if:
+                                                          - =.builtIn.string.equal:
+                                                              dataIn:
+                                                                string1: =..patientForm.docReq.name.data.patientInfo.gender
+                                                                string2: $var.value
+                                                          - =.builtIn.object.clear:
+                                                              dataIn:
+                                                                object: =..patientForm.docReq.name.data.patientInfo
+                                                                key: $var.key
+                                                          - =.builtIn.object.set:
+                                                              dataIn:
+                                                                object: =..patientForm.docReq.name.data.patientInfo
+                                                                key: $var.key
+                                                                value: $var.value
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: isToEmergency
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: 0.3vw
+                                                height: 1vw
+                                                color: "#333333"
+                                                fontSize: .Nfont.h0
+                                                lineHeight: 0.8vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Address Line
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 19.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Address Second Line
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 19.5vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: City
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 9.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: county
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 9.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: State
+                                - type: select
+                                  isEditable: false
+                                  style:
+                                    height: 2vw
+                                    width: 9.5vw
+                                    marginTop: 0.5vw
+                                    border: "1px solid #DEDEDE"
+                                    borderWidth: 1px
+                                    borderRadius: 5px
+                                    fontSize: .Nfont.h0
+                                    fontWeight: 400
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Zip Code
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 9.5vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Phone #"
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Alternate Phone #"
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                        
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Email
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                        marginTop: 1vw
+                      children:
+                        - .VQSecondTitle:
+                          text: Emergency Contact 
+                          style:
+                            fontWeight: 550
+                        - .ViewRow: 
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .ViewColumn:
+                              children:
+                                - .VQSecondTitle:
+                                  text: Name
+                                - .NPITextField:
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              children:
+                                - .VQSecondTitle:
+                                  text: Relation
+                                - .NPITextField:
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                            - .ViewColumn:
+                              children:
+                                - .VQSecondTitle:
+                                  text: "Phone #"
+                                - .NPITextField:
+                                  isEditable: false
+                                  style:
+                                    width: 13vw
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                        marginTop: 1vw
+                      children:
+                        - .VQSecondTitle:
+                          text: Employment 
+                          style:
+                            fontWeight: 550
+                        - .ViewRow: 
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                          children: 
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Employer
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 19.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Occupation
+                                - .NPITextField: 
+                                  isEditable: false
+                                  style:
+                                    width: 19.5vw
+                    
+                    
+                    - type: view
+                      style:
+                        marginTop: "1vw"
+                        # left: "0.07"
+                        width: "77vw"
+                        height: "2vw"
+                      children:
+                        - type: image
+                          style:
+                            top: "0.2vw"
+                            left: "0"
+                            # width: "0.05"
+                            textAlign:
+                              x: center
+                              y: center
+                          viewTag: KnownInfoTag
+                          path: selectBlack.svg
+                        - type: label
+                          text: "I consent above information is true and correct."
+                          dataKey: 
+                          style:
+                            top: "0vw"
+                            left: "2.5vw"
+                            # width: "84vw"
+                            height: "1.5vw"
+                            fontSize: .Nfont.h0
+                            color: "0x666666"
+                            textAlign:
+                              x: left
+                              y: center
+                    - type: view
+                      style:
+                        marginTop: "0.1vw"
+                        # left: "0.07"
+                        width: "77vw"
+                        height: "2vw"
+                      children:
+                        - type: image
+                          style:
+                            top: "0.2vw"
+                            left: "0vw"
+                            # width: "0.05"
+                            textAlign:
+                              x: center
+                              y: center
+                          viewTag: KnownShareTag
+                          path: selectBlack.svg
+                        - type: label
+                          text: "I agree to share my information with said provider."
+                          dataKey: 
+                          style:
+                            top: "0"
+                            left: "2.5vw"
+                            # width: "84vw"
+                            height: "1.5vw"
+                            fontSize: .Nfont.h0
+                            color: "0x666666"
+                            textAlign:
+                              x: left
+                              y: center
+            - type: view
+              style:
+                width: 22.3vw
+                height: 2.3vw
+                left: 60.3vw
+                top: 15.5vw
+              children:
+                - type: image
+                  viewTag: ProgressButton1
+                  path: Rightbutton.svg
+                  style:
+                    height: 3vw
+                    left: 10vw
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - goto: NewPatFormPreviewPage2

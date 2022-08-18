@@ -1,0 +1,97 @@
+FileForms:
+  title: Required Forms
+  pageNumber:
+  init: #Page initialization
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+
+    - .Global.formData.pageName@: =.FileForms.formData.pageName
+
+    - =.builtIn.array.transformArray:
+        dataIn:
+          array: =.Global.formData.appointment.selectData.docu
+        dataOut: FileForms.formData.docList
+
+    - =.builtIn.array.transformPage:
+        dataIn:
+          array: =..formData.docList
+          type: "Preview"
+          dataKey: "key"
+        dataOut: FileForms.formData.List
+
+  formData: #Input data here
+    docList: []
+    List: []
+    pageName: "FileForms"
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: list
+      contentType: listObject
+      listObject: ..formData.List
+      iteratorVar: itemObject
+      style:
+        top: "0.1"
+        left: "0.05"
+        width: "0.9"
+        height: "0.88"
+        overflow: scroll
+        boxSizing: "border-box"
+      children:
+        - type: listItem
+          itemObject:
+          style:
+            marginTop: "0.02"
+            width: "0.89"
+            height: "0.06"
+            border:
+              style: "3"
+            borderWidth: "1"
+            borderColor: "0xefefef"
+            borderRadius: "5"
+            boxSizing: "border-box"
+            boxShadow: "1px 1px 4px 1px #efefef"
+          children:
+            - type: view
+              style:
+                marginTop: "0"
+                width: "0.89"
+                height: "0.06"
+              children:
+                - type: image
+                  path: docImg.svg
+                  style:
+                    marginLeft: "0.04"
+                    display: "inline-block"
+                    height: "0.02"
+                    verticalAlign: middle
+                - type: label
+                  dataKey: itemObject.key
+                  style:
+                    marginLeft: "0.02"
+                    display: "inline-block"
+                    height: "0.06"
+                    lineHeight: "6vh"
+                    wordBreak: "break-all"
+                    fontFamily: "Arial"
+                    fontSize: .Nfont.h15
+                    verticalAlign: middle
+                    color: "0x4b4b4b"
+          onClick:
+            - emit:
+                dataKey:
+                  var: itemObject
+                actions:
+                  - if:
+                      - true
+                      - goto: $var.pageName
+                      - goto: $var.pageName

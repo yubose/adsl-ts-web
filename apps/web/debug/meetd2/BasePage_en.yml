@@ -1,0 +1,1212 @@
+BasePage:
+  pageNumber : "0"
+
+HeaderTitle2:
+  type: label
+  text: =..title
+  style:
+    left: "0.3"
+    top: "0.03"
+    width: "0.4"
+    fontWeight: 300
+    height: "0.04"
+    fontSize: "14"
+    color: "0xFFFFFF"
+    textAlign:
+      x: center
+
+RightCancelButton:
+  type: button
+  text: Cancel
+  style:
+    color: "0xFFFFFF"
+    fontSize: "12"
+    left: "0.75"
+    top: "0.02"
+    fontWeight: 300
+    width: "0.25"
+    height: "0.054"
+    backgroundColor: "0x388ecc"
+    onClick: 
+      - goto: DisplayProfile
+
+RightEditButton:
+  type: button
+  text: Edit
+  style:
+    color: "0xFFFFFF"
+    fontSize: "12"
+    left: "0.75"
+    top: "0.02"
+    fontWeight: 300
+    width: "0.25"
+    height: "0.054"
+    backgroundColor: "0x388ecc"
+    onClick: 
+      - goto: EditProfile
+    
+RightShareButton:
+  type: button
+  text: Share
+  style:
+    color: "0xFFFFFF"
+    fontSize: "12"
+    left: "0.75"
+    top: "0.02"
+    fontWeight: 300
+    width: "0.25"
+    height: "0.054"
+    backgroundColor: "0x388ecc"
+    onClick: 
+      - goto: EditProfile
+
+LeftBackButton:
+  type: button
+  onClick: 
+    - actionType: builtIn
+      funcName: goBack
+  style: 
+    left: "0.03"
+    top: "0.025"
+    width: "0.15"
+    height: "0.05"
+    backgroundColor: "0x388eccff"
+  children: 
+    - type: image
+      path: backWhiteArrow.png
+      style: 
+        left: "0.02"
+        top: "0.01"
+        width: "0.04"
+        height: "0.02"
+    - type: label
+      text: Back
+      style: 
+        left: "0.08"
+        top: "0"
+        width: "0.08"
+        height: "0.04"
+        fontSize: "12"
+        color: "0xffffffff"
+        textAlign: 
+          x: left
+          y: center
+
+MenuHeader:
+  type: view
+  style:
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.2"
+    backgroundColor: "0x388eccff"      
+  children:
+    - type: image
+      path: mLogo.png
+      style: 
+        top: "0.02"
+        width: "0.18"
+        left: "0.07"
+    - type: label
+      text: =..title
+      style:
+        color: "0xffffffff"
+        top: "0.065"
+        left: "0.3"
+        width: "0.4"
+        height: "0.07"
+        fontSize: "21"
+        fontWeight: 400
+        zIndex: "1000"
+        textAlign:
+          x: left
+    - type: image
+      path: sideNav2.png
+      style:
+        left: "0.83"
+        top: "0.07"
+        height: "0.03"
+      onClick: 
+        - goto : SideMenuBar
+
+SubMenuView:
+  type: view
+  style:
+    left: "0"
+    top: "0.15"
+    width: "1"
+    height: "0.05"
+
+SubMenuButton:
+  type: button
+  text: Invited
+  style:
+    color: "0x9bc6e5ff"
+    backgroundColor: "0x388eccff"
+    fontSize: "18"
+    left: "0"
+    top: "0"
+    width: "0.33"
+    height: "0.05"
+    border:
+      style: "1"
+    display: inline
+    textAlign:
+      x: center
+      y: center
+  onClick: 
+    - goto: MeetingRoomInvited
+
+
+##
+WithCancelHeader:  # <title> <cancel>
+  type: header
+  style: 
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+  children: 
+    - type: label
+      text: =..title
+      style: 
+        left: "0.35"
+        width: "0.3"
+        top: "0.032"
+        fontWeight: 400
+        height: "0.1"
+        fontSize: "19"
+        color: "0xffffffff"
+        textAlign: 
+          x: center
+    - type: label
+      text: Cancel
+      onClick: 
+        - actionType: builtIn
+          funcName: goBack
+      style: 
+        left: "0.82"
+        width: "0.18"
+        height: "0.1"
+        fontSize: "15"
+        fontWeight: 300
+        color: "0xffffffff"
+        textAlign: 
+          y: center
+
+
+BaseHeader3:  #< BACK> <HEADER>
+  type: header
+  style: 
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+  children: 
+    - type: button
+      text: =..title
+      style: 
+        left: "0.25"
+        width: "0.5"
+        top: "0"
+        fontWeight: 400
+        height: "0.1"
+        fontSize: "19"
+        color: "0xffffffff"
+        backgroundColor: "0x388eccff"
+        textAlign: 
+          x: center   
+BaseTips:
+  type: popUp
+  message: "error code"
+  viewTag: baseTips
+  message2: ""
+  style:
+    left: "0"
+    width: "1"
+    top: "0.325"
+    height: "0.055"
+    color: "#f2c1c3"
+    backgroundColor: "#d53c42"
+    zIndex: .Global.Zindex
+  children:
+    - type: label
+      # text: __.message1
+      # text2: _.text3 # "v'
+      # text3: "v"
+      # text4: __.mess # "ok"
+      textBoard: 
+        - text: ___.message
+        - br:
+        - text: ""
+        - br:
+        - text: ___.message2
+      style:
+        fontSize: "13"
+        left: "0"
+        width: "1"
+        height: "0.055"
+        top: "0"
+        # display: block
+        textAlign:
+          x: center
+          y: center
+    - type: image
+      path: x.png
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: ___.viewTag
+      style:
+        left: "0.9"
+        top: "0"
+        width: "0.06"
+        height: "0.055"
+        textAlign:
+          x: right
+          y: center      
+
+BaseHeader:  #< BACK> <HEADER>
+  type: header
+  style: 
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+  children: 
+    - type: button
+      text: =..title
+      style: 
+        left: "0.3"
+        width: "0.4"
+        top: "0"
+        fontWeight: 300
+        backgroundColor: "0x388eccff"
+        height: "0.1"
+        fontSize: "18"
+        color: "0xffffffff"
+        textAlign: 
+          x: center
+
+HeaderRightButton:
+  type: label
+  style: .HeaderRightLink
+HeaderLeftButton2:
+  type: label
+  style: .HeaderLeftLink
+HeaderRightTimer:
+  type: label
+  contentType: timer
+  viewTag: "videoTimer"
+  text=func: =.builtIn.string.formatTimer
+  dataKey: Global.timer # to be remove after implemented builtIn   
+  style:
+    left: "0.8"
+    top: "0"
+    width: "0.1"
+    height: "0.1"
+    zIndex: 100
+    #marginTop: "0.05"
+    color: "0xffffff"
+    fontSize: "17"
+    textAlign:
+      x: right
+      y: center   
+
+HeaderLeftButton4:
+  type: button
+  onClick: 
+    - actionType: builtIn
+      funcName: goBack
+  style: 
+    top: "0"
+    left: "0.03"
+    width: "0.1"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+    zIndex: 100
+    textAlign:
+      y: center
+  children: 
+    - type: image
+      path: backWhiteArrow.png
+      style: 
+        left: "0.02"
+        top: "0.04" # here 2
+        height: "0.02"
+        zIndex: 100
+      textAlign:
+        y: center
+    # - type: label
+    #   text: Back
+    #   style: 
+    #     left: "0.08"
+    #     top: "0"
+    #     height: "0.1"
+    #     width: "0.1"
+    #     zIndex: 100
+    #     fontSize: "17"
+    #     color: "0xffffffff"
+    #     textAlign: 
+    #       x: left
+    #       y: center
+HeaderLeftButton:
+  type: button
+  onClick: 
+    - actionType: builtIn
+      funcName: goBack
+  style: 
+    top: "0"
+    left: "0.03"
+    width: "0.18"
+    height: "0.1"
+    backgroundColor: "0x388eccff"
+    zIndex: 100
+    textAlign:
+      y: center
+  children: 
+    - type: image
+      path: backWhiteArrow.png
+      style: 
+        left: "0.02"
+        top: "0.04"
+        height: "0.02"
+        zIndex: 100
+      textAlign:
+        y: center
+    - type: label
+      text: Back
+      style: 
+        left: "0.08"
+        top: "0"
+        height: "0.1"
+        width: "0.1"
+        zIndex: 100
+        fontSize: "17"
+        color: "0xffffffff"
+        textAlign: 
+          x: left
+          y: center
+
+HeaderLeftTextButton:
+  type: label
+  text: Cancel
+  style: 
+    left: "0.06"
+    top: "0"
+    height: "0.1"
+    zIndex: 100
+    fontSize: "15"
+    color: "0xffffffff"
+    textAlign: 
+      x: left
+      y: center
+
+HeaderLeftButton0:
+  type: button
+  onClick: 
+    - actionType: builtIn
+      funcName: goBack
+      reload: true
+  style: 
+    top: "0"
+    backgroundColor: "0xffffff"
+    left: "0.05"
+    width: "0.15"
+    height: "0.05"
+    zIndex: 100
+    textAlign:
+      y: center
+    border:
+      style: "1"
+  children: 
+    - type: image
+      path: close.png
+      style: 
+        left: "0.07"
+        top: "0.01"
+        height: "0.02"
+        zIndex: 100
+      textAlign:
+        y: center
+
+HeaderRightImg:
+  type: image
+  path: "sideNav2.png"
+  style: .HeaderRightImgStyle
+
+SearchField:
+  type: textField
+  # contentType: text
+  style:
+    left: "0.08"
+    width: "0.6"
+    height: "0.03"
+    backgroundColor: "0xE8E8E8"
+    fontSize: "12"
+    textAlign:
+      x: left
+      y: center  
+SearchDoc:  
+  type: label
+  contentType: text
+  text: Search
+  style:
+    backgroundColor: "0x388ecc"
+    height: "0.03"
+    color: "0xffffff"
+    width: "0.18"
+    textAlign: 
+      x: center
+SuccessPopup:
+  type: popUp
+  viewTag: successPopUp
+  style:
+    width: "0.88"
+    height: "0.3"
+    top: "0.3"
+    left: "0.06"
+    zIndex: "100"
+    backgroundColor: "0x00000066"
+    borderRadius: "7"
+  children:
+    - type: image
+      path: successMark.png
+      style:
+        width: "0.2"
+        left: "0.34"
+        top: "0.05"
+    - type: button
+      text: ok
+      style:
+        width: "0.6"
+        left: "0.14"
+        height: "0.05"
+        top: "0.2"
+        backgroundColor: "0x00000000"
+        fontSize: "20"
+        color: "0x000000"
+        border:
+          style: "1"
+          color: "0x000000"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: successPopUp
+#### upload module
+UploadModule:
+  type: view
+  style:
+    # top: "0.2"
+    width: "0.7"
+    left: "0.15"
+    height: "0.12"
+    # backgroundColor: "0x000000cc"
+    border:
+      style: "4"
+      width: "1.5"
+      color: "0xacacac"
+  children:
+    - type: image
+      path: cloud.png
+      style:
+        height: "0.04"    
+        top: "0.04"    
+        left: "0.1"
+    - type: label
+      text: "Click here to upload"
+      style:
+        top: "0"
+        width: "0.43"
+        fontSize: "14"
+        height: "0.12"
+        left: "0.26"
+        color: "0xacacac"
+        textAlign:
+          y: center
+SignModule:
+  type: view
+  style:
+    # top: "0.2"
+    width: "0.7"
+    left: "0.15"
+    height: "0.12"
+    # backgroundColor: "0x000000cc"
+    border:
+      style: "4"
+      width: "1.5"
+      color: "0xacacac"
+
+BaseCheckView:
+  type: popUp
+  viewTag: baseCheckView
+  message: "error code"
+  style:
+    width: "0.88"
+    height: "0.3"
+    top: "0.3"
+    left: "0.06"
+    zIndex: "100"
+    backgroundColor: "0xeaeaea"
+    borderRadius: "7"
+  children:
+    - type: label
+      text: __.message
+      text2: _.text3 # "v'
+      text3: "v"
+      text4: __.children.1.text # "ok"
+      style:
+        .LabelStyle:
+          left: "0"
+          top: "0.08"
+          width: "0.89333"
+          height: "0.05"
+          color: "0x000000"
+          fontSize: "19"
+          display: inline
+          # fontStyle: "bold"
+          fontFamily: "sans-serif"
+          textAlign:
+            x: center
+            y: center
+    - type: button
+      text: ok
+      style:
+        width: "0.2"
+        left: "0.35"
+        height: "0.05"
+        top: "0.2"
+        backgroundColor: "0x00000000"
+        fontSize: "20"
+        color: "0x000000"
+        border:
+          style: "1"
+          color: "0x000000"
+        textAlign: center  
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: ___.viewTag
+
+SignInCheck:    
+  if:
+    - =.Global.currentUser.vertex.sk  # 'true', 'false'
+    - continue
+    - goto: SignIn   
+
+MonthlyCard:
+  type: view
+  style:
+    width: "0.88"
+    left: "0.06"
+    height: "0.22"
+  children:
+    - type: button
+      text: "Monthly"
+      style:
+        width: "0.88"
+        height: "0.05"
+        backgroundColor: "0xfaab25"
+        fontSize: "22"
+        fontWeight: "bold"
+        textAlign:
+          # y: center
+          x: center
+    - type: view
+      style:
+        width: "0.88"
+        top: "0.05"
+        height: "0.17"
+        backgroundColor: "0xfeeed4"
+      children:
+        - type: button
+          text: "$ 35.95/month"
+          style:
+            height: "0.06"
+            backgroundColor: "0xfeeed4"
+            width: "0.87"
+            fontSize: "22"
+            fontWeight: "bold"
+            textAlign:
+              x: center
+        - .SubscriptionsCardList:
+          style:
+            top: "0.06"
+          children:
+            - .SubscriptionsCardStar:
+            - .SubscriptionsCardLable:
+              text: "Monthly subscription"
+        - .SubscriptionsCardList:
+          style:
+            top: "0.1"
+          children:
+            - .SubscriptionsCardStar:
+            - .SubscriptionsCardLable:
+              text: "Renewed every 30 days"
+BiannualCard:
+  type: view
+  style:
+    width: "0.88"
+    left: "0.06"
+    height: "0.25"
+  children:
+    - type: button
+      text: "Bi-annual"
+      style:
+        width: "0.88"
+        height: "0.05"
+        backgroundColor: "0x388ecc"
+        fontSize: "22"
+        fontWeight: "bold"
+        color: "0xffffff"
+        textAlign:
+          # y: center
+          x: center
+    - type: view
+      style:
+        width: "0.88"
+        top: "0.05"
+        height: "0.2"
+        backgroundColor: "0xd7e8f5"
+      children:
+        - type: button
+          text: "$ 149.95 for 6 months"
+          style:
+            height: "0.06"
+            backgroundColor: "0xd7e8f5"
+            width: "0.87"
+            fontSize: "22"
+            fontWeight: "bold"
+            textAlign:
+              x: center
+        - type: label
+          style:
+            top: "0.06"
+            width: "0.88"
+            height: "0.04"
+            fontSize: "16"
+            fontWeight: "bold"
+            textAlign:
+              x: center
+          textBoard:
+            - text: "30% off "
+              color: "0xd56168"
+            - text: "\u00A0"
+            - text: "($24.99/month)"
+        - .SubscriptionsCardList:
+          style:
+            top: "0.1"
+          children:
+            - .SubscriptionsCardStar:
+            - .SubscriptionsCardLable:
+              text: "3-monthly subscription"
+        - .SubscriptionsCardList:
+          style:
+            top: "0.14"
+          children:
+            - .SubscriptionsCardStar:
+            - .SubscriptionsCardLable:
+              text: "Renewed every 90 days"            
+AnnualCard:
+  type: view
+  style:
+    width: "0.88"
+    left: "0.06"
+    height: "0.25"
+  children:
+    - type: button
+      text: "Annual"
+      style:
+        width: "0.88"
+        height: "0.05"
+        backgroundColor: "#2fb355"
+        fontSize: "22"
+        fontWeight: "bold"
+        color: "0xffffff"
+        textAlign:
+          # y: center
+          x: center
+    - type: view
+      style:
+        width: "0.88"
+        top: "0.05"
+        height: "0.2"
+        backgroundColor: "0xd5f0dd"
+      children:
+        - type: button
+          text: "$ 249.95 for 12 months"
+          style:
+            height: "0.06"
+            backgroundColor: "0xd5f0dd"
+            width: "0.87"
+            fontSize: "22"
+            fontWeight: "bold"
+            textAlign:
+              x: center
+        - type: label
+          style:
+            top: "0.06"
+            width: "0.88"
+            fontSize: "16"
+            fontWeight: "bold"
+            height: "0.04"
+            textAlign:
+              x: center
+          textBoard:
+            - text: "Over 40% off "
+              color: "0xd56168"
+            - text: "\u00A0"
+            - text: "($20.83/month)"
+        - .SubscriptionsCardList:
+          style:
+            top: "0.1"
+          children:
+            - .SubscriptionsCardStar:
+            - .SubscriptionsCardLable:
+              text: "12-monthly annual subscription"
+        - .SubscriptionsCardList:
+          style:
+            top: "0.14"
+          children:
+            - .SubscriptionsCardStar:
+            - .SubscriptionsCardLable:
+              text: "Renewed every years" 
+SubscriptionsCardList:
+  type: view
+  style:
+    width: "0.88"
+    height: "0.04"
+SubscriptionsCardStar:
+  type: image
+  path: rateapp.png
+  style:
+    height: "0.02"
+    top: "0.01"
+    left: "0.07"
+SubscriptionsCardLable:
+  type: label
+  style:
+    left: "0.15"
+    height: "0.04"
+    fontWeight: "500"
+    width: "0.7"
+    textAlign:
+      y: center
+PayMenthod:
+          
+
+    
+
+        
+    
+FreeTrialPageChoiceIcon:
+  type: image
+  path: chooseIcon.png
+  style: 
+    left: "0"
+    top: "0.003"
+    width: "0.05"
+
+FreeTrialPageChoiceText:
+  type: label
+  text: Document storage
+  style: 
+    left: "0.07"
+    height: "0.04"
+    top: "0"
+    fontSize: "15"
+    fontFamily: "sans-serif"
+
+FreeTrialPageChoice: 
+  type: view
+  style: 
+    left: "0.15"
+    width: "0.7"
+    top: "0.72"
+    height: "0.12"
+  children:
+    - .FreeTrialPageChoiceIcon
+    - .FreeTrialPageChoiceText
+    - .FreeTrialPageChoiceIcon:
+      style: 
+        top: "0.033"
+    - .FreeTrialPageChoiceText:
+      text: "In-Meeting Document sharing"
+      style: 
+        top: "0.03"    
+    - .FreeTrialPageChoiceIcon:
+      style: 
+        top: "0.063"
+    - .FreeTrialPageChoiceText:
+      text: "Group meetings"
+      style: 
+        top: "0.06"  
+    - .FreeTrialPageChoiceIcon:
+      style: 
+        top: "0.093"
+    - .FreeTrialPageChoiceText:
+      text: "In-Meeting Notes"
+      style: 
+        top: "0.09"  
+
+ForeachSubCard:
+  type: view
+  style: 
+    left: "0.125"
+    height: "0.23"
+    width: "0.75"
+    backgroundColor: "0xccecd5aa"
+    zIndex: "100"
+    border: 
+      style: "3"
+    borderColor: "0xccecd5"
+    borderRadius: "10"
+  children: 
+    - type: label
+      style: 
+        width: "0.75"
+        height: "0.1"
+        fontSize: "28"
+        textAlign: 
+          x: center
+      textBoard: 
+        - text: "For each subsciption"
+        - br: 
+        - text: "referral, you get"
+    - type: label
+      text: "ONE MONTH FREE"
+      style: 
+        top: "0.095"
+        width: "0.75"
+        height: "0.06"
+        fontSize: "30"
+        fontStyle: "bold"
+        color: "0x30b354"
+        textAlign: 
+          x: center   
+    - type: label
+      textBoard: 
+        - text: "*Simply have your friend enter your phone "
+        - br: 
+        - text: "number on your AiTmed account when paying for their subscription*"
+      style: 
+        top: "0.145"
+        width: "0.75"
+        height: "0.1"
+        fontSize: "14"
+        lineHeight: "20px"
+        textAlign: 
+          x: center         
+
+ForeachSubView:
+  type: view
+  style: 
+    top: "0.2"
+    width: "1"
+  children: 
+    - .ForeachSubCard:
+    - type: image
+      path: "imgpshMobileSave.png"
+      style: 
+        Index: 100
+        left: "0.8"
+        width: "0.2"
+        top: "0.07"
+
+IconStar: 
+  type: image
+  path: "providerOn.png"
+  style:
+    top: "0.003"
+    width: "0.04"
+
+suboptionText:
+  type: label
+  text: "Document storage"
+  style: 
+    left: "0.06"
+    textAlign: 
+      x: left
+
+suboptionView:
+  type: view 
+  style: 
+    left: "0.17"
+    top: "0.62"
+    width: "0.7"
+    height: "0.5"
+
+
+#FAQs
+FAQsTitle:
+  type: label
+  style:
+    marginTop: "0.02"
+    left: "0.05"
+    width: "0.86"
+    lineHeight: "30px"
+    fontSize: "19"
+    fontFamily: "sans-serif"
+    fontWeight: "400"
+    height: auto
+    textAlign:
+      x: left
+
+FAQsText:
+  type: label
+  style:
+    marginTop: "0.01"
+    left: "0.05"
+    width: "0.86"
+    lineHeight: "25px"
+    fontSize: "14"
+    fontFamily: "sans-serif"
+    letterSpacing: "0.5px"
+    fontWeight: "400"
+    textAlign: justify
+    color: "#9f9f9f"
+    height: # auto
+
+
+BaseView:
+  type: view
+  style: 
+    width: "1"
+    left: "0"
+
+# InboxDashboard: 
+MenubarInbox:
+  type: button
+  style:
+    width: "1"
+    height: "0.059"
+    border:
+      style: "2"
+      width: "1"
+      color: "0xf0f0f0"
+    backgroundColor: "0xffffff"
+    paddingBottom: "47px"
+MenubarInboxImg:
+  type: image
+  style:
+    height: "0.025"
+    top: "0.018"
+    left: "0.1"
+MenubarInboxTitle:
+  type: label
+  style:
+    left: "0.24"  
+    top: "0"
+    height: "0.059"
+    fontSize: "17"
+    textAlign:
+      y: center
+    color: "0x707070"
+IndexMenuBar:
+  type: view
+  style:
+    height: "0.1"
+    top: "0"
+    width: "1"
+    backgroundColor: "0xffffff"
+    borderBottom: "1px solid #f0f0f0"
+  children:
+    # - type: image
+    #   path: drImg.png
+    #   style:
+    #     height: "0.08"
+    #     borderRadius: "100"
+    #     zIndex: "100"
+    #     top: "0.035"
+    #     left: "0.1"
+
+    - .HeaderLeftButton0:
+      style: 
+        top: "0.03"
+
+BaseList:
+  type: list
+  contentType: listObject
+  iteratorVar: itemObject
+  style: 
+    width: "1"
+    left: "0"  
+BaseListItem:
+  type: listItem
+  itemObject: ""
+  style:
+    left: "0"
+    width: "1"
+    height: "0.05" 
+    border: none
+
+ProgressCheckView:
+  type: popUp
+  style:
+    width: "1"
+    height: "1"
+    top: "0"
+    left: "0"
+    backgroundColor: "0xffffff00"
+    zIndex: "1000"
+    # boxShadow: "0px 0px 5px 2px #f4f8fa"
+  children:
+    - type: view
+      viewTag: progressCheckView
+      message: "loading"
+      colorChange: "0x2988e6"
+      imgPath: zhuanquan.gif
+      style:
+        width: "0.8"
+        height: "0.28"
+        top: "0.3"
+        left: "0.1"
+        zIndex: "100"
+        backgroundColor: "0xffffff"
+        borderRadius: "7"
+        border: 
+          style: "3"
+        borderColor: '#f4f8fa'
+        borderWidth: "3"
+      children:
+        - type: image
+          path: __.imgPath
+          style:
+            left: '0.2'
+            width: '0.4'
+            top: '0.03'
+        - type: label
+          text: __.message
+          text2: _.text3 # "v'
+          text3: "v"
+          text4: __.children.1.text # "ok"
+          style:
+            .LabelStyle:
+              left: "0.01"
+              top: "0.21"
+              width: "0.78"
+              height: "0.06"
+              color: "0x000000"
+              fontSize: "2.5vh"
+              fontWeight: "350"
+              display: inline
+              # fontStyle: "bold"
+              fontFamily: "sans-serif"
+              textAlign:
+                x: center
+                y: center    
+MailDetailText: 
+  type: label
+  style: 
+    color: '0x627e92'
+    width: '0.2125'
+    height: "0.03"
+    # top: '0.1'
+    left: '0.05'
+    top: '0.07'
+    fontSize: "14"
+    textAlign: 
+      x: center
+      y: center  
+HeaderLeftButton1:
+  type: button
+  onClick:
+    - actionType: builtIn
+      funcName: goBack
+      reload: true
+  style: 
+    top: "0"
+    left: "0.03"
+    width: "0.18"
+    height: "0.1"
+    backgroundColor: "#2887e5"
+    zIndex: 100
+    textAlign:
+      y: center
+    border:
+      style: "1"
+  children: 
+    - type: image
+      path: backWhiteArrow.png
+      style: 
+        left: "0.02"
+        top: "0.04"
+        height: "0.02"
+        zIndex: 100
+      textAlign:
+        y: center
+    - type: label
+      text: Back
+      style: 
+        left: "0.08"
+        top: "0"
+        height: "0.1"
+        zIndex: 100
+        fontSize: "15"
+        color: "0xffffffff"
+        textAlign: 
+          x: left
+          y: center
+
+BaseHeader1:  #<HEADER>
+  type: header
+  style: 
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x2887e5"
+  children: 
+    - type: button
+      text: =..title
+      style: 
+        left: "0.25"
+        width: "0.5"
+        fontWeight: 300
+        height: "0.1"
+        fontSize: "18"
+        color: "0xffffffff"
+        textAlign: 
+          x: center
+        backgroundColor: "0x2887e5"
+        border:
+          style: "1"
+
+PasswordRecoveryHelperTitleView: 
+  type: view
+  style: 
+    width: "1"
+    marginTop: "0.02"
+    left: "0"
+    height: "0.04"
+
+PasswordRecoveryHelperTitle: 
+  type: view
+  style:
+    backgroundColor: "0xf0f0f0"
+    width: "1"
+    left: "0"
+    height: "0.04"
+    # top: "0"
+  children:
+    - type: label
+      text: __.text1 #"Past Medical History"
+      style: 
+        backgroundColor: "0xf0f0f0"
+        width: "0.95"
+        left: "0.05"
+        fontSize: "18"
+        height: "0.04"
+        top: "0"
+        fontWeight: "500"
+        textAlign: 
+          x: left
+          y: center 
+
+HeaderRightImg1:
+  type: image
+  style:
+    left: "0.87"
+    top: "0.036"
+    height: "0.028"
+    zIndex: "10000"   

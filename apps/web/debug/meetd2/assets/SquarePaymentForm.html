@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!-- const APPLICATION_ID = 'sandbox-sq0idb-NZW9Yiwvqiqf5zAaaoFQgA';
+const LOCATION_ID = 'LQHN3A834S19Y'; -->
+<html>
+  <head>
+    <!-- <link href="/app.css" rel="stylesheet" /> -->
+    <!-- 1: References the Square payment library to initalize the SDK -->
+    <script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+    <style>
+      .button1 {
+        -webkit-transition-duration: 0.4s;
+        display: block;margin:0 auto;
+        transition-duration: 0.4s;
+        padding: 16px 32px;
+        text-align: center;
+        background-color: white;
+        color: black;
+        border: 2px solid #388ecc;
+        border-radius:5px;
+        }
+        .button1:hover {
+        background-color: #388ecf;
+        color: white;
+      }
+      </style>      
+  </head>
+  <body>
+    <form id="payment-form">
+      <div id="card-container"></div>
+      <button id="card-button" type="button" class="button1" >Save&nbspCard</button>
+    </form>
+    <!-- Configure the Web Payments SDK and Card payment method -->
+    <script type="text/javascript">
+      async function main() {
+        const appId = 'sandbox-sq0idb-NZW9Yiwvqiqf5zAaaoFQgA';
+        const locationId = 'LQHN3A834S19Y';
+        const payments = Square.payments(appId, locationId);
+        const card = await payments.card();
+        await card.attach('#card-container');
+        async function eventHandler(event) {
+          event.preventDefault();
+          try {
+            const result = await card.tokenize();
+            if (result.status === 'OK') {
+              console.log(`Payment token is ${result.token}`);
+              // Page components will treat this "message" as the dataObject
+              const dataObject = { token: result.token };
+              window.parent.postMessage(dataObject, '*');
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+        const cardButton = document.getElementById('card-button');
+        cardButton.addEventListener('click', eventHandler);
+      }
+      main();
+    </script>
+  </body>
+</html>  

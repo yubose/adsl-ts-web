@@ -1,0 +1,842 @@
+ExternalScheduleAppointment:
+  title: ExternalScheduleAppointment
+  pageNumber:
+  init:
+    - .Global.baseFontColor@: "0x333333"
+    - if:
+      - =.Global.currentUser.vertex.id
+      - actionType: evalObject
+        object:
+          - =.builtIn.string.concat:
+              dataIn:
+                - =.Global.currentUser.vertex.name.firstName
+                - " "
+                - =.Global.currentUser.vertex.name.lastName
+              dataOut: ExternalScheduleAppointment.formData.showName
+          - ..apiRequest.profile.patientdocument.name.data.basicInfo.fullName@: =..formData.showName
+      - continue
+    - if:
+      - =.Global.newCareUser
+      - actionType: evalObject
+        object:
+          - ..formData.newCare@: false
+          - .Global.formData.profile.firstName@: ""
+      - continue
+    - if:
+      - =.Global.currentUser.vertex.id
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.currentUser.vertex.id
+                  string2: "zgT+cgx7QFopl+JPC2WOeA=="
+            - continue
+            - actionType: evalObject
+              object:
+                - if:
+                  - =.Global.titleProfile.id
+                  - ..apiRequest.profile.patientdocument@: =.Global.titleProfile
+                  - actionType: evalObject
+                    object:
+                      - =..apiRequest.profile.docAPI.get: ""
+                      - =.builtIn.utils.setTimer:
+                          dataIn:
+                            timeUnix: 1000
+                      - ..apiRequest.profile.patientdocument@: =..apiRequest.profile.docResponse.doc.0
+                      - .Global.titleProfile@: =..apiRequest.profile.patientdocument
+                - if:
+                  - =.Global.insuranceDoc.id
+                  - ..apiRequest.insurance.docCreateReq@: =.Global.insuranceDoc
+                  - actionType: evalObject
+                    object:
+                      - ..apiRequest.insurance.docQueryReq.id@: =..apiRequest.profile.patientdocument.name.data.insuranceId
+                      - =..apiRequest.insurance.docAPI.get: ""
+                      - .Global.insuranceDoc@: =..apiRequest.insurance.docQueryResp.doc.0
+                      - ..apiRequest.insurance.docCreateReq@: =..apiRequest.insurance.docQueryResp.doc.0
+      - continue
+    - .Global.currentUser.vertex.name.fullName@: =..apiRequest.profile.patientdocument.name.data.basicInfo.fullName
+    - .Global.GoSignUp@: "ExternalScheduleAppointment"
+    - .Global.FormGoUrl@: "ExternalScheduleAppointment" 
+    - actionType: evalObject
+      object:
+        - if:
+          - =.Global.isSignIn
+          - actionType: evalObject
+            object:
+              - ..formData. @: "false"
+              - ..formData.isSignIn@: "true"
+          - actionType: evalObject
+            object:
+              - ..formData.isPersonal@: "true"
+              - ..formData.isSignIn@: "false"
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.dataObject.phoneNumber
+            string2: ""
+      - actionType: evalObject
+        object:
+          - ..formData.callColor@: "#C1C1C1"
+          - ..formData.callBorder@: "#C1C1C1"
+      - continue
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..formData.dataObject.website
+            string2: ""
+      - actionType: evalObject
+        object:
+          - ..formData.webBorder@: "#C1C1C1"
+          - ..formData.background@: "#C1C1C1"
+      - continue
+      
+  formData:
+    isPersonal: ""
+    isSignIn: ""
+    password: "123456"
+    phone: ""
+    sk: ""
+    pass: ""
+    callColor: "#2988E6"
+    callBorder: "#2988E6"
+    webBorder: "#2988E6"
+    background: "#2988E6"
+    dataObject: .Global.Provider._source
+  formDataTemp:
+    save:
+      - =.builtIn.eccNaCl.decryptAES:
+          dataIn:
+            key: =..formData.password
+            message: =.Global.currentUser.vertex.esk
+          dataOut: ExternalScheduleAppointment.formData.sk
+      - =.builtIn.eccNaCl.skCheck:
+          dataIn:
+            pk: =.Global.currentUser.vertex.pk
+            sk: =..formData.sk
+          dataOut: ExternalScheduleAppointment.formData.pass 
+    
+  
+  apiRequest:
+    profile:
+      docResponse: ""
+      docAPI:
+        get:
+          .DocAPI.get: "" 
+          api: rd
+          id: .Global.rootNotebookID
+          xfname: eid
+          type: .DocType.PatientProfile
+          obfname: mtime
+          dataKey: apiRequest.profile.docResponse
+          _nonce: =.Global._nonce 
+        
+    
+  components:
+    - type: view
+      style:
+        width: "1"
+        margin: 'auto'
+        height: "1"
+        # display: flex
+        # flexDirection: column
+        # justifyContent: center
+        # alignItems: center
+      children:
+        - .baseTopBar:
+          style:
+            position: relative
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .ViewRow:
+                  style:
+                    height: '6vw'
+                    alignItems: center
+                    float: right
+                  children:
+                    - type: view
+                      style:
+                        height: 6vw
+                        width: 17vw
+                        marginLeft: "0"
+                        justifyContent: flex-start
+                        marginRight: "0.03"
+                      children: 
+                        - .ViewRow:
+                          viewTag: Personaltag
+                          style:
+                            height: 6vw
+                            minWidth: 14vw
+                            fontFamily: "Arial"
+                            fontSize: .Nfont.h1
+                            color: "#333333"
+                            isHidden: ..formData.isPersonal
+                          onClick:
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: Personal
+                            - actionType: popUp
+                              popUpView: Personal
+                              dismissOnTouchOutside: true
+                          children:
+                            - type: popUp
+                              viewTag: Personal
+                              style:
+                                width: 11vw
+                                height: 9vw
+                                left: 5.5vw
+                                top: 5.3vw
+                                zIndex: 1000
+                                backgroundColor: "0xffffff"
+                                border:
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "#DEDEDE"
+                                display: flex
+                                flexDirection: column
+                                alignItems: center
+                                justifyContent: space-between
+                                color: "0x333333"
+                                fontSize: .Nfont.h0_1
+                                fontWeight: 450
+                                borderRadius: "5px"
+                              children:
+                                - type: label
+                                  text: Patient Profile
+                                  style:
+                                    width: 11vw
+                                    height: 3vw
+                                    borderBottom: 'solid #DEDEDE'
+                                    borderWidth: '1'
+                                    textAlign: 
+                                      x: center
+                                      y: center
+                                  onClick:
+                                    - goto: PatientProfile
+                                - type: label
+                                  text: Patient Web App
+                                  style:
+                                    width: 11vw
+                                    height: 3vw
+                                    borderBottom: 'solid #DEDEDE'
+                                    borderWidth: '1'
+                                    textAlign: 
+                                      x: center
+                                      y: center
+                                  onClick:
+                                    - goto: ..config.patientUrl
+                                - type: label
+                                  text: Log Out
+                                  style:
+                                    width: 11vw
+                                    height: 3vw
+                                    borderBottom: 'solid #DEDEDE'
+                                    borderWidth: '1'
+                                    textAlign: 
+                                      x: center
+                                      y: center
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =..formData.flag
+                                          - =.builtIn.cleanLocalStorage
+                                          - continue
+                                        - .Global.isSignIn@: false
+                                        - .Global.currentUser.vertex.esk@ : ""
+                                        - .Global.currentUser.vertex.sk@ : ""
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =.Global.formData.LogoOutuid
+                                                string2: ""
+                                          - goto: SearchProvider
+                                          - goto: .Global.formData.LogoOutuid
+                                                        
+                            - type: image
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: apiRequest.profile.patientdocument.name.data.basicInfo.avatar
+                              path: touxiang.svg
+                              style:
+                                width: "2.9vw"
+                                marginLeft: "0.02"
+                                -webkitUserDrag: none
+                            - type: label
+                              # the label is too long here that can't be folden
+                              dataKey: apiRequest.profile.patientdocument.name.data.basicInfo.fullName
+                              style: 
+                                display: block
+                                maxWidth: "17vw"
+                                wordBreak: break-word
+                                overflow: "hidden"
+                                whiteSpace: "nowrap"
+                                textOverflow: "ellipsis"
+                                fontSize: .Nfont.h1
+                                color: "#333333"
+                                lineHeight: 6vw
+                            - type: image
+                              path: triangle.png
+                              style:
+                                width: 1.5vw
+                        - type: view
+                          viewTag: SignIntag
+                          style:
+                            top: 0
+                            height: 6vw
+                            width: 17vw
+                            textAlign: 
+                              y: center
+                            display: flex
+                            flexDirection: row
+                            justifyContent: center
+                            isHidden: ..formData.isSignIn
+                            backgroundColor: "0xffffff"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =.Global.baseFontColor
+                                        string2: "0x2988E6"
+                                  - .Global.baseFontColor@: "0x333333"
+                                  - .Global.baseFontColor@: "0x2988E6"
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: redict
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: SignIntag
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =.Global.baseFontColor
+                                        string2: "0x2988E6"
+                                  - actionType: popUp
+                                    popUpView: redict
+                                  - actionType: popUpDismiss
+                                    popUpView: redict
+                            # - actionType: popUp
+                            #   popUpView: redict
+                            #   # dismissOnTouchOutside: true
+                          children:
+                            - type: label
+                              text: "Sign in/Sign up"
+                              style:
+                                textDecoration: underline
+                                fontFamily: "Arial"
+                                fontSize: .Nfont.h1
+                                color: =.Global.baseFontColor
+                                height: "0.0926"
+                                width: 17vw
+                                textAlign: 
+                                  y: 'center'
+                                  x: center
+                        - type: popUp
+                          viewTag: redict 
+                          style:
+                            width: 16.9vw
+                            height: 9vw
+                            top: 5.3vw
+                            float: right
+                            zIndex: 1000
+                            backgroundColor: "0xffffff"
+                            border:
+                              style: "3"
+                            borderWidth: "1"
+                            borderColor: "#DEDEDE"
+                            display: flex
+                            flexDirection: column
+                            alignItems: center
+                            borderRadius: "5px"
+                          children:
+                            - .ViewRow:
+                              style:
+                                width: 16vw
+                                height: 3vw
+                                fontSize: .Nfont.h1
+                                color: "#333333"
+                                borderBottom: 'solid #DEDEDE'
+                                borderWidth: '1'
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "Patients"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                    fontWeight: 500
+                                - type: label
+                                  text: "Sign in"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.currentUser.vertex.esk@ : ""
+                                        - .Global.currentUser.vertex.sk@ : ""
+                                    - goto: CareSignIn
+                                - type: label
+                                  text: "Sign Up"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.currentUser.vertex.esk@ : ""
+                                        - .Global.currentUser.vertex.sk@ : ""
+                                    - goto: CareSignUp
+                            - .ViewRow:
+                              style:
+                                width: 16vw
+                                height: 3vw
+                                fontSize: .Nfont.h1
+                                color: "#333333"
+                                borderBottom: 'solid #DEDEDE'
+                                borderWidth: '1'
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "Providers"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                    fontWeight: 500
+                                - type: label
+                                  text: "Sign in"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.currentUser.vertex.esk@ : ""
+                                        - .Global.currentUser.vertex.sk@ : ""
+                                    - goto: SignIn
+                                - type: label
+                                  text: "Sign Up"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.currentUser.vertex.esk@ : ""
+                                        - .Global.currentUser.vertex.sk@ : ""
+                                    - goto: SignUp
+                            - .ViewRow:
+                              style:
+                                width: 16vw
+                                height: 3vw
+                                fontSize: .Nfont.h1
+                                color: "#333333"
+                                alignItems: center
+                              children:
+                                - type: label
+                                  text: "Admin"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                    fontWeight: 500
+                                - type: label
+                                  text: "Sign in"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.currentUser.vertex.esk@ : ""
+                                        - .Global.currentUser.vertex.sk@ : ""
+                                    - goto: ..config.adminUrl
+                                - type: label
+                                  text: "Sign Up"
+                                  style:
+                                    width: 5vw
+                                    height: 1.5vw
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.currentUser.vertex.esk@ : ""
+                                        - .Global.currentUser.vertex.sk@ : ""
+                                    - goto: ..config.adminUrl
+        
+        - type: view
+          style: 
+            width: "1"
+            margin: "auto"
+            # display: ..formData.DisProvider
+            display: flex
+            flexDirection: row
+            justifyContent: center
+          children:
+            - type: view
+              viewTag: LocationInfos
+              style: 
+                width: "0.45"
+                height: '0.9'
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                - type: view
+                  style: 
+                    marginTop: 2vw
+                    width: "0.45"
+                    height: 2vw
+                    display: flex
+                    flexDirection: row
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: left_blue_arrow.png
+                      style:
+                        width: 1.5vw
+                        height: 2vw
+                      onClick: 
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                    - .Label1:
+                      text: "Back"
+                      autocomplete: "off"
+                      style: 
+                        fontSize: 1.1vw         
+                        color: "#2988e6"
+                        fontWeight: 550
+                        marginLeft: 0.5vw
+                      onClick: 
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                
+                - type: view
+                  style: 
+                    width: "0.45"
+                    height: 11.31vw
+                    backgroundColor: "#ffffff"
+                    marginTop: "0.05"
+                  children:
+                    
+                    - type: view
+                      style:
+                        width: "0.45"
+                        height: "0.192"
+                        backgroundColor: "#eeeeee"
+                        border: "3px solid #e0eefb"
+                        borderWidth: 3px
+                        display: flex
+                        flexDirection: column
+                      children:
+                        - type: view
+                          style:
+                            # width: 40vw
+                            margin: auto
+                            height: 4.64vw
+                            display: flex
+                            flexDirection: row
+                          children: 
+                            - type: image
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: formData.ProviderAvtar
+                              path: yisheng copy.svg
+                              # onClick: 
+                              #   - actionType: popUp
+                              #     popUpView: pop1
+                              style:
+                                # marginLeft: 16vw
+                                marginTop: -2vw
+                                width: 6.96vw
+                                height: 6.96vw
+                                borderRadius: "10px"
+                            
+                        - type: label
+                          dataKey: formData.dataObject.fullName
+                          style:
+                            # width: 40vw
+                            fontSize: .Nfont.h6
+                            color: "0x143459"
+                            fontWeight: bold
+                            fontFamily: "Arial"
+                            # margin: auto
+                            textAlign: 
+                              x: center
+                        - type: view
+                          style: 
+                            margin: auto
+                            # height: 3vw
+                            display: flex
+                            flexDirection: row
+                            alignItems: flex-start
+                            justifyContent: center
+                          children: 
+                            - type: label
+                              text: specialty_1
+                              dataKey: formData.dataObject.specialty.0
+                              style: 
+                                wordBreak: break-all
+                                fontSize: .Nfont.h1
+                                marginTop: 0.3vw
+                                color: "0x143459"
+                                textAlign: 
+                                  x: right
+                            - type: label
+                              dataKey: formData.dataObject.specialty.1
+                              style: 
+                                marginLeft: 1vw
+                                wordBreak: break-all
+                                marginTop: 0.3vw
+                                fontSize: .Nfont.h1
+                                color: "0x143459"
+                                textAlign: 
+                                  x: left
+                - type: scrollView
+                  style: 
+                    width: "0.45"
+                    height: "0.52"
+                    display: flex
+                    flexDirection: column
+                  children:
+                    - .FDInfoView:
+                      children:
+                        - type: view
+                          style: 
+                            display: flex
+                            flexDirection: row
+                          children:
+                            - .FDInfoTitle:
+                              text: About
+                              style:
+                                fontSize: .Nfont.h2
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                            - .FDInfoTitle:
+                              dataKey: formData.dataObject.fullName
+                              style:
+                                width: 30vw
+                                wordBreak: break-all
+                                marginLeft: 0.5vw
+                                fontSize: .Nfont.h2
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                        - .FDInfoLabel:
+                          dataKey: formData.dataObject.description
+                    - type: view
+                      style: 
+                        width: "0.45"
+                        backgroundColor: "#ffffff"
+                        marginTop: 1.04vw
+                      children: 
+                        - .FDInfoView:
+                          children:
+                            - .FDInfoTitle:
+                              text: "Other Information"
+                              style:
+                                fontSize: .Nfont.h2
+                                fontWeight: bold
+                                fontFamily: "Arial"
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: Specialty
+                            - type: list
+                              contentType: listObject
+                              # this should be a bug
+                              listObject: =..formData.dataObject.specialty
+                              iteratorVar: itemObject
+                              style: 
+                                marginTop: "0"
+                                width: 30vw
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style: 
+                                    marginTop: "0"
+                                    width: 30vw
+                                    color: "#333333"
+                                  children: 
+                                    - .FDInfoLabel:
+                                      dataKey: itemObject
+                        
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "Phone #"
+                            - .FDInfoLabel:
+                              text: "--"
+                              dataKey: formData.dataObject.phoneNumber
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: "E-mail"
+                            - .FDInfoLabel:
+                              text: "--"
+                              dataKey: formData.dataObject.email
+                        - .FDInfoView:
+                          children: 
+                            - .FDInfoTitle:
+                              text: Website
+                            - type: view
+                              style:
+                                width: "0.45"
+                              children:
+                                - .FDInfoLabel:
+                                  text: "--"
+                                  dataKey: formData.dataObject.website
+                                  style:
+                                    textDecoration: underline
+                                    color: "0x2988E6"
+                                    display: "inline-block"
+                                  onClick:
+                                    - goto: ..formData.dataObject.website
+                                
+                               
+                        
+            - type: view
+              style:
+                width: '0.362'
+                marginLeft: "0.064"
+              children:
+                - type: view
+                  style:
+                    backgroundColor: 'white'
+                    width: "0.362"
+                    height: "0.8"
+                    top: 4vw
+                  children:
+                    - .ViewColumn:
+                      style:
+                        height: 36vw
+                        width: "0.362"
+                        marginTop: 0
+                        justifyContent: flex-start
+                        alignItems: center
+                      children:
+                        - type: image
+                          path: externalSchedule.svg
+                          style:
+                            width: 27vw
+                            marginTop: 5vw
+                        - type: view
+                          style:
+                            width: 31.5vw
+                            display: flex
+                            flexDirection: row
+                            justifyContent: space-between
+                            marginTop: 7vw
+                          children:
+                            - type: view
+                              text: Call for visit
+                              style: 
+                                width: "15vw"
+                                height: 2.5vw
+                                borderRadius: 5px
+                                backgroundColor: "#ffffff"
+                                borderWidth: 3
+                                border:
+                                  style: 3
+                                borderColor: ..formData.callBorder
+                                color: ..formData.callColor
+                                fontSize: .Nfont.h1
+                                fontWeight: 550
+                                textAlign:
+                                  x: center
+                                  y: center
+                              onClick:
+                                - actionType: popUp
+                                  popUpView: showTag
+                            - type: view
+                              text: Go to provider's website
+                              style:
+                                width: "15vw"
+                                height: 2.5vw
+                                borderRadius: 5px
+                                backgroundColor: ..formData.background
+                                borderWidth: 3
+                                border:
+                                  style: 3
+                                borderColor: ..formData.webBorder
+                                color: "#ffffff"
+                                fontSize: .Nfont.h1
+                                fontWeight: 550
+                                textAlign:
+                                  x: center
+                                  y: center
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..formData.dataObject.website
+                                            string2: ""
+                                      - continue
+                                      - goto: ..formData.dataObject.website
+        - type: popUp
+          viewTag: showTag
+          style: 
+            width: "1"
+            height: "1"
+            top: 0
+            zIndex: 10000
+            backgroundColor: "0x00000040"
+          children: 
+            - type: view
+              style: 
+                left: "0.33"
+                width: "0.32"
+                top: "0.34"
+                height: "0.19"
+                boxShadow: "0px 2px 2px 1px #b7b7b7"
+                borderRadius: "10"
+                backgroundColor: "0xffffff"
+              children: 
+                - type: view
+                  style:
+                    width: "0.28"
+                    display: flex
+                    flexDirection: row
+                    justifyContent: space-between
+                    margin: "auto"
+                  children:
+                    - type: label
+                      text: "Call to book"
+                      style: 
+                        marginTop: "0.015"
+                        fontSize: .Nfont.h2
+                        fontWeight: 550
+                    - type: image
+                      path: cancelGrey.svg  
+                      style:
+                        width: "0.009" 
+                        marginTop: "0.015"
+                      onClick: 
+                        - actionType: popUpDismiss
+                          popUpView: showTag   
+                - type: label
+                  textBoard:
+                    - text: "Please call the provider to make an appointment or to ask any questions "
+                    - text: "--"
+                      dataKey: formData.dataObject.phoneNumber
+                      color:  "#2988E6"
+                  style: 
+                    marginTop: "0.03"
+                    width: "0.3"
+                    left: "0.02"
+                    fontFamily: "Roboto"
+                    fontSize: .Nfont.h1
+                    lineHeight: "1.5vw"
+                    color: "0x333333"
+                    textAlign: 
+                      x: left                    
+                        
+
+
+        
+        

@@ -1,0 +1,371 @@
+DocumentForReason:
+  title: "Select attached files"
+  init:
+    - .SignInCheck
+    - .Global.ReasonForVisitReason@: false
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.currentTabStatus
+              string2: "TELEMEDICINE"
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.chooseDocLen.teleLength
+                      string2: "0"
+                - continue
+                - ..formData.selectDocument@: =.Global.documentForReason.teleReason
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.chooseDocLen.officeLength
+                    string2: "0"
+                - continue
+                - ..formData.selectDocument@: =.Global.documentForReason.officeReason
+  formData:
+    length: ""
+    checkLocalLength: ""
+    selectDocument: []
+  formDataTemp:
+    doucment:
+      - title: New Patient Forms
+        pageName: NewPatFormPreviewPage1
+      - title: COVID-19 Testing Consent - New Patient
+        pageName: Cov19TestNewPatPreviewPage1
+      - title: COVID-19 Testing Consent Form
+        pageName: Cov19TestFormPreviewPage1
+      - title: Pfizer-BioNTech Vaccine - First Dose
+        pageName: PfizerVaccineFirDosePreviewPage1
+      - title: Pfizer-BioNTech Vaccine - Second Dose
+        pageName: PfizerVaccineSecDosePreviewPage1
+      - title: Moderna Vaccine Form - First Dose
+        pageName: ModernaVaccineFirDosePreviewPage1
+      - title: Moderna Vaccine Form - Second Dose
+        pageName: ModernaVaccineSecDosePreviewPage1
+  components:
+    - .SuccessfulOneLine:
+      message: Save Successfully!
+      viewTag: successTag
+      style:
+        zIndex: 1000
+    - .simplePopup:
+      viewTag: changePopUpView
+      children:
+        - .simplePopupView:
+          style:
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: "Do you want to save your changes？"
+              dataKey:
+              style:
+                marginTop: "0.04"
+                marginLeft: "0.03"
+                width: "0.64"
+                height: "auto"
+                color: "0x4b4b4b"
+                fontSize: .Nfont.h14
+                fontFamily: "sans-serif"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                marginTop: "0.04"
+                height: "0.001"
+                width: "0.72"
+                backgroundColor: "0x8f8f90"
+            - type: view
+              style:
+                height: "0.06"
+                width: "0.72"
+              children:
+                - type: button
+                  text: "Cancel"
+                  style:
+                    marginTop: "0.01"
+                    width: "0.35"
+                    height: "0.049"
+                    color: "0x007affff"
+                    fontSize: .Nfont.h14
+                    display: inline-block
+                    backgroundColor: "0xe6e6e6"
+                    borderRadius: "15"
+                    textAlign:
+                      x: center
+                      y: center
+                    border:
+                      style: "5"
+                      borderRadius: "15"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: changePopUpView
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.002"
+                    height: "0.06"
+                    backgroundColor: "0x999999"
+                    display: inline-block
+                - type: button
+                  text: "Confirm"
+                  style:
+                    marginTop: "0.01"
+                    width: "0.35"
+                    height: "0.049"
+                    color: "0x007affff"
+                    fontSize: .Nfont.h14
+                    display: inline-block
+                    backgroundColor: "0xe6e6e6"
+                    borderRadius: "15"
+                    fontWeight: "600"
+                    textAlign:
+                      x: center
+                      y: center
+                    border:
+                      style: "5"
+                      borderRadius: "15"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: changePopUpView
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.formData.currentTabStatus
+                                  string2: "TELEMEDICINE"
+                            - actionType: evalObject
+                              object:
+                                - .Global.formData.chooseDocLen.teleLength@: =..formData.length
+                                - .Global.documentForReason.teleReason@: =..formData.selectDocument
+                            - actionType: evalObject
+                              object:
+                                - .Global.formData.chooseDocLen.officeLength@: =..formData.length
+                                - .Global.documentForReason.officeReason@: =..formData.selectDocument
+                    - actionType: popUp
+                      popUpView: successTag
+                      wait: 2000
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: evalObject
+          object:
+            - =.builtIn.array.getListLength:
+                dataIn:
+                  object: =..formData.selectDocument
+                dataOut: DocumentForReason.formData.length
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.currentTabStatus
+                      string2: "TELEMEDICINE"
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.formData.chooseDocLen.teleLength
+                              string2: ""
+                        - ..formData.checkLocalLength@: "0"
+                        - ..formData.checkLocalLength@: =.Global.formData.chooseDocLen.teleLength
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.formData.chooseDocLen.officeLength
+                              string2: ""
+                        - ..formData.checkLocalLength@: "0"
+                        - ..formData.checkLocalLength@: =.Global.formData.chooseDocLen.officeLength
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..formData.length
+                      string2: =..formData.checkLocalLength
+                - continue
+                - actionType: popUp
+                  popUpView: changePopUpView
+                  wait: true
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+    - .HeaderRightButton:
+      text: Save
+      onClick:
+        - actionType: popUp
+          popUpView: successTag
+          wait: 2000
+        - actionType: evalObject
+          object:
+            - =.builtIn.array.getListLength:
+                dataIn:
+                  object: =..formData.selectDocument
+                dataOut: DocumentForReason.formData.length
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.currentTabStatus
+                      string2: "TELEMEDICINE"
+                - actionType: evalObject
+                  object:
+                    - .Global.formData.chooseDocLen.teleLength@: =..formData.length
+                    - .Global.documentForReason.teleReason@: =..formData.selectDocument
+                - actionType: evalObject
+                  object:
+                    - .Global.formData.chooseDocLen.officeLength@: =..formData.length
+                    - .Global.documentForReason.officeReason@: =..formData.selectDocument
+        - actionType: popUpDismiss
+          popUpView: successTag
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+      style:
+        zIndex: 100
+    - type: view
+      style:
+        marginTop: "0.1"
+        width: "1"
+        height: "0.0874"
+        overflow: hidden
+        border:
+          style: 2
+        borderWidth: "1.5"
+        borderColor: "0xdededf"
+        fontFamily: "Arial"
+      children:
+        - type: label
+          text: "Select document(s) that you would like each patient to fill out for this specific reason for visit"
+          style:
+            marginTop: "0.0197"
+            marginLeft: "0.04"
+            height: "auto"
+            width: "0.92"
+            fontSize: .Nfont.h14
+            lineHeight: "2.58vh"
+            color: "0x333333"
+
+    - type: list
+      contentType: listObject
+      listObject: ..formDataTemp.doucment
+      iteratorVar: itemObject
+      viewTag: SelectSpecialty
+      style:
+        width: "0.92"
+        marginLeft: "0.04"
+        marginTop: "0.011"
+        height: "0.78"
+        fontFamily: "Arial"
+        overflow: scroll
+      children:
+        - type: listItem
+          itemObject: ""
+          style:
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.0283"
+                height: "auto"
+                width: "0.92"
+              children:
+                - type: image
+                  viewTag: selectView
+                  style:
+                    display: inline-block
+                    height: "0.024"
+                    verticalAlign: middle
+                  path:
+                    emit:
+                      dataKey:
+                        var: itemObject
+                      actions:
+                        - if:
+                            - =.builtIn.array.has:
+                                dataIn:
+                                  object: =..formData.selectDocument
+                                  value: $var.title
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - =.builtIn.array.has:
+                                  dataIn:
+                                    object: =..formData.selectDocument
+                                    value: $var.title
+                              - =.builtIn.array.removeByValue:
+                                  dataIn:
+                                    object: =..formData.selectDocument
+                                    value: $var.title
+                              - =.builtIn.array.add:
+                                  dataIn:
+                                    object: =..formData.selectDocument
+                                    value: $var.title
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: SelectSpecialty
+
+                - type: label
+                  dataKey: itemObject.title
+                  style:
+                    display: inline-block
+                    width: "0.81"
+                    marginLeft: "0.032"
+                    textDecoration: underline
+                    verticalAlign: middle
+                    color: "0x4b4b4b"
+                    fontSize: .Nfont.h14
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.formData.currentTabStatus
+                                  string2: "TELEMEDICINE"
+                            - .Global.documentForReason.teleReason@: =..formData.selectDocument
+                            - .Global.documentForReason.officeReason@: =..formData.selectDocument
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - true
+                              - goto: $var.pageName
+                              - goto: $var.pageName

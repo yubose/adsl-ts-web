@@ -1,0 +1,581 @@
+MyPatient:
+  # 这个页面会获取： 好友列表 和请求列表
+  title: "My Patient"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..patient.docAPI.get
+    - ..invite.edgeAPI.get
+    - =.builtIn.array.getListLength: #inviter number
+        dataIn:
+          object: =..invite.inviteList.edge
+        dataOut: MyPatient.newPatientLength
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..newPatientLength
+              string2: "0"
+        - ..connectionHidden@: "true"
+        - ..connectionHidden@: "false"
+    # 对patient列表进行除重
+    - =.builtIn.array.keepLatestDoc:
+        dataIn:
+          docList: =..patient.patientList.doc
+          path: bsig
+        dataOut: MyPatient.patient.patientList.doc
+    - =.builtIn.array.getListLength: #patient number
+        dataIn:
+          object: =..patient.patientList.doc
+        dataOut: MyPatient.allPatientLength
+  newPatientLength: ""
+  connectionHidden: "true"
+  allPatientLength: "0"
+  invite:
+    inviteList:
+      edge: ""
+    edgeAPI:
+      get:
+        api: re
+        type: .EdgeType.InviteInfo
+        xfname: evid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        dataKey: invite.inviteList
+        sCondition: subtype=65536
+        _nonce: =.Global._nonce
+  formDataTemp:
+    newConnectionLength: "0"
+    searchCancel: "true"
+  formData:
+    searchContent: ""
+    patientList: []
+    allPatients: []
+  patient:
+    patientList:
+      edge: ""
+    docAPI:
+      get:
+        api: rd
+        type: .DocType.PatientProfile
+        xfname: (E.bvid|E.evid)&!(D.ovid)
+        id: .Global.currentUser.vertex.id
+        ObjType: 8
+        dataKey: patient.patientList
+        sCondition: E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x10000
+        _nonce: =.Global._nonce
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - .HeaderRightImg:
+      path: inviteWhite.svg
+      onClick:
+        - goto: AddPatient
+    - type: view
+      style:
+        marginTop: "0.1"
+        width: "1"
+        height: "0.08"
+        backgroundColor: "0x2988e6"
+        textAlign:
+          y: center
+      children:
+        - type: view
+          style:
+            height: "0.042"
+            backgroundColor: "0xffffff"
+            width: "0.92"
+            marginLeft: "0.04"
+            boxSizing: border-box
+            borderRadius: 5px
+          children:
+            - type: image
+              path: search.svg
+              style:
+                height: "0.018"
+                marginLeft: "0.021"
+                display: inline-block
+                verticalAlign: "middle"
+            - type: textField
+              iOSTextFiled: "true"
+              viewTag: "searchContentVT"
+              dataKey: formData.searchContent
+              placeholder: Search the name, phone number…
+              style:
+                height: "0.042"
+                fontSize: ".Nfont.h14"
+                width: "0.62"
+                border:
+                  style: "1"
+                marginLeft: "0.023"
+                verticalAlign: "middle"
+                display: inline-block
+              onInput:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.searchContent
+                              string2: ""
+                        - ..formDataTemp.searchCancel@: "true"
+                        - ..formDataTemp.searchCancel@: "false"
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.searchContent
+                              string2: ""
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: searchResultVT
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.searchContent
+                              string2: ""
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: providerListTag
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.searchContent
+                              string2: ""
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: emptyTag
+                        - continue
+
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: searchVT
+            - type: image
+              viewTag: "searchVT"
+              path: searchCancel.svg
+              style:
+                height: "0.018"
+                marginLeft: "0.012"
+                isHidden: ..formDataTemp.searchCancel
+                display: inline-block
+                verticalAlign: "middle"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..formData.searchContent@: ""
+                    - ..formDataTemp.searchCancel@: "true"
+                - actionType: builtIn
+                  funcName: hide
+                  viewTag: searchResultVT
+                - actionType: builtIn
+                  funcName: hide
+                  viewTag: providerListTag
+                - actionType: builtIn
+                  funcName: hide
+                  viewTag: emptyTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: searchContentVT
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: searchVT
+            - type: label
+              text: Search
+              style:
+                height: auto
+                fontSize: ".Nfont.h14"
+                width: auto
+                color: "0x2988E6"
+                marginLeft: "0.032"
+                verticalAlign: "middle"
+                display: inline-block
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.searchContent
+                              string2: ""
+                        - actionType: popUp
+                          popUpView: errorVT
+                          wait: true
+                        - continue
+                - actionType: popUp
+                  popUpView: searchingTag
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.object.matchSearchValue:
+                        dataIn:
+                          objArr: =..patient.patientList.doc
+                          paths:
+                            - name.data.basicInfo.fullName
+                            - name.data.basicInfo.phone
+                          value: =..formData.searchContent
+                        dataOut: MyPatient.formData.allPatients
+
+                # - if:
+                #   - =.builtIn.array.judgeListLength:
+                #       dataIn:
+                #         array: =.MyPatient.formData.allPatients
+                #         len: 0
+                #   - actionType: popUpDismiss
+                #     popUpView: searchingTag
+                #   - continue
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #       - =.builtIn.array.judgeListLength:
+                #           dataIn:
+                #             array: =.MyPatient.formData.allPatients
+                #             len: 0
+                #       - actionType: popUp
+                #         popUpView: errorVT
+                #         wait: true
+                #       - continue
+
+                - actionType: builtIn
+                  funcName: show
+                  viewTag: searchResultVT
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.array.judgeListLength:
+                            dataIn:
+                              array: =.MyPatient.formData.allPatients
+                              len: 0
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: emptyTag
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: providerListTag
+                    - if:
+                        - =.builtIn.array.judgeListLength:
+                            dataIn:
+                              array: =.MyPatient.formData.allPatients
+                              len: 0
+                        - continue
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: emptyTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: providerListTag
+                - actionType: popUpDismiss
+                  popUpView: searchingTag
+
+    - type: view
+      style:
+        marginTop: "0"
+        left: "0"
+        width: "1"
+        height: "0.82"
+      children:
+        - type: label
+          contentType: messageHidden
+          text: "No contacts added"
+          style:
+            left: "0.25"
+            top: "0.25"
+            textAlign:
+              x: center
+            width: "0.5"
+            height: "0.04"
+            # color: "0x000058"
+            fontSize: .Nfont.h2
+            isHidden: "true"
+        - type: view
+          style:
+            marginLeft: "0"
+            width: "1"
+            height: "0.82"
+
+          children:
+            - type: view
+              style:
+                marginLeft: "0"
+                width: "1"
+                height: "0.08"
+                backgroundColor: "#ffffff"
+                textAlign:
+                  y: center
+              onClick:
+                - goto: NewPatients
+              children:
+                - type: view
+                  style:
+                    display: inline-block
+                    verticalAlign: middle
+                  children:
+                    - type: image
+                      path: newConnection.svg
+                      style:
+                        marginLeft: "0.04"
+                        height: "0.05"
+                        # width: "0.13"
+                    - type: label
+                      text: "0"
+                      dataKey: newPatientLength
+                      style:
+                        left: "0.13"
+                        top: "0"
+                        width: "5vw"
+                        height: "5vw"
+                        isHidden: ..connectionHidden
+                        color: "0xffffff"
+                        fontSize: 1vh
+                        fontFamily: "Arial"
+                        backgroundColor: "0xff0000"
+                        borderRadius: "2.5vw"
+                        textAlign:
+                          x: center
+                          y: center
+                - type: label
+                  text: "New Patients"
+                  style:
+                    # left: "0.28"
+                    display: inline-block
+                    width: "0.4"
+                    height: "5vh"
+                    lineHeight: "5vh"
+                    fontFamily: "Airal"
+                    fontSize: ".Nfont.h16"
+                    verticalAlign: middle
+                    zIndex: 100
+                    marginLeft: "0.06"
+            - type: view
+              style:
+                height: "0.04"
+                width: "1"
+                backgroundColor: "#f0f0f0"
+                textAlign:
+                  y: center
+              children:
+                - type: label
+                  text: "Patients"
+                  style:
+                    marginLeft: "0.04"
+                    marginTop: "0"
+                    display: inline-block
+                    fontSize: ".Nfont.h14"
+                    verticalAlign: middle
+                - type: label
+                  dataKey: allPatientLength
+                  style:
+                    fontSize: ".Nfont.h14"
+                    marginLeft: "0.15"
+                    marginTop: "0"
+                    display: inline-block
+                    color: "0x2988e6"
+                    verticalAlign: middle
+            # - type: view
+            #   style:
+            #     width: "1"
+            #     height: "0.7"
+            #     backgroundColor: "0xffffff"
+            #     overflow: "scroll"
+            #   children:
+            - type: list
+              contentType: listObject
+              listObject: ..patient.patientList.doc
+              iteratorVar: itemObject
+              style:
+                left: "0"
+                width: "1"
+                overflow: "scroll"
+                height: "0.7"
+                margin: "0"
+                backgroundColor: "0xffffff"
+                marginTop: "0"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - .Global.patientInfo@: $var
+                    - goto: PatientProfile
+                  children:
+                    - type: view
+                      style:
+                        width: "1"
+                        height: "0.1"
+                        textAlign:
+                          y: center
+                      children:
+                        - type: view
+                          style:
+                            height: auto
+                            width: auto
+                          children:
+                            - type: image
+                              path: patientImage.svg
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.name.data.basicInfo.avatar
+                              style:
+                                marginLeft: "0.04"
+                                height: "0.045"
+                                width: "0.1"
+                                display: inline-block
+                                verticalAlign: middle
+                                color: "0xffffff"
+                                border: 
+                                  style: "1"
+                                textAlign:
+                                  x: center
+                                zIndex: 100
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.fullName
+                              style:
+                                marginLeft: "0.07"
+                                height: "5vh"
+                                lineHeight: "5vh"
+                                display: inline-block
+                                fontFamily: "Poppins"
+                                verticalAlign: middle
+                                fontSize: '.Nfont.h16'
+                                zIndex: 100
+    - type: view
+      viewTag: searchResultVT
+      style:
+        height: "0.85"
+        backgroundColor: "0xffffff"
+        display: none
+        top: "0.18"
+        width: "1"
+        zIndex: "100"
+      children:
+        - type: view
+          viewTag: emptyTag
+          style:
+            margin: "0"
+            height: "auto"
+            width: "1"
+            display: none
+          children:
+            - type: image
+              path: emptyPage.svg
+              style:
+                width: "0.8"
+                marginLeft: "0.1"
+                marginTop: "0.15"
+            - type: label
+              text: "There is no result now."
+              style:
+                fontSize: .Nfont.n2
+                width: "0.9"
+                marginTop: "0.03"
+                marginLeft: "0.05"
+                height: "0.05"
+                textAlign:
+                  x: center
+                  y: center
+        - type: list
+          viewTag: providerListTag
+          contentType: listObject
+          listObject: ..formData.allPatients
+          iteratorVar: itemObject
+          style:
+            left: "0"
+            width: "1"
+            overflow: "scroll"
+            height: "0.7"
+            margin: "0"
+            backgroundColor: "0xffffff"
+            marginTop: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                left: "0"
+                width: "1"
+                height: "0.1"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000011"
+                textAlign:
+                  y: center
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - .Global.patientInfo@: $var
+                - goto: PatientProfile
+              children:
+                - type: image
+                  path: patientImage.svg
+                  path=func: .builtIn.utils.prepareDocToPath
+                  dataKey: itemObject.name.data.basicInfo.avatar
+                  style:
+                    marginLeft: "0.04"
+                    height: "0.045"
+                    width: "0.1"
+                    display: inline-block
+                    verticalAlign: middle
+                    # backgroundColor: "#ffc0cb"
+                    color: "0xffffff"
+                    border:
+                      style: "1"
+                    textAlign:
+                      x: center
+                    zIndex: 100
+                - type: label
+                  dataKey: itemObject.name.data.basicInfo.fullName
+                  style:
+                    marginLeft: "0.07"
+                    display: inline-block
+                    fontFamily: "Airal"
+                    verticalAlign: middle
+                    fontSize: ".Nfont.h16"
+                    zIndex: 100
+    - type: popUp
+      viewTag: searchingTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "10000"
+        backgroundColor: "0x33333366"
+        top: "0"
+      children:
+        - type: view
+          style:
+            backgroundColor: "0xffffff"
+            height: "0.2"
+            width: "0.6"
+            left: "0.2"
+            top: "0.3"
+            border:
+              style: ""
+            borderWidth: "1"
+            borderColor: ""
+            borderRadius: "10"
+          children:
+            - type: image
+              path: zhuanquan.gif
+              style:
+                width: "0.4"
+                left: "0.1"
+    - .SoftTips:
+      message: You need to write before search next
+      style:
+        zIndex: "100"
+      viewTag: errorVT

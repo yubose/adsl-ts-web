@@ -1,0 +1,183 @@
+BlankNoteReview:
+  title: Provider Note
+  init:
+    - .SignInCheck
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style: 
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - type: view
+              style:
+                top: "0.06"
+                left: "0.665"
+                width: "0.065"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView                
+              children:
+                - type: image
+                  path: downLoadBlue.svg
+                  style:
+                    marginTop: "0.006"
+                    display: inline-block
+                    width: "0.009"
+                    height: "0.015"
+                - type: label
+                  text: "Download"
+                  style:
+                    display: inline-block
+                    width: "0.055"
+                    color: "0x0063A8"
+                    fontSize: .Nfont.nf4
+                    fontWeight: "600"
+                    textAlign:
+                      x: center
+                      y: center  
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    margin: "auto"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - type: scrollView
+                          style:
+                            width: "0.39"
+                            height: "0.74"
+                            overflow: "scroll"                      
+                          children:
+                            - type: view 
+                              style: 
+                                width: "0.39"
+                                marginTop: "0.02"          
+                              children:
+                                - type: label
+                                  text: Name your notes
+                                  style:
+                                    fontSize: .Nfont.nf5
+                                    marginTop: "0.03"
+                                    textAlign:
+                                      x: center
+                                - type: label
+                                  text: "*"
+                                  style:
+                                    left: "0.245"
+                                    top: "0"
+                                    width: "0.1"
+                                    height: "0.02"
+                                    fontSize: .Nfont.nf3
+                                    color: "0xd53c42"
+                                - type: textField
+                                  isEditable: "false"
+                                  placeholder: "Blank Note"
+                                  dataKey: Global.formData.medicalRecords.name.title
+                                  style:
+                                    display: "inline-block"
+                                    marginTop: "0.02"
+                                    width: "0.39"
+                                    height: "0.04"                      
+                                    border:
+                                      style: "2"
+                                    borderWidth: "1"
+                                    borderColor: "0x000000"
+                                    backgroundColor: "0xffffff"
+                                    fontSize: .Nfont.nf4
+                                    textAlign:
+                                      x: center
+                                - type: textView
+                                  isEditable: "false"
+                                  placeholder: "Hello this meeting"
+                                  dataKey: Global.formData.medicalRecords.name.data.note
+                                  style:
+                                    marginTop: "0.02"
+                                    width: "0.39"
+                                    height: "0.61"
+                                    fontSize: .Nfont.nf4
+                                    textIndent: "10px"
+                                    fontFamily: sans-serif
+                                    backgroundColor: "0xffffff"
+                                    boxSizing: border-box
+                                    border: 
+                                      style: "3"
+                                      width: "1"
+                                    borderColor: "0x787878"
+                                    display: "inline-block"
+                                    textAlign: 
+                                      y: top
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    width: "0.39"
+                                    display: "inline-block"
+                                  children:
+                                    - type: label
+                                      text: "Signature:"
+                                      style:
+                                        fontSize: .Nfont.nf5
+                                        height: auto
+                                        color: "0x000000"
+                                        textAlign:
+                                          y: center
+                                    - type: view
+                                      style:
+                                        marginTop: "0.05"
+                                        width: "0.39"
+                                        display: flex
+                                        flexDirection: column
+                                        flexWrap: wrap
+                                        alignContent: space-around
+                                        justifyContent: center
+                                      children:
+                                        - .SignAreaView:
+                                          children:
+                                            - type: image
+                                              viewTag: signatureShowTag
+                                              dataKey: Global.formData.medicalRecords.name.data.signatureId
+                                              path=func: =.builtIn.utils.prepareDocToPath
+                                              style:
+                                                .SignCanvasStyle:
+                                            - type: label
+                                              text: "X"
+                                              style:
+                                                .SignLabelStyle:                                                
+            - .FormsBottomView: 
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true 

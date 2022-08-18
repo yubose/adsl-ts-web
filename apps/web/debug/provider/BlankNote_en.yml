@@ -1,0 +1,530 @@
+BlankNote:
+  title: Blank Note/Form
+  init:
+    - .SignInCheck
+    #判断是否从ProviderMacros回来，需要复现之前已填的数据
+    - if:
+        - =.Global.formData.providerDoc.blankNote.id
+        # 如果有id,则默认文档存在
+        - actionType: evalObject
+          object:
+            - ..apiRequest.blankNote.docReq@: =.Global.formData.providerDoc.blankNote
+        # 否则页面进入时就创建文档
+        - actionType: evalObject
+          object:
+            - =.BlankNote.apiRequest.blankNote.docAPI.store: ""
+            # 将创建的文档数据重新给blankNote 进行update
+            - ..apiRequest.blankNote.docReq@: =..apiRequest.blankNote.docRes.doc
+    # 判断是否签名
+    - actionType: evalObject
+      object:
+        - if:
+            - =..apiRequest.blankNote.docReq.name.data.whetherSign
+            - continue
+            # 非空(存在签名)修改显示的标识,刷新签名区域
+            - actionType: evalObject
+              object:
+                # 签名时间
+                - ..formData.signatureTime@: =.BlankNote.apiRequest.blankNote.docReq.name.data.signatureTime
+                # 签名id
+                - ..formData.temporarySignature@: =.BlankNote.apiRequest.blankNote.docReq.name.data.signatureId
+                - ..formData.flag@: "block"
+
+  formData: #Input data here
+    flag: "none"
+    temporarySignature: ""
+    signatureTime: ""
+    whetherSign: ""
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  apiRequest:
+    # 签名文档
+    newSign:
+      docRes: ""
+      docReq: #DOC
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.docReq.subtype.mediaType
+          data: ""
+        eid: .Global.rootNotebookID
+        subtype:
+          mediaType: ""
+      docAPI: # DOCAPI
+        store:
+          api: cd
+          dataIn: apiRequest.newSign.docReq
+          dataOut: BlankNote.apiRequest.newSign.docRes
+
+    blankNote:
+      docRes: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: ""
+        type: .DocType.MeetingNote # "6" # meeting notes for all participants
+        subtype:
+          mediaType: "application/json" # mediaType : "image/jpeg"
+        name:
+          data:
+            classTag:
+              name: Provider
+              fontColor: "0x30b354"
+              backgroundColor: "0xe4f5e9"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"
+              backgroundColor: "0xececee"
+              display: block
+            signatureTime: ""
+            signatureId: ""
+            whetherSign: "true"
+            note: ""
+          title: ""
+          user: .Global.formData.providerTitle
+          authority: ""
+          uploadUserName: .Global.MyProfile.name.data.fullName
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: BlankNote.apiRequest.blankNote.docReq
+          dataOut: BlankNote.apiRequest.blankNote.docRes
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          onClick:
+            - actionType: saveSignature
+              dataObject: BLOB
+              dataKey: BlankNote.apiRequest.newSign.docReq.name.data
+              isEmpty: BlankNote.formData.whetherSign
+            # 保存签名
+            - actionType: evalObject
+              object:
+                - ..apiRequest.newSign.docReq.reid@: =.BlankNote.apiRequest.blankNote.docReq.id
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.whetherSign
+                    - continue
+                    - =..apiRequest.newSign.docAPI.store: ""
+
+            - actionType: evalObject
+              object:
+                - if:
+                    - =..formData.temporarySignature
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+                        - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+                        - ..apiRequest.blankNote.docReq.name.data.whetherSign@: false
+                        - ..formData.whetherSign@: false
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                        - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                        - ..apiRequest.blankNote.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+            - actionType: evalObject
+              object:
+                - =.BlankNote.apiRequest.blankNote.docAPI.store: ""
+                - .Global.formData.providerDoc.blankNote@: =..apiRequest.blankNote.docRes.doc
+                - goto: ProviderMacros
+
+    - type: scrollView
+      style:
+        left: "0.04"
+        width: "0.92"
+        height: "0.846"
+        overflow: scroll
+        fontFamily: "Arial"
+      children:
+        - type: label
+          text: "Name your notes"
+          style:
+            width: "auto"
+            height: "0.023"
+            color: "0x333333"
+            marginTop: "0.022"
+            fontSize: .Nfont.h14
+            fontWeight: "600"
+        - type: textField
+          placeholder: "Blank Note"
+          dataKey: apiRequest.blankNote.docReq.name.title
+          style:
+            height: "0.037"
+            width: "0.9146"
+            marginTop: "0.00985" #8
+            overflow: hidden
+            border:
+              style: 3
+            borderColor: "0xdededf"
+            textIndent: "12px"
+            borderRadius: 4
+            fontSize: .Nfont.h14
+
+        - type: label
+          text: "Notes"
+          style:
+            width: "0.1093"
+            height: "0.023"
+            color: "0x333333"
+            marginTop: "0.0258"
+            fontSize: .Nfont.h14
+            fontWeight: "600"
+        - type: textView
+          placeholder: "Hello this metting"
+          dataKey: apiRequest.blankNote.docReq.name.data.note
+          style:
+            marginTop: "0.00985" # 8px
+            height: "0.268"
+            width: "0.9146"
+            fontFamily: "Arial"
+            paddingTop: "5px"
+            border:
+              style: "3"
+            borderRadius: 4
+            borderColor: "0xdededf"
+            textIndent: "12px"
+            fontSize: .Nfont.h14
+
+        - type: view
+          style:
+            width: "0.92"
+            height: "auto"
+            marginTop: "0.022"
+          children:
+            - type: label
+              text: "Signature"
+              style:
+                display: "inline-block"
+                width: "0.816"
+                height: "0.023"
+                color: "0x333333"
+                fontSize: .Nfont.h14
+                fontWeight: "600"
+            - type: label
+              text: "Clear"
+              style:
+                display: "inline-block"
+                width: "auto"
+                fontSize: .Nfont.h14
+                height: "auto"
+                color: "0xfb5051"
+              onClick:
+                - actionType: removeSignature
+                  dataObject: BLOB
+                  dataKey: BlankNote.apiRequest.newSign.docReq.name.data
+                  viewTag: signatureTag
+                - actionType: evalObject
+                  object:
+                    - ..formData.temporarySignature@: ""
+                    - ..formData.signatureTime@: ""
+                    - ..formData.flag@: "none"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: signatureTimeTag
+                # 显示签名区域隐藏
+                - actionType: builtIn
+                  funcName: hide
+                  viewTag: signatureShowTag
+                - actionType: builtIn
+                  funcName: show
+                  viewTag: signatureTag
+            # 签名区域canvas
+            - type: view
+              style:
+                marginTop: "0.0098"
+                height: "0.128"
+                width: "0.91"
+                border:
+                  style: "4"
+                  color: "0xA9A9A9"
+                borderWidth: "2"
+              children:
+                - type: label
+                  text: X
+                  style:
+                    .SignLabelStyle:
+                - type: canvas
+                  dataKey: BlankNote.apiRequest.newSign.docReq.name.data
+                  viewTag: signatureTag
+                  style:
+                    left: "0"
+                    width: "0.88"
+                    height: "0.128"
+                    overflow: scroll
+                  # 显示暂存的签名
+                - type: image
+                  viewTag: signatureShowTag
+                  path=func: .builtIn.utils.prepareDocToPath
+                  # 传入签名文档的id
+                  dataKey: BlankNote.formData.temporarySignature
+                  style:
+                    # 控制显示
+                    display: ..formData.flag
+                    left: "0"
+                    width: "0.88"
+                    top: "0"
+                    height: "0.15"
+                    overflow: scroll
+
+        - type: view
+          style:
+            marginTop: "0.0146"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: view
+              viewTag: signatureTimeTag
+              style:
+                display: ..formData.flag
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.92"
+              children:
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: apiRequest.blankNote.docReq.name.data.signatureTime
+                  style:
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    fontSize: .Nfont.h12
+                    color: "0x757575"
+                    verticalAlign: middle
+                - type: label
+                  text: "Digitally Signed"
+                  dataKey:
+                  style:
+                    marginLeft: "0.02"
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    fontSize: .Nfont.h12
+                    color: "0x757575"
+                    verticalAlign: middle
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "auto"
+                height: "auto"
+              children:
+                - type: label
+                  text: Date
+                  style:
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    color: "0x666666"
+                    fontSize: .Nfont.h12
+                - type: label
+                  text=func: .builtIn.string.formatUnixtimeL_en
+                  dataKey: apiRequest.blankNote.docReq.ctime
+                  style:
+                    marginLeft: "0.0373"
+                    display: "inline-block"
+                    width: "auto"
+                    height: "auto"
+                    color: "0x333333"
+                    fontSize: .Nfont.h12
+                    fontWeight: "600"
+
+        - .DocPublicLine:
+          style:
+            marginTop: "0.0246"
+            width: "0.92"
+
+    - .BasePublicFooter:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - .DocButtonPrivate:
+              onClick:
+                # 签名处理
+                - actionType: saveSignature
+                  dataObject: BLOB
+                  dataKey: BlankNote.apiRequest.newSign.docReq.name.data
+                  isEmpty: BlankNote.formData.whetherSign
+
+                # 保存签名
+                - actionType: evalObject
+                  object:
+                    # 签名reid指向 doc 的id
+                    - ..apiRequest.newSign.docReq.reid@: =.BlankNote.apiRequest.blankNote.docReq.id
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.whetherSign
+                        - continue
+                        - =..apiRequest.newSign.docAPI.store: ""
+
+                #  指定 eid 和 reid
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.blankNote.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.blankNote.docReq.reid@: =.Global.roomInfo.edge.id
+
+                # title处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..apiRequest.blankNote.docReq.name.title
+                              string2: ""
+                        - ..apiRequest.blankNote.docReq.name.title@: "Blank Note"
+                        - continue
+
+                # 签名处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.temporarySignature
+                        - actionType: evalObject
+                          object:
+                            # 存放签名的id到blankNote
+                            - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+                            - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+                            - ..apiRequest.blankNote.docReq.name.data.whetherSign@: false
+                            - ..formData.whetherSign@: false
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                            - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                            - ..apiRequest.blankNote.docReq.name.data.whetherSign@: "=..formData.whetherSign"
+
+                #  修改type
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.blankNote.docReq.type
+                          index: 1
+                          hex: 0
+                        dataOut: BlankNote.apiRequest.blankNote.docReq.type
+
+                # 保存newNote
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.blankNote.docAPI.store: ""
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - actionType: evalObject
+                  object:
+                    - goto: ProviderNoteSelect
+
+            - .DocButtonRelease:
+              onClick:
+                # 签名处理
+                - actionType: saveSignature
+                  dataObject: BLOB
+                  dataKey: BlankNote.apiRequest.newSign.docReq.name.data
+                  isEmpty: BlankNote.formData.whetherSign
+
+                # 保存签名
+                - actionType: evalObject
+                  object:
+                    # 签名reid指向 doc 的id
+                    - ..apiRequest.newSign.docReq.reid@: =.BlankNote.apiRequest.blankNote.docReq.id
+                    # - =..apiRequest.newSign.docAPI.store: ""
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.whetherSign
+                        - continue
+                        - =..apiRequest.newSign.docAPI.store: ""
+
+                #  指定 eid 和 reid
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.blankNote.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.blankNote.docReq.reid@: =.Global.roomInfo.edge.id
+
+                # title处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..apiRequest.blankNote.docReq.name.title
+                              string2: ""
+                        - ..apiRequest.blankNote.docReq.name.title@: "Blank Note"
+                        - continue
+
+                # 签名处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.temporarySignature
+                        - actionType: evalObject
+                          object:
+                            # 存放签名的id到newNote
+                            - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+                            - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+                            - ..apiRequest.blankNote.docReq.name.data.whetherSign@: false
+                            - ..formData.whetherSign@: false
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                            - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                            - ..apiRequest.blankNote.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+                #  签名弹窗
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.BlankNote.formData.whetherSign
+                        - actionType: popUp
+                          popUpView: BaseWarningView
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+
+                # 更新文档状态
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.blankNote.docReq.name.data.statusTag.name@: Released
+                    - ..apiRequest.blankNote.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+                    - ..apiRequest.blankNote.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+                #  修改type
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.blankNote.docReq.type
+                          index: 1
+                          hex: 1
+                        dataOut: BlankNote.apiRequest.blankNote.docReq.type
+
+                # 保存newNote
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.blankNote.docAPI.store: ""
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - actionType: evalObject
+                  object:
+                    - goto: ProviderNoteSelect
+
+    - .BaseWarningView:
+      message: "You haven't signed the form"

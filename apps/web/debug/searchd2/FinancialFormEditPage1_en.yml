@@ -1,0 +1,894 @@
+FinancialFormEditPage1:
+  viewPort: top
+  title: FinancialFormEditPage1
+  init: 
+    - ..formData.profile@: =.Global.titleProfile
+    - ..profile.patientdocument.name.data.basicInfo.avatar@: =..formData.profile.name.data.basicInfo.avatar
+    - ..profile.patientdocument.name.data.basicInfo.fullName@: =..formData.profile.name.data.basicInfo.fullName
+    - ..apiRequest.insurance.docQueryReq.id@: =..formData.profile.name.data.insuranceId
+    - ..apiRequest.insurance.docAPI.get
+    - ..apiRequest.financialForm.docReq.name.user@: =..formData.profile.name.data.basicInfo.fullName
+    - if:
+      - =.Global.formData.financialForm.id
+      - ..apiRequest.financialForm.docReq.name.data.patientInfo@: =.Global.formData.financialForm.name.data.patientInfo
+      - continue
+    - if:
+      - =.Global.formData.firstToFinancialForm
+      - actionType: evalObject
+        object:
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.firstName@: =..formData.profile.name.data.basicInfo.firstName
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.middleName@: =..formData.profile.name.data.basicInfo.middleName
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.lastName@: =..formData.profile.name.data.basicInfo.lastName
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.dateOfBirth@: =..formData.profile.name.data.basicInfo.dateOfBirth
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.gender@: =..formData.profile.name.data.basicInfo.gender
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.address.line@: =..formData.profile.name.data.contactInfo.address.line
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.address.secondLine@: =..formData.profile.name.data.contactInfo.address.secondLine
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.address.city@: =..formData.profile.name.data.contactInfo.address.city
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.address.state@: =..formData.profile.name.data.contactInfo.address.state
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.address.county@: =..formData.profile.name.data.contactInfo.address.county
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.address.zipCode@: =..formData.profile.name.data.contactInfo.address.zipCode
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.fullName@: =..formData.profile.name.data.basicInfo.fullName
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.address.fullAddress@: =..formData.profile.patientdocument.name.data.contactInfo.address.fullAddress
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.identification.imageId@: =..formData.profile.name.data.identification.imageId
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.identification.type@: =..formData.profile.name.data.identification.type
+          - ..apiRequest.financialForm.docReq.name.data.patientInfo.identification.id@: =..formData.profile.name.data.identification.id
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.employerName@:  =..formData.profile.name.data.employment.employerName
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.Telephone@: =..formData.profile.name.data.employment.Telephone
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.address.fullAddress@:  =..formData.profile.name.data.employment.address.fullAddress
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.address.line@:  =..formData.profile.name.data.employment.address.line
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.address.secondLine@:  =..formData.profile.name.data.employment.address.secondLine
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.address.city@:  =..formData.profile.name.data.employment.address.city
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.address.county@:  =..formData.profile.name.data.employment.address.county
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.address.state@: =..formData.profile.name.data.employment.address.state
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.employment.address.zipCode@: =..formData.profile.name.data.employment.address.zipCode
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.security@: =..formData.profile.name.data.basicInfo.socialSecurity
+          - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.injury.state@: =.Global.FacilityInfos.name.data.basicInfo.state
+          - if:
+            - =..apiRequest.insurance.docQueryResp.doc.0
+            - actionType: evalObject
+              object:
+                # billingInfo
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.back_InsuranceCard@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.back_InsuranceCardId
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.front_InsuranceCard@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.front_InsuranceCardId
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.companyName@:  =..apiRequest.insurance.docQueryResp.doc.0.name.data.companyName
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.insurancePlan@:  =..apiRequest.insurance.docQueryResp.doc.0.name.data.planOrMedicalGroup
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.insuredName@:  =..apiRequest.insurance.docQueryResp.doc.0.name.data.memberName
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.insuranceId@:  =..apiRequest.insurance.docQueryResp.doc.0.name.data.memberId
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.insuranceGroup@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.groupNumber
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.relation@:  =..apiRequest.insurance.docQueryResp.doc.0.name.data.relation
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.name@:  =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationName
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.dateOfBirth@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationBirth
+                - if: 
+                  - =.builtIn.string.equal:
+                      dataIn:
+                        string1: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.line
+                        string2: ""
+                  - .FinancialFormEditPage1.apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.fullAddress@: ""
+                  - =.builtIn.string.concat:
+                      dataIn:
+                        - =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.line
+                        - ","
+                        - =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.secondLine
+                        - ","
+                        - =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.city
+                        - ","
+                        - =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.county
+                        - ","
+                        - =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.state
+                        - ","
+                        - =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.zipCode
+                      dataOut: FinancialFormEditPage1.apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.fullAddress
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.line@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.line
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.secondLine@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.secondLine
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.city@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.city
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.county@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.county
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.state@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.state
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.address.zipCode@: =..apiRequest.insurance.docQueryResp.doc.0.name.data.relationAddress.zipCode
+                - ..apiRequest.financialForm.docReq.name.data.billingInfo.indentification.relationShip.gender@:  =..apiRequest.insurance.docQueryResp.doc.0.name.data.gender
+            - continue    
+          - =..apiRequest.financialForm.docAPI.store: ""
+          - .Global.formData.financialForm@: =..apiRequest.financialForm.docReq.doc
+      - continue
+    - if:
+      - =.Global.formData.front_IDCard.doc
+      - ..apiRequest.front_IDCard.docRes@: =.Global.formData.front_IDCard
+      - ..apiRequest.front_IDCard.docRes.doc.id@: =..formData.profile.name.data.identification.imageId
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..apiRequest.front_IDCard.docRes.doc.id
+            string2: ""
+      - ..formData.isShow1@: "none"
+      - ..formData.isShow1@: "block"
+    - .Global.ProfilePop@: "block"
+    - .Global.editProfile@: true
+
+  formDataTemp:
+    gender:
+      - key: gender
+        value: "Male"
+      - key: gender
+        value: "Female"
+      - key: gender
+        value: "Other"  
+  formData:
+    profile: ""
+    isShow1: "none"
+  apiRequest:
+    financialForm:
+      docResp: ""
+      docReq: 
+        id: ""
+        eid: .Global.rootNotebookID
+        type: .DocType.FinancialForm
+        name:
+          data: 
+            classTag:
+              name: Patient
+              fontColor: "0xf8ae29"
+              backgroundColor: "0xfff4e0"
+              display: block
+            statusTag:
+              display: none
+            patientInfo:
+              fullName: ""
+              firstName: ""
+              middleName: ""
+              lastName: ""
+              dateOfBirth: ""
+              gender: ""
+              address:
+                fullAddress: ""
+                line: ""
+                secondLine: ""
+                # 市
+                city: ""
+                # 郡，县
+                county: ""
+                state: ""
+                zipCode: ""
+              identification:
+                imageId: ""
+                type: ""
+                id: ""
+            billingInfo:
+              secondaryInsurance:
+                insuranceInfo: ""
+                back_InsuranceCard: ""
+                front_InsuranceCard: ""
+                companyName: ""
+                insurancePlan: ""
+                insuredName: ""
+                insuranceId: ""
+                insuranceGroup: ""
+                relationShip:
+                  relation: ""
+                  name: ""
+                  dateOfBirth: ""
+                  address:
+                    line: ""
+                    secondLine: ""
+                    # 市
+                    city: ""
+                    # 郡，县
+                    county: ""
+                    state: ""
+                    zipCode: ""
+                    fullAddress: ""
+                  gender: ""
+                claims:
+                  claimsAdmin: ""
+                  claim: ""
+                  dateOfInjury: ""
+                  adjuster:
+                    name: ""
+                    phone: ""
+                    fax: ""
+                  address:
+                    fullAddress: ""
+                    line: ""
+                    secondLine: ""
+                    # 市
+                    city: ""
+                    # 郡，县
+                    county: ""
+                    state: ""
+                    zipCode: ""
+              medicalInsurance: ""
+              visitType: "Medical Insurance"
+              indentification:
+                back_InsuranceCard: ""
+                front_InsuranceCard: ""
+                companyName: ""
+                insurancePlan: ""
+                insuredName: ""
+                insuranceId: ""
+                insuranceGroup: ""
+                security: ""
+                # relationShip
+                relationShip:
+                  relation: "Self"
+                  name: ""
+                  dateOfBirth: ""
+                  address:
+                    line: ""
+                    secondLine: ""
+                    # 市
+                    city: ""
+                    # 郡，县
+                    county: ""
+                    state: ""
+                    zipCode: ""
+                    fullAddress: ""
+                  gender: ""
+                # 支付方式
+                pay: "Pay online"
+                # Claims
+                claims:
+                  claimsAdmin: ""
+                  claim: ""
+                  dateOfInjury: ""
+                  adjuster:
+                    name: ""
+                    phone: ""
+                    fax: ""
+                  address:
+                    fullAddress: ""
+                    line: ""
+                    secondLine: ""
+                    # 市
+                    city: ""
+                    # 郡，县
+                    county: ""
+                    state: ""
+                    zipCode: ""
+                # employer
+                employment:
+                  employerName: ""
+                  Telephone: ""
+                  address:
+                    fullAddress: ""
+                    line: ""
+                    secondLine: ""
+                    # 市
+                    city: ""
+                    # 郡，县
+                    county: ""
+                    state: ""
+                    zipCode: ""
+                # Injury
+                injury:
+                  personalInjuryType: "Auto Accident" # Auto Accident & Other Accident
+                  state: "" # 1) Auto Accident state
+                  isUseDefaultInsurance: false # 是否使用默认insurance （那个选项）
+                  isUseOtherInsurance: false # 是否使用secondary insurance
+                  name: ""
+                  phone: ""
+                  fax: ""
+                  dateOfInjury: ""
+                  address:
+                    fullAddress: ""
+                    line: ""
+                    secondLine: ""
+                    # 市
+                    city: ""
+                    # 郡，县
+                    county: ""
+                    state: ""
+                    zipCode: ""
+
+          title: "Financial Responsibility Form"
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: FinancialFormEditPage1.apiRequest.financialForm.docReq
+          dataOut: FinancialFormEditPage1.apiRequest.financialForm.docReq
+    
+    front_IDCard:
+      docRes: ""
+      docReq:
+        name:
+          title: ""
+          type: ..apiRequest.front_IDCard.docAPI.store.subtype.mediaType
+          data: binFile
+        eid: .Global.rootNotebookID
+        reid: .Global.formData.financialForm.id
+        type: .DocType.F_IDCard
+      docAPI:
+        store:
+          api: cd
+          dataIn: FinancialFormEditPage1.apiRequest.front_IDCard.docReq
+          subtype:
+            mediaType: ""
+          dataOut: Global.formData.front_IDCard
+    insurance:
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.InsuranceCard
+        id: 
+        xfname: id
+        _nonce: =.Global._nonce
+        obfname: ctime
+      docAPI:
+        get:  
+          api: rd
+          dataIn: FinancialFormEditPage1.apiRequest.insurance.docQueryReq
+          dataOut: FinancialFormEditPage1.apiRequest.insurance.docQueryResp
+  components: 
+    - type: view
+      style:
+        width: '1'
+        margin: 'auto'
+        display: flex
+        flexDirection: column
+        justifyContent: center
+        fontFamily: "Arial"
+      children:
+        - .baseTopBar:
+          children:
+            - .baseTopMenu:
+              children:
+                - .AitmedLogo
+                - .BaseUserBar
+        - .ViewRow:
+          style: 
+            width: 89.8vw
+            height: 4.5vw
+            margin: "auto"
+            marginTop: "6vw"
+            justifyContent: center
+          children:
+            - .ViewRow:
+              style: 
+                marginLeft: 5vw
+                width: 4vw
+                top: 1vw
+                height: 2vw
+                justifyContent: flex-start
+                alignItems: center
+              children:
+                - type: image
+                  path: left_blue_arrow.png
+                  style:
+                    width: 1.5vw
+                    height: 2vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+                - .Label1:
+                  text: "Back"
+                  autocomplete: "off"
+                  style: 
+                    fontSize: .Nfont.h1        
+                    color: "#2988e6"
+                    fontWeight: 550
+                    marginLeft: 0.5vw
+                  onClick: 
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    # - actionType: evalObject
+                    #   object:
+                    #     - .Global.editProfile@: false   
+                    
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
+            - type: view
+              style:
+                marginTop: 1.5vw
+                height: 3.5vw
+                width: 40vw
+                borderBottom: "4px solid #005795"
+                borderWidth: 4px
+                display: flex
+                flexDirection: row
+                justifyContent: space-between
+              children:  
+                - type: label
+                  text: "Financial Responsibility Form"
+                  style:
+                    marginTop: 0.5vw
+                    color: "#005795"
+                    fontSize: .Nfont.h6
+                    fontWeight: 580
+                    height: 3vw
+                    textAlign: 
+                      y: center
+                - type: label
+                  text: "1/2"
+                  style:
+                    marginTop: 1vw
+                    width: 3vw
+                    height: "2vw"
+                    borderRadius: 5px
+                    backgroundColor: "#1263A8"
+                    color: "#ffffff"
+                    fontSize: .Nfont.h3
+                    fontWeight: 580
+                    textAlign: 
+                      x: center
+                      y: center
+        - type: view
+          style:
+            width: 89.8vw
+            height: 39vw
+            margin: "auto"
+            marginTop: "1vw"
+          children:
+            - type: scrollView
+              viewTag: page1
+              style:
+                width: 89.8vw
+                height: auto
+              children:
+                - type: view
+                  style:
+                    width: 40vw
+                    height: 39vw
+                    backgroundColor: "#ffffff"
+                    marginTop: 0.1vw
+                    margin: auto
+                    justifyContent: flex-start
+                  children:
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                        marginTop: 2vw
+                      children:
+                        - type: label
+                          text: Identification
+                          style:
+                            height: "0.03"
+                            width: "30vw"
+                            fontSize: .Nfont.h0_1
+                            color: "#143459"
+                            fontWeight: 580
+                        - type: label
+                          text: Please upload your ID Image
+                          style:
+                            marginTop: 0.5vw
+                            height: "0.03"
+                            width: "15vw"
+                            fontSize: .Nfont.h0
+                            color: "#333333"
+                        - .ViewColumn:
+                          style:
+                            width: "9vw"
+                            borderRadius: 5px
+                          children:
+                            - type: view
+                              style: 
+                                width: 9vw
+                                height: 6vw
+                              children:
+                                - type: image
+                                  path: upload.svg
+                                  # 指定刷新组件名称
+                                  viewTag: front_IDCardTag 
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: FinancialFormEditPage1.apiRequest.front_IDCard.docRes.doc.id
+                                  onClick:
+                                    # 上传图片处理
+                                    - actionType: openPhotoLibrary
+                                      dataKey: FinancialFormEditPage1.apiRequest.front_IDCard.docReq.name.data
+                                      dataObject: BLOB
+                                    - actionType: popUp
+                                      popUpView: upLoad
+                                    # 图片尺寸判断
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.math.lessthanSize:
+                                              dataIn:
+                                                object: =..apiRequest.front_IDCard.docReq.name.data # object
+                                                key: 2  #mb
+                                          - ..formData.flag@: false
+                                          - actionType: evalObject
+                                            object:
+                                              - =.builtIn.utils.getFileSize:
+                                                  dataIn:
+                                                    object: =..apiRequest.front_IDCard.docReq.name.data
+                                                    units: mb
+                                                  dataOut: FinancialFormEditPage1.formData.fileSize
+                                              - =.builtIn.string.concat:
+                                                  dataIn:
+                                                    - "Your file size:"
+                                                    - =..formData.fileSize
+                                                    - "Mb"
+                                                  dataOut: Global.formData.fileSize 
+                                              - ..formData.flag@: true
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: overSize
+                                    - actionType: popUpDismiss
+                                      popUpView: upLoad
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =..formData.flag
+                                          - actionType: popUp
+                                            popUpView: overSize
+                                            wait: true
+                                          - continue
+                                    - actionType: popUp
+                                      popUpView: upLoad
+                                    # 保存图片数据
+                                    - actionType: evalObject
+                                      object:
+                                        - =..apiRequest.front_IDCard.docAPI.store: ""
+                                        - ..apiRequest.front_IDCard.docRes@: =.Global.formData.front_IDCard
+                                        - if:
+                                          - =.FinancialFormEditPage1.apiRequest.front_IDCard.docRes.doc.id
+                                          - ..formData.isShow1@: "block"
+                                          - actionType: popUp
+                                            popUpView: uploadFailed
+                                            wait: true
+                                    # 刷新image组件
+                                    - actionType: popUpDismiss
+                                      popUpView: upLoad
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: overSize
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: isShow1
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: front_IDCardTag
+                                  style: 
+                                    width: 9vw
+                                    height: 6vw
+                                - type: image
+                                  viewTag: isShow1
+                                  path: showImage.svg
+                                  style: 
+                                    display: ..formData.isShow1
+                                    width: 3vw
+                                    zIndex: 100
+                                    marginLeft: 6vw
+                                    top: 3vw
+                            - type: label
+                              text: ID Image
+                              style:
+                                height: "0.03"
+                                width: 5vw"
+                                fontSize: 0.8vw
+                                textAlign:
+                                  x: center
+                                  y: center
+                    - type: view
+                      style:
+                        width: 40vw
+                        height: auto
+                      children:
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                            justifyContent: space-between
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: First Name
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.firstName
+                                  style:
+                                    width: 12.7vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Middle Name
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.middleName
+                                  style:
+                                    width: 12.7vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Last Name
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.lastName
+                                  style:
+                                    width: 12.7vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                            justifyContent: space-between
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Date of Birth
+                                - type: view
+                                  style:
+                                    display: "inline-block"
+                                    boxSizing: border-box
+                                    verticalAlign: middle
+                                    height: 2.5vw
+                                    cursor: "pointer"
+                                    backgroundColor: "0xffffff"
+                                    width: 13vw
+                                    marginTop: 0.5vw
+                                    border: "1px solid #DEDEDE"
+                                    borderWidth: 1px
+                                    borderRadius: 5px
+                                  children: 
+                                    - type: textField
+                                      viewTag: showBirth
+                                      isEditable: false
+                                      dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.dateOfBirth
+                                      style:
+                                        display: "inline-block"
+                                        boxSizing: border-box
+                                        verticalAlign: middle
+                                        height: 2.3vw
+                                        cursor: "pointer"
+                                        fontSize: .Nfont.h0
+                                        backgroundColor: "0xffffff"
+                                        width: 11vw
+                                        marginLeft: 0.5vw
+                                        textIndent: 0.2em
+                                    - type: image
+                                      path: calendarImage.svg
+                                      style:
+                                        display: "inline-block"
+                                        verticalAlign: middle
+                                        height: "0.02"
+                                  onClick:
+                                    - actionType: 'popUp'
+                                      popUpView: 'birthDay'
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Gender
+                                - type: view 
+                                  style:
+                                    width: 26vw
+                                    height: 2.2vw
+                                    fontSize: .Nfont.h0
+                                    fontWeight: 400
+                                  children:
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.gender
+                                      iteratorVar: itemObject
+                                      viewTag: isToEmergency
+                                      style:
+                                        marginTop: 0.5vw
+                                        height: 1vw
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          style:
+                                            height: 0.8vw
+                                            display: flex
+                                            flexDirection: row
+                                            width: "0.06"
+                                          children:
+                                            - type: image
+                                              style:
+                                                height: 0.8vw
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..apiRequest.financialForm.docReq.name.data.patientInfo.gender
+                                                              string2: $var.value
+                                                        - blue.svg
+                                                        - black.svg
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - if:
+                                                          - =.builtIn.string.equal:
+                                                              dataIn:
+                                                                string1: =..apiRequest.financialForm.docReq.name.data.patientInfo.gender
+                                                                string2: $var.value
+                                                          - =.builtIn.object.clear:
+                                                              dataIn:
+                                                                object: =..apiRequest.financialForm.docReq.name.data.patientInfo
+                                                                key: $var.key
+                                                          - =.builtIn.object.set:
+                                                              dataIn:
+                                                                object: =..apiRequest.financialForm.docReq.name.data.patientInfo
+                                                                key: $var.key
+                                                                value: $var.value
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: isToEmergency
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: 0.3vw
+                                                height: 1vw
+                                                color: "#333333"
+                                                fontSize: .Nfont.h0
+                                                lineHeight: 0.8vw
+                        
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                            justifyContent: space-between
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: ID Type 
+                                - type: select 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.identification.type
+                                  options:
+                                    .IDType
+                                  style:
+                                    width: 19.5vw
+                                    height: 2.3vw
+                                    textIndent: "0.5em"
+                                    fontSize: .Nfont.h0
+                                    marginTop: 0.5vw
+                                    fontFamily: "Arial"
+                                    border: "1px solid #DEDEDE"
+                                    borderWidth: 1px
+                                    borderRadius: 5px
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: "ID #"
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.identification.id
+                                  style:
+                                    width: 19.5vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                            justifyContent: space-between
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Address Line
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.address.line
+                                  style:
+                                    width: 19.5vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Address Second Line
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.address.secondLine
+                                  style:
+                                    width: 19.5vw
+                        - .ViewRow:
+                          style:
+                            width: 40vw
+                            marginTop: 1vw
+                            justifyContent: space-between
+                          children:
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: City
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.address.city
+                                  style:
+                                    width: 9.3vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: county
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.address.county
+                                  style:
+                                    width: 9.3vw
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: State
+                                - type: select
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.address.state
+                                  options:
+                                    .SelectData.state
+                                  style:
+                                    height: 2vw
+                                    width: 9.3vw
+                                    marginTop: 0.5vw
+                                    border: "1px solid #DEDEDE"
+                                    borderWidth: 1px
+                                    borderRadius: 5px
+                                    fontSize: .Nfont.h0
+                                    fontWeight: 400
+                                    textIndent: 0.5em
+                            - .ViewColumn:
+                              style: 
+                                justifyContent: space-between
+                              children:
+                                - .VQSecondTitle:
+                                  text: Zip Code
+                                - .NPITextField: 
+                                  dataKey: apiRequest.financialForm.docReq.name.data.patientInfo.address.zipCode
+                                  style:
+                                    width: 9.3vw
+                        
+            - type: view
+              style:
+                width: 22.3vw
+                height: 2.3vw
+                left: 60.3vw
+                top: 15.5vw
+              children:
+                - type: image
+                  viewTag: ProgressButton1
+                  path: Rightbutton.svg
+                  style:
+                    height: 3vw
+                    left: 10vw
+                    textAlign:
+                      x: center
+                      y: center
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.financialForm@: =..apiRequest.financialForm.docResp.doc
+                    - actionType: evalObject
+                      object:
+                        # 将patientInfo信息保存
+                        - .Global.formData.financialForm.name.data.patientInfo@: =..apiRequest.financialForm.docReq.name.data.patientInfo
+                        
+                        # 更新文档状态
+                        - .Global.formData.firstToFinancialForm@: false
+                    - goto: FinancialFormEditPage2
+        - .BaseOverSizeWarningView: 
+          style:
+        - .WaitView:
+          viewTag: upLoad
+          style: 
+        - .BaseuploadFailed:
+          viewTag: uploadFailed
+        - .NewBaseWarningView:

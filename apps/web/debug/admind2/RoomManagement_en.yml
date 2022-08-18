@@ -1,0 +1,2345 @@
+RoomManagement:
+  init: 
+    - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.acceptInfo 
+      dataObject: {}       
+    - if: 
+      - =.builtIn.string.equal: 
+          dataIn: 
+            string1: =.Global.locationAll
+            string2: []
+      - continue
+      - actionType: evalObject
+        object: 
+          - =.builtIn.array.selectOneToArr:
+              dataIn:
+                arr: =.Global.locationAll
+                key: "medicalFacilityName"
+              dataOut: RoomManagement.formData.addressName
+          - ..formData.address@: =..formData.addressName.0
+          - =.builtIn.array.matchInArray:
+              dataIn:
+                arr: =.Global.locationAll
+                value: =..formData.addressName.0
+                key: medicalFacilityName
+                key1: "id"
+              dataOut: RoomManagement.formData.locationId
+          - =.builtIn.array.matchInArray:
+              dataIn:
+                arr: =.Global.locationAll
+                value: =..formData.addressName.0
+                key: medicalFacilityName
+                key1: "locationID"
+              dataOut: RoomManagement.formData.locationOwnId
+          - ..formData.locationTableId@: =..formData.locationId
+          - ..roomList.docIn.ids.0@: =..formData.locationTableId
+          - .Global.jwt.edge.bvid@: =..formData.locationTableId
+          - =.Global.jwt.edgeAPI.store: ""
+          - =..roomList.docAPI.get: ""
+          - ..formData.roomLi@: =..roomList.docResp.doc
+          - =.builtIn.array.splitTableList: 
+              dataIn: 
+                arrObj: =..roomList.docResp.doc
+                numX: "12"
+                numY: "1"
+              dataOut: RoomManagement.formData.tableData
+          - ..formData.tableList@: =..formData.tableData.0
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..formData.tablePageNum # page num
+                - " / "
+                - =..formData.tableData.1 # total page
+              dataOut: RoomManagement.formData.tableCurrentPage # current page                           
+          - =.builtIn.number.addition: # get totalPage+1 to verify legitimacy of gotoPageNum
+              dataIn:
+                num: =..formData.tableData.1
+                step: "1"
+              dataOut: RoomManagement.formData.totalPageMore # update page num 
+          - .Global.formData.service@: "COVID-19 Testing"
+  formData:    
+    tableData: []           # sdk 返回的数组,包括当前显示第几页的数据list 和 被切分成总共多少页面
+    tableList: []           # sdk 返回的数组的第一项，list真正打印的数据
+    tablePageNum: "1"     # previous和next 中间的文本显示的数据
+    tableCurrentPage: "1" # 当前显示的当前页面/总页面
+    gotoPageNum: ""       # goto 后面的文本显示
+    totalPageMore: ""     #totalPage(tableData .1) + 1 
+    addressName: []   # for  select options
+    address: ""      # for dataKey
+    locationId: ""
+    locationOwnId: ""  # for location's locationID not id
+    locationTableId: ""
+    locationStatus: ""
+    countryCode: "+1"
+    number: ""
+    res: ""
+    reasonForVisit: []
+    roomLi: ""   # for display room
+    locationUid: ""
+  reasonObj: 
+    reason: ""
+    duration: "5 min"
+    document: []
+    # selectDoc: ""
+  visitReason: 
+    docResp: ""
+    docIn: 
+      type: .DocType.VisitReason
+      id: 
+      xfname: eid
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+      name: 
+        data:
+          reasonForVisit: [] 
+    document: 
+      type: .DocType.VisitReason
+      eid: 
+      name: 
+        data:
+          reasonForVisit: []
+    docAPI: 
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: visitReason.document
+      get: 
+        .DocAPI.get: ""
+        api: rd
+        dataIn: visitReason.docIn
+        dataOut: RoomManagement.visitReason.docResp
+  setLocation: 
+    docResp:  
+    document: 
+      name: 
+        data: 
+          basicInfo: 
+            service: []
+    docIn: 
+      ObjType: 12
+      type: .DocType.FacilityProfile
+      id: ""
+      xfname: E.bvid
+      sCondition: E.type=10000
+      maxcount: "10000"
+      _nonce: =.Global._nonce
+    docAPI: 
+      get: 
+        api: rd
+        dataIn: setLocation.docIn
+        dataOut: RoomManagement.setLocation.docResp
+      store: 
+        api: cd
+        dataIn:  setLocation.document
+  formDoc:   # form  
+    form: []  # 显示当前ReasonforVisit里的form列表
+    formCov:  # 如果是cov form就显示与cov相关
+      - title: New Patient Forms
+        pageName: NewPatFormPreviewPage1
+      - title: COVID-19 Testing Consent - New Patient
+        pageName: Cov19TestNewPatPreviewPage1
+      - title: COVID-19 Testing Consent Form
+        pageName: Cov19TestFormPreviewPage1
+      - title: Pifzer-BioNTech Vaccine - First Dose
+        pageName: PifzerVaccineFirDosePreviewPage1
+      - title: Pifzer-BioNTech Vaccine - Second Dose
+        pageName: PifzerVaccineSecDosePreviewPage1
+      - title: Moderna Vaccine Form - First Dose
+        pageName: ModernaVaccineFirDosePreviewPage1
+      - title: Moderna Vaccine Form - Second Dose
+        pageName: ModernaVaccineSecDosePreviewPage1
+    # formFlu: # 如果是flu form就显示与flu相关
+    #   - title: Flu Vaccination Consent form 2020-2021(English)
+    #     pageName: FluVaccinationConsentFormEnglishPreview      
+      # - title: COVID-19 Results & Flu A&B Results
+      #   pageName: Cov19ResultsAndFluResultsEdit
+
+  fac_RootNotebook:  # 获取当前room的rootnotebook
+    edgeReq:
+      id: ""
+      xfname: bvid
+      type: .EdgeType.RootNotebook
+    edgeResp: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: RoomManagement.fac_RootNotebook.edgeReq
+        dataOut: RoomManagement.fac_RootNotebook.edgeResp
+  room: 
+    resp: ""
+    vertexResp: ""
+    verIn:  
+      type: "30"
+      id: ""
+      xfname: "id"
+    vertex: 
+      .Vertex: ""
+      type: "30"
+      name: 
+        basicInfo:
+          roomName: ""
+          roomId: ""
+          view: "view"
+          # service: "Telemedicine"
+          service: "COVID-19 Testing"
+      uid: ""
+      jwt: ""
+      # pk: "VW/ceBN733d2oAki+muUeSAaKZBaE9SIbRJu5gBz40c="
+      # esk: "2f8J1+aRIftJkKL+VxLb00qYjW3hWfQwLIBGumdwum/NHXlv6VChfmPIhj0bTOaUK4VscRwwa4soTqJ8x0a1jsOBoDDZz5aR"
+    vertexAPI:
+      .VertexAPI: ""
+      store: 
+        api: cv
+        dataIn: RoomManagement.room.vertex
+        dataOut: RoomManagement.room.resp
+      get: 
+        api: rv
+        dataIn: room.verIn
+        dataOut: RoomManagement.room.vertexResp
+  roomProfile: 
+    docStoreResp: "" # for cd response
+    resp: ""
+    document:   # for cd
+      .Document: ""
+      type: .DocType.RoomProfile
+      name: 
+        data: 
+          roomName: ""
+      eid: 
+    docIn:   # for rd
+      .Document: ""
+      type: .DocType.RoomProfile
+      name: 
+        data: 
+      id: 
+      xfname: "id"
+    docAPI: 
+      store: 
+        api: cd
+        dataIn: roomProfile.document
+        dataOut: RoomManagement.roomProfile.docStoreResp
+      get: 
+        api: rd
+        dataIn: roomProfile.docIn
+        dataOut: RoomManagement.roomProfile.resp
+  roomList: 
+    docResp: 
+      doc: []
+
+    docIn: 
+      ObjType: 12
+      ids: 
+      xfname: "E.bvid"
+      maxcount: "100"
+      obfname: "mtime"
+      type: .DocType.RoomProfile
+      sCondition: E.type=1100
+      asc: false
+      _nonce: =.Global._nonce
+    docAPI:
+      get: 
+        api: rd
+        dataIn: roomList.docIn
+        dataOut: RoomManagement.roomList.docResp
+  roomListReget: 
+    docResp: 
+      doc: []
+    docIn: 
+      ObjType: 12
+      ids: 
+      xfname: "E.bvid"
+      maxcount: "100"
+      obfname: "mtime"
+      type: .DocType.RoomProfile
+      sCondition: E.type=1100
+      asc: false
+      _nonce: =.Global._nonce
+    docAPI:
+      get: 
+        api: rd
+        dataIn: roomListReget.docIn
+        dataOut: RoomManagement.roomListReget.docResp
+  components:
+    - .BaseCheckView:
+      viewTag: reasonNullView
+      message: "Please enter your reason"  
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BaseCheckView: ""
+          message: "Room ID cannot be repeated!"
+          viewTag: roomIDTag
+        - .BodyView:
+          children:
+            - .BackLabel:
+              style:
+                left: "0.03"
+            - type: label
+              text: select a location
+              style: 
+                left: "0.47"
+                top: "0.03"
+                width: "0.08"
+                height: "0.035"
+                fontSize: "1.7vh"
+            - type: select
+              dataKey: formData.address
+              options: 
+                ..formData.addressName
+              onChange: 
+                - actionType: evalObject
+                  object: 
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.array.matchInArray:
+                        dataIn:
+                          arr: =.Global.locationAll
+                          value: =..formData.address
+                          key: "medicalFacilityName"
+                          key1: "id"
+                        dataOut: RoomManagement.formData.locationTableId
+                    - =.builtIn.array.matchInArray:
+                        dataIn:
+                          arr: =.Global.locationAll
+                          value: =..formData.address
+                          key: "medicalFacilityName"
+                          key1: "locationID"
+                        dataOut: RoomManagement.formData.locationOwnId
+                    - ..roomListReget.docIn.ids.0@: =..formData.locationTableId
+                    - ..formData.locationId@: =..formData.locationTableId
+                    # - .Global.jwt.edge.bvid@: =..formData.locationTableId
+                    # - =.Global.jwt.edgeAPI.store: ""
+                    - =..roomListReget.docAPI.get: ""
+                    - ..formData.tableList@: =..roomListReget.docResp.doc
+                    - ..roomListReget.docResp.doc@: []
+                    # - ..middleStruc2@: {}
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: tableView
+                - actionType: builtIn 
+                  funcName: redraw
+                  viewTag: tableFooter 
+              style: 
+                left: "0.57"
+                top: "0.026"
+                width: "0.06"
+                height: "0.035"
+                fontSize: .Nfont.nf2
+                border: 
+                  style: "3"
+                borderWidth: "1"
+                # backgroundColor: "0x014c82"
+                color: "0x000000" 
+                borderColor: "0xffffff"
+                borderRadius: "4"
+                textAlign: 
+                  x: center
+            - type: view
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..room.vertex.name.basicInfo.roomName@: ""
+                    - ..room.vertex.name.basicInfo.roomId@: ""
+                    - ..room.vertex.name.basicInfo.service@: "COVID-19 Testing"
+                    - ..reasonObj.reason@: ""
+                    - ..reasonObj.duration@: "5 min"
+                    - ..reasonObj.document@: []
+                    - ..visitReason.document.name.data.reasonForVisit@: []
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: addView
+                - actionType: popUp
+                  popUpView: addRoomView
+              style:
+                width: '0.115'
+                left: '0.68'
+                height: '0.05'
+                top:  '0.015'
+                backgroundColor: '#005795'
+                borderRadius: "5"
+                color: '#FFFFFF'
+              children:
+                - .Label1:
+                  text: 'Add New Room'
+                  style: 
+                    fontSize: '15'
+                    # top: '0.013'
+                    height: '0.05'
+                    left: '0.031'
+                    textAlign: 
+                      y: center
+                - type: image
+                  path: addWhite.svg
+                  style:
+                    top: '0.015'
+                    left: '0.013'
+                    width: "0.01"
+        - .ContentView:
+          style: 
+            height: "0.83"
+            left: "0.19"
+            top: "0.145"
+            # position: fixed
+          children:
+            - .Label2:
+              text: "Room Management"
+              style:
+                left: "0.03"
+                top: "0.02"
+                width: "0.2"
+                fontSize: "2.5vh"
+            # Table
+            - type: view
+              viewTag: tableView
+              style: 
+                left: "0.03"
+                top: "0.06"
+                width: "0.72"
+                height: "auto"
+                # backgroundColor: "0xf3f3f3"
+                borderRadius: "8"
+                boxSizing: content-box
+                border:
+                  style: "3"
+                borderColor: "0x7070704f"
+              children: 
+                #TableTitle
+                - type: label
+                  viewTag: tableTitle
+                  text: Room List
+                  style: 
+                    textIndent: "2em"
+                    width: "0.72"
+                    margin: "0"
+                    left: "0"
+                    height: "0.055"
+                    backgroundColor: "0x014c82"
+                    fontSize: .Nfont.nf3
+                    fontWeight: "500"
+                    fontFamily: "Poppins"
+                    # boxSizing: border-box
+                    color: "0xffffff"
+                    borderTopLeftRadius: "8px"
+                    borderTopRightRadius: "8px"
+                    textAlign:
+                      y: center
+                #TableHeader
+                - type: view
+                  viewTag: tableHeader
+                  style: 
+                    width:  "0.72"
+                    left: "0"
+                    height: "0.05"
+                    backgroundColor: "0xf9fafb" 
+                  children: 
+                    - type: label
+                      text: Room Name
+                      style: 
+                        width: "0.17"  
+                        top:  "0"
+                        left:  "0"
+                        height:  "0.05"
+                        fontSize: .Nfont.nf2 
+                        fontStyle: "bold" 
+                        borderWidth: "1" 
+                        borderRight: "solid 1px  #7070704f" 
+                        color: "0x6b7280" 
+                        textAlign:
+                          x: "center" 
+                          y: "center" 
+                    - type: label
+                      text: ID 
+                      style: 
+                        width: "0.17"  
+                        top:  "0"
+                        left:  "0.17"
+                        height:  "0.05"
+                        fontSize: .Nfont.nf2 
+                        fontStyle: "bold" 
+                        borderWidth: "1" 
+                        borderRight: "solid 1px  #7070704f" 
+                        color: "0x6b7280" 
+                        textAlign:
+                          x: "center" 
+                          y: "center" 
+                    - type: label
+                      text: Service 
+                      style: 
+                        width: "0.14"  
+                        top:  "0"
+                        left:  "0.34"
+                        height:  "0.05"
+                        fontSize: .Nfont.nf2 
+                        fontStyle: "bold" 
+                        borderWidth: "1" 
+                        borderRight: "solid 1px  #7070704f" 
+                        color: "0x6b7280" 
+                        textAlign:
+                          x: "center" 
+                          y: "center" 
+                    - type: label
+                      text: Schedule Setting 
+                      style: 
+                        width: "0.14"  
+                        top:  "0"
+                        left:  "0.48"
+                        height:  "0.05"
+                        fontSize: .Nfont.nf2 
+                        fontStyle: "bold" 
+                        borderWidth: "1" 
+                        borderRight: "solid 1px  #7070704f" 
+                        color: "0x6b7280" 
+                        textAlign:
+                          x: "center" 
+                          y: "center" 
+                    - type: label
+                      text: Edit 
+                      style: 
+                        width: "0.1"  
+                        top:  "0"
+                        left:  "0.62"
+                        height:  "0.05"
+                        fontSize: .Nfont.nf2 
+                        fontStyle: "bold" 
+                        borderWidth: "1" 
+                        borderRight: "solid 1px  #7070704f" 
+                        color: "0x6b7280" 
+                        textAlign:
+                          x: "center" 
+                          y: "center" 
+                #TableBody
+                - type: list
+                  viewTag: tableBody
+                  contentType: listObject
+                  listObject: ..formData.tableList
+                  iteratorVar: itemObject
+                  style: 
+                    width: "0.72"
+                    left:  "0"
+                    height: "auto"
+                    margin: "0"  
+                    borderTop: "solid 1px  #7070704f"  
+                    backgroundColor: "0xffffff" 
+                    fontSize: .Nfont.nf2 
+                  children: 
+                    - type: listItem
+                      itemObject: 
+                      style: 
+                        width:  "0.72"
+                        left:  "0"
+                        height: "0.045" 
+                        borderBottom: "solid 1px  #7070704f" 
+                        textAlign:
+                          x: "center" 
+                          y: "center" 
+                      children: 
+                        - type: label
+                          dataKey: itemObject.name.data.roomName
+                          style: 
+                            width: "0.17"
+                            top: "0"
+                            left:  "0"
+                            height: "0.045" 
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center" 
+                        - type: label
+                          dataKey: itemObject.name.data.roomId
+                          style: 
+                            width: "0.17"
+                            top: "0"
+                            left:  "0.17"
+                            height: "0.045" 
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center" 
+                        - type: label
+                          dataKey: itemObject.name.data.service
+                          style: 
+                            width: "0.14"
+                            top: "0"
+                            left:  "0.34"
+                            height: "0.045" 
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center" 
+                        - type: label
+                          dataKey: itemObject.name.data.view
+                          onClick:
+                            - emit: 
+                                dataKey: 
+                                  var: itemObject
+                                actions: 
+                                  - .Global.acceptInfo@: $var
+                            - actionType: evalObject
+                              object:
+                                - .Global.locationId@: =..formData.locationTableId
+                                - .Global.formData.service@: =.Global.acceptInfo.name.data.service
+                                - .Global.formData.serviceType@: =.Global.acceptInfo.name.data.serviceType
+                                - goto: SchduleSettingRoom 
+                          style: 
+                            width: "0.14"
+                            top: "0"
+                            left:  "0.48"
+                            height: "0.045" 
+                            color: "0x2988e6"
+                            textDecoration: "underline"
+                            borderWidth: "1" 
+                            borderRight: "solid 1px  #7070704f" 
+                            textAlign:
+                              x: "center" 
+                              y: "center"  
+                        - type: view
+                          style: 
+                            width: "0.1" 
+                            top: "0"
+                            left:  "0.62"
+                            height:  "0.045"
+                            borderWidth: "1" 
+                            textAlign:
+                              x: "center" 
+                              y: "center" 
+                          children: 
+                            - type: image
+                              path: editBlue.svg
+                              style: 
+                                width: "0.03"
+                                height: "0.02"
+                              onClick: 
+                                - emit: 
+                                    dataKey: 
+                                      var: itemObject
+                                    actions: 
+                                      - ..visitReason.docResp.doc@: []
+                                      - ..visitReason.docIn.id@: ""
+                                      - ..visitReason.docIn.id@: $var.eid
+                                      - ..visitReason.document.eid@: $var.eid
+                                      - =..visitReason.docAPI.get: ""
+                                      - ..roomProfile.document@: $var
+                                      - ..room.verIn.id@: =..roomProfile.document.bsig
+                                      - =..room.vertexAPI.get: ""
+                                      - ..room.vertex@: =..room.vertexResp.vertex.0
+                                - actionType: evalObject
+                                  object: 
+                                    - if: 
+                                      - =..visitReason.docResp.doc.0
+                                      - actionType: evalObject
+                                        object: 
+                                          - ..formData.reasonForVisit@: =..visitReason.docResp.doc.0.name.data.reasonForVisit
+                                          - ..visitReason.document@: =..visitReason.docResp.doc.0
+                                      - continue
+                                    - actionType: popUp
+                                      popUpView: editRoomView
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: editView  
+            # TableFooter
+            - type: view
+              viewTag: tableFooter
+              style: 
+                left: "0.565"
+                top: "0.78"
+                width: "0.19"
+                height: "0.02622"
+              children: 
+                - type: view
+                  style: 
+                    top: "0.005"
+                    width: "0.08"
+                    height: "0.0155"
+                  children: 
+                    - type: label
+                      text: "Current page:"
+                      style: 
+                        display: inline-block
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        textAlign:
+                          x: "center"
+                          y: "center"
+                    - type: label
+                      dataKey: formData.tableCurrentPage
+                      style: 
+                        marginLeft: "0.005"
+                        display: inline-block
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        textAlign:
+                          x: "center"
+                          y: "center"
+                - type: view
+                  style: 
+                    top: "0"
+                    left: "0.076"
+                    width: "0.05168"
+                    height: "0.02576"
+                  children: 
+                    - type: image
+                      path: tableLeft.svg
+                      onClick:
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.tablePageNum 
+                                    num2: 2 
+                              - continue 
+                              - actionType: evalObject 
+                                object: 
+                                  - =.builtIn.number.Subtraction: 
+                                      dataIn: 
+                                        num: =..formData.tablePageNum 
+                                        step: "1"
+                                      dataOut: RoomManagement.formData.tablePageNum
+                                  - =.builtIn.array.splitTableList: 
+                                      dataIn: 
+                                        arrObj: =..roomList.docResp.doc
+                                        numX: "12"
+                                        numY: =..formData.tablePageNum
+                                      dataOut: RoomManagement.formData.tableData
+                                  - ..formData.tableList@: =..formData.tableData.0 
+                                  - =.builtIn.string.concat: 
+                                      dataIn: 
+                                        - =..formData.tablePageNum
+                                        - " / "
+                                        - =..formData.tableData.1
+                                      dataOut: RoomManagement.formData.tableCurrentPage # current page
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 
+                      style: 
+                        top: "0"
+                        width: "0.01456"
+                        height: "0.02576"
+                    - type: label
+                      dataKey: formData.tablePageNum
+                      style: 
+                        top: "0"
+                        left: "0.01856"
+                        width: "0.01446"
+                        height: "0.02576"
+                        fontSize: .Nfont.nf0
+                        fontWeight: "500"
+                        color: "0xffffff"
+                        backgroundColor: "0x005795"
+                        borderRadius: "3"
+                        textAlign:
+                          x: center
+                          y: center
+                    - type: image
+                      path: tableRight.svg
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: "" 
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.tablePageNum 
+                                    num2: =..formData.tableData.1 
+                              - actionType: evalObject
+                                object: 
+                                  - =.builtIn.number.addition: 
+                                      dataIn: 
+                                        num: =..formData.tablePageNum
+                                        step: "1"
+                                      dataOut: RoomManagement.formData.tablePageNum # update page num
+                                  - =.builtIn.array.splitTableList: 
+                                      dataIn: 
+                                        arrObj: =..roomList.docResp.doc
+                                        numX: "12"
+                                        numY: =..formData.tablePageNum
+                                      dataOut: RoomManagement.formData.tableData
+                                  - ..formData.tableList@: =..formData.tableData.0 
+                                  - =.builtIn.string.concat: 
+                                      dataIn: 
+                                        - =..formData.tablePageNum
+                                        - " / "
+                                        - =..formData.tableData.1
+                                      dataOut: RoomManagement.formData.tableCurrentPage # current page 
+                              - continue 
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 
+                      style:
+                        top: "0"
+                        left: "0.03712"
+                        height: "0.02576"
+                        width: "0.01456"
+                # Goto
+                - type: view
+                  style: 
+                    top: "0"
+                    left: "0.14"
+                    width: "0.05"
+                    height: "0.02496"
+                  children: 
+                    - type: textField
+                      viewTag: gotoView
+                      dataKey: formData.gotoPageNum
+                      style:
+                        width: "0.02496"
+                        top: "0"
+                        height: "0.02576"
+                        borderRadius: "3"
+                        borderWidth: "1"
+                        border:
+                          style: "3"
+                        boxSizing: border-box
+                        borderColor: "0xd8d8d8"
+                        fontSize: .Nfont.nf0
+                        fontWeight: "500"
+                        color: "0x333333"
+                        textAlign: 
+                          x: center 
+                          y: center 
+                    - type: button
+                      text: Go to 
+                      style:
+                        textDecoration: underline
+                        left: "0.029"
+                        top: "0"
+                        height: "0.02576"
+                        border:
+                          style: "1"
+                        fontSize: .Nfont.nf0
+                        color: "0x333333"
+                        backgroundColor: "0xffffff00"
+                      onClick:
+                        - action: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: "" 
+                        - actionType: evalObject
+                          object: 
+                            - if: 
+                              - =.builtIn.number.less: 
+                                  dataIn: 
+                                    num1: =..formData.gotoPageNum 
+                                    num2: 1 
+                              - continue 
+                              - actionType: evalObject 
+                                object: 
+                                  - if: 
+                                    - =.builtIn.number.less: 
+                                        dataIn: 
+                                          num1: =..formData.gotoPageNum 
+                                          num2: =..formData.totalPageMore 
+                                    - actionType: evalObject 
+                                      object: 
+                                        - =.builtIn.array.splitTableList: 
+                                            dataIn: 
+                                              arrObj: =..roomList.docResp.doc
+                                              numX: "12"
+                                              numY: =..formData.gotoPageNum
+                                            dataOut: RoomManagement.formData.tableData
+                                        - ..formData.tableList@: =..formData.tableData.0 
+                                        - =.builtIn.string.concat: 
+                                            dataIn: 
+                                              - =..formData.gotoPageNum
+                                              - " / "
+                                              - =..formData.tableData.1
+                                            dataOut: RoomManagement.formData.tableCurrentPage # current page
+                                        - ..formData.tablePageNum@: =..formData.gotoPageNum
+                                        - ..formData.gotoPageNum@: ""
+                                    - continue
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableView
+                        - actionType: builtIn 
+                          funcName: redraw
+                          viewTag: tableFooter 
+        # Edit Room
+        - type: popUp
+          style: 
+            width: '1' 
+            height: '0.999'
+            top: '0'
+            left: '0'     
+            backgroundColor: '0x00000033'
+            zIndex: "10"
+          viewTag: editRoomView
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                top: "0"
+                height: "1"
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Edit Room Info'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..reasonObj.reason@: ""
+                            - ..reasonObj.document@: []
+                        - actionType: popUpDismiss
+                          popUpView: editRoomView
+                        - actionType: popUpDismiss
+                          popUpView: documentViewEdit
+                - type: scrollView
+                  viewTag: editView
+                  style:
+                    height: '0.84'
+                    width: '0.4'
+                    top: '0.08'
+                    backgroundColor: '0xffffff'
+                    overflow: scroll
+                  children:
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.425" 
+                      children: 
+                        - type: label
+                          text: Basic Info
+                          style: 
+                            left: "0.025"
+                            marginTop: "0.04"
+                            width: "0.4"
+                            height: "0.04"
+                            fontSize: .Nfont.nf5
+                            color: "0x7f7f7f"
+                            fontFamily: Poppins
+                        - .ProdManageView:
+                          style: 
+                            marginTop: "0"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Location
+                            - type: label
+                              dataKey: formData.address
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.034"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          style: 
+                            marginTop: "0.02"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Room Name
+                            - type: textField
+                              placeholder: Enter Here
+                              dataKey: roomProfile.document.name.data.roomName
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          style: 
+                            marginTop: "0.02"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Room ID
+                            - type: label
+                              # placeholder: "Enter Here"
+                              dataKey: roomProfile.document.name.data.roomId
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          style: 
+                            marginTop: "0.02"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Service Type
+                            - type: label
+                              dataKey: roomProfile.document.name.data.service
+                              # options: 
+                              #   - Telemedicine
+                              #   - Office Visit
+                              #   - COVID-19 Testing
+                              #   - COVID-19 Vaccine
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                    - type: view
+                      viewTag: editReasonView
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.37" 
+                      children:
+                        - type: label
+                          text: Reason for Visit
+                          style: 
+                            left: "0.025"
+                            marginTop: "0"
+                            width: "0.3"
+                            height: "0.04"
+                            fontSize: .Nfont.nf5
+                            color: "0x7f7f7f"
+                            fontFamily: Poppins
+                        - type: view
+                          style:
+                            height: "0.3"
+                            width: "0.3"
+                            marginTop: "0.015"
+                            left: "0"
+                          children: 
+                            - type: textView
+                              placeholder: Select your form
+                              dataKey: reasonObj.document
+                              viewTag: docFieldView1
+                              isEditable: false
+                              # onClick: 
+                              #   - actionType: popUp
+                              #     popUpView: documentViewEdit
+
+                              style: 
+                                left: "0.203"
+                                top: "0"
+                                width: "0.175"
+                                height: "0.04"
+                                border: 
+                                  style: "3"
+                                borderColor: "0x00000066"
+                                borderWidth: "1"
+                                borderRadius: "5"
+                                boxSizing: border-box
+                                backgroundColor: "0xffffff"
+                                fontFamily: Poppins
+                                zIndex: "100"
+                                textAlign: 
+                                  y: center
+                            - type: view
+                              # placeholder: Select your form
+                              # dataKey: reasonObj.document
+                              # viewTag: docFieldView1
+                              # # isEditable: false
+                              onClick: 
+                                - actionType: evalObject
+                                  object:
+                                    # - if:
+                                    #   - =.builtIn.string.equal:
+                                    #       dataIn:
+                                    #         string1: =.RoomManagement.roomProfile.document.name.data.service
+                                    #         string2: "Flu Shot"
+                                    #   - ..formDoc.form@: =..formDoc.formFlu                 
+                                      - ..formDoc.form@: =..formDoc.formCov  
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: docListView1                             
+                                - actionType: popUp
+                                  popUpView: documentViewEdit
+
+                              style: 
+                                left: "0.203"
+                                top: "0"
+                                width: "0.175"
+                                height: "0.04"
+                                border: 
+                                  style: "3"
+                                borderColor: "0x00000066"
+                                borderWidth: "1"
+                                borderRadius: "5"
+                                boxSizing: border-box
+                                zIndex: "101"
+                                textAlign: 
+                                  y: center
+                            - type: view
+                              onClick: 
+                                - actionType: popUpDismiss
+                                  popUpView: documentViewEdit
+                              style: 
+                                top: "0"
+                                width: "0.3"
+                                left: "0"
+                                height: "0.13"
+                                backgroundColor: "0xffffff"
+                                zIndex: "10"
+                              children: 
+                                - type: textField
+                                  placeholder: Enter your reason here
+                                  dataKey: reasonObj.reason
+                                  style: 
+                                    left: "0.025"
+                                    top: "0"
+                                    width: "0.1"
+                                    height: "0.04"
+                                    border: 
+                                      style: "3"
+                                    borderColor: "0x00000066"
+                                    borderWidth: "1"
+                                    borderRadius: "5"
+                                    boxSizing: border-box
+                                    zIndex: "100"
+                                    textAlign: 
+                                      y: center
+                                - type: select
+                                  placeholder: Select
+                                  dataKey: reasonObj.duration
+                                  options: 
+                                    .Duration
+                                  style: 
+                                    left: "0.14"
+                                    top: "0"
+                                    width: "0.05"
+                                    height: "0.04"
+                                    border: 
+                                      style: "3"
+                                    borderColor: "0x00000066"
+                                    borderWidth: "1"
+                                    borderRadius: "5"
+                                    boxSizing: border-box
+                                - type: button
+                                  text: Create
+                                  onClick:                
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - ..reasonObj.reason
+                                          - continue
+                                          - actionType: popUp
+                                            popUpView: reasonNullView
+                                            wait: true
+                                    - emit:
+                                        actions:
+                                          - =.builtIn.array.add:
+                                              dataIn:
+                                                object: =..formData.reasonForVisit
+                                                value: =..reasonObj
+                                          - ..reasonObj.reason@: ""
+                                          - ..reasonObj.duration@: "5 min"
+                                          - ..reasonObj.document@: []       
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: editReasonView                                                
+                                  style: 
+                                    left: "0.15"
+                                    top: "0.075"
+                                    width: "0.1"
+                                    height: "0.04"
+                                    fontSize: .Nfont.nf2
+                                    color: "0xffffff"
+                                    backgroundColor: "0x3ab65c"
+                                    border: 
+                                      style: "3"
+                                    borderColor: "0x3ab65c"
+                                    borderWidth: "1"
+                                    borderRadius: "5"  
+                                    textAlign:
+                                      x: center
+                            - type: view
+                              style: 
+                                left: "0.025"
+                                top: "0.14"
+                                width: "0.3"
+                                height: "0.05"
+                              children: 
+                                - type: label
+                                  text: Reason for Visit
+                                  style: 
+                                    top: "0"
+                                    width: "0.1"
+                                    left: "0"
+                                    height: "0.03"
+                                    color: "0x143459"
+                                    fontSize: "1.7vh"
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: left
+                                      y: center
+                                - type: label
+                                  text: Duration
+                                  style: 
+                                    top: "0"
+                                    width: "0.05"
+                                    left: "0.14"
+                                    height: "0.03"
+                                    color: "0x143459"
+                                    fontSize: "1.7vh"
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: left
+                                      y: center
+                                - type: label
+                                  text: Appointment Form
+                                  style: 
+                                    top: "0"
+                                    width: "0.125"
+                                    left: "0.23"
+                                    height: "0.03"
+                                    color: "0x143459"
+                                    fontSize: "1.7vh"
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: left
+                                      y: center
+                            - type: view
+                              style: 
+                                left: "0.025"
+                                top: "0.17"
+                                width: "0.35"
+                                height: "0.13"
+                              children: 
+                                - type: scrollView
+                                  viewTag: reasonTag
+                                  style: 
+                                    top: "0.01"
+                                    width: "0.35"
+                                    height: "0.129"
+                                    overflow: scroll
+                                  children: 
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..formData.reasonForVisit
+                                      iteratorVar: itemObject
+                                      style: 
+                                        width: "0.35"
+                                        top: "0"
+                                        height: "0.129"
+                                        margin: "0"
+                                        left: "0"
+                                      children: 
+                                        - type: listItem
+                                          itemObject: ""
+                                          style: 
+                                            height: "0.035"
+                                            left: ""
+                                            width: "0.3"
+                                          children: 
+                                            - type: label
+                                              dataKey: itemObject.reason
+                                              style: 
+                                                width: "0.1"
+                                                top: "0"
+                                                fontSize: .Nfont.nf2
+                                                color: "0x00000099"
+                                                left: "0"
+                                                textAlign: 
+                                                  x: left
+                                                  y: center
+                                            - type: label
+                                              dataKey: itemObject.duration
+                                              style: 
+                                                width: "0.06"
+                                                height: "0.03"
+                                                top: "0"
+                                                fontSize: .Nfont.nf2
+                                                color: "0x00000099"
+                                                left: "0.14"
+                                                textAlign: 
+                                                  x: left
+                                                  y: center
+                                            - type: select
+                                              # dataKey: itemObject.document
+                                              options: itemObject.document
+                                              style: 
+                                                width: "0.08"
+                                                height: "0.03"
+                                                top: "0"
+                                                fontSize: .Nfont.nf2
+                                                color: "0x00000099"
+                                                left: "0.23"
+                                                border:   
+                                                  style: "3"
+                                                borderRadius: "3"
+                                                borderColor: "0x00000033"
+                                                textAlign: 
+                                                  x: center
+                                            - type: image
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - =.builtIn.array.removeByName:
+                                                          dataIn:
+                                                            object: =..formData.reasonForVisit
+                                                            key: "reason"
+                                                            name: $var.reason
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: reasonTag
+                                                # - actionType: refresh
+                                              path: delete.svg
+                                              style:
+                                                left: "0.325"
+                                                top: "0.005"
+                                                width: "0.012"
+                    - type: popUp
+                      viewTag: documentViewEdit
+                      style: 
+                        left: "0.203"
+                        width: "0.175"
+                        height: "0.25"
+                        top: "0.563"
+                        backgroundColor: "0xffffff"
+                        boxShadow: "0px 0px 1px 2px #f0f0f0" 
+                        zIndex: "1000"
+                      children: 
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formDoc.form
+                          iteratorVar: itemObject
+                          viewTag: docListView1
+                          style:
+                            width: "0.175"   
+                            left: "0"
+                            marginTop: "0.005"
+                            height: "0.27"
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.175"
+                                left: "0"
+                                height: "0.035"
+                                boder: 
+                                  style: "1"
+                              children:
+                                - type: image
+                                  viewTag: selectView
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.array.has:
+                                              dataIn:
+                                                object: =..reasonObj.document
+                                                value: $var.title
+                                          - checkOn.svg
+                                          - checkOff.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions: 
+                                          - if:
+                                            - =.builtIn.array.has:
+                                                dataIn:
+                                                  object: =..reasonObj.document
+                                                  value: $var.title
+                                            - =.builtIn.array.removeByValue:
+                                                dataIn:
+                                                  object: =..reasonObj.document
+                                                  value: $var.title
+                                            - =.builtIn.array.add:
+                                                dataIn:
+                                                  object: =..reasonObj.document
+                                                  value: $var.title
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: docListView1
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: docFieldView1
+                                  style:
+                                    top: "0.0075"
+                                    left: "0.005"
+                                    width: "0.011"
+                                - type: label
+                                  dataKey: itemObject.title
+                                  onClick: 
+                                    - emit: 
+                                        dataKey: 
+                                          var: itemObject
+                                        actions: 
+                                          - .Global.formData.previewFromProvider@: false
+                                          - if: 
+                                            - true
+                                            - goto: $var.pageName                         
+                                            - goto: $var.pageName      
+                                  style:
+                                    top: "0"
+                                    left: "0.024"
+                                    width: "0.15"
+                                    height: "0.035"
+                                    fontFamily: "Raleway"
+                                    fontSize: .Nfont.nf1
+                                    textAlign: 
+                                      y: center
+
+                - type: button
+                  text: 'Save'
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: documentViewEdit
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@: 
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - ..reasonObj.reason@: ""
+                        - ..reasonObj.document@: []                      
+                        - ..visitReason.document.name.data.reasonForVisit@: =..formData.reasonForVisit
+                        - ..room.vertex.name.basicInfo@: =..roomProfile.document.name.data
+                        - ..room.vertex.uid@: =..room.vertex.name.basicInfo.roomId
+                        - .Global.jwt.edge.bvid@: =..room.vertex.id
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..room.vertexAPI.store: ""
+                        - =..visitReason.docAPI.store: ""
+                        - =..roomProfile.docAPI.store: ""
+                        - ..roomListReget.docIn.ids.0@: =..formData.locationTableId
+                        - =..roomListReget.docAPI.get: ""
+                        # - ..formData.tableList@: =..roomListReget.docResp.doc
+                        # - ..roomListReget.docResp.doc@: []
+                        - =.builtIn.array.splitTableList: 
+                            dataIn: 
+                              arrObj: =..roomListReget.docResp.doc
+                              numX: "12"
+                              numY: "1"
+                            dataOut: RoomManagement.formData.tableData
+                        - ..formData.tableList@: =..formData.tableData.0
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..formData.tablePageNum # page num
+                              - " / "
+                              - =..formData.tableData.1 # total page
+                            dataOut: RoomManagement.formData.tableCurrentPage 
+                        - =.builtIn.search.updateEsData:
+                            dataIn:
+                              id: =..room.vertex.id
+                              type: '655363'
+                            dataOut: RoomManagement.formData.res
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableView
+                    - actionType: builtIn 
+                      funcName: redraw
+                      viewTag: tableFooter 
+                    - actionType: popUpDismiss
+                      popUpView: editRoomView
+                  style:
+                    width: "0.16"
+                    height: "0.05"
+                    borderRadius: "3"
+                    left: '0.12'
+                    top: "0.93"
+                    backgroundColor: '#005795'
+                    color: '0xffffff'
+        # Add Room
+        - type: popUp
+        # - type: view
+          style: 
+            width: '1' 
+            height: '1'
+            top: '0'
+            left: '0'     
+            backgroundColor: '0x00000033'
+            zIndex: "10"
+          viewTag: addRoomView
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                top: "0"
+                height: "1"
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Add New Room'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..reasonObj.reason@: ""
+                            - ..reasonObj.document@: []                      
+                        - actionType: popUpDismiss
+                          popUpView: addRoomView
+                        - actionType: popUpDismiss
+                          popUpView: documentView1
+                - type: scrollView
+                  viewTag: addView
+                  style:
+                    height: '0.84'
+                    width: '0.4'
+                    top: '0.08'
+                    backgroundColor: '0xffffff'
+                    overflow: scroll
+                  children:
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.425" 
+                        # backgroundColor: "0xcdcdcd"
+                      children: 
+                        - type: label
+                          text: Basic Info
+                          style: 
+                            left: "0.025"
+                            marginTop: "0.04"
+                            width: "0.4"
+                            height: "0.04"
+                            fontSize: .Nfont.nf5
+                            color: "0x7f7f7f"
+                            fontFamily: Poppins
+                        - .ProdManageView:
+                          style: 
+                            marginTop: "0"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Location
+                            - type: select
+                              dataKey: formData.address
+                              options: 
+                                ..formData.addressName
+                              onChange: 
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.matchInArray:
+                                        dataIn:
+                                          arr: =.Global.locationAll
+                                          value: =..formData.address
+                                          key: medicalFacilityName
+                                          key1: "id"
+                                        dataOut: RoomManagement.formData.locationId
+                                    - =.builtIn.array.matchInArray:
+                                        dataIn:
+                                          arr: =.Global.locationAll
+                                          value: =..formData.address
+                                          key: medicalFacilityName
+                                          key1: "locationID"
+                                        dataOut: RoomManagement.formData.locationOwnId
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          style: 
+                            marginTop: "0.02"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Room Name
+                            - type: textField
+                              placeholder: Enter Here
+                              dataKey: room.vertex.name.basicInfo.roomName
+                              onTextChange:
+                                - actionType: evalObject
+                                  object:  
+                                    - =.builtIn.string.generateID:
+                                        dataIn: 
+                                          facilityID: ""
+                                          locationID: =..formData.locationOwnId
+                                          roomID: =..room.vertex.name.basicInfo.roomName
+                                        dataOut: RoomManagement.room.vertex.name.basicInfo.roomId
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: roomIDView
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          viewTag: roomIDView
+                          style: 
+                            marginTop: "0.02"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Room ID
+                            - type: textField
+                              placeholder: "Enter Here"
+                              dataKey: room.vertex.name.basicInfo.roomId
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          style: 
+                            marginTop: "0.02"
+                            height: "0.07"
+                          children: 
+                            - .RoomManageLabel:
+                              text: Service Type
+                            - type: select
+                              dataKey: room.vertex.name.basicInfo.service
+                              options: 
+                                # - Telemedicine
+                                # - Office Visit
+                                - COVID-19 Testing
+                                - COVID-19 Vaccine
+                                - Flu Shot
+                              onChange: 
+                                - actionType: popUpDismiss
+                                  popUpView: documentView1
+                              style:
+                                width: "0.35"
+                                left: "0.025"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                    - type: view
+                      viewTag: visitReasonView
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.37" 
+                      children:
+                        - type: label
+                          text: Reason for Visit
+                          style: 
+                            left: "0.025"
+                            marginTop: "0"
+                            width: "0.35"
+                            height: "0.04"
+                            fontSize: .Nfont.nf5
+                            color: "0x7f7f7f"
+                            fontFamily: Poppins
+                        - type: view
+                          style:
+                            height: "0.3"
+                            width: "0.3"
+                            marginTop: "0.015"
+                            left: "0"
+                          children: 
+                            - type: textView
+                              placeholder: Select your form
+                              dataKey: reasonObj.document
+                              viewTag: docFieldView1
+                              isEditable: false
+                              # onClick: 
+                              #   - actionType: popUp
+                              #     popUpView: documentView1
+                              style: 
+                                left: "0.203"
+                                top: "0"
+                                width: "0.175"
+                                height: "0.04"
+                                border: 
+                                  style: "3"
+                                borderColor: "0x00000066"
+                                borderWidth: "1"
+                                borderRadius: "5"
+                                boxSizing: border-box
+                                backgroundColor: "0xffffff"
+                                fontFamily: Poppins
+                                zIndex: "100"
+                                textAlign: 
+                                  y: center
+                            - type: view
+                              # placeholder: Select your form
+                              # dataKey: reasonObj.document
+                              # viewTag: docFieldView1
+                              # # isEditable: false
+                              onClick: 
+                                - actionType: evalObject
+                                  object:
+                                    # - if:
+                                    #   - =.builtIn.string.equal:
+                                    #       dataIn:
+                                    #         string1: =.RoomManagement.room.vertex.name.basicInfo.service
+                                    #         string2: "Flu Shot"
+                                    #   - ..formDoc.form@: =..formDoc.formFlu                 
+                                      - ..formDoc.form@: =..formDoc.formCov  
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: docListView1                                                       
+                                - actionType: popUp
+                                  popUpView: documentView1
+
+                              style: 
+                                left: "0.203"
+                                top: "0"
+                                width: "0.175"
+                                height: "0.04"
+                                border: 
+                                  style: "3"
+                                borderColor: "0x00000066"
+                                borderWidth: "1"
+                                borderRadius: "5"
+                                boxSizing: border-box
+                                zIndex: "101"
+                                textAlign: 
+                                  y: center
+                            - type: view
+                              onClick: 
+                                - actionType: popUpDismiss
+                                  popUpView: documentView1                               
+                              style: 
+                                top: "0"
+                                width: "0.3"
+                                left: "0"
+                                height: "0.13"
+                                backgroundColor: "0xffffff"
+                                zIndex: "10"
+                              children: 
+                                - type: textField
+                                  placeholder: Enter your reason here
+                                  dataKey: reasonObj.reason
+                                  style: 
+                                    left: "0.025"
+                                    top: "0"
+                                    width: "0.1"
+                                    height: "0.04"
+                                    border: 
+                                      style: "3"
+                                    borderColor: "0x00000066"
+                                    borderWidth: "1"
+                                    borderRadius: "5"
+                                    boxSizing: border-box
+                                    zIndex: "100"
+                                    textAlign: 
+                                      y: center
+                                - type: select
+                                  placeholder: Select
+                                  dataKey: reasonObj.duration
+                                  options: 
+                                    .Duration
+                                  style: 
+                                    left: "0.14"
+                                    top: "0"
+                                    width: "0.05"
+                                    height: "0.04"
+                                    border: 
+                                      style: "3"
+                                    borderColor: "0x00000066"
+                                    borderWidth: "1"
+                                    borderRadius: "5"
+                                    boxSizing: border-box
+                                - type: button
+                                  text: Create
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - ..reasonObj.reason
+                                          - continue
+                                          - actionType: popUp
+                                            popUpView: reasonNullView
+                                            wait: true                                  
+                                    - emit:
+                                        actions:
+                                          - =.builtIn.array.add:
+                                              dataIn:
+                                                object: =..visitReason.document.name.data.reasonForVisit
+                                                value: =..reasonObj        
+                                          - ..reasonObj.reason@: ""
+                                          - ..reasonObj.duration@: "5 min"
+                                          - ..reasonObj.document@: []       
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: visitReasonView
+                                  style: 
+                                    left: "0.15"
+                                    top: "0.075"
+                                    width: "0.1"
+                                    height: "0.04"
+                                    fontSize: .Nfont.nf0
+                                    color: "0xffffff"
+                                    backgroundColor: "0x3ab65c"
+                                    border: 
+                                      style: "3"
+                                    borderColor: "0x3ab65c"
+                                    borderWidth: "1"
+                                    borderRadius: "5"  
+                                    textAlign:
+                                      x: center  
+                            - type: view
+                              style: 
+                                left: "0.025"
+                                top: "0.14"
+                                width: "0.35"
+                                height: "0.05"
+                              children: 
+                                - type: label
+                                  text: Reason for Visit
+                                  style: 
+                                    top: "0"
+                                    width: "0.1"
+                                    left: "0"
+                                    height: "0.03"
+                                    color: "0x143459"
+                                    fontSize: "1.7vh"
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: left
+                                      y: center
+                                - type: label
+                                  text: Duration
+                                  style: 
+                                    top: "0"
+                                    width: "0.05"
+                                    left: "0.14"
+                                    height: "0.03"
+                                    color: "0x143459"
+                                    fontSize: "1.7vh"
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: left
+                                      y: center
+                                - type: label
+                                  text: Appointment Form
+                                  style: 
+                                    top: "0"
+                                    width: "0.125"
+                                    left: "0.23"
+                                    height: "0.03"
+                                    color: "0x143459"
+                                    fontSize: "1.7vh"
+                                    fontWeight: "500"
+                                    textAlign: 
+                                      x: left
+                                      y: center
+                            - type: view
+                              style: 
+                                left: "0.025"
+                                top: "0.17"
+                                width: "0.3"
+                                height: "0.13"
+                              children: 
+                                - type: scrollView
+                                  viewTag: reasonTag
+                                  style: 
+                                    top: "0.01"
+                                    width: "0.35"
+                                    height: "0.129"
+                                    overflow: scroll
+                                  children: 
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..visitReason.document.name.data.reasonForVisit
+                                      iteratorVar: itemObject
+                                      style: 
+                                        width: "0.35"
+                                        top: "0"
+                                        height: "0.129"
+                                        margin: "0"
+                                        left: "0"
+                                      children: 
+                                        - type: listItem
+                                          itemObject: ""
+                                          style: 
+                                            height: "0.035"
+                                            left: ""
+                                            width: "0.3"
+                                          children: 
+                                            - type: label
+                                              dataKey: itemObject.reason
+                                              style: 
+                                                width: "0.1"
+                                                top: "0"
+                                                fontSize: .Nfont.nf2
+                                                color: "0x00000099"
+                                                left: "0"
+                                                textAlign: 
+                                                  x: left
+                                                  y: center
+                                            - type: label
+                                              dataKey: itemObject.duration
+                                              style: 
+                                                width: "0.06"
+                                                height: "0.03"
+                                                top: "0"
+                                                fontSize: .Nfont.nf2
+                                                color: "0x00000099"
+                                                left: "0.14"
+                                                textAlign: 
+                                                  x: left
+                                                  y: center
+                                            - type: select
+                                              # dataKey: itemObject.document
+                                              options: itemObject.document
+                                              style: 
+                                                width: "0.08"
+                                                height: "0.03"
+                                                top: "0"
+                                                fontSize: .Nfont.nf2
+                                                color: "0x00000099"
+                                                left: "0.23"
+                                                border:   
+                                                  style: "3"
+                                                borderRadius: "3"
+                                                borderColor: "0x00000033"
+                                                textAlign: 
+                                                  x: center
+                                            - type: image
+                                              onClick:
+                                                - emit:
+                                                    dataKey:
+                                                      var: itemObject
+                                                    actions:
+                                                      - =.builtIn.array.removeByName:
+                                                          dataIn:
+                                                            object: =..visitReason.document.name.data.reasonForVisit
+                                                            key: "reason"
+                                                            name: $var.reason
+                                                - actionType: builtIn
+                                                  funcName: redraw
+                                                  viewTag: reasonTag
+                                                # - actionType: refresh
+                                              path: delete.svg
+                                              style:
+                                                left: "0.325"
+                                                top: "0.005"
+                                                width: "0.012"
+                    - type: popUp
+                      viewTag: documentView1
+                      style: 
+                        left: "0.203"
+                        width: "0.175"
+                        height: "0.25"
+                        top: "0.563"
+                        backgroundColor: "0xffffff"
+                        boxShadow: "0px 0px 1px 2px #f0f0f0" 
+                        zIndex: "1000"
+                      children: 
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formDoc.form
+                          iteratorVar: itemObject
+                          viewTag: docListView1
+                          style:
+                            width: "0.175"   
+                            left: "0"
+                            marginTop: "0.005"
+                            height: "0.27"
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.175"
+                                left: "0"
+                                height: "0.035"
+                                boder: 
+                                  style: "1"
+                              children:
+                                - type: image
+                                  viewTag: selectView
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:                        
+                                        - if:
+                                          - =.builtIn.array.has:
+                                              dataIn:
+                                                object: =..reasonObj.document
+                                                value: $var.title
+                                          - checkOn.svg
+                                          - checkOff.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions: 
+                                          - if:
+                                            - =.builtIn.array.has:
+                                                dataIn:
+                                                  object: =..reasonObj.document
+                                                  value: $var.title
+                                            - =.builtIn.array.removeByValue:
+                                                dataIn:
+                                                  object: =..reasonObj.document
+                                                  value: $var.title
+                                            - =.builtIn.array.add:
+                                                dataIn:
+                                                  object: =..reasonObj.document
+                                                  value: $var.title
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: docListView1
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: docFieldView1
+                                  style:
+                                    top: "0.0075"
+                                    left: "0.005"
+                                    width: "0.011"
+                                - type: label
+                                  dataKey: itemObject.title
+                                  onClick: 
+                                    - emit: 
+                                        dataKey: 
+                                          var: itemObject
+                                        actions: 
+                                          - .Global.formData.previewFromProvider@: false
+                                          - if: 
+                                            - true
+                                            - goto: $var.pageName                         
+                                            - goto: $var.pageName                              
+                                  style:
+                                    top: "0"
+                                    left: "0.024"
+                                    width: "0.15"
+                                    height: "0.035"
+                                    fontFamily: "Raleway"
+                                    fontSize: .Nfont.nf1
+                                    textAlign: 
+                                      y: center
+              
+                - type: button
+                  text: 'Create'
+                  onClick:
+                    - actionType: evalObject
+                      object: 
+                        .Global._nonce@: 
+                          =.builtIn.math.random: ""
+                    - actionType: popUp
+                      popUpView: loadingTag                           
+                    - actionType: evalObject
+                      object: 
+                        - ..reasonObj.reason@: ""
+                        - ..reasonObj.document@: []                            
+                        - .Global.jwt.edge.bvid@: =..formData.locationId
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - ..setLocation.docResp.doc@: []
+                        - ..visitReason.docResp.doc@: []
+                        - ..setLocation.docIn.id@: =..formData.locationId
+                        - =..setLocation.docAPI.get: ""
+                        - ..setLocation.document@: =..setLocation.docResp.doc.0
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..setLocation.document.name.data.basicInfo.service
+                              value: =..room.vertex.name.basicInfo.service
+                        - =.builtIn.array.elementUnique: 
+                            dataIn: 
+                              arr: =..setLocation.document.name.data.basicInfo.service
+                            dataOut: RoomManagement.setLocation.document.name.data.basicInfo.service
+                        - =..setLocation.docAPI.store: ""
+                        - ..room.vertex.uid@: =..room.vertex.name.basicInfo.roomId
+                        - if: 
+                          - =.builtIn.string.equal: 
+                              dataIn: 
+                                string1: =..room.vertex.name.basicInfo.service
+                                string2: "COVID-19 Testing"
+                          - ..room.vertex.name.basicInfo.serviceType@: "655363"
+                          - continue
+                        - if: 
+                          - =.builtIn.string.equal: 
+                              dataIn: 
+                                string1: =..room.vertex.name.basicInfo.service
+                                string2: "COVID-19 Vaccine"
+                          - ..room.vertex.name.basicInfo.serviceType@: "393219"
+                          - continue
+                        - if: 
+                          - =.builtIn.string.equal: 
+                              dataIn: 
+                                string1: =..room.vertex.name.basicInfo.service
+                                string2: "Flu Shot"
+                          - ..room.vertex.name.basicInfo.serviceType@: "786435"
+                          - continue                          
+                        - .Global.jwt.edge.bvid@: =..formData.locationId
+                        - =.Global.jwt.edgeAPI.store: ""
+                        - =..room.vertexAPI.store: ""
+                        - ..formData.locationStatus@: =..room.resp.code
+                    - actionType: evalObject
+                      object:    
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.locationStatus
+                                string2: -1
+                          - actionType: popUpDismiss
+                            popUpView: loadingTag
+                          - continue  
+                    - actionType: evalObject
+                      object:                                                                   
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.locationStatus
+                                string2: -1
+                          - actionType: popUp
+                            popUpView: roomIDTag
+                            wait: true
+                          - continue
+                    - actionType: evalObject
+                      object:                          
+                        - .Global.jwt.edge.bvid@: =..room.resp.data.vertex.id
+                        - =.Global.jwt.edgeAPI.store: ""
+                        
+                        - ..roomProfile.document.eid@: =..room.resp.data.vertex.deat.rnb64ID
+                        - ..visitReason.document.eid@: =..room.resp.data.vertex.deat.rnb64ID
+                        - ..roomProfile.document.name.data@: =..room.resp.data.vertex.name.basicInfo
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - "search.aitmed.com/"
+                              - =..roomProfile.document.name.data.roomId
+                            dataOut: RoomManagement.roomProfile.document.name.data.roomLink
+                        - =..roomProfile.docAPI.store: ""
+                        - =..visitReason.docAPI.store: ""
+
+                        - =.builtIn.search.updateEsData:
+                            dataIn:
+                              id: =..room.resp.data.vertex.id
+                              type: '655363'
+                            dataOut: RoomManagement.formData.res
+                    - actionType: popUpDismiss
+                      popUpView: loadingTag
+                    - actionType: popUp
+                      popUpView: successView
+                    - actionType: popUpDismiss
+                      popUpView: addRoomView
+                    - actionType: popUpDismiss
+                      popUpView: documentView1
+                  style:
+                    width: "0.16"
+                    height: "0.05"
+                    borderRadius: "3"
+                    left: '0.12'
+                    top: "0.93"
+                    backgroundColor: '#005795'
+                    color: '0xffffff'
+
+        - type: popUp
+          style: 
+            width: '1' 
+            height: '1'
+            top: '0'
+            left: '0'     
+            backgroundColor: '0x00000033'
+            zIndex: "10"
+          viewTag: successView
+          children:
+            - type: view
+              style:
+                left: "0.6"
+                width: "0.4"
+                top: "0"
+                height: "1"
+                backgroundColor: "0xffffff"
+              children:
+                - .PopUphead:
+                  children:
+                    - .CreateLabel:
+                      text: 'Create a new Room'
+                    - .Closebutton:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: successView
+                - type: scrollView
+                  viewTag: addView
+                  style:
+                    height: '0.76'
+                    width: '0.4'
+                    top: '0.08'
+                    backgroundColor: '0xffffff'
+                    overflow: scroll
+                  children:
+                    - type: image
+                      path: popUpSuccess.svg
+                      style: 
+                        left: "0.165"
+                        width: "0.07"
+                        marginTop: "0.1"
+                    - type: label
+                      text: Success!
+                      style: 
+                        left: "0.1"
+                        width: "0.2"
+                        marginTop: "0.02"
+                        height: "0.1"
+                        fontSize: "4.5vh"
+                        fontFamily: poppins
+                        fontWeight: "700"
+                        color: "0x4b4b4b"
+                        textAlign: 
+                          x: center
+                    - type: label
+                      textBoard: 
+                        - text: Please don't forget to set 
+                        - br: 
+                        - text: the room schedule availability.
+                      style: 
+                        left: "0"
+                        width: "0.4"
+                        marginTop: "0.03"
+                        height: "0.1"
+                        fontSize: .Nfont.nf4
+                        fontFamily: poppins
+                        fontWeight: "500"
+                        color: "0x575757"
+                        textAlign: 
+                          x: center
+                - type: button
+                  text: Go to set room schedule
+                  style:
+                    width: "0.2"
+                    left: "0.1"
+                    height: "0.05"
+                    top: "0.85"
+                    color: "0xffffff"
+                    backgroundColor: "#005795"
+                    fontSize: .Nfont.nf3
+                    border:
+                      style: "3"
+                      color: "#005795"
+                    borderRadius: "5"
+                  onClick:
+                    - actionType: evalObject
+                      object: 
+                        - .Global.locationId@: =..formData.locationId
+                        - .Global.acceptInfo@: =..roomProfile.docStoreResp.doc
+                        - .Global.formData.service@: =..roomProfile.docStoreResp.doc.name.data.service
+                        - .Global.formData.serviceType@: =..roomProfile.docStoreResp.doc.name.data.serviceType
+                    - actionType: popUpDismiss
+                      popUpView: successView
+                    - goto: SchduleSettingRoom
+                - type: button
+                  text: set it later
+                  style:
+                    width: "0.2"
+                    left: "0.1"
+                    height: "0.05"
+                    top: "0.9"
+                    color: "0x575757"
+                    backgroundColor: "0xffffff"
+                    fontSize: .Nfont.nf3
+                    fontWeight: "600"
+                    fontFamily: poppins
+                    border:
+                      style: "1"
+                  onClick:
+                    - actionType: evalObject
+                      object: 
+                        - ..formData.address@: =.Global.locationAll.0.medicalFacilityName
+                        - ..room.vertex.name.basicInfo.roomId@: ""
+                        - ..room.vertex.name.basicInfo.roomName@: ""
+                        - ..room.vertex.name.basicInfo.roomId@: ""
+                        - ..room.vertex.name.basicInfo.service@: ""
+                        - ..roomListReget.docIn.ids.0@: =..formData.locationTableId
+                        # - .Global.jwt.edge.bvid@: =..formData.locationTableId
+                        # - =.Global.jwt.edgeAPI.store: ""
+                        - =..roomListReget.docAPI.get: ""
+                        # - ..formData.tableList@: =..roomListReget.docResp.doc
+                        # - ..roomListReget.docResp.doc@: []
+                        - =.builtIn.array.splitTableList: 
+                            dataIn: 
+                              arrObj: =..roomListReget.docResp.doc
+                              numX: "12"
+                              numY: "1"
+                            dataOut: RoomManagement.formData.tableData
+                        - ..formData.tableList@: =..formData.tableData.0
+                        - =.builtIn.string.concat:
+                            dataIn:
+                              - =..formData.tablePageNum # page num
+                              - " / "
+                              - =..formData.tableData.1 # total page
+                            dataOut: RoomManagement.formData.tableCurrentPage  
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: tableView
+                    - actionType: builtIn 
+                      funcName: redraw
+                      viewTag: tableFooter                                                    
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: addRoomView
+                    - actionType: popUpDismiss
+                      popUpView: successView
+        - .LoadingPopUpView: 
+          viewTag: loadingTag

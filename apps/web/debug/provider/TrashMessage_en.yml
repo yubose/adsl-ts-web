@@ -1,0 +1,434 @@
+TrashMessage:
+  pageNumber: "220"
+  title: "Message"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    #获取附件
+    - ..apiRequest.attachment.docAPI.get
+  requestListHidden: "true"
+  subject: ""
+  inboxFolder: ""
+  apiRequest:
+    #get attachment
+    attachment:
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.Attachment
+        id: .Global.email.id
+        xfname: reid
+        obfname: "ctime"
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: TrashMessage.apiRequest.attachment.docQueryReq
+          dataOut: TrashMessage.apiRequest.attachment.docQueryResp
+    emailTag:
+      docQueryResp: ""
+      docQueryReq:
+        sCondition: type & 0xFF00 = 0xE00
+        ids:
+          - .Global.rootNotebookID
+          - .Global.email.id
+        xfname: eid,reid
+        _nonce: =.Global._nonce
+      docCreateResp: ""
+      docCreateReq:
+        type: .DocType.MailTag
+        eid: .Global.rootNotebookID
+        name:
+          data: ""
+        reid: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: TrashMessage.apiRequest.emailTag.docQueryReq
+          dataOut: TrashMessage.apiRequest.emailTag.docQueryResp
+        store:
+          api: cd
+          dataIn: TrashMessage.apiRequest.emailTag.docCreateReq
+          dataOut: TrashMessage.apiRequest.emailTag.docCreateResp
+  components:
+    - .BaseHeader:
+    - .HeaderLeftImg:
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+      path: whiteLeft.svg
+    - type: view
+      style:
+        width: "1"
+        height: "0.8"
+        top: "0.1"
+        left: "0"
+        display: "block"
+      viewTag: funbar
+      children:
+        - type: view
+          style:
+            width: "1"
+            left: "0"
+            height: "0.15"
+            zIndex: "10"
+            border:
+              style: "2"
+            borderColor: "0xe9e9eb"
+            borderWidth: "1"
+            position: "relative"
+          children:
+            - type: label
+              text=func: .builtIn.string.formatUnixtime_en
+              dataKey: Global.email.ctime
+              style:
+                top: "0.02"
+                height: "0.02"
+                width: "0.34"
+                textAlign:
+                  y: center
+                left: "0.05"
+                fontSize: .Nfont.h12
+                color: "0xBCC5D3"
+            - type: label
+              dataKey: Global.email.name.title
+              style:
+                fontSize: "21"
+                fontWeight: "500"
+                left: "0.05"
+                top: "0.045"
+                width: "0.9"
+            - type: label
+              text: "From:"
+              style:
+                left: "0.05"
+                top: "0.085"
+                height: "0.035"
+                fontSize: "15"
+                textAlign:
+                  x: left
+            - type: label
+              text: Blair Zhang
+              dataKey: Global.email.name.data.senderName
+              style:
+                fontSize: "15"
+                fontWeight: "450"
+                height: "0.035"
+                width: "0.6"
+                color: "0xBCC5D3"
+                left: "0.2"
+                top: "0.085"
+                textAlign:
+                  x: left
+            - type: label
+              text: "To:"
+              style:
+                left: "0.05"
+                top: "0.115"
+                height: "0.035"
+                fontSize: "15"
+                textAlign:
+                  x: left
+            - type: label
+              text:
+              dataKey: Global.email.name.data.receiverName
+              style:
+                fontSize: "15"
+                fontWeight: "450"
+                height: "0.035"
+                width: "0.6"
+                color: "0xBCC5D3"
+                left: "0.2"
+                top: "0.115"
+                textAlign:
+                  x: left
+        # - type: image
+        #   viewTag: select
+        #   path:
+        #     emit:
+        #       actions:
+        #         - if:
+        #           - =.builtIn.number.typeIsValid:
+        #               dataIn:
+        #                 docType: =..apiRequest.emailTag.docQueryResp.doc.0.type
+        #                 localArr: [3]
+        #                 binaryArr: [1]
+        #           - providerOn.svg
+        #           - providerOff.svg
+        #   onClick:
+
+        #     - actionType: evalObject
+        #       object:
+        #         - actionType: evalObject
+        #           object:
+        #             .Global._nonce@:
+        #               =.builtIn.math.random: ""
+        #         #修改start的内容
+        #         - if:
+        #           - =..apiRequest.emailTag.docQueryResp.doc
+        #           - ..apiRequest.emailTag.docCreateReq@: =..apiRequest.emailTag.docQueryResp.doc.0
+        #           - continue
+        #         - =.builtIn.number.inhx:
+        #             dataIn:
+        #               intHex: =..apiRequest.emailTag.docCreateReq.type
+        #               index: 3
+        #               hex: =..isStar
+        #             dataOut: TrashMessage.apiRequest.emailTag.docCreateReq.type
+        #         - =..apiRequest.emailTag.docAPI.store: ""
+        #     - actionType: evalObject
+        #       object:
+        #         - .TrashMessage.apiRequest.emailTag.docQueryResp.doc@: []
+        #         - =.builtIn.array.add:
+        #             dataIn:
+        #               object: =.TrashMessage.apiRequest.emailTag.docQueryResp.doc
+        #               value: =.TrashMessage.apiRequest.emailTag.docCreateResp.doc
+        #         - if:
+        #           - =..isStar
+        #           - ..isStar@: 0
+        #           - ..isStar@: 1
+        #         - actionType: evalObject
+        #           object:
+        #             .Global._nonce@:
+        #               =.builtIn.math.random: ""
+        #     - actionType: builtIn
+        #       funcName: redraw
+        #       viewTag: select
+        #   style:
+        #     height: "0.025"
+        #     left: "0.88"
+        #     top: "0.09"
+        #     zIndex: "100"
+        - type: view
+          style:
+            top: "0.16"
+            left: "0"
+            width: "1"
+            height: "0.42"
+          children:
+            - type: textView
+              isEditable: "false"
+              dataKey: Global.email.name.data.content
+              style:
+                top: "0.01"
+                width: "0.9"
+                left: "0.05"
+                fontFamily: "Verdana"
+                fontSize: .Nfont.h14
+                height: "0.4"
+                backgroundColor: "0xffffff"
+                color: "0x757575"
+                fontWeight: 300
+                # isEditable: "false"
+                border:
+                  style: "2"
+                  color: "0xEFEFEF"
+                  width: "1"
+
+        - type: scrollView
+          style:
+            top: "0.57"
+            width: "1"
+            height: "0.22"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..apiRequest.attachment.docQueryResp.doc
+              iteratorVar: itemObject
+              style:
+                left: "0"
+                top: "0.01"
+                width: "1"
+                height: "auto"
+                backgroundColor: "0xffffff"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    marginTop: "0.001"
+                    left: "0"
+                    width: "1"
+                    height: "0.055"
+                  onClick:
+                    - actionType: updateObject
+                      dataKey: Global.showAttachment
+                      dataObject: itemObject
+                    - goto: ShowAttachment
+                  children:
+                    - type: view
+                      style:
+                        top: "0.001"
+                        left: "0.05"
+                        width: "0.9"
+                        height: "0.05"
+                        backgroundColor: "0xf8f9fa"
+                        borderWidth: "1"
+                        borderRadius: "10"
+                        border:
+                          style: "1"
+                      children:
+                        - type: image
+                          path: blackAttachment.svg
+                          style:
+                            top: "0.01"
+                            height: "0.03"
+                            left: "0.03"
+                        - type: label
+                          dataKey: itemObject.name.title #需要加name.type
+                          style:
+                            top: "0.01"
+                            height: "0.03"
+                            width: "0.45"
+                            left: "0.13"
+                            overflow: hidden
+                            textOverflow: ellipsis
+                            whiteSpace: nowrap
+                            fontSize: .Nfont.h2
+                        - type: label
+                          text=func: .builtIn.string.bitFormatting
+                          dataKey: itemObject.size
+                          style:
+                            top: "0.01"
+                            height: "0.03"
+                            width: "0.3"
+                            left: "0.72"
+                            fontSize: .Nfont.h2
+                            textAlign:
+                              x: right
+                            color: "0xbcc5d3"
+    - type: view
+      style:
+        top: "0.9"
+        width: "1"
+        height: "0.1"
+        left: "0"
+        boxShadow: "0 -2px 3px -1px #7070702a"
+        # textAlign:
+        #   y: center
+      children:
+        # - type: image
+        #   path: trash.svg
+        #   onClick:
+        #     - actionType: evalObject
+        #       object:
+        #         - actionType: evalObject
+        #           object:
+        #             .Global._nonce@:
+        #               =.builtIn.math.random: ""
+        #         - =..apiRequest.emailTag.docAPI.get: ""
+        #         - ..apiRequest.emailTag.docCreateReq@: =..apiRequest.emailTag.docQueryResp.doc.0
+        #         - =.builtIn.number.inhx:
+        #             dataIn:
+        #               intHex: =..apiRequest.emailTag.docCreateReq.type
+        #               index: 4
+        #               hex: 1
+        #             dataOut: TrashMessage.apiRequest.emailTag.docCreateReq.type
+        #         - =..apiRequest.emailTag.docAPI.store: ""
+        #     - goto: Trash
+        #   style:
+        #     left: "0.12"
+        #     top: "0.03"
+        #     height: "0.04"
+        - type: image
+          path: inboxDelete.svg
+          onClick:
+            - actionType: popUp
+              popUpView: ConfirmWarningPopup
+          style:
+            top: "0.03"
+            left: "0.2"
+            width: "0.2"
+        - type: image
+          path: recover.svg
+          onClick:
+            - actionType: popUp
+              popUpView: simplePopup
+          style:
+            top: "0.03"
+            left: "0.6"
+            width: "0.2"
+    - type: popUp
+      message: "Permanently delete the message ?"
+      viewTag: ConfirmWarningPopup
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - .ConfirmWarningPopupView:
+          children:
+            - .ConfirmWarningPopupHeader:
+            - .ConfirmWarningPopupMessage:
+            - .ConfirmWarningPopupSplit1:
+            - .ConfirmWarningPopupSplit2:
+            - .ConfirmWarningPopupLeftButton:
+            - .ConfirmWarningPopupRightButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - =..apiRequest.emailTag.docAPI.get: ""
+                    - ..apiRequest.emailTag.docCreateReq@: =..apiRequest.emailTag.docQueryResp.doc.0
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.emailTag.docCreateReq.type
+                          index: 5
+                          hex: 1
+                        dataOut: TrashMessage.apiRequest.emailTag.docCreateReq.type
+                    - =..apiRequest.emailTag.docAPI.store: ""
+                - actionType: popUpDismiss
+                  popUpView: ConfirmWarningPopup
+                - actionType: popUp
+                  popUpView: deleteTruePopUp
+                  wait: true
+    - type: popUp
+      message: "Are you sure you want to recover the message?"
+      viewTag: simplePopup
+      style:
+        width: "1"
+        height: "1"
+        top: "0"
+        left: "0"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - .simplePopupView:
+          children:
+            - .simplePopupLable:
+            - .simplePopupSplit1:
+            - .simplePopupSplit2:
+            - .simplePopupLeftButton:
+            - .simplePopupRightButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - =..apiRequest.emailTag.docAPI.get: ""
+                    - ..apiRequest.emailTag.docCreateReq@: =..apiRequest.emailTag.docQueryResp.doc.0
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.emailTag.docCreateReq.type
+                          index: 4
+                          hex: 0
+                        dataOut: TrashMessage.apiRequest.emailTag.docCreateReq.type
+                    - =..apiRequest.emailTag.docAPI.store: ""
+                - actionType: popUpDismiss
+                  popUpView: simplePopup
+                - goto: Trash
+    - .BaseMessageWarnPopup:
+      viewTag: deleteTruePopUp
+      message: Delete Successful!
+      imagePath: deleteTrue.svg
+      onClick:
+        - goto: Trash

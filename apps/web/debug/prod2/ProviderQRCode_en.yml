@@ -1,0 +1,131 @@
+ProviderQRCode:
+  title: "Provider QR Code"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - '{"userName": "'
+              - =.Global.formData.currentProviderQRCode.name.data.fullName
+              - '","id":"'
+              - =.Global.formData.currentProviderQRCode.bsig
+              - '","uid": "'
+              - =.Global.formData.currentProviderQRCode.name.data.phone
+              - '","identify": 10'
+              - ',"function": 10'
+              - "}"
+            dataOut: ProviderQRCode.formData.imagepath
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - =.Global.formData.currentProviderQRCode.name.data.fullName
+              - "&nbsp;-&nbsp;"
+              - =.Global.formData.currentProviderQRCode.name.data.title
+            dataOut: ProviderQRCode.formData.providerTitle            
+  formData:
+    imagepath: ""
+    providerTitle: ""
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+        - actionType: updateObject
+          dataKey: Global.formData.currentProviderQRCode
+          dataObject: {}
+    - .HeaderRightButton:
+      text: Save
+      onClick:
+        - actionType: evalObject
+          object:
+            - =.builtIn.downloadQRCode:
+                dataIn:
+                  content: =..formData.imagepath
+                  scale: 12
+                  viewTag: saveQRCodeTag
+            - actionType: popUp
+              popUpView: successTag                  
+    - type: scrollView
+      viewTag: saveQRCodeTag
+      style:
+        top: "0.1"
+        left: "0.04"
+        height: "0.88"
+        width: "0.92"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            marginTop: "0.12"
+            height: "0.548"
+            width: "0.92"
+            backgroundColor: "0xf0f0f0"
+            borderRadius: "10"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.022"
+                marginLeft: "0.048"
+                width: "auto"
+                height: "auto"
+                overflow: hidden
+              children:
+                - type: view
+                  style:
+                    display: "inline-block"
+                    height: "auto"
+                    width: "0.16"
+                    borderRadius: "5"
+                    overflow: hidden
+                    verticalAlign: middle
+                  children:
+                    - type: image
+                      path: providerImage.svg
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      dataKey: Global.formData.currentProviderQRCode.name.data.avatar
+                      style:
+                        verticalAlign: middle
+                        height: "0.0738"
+                        width: "0.16"
+                - type: label
+                  dataKey: formData.providerTitle
+                  style:
+                    display: "inline-block"
+                    height: "auto"
+                    width: "auto"
+                    maxWidth: "0.61"
+                    marginLeft: "0.045"
+                    verticalAlign: middle
+                    fontWeight: "700"
+                    color: "0x4b4b4b"
+                    fontSize: .Nfont.h16
+
+            - type: image
+              contentType: QRCode
+              dataKey: formData.imagepath
+              style:
+                marginLeft: "0.048"
+                marginTop: "0.016"
+                height: "0.379"
+                width: "0.821"
+                box-sizing: "border-box"
+
+            - type: label
+              text: Scan the QR code to view Schedule Profile
+              dataKey:
+              style:
+                marginTop: "0.016"
+                width: "0.92"
+                color: "0x4b4b4b"
+                fontSize: .Nfont.h12
+                fontWeight: "400"
+                textAlign:
+                  x: center
+    - .SuccessfulOneLine:
+      message: Save Successfully!
+      viewTag: successTag

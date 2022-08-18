@@ -1,0 +1,87 @@
+FAQs:
+  pageNumber: "470" # xd page 41
+  title: "FAQs"
+  viewPort: top
+  components: 
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - goto: MenuBars
+    - type: scrollView
+      style: 
+        left: "0"
+        top: "0.1"
+        width: "1"
+        height: "0.9"
+        overflow: scroll
+      children:  
+        - type: image
+          path: avatar21919321920.png
+          style:
+            marginTop: "0.02"
+            height: "0.1"
+            left: "0.12"
+        - .FAQsTitle:
+          text: "What is AiTmed?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+          text: "AiTmed is a telemedicine service that makes the process to see a doctor that much easier. We are a company that helps businesses in the medical facility be able to see their patients from home."
+         
+        - .FAQsTitle:
+          text: "How can I use AiTmed?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+          text: "AITmed can be used by medical facilities that takes or would like to take virtual appointments. It is an online platform that securely allows face to to face virtual calls for users to see their current or established doctors with no online documentation. This platform is an easy, convenient, secure way to have non-essential appointment with your provider."
+      
+        - .FAQsTitle:
+          text: "What is blockchain?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+
+          text: "Blockchain technology is most simplified form is an encrypted system that keeps all information in the system safe and unhackable. AiTmed is a blockchain system that is built specifically to guard every users information. To be user safe, AiTmed does not keep track of personal information. We created a separate and different sign up process for the safety of our users. YOUR security and privacy is our top prior Advantages and security" 
+        - .FAQsTitle:
+          text: "How do I recover my password?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+
+          text: "AiTmed hasn’t created a recover password at this time. The best way to never lose track of your account is to continue to write your password multiple times, this is why in our log out stage you must type your password before logging out to help you remember for next time."  
+        - .FAQsTitle:
+          text: "Why does AiTmed have a different sign up process?"
+          style: 
+            marginTop: "0.02"
+            lineHeight: "30px"
+        - .FAQsText:
+
+          text: "AiTmed is a blockchain encrypted system that is built specifically to guard every users information. When an account is created that name, number and password is only known to that user. To the user safe, AiTmed does not keep track of personal information. We created a separate and different sign up process for the safety of our users. YOUR security and privacy is our top priority."  
+        - .FAQsTitle:
+          text: "How to sign up with AiTmed?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+
+          text: "To create an account with AiTmed is as easy as using your cell phone number, entering the verification code sent to you and typing in a new username to use. Click the sign up button and you now have a new AiTmed account." 
+        - .FAQsTitle:
+          text: "How to create an appointment?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+
+          text: "An appointment should be created by the office. Under the Invited tab and new appointment will show. Click the appointment and should lead you to a video. Keep track of all your appointments through the history tab." 
+        - .FAQsTitle:
+          text: "Can I invite someone that does not have an AiTmed account?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+
+          text: "Yes a person without an account can be invite but they must create an account to join into the meeting room. AiTmed unfortunately can not allow"
+        - .FAQsTitle:
+          text: "Do you offer 24/7 virtual calls?"
+          style:
+            marginTop: "0.02"
+        - .FAQsText:
+
+          text: "AiTmed does not specially offer 24/7 virtually calls but it allows the doctors office to become longer an larger hours. Schedule an appointment after hours if possible through your medical office today." 
