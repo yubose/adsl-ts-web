@@ -3,6 +3,18 @@ CPTsearch:
   init:
     - .SignInCheck
     - .Global.cptOrMod@: "CPTList"
+    - =.builtIn.object.setPathFromMemory:
+        dataIn:
+          key: CPTisReady
+        dataOut: CPTsearch.cptIsReady
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.CPTsearch.cptIsReady
+              string2: "true"
+        - continue
+        - actionType: popUp
+          popUpView: notReady
     - =.builtIn.object.setProperty:
       dataIn:
         obj: =..formDataTemp.titleData
@@ -39,7 +51,7 @@ CPTsearch:
         - continue 
 
 
-
+  cptIsReady: ""
   formData:
     # connectionList: []
     # test: []
@@ -75,6 +87,69 @@ CPTsearch:
     newMedicalLength: ""
 
   components:
+    - type: popUp
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: notReady
+        - actionType: builtIn
+          funcName: goBack
+      viewTag: notReady
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.3"
+            width: "0.7"
+            height: "0.25"
+            backgroundColor: "0xefefef"
+            borderRadius: "10"
+          children:
+            - type: image
+              path: zhuanquan.gif
+              style:
+                top: "0"
+                height: "0.15"
+                width: "0.15"
+                left: "0.27"
+            - type: label
+              text: CPT is still Loading
+              style:
+                left: "0"
+                top: "0.125"
+                width: "0.7"
+                height: "0.05"
+                fontSize: "23"
+                fontWeight: "350"
+                textAlign:
+                  x: center
+            - type: label
+              text: Please Try Again in a Few Seconds
+              style:
+                left: "0"
+                top: "0.18"
+                width: "0.7"
+                fontSize: "15"
+                fontWeight: "330"
+                textAlign:
+                  x: center
+            - type: label
+              text: Tap to Go Back
+              style:
+                left: "0"
+                top: "0.20"
+                width: "0.7"
+                height: "0.05" 
+                fontSize: "13"
+                fontWeight: "500"
+                textAlign: 
+                  x: center
     - .BaseHeader:
     - .HeaderLeftButton:
       onClick:
@@ -174,7 +249,7 @@ CPTsearch:
               style:
                 height: "0.018"
                 marginLeft: "0.012"
-                isHidden: =..formDataTemp.searchCancel
+                isHidden: ..formDataTemp.searchCancel
                 display: inline-block
                 verticalAlign: 'middle'  
               onClick:
@@ -512,6 +587,7 @@ CPTsearch:
                 marginTop: "0.03"
                 marginLeft: "0.05"
                 height: "0.05"
+                color: "#666666"
                 textAlign:
                   x: center
                   y: center      
@@ -551,7 +627,7 @@ CPTsearch:
                   style:
                     marginTop: "0.0198"
                     marginLeft: "0.04" #16.01px
-                    height: "0.05"
+                    height: "auto"
                     width: "0.92"
                   children:
                     # - type: image
@@ -582,7 +658,7 @@ CPTsearch:
                                 display: "inline-block"
                                 verticalAlign: middle
                                 width: "auto"
-                                height: "auto"
+                                height: "0.08"
                                 fontWidth: "100"
                                 fontSize: .Nfont.h3
                                 color: "#666666"
@@ -608,17 +684,17 @@ CPTsearch:
                                 fontSize: .Nfont.h2
                                 color: "0x4b4b4b"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                # text-overflow: ellipsis
                                 whiteSpace: nowrap
-                            - type: image
-                              path: "blackRight.svg"
-                              style:
-                                display: "inline-block"
-                                verticalAlign: middle
-                                height: "0.015"
-                                width: "0.1"
-                                axis: horizontol
-                                marginLeft: "0.023" 
+                            # - type: image
+                            #   path: "blackRight.svg"
+                            #   style:
+                            #     display: "inline-block"
+                            #     verticalAlign: middle
+                            #     height: "0.015"
+                            #     width: "0.1"
+                            #     axis: horizontol
+                            #     marginLeft: "0.023" 
                         # - type: label
                         #   dataKey: itemObject.tab
                         #   style:
@@ -687,7 +763,7 @@ CPTsearch:
                   style:
                     marginTop: "0.0198"
                     marginLeft: "0.04" #16.01px
-                    height: "0.05"
+                    height: "auto"
                     width: "0.92"
                   children:
                     # - type: image
@@ -744,17 +820,17 @@ CPTsearch:
                                 fontSize: .Nfont.h2
                                 color: "0x4b4b4b"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                # text-overflow: ellipsis
                                 whiteSpace: nowrap
-                            - type: image
-                              path: "blackRight.svg"
-                              style:
-                                display: "inline-block"
-                                verticalAlign: middle
-                                height: "0.015"
-                                width: "0.1"
-                                axis: horizontol
-                                marginLeft: "0.023" 
+                            # - type: image
+                            #   path: "blackRight.svg"
+                            #   style:
+                            #     display: "inline-block"
+                            #     verticalAlign: middle
+                            #     height: "0.015"
+                            #     width: "0.1"
+                            #     axis: horizontol
+                            #     marginLeft: "0.023" 
                         # - type: label
                         #   dataKey: itemObject.tab
                         #   style:

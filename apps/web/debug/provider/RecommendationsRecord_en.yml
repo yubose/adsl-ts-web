@@ -1,0 +1,223 @@
+RecommendationsRecord:
+  title: Recommendations
+  pageNumber:
+  init:
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    # 获取所有我推荐的商品文档
+    - =..apiRequest.recommendations.docAPI.get: ""
+    - ..formData.recordList@: =..apiRequest.recommendations.resp.doc
+  formData:
+    recordList: []
+  apiRequest:
+    recommendations:
+      resp: ""
+      req:
+        id: .Global.currentUser.vertex.id
+        xfname: ovid
+        type: .DocType.MedicalRecommend
+        sCondition: reid!=""
+        obfname: "ctime"
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: apiRequest.recommendations.req
+          dataOut: RecommendationsRecord.apiRequest.recommendations.resp
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        ids: []
+        xfname: "eid,reid"
+        type: .DocType.Diagnoses
+        obfname: "mtime"
+        maxcount: "1"
+        _nonce: .Global._nonce
+      docAPI:
+        .DocAPI: ""
+        get:
+          api: rd
+          dataIn: RecommendationsRecord.apiRequest.diagnosesDoc.docReq
+          dataOut: RecommendationsRecord.apiRequest.diagnosesDoc.docResp
+    roomInfo:
+      response: ""
+      edge:
+        id: ""
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: RecommendationsRecord.apiRequest.roomInfo.edge
+          dataOut: RecommendationsRecord.apiRequest.roomInfo.response
+    currentRoom:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: ""
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: RecommendationsRecord.apiRequest.currentRoom.edgeQueryReq
+          dataOut: RecommendationsRecord.apiRequest.currentRoom.edgeQueryResp
+  # appLeft.svg
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+          - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..formData.recordList
+          iteratorVar: itemObject
+          style:
+            ..style.dataList:
+          children:
+            - type: listItem
+              itemObject:
+              onClick:
+                - ..event.itemClick
+              style:
+                ..style.listItem:
+              children:
+                - type: view
+                  style:
+                    ..style.firstBox:
+                  children:
+                    - type: label
+                      dataKey: itemObject.name.data.patientName
+                      style:
+                        ..style.title:
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtimeL_en
+                      dataKey: itemObject.ctime
+                      style:
+                        ..style.stime:
+                - type: view
+                  style:
+                    ..style.seocndLine:
+                - type: view
+                  style:
+                    ..style.secondBox:
+                  children:
+                    - type: label
+                      # text: "&nbsp;"
+                      dataKey: itemObject.name.data.goodNameList
+                      style:
+                        ..style.description:
+                    - type: image
+                      path: appLeft.svg
+                      style:
+                        ..style.leftImg:
+        - type: view
+          style:
+            marginTop: "0.03"
+  event:
+    itemClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - .Global.formData.unPageName@: "RecommendationsRecord"
+            - .Global.Note@: $var
+            - .Global.formData.goodNameList@: $var.name.data.goodNameList
+            - .Global.formData.productionSelectionList@: $var.name.data.goodsList
+            - ..apiRequest.roomInfo.edge.id@: $var.esig
+            - =..apiRequest.roomInfo.edgeAPI.get: ""
+            - ..apiRequest.currentRoom.edgeQueryReq.id@: $var.eid
+            - =..apiRequest.currentRoom.edgeAPI.get: ""
+            - .Global.roomInfo.edge@: =..apiRequest.roomInfo.response.edge.0
+            - .Global.currentRoom.edge@: =..apiRequest.currentRoom.edgeQueryResp.edge.0
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage:
+                    - =.Global.currentRoom.edge.id
+                    - =.Global.roomInfo.edge.id
+                  messages: =..apiRequest.diagnosesDoc.docReq.ids
+                dataOut: RecommendationsRecord.apiRequest.diagnosesDoc.docReq.ids
+            - =..apiRequest.diagnosesDoc.docAPI.get: ""
+            - if:
+                - =.builtIn.array.judgeListLength:
+                    dataIn:
+                      array: =..apiRequest.diagnosesDoc.docResp.doc
+                      len: 0
+                - .Global.formData.providerDoc.diagnosesDoc@: ""
+                - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docResp.doc.0
+            # 指定返回页面
+            - .Global.formData.backPageName@: "RecommendationsRecord"
+            - goto: RecommendationShared
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.945"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#f5f5f5"
+    dataList:
+      width: "1"
+      margin: "0"
+      padding: "0"
+      height: "auto"
+    listItem:
+      marginTop: "0.015"
+      width: "0.9"
+      height: "auto"
+      marginLeft: "0.05"
+      boxShadow: "0px 0px 5px #80808044"
+      backgroundColor: "0xffffff"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      borderWidth: "1.5"
+      borderRadius: "5"
+    firstBox:
+      width: "0.85"
+      height: "0.04"
+      marginLeft: "0.025"
+    title:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.609333"
+      fontWeight: "600"
+      verticalAlign: middle
+      overflow: hidden
+      text-overflow: ellipsis
+      whiteSpace: nowrap
+    stime:
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      color: "#999999"
+      width: "0.24"
+      lineHeight: "4vh"
+      verticalAlign: middle
+      textAlign:
+        x: center
+    seocndLine:
+      width: "0.85"
+      borderTop: "1px solid #dedede"
+      marginLeft: "0.025"
+    secondBox:
+      marginTop: "0.01"
+      width: "0.9"
+      height: "auto"
+    description:
+      display: "inline-block"
+      marginLeft: "0.025"
+      width: "0.744"
+      height: "auto"
+      overflow: hidden
+      text-overflow: ellipsis
+      whiteSpace: nowrap
+      fontSize: .Nfont.h14
+      verticalAlign: middle
+      color: "#333333"
+    leftImg:
+      display: "inline-block"
+      height: "0.06"
+      verticalAlign: middle

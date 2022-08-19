@@ -1,0 +1,511 @@
+InboxDashboard:
+  pageNumber: "501"
+  title: "Inbox"
+  init:
+    - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.inboxContact
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.email
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.inboxMessage
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.attachments
+      dataObject: []
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.email.docAPI.get: ""
+            - =..apiRequest.unReadEmail.docAPI.get: ""
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..apiRequest.unReadEmail.docQueryResp.doc
+            dataOut: InboxDashboard.formData.unReadEmailNum
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.unReadEmailNum
+                  string2: "0"
+            - ..formData.inboxHidden@: "true"
+            - ..formData.inboxHidden@: "false"
+        - if:
+            - =..apiRequest.email.docQueryResp.doc.0
+            - continue
+            - =.builtIn.checkField:
+                dataIn:
+                  contentType: messageHidden
+                  wait: 100
+
+    - ..formData.searchList@: =..apiRequest.email.docQueryResp.doc
+  lastTop: "0.0"
+  formData:
+    unReadEmailNum: "0"
+    inboxHidden: true
+    serachInfo: ""
+    searchList: []
+  apiRequest:
+    email:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 544
+        type: 1281
+        sCondition: E.type=10002 AND (D2.type & 0xFF18 =0xE00 OR D2.reid is NULL OR D2.Type = 66561)
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        maxcount: "100"
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: InboxDashboard.apiRequest.email.docQueryReq
+          dataOut: InboxDashboard.apiRequest.email.docQueryResp
+    emailTag:
+      docQueryResp: ""
+      docQueryReq:
+        sCondition: type & 0xFF00 = 0xE00
+        ids:
+          - .Global.rootNotebookID
+        xfname: eid,reid
+        _nonce: =.Global._nonce
+      docCreateReq:
+        type: .DocType.MailTag
+        eid: .Global.rootNotebookID
+        name:
+          data: ""
+        reid: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: InboxDashboard.apiRequest.emailTag.docQueryReq
+          dataOut: InboxDashboard.apiRequest.emailTag.docQueryResp
+        store:
+          api: cd
+          dataIn: InboxDashboard.apiRequest.emailTag.docCreateReq
+    unReadEmail:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 544
+        type: 1281
+        sCondition: E.type=10002 AND (D2.Type&0xFF02=0xE00 OR D2.reid IS NULL OR D2.Type = 66561)
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        maxcount: "100"
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: InboxDashboard.apiRequest.unReadEmail.docQueryReq
+          dataOut: InboxDashboard.apiRequest.unReadEmail.docQueryResp
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeftEmpty:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: sideNav3.svg
+          style:
+            height: "0.022167"
+          onClick:
+            - goto: InboxMenu
+    - type: view
+      style:
+        width: "1"
+        height: "0.06"
+        border:
+          style: "2"
+        borderColor: "0x00000033"
+        backgroundColor: "0x2988e6"
+        borderWidth: "1"
+        zIndex: "10"
+      children:
+        - type: textField
+          placeholder: Search
+          debounce: 500
+          dataKey: formData.serachInfo
+          style:
+            top: "0.015"
+            width: "0.7"
+            left: "0.05"
+            height: "0.03"
+            backgroundColor: "0xffffff"
+            borderRadius: "5"
+            paddingLeft: "20px"
+            borderWidth: "0"
+          onInput:
+            - ..event.searchEvent
+        - type: label
+          text: Edit
+          onClick:
+            - actionType: evalObject
+              object:
+                - .Global.emailForEdit@: []
+                - .Global.emailEditFunction@: []
+                # 将页面的邮件传入edit中，让后可以进行的操作也进行传输
+                - .Global.emailForEdit@: =..apiRequest.email.docQueryResp.doc
+                - .Global.emailEditFunction@: [trash.svg, move.svg, mark.svg]
+            - goto: EditInbox
+          style:
+            top: "0.019"
+            left: "0.83"
+            height: "0.03"
+            width: "0.15"
+            fontSize: .Nfont.h15
+            color: "0xffffff"
+            fontWeight: 400
+            textAlign:
+              x: center
+    - type: scrollView
+      style:
+        left: "0"
+        width: "1"
+        height: "0.78"
+        # overflow-y: scroll
+        # overflow-x: hidden
+        boxSizing: "border-box"
+        paddingBottom: "0.03"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..formData.searchList
+          iteratorVar: itemObject
+          viewTag: emailList
+          style:
+            width: "1"
+            margin: "0"
+            # height: "0.78"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                width: "1"
+                height: "auto"
+                overflow: hidden
+              children:
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.01"
+                - type: view
+                  style:
+                    width: "1"
+                    height: "auto"
+                  children:
+                    - type: view
+                      style:
+                        height: "auto"
+                        width: "0.2"
+                        display: "inline-block"
+                        verticalAlign: middle
+                      children:
+                        - type: image
+                          path: aitmedLogo.svg
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: itemObject.name.user
+                          style:
+                            marginLeft: "0.05"
+                            verticalAlign: middle
+                            height: "0.06"
+                            borderRadius: "7"
+                            width: "6vh"
+                        - type: image
+                          style:
+                            left: "0.16"
+                            top: "-0.008"
+                            height: "0.015"
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.number.typeIsValid:
+                                        dataIn:
+                                          docType: $var.type
+                                          localArr: [1, 2, 6]
+                                          binaryArr: [1, 1, 0]
+                                    - null.png
+                                    - dot.svg
+                    - type: view
+                      style:
+                        verticalAlign: middle
+                        display: "inline-block"
+                        height: "auto"
+                        width: "auto"
+                      children:
+                        - type: view
+                          style:
+                            verticalAlign: middle
+                            marginLeft: "0.05"
+                            display: "inline-block"
+                            height: "auto"
+                            width: "0.51"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.senderName
+                              style:
+                                width: "0.5"
+                                height: "auto"
+                                fontSize: .Nfont.h1
+                                #
+                                color: "0x707070"
+                                overflow: hidden
+                                text-overflow: ellipsis
+                                whiteSpace: nowrap
+                            - type: label
+                              text: "(No subject)"
+                              dataKey: itemObject.name.title
+                              style:
+                                marginTop: "0.003"
+                                width: "0.4"
+                                height: "auto"
+                                fontSize: .Nfont.h1
+                                color: "0x707070"
+                                overflow: hidden
+                                text-overflow: ellipsis
+                                whiteSpace: nowrap
+                            - type: label
+                              text: "(No content)"
+                              dataKey: itemObject.name.data.content
+                              style:
+                                marginTop: "0.003"
+                                width: "0.4"
+                                height: "auto"
+                                fontSize: .Nfont.h1
+                                color: "0x00000099"
+                                overflow: hidden
+                                text-overflow: ellipsis
+                                whiteSpace: nowrap
+                      onClick:
+                        - actionType: updateObject
+                          dataKey: Global.email
+                          dataObject: itemObject
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.add:
+                                dataIn:
+                                  object: =..apiRequest.emailTag.docQueryReq.ids
+                                  value: =.Global.email.id
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - =..apiRequest.emailTag.docAPI.get: ""
+                            - if:
+                                - =..apiRequest.emailTag.docQueryResp.doc
+                                - ..apiRequest.emailTag.docCreateReq@: =..apiRequest.emailTag.docQueryResp.doc.0
+                                - continue
+                            - ..apiRequest.emailTag.docCreateReq.reid@: =.Global.email.id
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.emailTag.docCreateReq.type
+                                  index: 2
+                                  hex: 1
+                                dataOut: InboxDashboard.apiRequest.emailTag.docCreateReq.type
+                            - =..apiRequest.emailTag.docAPI.store: ""
+                        - goto: MessageShow
+                    - type: view
+                      style:
+                        display: "inline-block"
+                        width: "0.2"
+                        height: "auto"
+                        verticalAlign: top
+                      children:
+                        - type: label
+                          text=func: =.builtIn.date.formatData
+                          dataKey: itemObject.ctime
+                          style:
+                            height: "auto"
+                            width: "0.2"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.2"
+                            height: "auto"
+                          children:
+                            - type: image
+                              style:
+                                height: "0.03"
+                                verticalAlign: middle
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - $var.name.data.haveAttachment
+                                        - flatAttachment.svg
+                                        - null.png
+                            - type: image
+                              viewTag: select
+                              style:
+                                marginLeft: "0.04"
+                                height: "0.02"
+                                zIndex: "100"
+                                verticalAlign: middle
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.number.typeIsValid:
+                                            dataIn:
+                                              docType: $var.type
+                                              localArr: [1, 3, 6]
+                                              binaryArr: [1, 1, 0]
+                                        - providerOn.svg
+                                        - null.png
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.01"
+                    borderWidth: "1"
+                    border:
+                      style: "2"
+                      color: "0xdcdcdc"
+        - type: view
+          contentType: messageHidden
+          style:
+            width: "0.5"
+            height: "0.3"
+            top: "0.16"
+            left: "0.25"
+            isHidden: "true"
+            zIndex: "100"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: noEmail.svg
+              style:
+                width: "0.5"
+                margin: auto
+            - type: label
+              text: "No message here…"
+              style:
+                textAlign:
+                  x: center
+                left: "0.05"
+                top: "0.24"
+                width: "0.4"
+                height: "0.04"
+                color: "0x000058"
+                fontSize: ".Nfont.h1"
+    - type: image
+      path: compose.svg
+      onClick:
+        - goto: NewMessage
+      style:
+        left: "0.8"
+        top: "0.75"
+        height: "0.06"
+        zIndex: "100"
+    - .footerBox:
+      style:
+        top: "0.9"
+      children:
+        - .footerMenuBox:
+          onClick:
+            - goto: "PatientDashboard"
+          children:
+            - type: image
+              path: homeW.svg
+              style:
+                width: "8vw"
+                height: "8vw"
+                marginTop: "0.016"
+            - type: label
+              text: Home
+              dataKey:
+              style:
+                width: "0.333"
+                height: "auto"
+                fontSize: .Nfont.h14
+                color: "0xffffff"
+                marginTop: "0.006"
+                fontWeight: 400
+                textAlign:
+                  x: center
+        - .footerMenuBox:
+          style:
+            marginLeft: "0.005"
+          onClick:
+            - goto: "InboxDashboard"
+          children:
+            - type: image
+              path: inboxY.svg
+              style:
+                width: "8vw"
+                height: "8vw"
+                marginTop: "0.016"
+            - type: label
+              text: Inbox
+              dataKey:
+              style:
+                width: "0.333"
+                height: "auto"
+                fontSize: .Nfont.h14
+                color: "0xfece55"
+                marginTop: "0.006"
+                fontWeight: 600
+                textAlign:
+                  x: center
+            - .numberMark:
+              dataKey: formData.unReadEmailNum
+              style:
+                isHidden: ..formData.inboxHidden
+                top: "0.01"
+                left: "0.185"
+        - .footerMenuBox:
+          style:
+            marginLeft: "0.005"
+          onClick:
+            - goto: MenuBars
+          children:
+            - type: image
+              path: meW.svg
+              style:
+                width: "8vw"
+                height: "8vw"
+                marginTop: "0.016"
+            - type: label
+              text: Me
+              dataKey:
+              style:
+                width: "0.33"
+                height: "auto"
+                fontSize: .Nfont.h14
+                color: "0xffffff"
+                marginTop: "0.006"
+                fontWeight: 400
+                textAlign:
+                  x: center
+  event:
+    searchEvent:
+      - actionType: evalObject
+        object:
+          - =.builtIn.object.matchSearchValue:
+              dataIn:
+                objArr: =..apiRequest.email.docQueryResp.doc
+                paths:
+                  - name.title
+                  - name.data.senderName
+                value: =..formData.serachInfo
+              dataOut: InboxDashboard.formData.searchList
+          - =.builtIn.array.uniqueByObjectKey:
+              dataIn:
+                objArr: =..formData.searchList
+                path: "id"
+              dataOut: InboxDashboard.formData.searchList
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: emailList

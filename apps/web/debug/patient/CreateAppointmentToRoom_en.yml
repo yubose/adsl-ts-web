@@ -1,0 +1,2653 @@
+CreateAppointmentToRoom:
+  title: "Create Appointment"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =.Global.formData.appointment.docu
+            dataOut: CreateAppointmentToRoom.formDataTemp.localDocuLength
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =.Global.vaccine
+            dataOut: CreateAppointmentToRoom.formDataTemp.globalDocuLength
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..formDataTemp.localDocuLength
+              string2: =..formDataTemp.globalDocuLength
+            dataOut: CreateAppointmentToRoom.formDataTemp.otherFormRead
+    - actionType: evalObject
+      object:
+        - .Global.formData.selectCategory@: CreateAppointmentToRoom
+    - =.builtIn.array.transformArray:
+        dataIn:
+          array: =.Global.formData.appointment.docu
+        dataOut: CreateAppointmentToRoom.formData.formList
+    - =.builtIn.array.transformPage:
+        dataIn:
+          array: =..formData.formList
+          type: "Edit"
+          dataKey: "key"
+        dataOut: CreateAppointmentToRoom.formData.docList
+    # 根据不同的room type类型来给E2的subtype赋值
+    - =.builtIn.array.getValueByKey:
+        dataIn:
+          array: =.AppointmentType
+          key1: text
+          value: =..apiRequest.appointment.edgeCreateReq.name.visitType
+          key2: type
+        dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.subtype
+    - =.builtIn.math.add:
+        dataIn:
+          num1: =..apiRequest.appointment.edgeCreateReq.subtype
+          num2: 2
+        dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.subtype
+    # judge the provider is be assigned or not and give the corresponding value to the E2
+    - if:
+        - =.Global.ActiveProvider.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.appointment.edgeCreateReq.name.providerName@: =.Global.ActiveProvider.name.data.fullName
+            - ..apiRequest.appointment.edgeCreateReq.name.providerId@: =.Global.ActiveProvider.bsig
+        - continue
+    - =..apiRequest.relation.edgeAPI.get: ""
+    - =..apiRequest.relation_patientToFacility.edgeAPI.get: ""
+    - =..apiRequest.insurance.docAPI.get: ""
+    - =..apiRequest.facilityProfile.docAPI.get: ""
+    - .Global.flag.isMeetingPatientchart@: false
+    - .Global.currentFacility@: =..apiRequest.facilityProfile.docQueryResp.doc.0
+    - ..apiRequest.appointment.edgeCreateReq.name.facilityId@: =.Global.currentFacility.bsig
+  formData:
+    financialForm: ""
+    insurance: ""
+    profile: ""
+    docList: []
+    formList: []
+    docMustCommitNum: -1
+    docHaveCommitNum: -2
+    patientProfile_shared: ""
+    appointmentLink: #如果当前是一个 related 预约，则从Global去拿
+      eid: ""
+      fid: ""
+      reid: ""
+  formDataTemp:
+    localDocuLength: ""
+    globalDocuLength: ""
+    otherFormRead: ""
+    generalInfo: true
+    generalInfoForms: true
+    optionalForms:
+      - title: Patient Chart
+        pageName: PatientChart
+    appointmentTitle:
+      - title: Visit Questionnaire
+  apiRequest:
+    financialInfo:
+      docStoreResp: ""
+      docStoreReq:
+        type: .DocType.FinancialInfo
+        reid: ""
+        eid: ""
+        name:
+          data:
+            paymentInfo:
+              fee: ""
+              checkoutBalance: "" # due to other medical balance
+            payerInfo:
+              employerInfo: ""
+              attorneyInfo: ""
+              insuranceInfo: ""
+              individualInfo: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: CreateAppointmentToRoom.apiRequest.financialInfo.docStoreReq
+          dataOut: CreateAppointmentToRoom.apiRequest.financialInfo.docStoreResp
+    acceptInviteFacility:
+      edgeCreateResp: ""
+      edgeCreateReq:
+        type: .EdgeType.Accept
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.currentFacility.bsig
+        refid: ""
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: CreateAppointmentToRoom.apiRequest.acceptInviteFacility.edgeCreateReq
+          dataOut: CreateAppointmentToRoom.apiRequest.acceptInviteFacility.edgeCreateResp
+    inviteFromFacility:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        type: .EdgeType.InviteInfo
+        id:
+          - .Global.currentUser.vertex.id
+        xfname: evid,bvid
+        obfname: mtime
+        maxcount: 1
+      edgeAPI:
+        get:
+          api: re
+          dataIn: CreateAppointmentToRoom.apiRequest.inviteFromFacility.edgeQueryReq
+          dataOut: CreateAppointmentToRoom.apiRequest.inviteFromFacility.edgeQueryResp
+    insurance:
+      docQueryResp: ""
+      docQueryReq:
+        id:
+          - .Global.rootNotebookID
+          - .Global.Profile.id
+        xfname: eid,fid
+        type: .DocType.InsuranceCard
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: CreateAppointmentToRoom.apiRequest.insurance.docQueryReq
+          dataOut: CreateAppointmentToRoom.apiRequest.insurance.docQueryResp
+    facilityProfile:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 12
+        type: .DocType.FacilityProfile
+        id: .Global.ActiveLocation.bsig
+        xfname: E.evid
+        sCondition: E.type=1100 AND D.ovid=E.bvid
+        obfname: mtime
+        maxcount: 1
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: CreateAppointmentToRoom.apiRequest.facilityProfile.docQueryReq
+          dataOut: CreateAppointmentToRoom.apiRequest.facilityProfile.docQueryResp
+    relation_patientToFacility:
+      edgeCreateResp: ""
+      edgeQueryResp:
+        edge: []
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.currentFacility.bsig
+        xfname: Bvid,Evid
+        sCondition: "subtype=131072 AND tage>0"
+        type: 10002
+        _nonce: =.Global._nonce
+      edgeCreateReq:
+        tage: 1
+        type: 10002
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.currentFacility.bsig
+        subtype: 131072
+        name:
+          isEncrypted: "1"
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeCreateReq
+          dataOut: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeCreateResp
+        get:
+          api: re
+          dataIn: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeQueryReq
+          dataOut: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeQueryResp
+    # auto be friend
+    relation:
+      edgeCreateResp: ""
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.currentFacility.bsig
+        xfname: Bvid,Evid
+        type: 10002
+        _nonce: =.Global._nonce
+      edgeCreateReq:
+        tage: 1
+        type: 10002
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.currentFacility.bsig
+        subtype: .EInboxSubtype.PatientFacility
+        name:
+          isEncrypted: "1"
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: CreateAppointmentToRoom.apiRequest.relation.edgeCreateReq
+          dataOut: CreateAppointmentToRoom.apiRequest.relation.edgeCreateResp
+        get:
+          api: re
+          dataIn: CreateAppointmentToRoom.apiRequest.relation.edgeQueryReq
+          dataOut: CreateAppointmentToRoom.apiRequest.relation.edgeQueryResp
+    # appointment struct design
+    appointment:
+      edgeCreateResp: ""
+      edgeCreateReq:
+        # the provider id
+        evid: .Global.formData.activeRoom.bsig
+        # the patient id
+        bvid: .Global.currentUser.vertex.id
+        #E3 id
+        refid: .Global.clock.refid
+        subtype: ""
+        type: 40000
+        stime: .Global.clock.stime
+        etime: .Global.clock.etime
+        tage: 3
+        name:
+          fee: .Global.formData.fee
+          finishDoc: []
+          optionalForms: []
+          Reason: .Global.formData.appointment.reason
+          patientName: .Global.Profile.name.data.basicInfo.fullName
+          patientPhoneNumber: .Global.currentUser.vertex.uid
+          providerName: No Provider
+          patientAvatarId: .Global.Profile.name.data.avatar
+          visitType: .Global.formData.appointment.visitType
+          visitReason: .Global.formData.appointment.reason
+          location: .Global.ActiveLocation.name.data.basicInfo.location
+          locationName: .Global.ActiveLocation.name.data.basicInfo.medicalFacilityName
+          facilityId: ""
+          document: .Global.formData.appointment.docu
+          duration: .Global.formData.appointment.duration
+          providerId: ""
+          providerFullInfo: .Global.formData.activeRoom.name.data.roomName
+          roomName: .Global.formData.activeRoom.name.data.roomName
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq
+          dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp
+    approveAppointment:
+      response: ""
+      edge:
+        bvid: .Global.currentUser.vertex.id
+        evid: ""
+        refid: ""
+        type: 40000
+        _handledCode: 40003
+        subtype: 5
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.approveAppointment.edge
+          dataOut: apiRequest.approveAppointment.response
+    inviteFacility:
+      response: ""
+      edge:
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.currentFacility.bsig
+        refid: ""
+        type: .EdgeType.InviteInfo
+        name:
+          role: Facility
+          roleName: .Global.currentFacility.name.data.basicInfo.medicalFacilityName
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.inviteFacility.edge
+          dataOut: apiRequest.inviteFacility.response
+    inviteRoom:
+      edgeCreateResp: ""
+      edgeCreateReq:
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.formData.activeRoom.bsig
+        refid: ""
+        type: .EdgeType.InviteInfo
+        name:
+          role: Room
+          roleName: .Global.formData.activeRoom.name.data.roomName
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.inviteRoom.edgeCreateReq
+          dataOut: apiRequest.inviteRoom.edgeCreateResp
+    inviteLocation:
+      edgeCreateResp: ""
+      edgeCreateReq:
+        bvid: .Global.currentUser.vertex.id
+        evid: .Global.ActiveLocation.bsig
+        refid: ""
+        type: .EdgeType.InviteInfo
+        name:
+          role: Location
+          roleName: .Global.ActiveLocation.name.data.basicInfo.medicalFacilityName
+      edgeAPI:
+        store:
+          api: ce
+          dataIn: apiRequest.inviteLocation.edgeCreateReq
+          dataOut: apiRequest.inviteLocation.edgeCreateResp
+      # 用来做关联预约的tag
+    appointmentListTag:
+      docCreateResp: ""
+      docCreateReq:
+        subtype:
+          isEncrypted: "0"
+          isOnServer: "0"
+        type: .DocType.RelatedAppTag
+        # 创建时  eid 和 reid 都指向 当前房间的边，
+        # 创建 related appointment 时， 需要一个reid 指向上一个小尾巴，fid指向跟边，所以eid和fid都需要根据情况判断
+        eid: =..formData.appointmentLink.eid
+        fid: =..formData.appointmentLink.fid
+        reid: =..formData.appointmentLink.reid
+        name:
+          data: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: apiRequest.appointmentListTag.docCreateReq
+          dataOut: CreateAppointmentToRoom.apiRequest.appointmentListTag.docCreateResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - type: view
+            style:
+              ..style.headerImgBox:
+            children:
+              - type: image
+                path: falseWhite.svg
+                style:
+                  ..style.headerImg:
+                onClick:
+                  - ..event.go_back
+          - .BasePublicHeaderTitle:
+    - type: view
+      style:
+        ..style.scrollBox:
+        overflow: "hidden"
+      children:
+        - type: view
+          style:
+            ..style.panelBox:
+          children:
+            - type: view
+              style:
+                ..style.infoBox:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      text: Appointment Info
+                      style:
+                        ..style.leftTitle:
+                    - type: image
+                      path: editBlue.svg
+                      style:
+                        ..style.rightValue:
+                      onClick:
+                        - ..event.go_back
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Date
+                      style:
+                        ..style.inlineRight:
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtimeL_en
+                      dataKey: Global.clock.stime
+                      style:
+                        ..style.inlineValue:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Time
+                      style:
+                        ..style.inlineRight:
+                    - type: label
+                      text=func: .builtIn.date.ShowTimeSpan
+                      dataKey: Global.clock
+                      style:
+                        ..style.inlineValue:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Reason for Visit
+                      style:
+                        ..style.inlineRight:
+                    - type: label
+                      dataKey: Global.formData.appointment.reason
+                      style:
+                        ..style.inlineValue:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Service Type
+                      style:
+                        ..style.inlineRight:
+                    - type: label
+                      dataKey: Global.formData.appointment.visitType
+                      style:
+                        ..style.inlineValue:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Facility
+                      style:
+                        ..style.inlineRight:
+                    - type: label
+                      dataKey: Global.ActiveLocation.name.data.basicInfo.medicalFacilityName
+                      style:
+                        ..style.inlineValue:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Room
+                      style:
+                        ..style.inlineRight:
+                    - type: label
+                      dataKey: Global.formData.activeRoom.name.data.roomName
+                      style:
+                        ..style.inlineValue:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Location
+                      style:
+                        ..style.inlineRight:
+                    - type: label
+                      dataKey: Global.ActiveLocation.name.data.basicInfo.location
+                      style:
+                        ..style.locationText:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    borderTop: "1px solid #cccccc"
+                    marginTop: "0.006"
+                    boxSizing: "border-box"
+                    paddingTop: "0.006"
+                  children:
+                    - type: label
+                      text: Fee
+                      style:
+                        ..style.inlineRight:
+                        fontWeight: "700"
+                    - type: label
+                      text: ""
+                      text=func: .builtIn.string.dollarFormat
+                      dataKey: Global.formData.fee
+                      style:
+                        ..style.inlineValue:
+                        fontWeight: "700"
+                - type: view
+                  style:
+                    marginTop: "0.0123"
+
+        # body checkBox
+        - type: scrollView
+          style:
+            ..style.bodyBox:
+          children:
+            - type: label
+              text: "Please Complete Forms Below"
+              style:
+                ..style.bodyTitle:
+            - type: view
+              onClick:
+                - ..event.visitQueImgClick
+              style:
+                marginTop: "0.02"
+              children:
+                - type: image
+                  path:
+                    ..event.visitQueImg:
+                  style:
+                    ..style.checkBoxImg:
+                - type: label
+                  text: Visit Questionnaire
+                  style:
+                    ..style.checkBoxContent:
+            - type: view
+              onClick:
+                - ..event.financialResImgClick
+              style:
+                marginTop: "0.02"
+              children:
+                - type: image
+                  path:
+                    ..event.financialResImg:
+                  style:
+                    ..style.checkBoxImg:
+                - type: label
+                  text: Financial Responsibility Form
+                  style:
+                    ..style.checkBoxContent:
+            - type: list
+              viewTag: appointmentListTag
+              contentType: listObject
+              listObject: ..formData.docList
+              iteratorVar: itemObject
+              style:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    marginTop: "0.02"
+                  children:
+                    - type: view
+                      style:
+                      children:
+                        - type: image
+                          path:
+                            ..event.listDocImg:
+                          style:
+                            ..style.checkBoxImg:
+                        - type: label
+                          dataKey: itemObject.key
+                          style:
+                            ..style.checkBoxContent:
+                  onClick:
+                    - ..event.listDocImgClick
+            - type: label
+              text: "Optional Forms"
+              style:
+                ..style.bodyTitle:
+                marginTop: "0.02"
+            - type: view
+              onClick:
+                - ..event.patientChartImgClick
+              style:
+                marginTop: "0.02"
+              children:
+                - type: image
+                  path:
+                    ..event.patientChartImg:
+                  style:
+                    ..style.checkBoxImg:
+                - type: label
+                  text: Patient Chart
+                  style:
+                    ..style.checkBoxContent:
+
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: button
+          text: Create Appointment
+          dataKey:
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+    # 弹窗区域
+    - .BaseCheckView: ""
+      message: "You have not filled in the other forms"
+      viewTag: judgeOtherForm
+      colorChange: "0x2988e6"
+      imgPath: aboutBlue.svg
+      children:
+        - type: view
+          style:
+            width: "0.8"
+            height: "0.3"
+            top: "0.3"
+            left: "0.1"
+            zIndex: "100"
+            backgroundColor: "0xffffff"
+            borderRadius: "7"
+            border:
+              style: "3"
+            borderColor: "#f4f8fa"
+            borderWidth: "3"
+          children:
+            - .BaseCheckViewImg:
+            - .BaseCheckViewLabel:
+            - .BaseCheckViewButton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag
+    - type: popUp
+      viewTag: scheduleFail
+      message: "Your appointment time is already occupied. You can change your appointment time, then the forms you filled in will be retained Warning: If you make an appointment later, you will lose all your forms you filled in "
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - goto: PatientDashboard
+      rightButton:
+        - actionType: evalObject
+          object:
+            - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeCreateResp.edge
+        - goto: CreateAppointmentNew
+      children:
+        - type: view
+          style:
+            width: "0.7"
+            marginLeft: "0.15"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                width: "0.7"
+                height: "auto"
+                backgroundColor: "0xd81e06"
+                borderRadius: "14px 14px 0 0"
+                overflow: hidden
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.006"
+                    width: "0.7"
+                    height: "auto"
+                  children:
+                    - type: image
+                      path: aboutWhite.svg
+                      style:
+                        display: inline-block
+                        verticalAlign: middle
+                        marginLeft: "0.23"
+                        width: "0.045"
+                    - type: label
+                      text: Warning
+                      style:
+                        fontSize: .Nfont.h14
+                        marginLeft: "0.02"
+                        color: "0xFFFFFF"
+                        display: inline-block
+                        verticalAlign: middle
+
+            - type: view
+              style:
+                height: "0.01"
+                backgroundColor: "0xd81e06"
+            - type: label
+              text: ___.message
+              style:
+                width: "0.576"
+                marginLeft: "0.062"
+                marginTop: "0.027"
+                fontSize: .Nfont.h14
+
+                textAlign:
+                  x: center
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.027"
+                width: "0.7"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+            - type: view
+              style:
+                width: "0.7"
+              children:
+                - type: button
+                  text: "Later"
+                  style:
+                    color: "0x007AFF"
+                    display: inline-block
+                    width: "0.349"
+                    borderRadius: "0 0 0 14px"
+                    height: "0.054"
+                    backgroundColor: "0xE6E6E6"
+                    border:
+                      style: "1"
+                  onClick: ____.leftButton
+                - type: view
+                  style:
+                    width: "0.002"
+                    backgroundColor: "0x919192"
+                    display: inline-block
+                    height: "0.054"
+                    zIndex: "50"
+                - type: button
+                  text: "Change"
+                  style:
+                    color: "0x007AFF"
+                    fontWeight: "850"
+                    display: inline-block
+                    width: "0.349"
+                    borderRadius: "0 0 14px 0"
+                    height: "0.054"
+                    backgroundColor: "0xE6E6E6"
+                    border:
+                      style: "1"
+                  onClick: ____.rightButton
+    - .TipsMultiLine:
+      viewTag: judgeVisitQuestionnaire
+      message: "You have not filled in the Visit Questionnaire"
+
+    - .SuccessfulOneLine:
+      viewTag: createSuccessView
+      message: "Create Successfully!"
+
+    - .TipsMultiLine:
+      message: "You have not filled in the Financial Responsibility Form"
+      viewTag: tag_notFillFinancialForm
+    - .ProgressCheckView:
+      message: "loading ..."
+      viewTag: uploading
+  event:
+    go_back:
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    # body
+    visitQueImg:
+      emit:
+        actions:
+          - if:
+              - =.Global.visitQuestionnaireDoc
+              - selectOnBlue.svg
+              - selectOff.svg
+    visitQueImgClick:
+      - goto: VisitQuestionnaire
+    financialResImg:
+      emit:
+        actions:
+          - if:
+              - =.Global.formData.patientDoc.status.shareFinancialForm
+              - selectOnBlue.svg
+              - selectOff.svg
+    financialResImgClick:
+      - goto: FinancialFormEditPage1
+    # list Doc
+    listDocImg:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =.Global.vaccine
+                    value: $var.key
+              - selectOnBlue.svg
+              - selectOff.svg
+    listDocImgClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.Global.visitQuestionnaireDoc
+                - goto: $var.pageName
+                - continue
+      - actionType: popUp
+        popUpView: judgeVisitQuestionnaire
+        wait: true
+      # optional forms
+    patientChartImg:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =.Global.optionalForms
+                    value: Patient Chart
+              - selectOnBlue.svg
+              - selectOff.svg
+    patientChartImgClick:
+      - actionType: evalObject
+        object:
+          - .Global.isShare@: true
+      - goto: PatientChart
+    # button
+    btnClick:
+      - actionType: evalObject
+        object:
+          #judge the visit questionnaire is fill or not
+          - if:
+              - =.Global.visitQuestionnaireDoc
+              - continue
+              - actionType: popUp
+                popUpView: judgeVisitQuestionnaire
+                wait: true
+          - if:
+              - =.Global.formData.patientDoc.status.shareFinancialForm
+              - continue
+              - actionType: popUp
+                popUpView: tag_notFillFinancialForm
+                wait: true
+                popUpDismiss: 2000
+          # get the length of the documents which user have to commit
+          - =.builtIn.array.getListLength:
+              dataIn:
+                object: =.Global.formData.appointment.docu
+              dataOut: CreateAppointmentToRoom.formData.docMustCommitNum
+          # get the length of the documents which user have commited
+          - =.builtIn.array.getListLength:
+              dataIn:
+                object: =.Global.vaccine
+              dataOut: CreateAppointmentToRoom.formData.docHaveCommitNum
+          #judge the other form is fill or not
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.docMustCommitNum
+                    string2: =..formData.docHaveCommitNum
+              - continue
+              - actionType: popUp
+                popUpView: judgeOtherForm
+                wait: true
+      #popup the uploading popUp
+      - actionType: popUp
+        popUpView: uploading
+      - actionType: evalObject
+        object:
+          - ..apiRequest.appointment.edgeCreateReq.name.optionalForms@: =.Global.optionalForms
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..apiRequest.appointment.edgeCreateReq.name.finishDoc
+                value: "Visit Questionnaire"
+          - =.builtIn.array.pushAny:
+              dataIn:
+                newMessage: "Financial Responsibility Form"
+                messages: =..apiRequest.appointment.edgeCreateReq.name.finishDoc
+              dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.name.finishDoc
+          - =.builtIn.array.concat:
+              dataIn:
+                array1: =..apiRequest.appointment.edgeCreateReq.name.finishDoc
+                array2: =.Global.vaccine
+              dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.name.finishDoc
+          - if:
+              - =.Global.formData.meetingStatus.notRemind
+              - ..apiRequest.appointment.edgeCreateReq.tage@: 7346545013
+              - continue
+          # make appointment, create E2
+          - =..apiRequest.appointment.edgeAPI.store: ""
+          # auto approve appointment and create E5
+          - .CreateAppointmentToRoom.apiRequest.approveAppointment.edge.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+          - .CreateAppointmentToRoom.apiRequest.approveAppointment.edge.evid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.evid
+          - =.CreateAppointmentToRoom.apiRequest.approveAppointment.edgeAPI.store: ""
+          # auto approve appointment and create E10 to invite facitity
+          - .CreateAppointmentToRoom.apiRequest.inviteFacility.edge.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+          - =.CreateAppointmentToRoom.apiRequest.inviteFacility.edgeAPI.store: ""
+          # auto approve appointment and create E10 to invite room
+          - .CreateAppointmentToRoom.apiRequest.inviteRoom.edgeCreateReq.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+          - =.CreateAppointmentToRoom.apiRequest.inviteRoom.edgeAPI.store: ""
+          # auto approve appointment and create E10 to invite location
+          # - .CreateAppointmentToRoom.apiRequest.inviteLocation.edgeCreateReq.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+          # - =.CreateAppointmentToRoom.apiRequest.inviteLocation.edgeAPI.store: ""
+          # share doc
+          - =.builtIn.array.add:
+              dataIn:
+                object: =.Global.vaccineDoc
+                value: =.Global.formData.visitQuestionnaireDoc
+          - if:
+              - =.Global.formData.patientDoc.status.sharePatientChart
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.patientChart
+              - continue
+          - if:
+              - =.Global.formData.newPatientForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.newPatientForm
+              - continue
+          - if:
+              - =.Global.formData.pifzerVaccineFirDoseForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.pifzerVaccineFirDoseForm
+              - continue
+          - if:
+              - =.Global.formData.pifzerVaccineSecDoseForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.pifzerVaccineSecDoseForm
+              - continue
+          - if:
+              - =.Global.formData.cov19TestNewPatForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.cov19TestNewPatForm
+              - continue
+          - if:
+              - =.Global.formData.cov19TestForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.cov19TestForm
+              - continue
+          - if:
+              - =.Global.formData.modernaVaccineFirDoseForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.modernaVaccineFirDoseForm
+              - continue
+          - if:
+              - =.Global.formData.modernaVaccineSecDoseForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.modernaVaccineSecDoseForm
+              - continue
+          - if:
+              - =.Global.formData.fluVaccinationConsentForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.fluVaccinationConsentForm
+              - continue
+          - if:
+              - =.Global.formData.patientConsentForm.id
+              - =.builtIn.array.add:
+                  dataIn:
+                    object: =.Global.vaccineDoc
+                    value: =.Global.formData.patientConsentForm
+              - continue
+          - =.builtIn.ecos.shareDocList:
+              dataIn:
+                sourceDocList: =.Global.vaccineDoc
+                targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+                reid: =..apiRequest.appointment.edgeCreateResp.edge.id
+          - =.builtIn.ecos.shareDoc:
+              dataIn:
+                sourceDoc: =.Global.Profile
+                targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+                reid: =..apiRequest.appointment.edgeCreateResp.edge.id
+              dataOut: CreateAppointmentToRoom.formData.profile
+          - if:
+              - =.Global.formData.hashTag.id
+              - =.builtIn.ecos.shareDoc:
+                  dataIn:
+                    sourceDoc: =.Global.formData.hashTag
+                    targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+                    reid: =..formData.profile.doc.id
+              - continue
+          - =.builtIn.ecos.shareDoc:
+              dataIn:
+                sourceDoc: =.Global.formData.patientDoc.financialForm
+                targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+                reid: =..apiRequest.appointment.edgeCreateResp.edge.id
+              dataOut: CreateAppointmentToRoom.formData.financialForm
+          - =.builtIn.ecos.shareDocList:
+              dataIn:
+                sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+                targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+                reid: =..formData.profile.doc.id
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+      - actionType: evalObject
+        object:
+          # if patient and facility not friend,to be friend
+          - if:
+              - =..apiRequest.relation_patientToFacility.edgeQueryResp.edge.0 #10002
+              - continue
+              - actionType: evalObject
+                object:
+                  - =..apiRequest.inviteFromFacility.edgeAPI.get: "" #1053
+                  - if:
+                      - =..apiRequest.inviteFromFacility.edgeQueryResp.edge.0
+                      - actionType: evalObject
+                        object:
+                          - ..apiRequest.acceptInviteFacility.edgeCreateReq.refid@: =..apiRequest.inviteFromFacility.edgeQueryResp.edge.0.id
+                          - =..apiRequest.acceptInviteFacility.edgeAPI.store: "" #1060
+                          - =.builtIn.utils.setTimer:
+                              dataIn:
+                                timeUnix: 2000
+                          - =..apiRequest.relation_patientToFacility.edgeAPI.get: ""
+                          - =.builtIn.ecos.shareDoc:
+                              dataIn:
+                                sourceDoc: =.Global.Profile
+                                targetEdgeID: =..apiRequest.relation_patientToFacility.edgeQueryResp.edge.0.id
+                              dataOut: CreateAppointmentToRoom.formData.patientProfile_shared
+                          - if:
+                              - =.Global.formData.hashTag.id
+                              - =.builtIn.ecos.shareDoc:
+                                  dataIn:
+                                    sourceDoc: =.Global.formData.hashTag
+                                    targetEdgeID: =..apiRequest.relation_patientToFacility.edgeQueryResp.edge.0.id
+                                    reid: =..formData.patientProfile_shared.doc.id
+                              - continue
+                      - actionType: evalObject
+                        object:
+                          - =..apiRequest.relation_patientToFacility.edgeAPI.store: ""
+                          - =.builtIn.ecos.shareDoc:
+                              dataIn:
+                                sourceDoc: =.Global.Profile
+                                targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+                              dataOut: CreateAppointmentToRoom.formData.patientProfile_shared
+                          - if:
+                              - =.Global.formData.hashTag.id
+                              - =.builtIn.ecos.shareDoc:
+                                  dataIn:
+                                    sourceDoc: =.Global.formData.hashTag
+                                    targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+                                    reid: =..formData.patientProfile_shared.doc.id
+                              - continue
+          # if patient and facility not friend, to be friend
+          - if:
+              - =..apiRequest.relation.edgeQueryResp.edge
+              - continue
+              - actionType: evalObject
+                object:
+                  - =..apiRequest.relation.edgeAPI.store: ""
+                  - =.builtIn.ecos.shareDoc:
+                      dataIn:
+                        sourceDoc: =.Global.Profile
+                        targetEdgeID: =..apiRequest.relation.edgeCreateResp.edge.id
+                      dataOut: CreateAppointmentToRoom.formData.patientProfile_shared
+                  - if:
+                      - =.Global.formData.hashTag.id
+                      - =.builtIn.ecos.shareDoc:
+                          dataIn:
+                            sourceDoc: =.Global.formData.hashTag
+                            targetEdgeID: =..apiRequest.relation.edgeCreateResp.edge.id
+                            reid: =..formData.patientProfile_shared.doc.id
+                      - continue
+                  - =.builtIn.ecos.shareDocList:
+                      dataIn:
+                        sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+                        targetEdgeID: =..apiRequest.relation.edgeCreateResp.edge.id
+                        reid: =..formData.patientProfile_shared.doc.id
+          # if patient and facility not friend,to be friend
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.relation_patientToFacility.edgeQueryResp.edge
+                    len: 0
+              # if true should to be friend
+              - actionType: evalObject
+                object:
+                  - =..apiRequest.relation_patientToFacility.edgeAPI.store: ""
+                  - =.builtIn.ecos.shareDoc:
+                      dataIn:
+                        sourceDoc: =.Global.Profile
+                        targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+                      dataOut: CreateAppointmentToRoom.formData.insurance
+                  - if:
+                      - =.Global.formData.hashTag.id
+                      - =.builtIn.ecos.shareDoc:
+                          dataIn:
+                            sourceDoc: =.Global.formData.hashTag
+                            targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+                            reid: =..formData.insurance.doc.id
+                      - continue
+                  - =.builtIn.ecos.shareDocList:
+                      dataIn:
+                        sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+                        targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+                        reid: =..formData.insurance.doc.id
+              - continue
+      # 创建完预约之后打 appointment link 的tag,回头需要加判断
+      - actionType: evalObject
+        object:
+          # fid 指向 房间
+          - ..formData.appointmentLink.eid@: =..apiRequest.appointment.edgeCreateResp.edge.id
+          - ..formData.appointmentLink.fid@: ""
+          - ..formData.appointmentLink.reid@: =..apiRequest.appointment.edgeCreateResp.edge.id
+          # 创建 tag
+          - =..apiRequest.appointmentListTag.docAPI.store: ""
+
+      # room notification
+      # - ..sendNotification.document.fid@: =.Global.prodAPPID
+      # - ..sendNotification.document.eid@: =..apiRequest.appointment.edgeCreateResp.edge.id
+      # - =..sendNotification.docAPI.store: ""
+
+      - actionType: popUpDismiss
+        popUpView: uploading
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.approveAppointment.response.code
+                    string2: 40003
+              - actionType: popUp
+                popUpView: scheduleFail
+                wait: true
+              - actionType: popUp
+                popUpView: createSuccessView
+                wait: 2000
+      - goto: PatientDashboard
+  style:
+    headerImgBox:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      width: "0.064"
+      boxSizing: border-box
+    headerImg:
+      marginTop: "0.016009"
+      height: "0.022167"
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      paddingBottom: "0.03"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+      backgroundColor: "#2988e6"
+      boxShadow: "0 0 1px 1px #7bb3f2"
+    panelBox:
+      paddingTop: "0.0246"
+      paddingBottom: "0.0246"
+      width: "1"
+      height: "0.415517"
+      backgroundColor: "#2988e6"
+      overflow: hidden
+    infoBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      backgroundColor: "#ffffff"
+      borderRadius: "5"
+      overflow: hidden
+    titleBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.84"
+      borderBottom: "1px solid #efefef"
+      overflow: hidden
+    leftTitle:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      fontWeight: "600"
+      width: "0.792"
+      lineHeight: "5vh"
+      height: "auto"
+      verticalAlign: middle
+    rightValue:
+      height: "0.022167"
+      width: "0.048"
+      display: "inline-block"
+      verticalAlign: middle
+    blockBox:
+      marginTop: "0.0123"
+      marginLeft: "0.04"
+      width: "0.84"
+      height: "auto"
+      overflow: hidden
+    inlineRight:
+      width: "0.44"
+      height: "auto"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "#333333"
+      display: "inline-block"
+    inlineValue:
+      width: "0.4"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      display: "inline-block"
+      textAlign:
+        x: right
+      overflow: hidden
+      whiteSpace: nowrap
+      textOverflow: ellipsis
+    locationText:
+      width: "0.84"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      display: "-webkit-box"
+      webkitBoxOrient: "vertical"
+      webkitLineClamp: 2
+      overflow: "hidden"
+      textOverflow: "ellipsis"
+    # body checkBox
+    bodyBox:
+      width: "0.92"
+      marginLeft: "0.04"
+      height: "0.383004"
+      boxSizing: "border-box"
+      paddingTop: "0.02"
+      paddingBottom: "0.03"
+    bodyTitle:
+      fontWeight: "600"
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    checkBoxImg:
+      width: "0.05"
+      display: "inline-block"
+      verticalAlign: middle
+    checkBoxContent:
+      display: "inline-block"
+      fontSize: .Nfont.n2
+      width: "0.67"
+      verticalAlign: middle
+      marginLeft: "0.02"
+# 2022年7月19日14:58:59
+# CreateAppointmentToRoom:
+#   title: "Create Appointment"
+#   init:
+#     - .SignInCheck
+#     - actionType: evalObject
+#       object:
+#         - =.builtIn.array.getListLength:
+#             dataIn:
+#               object: =.Global.formData.appointment.docu
+#             dataOut: CreateAppointmentToRoom.formDataTemp.localDocuLength
+#     - actionType: evalObject
+#       object:
+#         - =.builtIn.array.getListLength:
+#             dataIn:
+#               object: =.Global.vaccine
+#             dataOut: CreateAppointmentToRoom.formDataTemp.globalDocuLength
+#     - actionType: evalObject
+#       object:
+#         - =.builtIn.string.equal:
+#             dataIn:
+#               string1: =..formDataTemp.localDocuLength
+#               string2: =..formDataTemp.globalDocuLength
+#             dataOut: CreateAppointmentToRoom.formDataTemp.otherFormRead
+#     - actionType: evalObject
+#       object:
+#         - .Global.formData.selectCategory@: CreateAppointmentToRoom
+#     - =.builtIn.array.transformArray:
+#         dataIn:
+#           array: =.Global.formData.appointment.docu
+#         dataOut: CreateAppointmentToRoom.formData.formList
+#     - =.builtIn.array.transformPage:
+#         dataIn:
+#           array: =..formData.formList
+#           type: "Edit"
+#           dataKey: "key"
+#         dataOut: CreateAppointmentToRoom.formData.docList
+#     # 根据不同的room type类型来给E2的subtype赋值
+#     - =.builtIn.array.getValueByKey:
+#         dataIn:
+#           array: =.AppointmentType
+#           key1: text
+#           value: =..apiRequest.appointment.edgeCreateReq.name.visitType
+#           key2: type
+#         dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.subtype
+#     - =.builtIn.math.add:
+#         dataIn:
+#           num1: =..apiRequest.appointment.edgeCreateReq.subtype
+#           num2: 2
+#         dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.subtype
+#     # judge the provider is be assigned or not and give the corresponding value to the E2
+#     - if:
+#         - =.Global.ActiveProvider.id
+#         - actionType: evalObject
+#           object:
+#             - ..apiRequest.appointment.edgeCreateReq.name.providerName@: =.Global.ActiveProvider.name.data.fullName
+#             - ..apiRequest.appointment.edgeCreateReq.name.providerId@: =.Global.ActiveProvider.bsig
+#         - continue
+#     - =..apiRequest.relation.edgeAPI.get: ""
+#     - =..apiRequest.relation_patientToFacility.edgeAPI.get: ""
+#     - =..apiRequest.insurance.docAPI.get: ""
+#     - =..apiRequest.facilityProfile.docAPI.get: ""
+#     - .Global.flag.isMeetingPatientchart@: false
+#     - .Global.currentFacility@: =..apiRequest.facilityProfile.docQueryResp.doc.0
+#     - ..apiRequest.appointment.edgeCreateReq.name.facilityId@: =.Global.currentFacility.bsig
+#   formData:
+#     financialForm: ""
+#     insurance: ""
+#     profile: ""
+#     docList: []
+#     formList: []
+#     docMustCommitNum: -1
+#     docHaveCommitNum: -2
+#     patientProfile_shared: ""
+#     appointmentLink: #如果当前是一个 related 预约，则从Global去拿
+#       eid: ""
+#       fid: ""
+#       reid: ""
+#   formDataTemp:
+#     localDocuLength: ""
+#     globalDocuLength: ""
+#     otherFormRead: ""
+#     generalInfo: true
+#     generalInfoForms: true
+#     optionalForms:
+#       - title: Patient Chart
+#         pageName: PatientChart
+#     appointmentTitle:
+#       - title: Visit Questionnaire
+#   apiRequest:
+#     financialInfo:
+#       docStoreResp: ""
+#       docStoreReq:
+#         type: .DocType.FinancialInfo
+#         reid: ""
+#         eid: ""
+#         name:
+#           data:
+#             paymentInfo:
+#               fee: ""
+#               checkoutBalance: "" # due to other medical balance
+#             payerInfo:
+#               employerInfo: ""
+#               attorneyInfo: ""
+#               insuranceInfo: ""
+#               individualInfo: ""
+#       docAPI:
+#         store:
+#           api: cd
+#           dataIn: CreateAppointmentToRoom.apiRequest.financialInfo.docStoreReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.financialInfo.docStoreResp
+#     acceptInviteFacility:
+#       edgeCreateResp: ""
+#       edgeCreateReq:
+#         type: .EdgeType.Accept
+#         bvid: .Global.currentUser.vertex.id
+#         evid: .Global.currentFacility.bsig
+#         refid: ""
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: CreateAppointmentToRoom.apiRequest.acceptInviteFacility.edgeCreateReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.acceptInviteFacility.edgeCreateResp
+#     inviteFromFacility:
+#       edgeQueryResp: ""
+#       edgeQueryReq:
+#         type: .EdgeType.InviteInfo
+#         id:
+#           - .Global.currentUser.vertex.id
+#         xfname: evid,bvid
+#         obfname: mtime
+#         maxcount: 1
+#       edgeAPI:
+#         get:
+#           api: re
+#           dataIn: CreateAppointmentToRoom.apiRequest.inviteFromFacility.edgeQueryReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.inviteFromFacility.edgeQueryResp
+#     insurance:
+#       docQueryResp: ""
+#       docQueryReq:
+#         id:
+#           - .Global.rootNotebookID
+#           - .Global.Profile.id
+#         xfname: eid,fid
+#         type: .DocType.InsuranceCard
+#         _nonce: =.Global._nonce
+#       docAPI:
+#         get:
+#           api: rd
+#           dataIn: CreateAppointmentToRoom.apiRequest.insurance.docQueryReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.insurance.docQueryResp
+#     facilityProfile:
+#       docQueryResp: ""
+#       docQueryReq:
+#         ObjType: 12
+#         type: .DocType.FacilityProfile
+#         id: .Global.ActiveLocation.bsig
+#         xfname: E.evid
+#         sCondition: E.type=1100 AND D.ovid=E.bvid
+#         obfname: mtime
+#         maxcount: 1
+#         _nonce: =.Global._nonce
+#       docAPI:
+#         get:
+#           api: rd
+#           dataIn: CreateAppointmentToRoom.apiRequest.facilityProfile.docQueryReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.facilityProfile.docQueryResp
+#     relation_patientToFacility:
+#       edgeCreateResp: ""
+#       edgeQueryResp:
+#         edge: []
+#       edgeQueryReq:
+#         id:
+#           - .Global.currentUser.vertex.id
+#           - .Global.currentFacility.bsig
+#         xfname: Bvid,Evid
+#         sCondition: "subtype=131072 AND tage>0"
+#         type: 10002
+#         _nonce: =.Global._nonce
+#       edgeCreateReq:
+#         tage: 1
+#         type: 10002
+#         bvid: .Global.currentUser.vertex.id
+#         evid: .Global.currentFacility.bsig
+#         subtype: 131072
+#         name:
+#           isEncrypted: "1"
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeCreateReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeCreateResp
+#         get:
+#           api: re
+#           dataIn: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeQueryReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.relation_patientToFacility.edgeQueryResp
+#     # auto be friend
+#     relation:
+#       edgeCreateResp: ""
+#       edgeQueryResp: ""
+#       edgeQueryReq:
+#         id:
+#           - .Global.currentUser.vertex.id
+#           - .Global.currentFacility.bsig
+#         xfname: Bvid,Evid
+#         type: 10002
+#         _nonce: =.Global._nonce
+#       edgeCreateReq:
+#         tage: 1
+#         type: 10002
+#         bvid: .Global.currentUser.vertex.id
+#         evid: .Global.currentFacility.bsig
+#         subtype: .EInboxSubtype.PatientFacility
+#         name:
+#           isEncrypted: "1"
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: CreateAppointmentToRoom.apiRequest.relation.edgeCreateReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.relation.edgeCreateResp
+#         get:
+#           api: re
+#           dataIn: CreateAppointmentToRoom.apiRequest.relation.edgeQueryReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.relation.edgeQueryResp
+#     # appointment struct design
+#     appointment:
+#       edgeCreateResp: ""
+#       edgeCreateReq:
+#         # the provider id
+#         evid: .Global.formData.activeRoom.bsig
+#         # the patient id
+#         bvid: .Global.currentUser.vertex.id
+#         #E3 id
+#         refid: .Global.clock.refid
+#         subtype: ""
+#         type: 40000
+#         stime: .Global.clock.stime
+#         etime: .Global.clock.etime
+#         tage: 3
+#         name:
+#           fee: .Global.formData.fee
+#           finishDoc: []
+#           optionalForms: []
+#           Reason: .Global.formData.appointment.reason
+#           patientName: .Global.Profile.name.data.basicInfo.fullName
+#           patientPhoneNumber: .Global.currentUser.vertex.uid
+#           providerName: No Provider
+#           patientAvatarId: .Global.Profile.name.data.avatar
+#           visitType: .Global.formData.appointment.visitType
+#           visitReason: .Global.formData.appointment.reason
+#           location: .Global.ActiveLocation.name.data.basicInfo.location
+#           locationName: .Global.ActiveLocation.name.data.basicInfo.medicalFacilityName
+#           facilityId: ""
+#           document: .Global.formData.appointment.docu
+#           duration: .Global.formData.appointment.duration
+#           providerId: ""
+#           providerFullInfo: .Global.formData.activeRoom.name.data.roomName
+#           roomName: .Global.formData.activeRoom.name.data.roomName
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp
+#     approveAppointment:
+#       response: ""
+#       edge:
+#         bvid: .Global.currentUser.vertex.id
+#         evid: ""
+#         refid: ""
+#         type: 40000
+#         _handledCode: 40003
+#         subtype: 5
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: apiRequest.approveAppointment.edge
+#           dataOut: apiRequest.approveAppointment.response
+#     inviteFacility:
+#       response: ""
+#       edge:
+#         bvid: .Global.currentUser.vertex.id
+#         evid: .Global.currentFacility.bsig
+#         refid: ""
+#         type: .EdgeType.InviteInfo
+#         name:
+#           role: Facility
+#           roleName: .Global.currentFacility.name.data.basicInfo.medicalFacilityName
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: apiRequest.inviteFacility.edge
+#           dataOut: apiRequest.inviteFacility.response
+#     inviteRoom:
+#       edgeCreateResp: ""
+#       edgeCreateReq:
+#         bvid: .Global.currentUser.vertex.id
+#         evid: .Global.formData.activeRoom.bsig
+#         refid: ""
+#         type: .EdgeType.InviteInfo
+#         name:
+#           role: Room
+#           roleName: .Global.formData.activeRoom.name.data.roomName
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: apiRequest.inviteRoom.edgeCreateReq
+#           dataOut: apiRequest.inviteRoom.edgeCreateResp
+#     inviteLocation:
+#       edgeCreateResp: ""
+#       edgeCreateReq:
+#         bvid: .Global.currentUser.vertex.id
+#         evid: .Global.ActiveLocation.bsig
+#         refid: ""
+#         type: .EdgeType.InviteInfo
+#         name:
+#           role: Location
+#           roleName: .Global.ActiveLocation.name.data.basicInfo.medicalFacilityName
+#       edgeAPI:
+#         store:
+#           api: ce
+#           dataIn: apiRequest.inviteLocation.edgeCreateReq
+#           dataOut: apiRequest.inviteLocation.edgeCreateResp
+#       # 用来做关联预约的tag
+#     appointmentListTag:
+#       docCreateResp: ""
+#       docCreateReq:
+#         subtype:
+#           isEncrypted: "0"
+#           isOnServer: "0"
+#         type: .DocType.RelatedAppTag
+#         # 创建时  eid 和 reid 都指向 当前房间的边，
+#         # 创建 related appointment 时， 需要一个reid 指向上一个小尾巴，fid指向跟边，所以eid和fid都需要根据情况判断
+#         eid: =..formData.appointmentLink.eid
+#         fid: =..formData.appointmentLink.fid
+#         reid: =..formData.appointmentLink.reid
+#         name:
+#           data: ""
+#       docAPI:
+#         store:
+#           api: cd
+#           dataIn: apiRequest.appointmentListTag.docCreateReq
+#           dataOut: CreateAppointmentToRoom.apiRequest.appointmentListTag.docCreateResp
+#   components:
+#     - .BaseCheckView: ""
+#       message: "You have not filled in the other forms"
+#       viewTag: judgeOtherForm
+#       colorChange: "0x2988e6"
+#       imgPath: aboutBlue.svg
+#       children:
+#         - type: view
+#           style:
+#             width: "0.8"
+#             height: "0.3"
+#             top: "0.3"
+#             left: "0.1"
+#             zIndex: "100"
+#             backgroundColor: "0xffffff"
+#             borderRadius: "7"
+#             border:
+#               style: "3"
+#             borderColor: "#f4f8fa"
+#             borderWidth: "3"
+#           children:
+#             - .BaseCheckViewImg:
+#             - .BaseCheckViewLabel:
+#             - .BaseCheckViewButton:
+#               onClick:
+#                 - actionType: popUpDismiss
+#                   popUpView: ____.viewTag
+#     - type: popUp
+#       viewTag: scheduleFail
+#       message: "Your appointment time is already occupied. You can change your appointment time, then the forms you filled in will be retained Warning: If you make an appointment later, you will lose all your forms you filled in "
+#       style:
+#         top: "0"
+#         left: "0"
+#         width: "1"
+#         height: "1"
+#         backgroundColor: "0x00000066"
+#         zIndex: "50"
+#         textAlign:
+#           y: center
+#       leftButton:
+#         - goto: PatientDashboard
+#       rightButton:
+#         - actionType: evalObject
+#           object:
+#             - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeCreateResp.edge
+#         - goto: CreateAppointmentNew
+#       children:
+#         - type: view
+#           style:
+#             width: "0.7"
+#             marginLeft: "0.15"
+#             backgroundColor: "0xE6E6E6"
+#             borderRadius: "14px"
+#             overflow: hidden
+#           children:
+#             - type: view
+#               style:
+#                 width: "0.7"
+#                 height: "auto"
+#                 backgroundColor: "0xd81e06"
+#                 borderRadius: "14px 14px 0 0"
+#                 overflow: hidden
+#               children:
+#                 - type: view
+#                   style:
+#                     marginTop: "0.006"
+#                     width: "0.7"
+#                     height: "auto"
+#                   children:
+#                     - type: image
+#                       path: aboutWhite.svg
+#                       style:
+#                         display: inline-block
+#                         verticalAlign: middle
+#                         marginLeft: "0.23"
+#                         width: "0.045"
+#                     - type: label
+#                       text: Warning
+#                       style:
+#                         fontSize: .Nfont.h14
+#                         marginLeft: "0.02"
+#                         color: "0xFFFFFF"
+#                         display: inline-block
+#                         verticalAlign: middle
+
+#             - type: view
+#               style:
+#                 height: "0.01"
+#                 backgroundColor: "0xd81e06"
+#             - type: label
+#               text: ___.message
+#               style:
+#                 width: "0.576"
+#                 marginLeft: "0.062"
+#                 marginTop: "0.027"
+#                 fontSize: .Nfont.h14
+
+#                 textAlign:
+#                   x: center
+#                 color: "0x333333"
+#             - type: view
+#               style:
+#                 height: "0.027"
+#                 width: "0.7"
+#                 border:
+#                   style: 2
+#                   color: "0x919192"
+#                 borderWidth: "1"
+#             - type: view
+#               style:
+#                 width: "0.7"
+#               children:
+#                 - type: button
+#                   text: "Later"
+#                   style:
+#                     color: "0x007AFF"
+#                     display: inline-block
+#                     width: "0.349"
+#                     borderRadius: "0 0 0 14px"
+#                     height: "0.054"
+#                     backgroundColor: "0xE6E6E6"
+#                     border:
+#                       style: "1"
+#                   onClick: ____.leftButton
+#                 - type: view
+#                   style:
+#                     width: "0.002"
+#                     backgroundColor: "0x919192"
+#                     display: inline-block
+#                     height: "0.054"
+#                     zIndex: "50"
+#                 - type: button
+#                   text: "Change"
+#                   style:
+#                     color: "0x007AFF"
+#                     fontWeight: "850"
+#                     display: inline-block
+#                     width: "0.349"
+#                     borderRadius: "0 0 14px 0"
+#                     height: "0.054"
+#                     backgroundColor: "0xE6E6E6"
+#                     border:
+#                       style: "1"
+#                   onClick: ____.rightButton
+#     - .TipsMultiLine:
+#       viewTag: judgeVisitQuestionnaire
+#       message: "You have not filled in the Visit Questionnaire"
+#     # - .BaseCheckView: ""
+#     #   message: "You have not filled in the Visit Questionnaire"
+#     #   viewTag: judgeVisitQuestionnaire
+#     #   colorChange: "0x2988e6"
+#     #   imgPath: aboutBlue.svg
+#     #   children:
+#     #     - type: view
+#     #       style:
+#     #         width: "0.8"
+#     #         height: "0.3"
+#     #         top: "0.3"
+#     #         left: "0.1"
+#     #         zIndex: "100"
+#     #         backgroundColor: "0xffffff"
+#     #         borderRadius: "7"
+#     #         border:
+#     #           style: "3"
+#     #         borderColor: "#f4f8fa"
+#     #         borderWidth: "3"
+#     #       children:
+#     #         - .BaseCheckViewImg:
+#     #         - .BaseCheckViewLabel:
+#     #         - .BaseCheckViewButton:
+#     #           onClick:
+#     #             - actionType: popUpDismiss
+#     #               popUpView: ____.viewTag
+
+#     - .SuccessfulOneLine:
+#       viewTag: createSuccessView
+#       message: "Create Successfully!"
+#     # - .BackgroundColorGray:
+#     #   viewTag: createSuccessView
+#     #   style:
+#     #     zIndex: 10000
+#     #   onClick:
+#     #     - actionType: popUpDismiss
+#     #       popUpView: createSuccessView
+#     #     - goto: PatientDashboard
+#     #   children:
+#     #     - type: view
+#     #       style:
+#     #         width: "0.4"
+#     #         height: "auto"
+#     #         backgroundColor: "0xe5e5e5"
+#     #         borderRadius: "12"
+#     #         top: "0.43"
+#     #         left: "0.3"
+#     #         textAlign:
+#     #           x: center
+#     #       children:
+#     #         - type: image
+#     #           path: deleteTrue.svg
+#     #           style:
+#     #             width: "0.105"
+#     #             # marginLeft: "0.145"
+#     #             marginTop: "0.025"
+#     #         - type: label
+#     #           text: "You have created an appointment successfully"
+#     #           dataKey:
+#     #           style:
+#     #             color: "0x555555"
+#     #             fontSize: .Nfont.h0
+#     #
+#     #             width: "0.35"
+#     #             marginLeft: "0.025"
+#     #             marginTop: "0.009"
+#     #             height: "auto"
+#     #             textAlign:
+#     #               x: center
+#     #         - type: view
+#     #           style:
+#     #             marginTop: "0.01"
+#     - .TipsMultiLine:
+#       message: "You have not filled in the Financial Responsibility Form"
+#       viewTag: tag_notFillFinancialForm
+#     - .ProgressCheckView:
+#       message: "loading ..."
+#       viewTag: uploading
+#     - type: view
+#       style:
+#         width: "1"
+#         height: "0.1"
+#         backgroundColor: "0x2988e6ff"
+#       children:
+#         - type: label
+#           text: =..title
+#           style:
+#             left: "0.15"
+#             width: "0.7"
+#             fontWeight: 300
+#             height: "0.1"
+#             fontSize: .Nfont.h3
+#             color: "0xffffffff"
+#             textAlign:
+#               x: center
+#               y: center
+#             backgroundColor: "0x2988e6ff"
+#             border:
+#               style: "1"
+#     - type: button
+#       onClick:
+#         - actionType: builtIn
+#           funcName: goBack
+#           reload: true
+#       style:
+#         top: "0"
+#         left: "0.05"
+#         width: "0.1"
+#         height: "0.1"
+#         backgroundColor: "0x2988e6"
+#         zIndex: 10
+#         border:
+#           style: "1"
+#       children:
+#         - type: image
+#           path: falseWhite.svg
+#           style:
+#             top: "0.04"
+#             left: "0.02"
+#             height: "0.02"
+#             zIndex: 11
+#     #  body
+#     - type: view
+#       style:
+#         width: "1"
+#         top: "0.1"
+#         height: "auto"
+#       children:
+#         - type: view
+#           viewTag: blockImageTag
+#           style:
+#             width: "1"
+#             marginTop: "0"
+#             height: "0.4"
+#             backgroundColor: "0x2988e6"
+#           children:
+#             - type: view
+#               style:
+#                 # marginTop: "0.1"
+#                 width: "0.9"
+#                 height: "0.38"
+#                 marginLeft: "0.05"
+#                 borderRadius: "6"
+#                 backgroundColor: "0xffffff"
+#               children:
+#                 - type: view
+#                   style:
+#                     width: "0.84"
+#                     height: "0.38"
+#                     # marginTop: "0.015"
+#                     marginLeft: "0.03"
+#                     fontSize: .Nfont.n1
+#                   children:
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.05"
+#                         marginLeft: "0.01"
+#                         border:
+#                           style: "2"
+#                         borderWidth: "1"
+#                         borderColor: "0xf8f8f8"
+#                       children:
+#                         - type: label
+#                           text: "Appointment Info"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.75"
+#                             height: "0.05"
+#                             display: "inline-block"
+#                             lineHeight: "5vh"
+#                         - type: image
+#                           path: editBlue.svg
+#                           style:
+#                             width: "0.05"
+#                             display: "inline-block"
+#                             marginTop: "0.015"
+#                           onClick:
+#                             - actionType: builtIn
+#                               funcName: goBack
+#                               reload: true
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.04"
+#                         marginLeft: "0.01"
+#                         marginTop: "0.015"
+#                       children:
+#                         - type: label
+#                           text: "Date"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.1"
+#                             height: "0.04"
+#                             display: "inline-block"
+#                             lineHeight: "4vh"
+#                         - type: label
+#                           text=func: .builtIn.string.formatUnixtimeL_en
+#                           dataKey: Global.clock.stime
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: right
+#                             width: "0.72"
+#                             height: "0.04"
+#                             display: "inline-block"
+#                             lineHeight: "4vh"
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.035"
+#                         marginLeft: "0.01"
+#                       children:
+#                         - type: label
+#                           text: "Time"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.1"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                         - type: label
+#                           text: "9:45am-10:00am"
+#                           text=func: .builtIn.date.ShowTimeSpan
+#                           dataKey: Global.clock
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: right
+#                             width: "0.72"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.035"
+#                         marginLeft: "0.01"
+#                       children:
+#                         - type: label
+#                           text: "Reason for Visit"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.3"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                         - type: label
+#                           dataKey: Global.formData.appointment.reason
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: right
+#                             width: "0.52"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.035"
+#                         marginLeft: "0.01"
+#                       children:
+#                         - type: label
+#                           text: "Service Type"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.35"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                         - type: label
+#                           dataKey: Global.formData.appointment.visitType
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: right
+#                             width: "0.47"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.035"
+#                         marginLeft: "0.01"
+#                       children:
+#                         - type: label
+#                           text: "Facility"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.16"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                         - type: label
+#                           dataKey: Global.ActiveLocation.name.data.basicInfo.medicalFacilityName
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: right
+#                             width: "0.66"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.035"
+#                         marginLeft: "0.01"
+#                       children:
+#                         - type: label
+#                           text: "Room"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.14"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                         - type: label
+#                           dataKey: Global.formData.activeRoom.name.data.roomName
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: right
+#                             width: "0.68"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "auto"
+#                         marginLeft: "0.01"
+#                       children:
+#                         - type: label
+#                           text: "Location"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.82"
+#                             height: "0.035"
+#                             lineHeight: "3.5vh"
+#                         - type: label
+#                           dataKey: Global.ActiveLocation.name.data.basicInfo.location
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: left
+#                             width: "0.82"
+#                             wordWrap: break-word
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.001"
+#                         marginLeft: "0.01"
+#                         marginTop: "0.01"
+#                         backgroundColor: "0xcccccc"
+#                     - type: view
+#                       style:
+#                         width: "0.82"
+#                         height: "0.035"
+#                         marginLeft: "0.01"
+#                       children:
+#                         - type: label
+#                           text: "Fee"
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             width: "0.14"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             lineHeight: "3.5vh"
+#                             fontWeight: "700"
+#                         - type: label
+#                           text: ""
+#                           text=func: .builtIn.string.dollarFormat
+#                           dataKey: Global.formData.fee
+#                           style:
+#                             fontSize: .Nfont.n2
+#                             textAlign:
+#                               x: right
+#                             width: "0.68"
+#                             height: "0.035"
+#                             display: "inline-block"
+#                             fontWeight: "700"
+#                             lineHeight: "3.5vh"
+#                             wordWrap: break-word
+#         - type: scrollView
+#           style:
+#             width: "1"
+#             marginLeft: "0"
+#             marginTop: "0.01"
+#             height: "0.4"
+#           children:
+#             - type: label
+#               text: "Please Complete Forms Below"
+#               style:
+#                 fontWeight: "600"
+#                 lineHeight: "5vh"
+#                 width: "0.82"
+#                 marginLeft: "0.04"
+#                 height: "0.05"
+#                 color: "0x333333"
+#                 fontSize: .Nfont.h16
+#             - type: view
+#               onClick:
+#                 - goto: VisitQuestionnaire
+#               style:
+#                 width: "0.82"
+#                 marginLeft: "0.04"
+#                 marginTop: "0.01"
+#               children:
+#                 - type: image
+#                   path:
+#                     emit:
+#                       actions:
+#                         - if:
+#                             - =.Global.visitQuestionnaireDoc
+#                             - selectOnBlue.svg
+#                             - selectOff.svg
+#                   style:
+#                     width: "0.05"
+#                     display: "inline-block"
+#                     verticalAlign: middle
+#                 - type: label
+#                   text: Visit Questionnaire
+#                   style:
+#                     display: "inline-block"
+#                     fontSize: .Nfont.n2
+#                     width: "0.67"
+#                     verticalAlign: middle
+#                     marginLeft: "0.02"
+#             - type: view
+#               onClick:
+#                 - goto: FinancialFormEditPage1
+#               style:
+#                 width: "0.82"
+#                 marginLeft: "0.04"
+#                 marginTop: "0.025"
+#               children:
+#                 - type: image
+#                   path:
+#                     emit:
+#                       actions:
+#                         - if:
+#                             - =.Global.formData.patientDoc.status.shareFinancialForm
+#                             - selectOnBlue.svg
+#                             - selectOff.svg
+#                   style:
+#                     width: "0.05"
+#                     display: "inline-block"
+#                     verticalAlign: middle
+#                 - type: label
+#                   text: Financial Responsibility Form
+#                   style:
+#                     display: "inline-block"
+#                     fontSize: .Nfont.n2
+#                     width: "0.67"
+#                     verticalAlign: middle
+#                     marginLeft: "0.02"
+#             - type: list
+#               viewTag: appointmentListTag
+#               contentType: listObject
+#               listObject: ..formData.docList
+#               iteratorVar: itemObject
+#               style:
+#                 width: "0.92"
+#                 height: "auto"
+#                 overflow: hidden
+#               children:
+#                 - type: listItem
+#                   itemObject:
+#                   style:
+#                     width: "0.9"
+#                     marginLeft: "0.04"
+#                     overflow: hidden
+#                   children:
+#                     - type: view
+#                       style:
+#                         width: auto
+#                         height: auto
+#                         marginTop: "0.025"
+#                       children:
+#                         - type: image
+#                           path:
+#                             emit:
+#                               dataKey:
+#                                 var: itemObject
+#                               actions:
+#                                 - if:
+#                                     - =.builtIn.array.has:
+#                                         dataIn:
+#                                           object: =.Global.vaccine
+#                                           value: $var.key
+#                                     - selectOnBlue.svg
+#                                     - selectOff.svg
+#                           style:
+#                             width: "0.05"
+#                             verticalAlign: middle
+#                             display: "inline-block"
+#                         - type: label
+#                           dataKey: itemObject.key
+#                           style:
+#                             display: "inline-block"
+#                             fontSize: .Nfont.n2
+#                             verticalAlign: middle
+#                             width: "0.72"
+#                             marginLeft: "0.02"
+#                   onClick:
+#                     - emit:
+#                         dataKey:
+#                           var: itemObject
+#                         actions:
+#                           - if:
+#                               - =.Global.visitQuestionnaireDoc
+#                               - goto: $var.pageName
+#                               - continue
+#                     - actionType: popUp
+#                       popUpView: judgeVisitQuestionnaire
+#                       wait: true
+#             - type: label
+#               text: "Optional Forms"
+#               style:
+#                 fontWeight: "600"
+#                 marginLeft: "0.04"
+#                 height: "0.05"
+#                 color: "0x333333"
+#                 fontSize: .Nfont.h16
+#                 marginTop: "0.02"
+#             - type: view
+#               style:
+#                 width: "0.82"
+#                 margin: "0"
+#                 height: "auto"
+#               children:
+#                 - type: view
+#                   style:
+#                     width: "0.82"
+#                     height: "auto"
+#                     marginLeft: "0.04"
+#                   onClick:
+#                     - actionType: evalObject
+#                       object:
+#                         - .Global.isShare@: true
+#                     - goto: PatientChart
+#                   children:
+#                     - type: image
+#                       path:
+#                         emit:
+#                           actions:
+#                             - if:
+#                                 - =.builtIn.array.has:
+#                                     dataIn:
+#                                       object: =.Global.optionalForms
+#                                       value: Patient Chart
+#                                 - selectOnBlue.svg
+#                                 - selectOff.svg
+#                       style:
+#                         width: "0.05"
+#                         verticalAlign: middle
+#                         display: "inline-block"
+#                     - type: label
+#                       text: "Patient Chart"
+#                       style:
+#                         display: "inline-block"
+#                         fontSize: .Nfont.n2
+#                         width: "0.67"
+#                         verticalAlign: middle
+#                         marginLeft: "0.02"
+#         - type: view
+#           style:
+#             width: "0.9"
+#             marginLeft: "0.05"
+#             height: "0.09"
+#           children:
+#             - type: button
+#               viewTag: buttonView
+#               text: "Create Appointment"
+#               style:
+#                 width: "0.9"
+#                 height: "0.05"
+#                 color: "0xffffff"
+#                 fontSize: .Nfont.n2
+#                 marginLeft: "0"
+#                 marginTop: "0.025"
+#                 textAlign:
+#                   x: center
+#                 lineHeight: "5vh"
+#                 border:
+#                   style: "3"
+#                 borderWidth: "1"
+#                 backgroundColor: "0x2988e6"
+#                 boxShadow: "0 0 1px 1px #7bb3f2"
+#                 borderColor: "0x65a9ee"
+#                 borderRadius: "5"
+#               onClick:
+#                 - actionType: evalObject
+#                   object:
+#                     #judge the visit questionnaire is fill or not
+#                     - if:
+#                         - =.Global.visitQuestionnaireDoc
+#                         - continue
+#                         - actionType: popUp
+#                           popUpView: judgeVisitQuestionnaire
+#                           wait: true
+#                     - if:
+#                         - =.Global.formData.patientDoc.status.shareFinancialForm
+#                         - continue
+#                         - actionType: popUp
+#                           popUpView: tag_notFillFinancialForm
+#                           wait: true
+#                           popUpDismiss: 2000
+#                     # get the length of the documents which user have to commit
+#                     - =.builtIn.array.getListLength:
+#                         dataIn:
+#                           object: =.Global.formData.appointment.docu
+#                         dataOut: CreateAppointmentToRoom.formData.docMustCommitNum
+#                     # get the length of the documents which user have commited
+#                     - =.builtIn.array.getListLength:
+#                         dataIn:
+#                           object: =.Global.vaccine
+#                         dataOut: CreateAppointmentToRoom.formData.docHaveCommitNum
+#                     #judge the other form is fill or not
+#                     - if:
+#                         - =.builtIn.string.equal:
+#                             dataIn:
+#                               string1: =..formData.docMustCommitNum
+#                               string2: =..formData.docHaveCommitNum
+#                         - continue
+#                         - actionType: popUp
+#                           popUpView: judgeOtherForm
+#                           wait: true
+#                 #popup the uploading popUp
+#                 - actionType: popUp
+#                   popUpView: uploading
+#                 - actionType: evalObject
+#                   object:
+#                     - ..apiRequest.appointment.edgeCreateReq.name.optionalForms@: =.Global.optionalForms
+#                     - =.builtIn.array.add:
+#                         dataIn:
+#                           object: =..apiRequest.appointment.edgeCreateReq.name.finishDoc
+#                           value: "Visit Questionnaire"
+#                     - =.builtIn.array.pushAny:
+#                         dataIn:
+#                           newMessage: "Financial Responsibility Form"
+#                           messages: =..apiRequest.appointment.edgeCreateReq.name.finishDoc
+#                         dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.name.finishDoc
+#                     - =.builtIn.array.concat:
+#                         dataIn:
+#                           array1: =..apiRequest.appointment.edgeCreateReq.name.finishDoc
+#                           array2: =.Global.vaccine
+#                         dataOut: CreateAppointmentToRoom.apiRequest.appointment.edgeCreateReq.name.finishDoc
+#                     - if:
+#                         - =.Global.formData.meetingStatus.notRemind
+#                         - ..apiRequest.appointment.edgeCreateReq.tage@: 7346545013
+#                         - continue
+#                     # make appointment, create E2
+#                     - =..apiRequest.appointment.edgeAPI.store: ""
+#                     # auto approve appointment and create E5
+#                     - .CreateAppointmentToRoom.apiRequest.approveAppointment.edge.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+#                     - .CreateAppointmentToRoom.apiRequest.approveAppointment.edge.evid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.evid
+#                     - =.CreateAppointmentToRoom.apiRequest.approveAppointment.edgeAPI.store: ""
+#                     # auto approve appointment and create E10 to invite facitity
+#                     - .CreateAppointmentToRoom.apiRequest.inviteFacility.edge.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+#                     - =.CreateAppointmentToRoom.apiRequest.inviteFacility.edgeAPI.store: ""
+#                     # auto approve appointment and create E10 to invite room
+#                     - .CreateAppointmentToRoom.apiRequest.inviteRoom.edgeCreateReq.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+#                     - =.CreateAppointmentToRoom.apiRequest.inviteRoom.edgeAPI.store: ""
+#                     # auto approve appointment and create E10 to invite location
+#                     # - .CreateAppointmentToRoom.apiRequest.inviteLocation.edgeCreateReq.refid@: =.CreateAppointmentToRoom.apiRequest.appointment.edgeCreateResp.edge.id
+#                     # - =.CreateAppointmentToRoom.apiRequest.inviteLocation.edgeAPI.store: ""
+#                     # share doc
+#                     - =.builtIn.array.add:
+#                         dataIn:
+#                           object: =.Global.vaccineDoc
+#                           value: =.Global.formData.visitQuestionnaireDoc.doc
+#                     - if:
+#                         - =.Global.formData.patientDoc.status.sharePatientChart
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.patientChart
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.newPatientForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.newPatientForm
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.pifzerVaccineFirDoseForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.pifzerVaccineFirDoseForm
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.pifzerVaccineSecDoseForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.pifzerVaccineSecDoseForm
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.cov19TestNewPatForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.cov19TestNewPatForm
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.cov19TestForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.cov19TestForm
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.modernaVaccineFirDoseForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.modernaVaccineFirDoseForm
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.modernaVaccineSecDoseForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.modernaVaccineSecDoseForm
+#                         - continue
+#                     - if:
+#                         - =.Global.formData.fluVaccinationConsentForm.id
+#                         - =.builtIn.array.add:
+#                             dataIn:
+#                               object: =.Global.vaccineDoc
+#                               value: =.Global.formData.fluVaccinationConsentForm
+#                         - continue
+#                     - =.builtIn.ecos.shareDocList:
+#                         dataIn:
+#                           sourceDocList: =.Global.vaccineDoc
+#                           targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                           reid: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                     - =.builtIn.ecos.shareDoc:
+#                         dataIn:
+#                           sourceDoc: =.Global.Profile
+#                           targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                           reid: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                         dataOut: CreateAppointmentToRoom.formData.profile
+#                     - if:
+#                         - =.Global.formData.hashTag.id
+#                         - =.builtIn.ecos.shareDoc:
+#                             dataIn:
+#                               sourceDoc: =.Global.formData.hashTag
+#                               targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                               reid: =..formData.profile.doc.id
+#                         - continue
+#                     - =.builtIn.ecos.shareDoc:
+#                         dataIn:
+#                           sourceDoc: =.Global.formData.patientDoc.financialForm
+#                           targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                           reid: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                         dataOut: CreateAppointmentToRoom.formData.financialForm
+#                     - =.builtIn.ecos.shareDocList:
+#                         dataIn:
+#                           sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+#                           targetEdgeID: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                           reid: =..formData.profile.doc.id
+#                 - actionType: evalObject
+#                   object:
+#                     .Global._nonce@:
+#                       =.builtIn.math.random: ""
+#                 - actionType: evalObject
+#                   object:
+#                     # if patient and facility not friend,to be friend
+#                     - if:
+#                         - =..apiRequest.relation_patientToFacility.edgeQueryResp.edge.0 #10002
+#                         - continue
+#                         - actionType: evalObject
+#                           object:
+#                             - =..apiRequest.inviteFromFacility.edgeAPI.get: "" #1053
+#                             - if:
+#                                 - =..apiRequest.inviteFromFacility.edgeQueryResp.edge.0
+#                                 - actionType: evalObject
+#                                   object:
+#                                     - ..apiRequest.acceptInviteFacility.edgeCreateReq.refid@: =..apiRequest.inviteFromFacility.edgeQueryResp.edge.0.id
+#                                     - =..apiRequest.acceptInviteFacility.edgeAPI.store: "" #1060
+#                                     - =.builtIn.utils.setTimer:
+#                                         dataIn:
+#                                           timeUnix: 2000
+#                                     - =..apiRequest.relation_patientToFacility.edgeAPI.get: ""
+#                                     - =.builtIn.ecos.shareDoc:
+#                                         dataIn:
+#                                           sourceDoc: =.Global.Profile
+#                                           targetEdgeID: =..apiRequest.relation_patientToFacility.edgeQueryResp.edge.0.id
+#                                         dataOut: CreateAppointmentToRoom.formData.patientProfile_shared
+#                                     - if:
+#                                         - =.Global.formData.hashTag.id
+#                                         - =.builtIn.ecos.shareDoc:
+#                                             dataIn:
+#                                               sourceDoc: =.Global.formData.hashTag
+#                                               targetEdgeID: =..apiRequest.relation_patientToFacility.edgeQueryResp.edge.0.id
+#                                               reid: =..formData.patientProfile_shared.doc.id
+#                                         - continue
+#                                 - actionType: evalObject
+#                                   object:
+#                                     - =..apiRequest.relation_patientToFacility.edgeAPI.store: ""
+#                                     - =.builtIn.ecos.shareDoc:
+#                                         dataIn:
+#                                           sourceDoc: =.Global.Profile
+#                                           targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+#                                         dataOut: CreateAppointmentToRoom.formData.patientProfile_shared
+#                                     - if:
+#                                         - =.Global.formData.hashTag.id
+#                                         - =.builtIn.ecos.shareDoc:
+#                                             dataIn:
+#                                               sourceDoc: =.Global.formData.hashTag
+#                                               targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+#                                               reid: =..formData.patientProfile_shared.doc.id
+#                                         - continue
+#                     # if patient and facility not friend, to be friend
+#                     - if:
+#                         - =..apiRequest.relation.edgeQueryResp.edge
+#                         - continue
+#                         - actionType: evalObject
+#                           object:
+#                             - =..apiRequest.relation.edgeAPI.store: ""
+#                             - =.builtIn.ecos.shareDoc:
+#                                 dataIn:
+#                                   sourceDoc: =.Global.Profile
+#                                   targetEdgeID: =..apiRequest.relation.edgeCreateResp.edge.id
+#                                 dataOut: CreateAppointmentToRoom.formData.patientProfile_shared
+#                             - if:
+#                                 - =.Global.formData.hashTag.id
+#                                 - =.builtIn.ecos.shareDoc:
+#                                     dataIn:
+#                                       sourceDoc: =.Global.formData.hashTag
+#                                       targetEdgeID: =..apiRequest.relation.edgeCreateResp.edge.id
+#                                       reid: =..formData.patientProfile_shared.doc.id
+#                                 - continue
+#                             - =.builtIn.ecos.shareDocList:
+#                                 dataIn:
+#                                   sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+#                                   targetEdgeID: =..apiRequest.relation.edgeCreateResp.edge.id
+#                                   reid: =..formData.patientProfile_shared.doc.id
+#                     # if patient and facility not friend,to be friend
+#                     - if:
+#                         - =.builtIn.array.judgeListLength:
+#                             dataIn:
+#                               array: =..apiRequest.relation_patientToFacility.edgeQueryResp.edge
+#                               len: 0
+#                         # if true should to be friend
+#                         - actionType: evalObject
+#                           object:
+#                             - =..apiRequest.relation_patientToFacility.edgeAPI.store: ""
+#                             - =.builtIn.ecos.shareDoc:
+#                                 dataIn:
+#                                   sourceDoc: =.Global.Profile
+#                                   targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+#                                 dataOut: CreateAppointmentToRoom.formData.insurance
+#                             - if:
+#                                 - =.Global.formData.hashTag.id
+#                                 - =.builtIn.ecos.shareDoc:
+#                                     dataIn:
+#                                       sourceDoc: =.Global.formData.hashTag
+#                                       targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+#                                       reid: =..formData.insurance.doc.id
+#                                 - continue
+#                             - =.builtIn.ecos.shareDocList:
+#                                 dataIn:
+#                                   sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+#                                   targetEdgeID: =..apiRequest.relation_patientToFacility.edgeCreateResp.edge.id
+#                                   reid: =..formData.insurance.doc.id
+#                         - continue
+#                 # 创建完预约之后打 appointment link 的tag,回头需要加判断
+#                 - actionType: evalObject
+#                   object:
+#                     # fid 指向 房间
+#                     - ..formData.appointmentLink.eid@: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                     - ..formData.appointmentLink.fid@: ""
+#                     - ..formData.appointmentLink.reid@: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                     # 创建 tag
+#                     - =..apiRequest.appointmentListTag.docAPI.store: ""
+
+#                 # room notification
+#                 # - ..sendNotification.document.fid@: =.Global.prodAPPID
+#                 # - ..sendNotification.document.eid@: =..apiRequest.appointment.edgeCreateResp.edge.id
+#                 # - =..sendNotification.docAPI.store: ""
+
+#                 - actionType: popUpDismiss
+#                   popUpView: uploading
+#                 - actionType: evalObject
+#                   object:
+#                     - if:
+#                         - =.builtIn.string.equal:
+#                             dataIn:
+#                               string1: =..apiRequest.approveAppointment.response.code
+#                               string2: 40003
+#                         - actionType: popUp
+#                           popUpView: scheduleFail
+#                           wait: true
+#                         - actionType: popUp
+#                           popUpView: createSuccessView
+#                           wait: 2000
+#                 # - goto: PatientDashboard

@@ -1,0 +1,1809 @@
+PROne:
+  title: PR-1
+  init:
+    - .SignInCheck
+    - ..formData@: =.Global.Note
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
+            dataOut: PROne.formData.listDatalength
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.listDatalength
+                  string2: "0"
+            - actionType: evalObject
+              object:
+                - ..formData.flag@: "block"
+                - ..formData.listDataflag@: "none"
+            - actionType: evalObject
+              object:
+                - ..formData.flag@: "none"
+                - ..formData.listDataflag@: "block"
+    - actionType: evalObject
+      object:
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "PR-1"
+        - .Global.formData.downloadPDF.scaleX@: 0.909
+        - .Global.formData.downloadPDF.scaleY@: 0.909
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
+  formData:
+    flag: "none"
+    listDatalength: "none"
+    name:
+      data:
+        selectStatus:
+          illness:
+            isShow: ""
+          recovery:
+            isShow: ""
+          work:
+            isShow: ""
+  formDataTemp:
+    treatmentTemp:
+      - key: isTreatment
+        value: "Yes"
+      - key: isTreatment
+        value: "No"
+    involvedTemp:
+      - key: isInvolved
+        value: "Yes"
+      - key: isInvolved
+        value: "No"
+    illnessTemp:
+      - key: isIllness
+        value: "Yes"
+      - key: isIllness
+        value: "No"
+    recoveryTemp:
+      - key: isRecovery
+        value: "Yes"
+      - key: isRecovery
+        value: "No"
+    workTemp:
+      - key: isWork
+        value: "Yes"
+      - key: isWork
+        value: "No"
+    timeSpan: []
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderMenu:
+    - type: scrollView
+      viewTag: mainView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: State of California
+              style:
+                ..style.f14:
+            - type: label
+              text: DOCTOR’S FIRST REPORT OF OCCU-PATIONAL INJURY OR ILLNESS
+              style:
+                ..style.f16:
+            - type: label
+              text: Within 5 days of your initial examination, for every occupational injury or illness, send two copies of this report to the employer’s workers’ compensation insurance carrier or the insured employer. Failure to file a timely doctor’s report may result in assessment of a civil penalty. In the case of diagnosed or suspected pesticide poisoning, send a copy of the report to Department of Industrial Relations, P.O. Box 420603, San Francisco, CA 94142-0603, and notify your local health officer by telephone within 24 hours.
+              style:
+                ..style.regular14:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: Employer
+              style:
+                ..style.secondLabel:
+            - type: label
+              text: Insurer Name / ID
+              style:
+                ..style.firstInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.prOneInfo.insurerName
+              style:
+                ..style.input:
+            - type: label
+              text: Employer Name
+              style:
+                ..style.inputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.prOneInfo.employerName
+              style:
+                ..style.input:
+            - type: label
+              text: Address Line
+              style:
+                ..style.inputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.prOneInfo.line
+              style:
+                ..style.input:
+            - type: label
+              text: Address Second Line
+              style:
+                ..style.inputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.prOneInfo.secondLine
+              style:
+                ..style.input:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: view
+                  style:
+                    ..style.inlineBlockLeft:
+                  children:
+                    - type: label
+                      text: City
+                      style:
+                        ..style.inputTitle:
+                        marginTop: "0"
+                    - type: label
+                      text: No content
+                      dataKey: formData.name.data.prOneInfo.city
+                      style:
+                        ..style.input:
+                        width: "0.44"
+                - type: view
+                  style:
+                    ..style.inlineBlockRight:
+                  children:
+                    - type: label
+                      text: County
+                      style:
+                        ..style.inputTitle:
+                        marginTop: "0"
+                    - type: label
+                      text: No content
+                      dataKey: formData.name.data.prOneInfo.county
+                      style:
+                        ..style.input:
+                        width: "0.44"
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: view
+                  style:
+                    ..style.inlineBlockLeft:
+                  children:
+                    - type: label
+                      text: State
+                      style:
+                        ..style.inputTitle:
+                        marginTop: "0"
+                    - type: label
+                      text: No content
+                      options: .SelectINformationDM.state
+                      dataKey: formData.name.data.prOneInfo.state
+                      style:
+                        ..style.input:
+                        width: "0.44"
+                - type: view
+                  style:
+                    ..style.inlineBlockRight:
+                  children:
+                    - type: label
+                      text: Zip Code
+                      style:
+                        ..style.inputTitle:
+                        marginTop: "0"
+                    - type: label
+                      text: No content
+                      dataKey: formData.name.data.prOneInfo.zipCode
+                      style:
+                        ..style.input:
+                        width: "0.44"
+            - type: label
+              text: Nature of Business（ e.g. food manufacturing）
+              style:
+                ..style.inputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.prOneInfo.business
+              style:
+                ..style.input:
+            - type: label
+              text: Occupation (Specific job title)
+              style:
+                ..style.inputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.prOneInfo.occupation
+              style:
+                ..style.input:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: Patient
+              style:
+                ..style.secondLabel:
+            - type: view
+              style:
+                ..style.blockBox:
+                marginTop: "0.01970"
+              children:
+                - type: label
+                  text: Patient Name
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: formData.name.data.patientInfo.name
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+                marginTop: "0.013546"
+              children:
+                - type: label
+                  text: "Phone #"
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: formData.name.data.patientInfo.phone
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+                marginTop: "0.013546"
+              children:
+                - type: label
+                  text: "Date of Birth"
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: formData.name.data.patientInfo.dob
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+                marginTop: "0.013546"
+              children:
+                - type: label
+                  text: "Gender"
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: formData.name.data.patientInfo.sex
+                  style:
+                    ..style.rightValue:
+            - type: label
+              text: "Patient Address"
+              style:
+                ..style.blockTitle:
+                marginTop: "0.013546"
+            - type: label
+              dataKey: formData.name.data.patientInfo.address
+              style:
+                ..style.addressValue:
+            - type: label
+              text: "Social Security Number (Optional)"
+              style:
+                ..style.blockTitle:
+                width: "0.92"
+                marginTop: "0.013546"
+            - type: label
+              text: No content
+              dataKey: formData.name.data.patientInfo.secNumber
+              style:
+                ..style.input:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: Address No.& Street Where Inj. Occurred
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.addressOcc
+              style:
+                ..style.thirdInput:
+            - type: label
+              text: City Where Injury Occ.
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.cityInjuryOcc
+              style:
+                ..style.input:
+                marginTop: "0.009852"
+            - type: label
+              text: County Where Injury Occ.
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.countyInjuryOcc
+              style:
+                ..style.input:
+                marginTop: "0.009852"
+            - type: label
+              text: Date of injury or onset of illness
+              style:
+                ..style.thirdInputTitle:
+            - type: view
+              viewTag: injuryDateTag
+              style:
+                ..style.dateBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: formData.name.data.injuryTime.date
+                  isEditable: "false"
+                  style:
+                    ..style.dateFild:
+
+            - type: label
+              text: Hour of injury or onset of illness
+              style:
+                ..style.thirdInputTitle:
+            - type: view
+              style:
+                ..style.dateBox:
+              children:
+                - type: label
+                  text: "No content"
+                  options: ..formDataTemp.timeSpan
+                  dataKey: formData.name.data.injuryTime.hour
+                  style:
+                    ..style.dateFild:
+                    appearance: "none"
+            - type: label
+              text: Date last worked
+              style:
+                ..style.thirdInputTitle:
+            - type: view
+              viewTag: workDateTag
+              style:
+                ..style.dateBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: formData.name.data.workDate
+                  isEditable: "false"
+                  style:
+                    ..style.dateFild:
+
+            - type: label
+              text: Date of 1st exam or treatment
+              style:
+                ..style.thirdInputTitle:
+            - type: view
+              viewTag: examDateTag
+              style:
+                ..style.dateBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: formData.name.data.examTme.date
+                  isEditable: "false"
+                  style:
+                    ..style.dateFild:
+
+            - type: label
+              text: Hour of 1st exam or treatment
+              style:
+                ..style.thirdInputTitle:
+            - type: view
+              style:
+                ..style.dateBox:
+              children:
+                - type: label
+                  text: "No content"
+                  options: ..formDataTemp.timeSpan
+                  dataKey: formData.name.data.examTme.hour
+                  style:
+                    ..style.dateFild:
+                    appearance: "none"
+
+            - type: label
+              text: Have you or your office previously rendered treatment?
+              style:
+                ..style.firstInputTitle:
+                marginTop: "0.027093"
+                lineHeight: "1.97vh"
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.treatmentTemp
+              iteratorVar: itemObject
+              androidGrid: true
+              viewTag: isTreatmentTag
+              style:
+                ..style.selectList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.selectListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.raidoPath:
+                      style:
+                        ..style.itemImg:
+
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.itemValue:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              textBoard:
+                - text: Patient please complete this portion, if able to do so.
+                  fontWeight: "600"
+                - text: Otherwise, doctor please complete immediately, inability or failure of a patient to complete this portion shall not affect his/her rights to workers’ compensation under the California Labor Code .
+              style:
+                ..style.describeText:
+            - type: label
+              textBoard:
+                - text: Describe how the accident or exposure happened.
+                  fontWeight: "600"
+                - text: (Give specific object, machinery or chemical.)
+              style:
+                ..style.describeText:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.accidentDesc
+              style:
+                ..style.thirdInput:
+            - type: label
+              text: SUBJECTIVE COMPLAINTS
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.subComplaint
+              style:
+                ..style.thirdInput:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: "Objective Findings"
+              dataKey:
+              style:
+                ..style.secondLabel:
+            - type: label
+              text: "Vital Signs"
+              dataKey:
+              style:
+                ..style.vital:
+        - type: view
+          style:
+            ..style.signBox:
+          children:
+            - type: label
+              text: "Blood Pressure (mmHg)"
+              style:
+                ..style.signTitle:
+            - type: label
+              text: "Heart Rate (bpm)"
+              dataKey:
+              style:
+                ..style.signTitle:
+        - type: view
+          style:
+            ..style.signInputBox:
+          children:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.BP
+              style:
+                ..style.signInput:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.HR
+              style:
+                ..style.signInput:
+                marginLeft: "0.04"
+        - type: view
+          style:
+            ..style.signBox:
+          children:
+            - type: label
+              text: "Respiratory Rate (breaths/min)"
+              dataKey:
+              style:
+                ..style.signTitle:
+            - type: label
+              text: "Pulse Oximetry (O₂ %)"
+              dataKey:
+              style:
+                ..style.signTitle:
+        - type: view
+          style:
+            ..style.signInputBox:
+          children:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.RR
+              style:
+                ..style.signInput:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.PO
+              style:
+                ..style.signInput:
+                marginLeft: "0.04"
+        - type: view
+          style:
+            ..style.signBox:
+          children:
+            - type: label
+              text: "Temperature (°F/°C)"
+              dataKey:
+              style:
+                ..style.signTitle:
+            - type: label
+              text: "Height (ft/in)"
+              dataKey:
+              style:
+                ..style.signTitle:
+        - type: view
+          style:
+            ..style.signInputBox:
+          children:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.temperature
+              style:
+                ..style.signInput:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.height
+              style:
+                ..style.signInput:
+                marginLeft: "0.04"
+        - type: view
+          style:
+            ..style.signBox:
+          children:
+            - type: label
+              text: "Weight (lb)"
+              dataKey:
+              style:
+                ..style.signTitle:
+            - type: label
+              text: "BMI (kg/m²)"
+              dataKey:
+              style:
+                ..style.signTitle:
+        - type: view
+          style:
+            ..style.signInputBox:
+          children:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.weight
+              style:
+                ..style.signInput:
+            - type: label
+              text: "--"
+              dataKey: formData.name.data.vitalSigns.BMI
+              style:
+                ..style.signInput:
+                marginLeft: "0.04"
+        - type: label
+          text: "Physical Examination"
+          dataKey:
+          style:
+            ..style.fourTitle:
+        - type: label
+          text: "No content"
+          dataKey: formData.name.data.objFindings
+          style:
+            ..style.objectiveFindings:
+        - type: label
+          text: "Labs"
+          dataKey:
+          style:
+            ..style.fourTitle:
+        - type: label
+          text: "Blood Glucose"
+          dataKey:
+          style:
+            ..style.firstInputTitle:
+            fontSize: .Nfont.h12
+            marginLeft: "0.04"
+        # 输入单行
+        - type: label
+          text: "No content"
+          dataKey: formData.name.data.bloodGlucose
+          style:
+            ..style.input:
+            marginLeft: "0.04"
+        - type: label
+          text: "Imaging Studies"
+          dataKey:
+          style:
+            ..style.fourTitle:
+        - type: label
+          text: "No content"
+          dataKey: formData.name.data.imagingStudies
+          style:
+            ..style.thirdInput:
+            marginLeft: "0.04"
+        - type: label
+          text: Diagnoses
+          dataKey:
+          style:
+            ..style.fourTitle:
+
+        - type: view
+          viewTag: diagnosesTag
+          style:
+            marginTop: "0.0123"
+            marginLeft: "0.04"
+            height: "auto"
+            width: "0.92"
+            overflow: hidden
+            backgroundColor: "0xf4f4f4"
+            borderRadius: "4"
+          children:
+            - type: label
+              text: No content
+              style:
+                display: ..formData.flag
+                height: "auto"
+                width: "auto"
+                fontSize: .Nfont.h14
+                padding: "6px 12px"
+                color: "0x333333"
+            - type: view
+              viewTag: listData
+              style:
+                width: "0.92"
+                height: "auto"
+                marginTop: "0.01477"
+                display: ..formData.listDataflag
+              children:
+                - type: list
+                  viewTag: listData
+                  contentType: listObject
+                  listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
+                  iteratorVar: itemObject
+                  style:
+                    ..style.listDataShowList:
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      style:
+                        ..style.listDataShowListItem:
+                      children:
+                        - type: view
+                          style:
+                            ..style.showListItemBox:
+                          children:
+                            - type: label
+                              text: "&#8226"
+                              dataKey:
+                              style:
+                                ..style.xImg:
+                            - type: view
+                              style:
+                                ..style.contentBox:
+                              children:
+                                - type: label
+                                  dataKey: itemObject.code
+                                  style:
+                                    ..style.codeValue:
+                                - type: label
+                                  text: "-"
+                                  style:
+                                    ..style.decollator:
+                                - type: label
+                                  dataKey: itemObject.description
+                                  style:
+                                    ..style.descriptionValue:
+                        - type: label
+                          dataKey: itemObject.comment
+                          style:
+                            ..style.commentValue:
+            - type: view
+              style:
+                display: ..formData.listDataflag
+                marginTop: "0.01477"
+
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: Are your findings and diagnosis consistent with patient’s account of injury or onset of illness?
+              style:
+                ..style.firstInputTitle:
+                marginTop: "0.02586"
+                lineHeight: "1.97vh"
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.illnessTemp
+              iteratorVar: itemObject
+              androidGrid: true
+              viewTag: isIllnessTag
+              style:
+                ..style.selectList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.selectListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.illnessRaidoPath:
+                      style:
+                        ..style.itemImg:
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.itemValue:
+
+            - type: view
+              viewTag: illnessTag
+              style:
+                display: ..formData.name.data.selectStatus.illness.isShow
+                ..style.illnessBox:
+              children:
+                - type: label
+                  text: "If “no,” please explain below:"
+                  style:
+                    ..style.reminderTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.diagnosis.noExplain
+                  style:
+                    ..style.thirdInput:
+
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: Is there any other current condition that will impede or delay patient’s recovery?
+              style:
+                ..style.firstInputTitle:
+                marginTop: "0.02586"
+                lineHeight: "1.97vh"
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.recoveryTemp
+              iteratorVar: itemObject
+              androidGrid: true
+              viewTag: isRecoveryTag
+              style:
+                ..style.selectList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.selectListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.recoveryRaidoPath:
+                      style:
+                        ..style.itemImg:
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.itemValue:
+
+            - type: view
+              viewTag: recoveryTag
+              style:
+                display: ..formData.name.data.selectStatus.recovery.isShow
+                ..style.illnessBox:
+              children:
+                - type: label
+                  text: "If “yes,” please explain below:"
+                  style:
+                    ..style.reminderTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.diagnosis.yesExplain
+                  style:
+                    ..style.thirdInput:
+            - type: label
+              text: TREATMENT RENDERED
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.diagnosis.useReverse
+              style:
+                ..style.thirdInput:
+            - type: label
+              text: If further treatment required, specify treatment plan/estimated duration.
+              style:
+                ..style.thirdInputTitle:
+                lineHeight: "1.97vh"
+            - type: label
+              text: No content
+              dataKey: formData.name.data.diagnosis.duration
+              style:
+                ..style.thirdInput:
+            - type: label
+              text: If hospitalized as inpatient, give hospital name and location
+              style:
+                ..style.thirdInputTitle:
+                lineHeight: "1.97vh"
+            - type: label
+              text: No content
+              dataKey: formData.name.data.diagnosis.location
+              style:
+                ..style.thirdInput:
+            - type: label
+              text: Date admitted
+              style:
+                ..style.thirdInputTitle:
+            - type: view
+              viewTag: admitteTag
+              style:
+                ..style.dateBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: formData.name.data.diagnosis.dateAdmit
+                  style:
+                    ..style.dateFild:
+
+            - type: label
+              text: Estimated length of stay
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.diagnosis.estStay
+              style:
+                ..style.input:
+                marginTop: "0.009852"
+            - type: label
+              text: WORK STATUS - Is patient able to perform usual work?
+              style:
+                ..style.firstInputTitle:
+                marginTop: "0.02586"
+                lineHeight: "1.97vh"
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.workTemp
+              iteratorVar: itemObject
+              androidGrid: true
+              viewTag: isWorkTag
+              style:
+                ..style.selectList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.selectListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.workRadioPath:
+                      style:
+                        ..style.itemImg:
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.itemValue:
+
+            - type: view
+              viewTag: workTag
+              style:
+                display: ..formData.name.data.selectStatus.work.isShow
+                ..style.illnessBox:
+              children:
+                - type: label
+                  text: "If “no”, date when patient can return to"
+                  style:
+                    ..style.reminderTitle:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.019704"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: Regular work
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                        - type: view
+                          viewTag: regularWorkTag
+                          style:
+                            ..style.dateBox:
+                            width: "0.44"
+                          children:
+                            - type: label
+                              text: "No content"
+                              dataKey: formData.name.data.diagnosis.regularWork
+                              isEditable: "false"
+                              style:
+                                ..style.dateFild:
+                                width: "0.34133"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: Modified work
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                        - type: view
+                          viewTag: modifiedWorkTag
+                          style:
+                            ..style.dateBox:
+                            width: "0.44"
+                          children:
+                            - type: label
+                              text: "No content"
+                              dataKey: formData.name.data.diagnosis.modifiedWork
+                              style:
+                                ..style.dateFild:
+                                width: "0.34133"
+
+            - type: label
+              text: Specify Restrictions
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: No content
+              dataKey: formData.name.data.diagnosis.restrictions
+              style:
+                ..style.input:
+                marginTop: "0.009852"
+
+            - type: label
+              text: "Plan And Recommendations"
+              dataKey:
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: "&#8226 Note"
+              style:
+                width: "0.92"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"   
+            - type: label
+              text: No content
+              dataKey: formData.name.data.planAndRecommendations
+              style:
+                ..style.input:  
+
+        # - type: view
+        #   style:
+        #     ..style.blockBox:
+        #     marginLeft: "0.04"
+        #   children:
+        #     - type: image
+        #       path:
+        #         ..event.checkBoxPath:
+        #       style:
+        #         ..style.img:
+        #     - type: label
+        #       text: Superbill
+        #       style:
+        #         ..style.setLabel:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: Physician signature(original signature, do not stamp)
+              style:
+                ..style.secondLabel:
+                fontSize: .Nfont.h14
+                lineHeight: "1.97vh"
+            - type: label
+              text: I declare under penalty of perjury that this report is true and correct to the best of my knowledge and that I have not violated Labor Code section 139.3.
+              style:
+                ..style.regular14:
+        - type: view
+          style:
+            ..style.signatureBox:
+          children:
+            - type: view
+              style:
+                ..style.signatureview:
+              children:
+                - type: label
+                  text: "Signature"
+                  style:
+                    ..style.signatureTitle:
+        - type: view
+          style:
+            ..style.canvasBox:
+          children:
+            - type: label
+              text: X
+              style:
+                .SignLabelStyle:
+            # 显示暂存的签名
+            - type: image
+              viewTag: signatureShowTag
+              path=func: .builtIn.utils.prepareDocToPath
+              # 传入签名文档的id
+              dataKey: formData.name.data.signatureId
+              style:
+                ..style.canvasImg:
+        - type: view
+          style:
+            ..style.timeBox:
+          children:
+            - type: view
+              viewTag: signatureTimeTag
+              style:
+                ..style.signatureTimeBox:
+              children:
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: formData.name.data.signatureCtime
+                  style:
+                    ..style.signatureCtime:
+                - type: label
+                  text: "Digitally Signed"
+                  dataKey:
+                  style:
+                    ..style.digitally:
+            - type: view
+              style:
+                ..style.dateView:
+              children:
+                - type: label
+                  text: Date
+                  style:
+                    ..style.dateLabel:
+                - type: label
+                  text=func: .builtIn.string.formatUnixtimeL_en
+                  dataKey: formData.ctime
+                  style:
+                    ..style.dateCtime:
+        - type: view
+          style:
+            ..style.infoBox:
+          children:
+            - type: label
+              dataKey: formData.name.data.providerInfo.physicianName
+              style:
+                ..style.physicianName:
+            - type: label
+              dataKey: formData.name.data.providerInfo.specialty
+              style:
+                ..style.specialty:
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "LIC #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.license
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "NPI #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.npi
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "DEA #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.dea
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Email"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.email
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Fax #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.fax
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Main #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.phoneNumber
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Address"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.address
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.box:
+          children:
+            - type: label
+              text: Any person who makes or causes to be made any knowingly fraudulent material statement or mater-ial representation for the purpose of obtaining or denying workers’ compensation benefits or pay-ments is guilty of a felony.
+              dataKey:
+              style:
+                ..style.bottomText:
+            - type: label
+              text: "PRIVACY NOTICE: "
+              dataKey:
+              style:
+                ..style.bottomTitle:
+            - type: label
+              text: The Administrative Director is authorized to maintain
+                the records of the Division of Workers’ Compensation
+                (DWC). (Cal. Lab. Code § 126.) The Information Practices
+                Act of 1977 and the Federal Privacy Act require the
+                Administrative Director to provide this notice to
+                individuals who submit information to the DWC
+                pertaining to a workers’ compensation claim. (Cal. Civ.
+                Code § 1798.17; Public Law 93-579.)
+              style:
+                ..style.commonText:
+                marginTop: "0.014778"
+            - type: label
+              textBoard:
+                - text: The principal purpose for requesting information from
+                    injured workers, dependents, lien claimants, physician,
+                    employers or their representatives is to administer the
+                    California workers’ compensation system. Each form
+                    shows which fields are required to be completed for
+                    DWC to process the form. If a required field in a form is
+                    incomplete or unreadable, the DWC may return the
+                    form to the individual for correction or may reject the
+                    form. Providing a social security number is required on
+                    this form pursuant to Labor Code § 6409. If you do not
+                    provide your security number, the DWC may return the
+                    form to you for correction or reject the form. If you do
+                    not have a social security number, indicate this in the
+                    space provided for the injured worker’s social security
+                    number. As permitted by law, social security numbers
+                    are used to help properly identify injured workers and
+                    to conduct statistical research as allowed under the
+                    Labor Code.
+                - br:
+                - br:
+                - text: "As authorized by law, information furnished on this form may be given to: you, upon request; the public, pursuant to the Public Records Act; a governmental entity, when required by state or federal law; to any person, pursuant to a subpoena or court order pursuant to any other exception in Civil Code § 1798.24."
+                - br:
+                - br:
+                - text: "An individual has a right of access to records containing his/her personal information that are maintained by the Administrative Director. An individual may also amend, correct, or dispute information in such personal records. (Cal. Civ. Code §§ 1798.34-1798.3.) You may request a copy of the DWC’s policies and procedures for inspection of records at the address below. Copies of the procedures and all records are ten cents ($0.10) per page, payable in advance. (Cal. Civ. Code § 1798.33.) Requests should be sent to: Division of Workers’ Compensation- Medical Unit, P.O. Box 71010, Oakland, CA 94612. Tel: (510) 286-3700 or (800) 794.6900. Fax: (510) 622-3467."
+              style:
+                ..style.commonText:
+        - type: view
+          style:
+            marginTop: "0.03"
+    - .HeaderPopUpMenu:
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+
+    raidoPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.name.data.selectStatus.treatment.isTreatment
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    illnessRaidoPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.name.data.selectStatus.illness.isIllness
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    recoveryRaidoPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.name.data.selectStatus.recovery.isRecovery
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    workRadioPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.name.data.selectStatus.work.isWork
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.94"
+      overflow: scroll
+
+      fontSize: .Nfont.h16
+      color: "#333333"
+    box:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    f14:
+      marginTop: "0.02709"
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+      width: "0.92"
+      textAlign:
+        x: center
+    f16:
+      ..style.f14:
+      marginTop: "0.011083"
+      fontSize: .Nfont.h16
+      lineHeight: "2.58vh"
+    regular14:
+      marginTop: "0.014778"
+      fontSize: .Nfont.h14
+      width: "0.92"
+      lineHeight: "2.58vh"
+      wordBreak: break-word
+    secondLabel:
+      ..style.f16:
+      marginTop: "0.024630"
+      textAlign:
+        x: left
+    firstInputTitle:
+      ..style.f14:
+      marginTop: "0.019704"
+      textAlign:
+        x: left
+    inputTitle:
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+      marginTop: "0.024630"
+      textAlign:
+        x: left
+    input:
+      marginTop: "0.009852"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+      wordBreak: break-word
+      backgroundColor: "#f4f4f4"
+
+    blockBox:
+      marginTop: "0.024630"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    inlineBlockLeft:
+      display: inline-block
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    inlineBlockRight:
+      display: inline-block
+      marginLeft: "0.04"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    blockTitle:
+      fontSize: .Nfont.h12
+      marginTop: "0.013546"
+      color: "#666666"
+      height: "auto"
+      width: "0.4"
+    leftTitle:
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      color: "#666666"
+      height: "auto"
+      width: "0.4"
+    rightValue:
+      display: "inline-block"
+      height: "auto"
+      width: "0.52"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "#333333"
+      wordBreak: break-word
+      textAlign:
+        x: right
+    addressValue:
+      marginTop: "0.01"
+      fontSize: .Nfont.h14
+      height: "auto"
+      width: "0.92"
+      wordBreak: break-word
+      color: "#333333"
+      fontWeight: "600"
+    thirdInputTitle:
+      marginTop: "0.024630"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.92"
+      fontWeight: "600"
+    thirdInput:
+      marginTop: "0.009852"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+
+      wordBreak: break-word
+      backgroundColor: "#f4f4f4"
+    dateBox:
+      marginTop: "0.009852"
+      width: "0.6"
+      height: "auto"
+      boxSizing: "border-box"
+      backgroundColor: "#f4f4f4"
+      borderRadius: "4"
+      overflow: hidden
+    dateFild:
+      marginLeft: "0.032"
+      width: "0.504"
+      height: "auto"
+      fontSize: .Nfont.h14
+
+      display: "inline-block"
+      boxSizing: "border-box"
+      border:
+        style: 1
+      verticalAlign: middle
+      backgroundColor: "#f4f4f4"
+      color: "0x333333"
+      padding: "6px 0"
+    dateImg:
+      display: "inline-block"
+      height: "0.0172"
+      verticalAlign: middle
+    selectList:
+      width: "0.92"
+      height: "auto"
+      margin: "0"
+      marginTop: "0.017241"
+    selectListItem:
+      display: "inline-block"
+      width: "0.25333"
+      height: "auto"
+    itemImg:
+      display: "inline-block"
+      height: "0.02093"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.02133"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    describeText:
+      marginTop: "0.02463"
+      width: "0.92"
+      height: "auto"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      wordBreak: break-word
+      lineHeight: "2.58vh"
+    signBox:
+      width: "auto"
+      height: "auto"
+      marginTop: "0.017241"
+      marginLeft: "0.04"
+    signTitle:
+      height: "auto"
+      width: "0.48"
+
+      fontSize: .Nfont.h12
+      display: "inline-block"
+      verticalAlign: top
+    signInputBox:
+      width: "0.92"
+      height: "auto"
+      marginTop: "0.01"
+      marginLeft: "0.04"
+    signInput:
+      width: "0.44"
+      height: "auto"
+
+      fontSize: .Nfont.h14
+      borderRadius: "4"
+      boxSizing: "border-box"
+      display: "inline-block"
+      backgroundColor: "#f4f4f4"
+      padding: "6px 12px"
+    vital:
+      width: "0.92"
+      height: "auto"
+      marginTop: "0.014778"
+
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+    fourTitle:
+      marginTop: "0.0221674"
+      marginLeft: "0.04"
+      width: "auto"
+
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+
+    objectiveFindings:
+      marginTop: "0.014778"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+
+      fontSize: .Nfont.h14
+      borderRadius: "4"
+      boxSizing: "border-box"
+      backgroundColor: "#f4f4f4"
+      wordBreak: break-word
+      padding: "6px 12px"
+    description:
+      marginLeft: "0.02"
+      display: "inline-block"
+      height: "0.037"
+      width: "0.573"
+      textIndent: "12px"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "4"
+      borderWidth: "1.5"
+      borderColor: "#dedede"
+
+      color: "0x333333"
+    commentView:
+      marginTop: "0.01"
+      width: "0.92"
+      height: "0.0874"
+      boxSizing: border-box
+      textIndent: "12px"
+      border:
+        style: 3
+      borderRadius: "4"
+      borderWidth: "1.5"
+      borderColor: "#dedede"
+
+      color: "0x333333"
+      paddingTop: "6px"
+    searchShow:
+      top: "0.045"
+      left: "0"
+      width: "auto"
+      height: "auto"
+      backgroundColor: "0xffffff"
+      borderRadius: "4"
+      boxSizing: "border-box"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      zIndex: "20"
+    codeView:
+      display: "none"
+      width: "0.92"
+      height: "auto"
+
+      zIndex: 10
+    scrollShow:
+      width: "0.9"
+      height: "0.3"
+      marginLeft: "0.02"
+      overflow: scroll
+    dataList:
+      width: "0.9"
+      height: "auto"
+      margin: "0"
+    dataListItem:
+      width: "0.9"
+      marginTop: "0.002"
+      height: "auto"
+      overflow: hidden
+    dataListItemValue:
+      width: "0.88"
+      textIndent: 20px
+      marginTop: "0.005"
+      textAlign:
+        x: left
+        y: center
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x143459"
+      wordWrap: break-word
+    addBox:
+      marginLeft: "0.76"
+      marginTop: "0.0073"
+      fontSize: .Nfont.h14
+      color: "0x1492e6"
+      height: "auto"
+      width: "auto"
+      fontWeight: "600"
+    listDataShowList:
+      width: "0.92"
+      height: "auto"
+      margin: "0"
+    listDataShowListItem:
+      marginTop: "0.01"
+      width: "0.92"
+      height: "auto"
+      left: "0"
+      overflow: hidden
+      backgroundColor: "0xf4f4f4"
+    showListItemBox:
+      width: "0.92"
+      height: "auto"
+    xImg:
+      marginLeft: "0.032"
+      boxSizing: border-box
+      display: "inline-block"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h16
+      verticalAlign: top
+    contentBox:
+      display: "inline-block"
+      width: "0.842"
+      height: "auto"
+    codeValue:
+      display: "inline-block"
+      marginLeft: "0.02"
+      height: "auto"
+      width: "0.17"
+      textAlign:
+        x: left
+
+      wordWrap: break-word
+      fontSize: .Nfont.h14
+      fontWeight: "550"
+      verticalAlign: top
+      color: "0x333333"
+    decollator:
+      verticalAlign: middle
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h2
+    descriptionValue:
+      verticalAlign: top
+      marginLeft: "0.015"
+      display: "inline-block"
+      height: "auto"
+      width: "0.616"
+      textAlign:
+        x: left
+
+      wordWrap: break-word
+      fontSize: .Nfont.h14
+      color: "0x333333"
+    commentValue:
+      marginTop: "0.002"
+      marginLeft: "0.06"
+      width: "0.83"
+      height: "auto"
+      color: "0x666666"
+
+      wordWrap: break-word
+      fontSize: .Nfont.h14
+    signatureBox:
+      marginLeft: "0.04"
+      marginTop: "0.030788"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    signatureview:
+      height: "auto"
+      width: "0.92"
+    signatureTitle:
+      display: "inline-block"
+      width: "0.816"
+      fontSize: .Nfont.h14
+      height: "auto"
+      color: "0x333333"
+      fontWeight: "600"
+      textAlign:
+        x: left
+    clearTitle:
+      display: "inline-block"
+      width: "auto"
+      fontSize: .Nfont.h14
+      height: "auto"
+      color: "0xfb5051"
+    canvasBox:
+      marginLeft: "0.04"
+      marginTop: "0.01"
+      height: "0.128"
+      width: "0.9"
+      border:
+        style: "4"
+        color: "0xa9a9a9"
+      borderWidth: "2"
+    canvas:
+      left: "0"
+      width: "0.88"
+      height: "0.128"
+      overflow: scroll
+    canvasImg:
+      left: "0"
+      width: "0.88"
+      top: "0"
+      height: "0.128"
+      overflow: scroll
+      zIndex: "1000"
+    timeBox:
+      marginLeft: "0.04"
+      marginTop: "0.0146"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    signatureTimeBox:
+      marginTop: "0.01"
+      height: "auto"
+      width: "0.92"
+    signatureCtime:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h12
+      color: "0x757575"
+      verticalAlign: middle
+    digitally:
+      marginLeft: "0.02"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h12
+      color: "0x757575"
+      verticalAlign: middle
+    dateView:
+      marginTop: "0.01"
+      width: "auto"
+      height: "auto"
+    dateLabel:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x666666"
+      fontSize: .Nfont.h12
+    dateCtime:
+      marginLeft: "0.0373"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x333333"
+      fontSize: .Nfont.h12
+      fontWeight: "600"
+    infoBox:
+      marginLeft: "0.04"
+      marginTop: "0.0246"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    physicianName:
+      height: "auto"
+      width: "0.92"
+      color: "0x333333"
+      fontSize: .Nfont.h16
+      fontWeight: "600"
+      wordWrap: break-word
+    specialty:
+      marginTop: "0.006"
+      height: "auto"
+      width: "0.92"
+      color: "0x666666"
+      fontSize: .Nfont.h14
+      wordWrap: break-word
+    bottomText:
+      marginTop: "0.024630"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      lineHeight: "2.58vh"
+      wordBreak: break-word
+    bottomTitle:
+      marginTop: "0.02832"
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+    commonText:
+      fontSize: .Nfont.h14
+      wordBreak: break-word
+      width: "0.92"
+      lineHeight: "2.58vh"
+    illnessBox:
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    reminderTitle:
+      marginTop: "0.014778"
+      fontSize: .Nfont.h14
+      height: "auto"
+      width: "0.92"
+      color: "#333333"
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

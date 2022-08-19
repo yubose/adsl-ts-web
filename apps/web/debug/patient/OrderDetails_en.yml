@@ -1,0 +1,1046 @@
+OrderDetails:
+  title: Order Details
+  pageNumber:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..formData.orderList@: =.Global.formData.currentOrder
+    - ..apiRequest.commerceCheckOrderUnderOrder.docQueryReq.id@: =..formData.orderList.0.productionList.0.orderId
+    - ..apiRequest.production.docQueryReq.id@: =..formData.orderList.0.productionList.0.productionId
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.superAdmin.vertexAPI.get: ""
+            - =..apiRequest.commerceCheckOrderUnderOrder.docAPI.get: ""
+            - =..apiRequest.production.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.orderStatus
+                  string2: "Undelivered"
+            - actionType: evalObject
+              object:
+                - ..formData.btnShow@: "block"
+                - ..formData.scrollHeight@: "0.84729"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.orderStatus
+                          string2: "Delivering"
+                    - actionType: evalObject
+                      object:
+                        - ..formData.btnShow@: "block"
+                        - ..formData.scrollHeight@: "0.84729"
+                    - actionType: evalObject
+                      object:
+                        - ..formData.btnShow@: "none"
+                        - ..formData.scrollHeight@: "0.945"
+        # 如果delivery method值为Pick up，则隐藏Shipping Address
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.deliveryMethod.type
+                  string2: "Pick up"
+            - actionType: evalObject
+              object:
+                # 如果有多个pick up location，则展示列表，否则展示单个location
+                - if:
+                  - =.builtIn.array.judgeListLength:
+                      dataIn:
+                        array: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.deliveryMethod.pickupLocation
+                        len: 1
+                  - actionType: evalObject
+                    object:
+                      - ..formData.display.singlePickUpLocation@: block
+                      - ..formData.display.mutilPickUpLocation@: none
+                  - actionType: evalObject
+                    object:
+                      - ..formData.display.singlePickUpLocation@: none
+                      - ..formData.display.mutilPickUpLocation@: block
+                - ..formData.display.allContactInformaton@: none
+                - ..formData.display.showTime@: none
+                - ..formData.display.showPickUpLocation@: block
+            - actionType: evalObject
+              object:
+                - ..formData.display.allContactInformaton@: block
+                - ..formData.display.showTime@: block
+                - ..formData.display.showPickUpLocation@: none
+                - ..formData.display.singlePickUpLocation@: none
+                - ..formData.display.mutilPickUpLocation@: none
+  formData:
+    display: 
+      allContactInformaton: none
+      showPickUpLocation: none
+      # 展示单个产品的pick up location
+      singlePickUpLocation: none
+      # 展示多个产品的pick up location列表
+      mutilPickUpLocation: none
+    orderList: []
+    productList: []
+    delivery: "Ship"
+    time: "4 hours/$ 50"
+    addressType: "Set as billing address"
+    currentAddress: "none"
+    billAddressShow: "none"
+    btnShow@: "none"
+    scrollHeight: "0.84729"
+  formDataTemp:
+    deliveryTemp:
+      - key: delivery
+        value: Ship
+        display: "block"
+      - key: delivery
+        value: Pick up
+        display: "none"
+    timeTemp:
+      # - key: "4 hours"
+      #   value1: "4 hours/$"
+      #   value2: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.shippingCostTemp.fourHours
+      - key: "24 hours"
+        value1: "24 hours/$"
+        value2: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.shippingCostTemp.twentyFourHours
+      - key: "3 days"
+        value1: "3 days/$"
+        value2: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.shippingCostTemp.threeDays
+      - key: "1 weeks"
+        value1: "1 weeks/$"
+        value2: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.shippingCostTemp.oneWeeks
+    addressTemp:
+      - key: addressType
+        value: Set as billing address
+        display: "none"
+      - key: addressType
+        value: Select other address
+        display: "block"
+  PreviousPageName: ""
+  apiRequest:
+    appointment:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: ""
+        _nonce: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: OrderDetails.apiRequest.appointment.edgeQueryReq
+          dataOut: OrderDetails.apiRequest.appointment.edgeQueryResp
+    superAdmin:
+      vertexQueryResp: ""
+      vertexQueryReq:
+        id: .Config.superAdminID
+        _nonce: .Global._nonce
+      vertexAPI:
+        get:
+          api: rv
+          dataIn: OrderDetails.apiRequest.superAdmin.vertexQueryReq
+          dataOut: OrderDetails.apiRequest.superAdmin.vertexQueryResp
+    production:
+      docQueryResp: ""
+      docQueryReq:
+        id: ""
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: OrderDetails.apiRequest.production.docQueryReq
+          dataOut: OrderDetails.apiRequest.production.docQueryResp
+    # 先查回2113下面的3001
+    commerceCheckOrderUnderOrder:
+      docQueryResp: ""
+      docQueryReq:
+        id: ""
+        xfname: eid
+        type: .DocType.CommerceCheckOrder
+      docAPI:
+        get:
+          api: rd
+          dataIn: OrderDetails.apiRequest.commerceCheckOrderUnderOrder.docQueryReq
+          dataOut: OrderDetails.apiRequest.commerceCheckOrderUnderOrder.docQueryResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              # - if:
+                - actionType: evalObject
+                  object:
+                    
+                    - =.builtIn.utils.getPreviousPageName:
+                        dataIn:
+                        dataOut: OrderDetails.PreviousPageName
+                    - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =.OrderDetails.PreviousPageName
+                            string2: MessageShow
+                      - actionType: builtIn
+                        funcName: goBack
+                        reload: true
+                      - goto: MyOrders
+          - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        # 订单区域
+        - type: list
+          viewTag: orderTag
+          contentType: listObject
+          listObject: ..formData.orderList
+          iteratorVar: itemObject
+          style:
+            ..style.list:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.listItem:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      dataKey: itemObject.inventorName
+                      style:
+                        ..style.titleRight:
+                    - type: label
+                      text=func: .builtIn.utils.getOrderStatus
+                      dataKey: itemObject.productionList.0.orderId
+                      style:
+                        ..style.titleValue:
+                - type: list
+                  contentType: listObject
+                  listObject: itemObject.productionList
+                  iteratorVar: itemObject
+                  style:
+                    ..style.secondList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.secondListItem:
+                      children:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: image
+                              path: good.svg
+                              path=func: .builtIn.utils.prepareDocToPath
+                              dataKey: itemObject.coverImgId
+                              style:
+                                ..style.productAvatar:
+                            - type: view
+                              style:
+                                ..style.topBox:
+                              children:
+                                - type: label
+                                  dataKey: itemObject.title
+                                  style:
+                                    ..style.productTitle:
+                                - type: label
+                                  dataKey: itemObject.type
+                                  style:
+                                    ..style.productType:
+                                    display: block
+                                - type: view
+                                  style:
+                                    ..style.productInfoBox:
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.productInfo
+                                      style:
+                                        ..style.productInfo:
+                                    - type: view
+                                      viewTag: numTag
+                                      style:
+                                        ..style.numBox:
+                                      children:
+                                        - type: view
+                                          style:
+                                            width: auto
+                                            height: auto
+                                          children:
+                                            - type: label
+                                              textBoard:
+                                                - text: "x"
+                                                - text: "0"
+                                                  dataKey: itemObject.num
+                                              style:
+                                                ..style.productNum:
+                        - type: view
+                          style:
+                            marginTop: "0.0160098"
+                          children:
+                            - type: label
+                              text: Price
+                              style:
+                                ..style.priceLabel:
+                            - type: label
+                              text=func: .builtIn.string.dollarFormat
+                              dataKey: itemObject.price
+                              style:
+                                ..style.priceValue:
+                        - type: view
+                          style:
+                            marginTop: "0.0160098"
+                          children:
+                            - type: label
+                              text: "Order #"
+                              style:
+                                ..style.priceLabel:
+                            - type: label
+                              dataKey: apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.deat.squareID
+                              style:
+                                ..style.priceValue:
+                        - type: view
+                          style:
+                            marginTop: "0.0160098"
+                          children:
+                            - type: label
+                              text: "Order time"
+                              style:
+                                ..style.priceLabel:
+                            - type: label
+                              text=func: .builtIn.string.formatUnixtimeSecond
+                              dataKey: apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.ctime
+                              style:
+                                ..style.priceValue:
+                        - type: view
+                          style:
+                            marginTop: "0.0160098"
+                          children:
+                            - type: label
+                              dataKey: itemObject.recommendInfo
+                              style:
+                                width: "0.8"
+                                ..style.priceLabel:
+                        # - type: label
+                        #   text: Appt.Details
+                        #   onClick:
+                        #     - ..event.clickAppointmentDetails
+                        #   style:
+                        #     ..style.apptDetails:
+        # 支付方式
+        - type: view
+          style:
+            ..style.payBox:
+          children:
+            - type: view
+              style:
+                ..style.blockBox:
+                height: "0.021"
+              children:
+                - type: label
+                  text: Payment method
+                  style:
+                    ..style.methodStyle:
+                    width: "0.6"
+                - type: image
+                  path: selectOnBlue.svg
+                  style:
+                    ..style.checkPath:
+                - type: label
+                  text: Square
+                  style:
+                    ..style.methodLabel:
+            - type: view
+              style:
+                ..style.blockBox:
+                marginTop: "0.024630"
+                height: "0.021"
+              children:
+                - type: label
+                  text: Delivery method
+                  style:
+                    ..style.methodStyle:
+                    width: "0.43"
+                - type: view
+                  style:
+                    ..style.deliveryBox:
+                    height: "0.021"
+                  children:
+                    - type: list
+                      androidFlex: true
+                      contentType: listObject
+                      listObject: ..formDataTemp.deliveryTemp
+                      iteratorVar: itemObject
+                      style:
+                        ..style.deliveryList:
+                        axis: horizontal
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            ..style.deliveryListItem:
+                          children:
+                            - type: image
+                              viewTag: radioDeliveryTag
+                              path:
+                                ..event.radioDeliveryPath:
+                              style:
+                                ..style.radioImg:
+                                verticalAlign: middle
+                                display: "inline-block"
+                            - type: label
+                              dataKey: itemObject.value
+                              style:
+                                ..style.radioValue:
+                                verticalAlign: middle
+                                display: "inline-block"
+            - type: view
+              viewTag: shipTag
+              style:
+                ..style.blockBox:
+                marginTop: "0.028325"
+                display: ..formData.display.showTime
+              children:
+                - type: label
+                  text: Time
+                  style:
+                    ..style.timeLabel:
+                - type: list
+                  androidFlex: true
+                  contentType: listObject
+                  listObject: ..formDataTemp.timeTemp
+                  iteratorVar: itemObject
+                  style:
+                    ..style.timeList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.timeListItem:
+                      children:
+                        - type: view
+                          style:
+                            ..style.timeListItemView:
+                          children:
+                            - type: image
+                              viewTag: radioTimeTag
+                              path:
+                                ..event.radioTimePath:
+                              style:
+                                ..style.radioImg:
+                        - type: view
+                          style:
+                            ..style.timeListItemView:
+                          children:
+                            - type: label
+                              textBoard:
+                                - text: ""
+                                  dataKey: itemObject.value1
+                                - text: "&nbsp;"
+                                - text: ""
+                                  dataKey: itemObject.value2
+                              style:
+                                ..style.radioValue:
+
+            - type: view
+              viewTag: pickUpTag
+              style:
+                ..style.blockBox:
+                marginTop: "0.028325"
+                display: ..formData.display.showPickUpLocation
+              children:
+                - type: label
+                  text: Pick up location
+                  style:
+                    ..style.timeLabel:
+                - type: label
+                  dataKey: apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.deliveryMethod.pickupLocation.0.pickUpLocation
+                  style:
+                    display: ..formData.display.singlePickUpLocation
+                    ..style.addressLabel:
+                - type: list
+                  contentType: listObject
+                  listObject: ..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.deliveryMethod.pickupLocation
+                  iteratorVar: itemObject
+                  style:
+                    display: ..formData.display.mutilPickUpLocation
+                    width: "1"
+                    margin: "0"
+                    height: auto
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: "1"
+                        height: "auto"
+                        left: "0"
+                        marginTop: "0"
+                      children:
+                        - type: label
+                          textBoard:
+                            - text: "&#8226 &nbsp;&nbsp;"
+                            - text: ""
+                              dataKey: itemObject.title
+                          style:
+                            ..style.pickUpLoactionListTitle:
+                        - type: label
+                          dataKey: itemObject.pickUpLocation
+                          style:
+                            ..style.pickUpLoactionListContent:
+
+        # 地址区域
+        - type: view
+          style:
+            ..style.payBox:
+            display: ..formData.display.allContactInformaton
+          children:
+            - type: label
+              text: Contact Information
+              style:
+                ..style.contactLable:
+            - type: view
+              style:
+                ..style.blockSecondBox:
+                marginTop: "0.0221674"
+              children:
+                - type: label
+                  text: Shipping Address
+                  style:
+                    ..style.rightLabel:
+            - type: view
+              style:
+                ..style.blockSecondBox:
+              children:
+                - type: view
+                  style:
+                    ..style.deliveryList:
+                  children:
+                    - type: label
+                      text: Name
+                      style:
+                        ..style.rigthTitle:
+                    - type: label
+                      dataKey: apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.contactInfomation.name
+                      style:
+                        ..style.leftValue:
+                - type: view
+                  style:
+                    ..style.deliveryList:
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Phone#"
+                      style:
+                        ..style.rigthTitle:
+                    - type: label
+                      dataKey: apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.contactInfomation.phone
+                      style:
+                        ..style.leftValue:
+                - type: view
+                  style:
+                    ..style.deliveryList:
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Email"
+                      style:
+                        ..style.rigthTitle:
+                    - type: label
+                      dataKey: apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.contactInfomation.email
+                      style:
+                        ..style.leftValue:
+                - type: view
+                  style:
+                    ..style.deliveryList:
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Address"
+                      style:
+                        ..style.rigthTitle:
+                        display: "block"
+                    - type: label
+                      dataKey: apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.contactInfomation.address
+                      style:
+                        ..style.addressLabel:
+                        marginTop: "0.01"
+
+        - type: view
+          style:
+            marginTop: "0.03"
+
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formData.btnShow
+      children:
+        - type: button
+          text: Cancel
+          dataKey:
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+    # 弹窗区域
+    - type: popUp
+      viewTag: softTips
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: __.viewTag
+      children:
+        - type: view
+          style:
+            height: "1"
+            width: "1"
+            textAlign:
+              y: center
+          children:
+            - type: view
+              style:
+                width: "0.7"
+                marginLeft: "0.15"
+                backgroundColor: "0xE6E6E6"
+                borderRadius: "14"
+                paddingLeft: "0.032"
+                paddingRight: "0.032"
+                boxSizing: "border-box"
+              children:
+                - type: label
+                  textBoard:
+                    - text: "Cancel this order may be requested to "
+                    - text: "A&C Urgentcare"
+                      dataKey: apiRequest.superAdmin.vertexQueryResp.vertex.0.name.userName
+                      color: "#2988e6"
+                      fontWeight: "600"
+                    - text: ","
+                    - text: "please contact them directly at "
+                    - text: "(714) 634-4884"
+                      dataKey: apiRequest.superAdmin.vertexQueryResp.vertex.0.name.phoneNumber
+                      color: "#2988e6"
+                      fontWeight: "600"
+                    - text: "."
+                  style:
+                    width: "0.636"
+                    marginTop: "0.027"
+                    lineHeight: "2.58vh"
+                    fontSize: .Nfont.h14
+                    textAlign:
+                      x: left
+                    color: "0x333333"
+                - type: view
+                  style:
+                    height: "0.027"
+  event:
+    clickAppointmentDetails:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - ..apiRequest.appointment.edgeQueryReq.id@: $var.appointmentId
+            - =..apiRequest.appointment.edgeAPI.get: ""
+            - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+            - .Global.currentRoomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.number.typeIsValid:
+                  dataIn:
+                    docType: =.Global.roomInfo.edge.tage
+                    localArr: [9]
+                    binaryArr: [1]
+            - goto: VisitDetial
+            - actionType: evalObject
+              object:
+                - if:
+                  - =.builtIn.number.typeIsValid:
+                      dataIn:
+                        docType: =.Global.roomInfo.edge.subtype
+                        localArr: [17]
+                        binaryArr: [1]
+                  - goto: AppointmentLobby
+                  - goto: AppointmentLobbyOfficeVisit
+    radioDeliveryPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.deliveryMethod.type
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    radioTimePath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.commerceCheckOrderUnderOrder.docQueryResp.doc.0.name.data.shippingTime
+                    string2: $var.key
+              - radioOn.svg
+              - radioGray.svg
+    checkBoxPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.addressType
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+    btnClick:
+      - actionType: popUp
+        popUpView: softTips
+  style:
+    apptDetails:
+      display: .Global.formData.showApptInShoppingCart
+      marginTop: "0.0135"
+      width: "0.19"
+      color: "#2988e6"
+      fontSize: .Nfont.h12
+      textDecoration: underline
+    pickUpLoactionListTitle:
+      fontSize: .Nfont.h14
+    pickUpLoactionListContent:
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+      color: "#666666"
+      word-break: break-word
+      width: "0.73333"
+      marginLeft: "0.048"
+    scrollBox:
+      width: "1"
+      height: ..formData.scrollHeight
+      boxSizing: "border-box"
+      overflow: "scroll"
+      color: "#333333"
+      fontSize: .Nfont.h16
+      backgroundColor: "#f5f5f5"
+      paddingBottom: "0.0172413"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+    list:
+      width: "0.92"
+      margin: "0"
+      marginLeft: "0.04"
+      marginTop: "0.014778"
+      height: auto
+      boxSizing: border-box
+      backgroundColor: "0xffffff"
+      # paddingBottom: "0.0172413"
+      borderRadius: "4"
+    listItem:
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+    titleBox:
+      paddingTop: "0.0172413"
+      paddingLeft: "0.04"
+      paddingRight: "0.04"
+      paddingBottom: "0.0160098"
+      fontSize: .Nfont.h16
+      fontWeight: "600"
+      boxSizing: border-box
+      wordBreak: break-word
+    titleRight:
+      display: "inline-block"
+      verticalAlign: middle
+      width: "0.4"
+    titleValue:
+      marginLeft: "0.04"
+      display: "inline-block"
+      color: itemObject.orderStatus.color
+      fontSize: .Nfont.h14
+      verticalAlign: middle
+      width: "0.4"
+      textAlign:
+        x: right
+    secondList:
+      width: "0.92"
+      margin: "0"
+      height: auto
+      boxSizing: border-box
+    secondListItem:
+      width: "0.842"
+      height: "auto"
+      marginLeft: "0.04"
+      paddingBottom: "0.019704"
+      paddingTop: "0.019704"
+      boxSizing: border-box
+      borderTop: "1px solid #dedede"
+    blockBox:
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    productAvatar:
+      width: "0.1546666"
+      height: "0.0714285"
+      border: "1px solid #dedede"
+      boxSizing: border-box
+      borderRadius: "4"
+      verticalAlign: middle
+      display: "inline-block"
+    topBox:
+      display: "inline-block"
+      marginLeft: "0.02133333"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+      verticalAlign: middle
+    productTitle:
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      boxSizing: "border-box"
+      -webkit-line-clamp: 2
+      display: -webkit-box
+      -webkit-box-orient: vertical
+      overflow: hidden
+      text-overflow: ellipsis
+      wordBreak: break-word
+      width: "0.656"
+    productType:
+      display: "inline-block"
+      color: itemObject.typeColor
+      fontSize: .Nfont.h12
+      width: "0.656"
+      fontWeight: "600"
+      verticalAlign: middle
+    productInfoBox:
+      marginTop: "0.006157"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    productInfo:
+      display: "inline-block"
+      paddingLeft: "0.021333"
+      width: "0.37"
+      height: "0.033251"
+      backgroundColor: "#f8f8f8"
+      color: "#666666"
+      borderRadius: "4"
+      boxSizing: border-box
+      fontSize: .Nfont.h12
+      lineHeight: "3.3251vh"
+      overflow: hidden
+      text-overflow: ellipsis
+      whiteSpace: nowrap
+      verticalAlign: middle
+    numBox:
+      marginLeft: "0.032"
+      display: "inline-block"
+      width: "0.26"
+      height: "auto"
+      verticalAlign: middle
+      textAlign:
+        x: right
+    productNum:
+      marginLeft: "0.02133333"
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      color: "#333333"
+      boxSizing: border-box
+      border: "1px solid #c1c1c1"
+      borderRadius: "2"
+      padding: "2px 4px"
+      verticalAlign: middle
+    price:
+      marginTop: "0.01"
+      color: "#fb5051"
+      width: "0.45"
+      fontSize: .Nfont.h16
+      fontWeight: "700"
+    priceLabel:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.3"
+      boxSizing: border-box
+      word-break: break-all
+    priceValue:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.54"
+      boxSizing: border-box
+      fontWeight: "600"
+      word-break: break-word
+      textAlign:
+        x: right
+    payBox:
+      marginTop: "0.01477832"
+      marginLeft: "0.04"
+      width: "0.92"
+      borderRadius: "4"
+      backgroundColor: "0xffffff"
+      paddingTop: "0.02463054"
+      paddingBottom: "0.02463054"
+      paddingLeft: "0.04"
+      paddingRight: "0.04"
+      boxSizing: border-box
+    methodStyle:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      width: "0.648"
+      height: "auto"
+      verticalAlign: middle
+      fontWeight: "600"
+    checkPath:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    methodLabel:
+      marginLeft: "0.032"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    deliveryBox:
+      ..style.blockBox:
+      verticalAlign: middle
+      display: "inline-block"
+    deliveryList:
+      width: "auto"
+      margin: "0"
+      height: auto
+    deliveryListItem:
+      # display: "inline-block"
+      width: "0.193"
+      height: "auto"
+    radioImg:
+      # width: "0.0442"
+      height: 4.42vw
+    radioValue:
+      marginLeft: "0.0213333"
+      # display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      # verticalAlign: middle
+    timeLabel:
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+    timeList:
+      width: "0.84"
+      margin: "0"
+      height: auto
+    timeListItem:
+      display: "inline-block"
+      width: "0.419"
+      height: "auto"
+    contactLable:
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.84"
+      fontWeight: "600"
+      paddingBottom: "0.017241"
+      borderBottom: "1px solid #dedede"
+    blockSecondBox:
+      marginTop: "0.017241"
+      width: "0.84"
+      height: "auto"
+    rightLabel:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      fontWeight: "600"
+      verticalAlign: middle
+      width: "0.68533333"
+    selectLabel:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "600"
+      verticalAlign: middle
+      textDecoration: underline
+    selectImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.01970"
+      marginLeft: "0.010666"
+    rigthTitle:
+      display: "inline-block"
+      width: "0.3"
+      height: "auto"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      boxSizing: border-box
+      wordBreak: break-word
+    leftValue:
+      display: "inline-block"
+      width: "0.54"
+      boxSizing: border-box
+      fontSize: .Nfont.h14
+      color: "#333333"
+      wordBreak: break-word
+      textAlign:
+        x: right
+    addrssList:
+      width: "0.84"
+      margin: "0"
+      height: auto
+    addrssListItem:
+      width: "0.84"
+      height: "auto"
+      marginTop: "0.020935"
+    itemValue:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      fontWeight: "700"
+      verticalAlign: middle
+    addressLabel:
+      ..style.timeLabel:
+      fontWeight: "400"
+      marginTop: "0.008"
+      width: "0.84"
+      lineHeight: "2.58vh"
+      wordBreak: break-word
+    timeListItemView:
+      width: auto
+      height: auto
+      marginTop: "0.018472"
+      verticalAlign: middle
+      display: "inline-block"

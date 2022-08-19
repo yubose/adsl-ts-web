@@ -2,17 +2,58 @@ PROneShared:
   title: PR-1
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: =.DocType.pROne
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
 
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.pROne.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
+
     - actionType: evalObject
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..formData.name.data.diagnosis.descriptiveList
+              object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
             dataOut: PROneShared.formData.listDatalength
 
     - actionType: evalObject
@@ -33,27 +74,50 @@ PROneShared:
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "PR-1"
+        - .Global.formData.downloadPDF.scaleX@: 0.909
+        - .Global.formData.downloadPDF.scaleY@: 0.909
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.PROneShared.formData.name.data.signatureId
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
 
   formData:
+    # 控制签名是否显示
+    displaySign: "none"
+
     flag: "none"
     listDatalength: "none"
     name:
-      data: 
+      data:
         selectStatus:
           illness:
             isShow: ""
-          recovery: 
-            isShow: "" 
-          work: 
+          recovery:
+            isShow: ""
+          work:
             isShow: ""
   formDataTemp:
     downFlag: "inline-block"
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
     treatmentTemp:
       - key: isTreatment
         value: "Yes"
@@ -81,17 +145,47 @@ PROneShared:
         value: "No"
     timeSpan: []
 
+  apiRequest:
+    pROne:
+      docResp: ""
+      docReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PROneShared.apiRequest.pROne.docReq
+          dataOut: PROneShared.apiRequest.pROne.docResp
+
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.pROne
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      date: =.Global.formData.auditLog.startTime
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
         ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
         - type: view
           style:
@@ -224,7 +318,7 @@ PROneShared:
                         ..style.input:
                         width: "0.44"
             - type: label
-              text: Nature of business（ e.g. food manufacturing）
+              text: Nature of Business（ e.g. food manufacturing）
               style:
                 ..style.inputTitle:
             - type: label
@@ -706,7 +800,7 @@ PROneShared:
                 - type: list
                   viewTag: listData
                   contentType: listObject
-                  listObject: ..formData.name.data.diagnosis.descriptiveList
+                  listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
                   iteratorVar: itemObject
                   style:
                     ..style.listDataShowList:
@@ -1005,6 +1099,40 @@ PROneShared:
               style:
                 ..style.input:
                 marginTop: "0.009852"
+
+            - type: label
+              text: "Plan And Recommendations"
+              dataKey:
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: "&#8226 Note"
+              style:
+                width: "0.92"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+            - type: label
+              text: No content
+              dataKey: formData.name.data.planAndRecommendations
+              style:
+                ..style.input:
+
+        # - type: view
+        #   viewTag: defaultTag
+        #   style:
+        #     ..style.blockBox:
+        #     marginLeft: "0.04"
+        #   children:
+        #     - type: image
+        #       path:
+        #         ..event.checkBoxPath:
+        #       style:
+        #         ..style.img:
+        #     - type: label
+        #       text: Superbill
+        #       style:
+        #         ..style.setLabel:
+
         - .DocPublicLine:
         - type: view
           style:
@@ -1048,9 +1176,11 @@ PROneShared:
               dataKey: formData.name.data.signatureId
               style:
                 ..style.canvasImg:
+                display: ..formData.displaySign
         - type: view
           style:
             ..style.timeBox:
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -1192,9 +1322,59 @@ PROneShared:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+
+    # - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:
 
   event:
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.pROne.docReq.name.data.statusTag.name@: "Released"
+          - ..apiRequest.pROne.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.pROne.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      # 保存
+      - actionType: evalObject
+        object:
+          - ..apiRequest.pROne.docReq.tage@: -1
+          - =.PROneShared.apiRequest.pROne.docAPI.store: ""
+
+          - =.builtIn.array.add:
+              dataIn:
+                object: =.Global.currentMeetingDoc
+                value: =..apiRequest.pROne.docResp.doc
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: evalObject
+        object:
+          - goto: MoreOptions
+
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+
     raidoPath:
       emit:
         dataKey:
@@ -1250,11 +1430,32 @@ PROneShared:
   style:
     scrollBox:
       width: "1"
-      height: "0.94"
-      overflow: scroll
-      fontFamily: "Arial"
-      fontSize: .Nfont.h16
-      color: "#333333"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
     box:
       marginLeft: "0.04"
       width: "0.92"
@@ -1305,7 +1506,7 @@ PROneShared:
       padding: "6px 12px"
       wordBreak: break-word
       backgroundColor: "#f4f4f4"
-      fontFamily: "Arial"
+
     blockBox:
       marginTop: "0.024630"
       width: "0.92"
@@ -1367,7 +1568,7 @@ PROneShared:
       boxSizing: border-box
       borderRadius: "4"
       padding: "6px 12px"
-      fontFamily: "Arial"
+
       wordBreak: break-word
       backgroundColor: "#f4f4f4"
     dateBox:
@@ -1383,7 +1584,7 @@ PROneShared:
       width: "0.504"
       height: "auto"
       fontSize: .Nfont.h14
-      fontFamily: "Arial"
+
       display: "inline-block"
       boxSizing: "border-box"
       border:
@@ -1434,7 +1635,7 @@ PROneShared:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       verticalAlign: top
@@ -1446,7 +1647,7 @@ PROneShared:
     signInput:
       width: "0.44"
       height: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       boxSizing: "border-box"
@@ -1457,14 +1658,14 @@ PROneShared:
       width: "0.92"
       height: "auto"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
     fourTitle:
       marginTop: "0.0221674"
       marginLeft: "0.04"
       width: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
 
@@ -1473,7 +1674,7 @@ PROneShared:
       marginLeft: "0.04"
       width: "0.92"
       height: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       boxSizing: "border-box"
@@ -1492,7 +1693,7 @@ PROneShared:
       borderRadius: "4"
       borderWidth: "1.5"
       borderColor: "#dedede"
-      fontFamily: "Arial"
+
       color: "0x333333"
     commentView:
       marginTop: "0.01"
@@ -1505,7 +1706,7 @@ PROneShared:
       borderRadius: "4"
       borderWidth: "1.5"
       borderColor: "#dedede"
-      fontFamily: "Arial"
+
       color: "0x333333"
       paddingTop: "6px"
     searchShow:
@@ -1522,7 +1723,7 @@ PROneShared:
       display: "none"
       width: "0.92"
       height: "auto"
-      fontFamily: "Arial"
+
       zIndex: 10
     scrollShow:
       width: "0.9"
@@ -1590,7 +1791,7 @@ PROneShared:
       width: "0.17"
       textAlign:
         x: left
-      fontFamily: "Arial"
+
       wordWrap: break-word
       fontSize: .Nfont.h14
       fontWeight: "550"
@@ -1604,13 +1805,13 @@ PROneShared:
       fontSize: .Nfont.h2
     descriptionValue:
       verticalAlign: top
-      marginLeft: "0.02"
+      marginLeft: "0.015"
       display: "inline-block"
       height: "auto"
       width: "0.616"
       textAlign:
         x: left
-      fontFamily: "Arial"
+
       wordWrap: break-word
       fontSize: .Nfont.h14
       color: "0x333333"
@@ -1620,7 +1821,7 @@ PROneShared:
       width: "0.83"
       height: "auto"
       color: "0x666666"
-      fontFamily: "Arial"
+
       wordWrap: break-word
       fontSize: .Nfont.h14
     signatureBox:
@@ -1757,3 +1958,17 @@ PROneShared:
       height: "auto"
       width: "0.92"
       color: "#333333"
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

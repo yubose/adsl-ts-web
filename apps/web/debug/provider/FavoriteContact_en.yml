@@ -127,7 +127,7 @@ FavoriteContact:
                             width: "0.4"
                             height: "0.03"
                             top: "0.035"
-                            fontFamily: "Arial"
+
                             color: "0x000000"
                             fontSize: "15"
                             zIndex: 100
@@ -138,7 +138,7 @@ FavoriteContact:
                             top: "0.052"
                             height: "0.03"
                             width: "0.4"
-                            fontFamily: "Arial"
+
                             fontSize: .Nfont.h12
                             color: "0xdededf"
                             zIndex: 100

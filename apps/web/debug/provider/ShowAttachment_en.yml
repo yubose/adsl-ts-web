@@ -1,6 +1,6 @@
 ShowAttachment:
   title: "Attachment"
-  pageNumber: 
+  pageNumber:
   init: #Page initialization
     - .SignInCheck
     - ..apiRequest.attachment.docAPI.get
@@ -30,23 +30,23 @@ ShowAttachment:
       children:
         - type: button
           text: =..title
-          style: 
+          style:
             left: "0.2"
             width: "0.6"
             fontWeight: 300
             height: "0.1"
             fontSize: .Nfont.h3
             color: "0xffffffff"
-            textOverflow: ellipsis
+            text-overflow: ellipsis
             whiteSpace: nowrap
             overflow: hidden
-            textAlign: 
+            textAlign:
               x: center
             backgroundColor: "0x2988e6ff"
             border:
               style: "1"
     - .HeaderLeftImg:
-      onClick: 
+      onClick:
         - actionType: builtIn
           funcName: goBack
           reload: true
@@ -73,10 +73,10 @@ ShowAttachment:
         top: "0.11"
         height: "0.08"
         fontSize: .Nfont.h2
-        fontFamily: sans-sarif
+
         border:
-          style: "5"  
-          width: "1" 
+          style: "5"
+          width: "1"
         textAlign:
           x: center
           y: center
@@ -99,5 +99,3 @@ ShowAttachment:
             # height: "0.6"
             # margin: auto
             top: "0"
-        
-        

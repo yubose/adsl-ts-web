@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20.235" height="18.823" viewBox="0 0 20.235 18.823">
+  <g id="组_10644" data-name="组 10644" transform="translate(-30 -546.196)">
+    <g id="组_10626" data-name="组 10626" transform="translate(7.662 -20)">
+      <g id="矩形_19177" data-name="矩形 19177" transform="translate(22.338 569.455)" fill="#2988e6" stroke="#2988e6" stroke-width="1">
+        <rect width="20.235" height="1.686" rx="0.843" stroke="none"/>
+        <rect x="0.5" y="0.5" width="19.235" height="0.686" rx="0.343" fill="none"/>
+      </g>
+      <path id="路径_9626" data-name="路径 9626" d="M1100.779-113.257v-1.965s.281-1.471,1.426-1.54,4.261,0,4.261,0,1.282.4,1.325,1.54,0,1.965,0,1.965Z" transform="translate(-1071.839 683.793)" fill="none" stroke="#2988e6" stroke-width="1.6"/>
+      <g id="组_10643" data-name="组 10643" transform="translate(0 -0.488)">
+        <path id="路径_9627" data-name="路径 9627" d="M1097.117,564.142l-.121,1.614-.782,10.413s-.194,3.5-3.122,3.527-7.218,0-7.218,0a3.636,3.636,0,0,1-3.153-3.527c-.411-3.352-.927-12.026-.927-12.026Z" transform="translate(-1057 5.802)" fill="#2988e6"/>
+      </g>
+      <g id="组_10625" data-name="组 10625" transform="translate(29.083 574.952)">
+        <rect id="矩形_19178" data-name="矩形 19178" width="1.686" height="6.745" rx="0.843" transform="translate(0 0)" fill="#fff"/>
+        <rect id="矩形_19179" data-name="矩形 19179" width="1.686" height="6.745" rx="0.843" transform="translate(5.059 0)" fill="#fff"/>
+      </g>
+    </g>
+  </g>
+</svg>

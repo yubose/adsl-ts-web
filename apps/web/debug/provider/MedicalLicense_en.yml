@@ -109,7 +109,7 @@ MedicalLicense:
             marginTop: "0.03"
             width: "1"
             height: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h2
             color: "0x000000"
             textAlign:
@@ -142,7 +142,7 @@ MedicalLicense:
                     height: "0.05"
                     lineHeight: "5vh"
                     width: "0.4"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h15
                 - type: textField
                   placeholder: Enter here
@@ -197,7 +197,7 @@ MedicalLicense:
                     height: "0.05"
                     lineHeight: "5vh"
                     width: "0.4"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h15
 
                 - type: select
@@ -255,7 +255,7 @@ MedicalLicense:
                     height: "0.05"
                     lineHeight: "5vh"
                     width: "0.4"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h15
                 - type: view
                   viewTag: expirationTag
@@ -278,7 +278,7 @@ MedicalLicense:
                         height: "0.05"
                         width: "0.5"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                         border:
                           style: "3"
@@ -496,7 +496,7 @@ MedicalLicense:
                 height: "0.04"
                 lineHeight: "4vh"
                 width: "0.4"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h1
                 color: "0x000000"
             - type: label
@@ -506,7 +506,7 @@ MedicalLicense:
                 height: "0.04"
                 lineHeight: "4vh"
                 width: "0.25"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h1
                 color: "0x000000"
             - type: label
@@ -516,7 +516,7 @@ MedicalLicense:
                 height: "0.04"
                 lineHeight: "4vh"
                 width: "0.25"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h1
                 color: "0x000000"
         - type: scrollView

@@ -1,0 +1,1211 @@
+DWCFormRFA:
+  title: DWC Form RFA
+  init: #Page initialization
+    - .SignInCheck
+    - ..formData@: =.Global.Note
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
+            dataOut: DWCFormRFA.formData.listDatalength
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.listDatalength
+                  string2: "0"
+            - actionType: evalObject
+              object:
+                - ..formData.flag@: "block"
+                - ..formData.listDataflag@: "none"
+            - actionType: evalObject
+              object:
+                - ..formData.flag@: "none"
+                - ..formData.listDataflag@: "block"
+
+    - actionType: evalObject
+      object:
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "DWC Form RFA"
+        - .Global.formData.downloadPDF.scaleX@: 0.87
+        - .Global.formData.downloadPDF.scaleY@: 0.87
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
+  formData:
+    flag: "none"
+    listDataflag: "none"
+
+  formDataTemp:
+    checkBoxTemp:
+      - key: Select
+        value: "Check box if the patient faces an imminent and serious threat to his or her health."
+        tag: "1"
+      - key: Select
+        value: "Check box if request is written confirmation of a prior oral request."
+        tag: "2"
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderMenu:
+    - type: scrollView
+      viewTag: mainView
+      style:
+        width: "1"
+        height: "0.94"
+        overflow: scroll
+      children:
+        - type: view
+          style:
+            marginTop: "0.02"
+            left: "0.05"
+            height: "auto"
+            width: "0.9"
+            overflow: hidden
+            # backgroundColor: "yellow"
+          children:
+            - type: label
+              text: State of California
+              style:
+                fontSize: .Nfont.h1
+                height: auto
+                width: "0.9"
+                textAlign:
+                  x: center
+                  y: center
+            - type: label
+              text: DIVISION OF WORKERS’ COMPENSATION REQUEST FOR AUTHORIZATION FOR MEDICAL TREATMENT (DWC FORM RFA)
+              style:
+                marginTop: "0.01"
+
+                fontSize: .Nfont.h15
+                height: "auto"
+                width: "0.9"
+                textAlign:
+                  x: center
+                  y: center
+            - type: label
+              text: To accompany the Doctor's First Report of Occupational Injury or Illness, Form DLSR 5021, a Treating Physician's Progress Report, DWC Form PR-2, or narrative report substantiating the requested treatment.
+              style:
+                marginTop: "0.02"
+
+                fontSize: 1.5vh
+                height: auto
+                left: "0"
+                width: "0.9"
+            - type: view
+              style:
+                marginTop: "0.02"
+                width: "0.9"
+                height: "auto"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formDataTemp.checkBoxTemp
+                  iteratorVar: itemObject
+                  viewTag: checkBoxTag
+                  style:
+                    width: "0.9"
+                    height: "auto"
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        width: "0.84"
+                        height: "auto"
+                        left: "0"
+                        marginTop: "0.01"
+                      children:
+                        - type: image
+                          style:
+                            display: "inline-block"
+                            verticalAlign: top
+                            height: "0.025"
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.name.data.checkBox
+                                          string2: $var.tag
+                                    - selectOnBlue.svg
+                                    - selectOffBlue.svg
+
+                        - type: label
+                          dataKey: itemObject.value
+                          style:
+                            marginLeft: "0.02"
+                            display: "inline-block"
+                            verticalAlign: top
+
+                            fontSize: .Nfont.h1
+                            height: "auto"
+                            width: "0.73"
+                            wordWrap: break-word
+
+        - type: view
+          style:
+            marginTop: "0.04"
+            left: "0.05"
+            height: "auto"
+            width: "0.9"
+            overflow: hidden
+            # backgroundColor: "pink"
+          children:
+            - type: view
+              style:
+                height: "auto"
+                width: "0.9"
+                # backgroundColor: "pink"
+              children:
+                - type: label
+                  text: Patient Info
+                  style:
+                    fontSize: .Nfont.h2
+                    height: auto
+                    width: "0.9"
+                - type: view
+                  style:
+                    marginTop: "0.02"
+                    height: "0.002"
+                    width: "0.9"
+                    backgroundColor: "0xdededf"
+            - type: view
+              style:
+                marginTop: "0.02"
+                height: "auto"
+                width: "0.9"
+                # backgroundColor: "pink"
+              children:
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.patientInfo.patientName
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Date of Birth
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.patientInfo.birth
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Date of injury
+                    - type: view
+                      style:
+                        marginLeft: "0.15"
+                        display: "inline-block"
+                        height: "0.04"
+                        width: "0.45"
+                        overflow: hidden
+                      children:
+                        - type: view
+                          style:
+                            top: "0"
+                            left: "0.03"
+                            width: "0.41"
+                            height: "0.025"
+                          children:
+                            - .BaseTextField:
+                              isEditable: false
+                              placeholder: "No content"
+                              dataKey: formData.name.data.patientInfo.injuryDate
+                              style:
+                                top: "0"
+                                left: "0"
+                                width: "0.41"
+                                height: "0.025"
+                                fontSize: .Nfont.h1
+
+                                color: "0x0f0f0f"
+                                borderRadius: "3"
+                                textIndent: "12px"
+                            - type: image
+                              path: dateImg.svg
+                              style:
+                                top: "0.002"
+                                left: "0.36"
+                                height: "0.02"
+                                zIndex: "1000"
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Employer
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.patientInfo.employer
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Claim Number
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.patientInfo.claimNumber
+        - type: view
+          style:
+            marginTop: "0.04"
+            left: "0.05"
+            height: "auto"
+            width: "0.9"
+            overflow: hidden
+            # backgroundColor: "pink"
+          children:
+            - type: view
+              style:
+                height: "auto"
+                width: "0.9"
+                # backgroundColor: "pink"
+              children:
+                - type: label
+                  text: Provider Info
+                  style:
+                    fontSize: .Nfont.h2
+                    height: auto
+                    width: "0.9"
+                - type: view
+                  style:
+                    marginTop: "0.02"
+                    height: "0.002"
+                    width: "0.9"
+                    backgroundColor: "0xdededf"
+            - type: view
+              style:
+                marginTop: "0.02"
+                height: "auto"
+                width: "0.9"
+                # backgroundColor: "pink"
+              children:
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Provider Name
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.providerInfo.providerName
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Practice Name
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.providerInfo.practiceName
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Address
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.providerInfo.address
+
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: City, State, Zip Code
+                      style:
+                        width: "0.4"
+                    - .prOneLabelRight:
+                      style:
+                        width: "0.5"
+                      dataKey: formData.name.data.providerInfo.CSZ
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Telephone Number
+                      style:
+                        width: "0.4"
+                    - .prOneLabelRight:
+                      style:
+                        width: "0.5"
+                      dataKey: formData.name.data.providerInfo.phoneNumber
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Fax Number
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.providerInfo.faxNumber
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Provider Specialty
+                      style:
+                        width: "0.4"
+                    - .prOneLabelRight:
+                      dataKey: formData.name.data.providerInfo.specialty
+                      style:
+                        width: "0.5"
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: Provider State License Number
+                      style:
+                        width: "0.6"
+                    - .prOneLabelRight:
+                      style:
+                        width: "0.3"
+                      dataKey: formData.name.data.providerInfo.stateNumber
+                - .prOneLabelView:
+                  children:
+                    - .prOneLabelLeft:
+                      text: National Provider ID Number
+                      style:
+                        width: "0.6"
+                    - .prOneLabelRight:
+                      style:
+                        width: "0.3"
+                      dataKey: formData.name.data.providerInfo.idNumber
+        - type: view
+          style:
+            marginTop: "0.05"
+            left: "0.05"
+            height: "auto"
+            width: "0.9"
+            overflow: hidden
+            # backgroundColor: "pink"
+          children:
+            - type: view
+              style:
+                height: "auto"
+                width: "0.9"
+                # backgroundColor: "pink"
+              children:
+                - type: label
+                  text: Claims Administrator Info
+                  style:
+                    fontSize: .Nfont.h2
+                    height: auto
+                    width: "0.9"
+                - type: view
+                  style:
+                    marginTop: "0.02"
+                    height: "0.002"
+                    width: "0.9"
+                    backgroundColor: "0xdededf"
+            - type: view
+              style:
+                marginTop: "0.02"
+                height: "auto"
+                width: "0.9"
+                # backgroundColor: "pink"
+              children:
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: Claims Administrator
+                    - .prOneListField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.administrator
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: Adjustor Name (if known)
+                    - .prOneListField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.claimsNumber
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: Address
+                    - .prOneListField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.claimsAddress
+                - .prOneListView:
+                  style:
+                    height: "0.075"
+                    # backgroundColor: "red"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0"
+                        height: "0.06"
+                        width: "0.28"
+                        # backgroundColor: "pink"
+                      children:
+                        - type: label
+                          text: City
+                          style:
+                            height: "auto"
+                            width: "0.28"
+
+                            fontSize: .Nfont.h1
+                        - type: textField
+                          placeholder: No content
+                          isEditable: false
+                          dataKey: formData.name.data.administratorInfo.city
+                          style:
+                            marginTop: "0.01"
+                            height: "0.025"
+                            width: "0.265"
+                            border:
+                              style: 3
+                            borderColor: "0xdededf"
+                            # backgroundColor: "0xdededf"
+                            borderWidth: "1"
+                            borderRadius: "3"
+                            textIndent: "12px"
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.31"
+                        height: "0.06"
+                        width: "0.265"
+                        # backgroundColor: "pink"
+                      children:
+                        - type: label
+                          text: State
+                          style:
+                            height: "auto"
+                            width: "0.28"
+
+                            fontSize: .Nfont.h1
+                        - type: textField
+                          isEditable: false
+                          placeholder: "No content"
+                          dataKey: formData.name.data.administratorInfo.state
+                          style:
+                            marginTop: "0.01"
+                            height: "0.025"
+                            width: "0.265"
+                            border:
+                              style: 3
+                            borderColor: "0xdededf"
+                            # backgroundColor: "0xdededf"
+                            borderWidth: "1"
+                            borderRadius: "3"
+                            textIndent: "12px"
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0.61"
+                        height: "0.06"
+                        width: "0.265"
+                        # backgroundColor: "pink"
+                      children:
+                        - type: label
+                          text: Zip
+                          style:
+                            height: "auto"
+                            width: "0.28"
+
+                            fontSize: .Nfont.h1
+                        - type: textField
+                          placeholder: No content
+                          isEditable: false
+                          dataKey: formData.name.data.administratorInfo.zipCode
+                          style:
+                            marginTop: "0.01"
+                            height: "0.025"
+                            width: "0.265"
+                            border:
+                              style: 3
+                            borderColor: "0xdededf"
+                            # backgroundColor: "0xdededf"
+                            borderWidth: "1"
+                            borderRadius: "3"
+                            textIndent: "12px"
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: Telephone Number
+                    - .prOneListField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.phone
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: Fax Number
+                    - .prOneListField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.fax
+                - type: label
+                  text: "Requested Treatment: (See Instructions for guidance; attach additional pages if more space is required.) Either state the requested treatment in the below space or indicate the specific page number(s) of the accompanying medical report on which the requested treatment can be found. Include supporting evidence as necessary. More than one treatment request may be included."
+                  style:
+                    marginTop: "0.04"
+
+                    fontSize: "1.5vh"
+                    height: "auto"
+                    width: "0.9"
+
+        - type: view
+          style:
+            marginTop: "0.05"
+            left: "0"
+            height: "auto"
+            width: "1"
+            overflow: hidden
+            backgroundColor: "0xefefef"
+          children:
+            - type: view
+              style:
+                marginTop: "0"
+                left: "0.05"
+                height: "auto"
+                width: "0.9"
+                overflow: hidden
+                backgroundColor: "0xefefef"
+              children:
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: Diagnosis
+                    - type: view
+                      style:
+                        marginTop: "0.0123"
+                        height: "auto"
+                        width: "0.888"
+                        overflow: hidden
+                        backgroundColor: "0xffffff"
+                        border:
+                          style: 3
+                        borderColor: "0xd4d4d4"
+                        borderWidth: "1"
+                        borderRadius: "3"
+                      children:
+                        - type: label
+                          text: No content
+                          style:
+                            display: ..formData.flag
+                            height: "auto"
+                            width: "auto"
+                            fontSize: .Nfont.h14
+                            padding: "6px 12px"
+                            color: "0x333333"
+                        - type: view
+                          viewTag: listData
+                          style:
+                            width: "0.888"
+                            height: "auto"
+                            marginTop: "0.01477"
+                            display: ..formData.listDataflag
+                          children:
+                            - type: list
+                              viewTag: listData
+                              contentType: listObject
+                              listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.888"
+                                height: "auto"
+                                margin: "0"
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.888"
+                                    height: "auto"
+                                    left: "0"
+                                    overflow: hidden
+                                    backgroundColor: "0xffffff"
+                                  children:
+                                    - type: view
+                                      style:
+                                        width: "0.888"
+                                        height: "auto"
+                                      children:
+                                        - type: label
+                                          text: "&#8226"
+                                          dataKey:
+                                          style:
+                                            marginLeft: "0.032"
+                                            boxSizing: border-box
+                                            display: "inline-block"
+                                            height: "auto"
+                                            width: "auto"
+                                            fontSize: .Nfont.h16
+                                            verticalAlign: top
+                                        - type: view
+                                          style:
+                                            display: "inline-block"
+                                            width: "auto"
+                                            height: "auto"
+                                          children:
+                                            - type: label
+                                              dataKey: itemObject.code
+                                              style:
+                                                display: "inline-block"
+                                                marginLeft: "0.02"
+                                                height: "auto"
+                                                width: "0.17"
+                                                textAlign:
+                                                  x: left
+
+                                                wordWrap: break-word
+                                                fontSize: .Nfont.h14
+                                                fontWeight: "550"
+                                                verticalAlign: top
+                                                color: "0x333333"
+                                            - type: label
+                                              text: "-"
+                                              style:
+                                                verticalAlign: middle
+                                                display: "inline-block"
+                                                width: "auto"
+                                                height: "auto"
+                                                fontSize: .Nfont.h2
+                                            - type: label
+                                              dataKey: itemObject.description
+                                              style:
+                                                verticalAlign: top
+                                                marginLeft: "0.015"
+                                                display: "inline-block"
+                                                height: "auto"
+                                                width: "0.6"
+                                                textAlign:
+                                                  x: left
+
+                                                wordWrap: break-word
+                                                fontSize: .Nfont.h14
+                                                color: "0x333333"
+                                    - type: label
+                                      dataKey: itemObject.comment
+                                      style:
+                                        marginTop: "0.002"
+                                        marginLeft: "0.06"
+                                        width: "0.8"
+                                        height: "auto"
+                                        color: "0x666666"
+
+                                        wordWrap: break-word
+                                        fontSize: .Nfont.h14
+                        - type: view
+                          style:
+                            display: ..formData.listDataflag
+                            marginTop: "0.01477"
+                # - .prOneListView:
+                #   children:
+                #     - .prOneListLabel:
+                #       text: ICD Code
+                #     - .prOneListField:
+                #       isEditable: false
+                #       placeholder: "No content"
+                #       dataKey: formData.name.data.administratorInfo.ICD
+                #       style:
+                #         backgroundColor: "0xffffff"
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: Procedure Requested
+                    - type: label
+                      text: No content
+                      dataKey: formData.name.data.administratorInfo.pequested
+                      style:
+                        marginTop: "0.01"
+                        border:
+                          style: 3
+                        borderColor: "0xd4d4d4"
+                        borderWidth: "1"
+                        borderRadius: "3"
+                        backgroundColor: "0xffffff"
+                        fontSize: .Nfont.h14
+                        padding: "6px 12px"
+                        color: "0x333333"
+                        width: "0.893333"
+                        wordBreak: "break-word"
+                        boxSizing: "border-box"
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: CPT/HCPCS Code
+                    - type: label
+                      text: No content
+                      dataKey: formData.name.data.administratorInfo.CPT
+                      style:
+                        marginTop: "0.01"
+                        border:
+                          style: 3
+                        borderColor: "0xd4d4d4"
+                        borderWidth: "1"
+                        borderRadius: "3"
+                        backgroundColor: "0xffffff"
+                        fontSize: .Nfont.h14
+                        padding: "6px 12px"
+                        color: "0x333333"
+                        width: "0.893333"
+                        wordBreak: "break-word"
+                        boxSizing: "border-box"
+                - .prOneListView:
+                  children:
+                    - .prOneListLabel:
+                      text: "Other Information: (Frequency, Duration Quantity, Facility, etc.)"
+                    - type: label
+                      text: No content
+                      dataKey: formData.name.data.administratorInfo.otherInfo
+                      style:
+                        marginTop: "0.01"
+                        border:
+                          style: 3
+                        borderColor: "0xd4d4d4"
+                        borderWidth: "1"
+                        borderRadius: "3"
+                        backgroundColor: "0xffffff"
+                        fontSize: .Nfont.h14
+                        padding: "6px 12px"
+                        color: "0x333333"
+                        width: "0.893333"
+                        wordBreak: "break-word"
+                        boxSizing: "border-box"
+                - type: view
+                  style:
+                    marginTop: "0.025"
+        - type: view
+          style:
+            marginTop: "0"
+            left: "0.05"
+            height: "auto"
+            width: "0.9"
+            overflow: hidden
+            # backgroundColor: "pink"
+          children:
+            - .prOneListView:
+              children:
+                - .prOneListLabel:
+                  text: Date of Request
+                - type: view
+                  viewTag: requestDateTag
+                  style:
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "0.035"
+                  children:
+                    - .BaseTextField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.dateRequest
+                      style:
+                        top: "0"
+                        left: "0"
+                        width: "0.88"
+                        height: "0.026"
+                        fontSize: .Nfont.h1
+
+                        color: "0x0f0f0f"
+                        borderRadius: "3"
+                        borderColor: "0xdededf"
+                        borderWidth: "1"
+                        textIndent: "12px"
+                    - type: image
+                      path: dateImg.svg
+                      style:
+                        top: "0.006"
+                        left: "0.82"
+                        # width: "5vw"
+                        height: "0.02"
+                        zIndex: "1000"
+                  onClick:
+                    - actionType: popUp
+                      popUpView: requestDate
+            - type: view
+              style:
+                marginTop: "0.03"
+                height: "auto"
+                width: "0.9"
+              children:
+                - type: label
+                  text: Provider Signature
+                  style:
+                    height: "auto"
+                    width: "0.4"
+                    fontSize: .Nfont.h1
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "0.88"
+                height: "0.15"
+                #  backgroundColor: "pink"
+                border:
+                  style: 4
+                borderColor: "0xababab"
+                borderWidth: "2"
+              children:
+                # 显示暂存的签名
+                - type: image
+                  viewTag: signatureShowTag
+                  path=func: .builtIn.utils.prepareDocToPath
+                  # 传入签名文档的id
+                  dataKey: formData.name.data.providerInfo.signatureId
+                  style:
+                    # 控制显示
+                    display: "block"
+                    left: "0"
+                    width: "0.88"
+                    top: "0"
+                    height: "0.15"
+                    overflow: scroll
+                    zIndex: "1000"
+            - type: label
+              text: "Claim Administrator Response Approving Treatment: You may use this form for approving a treatment request. A request for additional information, or a decision to modify, delay, or deny a request for authorization cannot be made using this form. Please review all timeframes and requirements set forth in California Labor Code section 4610 and California Code of Regulations, title 8, sections 9792.9 and 9792.9.1."
+              dataKey:
+              style:
+                marginTop: "0.04"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "A decision on the requested medical treatment must be made within five (5) working days from receipt of this request for authorization, or 14 calendar days with a timely request for information necessary to render a decision. For an expedited request, one made in a case of imminent or serious health threat, the maximum is 72 hours. Authorization may not be denied on the basis of lack of information without documentation reflecting an attempt to obtain the necessary information."
+              dataKey:
+              style:
+                marginTop: "0.04"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+                textDecoration: "underline"
+            - type: view
+              style:
+                marginTop: "0.05"
+                width: "0.84"
+                height: "auto"
+              children:
+                - type: label
+                  text: The requested treatment(s) is approved
+                  dataKey:
+                  style:
+                    fontSize: 1.5vh
+                    height: auto
+                    left: "0.08"
+                    width: "0.78"
+                - type: image
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "0.024"
+                  path:
+                    emit:
+                      actions:
+                        - if:
+                            - =.builtIn.array.has:
+                                dataIn:
+                                  object: =..formData.name.data.requestBox
+                                  value: 1
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
+
+            - type: view
+              style:
+                marginTop: "0.02"
+                width: "0.84"
+                height: "auto"
+              children:
+                - type: label
+                  text: The request has been previously denied by utilization review
+                  dataKey:
+                  style:
+                    fontSize: 1.5vh
+                    height: auto
+                    left: "0.08"
+                    width: "0.78"
+                - type: image
+                  viewTag: requestBoxTwoTag
+                  style:
+                    top: "0"
+                    left: "0"
+                    height: "0.024"
+                  path:
+                    emit:
+                      actions:
+                        - if:
+                            - =.builtIn.array.has:
+                                dataIn:
+                                  object: =..formData.name.data.requestBox
+                                  value: 2
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
+
+            - .prOneListView:
+              children:
+                - .prOneListLabel:
+                  text: Date request for authorization received
+                - type: view
+                  viewTag: receiveDateTag
+                  style:
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "0.035"
+                  children:
+                    - .BaseTextField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.dateReceived
+                      style:
+                        top: "0"
+                        left: "0"
+                        width: "0.88"
+                        height: "0.026"
+                        fontSize: .Nfont.h1
+
+                        color: "0x0f0f0f"
+                        borderRadius: "3"
+                        borderColor: "0xdededf"
+                        borderWidth: "1"
+                    - type: image
+                      path: dateImg.svg
+                      style:
+                        top: "0.006"
+                        left: "0.82"
+                        # width: "5vw"
+                        height: "0.02"
+                        zIndex: "1000"
+                  onClick:
+                    - actionType: popUp
+                      popUpView: receiveDate
+            - .prOneListView:
+              children:
+                - .prOneListLabel:
+                  text: Date of response to request
+                - type: view
+                  viewTag: responseDateTag
+                  style:
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "0.035"
+                  children:
+                    - .BaseTextField:
+                      isEditable: false
+                      placeholder: "No content"
+                      dataKey: formData.name.data.administratorInfo.dateResponse
+                      style:
+                        top: "0"
+                        left: "0"
+                        width: "0.88"
+                        height: "0.026"
+                        fontSize: .Nfont.h1
+
+                        color: "0x0f0f0f"
+                        borderRadius: "3"
+                        borderColor: "0xdededf"
+                        borderWidth: "1"
+                    - type: image
+                      path: dateImg.svg
+                      style:
+                        top: "0.006"
+                        left: "0.82"
+                        # width: "5vw"
+                        height: "0.02"
+                        zIndex: "1000"
+                  onClick:
+                    - actionType: popUp
+                      popUpView: responseDate
+            - type: view
+              style:
+                marginTop: "0.03"
+                height: "auto"
+                width: "0.9"
+              children:
+                - type: label
+                  text: Claims Administrator/Authorized Agent Signature
+                  style:
+                    height: "auto"
+                    width: "0.9"
+                    fontSize: .Nfont.h1
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "0.88"
+                height: "0.15"
+                #  backgroundColor: "pink"
+                border:
+                  style: 4
+                borderColor: "0xababab"
+                borderWidth: "2"
+              children:
+                #  # 显示暂存的签名
+                #  - type: image
+                #    viewTag: signatureShowTag
+                #    path=func: .builtIn.utils.prepareDocToPath
+                #    # 传入签名文档的id
+                #    dataKey: formData.name.data.administratorInfo.signatureId
+                #    style:
+                #      # 控制显示
+                #      display: "block"
+                #      left: "0"
+                #      width: "0.88"
+                #      top: "0"
+                #      height: "0.15"
+                #      overflow: scroll
+                #      zIndex: "1000"
+            - .prOneListView:
+              style:
+                marginTop: "0.04"
+              children:
+                - .prOneListLabel:
+                  text: Adjuster/Authorized Agent Name (print)
+                - .prOneListField:
+                  isEditable: false
+                  dataKey: formData.name.data.administratorInfo.agentName
+            - type: label
+              text: "Instructions for the Request for Authorization for Medical Treatment (DWC Form RFA)"
+              dataKey:
+              style:
+                marginTop: "0.04"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+                textDecoration: "underline"
+            - type: label
+              text: "Warning: Private healthcare information is contained in the Request for Authorization for Medical Treatment, DWC Form RFA. The form can only go to other treating providers and to the claims administrator."
+              dataKey:
+              style:
+                marginTop: "0.02"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Overview"
+              style:
+                marginTop: "0.03"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "The Request for Authorization for Medical Treatment (DWC Form RFA) is required to initiate the utilization review process required by Labor Code section 4610. This form is used as an attachment to the Treating Physician’s Progress Report – DWC Form PR-2, Doctor’s First Report of Occupational Injury – Form DLSR 5021, or an equivalent to request authorization for treatment."
+              style:
+                marginTop: "0.014"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+                textDecoration: "underline"
+            - type: label
+              text: "The intent of the form is to facilitate communication back and forth between the provider and the claims administrator, and also to furnish a verification of authorization for the requesting provider. To minimize the amount of information repeated onto the request form by the provider office, it is best to state the treatment request, other details of the treatment (e.g. frequency and duration), and the reason (a diagnosis or a clinical problem or concern). Such a request should speed the utilization review process. The provider can indicate single requests or multiple requests on the same form. Use additional sheets if necessary."
+              style:
+                marginTop: "0.04"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Expedited Review Checkbox"
+              style:
+                marginTop: "0.04"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "The first checkbox indicates whether review should be expedited based on an imminent and serious threat to the patient’s health."
+              style:
+                marginTop: "0.014"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Written Confirmation Checkbox"
+              style:
+                marginTop: "0.02"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "The second checkbox indicates whether the request made on the form is a written confirmation of an earlier oral request."
+              style:
+                marginTop: "0.014"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Routing Information"
+              style:
+                marginTop: "0.02"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "The DWC Form RFA can either be mailed or faxed to the claims administrator. The requesting provider must complete: (1) the patient’s name, date of birth, date of injury, employer, and claim number; (2) the claims administrator’s name, adjustor name (if known), address, telephone number, and fax number; and (3) the provider’s name, practice name, address, telephone number, fax number, specialty, state license number, and National Provider ID number."
+              style:
+                marginTop: "0.014"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Instructions"
+              style:
+                marginTop: "0.02"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "he DWC Form RFA must contain all the information needed to substantiate the request for authorization."
+              style:
+                marginTop: "0.014"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              textBoard:
+                - text: "● List the diagnosis, the ICD Code, and the procedure requested (per CPT/HCPCS code)."
+                - br:
+                - br:
+                - text: "● For surgery requests, attach or include full surgery orders, pre- and post-operative orders (if known)."
+                - br:
+                - br:
+                - text: "● If request is to continue a treatment plan or therapy, please attach documentation for functional improvement, if applicable."
+                - br:
+                - br:
+                - text: "● For requested medical treatment that is: (a) inconsistent with the Medical Treatment Utilization Schedule (MTUS) found at California Code of Regulations, title 8, section 9792.20, et seq.; or (b) for a condition or injury not addressed by the MTUS, include scientifically based evidence published in peer-reviewed, nationally recognized journals to recommend specific medical treatment or diagnostic services:"
+              style:
+                marginTop: "0.03"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Physician Signature"
+              style:
+                marginTop: "0.04"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Signature/Date line is located under the requested treatment box."
+              style:
+                marginTop: "0.014"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              text: "Claims Administrator Response"
+              style:
+                marginTop: "0.04"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+            - type: label
+              textBoard:
+                - text: "Upon receipt of the DWC Form RFA, a claims administrator must respond within the timeframes set forth in Labor Code section 4610 and California Code of Regulations, title 8, sections 9792.9 or 9792.9.1. To communicate its approval on requested treatment, the claims administrator may complete the lower portion of the DWC Form RFA and fax it back to the requesting provider. (Use of the DWC Form RFA is optional; a claims administrator may utilize other means of written notification.)"
+                - text: "Note: It is advised that the claims administrator review and familiarize themselves with the timeframes set forth in Labor Code section 4610 and California Code of Regulations, title 8, sections 9792.9 and 9792.9.1 upon receipt of a completed Form RFA."
+              style:
+                marginTop: "0.014"
+
+                fontSize: "1.5vh"
+                height: "auto"
+                width: "0.9"
+    - .HeaderPopUpMenu:

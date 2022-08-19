@@ -1,0 +1,247 @@
+ProfileUpdateMessage:
+  title: Message
+  pageNumber:
+  init:
+
+  formData:
+
+  formDataTemp:
+
+  apiRequest:
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          style:
+            ..style.titleBox:
+          children:
+            - type: label
+              text: Aug 3, 2021 , 3:35pm
+              dataKey:
+              style:
+                ..style.titleTime:
+            - type: label
+              text: Profile Update Notification
+              dataKey:
+              style:
+                ..style.titleContent:
+            - type: view
+              style:
+                ..style.infoBox:
+              children:
+                - type: view
+                  style:
+                    ..style.leftBox:
+                  children:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: label
+                          text: "Form:"
+                          style:
+                            ..style.leftTitle:
+                        - type: label
+                          text: "automatic-reply@aitmed.com"
+                          style:
+                            ..style.leftValue:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: label
+                          text: "To:"
+                          style:
+                            ..style.leftTitle:
+                        - type: label
+                          text: "Urgent Care"
+                          style:
+                            ..style.leftValue:
+                - type: image
+                  path: providerOff.svg
+                  style:
+                    ..style.img:
+
+        - type: view
+          style:
+            ..style.messageBox:
+          children:
+            - type: label
+              textBoard:
+                - text: "Hello,"
+                - br:
+                - br:
+                - text: "{"
+                  color: "#2988e6"
+                - text: "Facility Name"
+                  color: "#2988e6"
+                - text: "}"
+                  color: "#2988e6"
+                - text: " has updated your demographics.Please click the “view” button below to check the changes or update your profile"
+              style:
+                ..style.message:
+
+            - type: view
+              style:
+                ..style.viewBox:
+              onClick:
+                - goto: ComparisonProfile
+              children:
+                - type: label
+                  text: View
+                  style:
+                    ..style.viewLabel:
+                - type: image
+                  path: rightCircleImg.svg
+                  style:
+                    ..style.viewImg:
+        - type: view
+          style:
+            marginTop: "0.03"
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            ..style.bottomImgBox:
+          children:
+            - type: image
+              path: trash.svg
+              style:
+                ..style.bottomImg:
+            - type: image
+              path: move.svg
+              style:
+                ..style.centerImg:
+            - type: image
+              path: reply.svg
+              style:
+                ..style.bottomImg:
+  event:
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: border-box
+      overflow: scroll
+
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    titleBox:
+      marginTop: "0.02463"
+      height: "auto"
+      width: "auto"
+      boxSizing: border-box
+      border:
+        style: 2
+      borderColor: "#f0f0f0"
+      borderWidth: "1"
+      paddingBottom: "2.58vh"
+      overflow: hidden
+    titleTime:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h12
+      color: "#999999"
+    titleContent:
+      marginLeft: "0.04"
+      marginTop: "0.005"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h16
+      color: "#333333"
+      lineHeight: "2.58vh"
+      fontWeight: "600"
+    infoBox:
+      marginLeft: "0.04"
+      marginTop: "0.020935"
+      height: "auto"
+      width: "auto"
+      overflow: hidden
+    leftBox:
+      display: "inline-block"
+      width: "0.82"
+      height: "auto"
+    blockBox:
+      marginTop: "0.005"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    leftTitle:
+      display: "inline-block"
+      width: "0.12"
+      height: "auto"
+      fontSize: .Nfont.h12
+      fontWeight: "700"
+      color: "#333333"
+    leftValue:
+      display: "inline-block"
+      width: "0.65"
+      height: "auto"
+      fontSize: .Nfont.h12
+      color: "#666666"
+      wordBreak: break-word
+    img:
+      marginLeft: "0.032"
+      display: "inline-block"
+      height: "0.02463"
+      width: "0.05333"
+    messageBox:
+      marginTop: "0.01477"
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+    message:
+      fontSize: .Nfont.h14
+      width: "0.925"
+      height: "auto"
+      color: "#333333"
+      lineHeight: "2.58vh"
+      wordBreak: break-word
+    viewBox:
+      marginTop: "0.0307881"
+      width: "auto"
+      height: "auto"
+      textAlign:
+        x: right
+    viewLabel:
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "600"
+      display: "inline-block"
+      verticalAlign: middle
+    viewImg:
+      marginLeft: "0.02"
+      height: "0.019704"
+      verticalAlign: middle
+    bottomImgBox:
+      marginTop: "0.01970"
+      textAlign:
+        x: center
+    bottomImg:
+      height: "0.04187"
+      width: "0.22933"
+    centerImg:
+      marginLeft: "0.07733"
+      marginRight: "0.07733"
+      height: "0.04187"
+      width: "0.22933"

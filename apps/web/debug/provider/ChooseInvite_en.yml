@@ -3,6 +3,7 @@ ChooseInvite:
   pageNumber:
   init:
     - .SignInCheck
+
     - actionType: updateObject
       dataKey: Global.formData.currentInviteList
       dataObject: []
@@ -10,11 +11,43 @@ ChooseInvite:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - ..apiRequest.proConnections.docAPI.get
-    - ..apiRequest.facilityConnections.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.proConnections.docAPI.get: ""
+            - =..apiRequest.facilityConnections.docAPI.get: ""
     - ..formData.providerList@: =..apiRequest.proConnections.providerConList.doc
     - ..formData.facilityList@: =..apiRequest.facilityConnections.facilityConList.doc
+
+    - =.builtIn.array.getOrReplaceAnArrayItem:
+        dataIn:
+          strArr: =.Global.formData.currentTabStatusList
+          tag: false
+        dataOut: ChooseInvite.formData.currentTab
+
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =.Global.formData.currentTabStatusList
+              len: 2
+        - actionType: evalObject
+          object:
+            - =.builtIn.object.setProperty:
+                dataIn:
+                  obj: =..formDataTemp.titleData
+                  label: "title"
+                  text: =..formData.currentTab
+                  arr: ["fontColor", "fontWeight", "block"]
+                  valueArr: ["0x2988e6", "600", "block"]
+                  errorArr: ["0x666666", "400", "none"]
+                dataOut: ChooseInvite.formDataTemp.titleData
+            - ..formData.providersBlock@: =..formDataTemp.titleData.0.block
+            - ..formData.facilitiesBlock@: =..formDataTemp.titleData.1.block
+        - continue
   formData:
+    currentTab: ""
     currentInviteInfo: ""
     category: "Provider"
     facilityCount: ""
@@ -25,7 +58,7 @@ ChooseInvite:
     roleInfo: ""
     fullName: ""
     providersBlock: block
-    facilitiesBlock: none 
+    facilitiesBlock: none
   formDataTemp:
     categoryObj:
       - role: Attorney
@@ -53,10 +86,10 @@ ChooseInvite:
         reid: ""
         type: .DocType.MailTypeTag
         tage: 1
-        name: 
+        name:
           data: ""
       docAPI:
-        store: 
+        store:
           api: cd
           dataIn: ChooseInvite.apiRequest.inviteEmailTag.docCreateReq
           dataOut: ChooseInvite.apiRequest.inviteEmailTag.docCreateResp
@@ -65,14 +98,15 @@ ChooseInvite:
       docCreateReq:
         type: .DocType.InboxMessage
         eid: ""
+        tage: 4
         name:
-          data: 
+          data:
             content: ""
             receiverName: ""
             senderName: ""
             senderAvatarId: ""
             appointmentId: ""
-          title: Appointment Invite Notification  
+          title: Appointment Invite Notification
           user: ""
       docAPI:
         store:
@@ -80,7 +114,7 @@ ChooseInvite:
           dataIn: ChooseInvite.apiRequest.inviteEmail.docCreateReq
           dataOut: ChooseInvite.apiRequest.inviteEmail.docCreateResp
     relation:
-      edgeQueryResp: 
+      edgeQueryResp:
         edge: []
       edgeQueryReq:
         id: []
@@ -98,7 +132,7 @@ ChooseInvite:
       docAPI:
         get:
           api: rd
-          type: .DocType.DoctorPublicProfile
+          type: .DocType.DoctorProfile
           xfname: (E.bvid|E.evid)&!(D.ovid)
           id: .Global.currentUser.vertex.id
           ObjType: 12
@@ -120,7 +154,7 @@ ChooseInvite:
           _nonce: =.Global._nonce
 
     invite:
-      edgeQueryResp: 
+      edgeQueryResp:
         edge: []
       edgeQueryReq:
         ObjType: 20
@@ -132,7 +166,7 @@ ChooseInvite:
       edge:
         bvid: .Global.currentUser.vertex.id #inviter's id
         evid: "" #invitee's id
-        refid: .Global.roomInfo.edge.id
+        refid: .Global.currentRoomInfo.edge.id
         type: .EdgeType.InviteInfo
         subtype: "" # 110 / 120 / 130 / 140
         name:
@@ -169,7 +203,7 @@ ChooseInvite:
       tage: 5
       eid: ""
       name:
-        data: 
+        data:
           roomInfoId: ""
         notification:
           title: Appointment Reminder
@@ -180,11 +214,23 @@ ChooseInvite:
     docAPI:
       store:
         api: cd
-        dataIn: sendNotification.document             
+        dataIn: sendNotification.document
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getOrReplaceAnArrayItem:
+                    dataIn:
+                      strArr: =.Global.formData.currentTabStatusList
+                      tag: true
+                      index: 1
+                    dataOut: Global.formData.currentTabStatusList
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
     - type: list
       viewTag: tabTag
@@ -238,6 +284,7 @@ ChooseInvite:
                     ..style.dataListItem:
                   onClick:
                     - ..event.providerItemClick
+
                   children:
                     - type: view
                       style:
@@ -336,6 +383,16 @@ ChooseInvite:
       rightButton:
         - actionType: evalObject
           object:
+            # invite participants log
+            - =.builtIn.utils.createAuditLog:
+                dataIn:
+                  actionTypeCode: =.ActionTypeCode.invite
+                  recordTypeCode: =.EdgeType.InviteInfo
+                  eid: =.Global.formData.currentFacility.relationEdge.id
+                  user: =.Global.MyProfile.name.data.fullName
+                  userId: =.Global.currentUser.vertex.id
+                  targetUserId: =..formData.currentInviteInfo.bsig
+                  accessPort: provider
             - ..apiRequest.relation.edgeQueryReq.id@: []
             - =.builtIn.array.pushAny:
                 dataIn:
@@ -346,19 +403,19 @@ ChooseInvite:
                 dataIn:
                   newMessage: =..formData.currentInviteInfo.bsig
                   messages: =..apiRequest.relation.edgeQueryReq.id
-                dataOut: ChooseInvite.apiRequest.relation.edgeQueryReq.id   
+                dataOut: ChooseInvite.apiRequest.relation.edgeQueryReq.id
             - =..apiRequest.relation.edgeAPI.get: ""
             - =.builtIn.string.concat:
                 dataIn:
                   - "Hello, You are invited to an appointment by"
-                  - =.Global.Profile.name.data.basicInfo.fullName
+                  - =.Global.MyProfile.name.data.fullName
                   - ". Please check the appointment details follow."
                 dataOut: ChooseInvite.apiRequest.inviteEmail.docCreateReq.name.data.content
             - ..apiRequest.inviteEmail.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
             - ..apiRequest.inviteEmail.docCreateReq.name.data.receiverName@: =..formData.currentInviteInfo.name.data.fullName
-            - ..apiRequest.inviteEmail.docCreateReq.name.data.senderName@: =.Global.Profile.name.data.basicInfo.fullName
-            - ..apiRequest.inviteEmail.docCreateReq.name.data.senderAvatarId@: =.Global.Profile.name.data.basicInfo.avatar
-            - ..apiRequest.inviteEmail.docCreateReq.name.data.appointmentId@: =.Global.roomInfo.edge.id
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.senderName@: =.Global.MyProfile.name.data.fullName
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.senderAvatarId@: =.Global.MyProfile.name.data.avatar
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.appointmentId@: =.Global.currentRoomInfo.edge.id
             - ..apiRequest.inviteEmail.docCreateReq.name.title@: "Appointment Invite Notification"
             - =..apiRequest.inviteEmail.docAPI.store: ""
             - ..apiRequest.inviteEmailTag.docCreateReq.reid@: =..apiRequest.inviteEmail.docCreateResp.doc.id
@@ -387,7 +444,7 @@ ChooseInvite:
             - ..apiRequest.invite.edge.name.roleName@: =..formData.fullName
             - =..apiRequest.invite.edgeAPI.store: ""
             # send to Doctor
-            - ..sendNotification.document.name.data.roomInfoId@: =.Global.roomInfo.edge.id
+            - ..sendNotification.document.name.data.roomInfoId@: =.Global.currentRoomInfo.edge.id
             - ..sendNotification.document.fid@: =.FirebaseToken.edge.evid
             - ..sendNotification.document.eid@: =..apiRequest.invite.response.edge.id
             - =..sendNotification.docAPI.store: ""
@@ -481,6 +538,13 @@ ChooseInvite:
                   errorArr: ["0x4b4b4b", "400", "none"]
             - ..formData.providersBlock@: =..formDataTemp.titleData.0.block
             - ..formData.facilitiesBlock@: =..formDataTemp.titleData.1.block
+            - =.builtIn.array.getOrReplaceAnArrayItem:
+                dataIn:
+                  strArr: =.Global.formData.currentTabStatusList
+                  tag: true
+                  index: 1
+                  value: $var.title
+                dataOut: Global.formData.currentTabStatusList
       - actionType: builtIn
         funcName: redraw
         viewTag: providersTag
@@ -504,38 +568,38 @@ ChooseInvite:
       - actionType: evalObject
         object:
           - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =.Global.roomInfo.edge.name.providerId
-                  string2: =..formData.currentInviteInfo.bsig
-            - actionType: popUp
-              popUpView: warnView
-              wait: true
-              popUpDismiss: 2000
-            - continue
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.currentRoomInfo.edge.name.providerId
+                    string2: =..formData.currentInviteInfo.bsig
+              - actionType: popUp
+                popUpView: warnView
+                wait: true
+                popUpDismiss: 2000
+              - continue
           - ..apiRequest.invite.edgeQueryResp.edge@: []
           - ..apiRequest.invite.edgeQueryReq.id@: []
           - =.builtIn.array.pushAny:
               dataIn:
-                newMessage: =.Global.roomInfo.edge.id
+                newMessage: =.Global.currentRoomInfo.edge.id
                 messages: =..apiRequest.invite.edgeQueryReq.id
               dataOut: ChooseInvite.apiRequest.invite.edgeQueryReq.id
           - =.builtIn.array.pushAny:
               dataIn:
                 newMessage: =..formData.currentInviteInfo.bsig
                 messages: =..apiRequest.invite.edgeQueryReq.id
-              dataOut: ChooseInvite.apiRequest.invite.edgeQueryReq.id  
+              dataOut: ChooseInvite.apiRequest.invite.edgeQueryReq.id
           - =..apiRequest.invite.edgeAPI.get: ""
           - if:
-            - =.builtIn.array.judgeListLength:
-                dataIn:
-                  array: =..apiRequest.invite.edgeQueryResp.edge
-                  len: 0
-            - continue
-            - actionType: popUp
-              popUpView: warnView
-              wait: true
-              popUpDismiss: 2000
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.invite.edgeQueryResp.edge
+                    len: 0
+              - continue
+              - actionType: popUp
+                popUpView: warnView
+                wait: true
+                popUpDismiss: 2000
       - actionType: builtIn
         funcName: redraw
         viewTag: InviteTip
@@ -546,6 +610,7 @@ ChooseInvite:
         dataKey: Global.currentFacilityDoc
         dataObject: itemObject
       - goto: ChooseFacilitiesInvite
+
   style:
     tabList:
       width: "1"
@@ -624,7 +689,7 @@ ChooseInvite:
     fullLabel:
       width: "0.75"
       height: "auto"
-      fontFamily: "Arial"
+
       verticalAlign: middle
       fontSize: .Nfont.h16
       fontWeight: "600"
@@ -635,7 +700,7 @@ ChooseInvite:
       height: "auto"
       fontSize: .Nfont.h14
       color: "#666666"
-      fontFamily: "Arial"
+
       verticalAlign: middle
       wordWrap: break-word
     popBox:
@@ -658,7 +723,7 @@ ChooseInvite:
       marginTop: "0.029"
       fontWeight: "600"
       fontSize: .Nfont.h16
-      fontFamily: "Arial"
+
       color: "0x4B4B4B"
       textAlign:
         x: center
@@ -696,7 +761,7 @@ ChooseInvite:
       height: "auto"
       width: "0.45"
       overflow: hidden
-      textOverflow: ellipsis
+      text-overflow: ellipsis
       whiteSpace: nowrap
     popTitle:
       marginTop: "0.01231"

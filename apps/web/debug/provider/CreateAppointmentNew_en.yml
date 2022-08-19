@@ -12,7 +12,7 @@ CreateAppointmentNew:
           subtype: =..dataObject.subtype
           addition: 1
         dataOut: CreateAppointmentNew.formData.currentSubtype
-    - .Global.patientChartDoc@: ""
+    - .Global.patientDoc.status.sharePatientChart@: ""
     - .Global.visitQuestionnaireDoc@: ""
     - .Global.generalInfoDoc@: ""
     - .Global.vaccine@: []
@@ -120,7 +120,7 @@ CreateAppointmentNew:
               - "(stime<="
               - =..calendarDate.todayStamp.start
               - " AND "
-              - "etime>="
+              - "etime>"
               - =..calendarDate.todayStamp.start
               - " OR "
               - "stime>="
@@ -129,7 +129,7 @@ CreateAppointmentNew:
               - "etime<="
               - =..calendarDate.todayStamp.end
               - " OR "
-              - "stime<="
+              - "stime<"
               - =..calendarDate.todayStamp.end
               - " AND "
               - "etime>="
@@ -323,8 +323,12 @@ CreateAppointmentNew:
           dataIn: CreateAppointmentNew.apiRequest.getFirstAvail.edge
           dataOut: CreateAppointmentNew.apiRequest.getFirstAvail.response
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - .BackgroundColorGray:
       style:
         zIndex: 1000
@@ -355,7 +359,7 @@ CreateAppointmentNew:
               style:
                 color: "0x555555"
                 fontSize: .Nfont.h12
-                fontFamily: "Arial"
+
                 width: "0.35"
                 marginLeft: "0.025"
                 marginTop: "0.009"
@@ -407,7 +411,7 @@ CreateAppointmentNew:
                 width: "0.43"
                 height: auto
                 marginLeft: "0.04"
-                fontFamily: "Arial"
+
                 # margin: auto
                 word-break: break-word
                 marginTop: "0.01"
@@ -461,7 +465,7 @@ CreateAppointmentNew:
                 fontSize: .Nfont.h1
                 width: "0.43"
                 height: auto
-                fontFamily: "Arial"
+
                 marginLeft: "0.04"
                 textAlign:
                   x: center
@@ -547,7 +551,7 @@ CreateAppointmentNew:
       style:
         width: "1"
         height: "0.9"
-        top: "0.1"
+        # top: "0.1"
       children:
         - type: view
           style:
@@ -562,16 +566,25 @@ CreateAppointmentNew:
               children:
                 - .questionTitle:
                   text: "Appointment Type"
+                  style:
+                    height: "auto"
+                    width: "0.9"
+                    color: "0x474747"
+                    fontSize: .Nfont.h14
                 - .questionTextField:
-                  # placeholder: "Telemedicine"
                   dataKey: dataObject.name.visitType
                   style:
-                    borderColor: "0xdededf"
-                    borderRadius: "5"
+                    fontSize: .Nfont.h14
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "0.04"
+                    boxSizing: "border-box"
                     borderWidth: "1"
                     border:
-                      style: "3"
-                    width: "0.89"
+                      style: 3
+                    borderColor: "0xdededf"
+                    borderRadius: "5"
+                    textIndent: "8px"
             - type: view
               style:
                 height: "auto"
@@ -583,17 +596,26 @@ CreateAppointmentNew:
                     display: "inline-block"
                   children:
                     - .questionTitle:
-                      text: "Reason for visit"
+                      text: "Reason for Visit"
+                      style:
+                        height: "auto"
+                        width: "0.4"
+                        color: "0x474747"
+                        fontSize: .Nfont.h14
                     - .questionTextField:
-                      # placeholder: "Follow-up"
                       dataKey: dataObject.name.Reason
                       style:
+                        fontSize: .Nfont.h14
+                        marginTop: "0.01"
+                        width: "0.4"
+                        height: "0.04"
+                        boxSizing: "border-box"
+                        border:
+                          style: 3
                         borderColor: "0xdededf"
                         borderRadius: "5"
                         borderWidth: "1"
-                        border:
-                          style: "3"
-                        width: "0.45"
+                        textIndent: "8px"
                 - type: view
                   style:
                     width: "0.25"
@@ -602,16 +624,30 @@ CreateAppointmentNew:
                   children:
                     - .questionTitle:
                       text: "Duration (min)"
+                      style:
+                        height: "auto"
+                        width: "auto"
+                        color: "0x474747"
+                        fontSize: .Nfont.h14
                     - .questionTextField:
                       # placeholder: "15min"
                       dataKey: dataObject.name.duration
                       style:
+                        marginTop: "0.01"
+                        width: "0.25"
+                        height: "0.04"
+                        boxSizing: "border-box"
+                        border:
+                          style: 3
                         borderColor: "0xdededf"
+                        fontSize: .Nfont.h14
                         borderRadius: "5"
                         borderWidth: "1"
-                        width: "0.25"
-                        border:
-                          style: "3"
+                        backgroundColor: "0xfafafa"
+                        color: "0x4d4d4d"
+                        textAlign:
+                          x: center
+                          y: center
                 - type: view
                   style:
                     width: "0.1"
@@ -740,7 +776,7 @@ CreateAppointmentNew:
                   style:
                     verticalAlign: "middle"
                     display: "inline-block"
-                    fontFamily: "Arial"
+
                     height: "auto"
                     width: "0.57"
                     color: "0x474747"
@@ -905,7 +941,7 @@ CreateAppointmentNew:
                                             - "(stime<="
                                             - =..calendarDate.todayStamp.start
                                             - " AND "
-                                            - "etime>="
+                                            - "etime>"
                                             - =..calendarDate.todayStamp.start
                                             - " OR "
                                             - "stime>="
@@ -914,7 +950,7 @@ CreateAppointmentNew:
                                             - "etime<="
                                             - =..calendarDate.todayStamp.end
                                             - " OR "
-                                            - "stime<="
+                                            - "stime<"
                                             - =..calendarDate.todayStamp.end
                                             - " AND "
                                             - "etime>="
@@ -1037,16 +1073,16 @@ CreateAppointmentNew:
             left: "0"
             width: "1"
             height: "0.42"
-          viewTag: splitTimeTag
+            overflow: scroll
           children:
             - .BaseList:
               androidGrid: true
+              viewTag: splitTimeTag
               listObject: ..splitTime
               style:
                 height: "0.41"
                 width: "0.9"
                 left: "0.05"
-                overflow: scroll
                 backgroundColor: "0xffffff"
               children:
                 - type: listItem
@@ -1121,27 +1157,62 @@ CreateAppointmentNew:
                         textAlign:
                           x: center
                           y: center
+        # - type: button
+        #   text: "Next"
+        #   viewTag: nextBtn
+        #   style:
+        #     top: "0.83"
+        #     left: "0.1"
+        #     width: "0.8"
+        #     height: "0.045"
+        #     fontWeight: "500"
+        #
+        #     fontSize: .Nfont.h3
+        #     color: "0xffffff"
+        #     backgroundColor: ..formData.nextBtnColor
+        #     border:
+        #       style: 3
+        #     borderColor: =..formData.nextBtnColor
+        #     borderRadius: "2"
+        #     borderWidth: "1"
+        #     textAlign:
+        #       x: center
+        #       y: center
+        #   onClick:
+        #     - actionType: evalObject
+        #       object:
+        #         - if:
+        #             - =..clock.bvid
+        #             - continue
+        #             - actionType: popUp
+        #               popUpView: timeWarning
+        #               wait: true
+        #     - goto: CreateAppointmentNewNext
+
+    - .NextButtonView:
+      style:
+        boxShadow: "0px 1px 10px #dbdfe3"
+        backgroundColor: "0xffffff"
+        overflow: hidden
+      children:
         - type: button
-          text: "Next"
+          text: Next
           viewTag: nextBtn
           style:
-            top: "0.83"
-            left: "0.1"
-            width: "0.8"
-            height: "0.045"
-            fontWeight: "500"
-            fontFamily: "Arial"
-            fontSize: .Nfont.h3
-            color: "0xffffff"
+            marginTop: "0.025"
+            marginLeft: "0.2"
+            width: "0.6"
+            height: "0.04"
             backgroundColor: ..formData.nextBtnColor
             border:
               style: 3
-            borderColor: =..formData.nextBtnColor
+            borderColor: ..formData.nextBtnColor
             borderRadius: "2"
-            borderWidth: "1"
+
+            fontSize: .Nfont.h14
+            color: "0xffffff"
             textAlign:
               x: center
-              y: center
           onClick:
             - actionType: evalObject
               object:

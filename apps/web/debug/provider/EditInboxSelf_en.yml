@@ -652,11 +652,11 @@ EditInboxSelf:
                                 width: "0.5"
                                 height: "auto"
                                 fontSize: .Nfont.h1
-                                # fontFamily: "Arial"
+                                #
                                 color: "0x707070"
                                 # textAlign:
                                 #   x: left
-                                wordBreak: "break-all"
+                                wordBreak: break-word
                             - type: label
                               text: "(No subject)"
                               dataKey: itemObject.name.title # text: sss🔗
@@ -667,9 +667,9 @@ EditInboxSelf:
                                 fontSize: .Nfont.h1
                                 color: "0x707070"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
-                                wordBreak: "break-all"
+                                wordBreak: break-word
                             - type: label
                               text: "(No content)"
                               dataKey: itemObject.name.data.content
@@ -680,10 +680,10 @@ EditInboxSelf:
                                 fontSize: .Nfont.h1
                                 color: "0x00000099"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
-                                # fontFamily: PMingLiU
-                                # wordBreak: "break-all"
+                                #
+                                # wordBreak: break-word
                     - type: view
                       style:
                         display: "inline-block"

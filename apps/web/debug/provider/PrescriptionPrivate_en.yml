@@ -3,6 +3,9 @@ PrescriptionPrivate:
   title: "Prescription(RX)"
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - .Global.prescriptionDrug.name@: "Search"
     - if:
         - .Global.Note.id
@@ -178,7 +181,7 @@ PrescriptionPrivate:
         width: "1"
         height: "0.846"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -212,7 +215,7 @@ PrescriptionPrivate:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -223,7 +226,7 @@ PrescriptionPrivate:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
         - type: view
@@ -344,7 +347,7 @@ PrescriptionPrivate:
                 marginLeft: "0.032"
                 height: "0.037"
                 width: "0.856"
-                fontFamily: "Arial"
+
                 border:
                   style: 3
                   width: "1.5px"
@@ -379,7 +382,7 @@ PrescriptionPrivate:
                     display: "inline-block"
                     overflow: hidden
                     whiteSpace: nowrap
-                    textOverflow: ellipsis
+                    text-overflow: ellipsis
                   onClick:
                     # 签名处理
                     - actionType: saveSignature
@@ -1229,6 +1232,20 @@ PrescriptionPrivate:
 
                 - actionType: evalObject
                   object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.Prescription
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+
+                - actionType: evalObject
+                  object:
                     - if:
                         - =.builtIn.string.equal:
                             dataIn:
@@ -1327,33 +1344,49 @@ PrescriptionPrivate:
 
                 - actionType: evalObject
                   object:
-                    # 更新文档状态
-                    - ..apiRequest.prescription.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.prescription.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.prescription.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
-                # 保存newNote
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.prescription.docAPI.store: ""
-                    - =.builtIn.array.add:
+                    - =.builtIn.utils.createAuditLog:
                         dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.prescription.docResp.doc
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.Prescription
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                # 对话弹窗
+                - actionType: popUp
+                  popUpView: dialogueTag
+                # - actionType: evalObject
+                #   object:
+                #     # 更新文档状态
+                #     - ..apiRequest.prescription.docReq.name.data.statusTag.name@: "Released"
+                #     - ..apiRequest.prescription.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+                #     - ..apiRequest.prescription.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
 
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.unPageName
-                              string2: ""
-                        - goto: ProviderNotes
-                        - goto: =.Global.formData.unPageName
+                # # 保存newNote
+                # - actionType: evalObject
+                #   object:
+                #     - =..apiRequest.prescription.docAPI.store: ""
+                #     - =.builtIn.array.add:
+                #         dataIn:
+                #           object: =.Global.currentMeetingDoc
+                #           value: =..apiRequest.prescription.docResp.doc
+                # - actionType: evalObject
+                #   object:
+                #     .Global._nonce@:
+                #       =.builtIn.math.random: ""
+
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =.builtIn.string.equal:
+                #             dataIn:
+                #               string1: =.Global.formData.unPageName
+                #               string2: ""
+                #         - goto: ProviderNotes
+                #         - goto: =.Global.formData.unPageName
     - .publicDeleteUP:
       viewTag: BaseDelWarningView
       leftButton:
@@ -1388,6 +1421,76 @@ PrescriptionPrivate:
         - actionType: popUpDismiss
           popUpView: BaseDelWarningView
 
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        # 保存newNote
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.prescription.docReq.tage@: 1
+            - =..apiRequest.prescription.docAPI.store: ""
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag
+
+        # 返回路径
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.unPageName
+                      string2: ""
+                - goto: ProviderNotes
+                - goto: =.Global.formData.unPageName
+      rightButton:
+        # 更新文档状态
+        - actionType: evalObject
+          object:
+            - ..apiRequest.prescription.docReq.name.data.statusTag.name@: Released
+            - ..apiRequest.prescription.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.prescription.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        # 保存newNote
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.prescription.docReq.tage@: -1
+            - =..apiRequest.prescription.docAPI.store: ""
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag
+
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.unPageName
+                      string2: ""
+                - goto: ProviderNotes
+                - goto: =.Global.formData.unPageName
+
     - .BaseWarningView:
       message: "Please fill in the Drug first."
       viewTag: addWarnTag
@@ -1401,4 +1504,9 @@ PrescriptionPrivate:
 
     - .BaseWarningView:
       viewTag: checkView
-      message: "The count of prescriptions is inconformity"
+      message:
+        "The count of prescriptions is inconformity"
+        #成功提示
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag

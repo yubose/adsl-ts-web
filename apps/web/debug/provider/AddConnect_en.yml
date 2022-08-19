@@ -269,37 +269,41 @@ AddConnect:
                 fontWeight: "500"
                 textAlign:
                   x: center
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: scrollView
       style:
         left: "0"
-        top: "0.1"
+        # top: "0.1"
         width: "1"
         height: "0.9"
-        overflow: scrollView
+        overflow: scroll
+
       children:
         # search
         - type: view
           style:
             width: "1"
-            height: "0.04"
+            height: "0.05"
             backgroundColor: "0xf0f0f0"
           children:
             - type: label
               text: Search to Invite
               style:
-                left: "0.04"
-                width: "0.9"
+                marginLeft: "0.04"
                 color: "0x666666"
-                height: "0.04"
-                fontFamily: "Airal"
+                height: "0.05"
+                width: "0.45"
+                lineHeight: 5vh
+
                 fontSize: .Nfont.h14
-                fontWeight: "500"
+                fontWeight: "600"
                 textAlign:
                   x: left
-                  y: center
-
         - type: view
           style:
             marginTop: "0.02"
@@ -321,11 +325,11 @@ AddConnect:
                 height: "0.025"
                 verticalAlign: middle
             - type: textField
-              placeholder: Name, Specialty
+              placeholder: Name, specialty
               style:
                 width: "0.8"
                 height: "0.05"
-                fontFamily: "Airal"
+
                 fontSize: .Nfont.h14
                 verticalAlign: middle
                 display: inline-block
@@ -347,15 +351,15 @@ AddConnect:
               text: Quickly Invite
               style:
                 marginLeft: "0.04"
-                width: "0.9"
-                height: "0.04"
-                fontFamily: "Airal"
-                fontSize: .Nfont.h14
                 color: "0x666666"
-                fontWeight: "500"
+                height: "0.05"
+                width: "0.45"
+                lineHeight: 5vh
+
+                fontSize: .Nfont.h14
+                fontWeight: "600"
                 textAlign:
                   x: left
-                  y: center
 
         - type: view
           style:
@@ -371,21 +375,18 @@ AddConnect:
                 - type: label
                   text: Country
                   style:
-                    fontFamily: "Airal"
                     fontSize: .Nfont.h14
-                    fontWeight: "450"
+                    fontWeight: "400"
                 - type: select
                   dataKey: countryCode
                   options: .SelectINformationDM.CountryCode
                   style:
-                    fontFamily: "Airal"
                     fontSize: .Nfont.h14
                     width: "0.2"
                     marginTop: "0.01"
                     boxSizing: "border-box"
                     height: "0.054"
-                    textAlign:
-                      x: center
+                    textIndent: "10px"
                     border:
                       style: "3"
                     borderColor: "0xDEDEDF"
@@ -403,9 +404,8 @@ AddConnect:
                     - text: "&nbsp;*"
                       color: "0xff0000"
                   style:
-                    fontFamily: "Airal"
                     fontSize: .Nfont.h14
-                    fontWeight: "450"
+                    fontWeight: "400"
                 - type: textField
                   placeholder: "000-000-0000"
                   dataKey: phoneNumber
@@ -420,7 +420,7 @@ AddConnect:
                     borderWidth: "1.5"
                     boxSizing: "border-box"
                     textIndent: "10px"
-                    fontFamily: "Airal"
+
                     fontSize: .Nfont.h12
                     fontWeight: "450"
                 # textAlign:
@@ -433,9 +433,8 @@ AddConnect:
                 - type: label
                   text: Category
                   style:
-                    fontFamily: "Airal"
                     fontSize: .Nfont.h14
-                    fontWeight: "450"
+                    fontWeight: "400"
                 - type: select
                   dataKey: invite.edge.name.inviteeCategory
                   options: .SelectINformationDM.category
@@ -474,7 +473,7 @@ AddConnect:
                     width: "0.92"
                     marginTop: "0.01"
                     height: "0.054"
-                    fontFamily: "Airal"
+
                     fontSize: .Nfont.h14
                     textIndent: "10px"
                     borderRadius: "5"
@@ -522,14 +521,22 @@ AddConnect:
                 - actionType: evalObject
                   object:
                     - if:
-                        - =.builtIn.string.phoneVerification: #手机号是否符合格式
+                        - =.builtIn.string.equal:
                             dataIn:
-                              phoneNumber: =..phoneNumber
-                              countryCode: =..countryCode
+                              string1: =..countryCode
+                              string2: "+965" # Kuwait
                         - continue
-                        - actionType: popUp
-                          popUpView: phoneNumberCheck
-                          wait: true
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.phoneVerification: #手机号是否符合格式
+                                    dataIn:
+                                      phoneNumber: =..phoneNumber
+                                      countryCode: =..countryCode
+                                - continue
+                                - actionType: popUp
+                                  popUpView: phoneNumberCheck
+                                  wait: true
                 #检查是否添加的是否为自己
                 - actionType: evalObject
                   object:
@@ -584,22 +591,22 @@ AddConnect:
           style:
             width: "1"
             marginTop: "0.038"
-            height: "0.04"
+            height: "0.05"
             backgroundColor: "0xf0f0f0"
           children:
             - type: label
               text: More Ways to Invite
               style:
                 marginLeft: "0.04"
-                width: "0.9"
-                height: "0.04"
-                fontFamily: "Airal"
-                fontSize: .Nfont.h14
                 color: "0x666666"
-                fontWeight: "500"
+                height: "0.05"
+                width: "0.45"
+                lineHeight: 5vh
+
+                fontSize: .Nfont.h14
+                fontWeight: "600"
                 textAlign:
                   x: left
-                  y: center
         - type: view
           style:
             width: "1"
@@ -642,7 +649,7 @@ AddConnect:
                             fontSize: .Nfont.h16
                             fontWeight: "500"
                             display: "inline-block"
-                            fontFamily: "Airal"
+
                             verticalAlign: middle
                             textAlign:
                               y: center
@@ -650,12 +657,12 @@ AddConnect:
                       text: Scan a friend's QR code
                       style:
                         fontSize: .Nfont.h14
-                        fontFamily: "Airal"
+
                         marginTop: "0.005"
                         width: "auto"
                         marginLeft: "0.17"
                         color: "0x666666"
-          
+
           onClick:
             - actionType: evalObject
               object:

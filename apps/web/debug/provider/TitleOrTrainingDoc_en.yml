@@ -33,61 +33,58 @@ TitleOrTrainingDoc:
       - title: "LCSW:&nbsp;"
         name: "Licensed Clinical Social Worker"
   apiRequest:
-    
+
   style:
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+          - .BasePublicHeaderTitle:
     #  body
     - type: scrollView
       style:
-        top: "0.1"
-        left: "0"
         width: "1"
-        height: "0.8"
-        overflow: scroll   
+        height: "0.92"
+        overflow: scroll
       children:
         - type: view
           style:
             height: "auto"
             width: "0.9"
             left: "0.05"
-            fontFamily: "Arial"
-          children: 
+
+          children:
             - type: list
               contentType: listObject
               listObject: ..formDataTemp.trainingInfo
               iteratorVar: itemObject
               style:
-                width: '0.9'
-                margin: '0'
+                width: "0.9"
+                margin: "0"
                 height: auto
-                
               children:
                 - type: listItem
-                  itemObject: 
+                  itemObject:
                   style:
-                    width: '0.9'
-                    height: '0.04'
-                    left: '0'
-                    # lineHeight: "3vh"
-                    marginTop: '0.006'
+                    width: "0.9"
+                    height: "0.04"
+                    left: "0"
+                    marginTop: "0.006"
                   children:
                     - type: label
                       dataKey: itemObject.title
                       style:
-                        height: '0.04'
+                        height: "0.04"
                         fontWeight: "400"
-
-                        fontSize: .Nfont.n2
+                        fontSize: .Nfont.h14
                         lineHeight: "4vh"
                         display: "inline-block"
                     - type: label
                       dataKey: itemObject.name
                       style:
-                        height: '0.04'
-                        fontSize: .Nfont.n2
+                        height: "0.04"
+                        fontSize: .Nfont.h14
                         fontWeight: "350"
                         lineHeight: "4vh"
                         display: "inline-block"

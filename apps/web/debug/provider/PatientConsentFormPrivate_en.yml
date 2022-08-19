@@ -130,7 +130,7 @@ PatientConsentFormPrivate:
         width: "1"
         height: "0.846"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -164,7 +164,7 @@ PatientConsentFormPrivate:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -175,7 +175,7 @@ PatientConsentFormPrivate:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
         - type: view
@@ -700,35 +700,85 @@ PatientConsentFormPrivate:
                           index: 1
                           hex: 1
                         dataOut: PatientConsentFormPrivate.apiRequest.patientConsentForm.docReq.type
-
-                - actionType: evalObject
-                  object:
-                    # 更新文档状态
-                    - ..apiRequest.patientConsentForm.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.patientConsentForm.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.patientConsentForm.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.patientConsentForm.docAPI.store: ""
-                    - =.builtIn.array.add:
-                        dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.patientConsentForm.docResp.doc
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
-
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.unPageName
-                              string2: ""
-                        - goto: ProviderNotes
-                        - goto: =.Global.formData.unPageName
+                - actionType: popUp
+                  popUpView: dialogueTag
 
     - .BaseWarningView:
       message: "You haven't signed the form"
+
+   #成功提示
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag      
+    # 对话弹窗组件
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"      
+      leftButton:
+        # 保存newNote
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.patientConsentForm.docReq.tage@: 1
+            - =..apiRequest.patientConsentForm.docAPI.store: ""
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag                 
+
+        # 返回路径
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.unPageName
+                      string2: ""
+                - goto: ProviderNotes
+                - goto: =.Global.formData.unPageName
+
+        
+      rightButton:
+        # 更新文档状态
+        - actionType: evalObject
+          object:
+            - ..apiRequest.patientConsentForm.docReq.name.data.statusTag.name@: Released
+            - ..apiRequest.patientConsentForm.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.patientConsentForm.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        # 保存newNote
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.patientConsentForm.docReq.tage@: -1
+            - =..apiRequest.patientConsentForm.docAPI.store: ""
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag                  
+
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.unPageName
+                      string2: ""
+                - goto: ProviderNotes
+                - goto: =.Global.formData.unPageName
+
+       

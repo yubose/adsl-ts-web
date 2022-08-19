@@ -128,6 +128,7 @@ EditMyProfile:
     currentFacility: []
     FacilityData: []
     facilityLength: ""
+    errorArr: []
   formDataTemp:
     titleData:
       - title: About
@@ -320,206 +321,313 @@ EditMyProfile:
           api: cd
           dataIn: EditMyProfile.apiRequest.avatar.document
           dataOut: EditMyProfile.apiRequest.avatar.resp
-  # style:
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - ..event.button_saveUpdate
-        # - goto: MenuBars
-    - .HeaderSaveButton:
-      onClick:
-        #error popup
-        - actionType: evalObject
-          object:
-            - if:
-                - =.builtIn.string.equal:
-                    dataIn:
-                      string1: =..apiRequest.profile.document.name.data.firstName
-                      string2: ""
-                - actionType: popUp
-                  popUpView: formCheckPopup
-                  wait: true
-                - continue
-            - if:
-                - =.builtIn.string.equal:
-                    dataIn:
-                      string1: =..apiRequest.profile.document.name.data.lastName
-                      string2: ""
-                - actionType: popUp
-                  popUpView: formCheckPopup
-                  wait: true
-                - continue
-            - if:
-                - =..apiRequest.profile.document.name.data.specialty.0
-                - continue
-                - actionType: popUp
-                  popUpView: formCheckPopup
-                  wait: true
-            - if:
-                - =..apiRequest.profile.document.name.data.MedicalLicense.0
-                - continue
-                - actionType: popUp
-                  popUpView: formCheckPopup
-                  wait: true
-        - actionType: evalObject
-          object:
-            - if:
-                - =.EditMyProfile.apiRequest.cv.docRes.doc.id
-                - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
-                - continue
-            - if:
-                - =.EditMyProfile.apiRequest.cv.docRes.doc.id
-                - .EditMyProfile.apiRequest.publicProfile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
-                - continue
-            - .EditMyProfile.apiRequest.publicProfile.document.id@: =.EditMyProfile.apiRequest.publicProfile.docResponse.doc.0.id
-            - =.builtIn.string.concat: #create fullName
-                dataIn:
-                  - =..apiRequest.profile.document.name.data.firstName
-                  - " "
-                  - =..apiRequest.profile.document.name.data.middleName
-                  - " "
-                  - =..apiRequest.profile.document.name.data.lastName
-                dataOut: EditMyProfile.apiRequest.profile.document.name.data.fullName
-            - =.builtIn.object.getObjValueAndKey: #for public profile
-                dataIn:
-                  objects: =..apiRequest.profile.document.name.data
-                  objStr: =.Global.selected
-                dataOut: EditMyProfile.apiRequest.publicProfile.document.name.data
-        - actionType: evalObject
-          object:
-            - =.EditMyProfile.apiRequest.profile.docAPI.store: ""
-            - =.EditMyProfile.apiRequest.publicProfile.docAPI.store: ""
-            - .Global.currentUser.vertex.name.userName@: =..apiRequest.profile.document.name.data.userName
-            - .Global.MyProfile@: =.EditMyProfile.apiRequest.profile.response.doc
-            - if:
-              - =.builtIn.string.equal:
-                  dataIn:
-                    string1: =.Global.hasOrganization
-                    string2: true
-              - =.builtIn.search.updateEsData:
-                  dataIn:
-                    id: =.Global.currentUser.vertex.id
-                    type: "35841"
-                  dataOut: EditMyProfile.formData.res
-              - continue
-            - .Global.nonFirstProfile@: true
-        - actionType: evalObject
-          object:
-            .Global._nonce@:
-              =.builtIn.math.random: ""
-        - goto: MyProfile
-    #  body
+    - .BasePublicHeader:
+        children:
+          - type: view
+            path: arrowLeftgrey.svg
+            style:
+              marginLeft: "0.04"
+              display: "inline-block"
+              verticalAlign: middle
+              height: "0.055"
+              boxSizing: border-box
+            children:
+              - type: image
+                path: __.path
+                style:
+                  marginTop: "0.012"
+                  height: "0.0295"
+                onClick:
+                  - ..event.checkFields
+                  - ..event.button_saveUpdate
+          - .BasePublicHeaderTitle:
+          - .BasePublicHeaderRightText:
+            text: Save
+            onClick:
+              - ..event.checkFields
+              #error popup
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.profile.document.name.data.firstName
+                            string2: ""
+                      - actionType: popUp
+                        popUpView: formCheckPopup
+                        wait: true
+                        popUpDismiss: 2000
+                      - continue
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.profile.document.name.data.lastName
+                            string2: ""
+                      - actionType: popUp
+                        popUpView: formCheckPopup
+                        wait: true
+                        popUpDismiss: 2000
+                      - continue
+                  - if:
+                      - =..apiRequest.profile.document.name.data.specialty.0
+                      - continue
+                      - actionType: popUp
+                        popUpView: formCheckPopup
+                        wait: true
+                        popUpDismiss: 2000
+                  - if:
+                      - =..apiRequest.profile.document.name.data.MedicalLicense.0
+                      - continue
+                      - actionType: popUp
+                        popUpView: formCheckPopup
+                        wait: true
+                        popUpDismiss: 2000
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                      - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                      - continue
+                  - if:
+                      - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                      - .EditMyProfile.apiRequest.publicProfile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+                      - continue
+                  - .EditMyProfile.apiRequest.publicProfile.document.id@: =.EditMyProfile.apiRequest.publicProfile.docResponse.doc.0.id
+                  - =.builtIn.string.concat: #create fullName
+                      dataIn:
+                        - =..apiRequest.profile.document.name.data.firstName
+                        - " "
+                        - =..apiRequest.profile.document.name.data.middleName
+                        - " "
+                        - =..apiRequest.profile.document.name.data.lastName
+                      dataOut: EditMyProfile.apiRequest.profile.document.name.data.fullName
+                  - =.builtIn.object.getObjValueAndKey: #for public profile
+                      dataIn:
+                        objects: =..apiRequest.profile.document.name.data
+                        objStr: =.Global.selected
+                      dataOut: EditMyProfile.apiRequest.publicProfile.document.name.data
+              - actionType: evalObject
+                object:
+                  - actionType: evalObject
+                    async: true
+                    object:
+                      - =.EditMyProfile.apiRequest.profile.docAPI.store: ""
+                      - =.EditMyProfile.apiRequest.publicProfile.docAPI.store: ""
+              - actionType: evalObject
+                object:
+                  - .Global.currentUser.vertex.name.userName@: =..apiRequest.profile.document.name.data.userName
+                  - .Global.MyProfile@: =.EditMyProfile.apiRequest.profile.response.doc
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =.Global.hasOrganization
+                            string2: true
+                      - =.builtIn.search.updateEsData:
+                          dataIn:
+                            id: =.Global.currentUser.vertex.id
+                            type: "35841"
+                          dataOut: EditMyProfile.formData.res
+                      - continue
+                  - .Global.nonFirstProfile@: true
+              - actionType: evalObject
+                object:
+                  .Global._nonce@:
+                    =.builtIn.math.random: ""
+              - goto: MyProfile
     - type: view
       viewTag: blockImageTag
       style:
+        paddingTop: "0.0246"
+        paddingBottom: "0.0246"
         width: "1"
-        marginTop: "0.1"
         height: "auto"
-        overflow: hidden
+        border:
+          style: 2
+          color: "0xDEDEDF"
+        borderWidth: "2"
       children:
+        - type: image
+          path: ava_Provder.svg
+          path=func: =.builtIn.utils.prepareDocToPath
+          dataKey: apiRequest.profile.document.name.data.avatar
+          viewTag: avatar
+          onClick:
+            - actionType: popUp
+              popUpView: selectView
+          style:
+            marginLeft: "0.064"
+            verticalAlign: middle
+            display: "inline-block"
+            height: "0.0788177"
+            width: "0.1706666"
+            border:
+              style: 3
+            borderWidth: "1"
+            borderColor: "#dedede"
+            boxSizing: border-box
+            borderRadius: "4"
         - type: view
           style:
-            marginTop: "0.03"
-            width: "0.85"
+            verticalAlign: middle
+            marginLeft: "0.032"
+            display: "inline-block"
             height: "auto"
-            marginLeft: "0.1"
-            # backgroundColor: "pink"
+            width: "0.71"
+            overflow: hidden
           children:
             - type: view
               style:
-                display: "inline-block"
-                height: "18vw"
-                width: "0.18"
-                border:
-                  style: "1"
-                borderWidth: "1"
-                borderRadius: "5"
-                # backgroundColor: "pink"
+                height: "auto"
+                width: "0.75"
+                overflow: hidden
               children:
-                - type: image
-                  dataKey: apiRequest.profile.document.name.data.avatar
-                  path=func: =.builtIn.utils.prepareDocToPath
-                  path: ava_Provder.svg
-                  viewTag: avatar
+                - type: label
+                  text: "User Name:"
                   style:
-                    width: "18vw"
-                    height: "18vw"
-                    textAlign:
-                      x: center
-                  onClick:
-                    - actionType: popUp
-                      popUpView: selectView
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    fontWeight: "600"
+                - type: label
+                  dataKey: apiRequest.profile.document.name.data.userName
+                  style:
+                    marginLeft: "0.032"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.465"
+                    wordBreak: break-word
             - type: view
               style:
-                display: "inline-block"
-                width: "0.67"
-                height: "18vw"
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.75"
+                overflow: hidden
               children:
-                - type: view
+                - type: label
+                  text: "Phone #:"
                   style:
-                    marginTop: "0.01"
-                    marginLeft: "0.05"
-                    height: "auto"
-                    width: "0.62"
-                  children:
-                    - type: label
-                      text: "User Name:"
-                      style:
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                        color: "0x333333"
-                        fontWeight: "600"
-
-                    - type: label
-                      dataKey: apiRequest.profile.document.name.data.userName
-                      style:
-                        marginLeft: "0.02"
-                        fontSize: .Nfont.h12
-                        display: "inline-block"
-                        color: "0x333333"
-                        height: "auto"
-
-                - type: view
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    fontWeight: "600"
+                - type: label
+                  dataKey: apiRequest.profile.document.name.data.phone
                   style:
-                    marginTop: "0.01"
-                    marginLeft: "0.05"
-                    height: "auto"
-                    width: "0.62"
-                  children:
-                    - type: label
-                      text: "Phone #:"
-                      style:
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                        color: "0x000000"
-                        height: "auto"
-                        fontWeight: "600"
+                    marginLeft: "0.032"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.5"
+                    wordBreak: break-word
+    # - type: view
+    #   viewTag: blockImageTag
+    #   style:
+    #     width: "1"
+    #     height: "auto"
+    #     overflow: hidden
+    #   children:
+    #     - type: view
+    #       style:
+    #         marginTop: "0.03"
+    #         width: "0.85"
+    #         height: "auto"
+    #         marginLeft: "0.1"
+    #         # backgroundColor: "pink"
+    #       children:
+    #         - type: view
+    #           style:
+    #             display: "inline-block"
+    #             height: "18vw"
+    #             width: "0.18"
+    #             border:
+    #               style: "1"
+    #             borderWidth: "1"
+    #             borderRadius: "5"
+    #             # backgroundColor: "pink"
+    #           children:
+    #             - type: image
+    #               dataKey: apiRequest.profile.document.name.data.avatar
+    #               path=func: =.builtIn.utils.prepareDocToPath
+    #               path: ava_Provder.svg
+    #               viewTag: avatar
+    #               style:
+    #                 width: "18vw"
+    #                 height: "18vw"
+    #                 textAlign:
+    #                   x: center
+    #               onClick:
+    #                 - actionType: popUp
+    #                   popUpView: selectView
+    #         - type: view
+    #           style:
+    #             display: "inline-block"
+    #             width: "0.67"
+    #             height: "18vw"
+    #           children:
+    #             - type: view
+    #               style:
+    #                 marginTop: "0.01"
+    #                 marginLeft: "0.05"
+    #                 height: "auto"
+    #                 width: "0.62"
+    #               children:
+    #                 - type: label
+    #                   text: "User Name:"
+    #                   style:
+    #                     display: "inline-block"
+    #                     fontSize: .Nfont.h14
+    #                     color: "0x333333"
+    #                     fontWeight: "600"
 
-                    - type: label
-                      dataKey: apiRequest.profile.document.name.data.phone
-                      style:
-                        marginLeft: "0.02"
-                        display: "inline-block"
-                        fontSize: .Nfont.h12
-                        color: "0x333333"
-                        height: "auto"
+    #                 - type: label
+    #                   dataKey: apiRequest.profile.document.name.data.userName
+    #                   style:
+    #                     marginLeft: "0.02"
+    #                     fontSize: .Nfont.h14
+    #                     display: "inline-block"
+    #                     color: "0x333333"
+    #                     height: "auto"
+
+    #             - type: view
+    #               style:
+    #                 marginTop: "0.01"
+    #                 marginLeft: "0.05"
+    #                 height: "auto"
+    #                 width: "0.62"
+    #               children:
+    #                 - type: label
+    #                   text: "Phone #:"
+    #                   style:
+    #                     display: "inline-block"
+    #                     fontSize: .Nfont.h14
+    #                     color: "0x000000"
+    #                     height: "auto"
+    #                     fontWeight: "600"
+
+    #                 - type: label
+    #                   dataKey: apiRequest.profile.document.name.data.phone
+    #                   style:
+    #                     marginLeft: "0.02"
+    #                     display: "inline-block"
+    #                     fontSize: .Nfont.h14
+    #                     color: "0x333333"
+    #                     height: "auto"
 
     - type: view
       viewTag: blockMarginTag
       style:
-        marginTop: "0.03"
         width: "1"
         height: "0.05"
         zIndex: "100"
-        # backgroundColor: "yellow"
-        borderTop: "2px solid #dededf"
         border:
           style: 2
           color: "0xDEDEDF"
         borderWidth: "2px"
-        # boxShadow: "0px 2px 8px 0px #eeeeee"
       children:
         - type: list
           scrollable: false
@@ -555,7 +663,7 @@ EditMyProfile:
                             label: "title"
                             text: $var.title
                             arr: ["fontColor", "fontWeight", "block"]
-                            valueArr: ["0x2988e6", "500", "block"]
+                            valueArr: ["0x2988e6", "600", "block"]
                             errorArr: ["0x333333", "400", "none"]
                       # - ..formDataTemp.leftStyle@: $var.leftStyle
                       - if:
@@ -684,12 +792,12 @@ EditMyProfile:
                     display: "inline-block"
                     textAlign:
                       x: center
-                    fontSize: .Nfont.n2
+                    fontSize: .Nfont.h14
                 - type: view
                   viewTag: leftBlockTag
                   style:
                     display: itemObject.block
-                    top: "0.045"
+                    top: "0.0453"
                     left: "0.12"
                     width: "0.08"
                     height: "0.005"
@@ -699,8 +807,7 @@ EditMyProfile:
       viewTag: blockHeightTag
       style:
         margin: "0.01"
-        height: "0.7"
-
+        height: "0.72"
         width: "1"
         backgroundColor: "0xffffff"
         overflow: scroll
@@ -711,24 +818,24 @@ EditMyProfile:
             width: "1"
             display: ..formDataTemp.blockAboutInfo
             height: "auto"
-            fontSize: .Nfont.n2
+            fontSize: .Nfont.h14
           children:
             - type: view
               style:
                 width: "1"
-                height: "auto"
-                margin: "0"
+                height: "0.05"
                 backgroundColor: "0xf0f0f0"
               children:
                 - type: label
                   text: Basic Info
                   style:
-                    color: "0x333333"
-                    fontWeight: "400"
-                    width: "0.9"
-                    marginLeft: "0.05"
-                    lineHeight: "4.5vh"
-                    height: "0.045"
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
             - type: view
               style:
                 width: "0.9"
@@ -776,7 +883,7 @@ EditMyProfile:
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
                     textIndent: "10px"
-                    fontSize: .Nfont.h12
+                    fontSize: .Nfont.h14
 
             - type: view
               style:
@@ -811,7 +918,7 @@ EditMyProfile:
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
                     textIndent: "10px"
-                    fontSize: .Nfont.h12
+                    fontSize: .Nfont.h14
 
             - type: view
               style:
@@ -859,7 +966,7 @@ EditMyProfile:
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
                     textIndent: "10px"
-                    fontSize: .Nfont.h12
+                    fontSize: .Nfont.h14
 
             - type: view
               style:
@@ -923,7 +1030,7 @@ EditMyProfile:
                     borderRadius: "5"
                     textIndent: "5px"
                     color: "0x333333"
-                    fontSize: .Nfont.h12
+                    fontSize: .Nfont.h14
 
             - type: view
               style:
@@ -966,7 +1073,7 @@ EditMyProfile:
                 height: "auto"
                 marginLeft: "0.05"
                 marginTop: "0"
-                fontSize: .Nfont.n2
+                fontSize: .Nfont.h14
                 wordWrap: break-word
                 color: "0x333333"
             - type: view
@@ -1000,19 +1107,20 @@ EditMyProfile:
                         margin: "0"
                         width: "0.7"
                         marginTop: "0.01"
-                        height: "0.03"
+                        height: "auto"
                         axis: horizontal
                       children:
                         - type: listItem
                           itemObject: ""
                           style:
-                            height: "0.03"
-                            width: "0.23"
+                            height: "auto"
+                            width: "0.232"
                           children:
                             - type: image
                               style:
-                                marginLeft: "0.02"
-                                width: "0.05"
+                                marginLeft: "0.025"
+                                height: "0.0209359"
+                                width: "0.04533333"
                                 display: "inline-block"
                                 verticalAlign: middle
                               path:
@@ -1025,8 +1133,8 @@ EditMyProfile:
                                             dataIn:
                                               string1: $var.value
                                               string2: =..apiRequest.profile.document.name.data.gender
-                                        - selectOnBlack.svg
-                                        - selectOffBlack.svg
+                                        - radioOn.svg
+                                        - radioOff.svg
                               onClick:
                                 - emit:
                                     dataKey:
@@ -1042,7 +1150,7 @@ EditMyProfile:
                                 marginLeft: "0.01"
                                 display: "inline-block"
                                 verticalAlign: middle
-                                fontSize: .Nfont.n2
+                                fontSize: .Nfont.h14
                                 color: "0x333333"
             - type: view
               style:
@@ -1054,12 +1162,13 @@ EditMyProfile:
                 - type: label
                   text: Contact
                   style:
-                    color: "0x333333"
-                    fontWeight: "400"
-                    width: "0.9"
-                    marginLeft: "0.05"
-                    lineHeight: "4.5vh"
-                    height: "0.045"
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
             - type: view
               style:
                 width: "0.9"
@@ -1093,6 +1202,7 @@ EditMyProfile:
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
                     textIndent: "10px"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -1125,13 +1235,14 @@ EditMyProfile:
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
                     textIndent: "10px"
+                    fontSize: .Nfont.h14
 
         - type: view
           viewTag: CredentialsInfoTag
           style:
             width: "1"
             height: "auto"
-            fontSize: .Nfont.n2
+            fontSize: .Nfont.h14
             display: ..formDataTemp.blockCredentialsInfo
           children:
             - type: view
@@ -1148,7 +1259,7 @@ EditMyProfile:
                     display: "inline-block"
                   children:
                     - type: label
-                      text: Specialty and board certified
+                      text: Specialty & Board Certified
                       style:
                         color: "0x333333"
                         fontWeight: "600"
@@ -1206,9 +1317,9 @@ EditMyProfile:
                         fontWeight: "400"
                         display: inline-block
                         marginTop: "0.01"
-                        fontFamily: "Arial"
+
                         width: "0.7"
-                        fontSize: .Nfont.h12
+                        fontSize: .Nfont.h14
                         marginLeft: "0.05"
                     - type: label
                       dataKey: itemObject.boardCertified
@@ -1216,9 +1327,9 @@ EditMyProfile:
                         fontWeight: "400"
                         marginLeft: "0.05"
                         marginTop: "0.01"
-                        fontFamily: "Arial"
+
                         display: inline-block
-                        fontSize: .Nfont.h12
+                        fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -1255,7 +1366,7 @@ EditMyProfile:
                   onClick:
                     - actionType: evalObject
                       object:
-                        - .Global.MyProfile.name.data@: =..profile.document.name.data
+                        - .Global.MyProfile.name.data@: =..apiRequest.profile.document.name.data
                     - goto: SelectMedicalLicense
                   style:
                     width: "0.1"
@@ -1275,7 +1386,7 @@ EditMyProfile:
               style:
                 width: "0.9"
                 margin: "0"
-                left: "0.05"
+                marginLeft: "0.05"
                 marginTop: "0.02"
                 height: "auto"
                 overflow: hidden
@@ -1295,7 +1406,7 @@ EditMyProfile:
                         width: "0.3"
                         fontWeight: "400"
                         height: "auto"
-                        fontSize: .Nfont.h12
+                        fontSize: .Nfont.h14
                         wordWrap: break-word
                         textAlign:
                           x: left
@@ -1307,7 +1418,7 @@ EditMyProfile:
                         width: "0.15"
                         fontWeight: "400"
                         height: "auto"
-                        fontSize: .Nfont.h12
+                        fontSize: .Nfont.h14
                         wordWrap: break-word
                         textAlign:
                           x: left
@@ -1318,7 +1429,7 @@ EditMyProfile:
                         width: "0.385"
                         fontWeight: "400"
                         height: "auto"
-                        fontSize: .Nfont.h12
+                        fontSize: .Nfont.h14
                         wordWrap: break-word
                         textAlign:
                           x: right
@@ -1354,6 +1465,7 @@ EditMyProfile:
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
                     textIndent: "10px"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -1385,6 +1497,7 @@ EditMyProfile:
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
                     textIndent: "10px"
+                    fontSize: .Nfont.h14
 
             - type: view
               style:
@@ -1404,6 +1517,7 @@ EditMyProfile:
                     height: "0.045"
 
                 - type: textView
+                  placeholder: "Enter here"
                   dataKey: apiRequest.profile.document.name.data.description
                   style:
                     color: "0x333333"
@@ -1414,9 +1528,10 @@ EditMyProfile:
                     borderWidth: "1"
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
-                    fontFamily: "Arial"
+
                     textIndent: "12px"
                     paddingTop: "9px"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -1425,7 +1540,7 @@ EditMyProfile:
                 marginTop: "0.02"
               children:
                 - type: label
-                  text: "Education and training"
+                  text: "Education & Training"
                   style:
                     color: "0x333333"
                     fontWeight: "600"
@@ -1435,6 +1550,7 @@ EditMyProfile:
                     height: "0.045"
 
                 - type: textView
+                  placeholder: "Enter here"
                   dataKey: apiRequest.profile.document.name.data.education
                   style:
                     color: "0x333333"
@@ -1445,7 +1561,7 @@ EditMyProfile:
                     borderWidth: "1"
                     borderColor: "0xD8D8D8"
                     borderRadius: "5"
-                    fontFamily: "Arial"
+                    fontSize: .Nfont.h14
                     textIndent: "12px"
                     paddingTop: "9px"
 
@@ -1537,7 +1653,7 @@ EditMyProfile:
             display: ..formDataTemp.blockFacilityInfo
             width: "1"
             height: "auto"
-            fontSize: .Nfont.n2
+            fontSize: .Nfont.h14
           children:
             - type: view
               style:
@@ -1560,6 +1676,7 @@ EditMyProfile:
                     width: "1"
                     height: "auto"
                     fontSize: .Nfont.h14
+                    color: "#666666"
                     textAlign:
                       x: center
 
@@ -1735,47 +1852,98 @@ EditMyProfile:
     - type: popUp
       viewTag: formCheckPopup
       style:
-        width: "1"
-        height: "1"
         top: "0"
         left: "0"
-        zIndex: "1000"
-        backgroundColor: "0x33333366"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "200"
+        textAlign:
+          y: center
       onClick:
         - actionType: popUpDismiss
-          popUpView: formCheckPopup
+          popUpView: __.viewTag
       children:
         - type: view
           style:
-            backgroundColor: "0xe6e6e6"
-            height: "0.2"
-            width: "0.7"
-            left: "0.15"
-            top: "0.3"
-            border:
-              style: ""
-            borderWidth: "1"
-            borderColor: ""
-            borderRadius: "10"
+            width: "0.6"
+            marginLeft: "0.2"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            textAlign:
+              x: center
           children:
             - type: image
               path: aboutRed.svg
               style:
-                width: "0.15"
-                left: "0.275"
-                top: "0.04"
+                marginTop: "0.029"
+                width: "0.13"
             - type: label
-              text: "Please complete the required items."
+              textBoard:
+                - text: "Please complete the required items: "
+                - text: ""
+                  dataKey: formData.errorArr
               style:
-                height: "0.05"
-                lineHeight: "5vh"
-                color: "0x333333"
-                fontWeight: "400"
-                top: "0.12"
+                width: "0.55"
+                marginLeft: "0.025"
+                marginTop: "0.01"
+                fontSize: .Nfont.h14
+
+                lineHeight: 2.58vh
                 textAlign:
                   x: center
-                width: "0.7"
-                fontSize: .Nfont.n2
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.029"
+    # - type: popUp
+    #   viewTag: formCheckPopup
+    #   style:
+    #     width: "1"
+    #     height: "1"
+    #     top: "0"
+    #     left: "0"
+    #     zIndex: "1000"
+    #     backgroundColor: "0x33333366"
+    #   onClick:
+    #     - actionType: popUpDismiss
+    #       popUpView: formCheckPopup
+    #   children:
+    #     - type: view
+    #       style:
+    #         backgroundColor: "0xe6e6e6"
+    #         height: "0.2"
+    #         width: "0.7"
+    #         left: "0.15"
+    #         top: "0.3"
+    #         border:
+    #           style: ""
+    #         borderWidth: "1"
+    #         borderColor: ""
+    #         borderRadius: "10"
+    #       children:
+    #         - type: image
+    #           path: aboutRed.svg
+    #           style:
+    #             width: "0.15"
+    #             left: "0.275"
+    #             top: "0.04"
+    #         - type: label
+    #           # text: "Please complete the required items."
+    #           textBoard:
+    #             - text: "Please complete the required items: "
+    #             - text: ""
+    #               dataKey: formData.errorArr
+    #           style:
+    #             height: "0.05"
+    #             lineHeight: "5vh"
+    #             color: "0x333333"
+    #             fontWeight: "400"
+    #             top: "0.12"
+    #             textAlign:
+    #               x: center
+    #             width: "0.7"
+    #             fontSize: .Nfont.h14
     #  头像上传
     - type: popUp
       viewTag: selectView
@@ -1875,7 +2043,7 @@ EditMyProfile:
                     .Global._nonce@:
                       =.builtIn.math.random: ""
                 - actionType: popUpDismiss
-                  popUpView: zhuanquanViewTag                      
+                  popUpView: zhuanquanViewTag
                 - actionType: popUp
                   popUpView: uploadSuccess
                   wait: 1000
@@ -2183,7 +2351,7 @@ EditMyProfile:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.h2
-                fontFamily: "sans-serif"
+
                 textAlign:
                   x: center
             - type: view
@@ -2224,8 +2392,7 @@ EditMyProfile:
         zIndex: 1000
       leftButton:
         - goto: MyProfile
-      rightButton:
-        ..event.rightButton_saveUpdate
+      rightButton: ..event.rightButton_saveUpdate
     - .BaseoverSize:
     - .SuccessfulOneLine:
       style:
@@ -2233,7 +2400,89 @@ EditMyProfile:
       viewTag: "uploadSuccess"
       message: "Upload Successfully"
   event:
+    checkFields:
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.judgeKeyAndReturnValue:
+              dataIn:
+                objArr:
+                  - key: "First Name"
+                    value: =..apiRequest.profile.document.name.data.firstName
+                  - key: "Last Name"
+                    value: =..apiRequest.profile.document.name.data.lastName
+                  - key: "Title/Training"
+                    value: =..apiRequest.profile.document.name.data.title
+                pathKey: "key"
+                pathValue: "value"
+                valueArr: ["", "Select"]
+              dataOut: EditMyProfile.formData.errorArr
+      # 判断specialty是否为空
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.profile.document.name.data.specialty
+                    len: 0
+              - =.builtIn.array.pushAny:
+                  dataIn:
+                    messages: =.EditMyProfile.formData.errorArr
+                    newMessage: "Specialty & Board Certified"
+                  dataOut: EditMyProfile.formData.errorArr
+              - continue
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.profile.document.name.data.MedicalLicense
+                    len: 0
+              - =.builtIn.array.pushAny:
+                  dataIn:
+                    messages: =.EditMyProfile.formData.errorArr
+                    newMessage: "Medical License"
+                  dataOut: EditMyProfile.formData.errorArr
+              - continue
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: formCheckPopup
     button_saveUpdate:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.profile.document.name.data.firstName
+                    string2: ""
+              - actionType: popUp
+                popUpView: formCheckPopup
+                wait: true
+                popUpDismiss: 2000
+              - continue
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.profile.document.name.data.lastName
+                    string2: ""
+              - actionType: popUp
+                popUpView: formCheckPopup
+                wait: true
+                popUpDismiss: 2000
+              - continue
+          - if:
+              - =..apiRequest.profile.document.name.data.specialty.0
+              - continue
+              - actionType: popUp
+                popUpView: formCheckPopup
+                wait: true
+                popUpDismiss: 2000
+          - if:
+              - =..apiRequest.profile.document.name.data.MedicalLicense.0
+              - continue
+              - actionType: popUp
+                popUpView: formCheckPopup
+                wait: true
+                popUpDismiss: 2000
       - actionType: popUp
         popUpView: tag_saveUpdate
     rightButton_saveUpdate:
@@ -2242,25 +2491,13 @@ EditMyProfile:
       - actionType: evalObject
         object:
           - if:
-            - =.builtIn.array.allComplete:
-                dataIn:
-                  - =..apiRequest.profile.document.name.data.firstName
-                  - =..apiRequest.profile.document.name.data.lastName
-                  - =..apiRequest.profile.document.name.data.specialty.0
-                  - =..apiRequest.profile.document.name.data.MedicalLicense.0
-            - continue
-            - actionType: popUp
-              popUpView: formCheckPopup
-              wait: true
-              popUpDismiss: 2000
+              - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+              - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+              - continue
           - if:
-            - =.EditMyProfile.apiRequest.cv.docRes.doc.id
-            - .EditMyProfile.apiRequest.profile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
-            - continue
-          - if:
-            - =.EditMyProfile.apiRequest.cv.docRes.doc.id
-            - .EditMyProfile.apiRequest.publicProfile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
-            - continue
+              - =.EditMyProfile.apiRequest.cv.docRes.doc.id
+              - .EditMyProfile.apiRequest.publicProfile.document.name.data.cv@: =.EditMyProfile.apiRequest.cv.docRes.doc.id
+              - continue
           - .EditMyProfile.apiRequest.publicProfile.document.id@: =.EditMyProfile.apiRequest.publicProfile.docResponse.doc.0.id
           - =.builtIn.string.concat: #create fullName
               dataIn:
@@ -2277,21 +2514,26 @@ EditMyProfile:
               dataOut: EditMyProfile.apiRequest.publicProfile.document.name.data
       - actionType: evalObject
         object:
-          - =.EditMyProfile.apiRequest.profile.docAPI.store: ""
-          - =.EditMyProfile.apiRequest.publicProfile.docAPI.store: ""
+          - actionType: evalObject
+            async: true
+            object:
+              - =.EditMyProfile.apiRequest.profile.docAPI.store: ""
+              - =.EditMyProfile.apiRequest.publicProfile.docAPI.store: ""
+      - actionType: evalObject
+        object:
           - .Global.currentUser.vertex.name.userName@: =..apiRequest.profile.document.name.data.userName
           - .Global.MyProfile@: =.EditMyProfile.apiRequest.profile.response.doc
           - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =.Global.hasOrganization
-                  string2: true
-            - =.builtIn.search.updateEsData:
-                dataIn:
-                  id: =.Global.currentUser.vertex.id
-                  type: "35841"
-                dataOut: EditMyProfile.formData.res
-            - continue
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.hasOrganization
+                    string2: true
+              - =.builtIn.search.updateEsData:
+                  dataIn:
+                    id: =.Global.currentUser.vertex.id
+                    type: "35841"
+                  dataOut: EditMyProfile.formData.res
+              - continue
           - .Global.nonFirstProfile@: true
       - actionType: evalObject
         object:

@@ -1,0 +1,1232 @@
+PatientChartSexualHistory:
+  title: Patient Chart
+  pageNumber: "180"
+  init: #Page initialization
+    - .SignInCheck
+    - actionType: evalObject #android use calendar init
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getShow
+    - actionType: evalObject
+      object:
+        - ..calendarDate@: =.BaseComponents.calendarDate
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: PatientChartSexualHistory.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: PatientChartSexualHistory.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: PatientChartSexualHistory.calendarDate.day
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.PatientChartSexualHistory.calendarDate.year
+              month: =.PatientChartSexualHistory.calendarDate.month
+              today: =.PatientChartSexualHistory.calendarDate.day
+            dataOut: PatientChartSexualHistory.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.PatientChartSexualHistory.calendarDate.month
+            dataOut: PatientChartSexualHistory.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.PatientChartSexualHistory.calendarDate.year
+              month: =.PatientChartSexualHistory.calendarDate.month
+              day: =.PatientChartSexualHistory.calendarDate.day
+              formatType: "Y-M-D"
+            dataOut: PatientChartSexualHistory.calendarDate.todayDate
+    - ..sexualHistory@: =.Global.formData.PatientchartInfo.name.data.sexualHistory #引用用户总表单对象
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..sexualHistory.birthControl
+                  string2: "Yes"
+            - ..sexualHistory.isBirthControlShow@: "block"
+            - ..sexualHistory.isBirthControlShow@: "none"
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..sexualHistory.papSmear.abnormalResult
+                  string2: "Yes"
+            - ..sexualHistory.papSmear.isAbnormalResultShow@: "block"
+            - ..sexualHistory.papSmear.isAbnormalResultShow@: "none"
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..sexualHistory.papSmear.havePapSmear
+                  string2: "Yes"
+            - ..sexualHistory.papSmear.isLastTime@: "block"
+            - ..sexualHistory.papSmear.isLastTime@: "none"
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.flag.isMeetingPatientchart
+              string2: true
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.roomInfo.edge.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.rootNotebookID
+  # #create patient document temple to save
+  apiRequest:
+    newChart:
+      docResp: ""
+      docReq:
+        id: ""
+        eid: .Global.rootNotebookID
+        tage: 0
+        type: .DocType.PatientChart
+        name:
+          data: ""
+          title: ""
+          user: .Global.Profile.name.data.basicInfo.fullName
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientChartSexualHistory.apiRequest.newChart.docReq
+          dataOut: PatientChartSexualHistory.apiRequest.newChart.docResp
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    monthName: ""
+    todayDate: ""
+    dayLable: []
+  sexualHistory:
+    sexuallyActive:
+    useCondom: ""
+    STDSHistory: ""
+    isBirthControlShow: "none"
+    birthControl: ""
+    birthControlType: []
+    papSmear:
+      havePapSmear: ""
+      lastTime: ""
+      isLastTime: "none"
+      isAbnormalResultShow: "none"
+      abnormalResult: ""
+      describe: ""
+  sexualHistoryTemp:
+    birthControlType:
+      - key: pills
+        value: Pills
+      - key: condoms
+        value: Condoms
+      - key: diahragms
+        value: Diaphragms
+      - key: implants
+        value: Implants
+      - key: injections
+        value: Injections
+    papSmear:
+      - key: papSmear
+        value: ""
+      - key: lastOne
+        value: ""
+      - key: abnormal
+        value: ""
+      - key: describe
+        value: ""
+    sexActiveOrNot:
+      - key: sexuallyActive
+        value: "Yes"
+      - key: sexuallyActive
+        value: "No"
+    useCondomsOrNot:
+      - key: useCondom
+        value: "Yes"
+      - key: useCondom
+        value: "No"
+    STDOrNot:
+      - key: STDSHistory
+        value: "Yes"
+      - key: STDSHistory
+        value: "No"
+    birthControlOrNot:
+      - key: birthControl
+        value: "Yes"
+      - key: birthControl
+        value: "No"
+    papSmearOrNot:
+      - key: havePapSmear
+        value: "Yes"
+      - key: havePapSmear
+        value: "No"
+    abnormalResOrNot:
+      - key: abnormalResult
+        value: "Yes"
+      - key: abnormalResult
+        value: "No"
+    lastOne:
+      key: lastTime
+      value: When was the last one?
+    describe:
+      - key: describe
+        value: If yes,please describe?
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - type: view
+          style:
+            ..style.backLeft:
+          children:
+            - type: image
+              path: arrowLeftgrey.svg
+              style:
+                ..style.backLeftImg:
+              onClick:
+                - ..event.backClick
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Skip
+          onClick:
+            - goto: PatientChartSocialHistory
+    - type: view
+      style:
+        ..style.bodyBox:
+      children:
+        - type: view
+          style:
+            ..style.viewBox:
+          children:
+            - type: view
+              style:
+                ..style.titleBox:
+              children:
+                - type: label
+                  text: Sexual History
+                  dataKey:
+                  style:
+                    ..style.titlelabel:
+                    width: "0.744"
+                - type: label
+                  text: "10&nbsp;/&nbsp;11"
+                  dataKey:
+                  style:
+                    ..style.pageNum:
+        - type: scrollView
+          style:
+            ..style.scrollBox:
+          children:
+            - type: label
+              text: "Please answer honestly so we may better assist you"
+              dataKey:
+              style:
+                ..style.secondLabel:
+            - type: label
+              text: "Are you sexually active?"
+              style:
+                ..style.text:
+                marginTop: "0.0246"
+            - type: list
+              viewTag: sexuallyActiveTag
+              contentType: listObject
+              listObject: ..sexualHistoryTemp.sexActiveOrNot
+              iteratorVar: itemObject
+              style:
+                ..style.radioList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.radioListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.oneRadio:
+                      style:
+                        ..style.radioItemImg:
+                      onClick:
+                        - ..event.oneClick
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.radioItemValue:
+            - type: label
+              text: "Do you use condoms for protection?"
+              style:
+                ..style.text:
+                marginTop: "0.0246"
+            - type: list
+              viewTag: useCondomTag
+              contentType: listObject
+              listObject: ..sexualHistoryTemp.useCondomsOrNot
+              iteratorVar: itemObject
+              style:
+                ..style.radioList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.radioListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.twoRadio:
+                      style:
+                        ..style.radioItemImg:
+                      onClick:
+                        - ..event.twoClick
+
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.radioItemValue:
+            - type: label
+              text: "History of STD(s)?"
+              style:
+                ..style.text:
+                marginTop: "0.0246"
+            - type: list
+              viewTag: STDSHistoryTag
+              contentType: listObject
+              listObject: ..sexualHistoryTemp.STDOrNot
+              iteratorVar: itemObject
+              style:
+                ..style.radioList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.radioListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.threeRadio:
+                      style:
+                        ..style.radioItemImg:
+                      onClick:
+                        - ..event.threeClick
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.radioItemValue:
+
+            - type: label
+              text: "Are you currently on birth control?"
+              style:
+                ..style.text:
+                marginTop: "0.0246"
+            - type: list
+              viewTag: birthControlTag
+              contentType: listObject
+              listObject: ..sexualHistoryTemp.birthControlOrNot
+              iteratorVar: itemObject
+              style:
+                ..style.radioList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.radioListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.fourRadio:
+                      style:
+                        ..style.radioItemImg:
+                      onClick:
+                        - ..event.fourClick
+
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.radioItemValue:
+
+            - type: list
+              androidGrid: true
+              viewTag: birthControlTypeTag
+              contentType: listObject
+              listObject: ..sexualHistoryTemp.birthControlType
+              iteratorVar: itemObject
+              style:
+                ..style.list:
+                display: ..sexualHistory.isBirthControlShow
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemView:
+                      children:
+                        - type: image
+                          path:
+                            ..event.checkBox:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.checkBoxClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+            - type: label
+              text: "If male, please move to the next area"
+              style:
+                ..style.text:
+                marginTop: "0.0246"
+
+            - type: label
+              text: "Pap smear"
+              style:
+                ..style.secondLabel:
+                marginTop: "0.0246"
+
+            - type: label
+              text: "Have you had a smear?"
+              style:
+                ..style.text:
+                marginTop: "0.0246"
+            - type: list
+              viewTag: smearTag
+              contentType: listObject
+              listObject: ..sexualHistoryTemp.papSmearOrNot
+              iteratorVar: itemObject
+              style:
+                ..style.radioList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.radioListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.fiveRadio:
+                      style:
+                        ..style.radioItemImg:
+                      onClick:
+                        - ..event.fiveClick
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.radioItemValue:
+            - type: view
+              viewTag: smearTag
+              style:
+                width: "auto"
+                height: "auto"
+                display: ..sexualHistory.papSmear.isLastTime
+              children:
+                - type: label
+                  text: "When was the last one?"
+                  style:
+                    ..style.text:
+                    marginTop: "0.0246"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: view
+                      viewTag: lastOneView
+                      style:
+                        ..style.dateBox:
+                      children:
+                        - type: textField
+                          placeholder: Select
+                          dataKey: sexualHistory.papSmear.lastTime
+                          isEditable: "false"
+                          style:
+                            ..style.dateInput:
+                        - type: image
+                          path: dateImg.svg
+                          style:
+                            ..style.dateImg:
+                      onClick:
+                        - actionType: popUp
+                          popUpView: birthDay
+
+            - type: label
+              text: "Ever had an abnormal result?"
+              style:
+                ..style.text:
+                marginTop: "0.0246"
+
+            - type: list
+              viewTag: abnormalResultTag
+              contentType: listObject
+              listObject: ..sexualHistoryTemp.abnormalResOrNot
+              iteratorVar: itemObject
+              style:
+                ..style.radioList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.radioListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.sixRadio:
+                      style:
+                        ..style.radioItemImg:
+                      onClick:
+                        - ..event.sixClick
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.radioItemValue:
+
+            # yes
+            - type: view
+              viewTag: yesTag
+              style:
+                ..style.contentBox:
+                display: ..sexualHistory.papSmear.isAbnormalResultShow
+              children:
+                - type: label
+                  text: "If yes, please describe"
+                  style:
+                    ..style.text:
+                    marginTop: "0.0246"
+                - type: textView
+                  isEditable: "true"
+                  dataKey: sexualHistory.papSmear.describe
+                  placeholder: My exception is
+                  contentType: text
+                  required: "true"
+                  style:
+                    ..style.describeInput:
+
+            #留点空白
+            - type: view
+              style:
+                marginTop: "0.03"
+
+    #底部next
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - type: view
+              style:
+                ..style.leftBox:
+              onClick:
+                - ..event.lastStep
+              children:
+                - type: image
+                  path: leftStep.svg
+                  style:
+                    ..style.leftImg:
+                - type: label
+                  text: Last Step
+                  style:
+                    ..style.leftlabel:
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.nextBtn:
+              onClick:
+                - ..event.btnClick
+
+    # 弹窗区域
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.86"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.object.set:
+                        dataIn:
+                          object: =..sexualHistory.papSmear
+                          key: "lastTime"
+                          value: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: lastOneView
+                - actionType: popUpDismiss
+                  popUpView: birthDay
+
+    - .Normal:
+      message: "Do you want to save your changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartSexualHistory.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+      rightButton:
+        - actionType: evalObject
+          object:
+            - .Global.formData.PatientchartInfo.name.data.sexualHistory@: =..sexualHistory
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartSexualHistory.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+
+  event:
+    oneRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.sexuallyActive
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    oneClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..sexualHistory.sexuallyActive
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: sexuallyActiveTag
+    twoRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.useCondom
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    twoClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..sexualHistory.useCondom
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: useCondomTag
+    threeRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.STDSHistory
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    threeClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..sexualHistory.STDSHistory
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: STDSHistoryTag
+    fourRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.birthControl
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    fourClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..sexualHistory.birthControl
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..sexualHistory
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.birthControl
+                    string2: "Yes"
+              - ..sexualHistory.isBirthControlShow@: "block"
+              - actionType: evalObject
+                object:
+                  - ..sexualHistory.isBirthControlShow@: "none"
+                  - ..sexualHistory.birthControlType@: []
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: birthControlTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: birthControlTypeTag
+
+    fiveRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.papSmear.havePapSmear
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    fiveClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..sexualHistory.papSmear.havePapSmear
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..sexualHistory.papSmear
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..sexualHistory.papSmear
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.papSmear.havePapSmear
+                    string2: "Yes"
+              - ..sexualHistory.papSmear.isLastTime@: "block"
+              - actionType: evalObject
+                object:
+                  - ..sexualHistory.papSmear.isLastTime@: "none"
+                  - ..sexualHistory.papSmear.lastTime@: ""
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: smearTag
+
+    sixRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.papSmear.abnormalResult
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+
+    sixClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..sexualHistory.papSmear.abnormalResult
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..sexualHistory.papSmear
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..sexualHistory.papSmear
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.papSmear.abnormalResult
+                    string2: "Yes"
+              - ..sexualHistory.papSmear.isAbnormalResultShow@: "block"
+              - actionType: evalObject
+                object:
+                  - ..sexualHistory.papSmear.isAbnormalResultShow@: "none"
+                  - ..sexualHistory.papSmear.describe@: ""
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: yesTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: abnormalResultTag
+
+    checkBox:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..sexualHistory.birthControlType
+                    value: $var.key
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.array.has:
+                    dataIn:
+                      object: =..sexualHistory.birthControlType
+                      value: $var.key
+                - =.builtIn.array.removeByValue:
+                    dataIn:
+                      object: =..sexualHistory.birthControlType
+                      value: $var.key
+                - =.builtIn.array.add:
+                    dataIn:
+                      object: =..sexualHistory.birthControlType
+                      value: $var.key
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: birthControlTypeTag
+
+    backClick:
+      - actionType: popUp
+        popUpView: judgmentOperation
+        wait: true
+
+    lastStep:
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.sexualHistory@: =..sexualHistory
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    btnClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.papSmear.havePapSmear
+                    string2: "Yes"
+              - ..sexualHistory.papSmear.isLastTime@: "block"
+              - actionType: evalObject
+                object:
+                  - ..sexualHistory.papSmear.isLastTime@: "none"
+                  - ..sexualHistory.papSmear.lastTime@: ""
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..sexualHistory.papSmear.abnormalResult
+                    string2: "Yes"
+              - ..sexualHistory.papSmear.isAbnormalResultShow@: "block"
+              - actionType: evalObject
+                object:
+                  - ..sexualHistory.papSmear.isAbnormalResultShow@: "none"
+                  - ..sexualHistory.papSmear.describe@: ""
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.sexualHistory@: =..sexualHistory
+      - goto: PatientChartSocialHistory
+
+  style: #Input style fragment here
+    skipRight:
+      marginTop: "0.016"
+      marginLeft: "0.04"
+      color: "white"
+
+      fontSize: .Nfont.h14
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84729"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    dateBox:
+      display: "inline-block"
+      width: "0.4986"
+      height: "0.0369"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+    dateInput:
+      display: "inline-block"
+      border:
+        style: 1
+      boxSizing: border-box
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "0.03078"
+      verticalAlign: middle
+      textIndent: "12px"
+      width: "0.4266"
+      backgroundColor: "#ffffff"
+    dateImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.02"
+    pageNum:
+      marginLeft: "0.05"
+      display: "inline-block"
+      height: "0.0221"
+      width: "auto"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.7832"
+      boxSizing: border-box
+      overflow: scroll
+    blockBox:
+      marginTop: "0.01"
+      height: "auto"
+      width: "0.92"
+    blockBoxTitle:
+      display: "inline-block"
+      width: "0.42"
+      height: "auto"
+      verticalAlign: middle
+      color: "#333333"
+      fontSize: .Nfont.h14
+    blockBoxLeft:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x666666"
+      fontSize: .Nfont.h12
+      verticalAlign: middle
+    blockBoxRight:
+      marginLeft: "0.0373"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x333333"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      verticalAlign: middle
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0246"
+      lineHeight: "2.58vh"
+    text:
+      marginTop: "0.0172"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+      wordWrap: break-word
+    list:
+      width: "0.92"
+      margin: "0"
+      height: auto
+      boxSizing: border-box
+      # overflow: hidden
+    listItem:
+      display: "inline-block"
+      width: "0.425"
+      height: "0.042"
+      boxSizing: border-box
+    itemView:
+      width: "0.425"
+      height: "auto"
+      marginTop: "0.01724"
+    itemImg:
+      marginLeft: "0"
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+
+    contentBox:
+      # display: "none"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    describeInput:
+      marginTop: "0.0197"
+      height: "0.1"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+
+    radioList:
+      margin: "0"
+      marginTop: "0.01477"
+      width: "0.9"
+      axis: horizontal
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    radioListItem:
+      display: "inline-block"
+      width: "0.2666"
+      height: "auto"
+      boxSizing: border-box
+    radioItemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    radioItemValue:
+      marginLeft: "0.032"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.018"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    blockInput:
+      marginTop: "0.01"
+      height: "0.0369"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+    leftBox:
+      marginLeft: "0.05"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "auto"
+      width: "auto"
+      marginTop: "0.0123"
+    leftImg:
+      verticalAlign: middle
+      display: "inline-block"
+      height: "0.02955"
+    leftlabel:
+      marginLeft: "0.02"
+      verticalAlign: middle
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x2988e6"
+      fontWeight: "600"
+    nextBtn:
+      marginTop: "0.0123"
+      marginLeft: "0.156"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.045"
+      width: "0.45333"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: 600
+      textAlign:
+        x: center

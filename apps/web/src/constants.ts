@@ -1,3 +1,4 @@
+export const __NOODL_SEARCH_CLIENT__ = '__NOODL_SEARCH_CLIENT__'
 export const id = `aitmed-noodl-web`
 export const CACHED_PAGES = 'CACHED_PAGES'
 export const DEFAULT_SPINNER_DELAY = 100

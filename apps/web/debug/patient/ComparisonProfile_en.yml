@@ -1,0 +1,1048 @@
+ComparisonProfile:
+  title: Profile Update
+  pageNumber:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =.builtIn.object.difference:
+        dataIn:
+          object: =.Global.formData.targetProfile.name.data
+          baseObject: =.Global.formData.sourceProfile.name.data
+        dataOut: ComparisonProfile.formData.differenceBetweenProfile
+    - .Global.formData.meetingStatus.notRemind@: false
+
+    # Profile Info Update
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..formData.differenceBetweenProfile.basicInfo
+              len: 0
+        - ..formData.basicInfoShow@: "none"
+        - actionType: evalObject
+          object:
+            - ..formData.basicInfoShow@: "block"
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =..formData.basicInfoShow
+                  messages: =..formData.tempList
+                dataOut: ComparisonProfile.formData.tempList
+
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..formData.differenceBetweenProfile.contactInfo
+              len: 0
+        - ..formData.contactInfoShow@: "none"
+        - actionType: evalObject
+          object:
+            - ..formData.contactInfoShow@: "block"
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =..formData.contactInfoShow
+                  messages: =..formData.tempList
+                dataOut: ComparisonProfile.formData.tempList
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..formData.differenceBetweenProfile.emergencyContact
+              len: 0
+        - ..formData.emergencyContactShow@: "none"
+        - actionType: evalObject
+          object:
+            - ..formData.emergencyContactShow@: "block"
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =..formData.emergencyContactShow
+                  messages: =..formData.tempList
+                dataOut: ComparisonProfile.formData.tempList
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..formData.differenceBetweenProfile.employment
+              len: 0
+        - ..formData.employmentShow@: "none"
+        - actionType: evalObject
+          object:
+            - ..formData.employmentShow@: "block"
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =..formData.employmentShow
+                  messages: =..formData.tempList
+                dataOut: ComparisonProfile.formData.tempList
+    - if:
+        - =.Global.formData.targetProfile.name.data.identification
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.targetProfile.name.data.identification.imageId
+                      string2: =.Global.formData.sourceProfile.name.data.identification.imageId
+                - ..formData.identification.imgShow@: "none"
+                - actionType: evalObject
+                  object:
+                    - ..formData.identification.imgShow@: "block"
+                    - =.builtIn.array.pushAny:
+                        dataIn:
+                          newMessage: =..formData.identification.imgShow
+                          messages: =..formData.identificationShowList
+                        dataOut: ComparisonProfile.formData.identificationShowList
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.targetProfile.name.data.identification.type
+                      string2: =.Global.formData.sourceProfile.name.data.identification.type
+                - ..formData.identification.typeShow@: "none"
+                - actionType: evalObject
+                  object:
+                    - ..formData.identification.typeShow@: "block"
+                    - =.builtIn.array.pushAny:
+                        dataIn:
+                          newMessage: =..formData.identification.typeShow
+                          messages: =..formData.identificationShowList
+                        dataOut: ComparisonProfile.formData.identificationShowList
+
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.targetProfile.name.data.identification.id
+                      string2: =.Global.formData.sourceProfile.name.data.identification.id
+                - ..formData.identification.idShow@: "none"
+                - actionType: evalObject
+                  object:
+                    - ..formData.identification.idShow@: "block"
+                    - =.builtIn.array.pushAny:
+                        dataIn:
+                          newMessage: =..formData.identification.idShow
+                          messages: =..formData.identificationShowList
+                        dataOut: ComparisonProfile.formData.identificationShowList
+
+            - if:
+                - =.builtIn.array.judgeListLength:
+                    dataIn:
+                      array: =..formData.identificationShowList
+                      len: 0
+                - ..formData.identification.boxShow@: "none"
+                - ..formData.identification.boxShow@: "block"
+        - continue
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..formData.identificationShowList
+          array2: =..formData.tempList
+        dataOut: ComparisonProfile.formData.profileInfoShowList
+
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..formData.profileInfoShowList
+              len: 0
+        - ..formData.profileInfoShow@: none
+        - ..formData.profileInfoShow@: block
+
+    # Medical Insurance Update
+    - =..apiRequest.insurance.docAPI.get: ""
+    - ..apiRequest.relation.edgeQueryReq.id@: []
+    - =.builtIn.array.pushAny:
+        dataIn:
+          newMessage: =.Global.currentUser.vertex.id
+          messages: =..apiRequest.relation.edgeQueryReq.id
+        dataOut: ComparisonProfile.apiRequest.relation.edgeQueryReq.id
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =.Global.MiddlePage.updatePatientProfilePage
+            string2: MessageShow
+      - =.builtIn.array.pushAny:
+          dataIn:
+            newMessage: =.Global.email.bsig
+            messages: =..apiRequest.relation.edgeQueryReq.id
+          dataOut: ComparisonProfile.apiRequest.relation.edgeQueryReq.id
+      - =.builtIn.array.pushAny:
+          dataIn:
+            newMessage: =.Global.currentFacility.bsig 
+            messages: =..apiRequest.relation.edgeQueryReq.id
+          dataOut: ComparisonProfile.apiRequest.relation.edgeQueryReq.id
+    - =..apiRequest.relation.edgeAPI.get: ""
+    - if:
+        - =.builtIn.number.typeIsValid:
+            dataIn:
+              docType: =..apiRequest.relation.edgeQueryResp.edge.0.type
+              localArr: [2]
+              binaryArr: [1]
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.array.judgeListLength:
+                    dataIn:
+                      array: =..apiRequest.insurance.docQueryResp.doc
+                      len: 0
+                - ..formData.medicalInsuranceShow@: none
+                - ..formData.medicalInsuranceShow@: block
+        - continue
+    - =..apiRequest.insuranceLocal.docAPI.get: ""
+    - if:
+      - =.builtIn.array.judgeListLength:
+          dataIn:
+            array: =..apiRequest.insuranceLocal.docQueryResp.doc
+            len: 0
+      - continue
+      - =.builtIn.object.extract:
+          dataIn:
+            array: =..apiRequest.insuranceLocal.docQueryResp.doc
+            field: id
+          dataOut: ComparisonProfile.apiRequest.insuranceLocal.docDeleteReq.id
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =.Global.MiddlePage.updatePatientProfilePage
+            string2: MessageShow
+      - ..formData.display.notRemind@: none
+      - ..formData.display.notRemind@: block
+  formData:
+    defaultInsuranceAfterShare: ""
+    insuranceListAfterShare: []
+    display:
+      notRemind: block
+    differenceBetweenProfile: ""
+    showInsuranceImageId: ""
+    basicInfoShow: "none"
+    contactInfoShow: "none"
+    emergencyContactShow: "none"
+    employmentShow: "none"
+    medicalInsuranceShow: "none"
+    identification:
+      boxShow: "none"
+      imgShow: "none"
+      typeShow: "none"
+      idShow: "none"
+    identificationShowList: []
+    profileInfoShow: "block"
+    tempList: []
+    profileInfoShowList: []
+  formDataTemp:
+    basicInfo:
+      - key: Date of Birth
+        value: 01-01-1990
+      - key: "Social Security #"
+        value: "1234567890"
+    contact:
+      - key: Email
+        value: Patient lisa@gmail.com
+      - key: "Address "
+        value: "Sedona Airport (SEZ),1185 Airport Rd, Sedona, Arizona 86336"
+    insurance:
+      - key:
+        companyName: "Health Maintenance Organization (HMO)"
+        planOrMedicalGroup: "(CA) Whole Health - Southern California"
+        memberName: "Sara Lee"
+        memberId: I1234561
+  apiRequest:
+    notRemindTag:
+      docCreateResp: ""
+      docCreateReq:
+        reid: .Global.roomInfo.edge.id
+        tage: 512
+        type: .DocType.GroupBitOrTage
+        eid: .Global.rootNotebookID
+        name:
+          data: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: ComparisonProfile.apiRequest.notRemindTag.docCreateReq
+          dataOut: ComparisonProfile.apiRequest.notRemindTag.docCreateResp
+    updateInsuranceTag:
+      docCreateResp: ""
+      docCreateReq:
+        eid: .Global.rootNotebookID
+        reid: ""
+        type: .DocType.GroupBitOrTage
+        name:
+          data: ""
+        tage: 0
+      docAPI:
+        store:
+          api: cd
+          dataIn: ComparisonProfile.apiRequest.updateInsuranceTag.docCreateReq
+          dataOut: ComparisonProfile.apiRequest.updateInsuranceTag.docCreateResp
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: []
+        xfname: (bvid,evid)|(evid,bvid)
+        type: .EdgeType.Email
+        obfname: mtime
+        maxcount: "1"
+        sCondition: tage>0 AND subtype = 131072
+        _nonce: .Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: ComparisonProfile.apiRequest.relation.edgeQueryReq
+          dataOut: ComparisonProfile.apiRequest.relation.edgeQueryResp
+    insuranceLocal:
+      docDeleteReq:
+        id: ""
+      docQueryResp: ""
+      docQueryReq:
+        id: 
+          - .Global.rootNotebookID
+          - .Global.Profile.id
+        xfname: eid,fid
+        type: .DocType.InsuranceCard
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: ComparisonProfile.apiRequest.insuranceLocal.docQueryReq
+          dataOut: ComparisonProfile.apiRequest.insuranceLocal.docQueryResp
+        delete:
+          api: dx
+          dataIn: ComparisonProfile.apiRequest.insuranceLocal.docDeleteReq
+    insurance:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.formData.targetProfile.id
+        xfname: reid
+        type: .DocType.InsuranceCard
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: ComparisonProfile.apiRequest.insurance.docQueryReq
+          dataOut: ComparisonProfile.apiRequest.insurance.docQueryResp
+    hashTag:
+      docCreateResp: ""
+      docCreateReq:
+        eid: .Global.rootNotebookID
+        type: .DocType.HashTag
+        reid: ""
+        name:
+          data:
+            hashFields:
+              - name
+              - mtime
+              - type
+            hashTime: ""
+            hashCode: "" # sha256
+      docAPI:
+        store:
+          api: cd
+          dataIn: ComparisonProfile.apiRequest.hashTag.docCreateReq
+          dataOut: ComparisonProfile.apiRequest.hashTag.docCreateResp
+    profile:
+      docCreateReq: .Global.Profile
+      docCreateResp: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: ComparisonProfile.apiRequest.profile.docCreateReq
+          dataOut: ComparisonProfile.apiRequest.profile.docCreateResp
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderCenter:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: label
+          text: "Please check the following updates:"
+          style:
+            ..style.secondLabel:
+        - type: view
+          style:
+            ..style.partitionBox:
+            display: ..formData.profileInfoShow
+          children:
+            - type: label
+              text: Profile Info Update
+              dataKey:
+              style:
+                ..style.partitionLabel:
+        - type: view
+          style:
+            ..style.secondBox:
+          children:
+            - type: view
+              style:
+                ..style.thirdBox:
+                display: ..formData.basicInfoShow
+              children:
+                - type: label
+                  text: Basic Info
+                  style:
+                    ..style.thirdTitle:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.differenceBetweenProfile.basicInfo
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: label
+                          dataKey: itemObject.key
+                          style:
+                            ..style.itemTitle:
+                        - type: label
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+            - type: view
+              style:
+                ..style.thirdBox:
+                display: ..formData.contactInfoShow
+              children:
+                - type: label
+                  text: Contact
+                  style:
+                    ..style.thirdTitle:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.differenceBetweenProfile.contactInfo
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: label
+                          dataKey: itemObject.key
+                          style:
+                            ..style.itemTitle:
+                        - type: label
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+            - type: view
+              style:
+                ..style.thirdBox:
+                display: ..formData.emergencyContactShow
+              children:
+                - type: label
+                  text: Emergency Contact
+                  style:
+                    ..style.thirdTitle:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.differenceBetweenProfile.emergencyContact
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: label
+                          dataKey: itemObject.key
+                          style:
+                            ..style.itemTitle:
+                        - type: label
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+
+            - type: view
+              style:
+                ..style.thirdBox:
+                display: ..formData.identification.boxShow
+              children:
+                - type: label
+                  text: Identification
+                  style:
+                    ..style.thirdTitle:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    display: ..formData.identification.imgShow
+                  children:
+                    - type: label
+                      text: ID Image
+                      style:
+                        ..style.fourthTitle:
+                    - type: view
+                      viewTag: insuranceImage
+                      style:
+                        ..style.imgBox:
+                      onClick:
+                        - ..event.imgShow
+                      children:
+                        - type: image
+                          path: defaultImg.svg
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: Global.formData.targetProfile.name.data.identification.imageId
+                          style:
+                            ..style.card:
+                - type: view
+                  style:
+                    ..style.listItem:
+                    display: ..formData.identification.typeShow
+                  children:
+                    - type: label
+                      text: ID Type
+                      style:
+                        ..style.itemTitle:
+                    - type: label
+                      dataKey: Global.formData.targetProfile.name.data.identification.type
+                      style:
+                        ..style.itemValue:
+
+                - type: view
+                  style:
+                    ..style.listItem:
+                    display: ..formData.identification.idShow
+                  children:
+                    - type: label
+                      text: "ID #"
+                      style:
+                        ..style.itemTitle:
+                    - type: label
+                      dataKey: Global.formData.targetProfile.name.data.identification.id
+                      style:
+                        ..style.itemValue:
+            - type: view
+              style:
+                ..style.thirdBox:
+                display: ..formData.employmentShow
+              children:
+                - type: label
+                  text: Employment
+                  style:
+                    ..style.thirdTitle:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.differenceBetweenProfile.employment
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: label
+                          dataKey: itemObject.key
+                          style:
+                            ..style.itemTitle:
+                        - type: label
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+
+        - type: view
+          style:
+            ..style.partitionBox:
+            display: ..formData.medicalInsuranceShow
+          children:
+            - type: label
+              text: Medical Insurance Update
+              dataKey:
+              style:
+                ..style.partitionLabel:
+        - type: view
+          style:
+            ..style.secondBox:
+            display: ..formData.medicalInsuranceShow
+          children:
+            - type: view
+              style:
+                ..style.thirdBox:
+              children:
+                - type: label
+                  text: Medical Insurance
+                  style:
+                    ..style.thirdTitle:
+                - type: list
+                  contentType: listObject
+                  listObject: ..apiRequest.insurance.docQueryResp.doc
+                  iteratorVar: itemObject
+                  viewTag: insuranceTag
+                  style:
+                    ..style.insuranceList:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.item:
+                      onClick:
+                        - ..event.insuranceClick
+                      children:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              text: "&#8226"
+                              dataKey:
+                              style:
+                                ..style.dot:
+                            - type: label
+                              text: "Insurance Company Name"
+                              dataKey:
+                              style:
+                                ..style.title:
+                        - type: label
+                          dataKey: itemObject.name.data.companyName
+                          style:
+                            ..style.value:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                            marginTop: "0.017241"
+                          children:
+                            - type: label
+                              text: "&#8226"
+                              dataKey:
+                              style:
+                                ..style.dot:
+                            - type: label
+                              text: "Insurance Plan / Medical Group"
+                              dataKey:
+                              style:
+                                ..style.title:
+                        - type: label
+                          dataKey: itemObject.name.data.planOrMedicalGroup
+                          style:
+                            ..style.value:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                            marginTop: "0.017241"
+                          children:
+                            - type: label
+                              text: "&#8226"
+                              dataKey:
+                              style:
+                                ..style.dot:
+                            - type: label
+                              text: "Insured Name"
+                              dataKey:
+                              style:
+                                ..style.title:
+                        - type: label
+                          dataKey: itemObject.name.data.memberName
+                          style:
+                            ..style.value:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                            marginTop: "0.017241"
+                          children:
+                            - type: label
+                              text: "&#8226"
+                              dataKey:
+                              style:
+                                ..style.dot:
+                            - type: label
+                              text: "Insurance ID #"
+                              dataKey:
+                              style:
+                                ..style.title:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.memberId
+                              style:
+                                ..style.idValue:
+                            - type: image
+                              path:
+                                ..event.defaultPath:
+                              style:
+                                ..style.defaultImg:
+
+        - type: view
+          style:
+            ..style.secondBox:
+          children:
+            - type: view
+              style:
+                ..style.line:
+            # - type: label
+            #   text: If the information is incorrect, click ‘Update’ to use it from your own profile.
+            #   style:
+            #     ..style.tipsLabel:
+            # - type: label
+            #   text: Update
+            #   onClick:
+            #     - ..event.updateClick
+            #   style:
+            #     ..style.updateLabel:
+            - type: view
+              viewTag: checkBoxTag
+              style:
+                display: ..formData.display.notRemind
+                marginTop: "0.01"
+                ..style.blockBox:
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxPath:
+                  style:
+                    ..style.img:
+                  onClick:
+                    - ..event.checkBoxClick
+                - type: label
+                  text: Do not remind again
+                  dataKey:
+                  style:
+                    ..style.setLabel:
+
+        - type: view
+          style:
+            marginTop: "0.03"
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - .DocButtonPrivate:
+              text: Cancel
+              onClick:
+                - ..event.cancelClick
+            - .DocButtonRelease:
+              text: Save
+              onClick:
+                - ..event.saveClick
+    # popUP
+    - .Normal:
+      message: "Use your own profile for this appointment?"
+      viewTag: isSyncTag
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: isSyncTag
+      rightButton:
+        - actionType: popUpDismiss
+          popUpView: isSyncTag
+    - .SuccessfulOneLine:
+      message: "Successfully!"
+      viewTag: successTag
+    - type: popUp
+      viewTag: imgBlockBigTag
+      style:
+        height: "1"
+        width: "1"
+        zIndex: "1000"
+        backgroundColor: "0x33333333"
+        top: "0"
+        textAlign:
+          x: "center"
+          y: "center"
+      children:
+        - type: image
+          path: defaultImg.svg
+          path=func: =.builtIn.utils.prepareDocToPath
+          dataKey: formData.showInsuranceImageId
+          style:
+            width: "0.8"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: imgBlockBigTag
+
+  event:
+    insuranceClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - .Global.formData.insurance@: $var
+            - .Global.formData.module_insurance.display_editFromUpdateProfile@: none
+      - goto: MedicalInsuranceShow
+    updateClick:
+      - actionType: popUp
+        popUpView: isSyncTag
+
+    cancelClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.Global.formData.meetingStatus.notRemind
+              - =..apiRequest.notRemindTag.docAPI.store: ""
+              - continue
+          - .Global.formData.meetingStatus.cancelUpdateInMeeting@: true
+      - goto: .Global.MiddlePage.updatePatientProfilePage
+    saveClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.Global.formData.meetingStatus.notRemind
+              - =..apiRequest.notRemindTag.docAPI.store: ""
+              - continue
+          - =.builtIn.number.inhx:
+              dataIn:
+                intHex: =..apiRequest.relation.edgeQueryResp.edge.0.tage
+                index: 2
+                hex: 0
+              dataOut: ComparisonProfile.apiRequest.updateInsuranceTag.docCreateReq.tage
+          - ..apiRequest.updateInsuranceTag.docCreateReq.reid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+          - =..apiRequest.updateInsuranceTag.docAPI.store: ""
+          - if:
+              - =.ComparisonProfile.apiRequest.insuranceLocal.docDeleteReq.id
+              - =..apiRequest.insuranceLocal.docAPI.delete: ""
+              - continue
+          - =.builtIn.ecos.shareDocList:
+              dataIn:
+                sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+                targetEdgeID: =.Global.rootNotebookID
+                targetFileID: =.Global.Profile.id
+              dataOut: ComparisonProfile.formData.insuranceListAfterShare
+          - ..apiRequest.profile.docCreateReq.name.data@: =.Global.formData.targetProfile.name.data
+          - =.builtIn.array.getSpecifiedObject:
+              dataIn:
+                objArr: =..formData.insuranceListAfterShare
+                path: name.data.default
+                value: true
+              dataOut: ComparisonProfile.formData.defaultInsuranceAfterShare
+          - ..apiRequest.profile.docCreateReq.name.data.insuranceId@: =..formData.defaultInsuranceAfterShare.0.id
+          - =..apiRequest.profile.docAPI.store: ""
+          - .Global.Profile@: =..apiRequest.profile.docCreateResp.doc
+          - ..apiRequest.hashTag.docCreateReq.name.data@: =.Global.formData.hashTagFromtargetProfile.name.data
+          - ..apiRequest.hashTag.docCreateReq.reid@: =..apiRequest.profile.docCreateResp.doc.id
+          - =..apiRequest.hashTag.docAPI.store: ""
+          - .Global.formData.hashTag@: =..apiRequest.hashTag.docCreateResp.doc
+      - actionType: popUp
+        popUpView: successTag
+        wait: 2000
+      - goto: .Global.MiddlePage.updatePatientProfilePage
+    imgShow:
+      - actionType: evalObject
+        object:
+          - ..formData.showInsuranceImageId@: =.Global.formData.targetProfile.name.data.identification.imageId
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: imgBlockBigTag
+      - actionType: popUp
+        popUpView: imgBlockBigTag
+
+    defaultPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - $var.name.data.default
+              - defaultInsurance.png
+              - null.png
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =.Global.formData.meetingStatus.notRemind
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.Global.formData.meetingStatus.notRemind
+              - .Global.formData.meetingStatus.notRemind@: false
+              - .Global.formData.meetingStatus.notRemind@: true
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: checkBoxTag
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    secondLabel:
+      marginLeft: "0.04"
+      marginTop: "0.0221674"
+      fontSize: .Nfont.h16
+      color: "#333333"
+      fontWeight: "600"
+    partitionBox:
+      marginTop: "0.0270935"
+      backgroundColor: "#e6effc"
+      height: "auto"
+      width: "1"
+      overflow: hidden
+    partitionLabel:
+      marginLeft: "0.04"
+      color: "#2988e6"
+      lineHeight: "3.94088vh"
+      height: "3.94088vh"
+      fontWeight: "700"
+    secondBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    thirdBox:
+      marginTop: "0.0221674"
+      height: "auto"
+      width: "auto"
+      overflow: hidden
+    thirdTitle:
+      fontWeight: "700"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+    list:
+      width: "0.92"
+      margin: "0"
+      height: auto
+    listItem:
+      marginTop: "0.0135467"
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+    itemTitle:
+      display: "inline-block"
+      width: "0.4"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      textAlign:
+        x: left
+    itemValue:
+      display: "inline-block"
+      width: "0.52"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      fontWeight: "600"
+      lineHeight: "2.216748vh"
+      wordBreak: break-word
+      textAlign:
+        x: right
+    fourthTitle:
+      ..style.thirdTitle:
+      fontWeight: "400"
+      marginTop: "0.0135467"
+    imgBox:
+      marginTop: "0.01"
+      height: "0.123152"
+      width: "0.4293333"
+      padding: "5px 7px"
+      backgroundColor: "#f0f2f4"
+      borderRadius: "4"
+      boxSizing: border-box
+      textAlign:
+        x: center
+    card:
+      height: "0.1108374"
+      width: "0.389333"
+      objectFit: contain
+    insuranceList:
+      height: "auto"
+      width: "0.92"
+      margin: "0"
+      boxSizing: border-box
+    item:
+      marginTop: "0.0197044"
+      width: "auto"
+      # height: "0.2426108"
+      height: "auto"
+      overflow: hidden
+      backgroundColor: "#f0f2f4"
+      borderRadius: "8"
+      boxSizing: border-box
+      paddingTop: "0.014778"
+      paddingBottom: "0.014778"
+      paddingLeft: "0.032"
+      paddingRight: "0.032"
+    blockBox:
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    dot:
+      boxSizing: border-box
+      display: "inline-block"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h16
+      verticalAlign: middle
+    title:
+      marginLeft: "0.01"
+      boxSizing: border-box
+      display: "inline-block"
+      height: "auto"
+      width: "0.784"
+      fontSize: .Nfont.h12
+      verticalAlign: middle
+    delImg:
+      verticalAlign: middle
+      height: "0.019704"
+
+    value:
+      marginTop: "0.01"
+      marginLeft: "0.021333"
+      fontSize: .Nfont.h12
+      fontWeight: "600"
+      width: "0.78"
+      height: "auto"
+      overflow: hidden
+      text-overflow: ellipsis
+      whiteSpace: nowrap
+    idValue:
+      ..style.value:
+      marginTop: "0"
+      display: "inline-block"
+      width: "0.7013333"
+      verticalAlign: middle
+    defaultImg:
+      display: "inline-block"
+      height: "0.019704"
+      verticalAlign: middle
+    line:
+      marginTop: "0.027093"
+      border:
+        style: 2
+      borderColor: "#e2e8ed"
+      borderWidth: "1"
+    tipsLabel:
+      ..style.thirdTitle:
+      fontWeight: "400"
+      marginTop: "0.01"
+    updateLabel:
+      marginTop: "0.017241"
+      fontWeight: "700"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      textDecoration: underline
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      verticalAlign: middle

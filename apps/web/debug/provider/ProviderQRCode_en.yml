@@ -28,27 +28,52 @@ ProviderQRCode:
     imagepath: ""
     providerTitle: ""
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-        - actionType: updateObject
-          dataKey: Global.formData.currentProviderQRCode
-          dataObject: {}
-    - .HeaderRightButton:
-      text: Save
-      onClick:
-        - actionType: evalObject
-          object:
-            - =.builtIn.downloadQRCode:
-                dataIn:
-                  content: =..formData.imagepath
-                  scale: 12
-                  viewTag: saveQRCodeTag
-            - actionType: popUp
-              popUpView: successTag                  
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    #   onClick:
+    #     - actionType: builtIn
+    #       funcName: goBack
+    #       reload: true
+    #     - actionType: updateObject
+    #       dataKey: Global.formData.currentProviderQRCode
+    #       dataObject: {}
+    # - .HeaderRightButton:
+    #   text: Save
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - =.builtIn.downloadQRCode:
+    #             dataIn:
+    #               content: =..formData.imagepath
+    #               scale: 12
+    #               viewTag: saveQRCodeTag
+    #         - actionType: popUp
+    #           popUpView: successTag     
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+          leftClick:      
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+            - actionType: updateObject
+              dataKey: Global.formData.currentProviderQRCode
+              dataObject: {}  
+        - .BasePublicHeaderRightText:   
+          text: Save
+          style:
+            marginLeft: '0.056'
+          onClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.downloadQRCode:
+                    dataIn:
+                      content: =..formData.imagepath
+                      scale: 12
+                      viewTag: saveQRCodeTag
+                - actionType: popUp
+                  popUpView: successTag         
     - type: scrollView
       viewTag: saveQRCodeTag
       style:

@@ -1,0 +1,1385 @@
+PatientChartHistory:
+  pageNumber: "170"
+  title: "Patient Chart"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        - ..Chart.getdocument.id@: =.Global.roomInfo.edge.id
+    - ..Chart.docAPI.get
+    - actionType: evalObject
+      object:
+        # - =.builtIn.utils.prepareDoc:
+        #     dataIn:
+        #       doc: =..docResponse.doc.0
+        #     dataOut: PatientChartHistory.docResponse
+        - .PatientChartHistory.Chart.document@: =..docResponse.doc.0
+        - .PatientChartHistory.patientChartObject@: =..docResponse.doc.0
+        - .PatientChartDM.patientChart@: =..docResponse.doc.0.name.data
+        - ..chart@: =..patientChartObject.name.data
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..chart
+            string2: ".PatientChartHistory.patientChartObject.name.data"
+      - actionType: evalObject
+        object:
+          ..chart.pastMedicalHistory@: ""
+          ..chart.allergies@: ""
+          ..chart.currentMedications@: ""
+          ..chart.immunizations@: ""
+          ..chart.hospitalizations@: ""
+          ..chart.surgicalHistory@: ""
+          ..chart.familyHistory@: ""
+      - actionType: evalObject
+        object: ..convert
+    - ..chart@: =.PatientChartHistory.patientChartObject.name.data
+  patientChartObject: 
+    name:
+      data: ""
+  chart: .PatientChartHistory.patientChartObject.name.data
+  save:
+    - =.PatientChartHistory.shareDocuments.docAPI.store: ""  
+  convert:
+    - =.builtIn.array.covertToJsonArray:
+        dataIn:
+          array: =..chart.pastMedicalHistory
+        dataOut: PatientChartHistory.pastMedicalHistoryTemp
+    - =.builtIn.array.covertToJsonArray:
+        dataIn:
+          array: =..chart.familyHistory
+        dataOut: PatientChartHistory.familyHistoryTemp
+  pastMedicalHistoryTemp: []      
+  familyHistoryTemp: []
+  Chart:
+    getdocument:
+      id: ""
+      xfname: eid
+      type: .DocType.PatientChart
+      obfname: "mtime"
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI: 
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        dataIn: PatientChartHistory.Chart.getdocument
+        dataOut: PatientChartHistory.docResponse
+  docResponse: 
+    doc:
+      - type: .DocType.PatientChart
+        eid: .Global.rootNotebookID
+        name: ""
+    error: ""
+    jwt: ""
+  shareDocuments:
+    document: ""
+    docAPI:
+      store:
+        api: cd
+        dataKey: shareDocuments.document
+        subtype:
+          mediaType: "application/json" 
+  sharedDoc: ""
+  selectedDoc: "" 
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:  
+    # - .HeaderRightButton:
+    #   text: Update
+    #   onClick:
+    #     - goto: PatientChartGeneralInfo
+    - type: scrollView
+      style:
+        top: "0.1"
+        left: "0"
+        width: "1"
+        height: "0.9"
+        overflow: scroll
+      children:
+        - type: view
+          style:
+            top: "0"
+            left: "0"
+            width: "1"
+            # height: "7.2"
+          children:
+            - type: view
+              style:
+                width: "0.95"
+                #height: "0.47"
+                height: "auto"
+                left: "0"
+                marginTop: "0"
+
+              children:
+                - .PatientChartTitleView:
+                  style: 
+                      marginTop: "0"
+                      left: "0"
+                  children: 
+                    - .PatientChartTitle: 
+                      text1: "General Information"
+                      style:
+                        # top: "0"
+                        height: "0.04"
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    width: "0.93"
+                    height: "auto"
+                    left: "0.05"
+                    # backgroundColor: "yellow"
+                  children:
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: First name
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.firstName
+                        - .PatientChartLine:
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Middle name or initial
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.middleName
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Last name
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.lastName
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Preferred name
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.preferredName
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Gender
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.gender
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Date of birth
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.dateOfBirth
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Occupation
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.occupation
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Relationship Status
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.relationshipStatus
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Primary Care Physician
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.primaryCarePhysician
+                        - .PatientChartLine:
+
+                    - .PatientChartShowView:
+                      children:
+                        - .PatientChartShowTitle:
+                          text: Primary Care Clinic
+                        - .PatientChartShowData:
+                          style:
+                            textAlign:
+                              x: right
+                          dataKey: chart.generalInfo.primaryCareClinic
+                        - .PatientChartLine:
+            - type: view
+              style:
+                width: "0.95"
+                marginTop: "0"
+                left: "0"
+              children: 
+                - .PatientChartView:
+                  style: 
+                    marginTop: "0"
+                  children: 
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: Past Medical History
+                    - .PatientChartListView:
+                      children:   
+                        - type: list
+                          contentType: listObject
+                          listObject: ..chart.pastMedicalHistory # to dataObject to enumerate the list
+                          iteratorVar: itemObject
+                          style: 
+                            width: "0.9"
+                            height: "auto"
+                            left: "0.05"
+                            # margin: "0"
+                            # marginBottom: "0.02"
+                            # marginTop: "0.01"
+                          children: 
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.9" 
+                                height: "0.03"
+                                left: "0"
+                              children:
+                                - type: label
+                                  text: '-'
+                                  style: 
+                                    top: "0.008"
+                                    width: "0.05"
+                                    fontSize: .Nfont.h4
+                                    left: "0.05"
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject
+                                  style: 
+                                    left: "0.1"
+                                    top: "0.01"
+                                    width: "0.6"
+                                    fontSize: .Nfont.h2
+                - .PatientChartView:
+                  children: 
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: "Allergies"
+                    - type: view
+                      style: 
+                        width: "0.9"
+                        left: "0.05"
+                        height: "0.03"
+                        marginTop: "0.02"
+                      children:   
+                        - type: label
+                          text: Allergen/Irritant
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.45"
+                            height: "0.03"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          text: What happens       
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.45"
+                            height: "0.03"
+                            left: "0.45"
+                            top: "0"
+                    - .PatientChartListView:
+                      children:   
+                        - type: list
+                          contentType: listObject
+                          listObject: ..chart.allergies # to dataObject to enumerate the list
+                          iteratorVar: itemObject
+                          style: 
+                            width: "0.9"
+                            height: "auto"
+                            left: "0"
+                            # margin: "0"
+                            # marginBottom: "0.02"
+                          children: 
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.9" 
+                                height: "0.03"
+                                left: "0"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.allergy
+                                  style: 
+                                    left: "0"
+                                    top: "0"
+                                    width: "0.45"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"    
+                                    textAlign: 
+                                      x: center   
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject.happen
+                                  style: 
+                                    left: "0.45"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"            
+                                    width: "0.45"       
+                                    textAlign: 
+                                      x: center   
+                - .PatientChartView:
+                  children: 
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: Current Medications
+                    - type: view
+                      style: 
+                        width: "0.95"
+                        left: "0.05"
+                        height: "0.03"
+                        marginTop: "0.02"
+                      children:   
+                        - type: label
+                          text: Name
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          text: Strength
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0.225"
+                            top: "0"
+                        - type: label
+                          text: Amount
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0.45"
+                            top: "0"
+                        - type: label
+                          text: Frequency
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0.675"
+                            top: "0"
+                    - .PatientChartListView:
+                      children:   
+                        - type: list
+                          contentType: listObject
+                          listObject: ..chart.currentMedications # to dataObject to enumerate the list
+                          iteratorVar: itemObject
+                          style: 
+                            width: "0.9"
+                            height: "auto"
+                            left: "0"
+                          children: 
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.9" 
+                                height: "0.03"
+                                left: "0"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0"
+                                    top: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"    
+                                    textAlign: 
+                                      x: center   
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject.strength
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0.225"
+                                    top: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"                  
+                                    textAlign: 
+                                      x: center  
+                                - type: label
+                                  dataKey: itemObject.amount
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0.45"
+                                    top: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"    
+                                    textAlign: 
+                                      x: center   
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject.frequency
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0.675"
+                                    top: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"                   
+                                    textAlign: 
+                                      x: center  
+                - .PatientChartView:
+                  children: 
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: Immunizations
+                    - type: view
+                      style: 
+                        width: "0.95"
+                        left: "0.05"
+                        height: "0.03"
+                        marginTop: "0.02"
+                        marginBottom: "0.02"
+                      children:   
+                        - type: label
+                          text: Name
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          text: 1st Dose
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0.225"
+                            top: "0"
+                        - type: label
+                          text: 2st Dose
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0.45"
+                            top: "0"
+                        - type: label
+                          text: Recent
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.225"
+                            height: "0.03"
+                            left: "0.675"
+                            top: "0"
+                    - .PatientChartListView:
+                      style: 
+                        left: "0.05"
+                      children:   
+                        - type: list
+                          contentType: listObject
+                          listObject: ..chart.immunizations # to dataObject to enumerate the list
+                          iteratorVar: itemObject
+                          style: 
+                            width: "0.9"
+                            height: "auto"
+                            left: "0"
+                          children: 
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                marginTop: "0"
+                                width: "0.9" 
+                                height: "auto"
+                                left: "0"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0"
+                                    # top: "0"
+                                    marginTop: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"
+                                    overflow: hidden
+                                    whiteSpace: nowrap
+                                    text-overflow: ellipsis    
+                                    textAlign: 
+                                      x: center  
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject.firstDose
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0.225"
+                                    top: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"                  
+                                    textAlign: 
+                                      x: center  
+                                - type: label
+                                  dataKey: itemObject.secondDose
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0.45"
+                                    top: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"    
+                                    textAlign: 
+                                      x: center   
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject.mostRecent
+                                  style: 
+                                    width: "0.225"
+                                    height: "0.03"
+                                    left: "0.675"
+                                    top: "0"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"                   
+                                    textAlign: 
+                                      x: center  
+                - .PatientChartView:
+                  children: 
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: Hospitalizations
+                    - type: view
+                      style: 
+                        width: "0.9"
+                        left: "0.05"
+                        height: "0.03"
+                        marginTop: "0.02"
+                        marginBottom: "0.02"
+                      children:   
+                        - type: label
+                          text: Date
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.45"
+                            height: "0.03"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          text: Reason
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.45"
+                            height: "0.03"
+                            left: "0.45"
+                            top: "0"
+                    - .PatientChartListView:
+                      style: 
+                        left: "0.05"
+                      children:   
+                        - type: list
+                          contentType: listObject
+                          listObject: ..chart.hospitalizations # to dataObject to enumerate the list
+                          iteratorVar: itemObject
+                          style: 
+                            width: "0.9"
+                            height: "auto"
+                            left: "0"
+                          children: 
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.9" 
+                                height: "0.03"
+                                left: "0"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.date
+                                  style: 
+                                    left: "0"
+                                    top: "0"
+                                    width: "0.45"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"    
+                                    textAlign: 
+                                      x: center   
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject.reason
+                                  style: 
+                                    left: "0.45"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"            
+                                    width: "0.45"       
+                                    textAlign: 
+                                      x: center    
+                - .PatientChartView:
+                  children: 
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: Surgical History
+                    - type: view
+                      style: 
+                        width: "0.9"
+                        left: "0.05"
+                        height: "0.03"
+                        marginTop: "0.02"
+                      children:   
+                        - type: label
+                          text: Date
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.45"
+                            height: "0.03"
+                            left: "0"
+                            top: "0"
+                        - type: label
+                          text: Reason
+                          style:
+                            fontSize: .Nfont.h2
+                            fontWeight: "500"
+                            textAlign: 
+                              x: center
+                            width: "0.45"
+                            height: "0.03"
+                            left: "0.45"
+                            top: "0"
+                    - .PatientChartListView:             
+                      style: 
+                          left: "0.05"
+                      children:   
+                        - type: list
+                          contentType: listObject
+                          listObject: ..chart.surgicalHistory # to dataObject to enumerate the list
+                          iteratorVar: itemObject
+                          style: 
+                            width: "0.9"
+                            height: "auto"
+                            left: "0"
+                          children: 
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.9" 
+                                height: "0.03"
+                                left: "0"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.date
+                                  style: 
+                                    left: "0"
+                                    top: "0"
+                                    width: "0.45"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"    
+                                    textAlign: 
+                                      x: center     
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject.reason
+                                  style: 
+                                    left: "0.45"
+                                    fontSize: .Nfont.h2
+                                    fontWeight: 400
+                                    color: "0x373737"            
+                                    width: "0.45"       
+                                    textAlign: 
+                                      x: center  
+                - .PatientChartView:
+                  children: 
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: Family History
+                    - .PatientChartListView:
+                      style: 
+                        left: "0.05"
+                      children:   
+                        - type: list
+                          contentType: listObject
+                          listObject: ..chart.familyHistory # to dataObject to enumerate the list
+                          iteratorVar: itemObject
+                          style: 
+                            width: "0.9"
+                            height: "auto"
+                            left: "0"
+                          children: 
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.9" 
+                                height: "0.03"
+                                left: "0"
+                              children:
+                                - type: label
+                                  text: '-'
+                                  style: 
+                                    top: "-0.005"
+                                    width: "0.05"
+                                    fontSize: .Nfont.h4
+                                    left: "0.05"
+                                - type: label
+                                  # text: badsa fsa 
+                                  dataKey: itemObject
+                                  style: 
+                                    left: "0.1"
+                                    top: "0"
+                                    width: "0.95"
+                                    fontSize: .Nfont.h2
+
+                    - .PatientChartTitleView:
+                      style: 
+                          marginTop: "0"
+                          left: "0"
+                      children: 
+                        - .PatientChartTitle: 
+                          text1: Obstetrical History
+                - .PatientChartView:
+                  style: 
+                    left: "0.05"
+                  children: 
+                    - .PatientChartLittleTitle: 
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.pregnancy.currentlyPregnant
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: How many times have you been pregnant?
+                          style: 
+                            width: "0.85"
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            #width: "0.15"
+                            #left: "0.75"
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.pregnancy.pregnantsTimes
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: How many children?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.pregnancy.children
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: How many abortions? 
+                          style:  
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.pregnancy.abortionsTime
+                    - .PatientChartLittleTitle: 
+                      text: Menses
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          style: 
+                            width: "0.45"
+                            fontSize: '14'
+                          text: How often?
+                        - .PatientChartLittleData:
+                          style: 
+                            width: "0.45"
+                            left: "0.45"
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.menses.howOften
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: For how many days?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.menses.howlong
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Do they occur every month?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.menses.isEveryMonth
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Heavy flow?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.menses.isHeavyFlow
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: Any spotting or clots?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.menses.spottingOrClots
+                    - .PatientChartLittleTitle: 
+                      text: Mammogram
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Have you had a mammogram?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.mammogram.haveMammogram
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          style: 
+                            width: "0.48"
+                            left: "0"
+                            fontSize: '14'
+                          text: When was the last one?
+                        - .PatientChartLittleData: 
+                          style: 
+                            width: "0.42"
+                            left: "0.48"
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.mammogram.lastTime
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Ever have an abnormal result?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.mammogram.abnormalResult
+                    - .PatientChartLittleView:  
+                      style: 
+                        marginBottom: "0.02"
+                      children: 
+                        - .PatientChartLittleText:
+                          text: If yes, please describe?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.obstetricalHistory.mammogram.abnormalResultDescribe
+                - .PatientChartTitleView:
+                  style: 
+                      marginTop: "0.02"
+                      left: "0"
+                  children: 
+                    - .PatientChartTitle: 
+                      text1: Sexual History
+                - .PatientChartView:
+                  style: 
+                    marginTop: "0.01"
+                    left: "0.05"
+                  children: 
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Are you sexually active?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.sexualHistoryDM.sexuallyActive
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: Use condoms for protection?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.sexualHistoryDM.useCondom
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: History of STD(s)?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.sexualHistoryDM.STDSHistory
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          style:
+                            width: '0.7'
+                            fontSize: '14'
+                          text: Are you currently on birth control?
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.sexualHistoryDM.birthControl
+                    - .PatientChartLittleTitle: 
+                      text: Pap smear
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Have you had a pap smear?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData:
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.sexualHistoryDM.papSmear.havePapSmear
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: When was the last one?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.sexualHistoryDM.papSmear.lastTime
+                    - .PatientChartLittleView: 
+                      style: 
+                        marginBottom: "0.02"
+                      children: 
+                        - .PatientChartLittleText:
+                          text: Ever have an abnormal result?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData:
+                          style: 
+                            textAlign: 
+                              x: right 
+                          dataKey: chart.sexualHistoryDM.papSmear.abnormalResult
+                - .PatientChartTitleView:
+                  style: 
+                      marginTop: "0.02"
+                      left: "0"
+                  children: 
+                    - .PatientChartTitle: 
+                      text1: Socical History
+                - .PatientChartView:
+                  style: 
+                    marginTop: "0.01"
+                    left: "0.05"
+                  children: 
+                    - .PatientChartLittleTitle: 
+                      text: Alcohol
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Do you drink?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.alcohol.drink
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: What type?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.alcohol.types
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: How many drinks per week?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.alcohol.timesPerWeek
+                    - .PatientChartLittleTitle: 
+                      text: Tobacco
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Do you currently use tobacco?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData:
+                          style: 
+                            textAlign: 
+                              x: right 
+                          dataKey: chart.socialHistory.tobacco.currently
+                    - .PatientChartLittleTitle: 
+                      text: Caffeine
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Do you have caffeine?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.caffeine.haveCaffeine
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: What type?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.caffeine.types
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: How many drinks per week?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.caffeine.timesPreDay
+                    - .PatientChartLittleTitle: 
+                      text: Recreational Drugs
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Do you use illicit drugs?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.recreationalDrug.haveIllicitDrugs   
+                    - .PatientChartLittleTitle: 
+                      text: Exerise
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: Do you exercise?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.exercise.haveExercise
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: What type?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.exercise.type
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: How many days per week?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.exercise.daysPerWeek
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: How many hours per day?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.exercise.hoursPerDay     
+                    - .PatientChartLittleTitle: 
+                      text: Nutrition/Diet
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Do you follow a diet?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.nutrition.haveDiet
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: What type?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.nutrition.type
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          style: 
+                            width: "0.8"
+                            left: "0"
+                            fontSize: '14'
+                          text: How many meals on average per day?
+                        - .PatientChartLittleData: 
+                          style: 
+                            width: "0.1"
+                            left: "0.8"
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.nutrition.mealsPerDay
+                    - .PatientChartLittleTitle: 
+                      text: Personal Safety
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Do you live alone?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.personalSafety.liveAlone
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: Do you frequently fall?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.personalSafety.frequentlyFall
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText: 
+                          text: Need assistance walking?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.personalSafety.needAssistanceWalking
+                    - .PatientChartLittleView: 
+                      children: 
+                        - .PatientChartLittleText:
+                          text: Have you ever been abused?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData: 
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.personalSafety.abused
+                    - .PatientChartLittleView: 
+                      style: 
+                        marginBottom: "0.02"
+                      children: 
+                        - .PatientChartLittleText:
+                          text: Do you wear a seatbelt?
+                          style:
+                            fontSize: '14'
+                        - .PatientChartLittleData:
+                          style: 
+                            textAlign: 
+                              x: right
+                          dataKey: chart.socialHistory.personalSafety.seatBelt
+                - .PatientChartView:
+                  style: 
+                    border: 
+                      style: "1"
+                    height: "0.1"
+                    left: "0.05"
+                  children: 
+                    - type: button
+                      text: Done
+                      onClick: 
+                        - actionType: builtIn
+                          funcName: goBack
+                      style:
+                        width: "0.6"
+                        left: "0.15"
+                        fontSize: .Nfont.h3
+                        marginTop: "0.02"
+                        height: "0.05"
+                        color: "0xffffff"
+                        backgroundColor: "0x2988e6"
+                        border: 
+                          style: "3"
+                        borderColor: "0x2988e6"
+                        textAlign: 
+                          x: center

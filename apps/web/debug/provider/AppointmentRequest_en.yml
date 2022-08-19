@@ -66,7 +66,7 @@ AppointmentRequest: #xdpage:13
             - =.builtIn.string.equal:
                 dataIn:
                   string1: =..formData.currentVisitType
-                  string2: "Office Visits"
+                  string2: "Office Visit"
             - actionType: builtIn
               funcName: show
               viewTag: selectTag
@@ -354,7 +354,7 @@ AppointmentRequest: #xdpage:13
               options:
                 - All Request
                 - Telemedicine
-                - Office Visits
+                - Office Visit
               dataKey: formData.currentVisitType
               onChange:
                 - actionType: evalObject
@@ -367,7 +367,7 @@ AppointmentRequest: #xdpage:13
                         - =.builtIn.string.equal:
                             dataIn:
                               string1: =..formData.currentVisitType
-                              string2: "Office Visits"
+                              string2: "Office Visit"
                         - ..requestList.edge.sCondition@: "E2.type=40000 AND E2.subtype in (131073) AND E.type = 40000 AND E.subtype=131074"
                         - continue
                     - if:
@@ -398,7 +398,7 @@ AppointmentRequest: #xdpage:13
                         - =.builtIn.string.equal:
                             dataIn:
                               string1: =..formData.currentVisitType
-                              string2: "Office Visits"
+                              string2: "Office Visit"
                         - actionType: builtIn
                           funcName: show
                           viewTag: selectTag
@@ -409,7 +409,7 @@ AppointmentRequest: #xdpage:13
                         - =.builtIn.string.equal:
                             dataIn:
                               string1: =..formData.currentVisitType
-                              string2: "Office Visits"
+                              string2: "Office Visit"
                         - ..formData.locationHidden@: false
                         - ..formData.locationHidden@: true
                 - actionType: builtIn
@@ -425,7 +425,7 @@ AppointmentRequest: #xdpage:13
                 height: "0.03"
                 left: "0.05"
                 backgroundColor: "0xffffff"
-                fontFamily: "Arial"
+
             - type: select
               dataKey: requestAddress
               viewTag: selectTag
@@ -461,7 +461,7 @@ AppointmentRequest: #xdpage:13
                 width: "0.3"
                 height: "0.03"
                 left: "0.65"
-                fontFamily: "Arial"
+
                 isHidden: =..formData.locationHidden
         - type: scrollView
           style:
@@ -556,7 +556,7 @@ AppointmentRequest: #xdpage:13
                           style: "1"
                         overflow: hidden
                         whiteSpace: nowrap
-                        textOverflow: ellipsis
+                        text-overflow: ellipsis
                     - type: label
                       dataKey: itemObject.name.visitReason
                       text: ""

@@ -14,15 +14,20 @@ PaymentReceipt:
     - =..apiRequest.paymentEdge.edgeAPI.get: ""
     - ..apiRequest.hasPaidProfile.getDocReq.id@: =..apiRequest.paymentEdge.edgeResp.edge.0.id
     - ..apiRequest.refund.docQueryReq.id@: =..apiRequest.paymentEdge.edgeResp.edge.0.id
-    - =..apiRequest.hasPaidProfile.docAPI.get: ""
-    - =..apiRequest.refund.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.hasPaidProfile.docAPI.get: ""
+            - =..apiRequest.refund.docAPI.get: ""
     - =.builtIn.object.extractArray:
         dataIn:
           obj: =..apiRequest.hasPaidProfile.getDocResp.doc
           arr: ["name.data.orderInfo.amount"]
         dataOut: PaymentReceipt.formData.paidAmountList
     - =.builtIn.array.getListByKey:
-        dataIn: 
+        dataIn:
           array: =..formData.paidAmountList
           keyId: amount
         dataOut: PaymentReceipt.formData.paidAmountList
@@ -30,16 +35,16 @@ PaymentReceipt:
         dataIn:
           obj: =..apiRequest.refund.docQueryResp.doc
           arr: ["name.data.orderInfo.amount"]
-        dataOut: PaymentReceipt.formData.refundAmountList    
+        dataOut: PaymentReceipt.formData.refundAmountList
     - =.builtIn.array.getListByKey:
-        dataIn: 
-          array: =..formData.refundAmountList   
+        dataIn:
+          array: =..formData.refundAmountList
           keyId: amount
-        dataOut: PaymentReceipt.formData.refundAmountList  
+        dataOut: PaymentReceipt.formData.refundAmountList
     - =.builtIn.array.concat:
         dataIn:
           array1: =..formData.paidAmountList
-          array2: =..formData.refundAmountList 
+          array2: =..formData.refundAmountList
         dataOut: PaymentReceipt.formData.amountPaidList
     - =.builtIn.math.cumulative:
         dataIn:
@@ -64,6 +69,7 @@ PaymentReceipt:
         _nonce: .Global._nonce
         type: 1113
         obfname: mtime
+        subtype: 1
       edgeAPI:
         get:
           api: re
@@ -104,7 +110,7 @@ PaymentReceipt:
         xfname: reid
         obfname: mtime
         maxcount: "1"
-        nonce: =.Global._nonce
+        _nonce: =.Global._nonce
         type: .DocType.FinancialInfo
       docAPI:
         get:
@@ -193,7 +199,7 @@ PaymentReceipt:
                     textAlign:
                       x: center
                 - type: label
-                  text: "Reason for visit"
+                  text: "Reason for Visit"
                   style:
                     marginTop: "0.01"
                     display: "inline-block"

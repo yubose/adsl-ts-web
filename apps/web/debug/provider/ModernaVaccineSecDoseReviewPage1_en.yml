@@ -9,6 +9,24 @@ ModernaVaccineSecDoseReviewPage1:
         - ..apiRequest.modernaVaccineSecDoseForm.docAPI.get
         - continue
     - .Global.formData.modernaVaccineSecDoseForm@: =..apiRequest.modernaVaccineSecDoseForm.docRes.doc.0
+
+    # 多页PDF下载配置
+    - actionType: evalObject
+      object:
+        - .Global.formData.downloadPDF.PdfPageList@:
+            - pageName: ModernaVaccineSecDoseReviewPage1
+              viewTag: mainView
+            - pageName: ModernaVaccineSecDoseReviewPage2
+              viewTag: mainView
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Moderna Vaccine Form - Second Dose"
+        - .Global.formData.downloadPDF.pageIntervalList@: 
+          - 0
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
   formData: #Input data here
     screeningEligibility:
       recevingDose: ""
@@ -49,7 +67,9 @@ ModernaVaccineSecDoseReviewPage1:
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14
+            - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -194,6 +214,7 @@ ModernaVaccineSecDoseReviewPage1:
                 ..style.btn:
               onClick:
                 - goto: ModernaVaccineSecDoseReviewPage2
+    - .HeaderPopUpMultiplePDF:
   event:
     recevingDosePath:
       emit:
@@ -229,7 +250,7 @@ ModernaVaccineSecDoseReviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -250,7 +271,7 @@ ModernaVaccineSecDoseReviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -287,7 +308,7 @@ ModernaVaccineSecDoseReviewPage1:
       width: "0.92"
       height: "0.7610"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -353,7 +374,7 @@ ModernaVaccineSecDoseReviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

@@ -1,0 +1,267 @@
+RecentList:
+  pageNumber: "340"
+  title: "My Directory" # xd page 36
+  init:
+    - .SignInCheck
+    - ..listData.get
+  listData:
+    response:
+      edge:
+    edge:
+      .Edge: ""
+      type : 1053
+      maxcount : "20"
+      id: .Global.currentUser.vertex.id
+      obfname : "mtime" 
+      xfname : bvid 
+    get:
+      .EdgeAPI.get : ""
+      api: re
+      dataIn: listData.edge
+      dataOut: listData.response
+      _nonce: =.Global._nonce
+  inviteMeeting:
+    edge: 
+      .Edge: ""
+      type: 1053
+      refid: ""
+      bvid: .Global.currentUser.vertex.id
+      name:
+        phoneNumber: ""
+        firstName: ""
+        lastName: ""
+        hostName: .Global.currentUser.vertex.name.userName
+        roomName: ""
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: inviteMeeting.edge    
+  generalInfo:
+    value: true         
+  components:
+    - type: view
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        position: "fixed"
+      children:
+        - .BaseHeader3:
+        - .HeaderLeftButton:
+          onClick:
+            - goto: SideMenuBar
+        - .HeaderRightImg:
+            path: sideNav.svg
+            onClick:
+              - goto: SideMenuBar
+        - .SubMenuView:
+          style:
+            top: "0.09"
+            backgroundColor: "0x2988e6"
+            height: "0.1"
+            zIndex: "10"
+          children:
+            - .SubMenuButton:
+              text: "Favorites"
+              style:
+                top: "0.03" 
+              onClick:
+                - goto: FavoriteList 
+            - .SubMenuButton:
+              text: "Recents"
+              style:
+                top: "0.03" 
+                left: "0.33"
+                color: "0xffffffff"
+              onClick:
+                - goto: RecentList
+            - .SubMenuButton:
+              text: "Contacts"
+              style:
+                top: "0.03"
+                left: "0.66"
+              onClick:
+                - goto: ContactsList
+        - type: view
+          style:
+            top: "0.2"
+            left: "0"
+            width: "1"
+            height: "0.8"
+          children:
+            - type: label
+              text: Recents
+              style:
+                left: "0.05"
+                top: "0.01"
+                width: "0.6"
+                height: "0.03"
+                fontSize: "20"
+                textAlign:
+                  x: left
+                  y: center  
+            - type: list
+              contentType: listObject
+              listObject: ..listData.response.edge # to dataObject to enumerate the list
+              iteratorVar: itemObject
+              style:
+                top: "0.04"
+                left: "0.05"
+                width: "0.9"
+                height: "0.7"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+                  children:
+                    - type: image
+                      viewTag: select
+                      path: rightYellowArrow.svg
+                      style:
+                        top: "0.03"
+                        left: "0"
+                        height: "0.04"
+                    # - type: image
+                    #   path: drImg.png
+                    #   style:
+                    #     borderRadius: "10000"
+                    #     height: "0.07"
+                    #     top: "0.015"
+                    #     left: "0.13"
+                    - type: label
+                      dataKey: itemObject.name.fullName
+                      onClick: 
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                          dataKey: RecentList.inviteMeeting.edge
+                          dataObject: itemObject                        
+                        - actionType: popUp
+                          popUpView: confirmView                          
+                      style:
+                        top: "0"
+                        left: "0.15"
+                        height: "0.1"
+                        width: "0.45"
+                        textAlign:
+                          y: center
+                    - type: label
+                      # if .buildIn.string.formatUnixtime_en(itemObject.ctime) is not valid
+                      # keep the 'text' field, otherwise, replace the 'text' field with the return value.
+                      text=func: =.builtIn.string.formatUnixtime_en
+                      dataKey: itemObject.ctime # Mon Day, Year hh:mm:ss
+                      style:
+                        left: "0.52"
+                        top: "0.04"
+                        height: "0.03"
+                        fontSize: "12"
+                        zIndex: 1000
+                    - type: popUp # view
+                      viewTag: confirmView
+                      style:
+                        left: "0"
+                        top: "0"
+                        width: "0.8"
+                        height: "1" 
+                        # backgroundColor: "0x00000066" 
+                      children:
+                        - type: view
+                          style:
+                            left: "0.05"
+                            top: "0.15"
+                            width: "0.8"
+                            height: "0.35"
+                            backgroundColor: "0xeeeeeeff"
+                            border:
+                              style: "5"
+                            borderRadius: "15"
+                          children:
+                            - type: label
+                              text: "Do you want to make a phonecall?"
+                              style:
+                                .LabelStyle:
+                                  left: "0"
+                                  top: "0.12"
+                                  width: "0.8"
+                                  height: "0.04"
+                                  color: "0x00000088"
+                                  fontSize: "20"
+                                  fontStyle: bold
+                                  display: inline
+                                  textAlign:
+                                    x: center
+                                    y: center
+                            - type: divider
+                              style:
+                                .DividerStyle:
+                                  left: "0"
+                                  top: "0.25436"
+                                  width: "0.8"
+                                  height: "0.001"
+                                  backgroundColor: "0x00000088"
+                            - type: button
+                              onClick: 
+                                - actionType: popUpDismiss
+                                  popUpView: confirmView
+                              text: Cancel
+                              style:
+                                .LabelStyle:
+                                  left: "0"
+                                  top: "0.275"
+                                  width: "0.4"
+                                  height: "0.06812"
+                                  color: "0x007affff"
+                                  fontSize: "17"
+                                  display: inline
+                                  textAlign:
+                                    x: center
+                                    y: center 
+                                  border:
+                                    style: "5"
+                                  borderRadius: "15"
+
+                            - type: button
+                              onClick:                                 
+                                - actionType: popUpDismiss
+                                  popUpView: confirmView
+                                - actionType: evalObject
+                                  object: 
+                                    - =.Global.rootRoomInfo.edgeAPI.store: "" 
+                                    - .Global._nonce@: 
+                                        =.builtIn.math.random: ""  
+                                    - ..inviteMeeting.edge.id@: ""                                      
+                                    - ..inviteMeeting.edge.refid@: =.Global.rootRoomInfo.edge.edge.id
+                                    - ..inviteMeeting.edge.name.roomName@: =.Global.rootRoomInfo.edge.edge.name.roomName
+                                    - =.RecentList.inviteMeeting.edgeAPI.store: ""                                                                                                      
+                                - goto: MeetingLobby
+                              text: Confirm
+                              style:
+                                .LabelStyle:
+                                  left: "0.4"
+                                  top: "0.275"
+                                  width: "0.4"
+                                  height: "0.06812"
+                                  color: "0x007affff"
+                                  fontSize: "17"
+                                  display: inline
+                                  textAlign:
+                                    x: center
+                                    y: center 
+                                  border:
+                                    style: "5"
+                                  borderRadius: "15"
+                            - type: divider
+                              style:
+                                .DividerStyle:
+                                  left: "0.4"
+                                  top: "0.26"
+                                  width: "0.001"
+                                  height: "0.07"
+                                  backgroundColor: "0x00000088"                        

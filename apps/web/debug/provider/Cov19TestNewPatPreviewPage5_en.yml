@@ -35,7 +35,7 @@ Cov19TestNewPatPreviewPage5:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "5&nbsp;/&nbsp;6"
+                      text: "5&nbsp;/&nbsp;5"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -172,13 +172,23 @@ Cov19TestNewPatPreviewPage5:
             ..style.btnBox:
           children:
             - type: button
-              text: Next
+              text: Done
               dataKey:
               style:
                 ..style.btn:
               onClick:
-                - goto: Cov19TestNewPatPreviewPage6
-
+                - ..event.btnClick
+  event:
+    btnClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.pageName
+                    string2: ""
+              - goto: DocumentForReason
+              - goto: =.Global.formData.pageName
   style: #Input style fragment here
     formatting:
       margin: "0"
@@ -187,7 +197,7 @@ Cov19TestNewPatPreviewPage5:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -208,7 +218,7 @@ Cov19TestNewPatPreviewPage5:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -271,7 +281,7 @@ Cov19TestNewPatPreviewPage5:
       borderRadius: "3"
       borderWidth: "1.5"
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       color: "0x333333"
       textIndent: "12px"
@@ -302,14 +312,14 @@ Cov19TestNewPatPreviewPage5:
       fontSize: .Nfont.h12
       verticalAlign: middle
       width: "0.8266"
-      heigth: "auto"
+      height: "auto"
     signClear:
       display: "inline-block"
       fontSize: .Nfont.h14
       color: "#e24445"
       verticalAlign: middle
       width: "auto"
-      heigth: "auto"
+      height: "auto"
     canvasBox:
       marginTop: "0.01"
       height: "0.128"
@@ -323,7 +333,7 @@ Cov19TestNewPatPreviewPage5:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

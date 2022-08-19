@@ -17,8 +17,13 @@ preload:
   - BaseMessage
   - NewPatientFormDM
 page:
+  - LockPage
+  - Recommendations
+  - MedicalRecommendation
   - FinancialFormReviewPage1
   - FinancialFormReviewPage2
+  - RelatedAppointmentDetail
+  - VitalHistoryInfo
   - AppointmentInviteMessage
   - ChooseInvite
   - ChooseFacilitiesInvite
@@ -44,9 +49,6 @@ page:
   - Attachments
   - AvailableProfileOffice
   - AvailableProfileTelemedicine
-  - BillingInfoNo
-  - BillingInfoShow
-  - BillingInfo
   - BlankNotePrivate
   - BlankNoteShared
   - BlankNote
@@ -55,6 +57,7 @@ page:
   - ContactInformation
   - Contacts
   - Cov19ResultsAndFluResults
+  - Cov19PCRTestResults
   - Cov19Results
   - Cov19TestFormPreviewPage1
   - Cov19TestFormPreviewPage2
@@ -82,10 +85,17 @@ page:
   - CreateAvailability
   - CreateNewAccount
   - ConfidentialMorbidityReport
+  - CreateSchedule
+  - ChooseFacilities
+  - CreateTransferAppointment
+  - ChooseProviders
+  - ChargeEntry
+  - MoreOptions
   - DWCFormRFAPrivate
   - DWCFormRFAShared
   - DWCFormRFA
   - Dashboard
+  - DeleteAccount
   - DisagreeRequest2
   - DisagreeRequest
   - DocumentDetail
@@ -94,6 +104,7 @@ page:
   - DocumentPrivate
   - DocumentAdmin
   - DocumentShared
+  - DiagnosesView
   - Drafts
   - EditInboxOther
   - EditInboxSelf
@@ -110,6 +121,8 @@ page:
   - FluVaccinationConsentFormEnglishShared
   - FluVaccinationConsentFormEnglish
   - FluVaccinationConsentFormSpanish
+  - FluVaccinationConsentFormReviewPage1
+  - FluVaccinationConsentFormPreviewPage1
   - FolderPage
   - HippaConsentShow
   - HippaConsent
@@ -119,18 +132,16 @@ page:
   - InitEvalReportPrivate
   - InitEvalReportShared
   - InitEvalReport
-  - InviteCompletedForm
   - InviteList
-  - InvitePatient
   - InviteSuccessfuk
   - InvitingList
   - LocationInformation
   - LogOut
+  - MedicalRecommendation
   - Maillist
   - MasterSubscriptionSigned
   - MasterSubscription
   - MedicalDocuments_VistoryHistory
-  - MedicalDocuments
   - MedicalInsuranceShow
   - MedicalLicense
   - MedicalRecords
@@ -154,7 +165,6 @@ page:
   - ModernaVaccineSecDosePreviewPage2
   - ModernaVaccineSecDoseReviewPage1
   - ModernaVaccineSecDoseReviewPage2
-  - Moderna
   - MyConnection
   - MyPatient
   - MyProfile
@@ -174,6 +184,7 @@ page:
   - OrganizationInfo
   - OrganizationProvider
   - Objtype3
+  - ProductDetails
   - PROnePrivate
   - PROneShared
   - PROne
@@ -186,21 +197,15 @@ page:
   - PatientConsentFormPrivate
   - PatientConsentFormShared
   - PatientConsentForm
+  - PatientConsentFormPreviewPage1
+  - PatientConsentFormReviewPage1
   - PatientContacts
-  - PatientInfo2
-  - PatientInfo3
-  - PatientInfo4
-  - PatientInfoShow2
-  - PatientInfoShow3
-  - PatientInfoShow4
-  - PatientInfo
   - PatientList
   - PatientProfile
   - PatientVisitInfo
   - PaymentInformation
   - PaymentReceipt
   - PharmacyList
-  - PifzerBioNTech
   - PfizerVaccineFirDosePreviewPage1
   - PfizerVaccineFirDosePreviewPage2
   - PfizerVaccineFirDosePreviewPage3
@@ -237,6 +242,10 @@ page:
   - RequiredForms
   - Result
   - RingTonePage
+  - RecommendationShared
+  - RelatedAppointments
+  - Recommendations
+  - RecommendationsRecord
   - ScheduleProfile
   - SearchOutProviderInfo
   - SearchProvider
@@ -259,17 +268,18 @@ page:
   - SurgeryAuthorizationReviewPage1
   - SurgeryAuthorization
   - SwitchFacility
+  - ScheduleAppointment
+  - SelectSuperbill
+  - SelectDiagnosis
+  - SuperbillReview
+  - SelectRecommendation
   - Test
   - TitleOrTrainingDoc
   - TrashMessage
   - Trash
   - UnfinishProviderNotes
-  - Unfinished
-  - UploadContact
-  - UploadFavorite
   - UploadMedicalRecord2
   - UploadMedicalRecord
-  - UploadRecent
   - UserAgreement
   - Vaccine1
   - Vaccine2
@@ -277,9 +287,9 @@ page:
   - ViewMedicalInsurance
   - ViewMedicalRecord
   - VisitDetial
-  - VisitHistory
   - VisitQuestionnaire
   - VitalSigns
+  - VitalHistoryList
   - WaitingRoom
   - Welcome
   - WorkStatusFormPrivate

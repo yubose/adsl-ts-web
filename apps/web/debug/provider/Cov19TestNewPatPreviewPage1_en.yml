@@ -45,7 +45,7 @@ Cov19TestNewPatPreviewPage1:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "1&nbsp;/&nbsp;6"
+                      text: "1&nbsp;/&nbsp;5"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -376,7 +376,7 @@ Cov19TestNewPatPreviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -397,7 +397,7 @@ Cov19TestNewPatPreviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -532,7 +532,7 @@ Cov19TestNewPatPreviewPage1:
       borderRadius: "3"
       borderWidth: "1.5"
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       color: "0x333333"
       textIndent: "12px"
@@ -551,7 +551,7 @@ Cov19TestNewPatPreviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:
@@ -597,7 +597,7 @@ Cov19TestNewPatPreviewPage1:
     #         - type: label
     #           text: Patient Info
     #           style:
-    #             fontFamily: "Arial"
+    #
     #             left: "0.08"
     #             marginTop: "0"
     #             width: "0.9"
@@ -831,7 +831,7 @@ Cov19TestNewPatPreviewPage1:
     #         - type: label
     #           text: Emergency Contact
     #           style:
-    #             fontFamily: "Arial"
+    #
     #             left: "0.08"
     #             top: "0.9"
     #             width: "0.9"
@@ -886,7 +886,7 @@ Cov19TestNewPatPreviewPage1:
     #             height: "0.04"
     #           children:
     #             - type: image
-    #               path: selectOffBlack.svg
+    #               path: selectOffBlue.svg
     #               style:
     #                 left: "0"
     #                 width: "0.05"
@@ -914,7 +914,7 @@ Cov19TestNewPatPreviewPage1:
     #             height: "0.04"
     #           children:
     #             - type: image
-    #               path: selectOffBlack.svg
+    #               path: selectOffBlue.svg
     #               style:
     #                 left: "0"
     #                 width: "0.05"

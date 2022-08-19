@@ -2,12 +2,26 @@ EvaluationNote:
   title: "Evaluation Note"
   init:
     - .SignInCheck
+
+    - .Global.formData.lastPage@: ProviderNoteSelect
+    # 判断本地会议是否有diagnoses存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.diagnosesDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.diagnosesDoc.docReq@: =.Global.formData.providerDoc.diagnosesDoc
+        - actionType: evalObject
+          object:
+            - =.EvaluationNote.apiRequest.diagnosesDoc.docAPI.store: ""
+            - ..apiRequest.diagnosesDoc.docReq@: =.EvaluationNote.apiRequest.diagnosesDoc.docResp.doc
+            - .Global.formData.providerDoc.diagnosesDoc@: =.EvaluationNote.apiRequest.diagnosesDoc.docResp.doc
     - if:
         #判断是否从ProviderMacros回来，需要复现之前已填的数据
         - =.Global.formData.providerDoc.evaluation.id
         - actionType: evalObject
           object:
             - ..apiRequest.evaluationNote.docReq@: =.Global.formData.providerDoc.evaluation
+            - ..apiRequest.evaluationNote.docReq.name.data.superbill@: =.Global.formData.superbillComplete
         - actionType: evalObject
           object:
             #页面进入时就创建文档
@@ -33,7 +47,7 @@ EvaluationNote:
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..apiRequest.evaluationNote.docReq.name.data.descriptiveList
+              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
             dataOut: EvaluationNote.formData.listDatalength
 
     - actionType: evalObject
@@ -80,6 +94,9 @@ EvaluationNote:
 
   apiRequest:
     evaluationNote:
+      deleteInfo:
+        id:
+          - =..apiRequest.evaluationNote.docResp.doc.id
       docResp: ""
       docReq:
         eid: .Global.currentRoom.edge.id
@@ -135,14 +152,20 @@ EvaluationNote:
               phoneNumber: .Global.currentMeetingPatientProfile.basicInfo.phone
               email: .Global.currentMeetingPatientProfile.contactInfo.email
               address: .Global.currentMeetingPatientProfile.contactInfo.address.fullAddress
+            superbill: .Global.formData.superbillComplete
+            planAndRecommendations: ""
           title: "Evaluation Note"
           user: .Global.formData.providerTitle
+
       docAPI:
         .DocAPI: ""
         store:
           api: cd
           dataIn: EvaluationNote.apiRequest.evaluationNote.docReq
           dataOut: EvaluationNote.apiRequest.evaluationNote.docResp
+        delet:
+          api: dx
+          dataIn: EvaluationNote.apiRequest.evaluationNote.deleteInfo
     newSign:
       docRes: ""
       docReq: #DOC
@@ -159,7 +182,24 @@ EvaluationNote:
           api: cd
           dataIn: apiRequest.newSign.docReq
           dataOut: EvaluationNote.apiRequest.newSign.docRes
-
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.Diagnoses
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            diagnosis:
+              descriptiveList: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: EvaluationNote.apiRequest.diagnosesDoc.docReq
+          dataOut: EvaluationNote.apiRequest.diagnosesDoc.docResp
   formData:
     searchShow: "none"
     signatureTime: ""
@@ -179,9 +219,20 @@ EvaluationNote:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =..apiRequest.evaluationNote.docAPI.delet: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
+            # 处理Diagnosis
+            - actionType: evalObject
+              object:
+                - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
             # 签名处理
             - actionType: saveSignature
               dataObject: BLOB
@@ -224,7 +275,7 @@ EvaluationNote:
         width: "1"
         height: "0.846"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -258,7 +309,7 @@ EvaluationNote:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -269,7 +320,7 @@ EvaluationNote:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
 
@@ -398,7 +449,7 @@ EvaluationNote:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             paddingTop: "6px"
         - type: label
@@ -428,7 +479,7 @@ EvaluationNote:
             borderWidth: "1.5"
             borderColor: "0xdedede"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             paddingTop: "6px"
 
@@ -459,7 +510,7 @@ EvaluationNote:
             borderWidth: "1.5"
             borderColor: "0xdedede"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             paddingTop: "6px"
         - type: view
@@ -538,9 +589,8 @@ EvaluationNote:
                             boxSizing: border-box
                             border:
                               style: 1
-                            fontSize: .Nfont.h12
+                            fontSize: .Nfont.h14
                             verticalAlign: middle
-                            fontFamily: "Arial"
                             color: "0x333333"
                           onInput:
                             - actionType: evalObject
@@ -609,7 +659,7 @@ EvaluationNote:
                         borderRadius: "4"
                         borderWidth: "1.5"
                         borderColor: "0xcdcdcd"
-                        fontFamily: "Arial"
+                        fontSize: .Nfont.h14
                         color: "0x333333"
                 - type: textView
                   viewTag: CommentsTag
@@ -626,10 +676,10 @@ EvaluationNote:
                     borderRadius: "4"
                     borderWidth: "1.5"
                     borderColor: "0xcdcdcd"
-                    fontFamily: "Arial"
+                    fontSize: .Nfont.h14
                     color: "0x333333"
                     paddingTop: "6px"
-                
+
             - type: label
               text: + add more
               style:
@@ -653,11 +703,26 @@ EvaluationNote:
                           popUpView: SearchWarning
                           wait: true
                           popUpDismiss: 2000
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.array.containingValue:
+                            dataIn:
+                              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+                              key: code
+                              value: =..formData.diagnosis.descriptiveList.code
+                        - actionType: popUp
+                          popUpView: repeatWarning
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+
                 - emit:
                     actions:
                       - =.builtIn.array.add:
                           dataIn:
-                            object: =..apiRequest.evaluationNote.docReq.name.data.descriptiveList
+                            object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                             value: =..formData.diagnosis.descriptiveList
                 - actionType: evalObject
                   object:
@@ -703,7 +768,7 @@ EvaluationNote:
                     - type: list
                       viewTag: listData
                       contentType: listObject
-                      listObject: ..apiRequest.evaluationNote.docReq.name.data.descriptiveList # to dataObject to enumerate the list
+                      listObject: ..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
                       iteratorVar: itemObject
                       style:
                         width: "0.92"
@@ -747,7 +812,7 @@ EvaluationNote:
                                     width: "0.17"
                                     textAlign:
                                       x: left
-                                    fontFamily: "Arial"
+
                                     backgroundColor: "0xffffff"
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
@@ -766,14 +831,14 @@ EvaluationNote:
                                   dataKey: itemObject.description
                                   style:
                                     verticalAlign: top
-                                    marginLeft: "0.02"
+                                    marginLeft: "0.015"
                                     display: "inline-block"
                                     height: "auto"
                                     width: "0.64"
                                     textAlign:
                                       x: left
                                     backgroundColor: "0xffffff"
-                                    fontFamily: "Arial"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
                                     color: "0x333333"
@@ -785,7 +850,7 @@ EvaluationNote:
                                 width: "0.845"
                                 height: "auto"
                                 color: "0x666666"
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
             - type: label
@@ -814,9 +879,102 @@ EvaluationNote:
                 borderWidth: "1.5"
                 borderColor: "0xdedede"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 paddingTop: "6px"
+
+            - type: label
+              text: "Plan And Recommendations"
+              dataKey:
+              style:
+                ..style.thirdInputTitle:
+                marginLeft: "0.04"
+            - type: label
+              text: You can add recommendations after finishing this note
+              style:
+                ..style.thirdInputTitle:
+                margin: "0"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                marginLeft: "0.04"
+                fontWeight: "400"
+            - type: label
+              text: "&#8226 Note"
+              style:
+                width: "0.92"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                marginLeft: "0.04"
+            - type: textView
+              placeholder: "Enter here"
+              dataKey: apiRequest.evaluationNote.docReq.name.data.planAndRecommendations
+              style:
+                ..style.thirdInput:
+                marginLeft: "0.04"
+
+            # - type: view
+            #   viewTag: defaultTag
+            #   style:
+            #     ..style.blockBox:
+            #   children:
+            #     - type: image
+            #       path:
+            #         ..event.checkBoxPath:
+            #       style:
+            #         ..style.img:
+            #     - type: label
+            #       text: Superbill
+            #       onClick:
+            #         # 签名处理
+            #         - actionType: saveSignature
+            #           dataObject: BLOB
+            #           dataKey: EvaluationNote.apiRequest.newSign.docReq.name.data
+            #           isEmpty: EvaluationNote.formData.whetherSign
+            #         - actionType: evalObject
+            #           object:
+            #             - ..apiRequest.newSign.docReq.reid@: =.EvaluationNote.apiRequest.evaluationNote.docReq.id
+
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..formData.whetherSign
+            #                 - continue
+            #                 - =..apiRequest.newSign.docAPI.store: ""
+
+            #         # 保存签名
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..formData.temporarySignature
+            #                 - actionType: evalObject
+            #                   object:
+            #                     - ..apiRequest.evaluationNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+            #                     - ..apiRequest.evaluationNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+            #                     - ..apiRequest.evaluationNote.docReq.name.data.whetherSign@: false
+            #                     - ..formData.whetherSign@: false
+            #                 - actionType: evalObject
+            #                   object:
+            #                     - ..apiRequest.evaluationNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+            #                     - ..apiRequest.evaluationNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+            #                     - ..apiRequest.evaluationNote.docReq.name.data.whetherSign@: =..formData.whetherSign
+            #         - actionType: evalObject
+            #           object:
+            #             - =.EvaluationNote.apiRequest.evaluationNote.docAPI.store: ""
+            #             - .Global.formData.providerDoc.evaluation@: =..apiRequest.evaluationNote.docResp.doc
+            #         - actionType: evalObject
+            #           object:
+            #             # 更新本地
+            #             - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
+            #             - .Global.formData.parentPage@: EvaluationNote
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..apiRequest.evaluationNote.docReq.name.data.superbill
+            #                 - goto: SuperbillReview
+            #                 - goto: SelectSuperbill
+            #       style:
+            #         ..style.setLabel:
+
             - type: view
               viewTag: searchShowTag
               style:
@@ -837,9 +995,10 @@ EvaluationNote:
                     display: "none"
                     width: "0.92"
                     height: "auto"
-                    fontFamily: "Arial"
+
                     borderRadius: "4"
                     boxSizing: "border-box"
+                    backgroundColor: "0xffffff"
                     boxShadow: "1px 1px 4px 1px #dededf"
                     zIndex: 10
                   children:
@@ -902,12 +1061,14 @@ EvaluationNote:
                                       funcName: hide
                                       viewTag: ShowTag
                                     - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: listData
+                                    - actionType: builtIn
                                       funcName: show
                                       viewTag: listData
                                     - actionType: builtIn
                                       funcName: hide
                                       viewTag: CodeTag
-
         - .DocPublicLine:
 
         - type: view
@@ -1158,6 +1319,15 @@ EvaluationNote:
           children:
             - .DocButtonPrivate:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.EvaluationNote.apiRequest.diagnosesDoc.docAPI.store: ""
+                - actionType: evalObject
+                  object:
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -1212,12 +1382,36 @@ EvaluationNote:
                         dataIn:
                           object: =.Global.currentMeetingDoc
                           value: =..apiRequest.evaluationNote.docResp.doc
+
                 - actionType: evalObject
                   object:
-                    - goto: ProviderNoteSelect
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.EvaluationNote
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+
+                - actionType: evalObject
+                  object:
+                    - goto: MoreOptions
 
             - .DocButtonRelease:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.EvaluationNote.apiRequest.diagnosesDoc.docAPI.store: ""
+                - actionType: evalObject
+                  object:
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.EvaluationNote.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -1266,12 +1460,6 @@ EvaluationNote:
                           wait: true
                           popUpDismiss: 2000
                         - continue
-                # 更新文档状态
-                - actionType: evalObject
-                  object:
-                    - ..apiRequest.evaluationNote.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.evaluationNote.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.evaluationNote.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
 
                 #  修改type
                 - actionType: evalObject
@@ -1283,23 +1471,73 @@ EvaluationNote:
                           hex: 1
                         dataOut: EvaluationNote.apiRequest.evaluationNote.docReq.type
 
-                # 保存文档
                 - actionType: evalObject
                   object:
-                    - =.EvaluationNote.apiRequest.evaluationNote.docAPI.store: ""
-                    - =.builtIn.array.add:
+                    - =.builtIn.utils.createAuditLog:
                         dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.evaluationNote.docResp.doc
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
-                - actionType: evalObject
-                  object:
-                    - goto: ProviderNoteSelect
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.EvaluationNote
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+
+                - actionType: popUp
+                  popUpView: dialogueTag
 
     # 弹窗区域
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        # 保存文档
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.evaluationNote.docReq.tage@: 1
+            - =.EvaluationNote.apiRequest.evaluationNote.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.evaluationNote.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+      rightButton:
+        # 更新文档状态
+        - actionType: evalObject
+          object:
+            - ..apiRequest.evaluationNote.docReq.name.data.statusTag.name@: "Released"
+            - ..apiRequest.evaluationNote.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.evaluationNote.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        # 保存文档
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.evaluationNote.docReq.tage@: -1
+            - =.EvaluationNote.apiRequest.evaluationNote.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.evaluationNote.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+
     - .BaseWarningView:
       message: "You haven't signed the form"
 
@@ -1317,7 +1555,7 @@ EvaluationNote:
           object:
             - =.builtIn.array.removeByName:
                 dataIn:
-                  object: =..apiRequest.evaluationNote.docReq.name.data.descriptiveList
+                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                   key: code
                   name: =..formData.selectedDiagnosis.code
             - ..formData.listDataflag@: "block"
@@ -1326,3 +1564,57 @@ EvaluationNote:
               viewTag: listData
         - actionType: popUpDismiss
           popUpView: BaseDelWarningView
+
+    - .BaseWarningView:
+      message: "Do not add repeatedly"
+      viewTag: repeatWarning
+
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..apiRequest.evaluationNote.docReq.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+  style: #Input style fragment here
+    thirdInputTitle:
+      marginTop: "0.024630"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.92"
+      fontWeight: "600"
+    thirdInput:
+      marginTop: "0.009852"
+      height: "0.087438"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+
+    blockBox:
+      marginTop: "0.024630"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

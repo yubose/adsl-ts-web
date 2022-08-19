@@ -7,10 +7,15 @@ MessageShowReplyDetails:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    #获取tag
-    - ..apiRequest.emailTag.docAPI.get
-    #获取附件
-    - ..apiRequest.attachment.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            #获取tag
+            - =..apiRequest.emailTag.docAPI.get: ""
+            #获取附件
+            - =..apiRequest.attachment.docAPI.get: ""
     - if:
         - =.builtIn.number.typeIsValid:
             dataIn:
@@ -98,7 +103,7 @@ MessageShowReplyDetails:
               style:
                 top: "0.02"
                 height: "0.02"
-                width: "0.34"
+                width: "auto"
                 textAlign:
                   y: center
                 left: "0.05"
@@ -109,7 +114,7 @@ MessageShowReplyDetails:
               style:
                 fontSize: .Nfont.h16
                 # fontWeight: "500"
-                fontFamily: "Arial"
+
                 left: "0.05"
                 top: "0.045"
                 width: "0.9"
@@ -189,7 +194,7 @@ MessageShowReplyDetails:
                 top: "0.01"
                 width: "0.9"
                 left: "0.05"
-                fontFamily: "Verdana"
+
                 fontSize: .Nfont.h14
                 height: "0.4"
                 backgroundColor: "0xffffff"
@@ -256,7 +261,7 @@ MessageShowReplyDetails:
                             width: "0.45"
                             left: "0.13"
                             overflow: hidden
-                            textOverflow: ellipsis
+                            text-overflow: ellipsis
                             whiteSpace: nowrap
                             fontSize: .Nfont.h2
                         - type: label

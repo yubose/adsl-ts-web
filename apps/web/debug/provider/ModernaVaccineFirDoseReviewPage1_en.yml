@@ -2,13 +2,44 @@ ModernaVaccineFirDoseReviewPage1:
   title: "Moderna Vaccine Form - First Dose"
   init:
     - .SignInCheck
-
+    - =.builtIn.utils.createAuditLog:
+        dataIn:
+          actionTypeCode: .ActionTypeCode.view
+          recordTypeCode: 117761
+          eid: =.Global.formData.currentFacility.relationEdge.id
+          user: =.Global.MyProfile.name.data.fullName
+          userId: =.Global.currentUser.vertex.id
+          targetUserId: =.Global.formData.auditLog.patientId
+          accessPort: provider
+        dataOut: Global.formData.auditLog.result
     - if:
         - =.Global.roomInfo.edge.id
         - ..apiRequest.modernaVaccineFirDoseForm.docAPI.get
         - continue
 
     - .Global.formData.modernaVaccineFirDoseForm@: =..apiRequest.modernaVaccineFirDoseForm.docRes.doc.0
+    # 多页PDF下载
+    - actionType: evalObject
+      object:
+        - .Global.formData.downloadPDF.PdfPageList@:
+            - pageName: ModernaVaccineFirDoseReviewPage1
+              viewTag: mainView
+            - pageName: ModernaVaccineFirDoseReviewPage2
+              viewTag: mainView
+            - pageName: ModernaVaccineFirDoseReviewPage3
+              viewTag: mainView
+            - pageName: ModernaVaccineFirDoseReviewPage4
+              viewTag: mainView
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Moderna Vaccine Form - First Dose"
+        - .Global.formData.downloadPDF.pageIntervalList@:
+            - 130
+            - 900
+            - 0
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
   apiRequest:
     modernaVaccineFirDoseForm:
       docRes: ""
@@ -38,7 +69,9 @@ ModernaVaccineFirDoseReviewPage1:
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14
+            - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -56,7 +89,7 @@ ModernaVaccineFirDoseReviewPage1:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "1&nbsp;/&nbsp;5"
+                      text: "1&nbsp;/&nbsp;4"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -282,9 +315,8 @@ ModernaVaccineFirDoseReviewPage1:
                 - type: view
                   style:
                     ..style.listBox:
-                    marginTop: "0.0320"
-                    width: "0.92"
                     display: block
+                    marginTop: "0.0320"
                   children:
                     - type: list
                       viewTag: checkedView
@@ -293,7 +325,6 @@ ModernaVaccineFirDoseReviewPage1:
                       iteratorVar: itemObject
                       style:
                         ..style.list:
-                        width: "0.92"
                       children:
                         - type: listItem
                           itemObject:
@@ -327,6 +358,7 @@ ModernaVaccineFirDoseReviewPage1:
                 ..style.btn:
               onClick:
                 - goto: ModernaVaccineFirDoseReviewPage2
+    - .HeaderPopUpMultiplePDF:
   event:
     checkBox:
       emit:
@@ -349,10 +381,9 @@ ModernaVaccineFirDoseReviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
-
     bodyBox:
       width: "auto"
       height: "0.84852"
@@ -370,7 +401,7 @@ ModernaVaccineFirDoseReviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -404,10 +435,10 @@ ModernaVaccineFirDoseReviewPage1:
         x: center
     scrollBox:
       marginLeft: "0.04"
-      width: "0.92"
+      width: "0.96"
       height: "0.7832"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -497,7 +528,7 @@ ModernaVaccineFirDoseReviewPage1:
       width: "0.92"
       boxSizing: border-box
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
       color: "0x333333"
@@ -509,7 +540,6 @@ ModernaVaccineFirDoseReviewPage1:
     checkItem:
       margin: "0"
       marginTop: "0.01724"
-      width: "0.92"
       height: "auto"
       boxSizing: border-box
     btnBox:
@@ -517,7 +547,7 @@ ModernaVaccineFirDoseReviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

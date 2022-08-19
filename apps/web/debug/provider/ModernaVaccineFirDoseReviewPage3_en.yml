@@ -6,6 +6,7 @@ ModernaVaccineFirDoseReviewPage3:
 
     - .ModernaVaccineFirDoseReviewPage3.formData.screeningEligibility@: =.Global.formData.modernaVaccineFirDoseForm.name.data.screeningEligibility
 
+
   formData: #Input data here
     screeningEligibility:
       recevingDose: ""
@@ -35,6 +36,7 @@ ModernaVaccineFirDoseReviewPage3:
               style:
                 fontSize: .Nfont.h14
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -52,7 +54,7 @@ ModernaVaccineFirDoseReviewPage3:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "3&nbsp;/&nbsp;5"
+                      text: "3&nbsp;/&nbsp;4"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -146,6 +148,7 @@ ModernaVaccineFirDoseReviewPage3:
                 ..style.btn:
               onClick:
                 - goto: ModernaVaccineFirDoseReviewPage4
+    - .HeaderPopUpMenu:
   event:
     recevingDosePath:
       emit:
@@ -181,7 +184,7 @@ ModernaVaccineFirDoseReviewPage3:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -202,7 +205,7 @@ ModernaVaccineFirDoseReviewPage3:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -239,7 +242,7 @@ ModernaVaccineFirDoseReviewPage3:
       width: "0.92"
       height: "0.7487"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -285,7 +288,7 @@ ModernaVaccineFirDoseReviewPage3:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

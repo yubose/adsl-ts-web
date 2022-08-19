@@ -8,7 +8,7 @@ PharmacyList:
           =.builtIn.math.random: ""
     - ..pharmacy.get
   pharmacy:
-    pharmacyList:
+    pharmacyList: ""
     vertex:
       type: ""
       xfname: none
@@ -17,8 +17,8 @@ PharmacyList:
       _nonce: =.Global._nonce
     get:
       api: rv
-      dataOut: pharmacy.pharmacyList
-      dataIn: pharmacy.vertex
+      dataOut: PharmacyList.pharmacy.pharmacyList
+      dataIn: PharmacyList.pharmacy.vertex
   pharmacyProviderEdge:
     response: ""
     edge:
@@ -95,7 +95,7 @@ PharmacyList:
         maxcount: "1"
       delete:
         api: dx
-        dataIn: prescription.document
+        dataIn: PharmacyList.prescription.document
   formData:
     facilityInfo: ""
   components:
@@ -178,7 +178,7 @@ PharmacyList:
                         width: "0.4"
                         height: "0.03"
                         top: "0.035"
-                        # fontFamily: "Arial"
+                        #
                         color: "0x000000"
                         fontSize: .Nfont.h2
                         zIndex: 100
@@ -215,7 +215,7 @@ PharmacyList:
                         color: "0xffffff"
                         boxSizing: border-box
                         fontSize: .Nfont.h2
-                        # fontFamily: "Arial"
+                        #
                         border:
                           style: "3"
                         borderWidth: "1"

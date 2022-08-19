@@ -1,8 +1,10 @@
 # BaseecosObj: # This is page name
-AppName: Provider
+AppName: com.aitmed.iprovider
+AWSKeyIDEncrypted: "a3hpJfI3vODRWIF2m1RM9HYt5CoJy4X+rR+e1vFg08q5Pm+0proQad9Tju9Pwdna8NH+CaMlAQB304kA"
+AWSKeyEncrypted: "pOANd/BRkHtIhj1xa9BbJjFrkiFM1HL67Ty1clQbWKCVvyy+jnz4rLyyYPk+QjaIgVu0rmiPdg/0Ay3ZfA78vub96RyRwgKF0Te4Fq2qfUk="
 # notification target app name
 TargetApp:
-  patient: AitCare
+  patient: com.aitmed.icare
   admin: Admin
 # root level object start with a upper case letter
 VoidObj: vVoOiIdD # {}
@@ -120,11 +122,18 @@ NotificationMap:
   data:
     roomInfoId: ""
 Global: # name of an object'
+  MiddlePage:
+    createRelationAppointment: ""
+  ActiveLocation: ""
+  nonFirstProfile: true
+  currentRoomrelatedAppointment: ""
+  # 用于保存当前房间信息，是relation appointment还是普通room
+  currentRoomInfo: ""
   selfAPPID: ""
   patdAPPID: ""
   prodAPPID: ""
   timeDelay: 1000
-  publicProfileViewHidden: true
+  publicProfileViewHidden: false
   ids: []
   locIds: ""
   currentMeetingDoc: []
@@ -262,6 +271,9 @@ Global: # name of an object'
               - goto: =.NotificationMap.notificationGoto
     # When the app obtain the current token (either from login or Firebase auto update)
     # send the access token to server via 1090 edge
+    # iOS will have two tokens, one for regular notification, the other is for VoIP,
+    # aka ringtone notification. we use the same field for regular notification and FirebaseToken
+    # we use FirebaseToken.name.VoIPToken for iOS VoIP token
     - type: register
       onEvent: FCMOnTokenReceive
       emit:
@@ -273,6 +285,14 @@ Global: # name of an object'
               dataIn:
                 token: $var
               dataOut: FirebaseToken.edge.name.accessToken
+          - =.builtIn.FCM.getAPNsToken:
+              dataIn:
+                token: ""
+              dataOut: FirebaseToken.edge.name.apns2Token
+          - =.builtIn.FCM.getVoIPToken:
+              dataIn:
+                token: ""
+              dataOut: FirebaseToken.edge.name.VoIPToken
           - =.builtIn.FCM.getAPPID:
               dataIn:
                 appName: =.AppName
@@ -289,6 +309,9 @@ Global: # name of an object'
               dataIn:
                 token: $var
               dataOut: FirebaseToken.edge.refid
+          - actionType: evalObject
+            object:
+              - .FirebaseToken.edge.name.apnsTopic@: =.AppName
           - if:
               - =.FirebaseToken.response.edge.id
               - =.FirebaseToken.edgeAPI.delete: ""
@@ -330,25 +353,26 @@ Global: # name of an object'
           - if:
               - =.builtIn.utils.isOnPage:
                   dataIn: "VideoChat"
-              - if:
-                  # if in the target meeting room
-                  - =.builtIn.string.equal:
-                      dataIn:
-                        string1: =.Global.roomInfo.edge.id
-                        string2: =.Global.ecosDocObj.doc.0.eid
-                  - continue
-                  - actionType: evalObject
-                    object:
-                      - =.builtIn.notification.isNotification:
-                          dataIn:
-                            doc: =.Global.ecosDocObj.doc.0
-                          dataOut: NotificationMap
-                      - if:
-                          - =.Global.ecosDocObj.doc.0.name.notification.landingPage
-                          - actionType: evalObject
-                            object:
-                              - goto: =.Global.ecosDocObj.doc.0.name.notification.landingPage
-                          - continue
+              - continue
+              # - if:
+              #     # if in the target meeting room
+              #     - =.builtIn.string.equal:
+              #         dataIn:
+              #           string1: =.Global.roomInfo.edge.id
+              #           string2: =.Global.ecosDocObj.doc.0.eid
+              #     - continue
+              #     - actionType: evalObject
+              #       object:
+              #         - =.builtIn.notification.isNotification:
+              #             dataIn:
+              #               doc: =.Global.ecosDocObj.doc.0
+              #             dataOut: NotificationMap
+              #         - if:
+              #             - =.Global.ecosDocObj.doc.0.name.notification.landingPage
+              #             - actionType: evalObject
+              #               object:
+              #                 - goto: =.Global.ecosDocObj.doc.0.name.notification.landingPage
+              #             - continue
               - actionTypes: evalObject
                 objects:
                   - =.builtIn.notification.isNotification:
@@ -393,7 +417,82 @@ Global: # name of an object'
   prescriptionDrug:
     name: "Search"
   prescriptionArray: []
+  ActiveProvider: ""
   formData:
+    # lockPage前的页面列表
+    pageNames: []
+    # 用于存放当前会议patient的profile
+    currentMeetingPatientProfile: ""
+    auditLog:
+      startTime: ""
+      result: ""
+      patientId: ""
+      actionTypeCode: ""
+      recordTypeCode: ""
+    entrancePageName: ""
+    backPageName: ""
+    # 已选中的产品列表
+    productionSelectionList: []
+    goodNameList: []
+    # 商品
+    production: ""
+    lastPage: ""
+    backPage: ""
+    # 进入WaitingRoom中的关联预约的查询sCondition
+    querySconditionForRelatedRoomInNonScheduled: ""
+    currentDay:
+      date: ""
+      status: ""
+      btnColor: "0x2988e6"
+    blockPastTime: "true"
+    # 下载pdf的样式控制
+    downloadPDF:
+      scaleX: 0.7
+      scaleY: 0.6
+      originX: 0.6
+      originY: 0
+      PdfPageList: ""
+      pageIntervalList: []
+    #  用来展示 email的数量
+    redDotNum:
+      newPatient: ""
+      newConnection: ""
+    emailNumber: ""
+    parentPage: ""
+    superbillComplete: false
+    currentFolder: []
+    selectedDiagnoses: []
+    currentProviderFacility: ""
+    showBackButton:
+      visitDetail: "true" #是否展示Visit Detail 页面的返回按钮
+    relatedApp:
+      activeProvider:
+        name:
+          data:
+            fullName: ""
+      facilityList: []
+      activeRelatedlink: ""
+      activefacility: ""
+      activelocationid: ""
+      activeFacilityId: ""
+      activePatientId: ""
+      activeProviderId: ""
+      subtype: ""
+      color: ""
+      appointment:
+        status: "0" #0 表示已选 1 未选
+        visitType: ""
+        addressName: ""
+        locationId: ""
+        fee: ""
+        selectDate: ""
+        selectData:
+          duration: ""
+          reason: ""
+          docu: []
+        selectTime: []
+    isRelatedApp: false
+    tabBarShow: "block"
     reasonSelected: []
     currentInviteList: []
     reasonForVisit:
@@ -406,7 +505,7 @@ Global: # name of an object'
       teleReason: ""
       officeReason: ""
     patientChart: ""
-    currentTabStatus: ""
+    currentTabStatusList: []
     currentProviderQRCode: ""
     facilityProviderInfo: ""
     providerTitle: ""
@@ -416,15 +515,22 @@ Global: # name of an object'
       attachments: []
     pageName: ""
     unPageName: ""
+    # 用来保存当前facility的各种信息
     currentFacility:
       allLocationInforMation: []
       alllocationId: []
+      locations: ""
+      relationEdge: "" # 10002
+      currentReason: ""
+      currentLocationAndProviderId: []
     insurance: ""
     editProfileImageId: ""
     assignInfo: ""
     facilityProfileInfo: ""
     visitQuestionnaire: ""
     appointment:
+      # 会议中的参与者
+      participants: []
       status: "0" #0 表示已选 1 未选
       visitType: ""
       addressName: ""
@@ -447,7 +553,11 @@ Global: # name of an object'
     signature: ""
     signTemp: ""
     profileDocument: ""
+    isFirstRecommendation: true
     providerDoc:
+      recommendationDoc: ""
+      diagnosesDoc: ""
+      superbillDoc: ""
       surgeryAuthorization: ""
       evaluation: ""
       prescription: ""
@@ -461,11 +571,6 @@ Global: # name of an object'
       initialEvaluationReport: ""
       medicalRecord: ""
       patientConsentForm: ""
-    providerDiagnosis:
-      pROne: ""
-      pRTwo: ""
-      progressReport: ""
-      initialEvaluationReport: ""
     avatar: ""
     relation: ""
     cov19Test: ""
@@ -477,10 +582,7 @@ Global: # name of an object'
     pifzerVaccineFirDoseForm: ""
     modernaVaccineFirDoseForm: ""
     modernaVaccineSecDoseForm: ""
-  ActiveProvider:
-    name:
-      data:
-        fullName: ""
+
   currentId:
     facility: ""
     location: ""
@@ -496,6 +598,9 @@ Global: # name of an object'
   roomInfoDoc:
     document: ""
   roomInfo:
+    edge:
+      id: ""
+  currentRleatedRoomInfo:
     edge:
       id: ""
   id: ""
@@ -527,7 +632,7 @@ Global: # name of an object'
   tempPharmacy: ""
   micOn: "true"
   cameraOn: "true"
-  emailNumber: ""
+
   middleInformation:
     sCondition: ""
     PatientVisitInfo:
@@ -743,6 +848,7 @@ Global: # name of an object'
       .Document: ""
       name:
   connectedDevices: []
+  vitalsInfo: []
   isDeviceConnected:
     bp: "false"
     resp: "false"
@@ -751,68 +857,102 @@ Global: # name of an object'
     height: "false"
     weight: "false"
     bmi: "false"
+    hrm: "false"
   vitalsData:
-    - time: " "
+    - time: ""
       id: "bp"
       measurements: []
       label1: "Blood Pressure"
       label2: "Heart Rate"
       unit1: "mmHg"
       unit2: "bpm"
-      data1: " "
-      data2: " "
-      imgPath: vitalsHeart.png
-    - time: " "
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeart.svg
+      btText: "connect"
+      bgcolor: "0xC1C1C1"
+      imgPath2: vitalsRate.svg
+    - time: ""
       id: "resp"
       measurements: []
       label1: "Respiratory Rate"
       unit1: "breaths/min"
-      data1: " "
+      data1: ""
       data2: VITALS_DATA_HIDE_TEXTFIELD
-      imgPath: vitalsGeneric.png
-    - time: " "
+      imgPath: vitalsGeneric.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
       id: "spo2"
       measurements: []
       label1: "Pulse Oximetry"
       label2: "Heart Rate"
       unit1: "O₂ %"
       unit2: "bpm"
-      data1: " "
-      data2: " "
-      imgPath: vitalsGeneric.png
-    - time: " "
+      data1: ""
+      data2: ""
+      imgPath: vitalsOximetry.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: vitalsRate.svg
+    - time: ""
       id: "temp"
       measurements: []
       label1: "Temperature"
       unit1: "°F/°C"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsTemperature.svg
+      bgcolor: "0xC1C1C1" #"0x2988e6" #
+      btText: "connect"
+      imgPath2: null.png
+    - time: " "
+      id: "glucose"
+      measurements: []
+      label1: "Blood Glucose Levels"
+      unit1: "mmol/L"
       data1: " "
       data2: VITALS_DATA_HIDE_TEXTFIELD
-      imgPath: vitalsTemperature.png
-    - time: " "
+      imgPath: vitalsGeneric.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
       id: "height"
       measurements: []
       label1: "Height"
       unit1: "ft."
       unit2: "in."
-      data1: " "
-      data2: " "
-      imgPath: vitalsHeight.png
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeight.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
     - time: " "
       id: "weight"
       measurements: []
       label1: "Weight"
       unit1: "lbs"
-      data1: " "
+      data1: ""
       data2: VITALS_DATA_HIDE_TEXTFIELD
-      imgPath: vitalsWeight.png
-    - time: " "
+      imgPath: vitalsWeight.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
       id: "bmi"
       measurements: []
       label1: "Body Mass Index (BMI)"
       unit1: "kg/m²"
-      data1: " "
+      data1: ""
       data2: VITALS_DATA_HIDE_TEXTFIELD
-      imgPath: vitalsBMI.png
+      imgPath: vitalsBMI.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+
 Credential:
   patientUser:
     vertex: # user from the database
@@ -864,6 +1004,7 @@ DocType:
   F_IDCard: "58881" #230<<8+1
   Covid19Questionnaire: "61441" # 0xf001 240<<8+1
   daySchedule: ""
+  Refund: "2002"
   Attachment: "66561" #260<<8+1
   F_InsuranceCard: "71681" #280<<8+1
   B_InsuranceCard: "74241" #290<<8+1
@@ -895,8 +1036,8 @@ DocType:
   InitEvalReport: 135681 #0x530<<8+1
   covResultAndFluResult: 138241 # 0x540 8+1
   ProgressReport: 140801 #0x550<<8+1
-  FluVaccinationConsentFormEnglish: 143361 #560<<8+1
-  FluVaccinationConsentFormSpanish: 145921 #570<<8+1
+  # FluVaccinationConsentFormEnglish: 143361 #560<<8+1
+  # FluVaccinationConsentFormSpanish: 145921 #570<<8+1
   InsuranceCard: 148481 #580<<8+1
   ConfidentialMorbidityReport: 168961 # 660<<8+1
   MedicalUpload: 151041
@@ -906,15 +1047,46 @@ DocType:
   PaymentSettings: "161281" # 630<< 8+ 1 Payment's personal information
   AdminMedicalUpload: 163841 # 640<<8+ 1
   CancelMeeting: 166401 # 650<<8+1
-  FinancialInfo: 171521 # 670<<8+1     # modify amount in meeting
+  FinancialInfo: 171521 # 670<<8+1   # modify amount in meeting
+  FluVaccinationConsent: "176641" # 690<<8+1
+  Superbill: 184321 # 720<<8+1
+  Diagnoses: "186881" # 730<<8+1
+  Production: 197121 # 770<<8+1
+  MedicalRecommend: "204801" # 800<<8+1
+  ProductCoverImage: "207361" # 810<<8+1
+  ProductVideo: 209921 # 820<<8+1
+  ProductVideoImage: 212481 # 830<<8+1
+  ProductDetailImage: 215041 # 840<<+1
+  OrderHistory: 217601 # 850<<8+1
+  Order: 220161 # 860<<8+1
+  SuperAdminAvatar: 235521 # 920 << 8+1
+  CovIDPCRTestResult: 238081 #930 << 8+1
+  autoLogOut: 243201 # 950 << 8+1
   # Get all provider notes
   # GetAllProviderNotes: "type in ()"
-  Macro: "9216"
+  Macro: 9216
 
   ## From 1000
   checkInTag: "256000" #1000<<8+0
+  SuperAdminProfile: "276481" # 1080<<8+1
+  # tag start from 1100-1190
   HashTag: "281600" # 1100<<8+0
+  RelatedAppTag: "284160" #1110<<8+0   related appoinment tag
+  Role: "286720" # 1120<<8+0  admin role
+  #billing start with 1200-1300
+  NdcCode: "307200" # 1200<<8 + 0
+  CptCode: "309760" # 1210<<8 +0
+  HcpcsCode: "312320" #1220<<8 + 0
+  ProcedureCategory: "320000" #1250<<8 + 0
+  procedureCode: type IN (309760,312320)
+
+  DeleteFeedback: "33280" #1300<<8+0
 EdgeType:
+  InviteCategory:
+    Attoryney: 110
+    Specialist: 120
+    Provider: 130
+    Employer: 140
   ContactSupport: "2020" # 0x7E4
   pa:Feedback: "20100"
   Feedback: "1090"
@@ -932,10 +1104,14 @@ EdgeType:
     Office: "131075" # 0x20000|3 196609
     Telemedicine: "196611" # 0x30000|3 196609
     Vaccine: "262147" # 0x40000|3 196609
+    # 用作room的log
+    RoomType: 393219
 DocumentQuery:
-  ProviderAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,138240,28161,171521)
-  PatientAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161) AND type & 0xff = 1
-  AdminAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161)
+  ProviderAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,138240,28161,171521,284160,186881,189441,192001)
+  PatientAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,284160) AND type & 0xff = 1
+  AdminAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,284160)
+  allSharesMedicalDocuments: type IN (1537,1793,2049,2305,30721,94721,107521,110081,112641,115201,117761,120321,128001,122881,125441,130561,133121,156161,135681,138241,140801,151041,153601,163841,168961,174081,176641,184321,204801)
+  allPrivateProviderNotes: type IN (1536,1792,2048,2304,128000,122880,125440,130560,133120,135680,140800,151040,156160,184320,204800)
 EdgeSubtype:
   schedule:
     createAppointment:
@@ -1027,6 +1203,10 @@ DocPageDirection:
 DocumentList:
   # provider type默认为私有状态
   Provider:
+    - title: "Medical Recommendation"
+      type: 204800
+      privateJump: SelectRecommendation
+      releaseJump: RecommendationShared
     - title: "Documents"
       type: 151040
       privateJump: DocumentPrivate
@@ -1079,12 +1259,12 @@ DocumentList:
       type: 156160
       privateJump: PatientConsentFormPrivate
       releaseJump: PatientConsentFormShared
+    - title: "Superbill"
+      type: 184321
+      privateJump: ""
+      releaseJump: SuperbillReview
   # patient type默认为Share状态
   Patient:
-    - title: "Financial Form"
-      type: 174081
-      privateJump: ""
-      releaseJump: FinancialFormReviewPage1
     - title: "Patient Documents"
       type: 153601
       privateJump: ""
@@ -1109,10 +1289,6 @@ DocumentList:
       type: 110081
       privateJump: ""
       releaseJump: Cov19TestFormReviewPage1
-    - title: "COVID-19 Testing Consent Form"
-      type: 110081
-      privateJump: ""
-      releaseJump: Cov19TestFormReviewPage1
     - title: "Pfizer-BioNTech Vaccine - First Dose"
       type: 112641
       privateJump: ""
@@ -1129,8 +1305,25 @@ DocumentList:
       type: 120321
       privateJump: ""
       releaseJump: ModernaVaccineSecDoseReviewPage1
+    - title: "Flu Vaccination Consent Form"
+      type: 176641
+      privateJump: ""
+      releaseJump: FluVaccinationConsentFormReviewPage1
+    - title: "Patient Consent Form - HIPPA"
+      type: 156161
+      privateJump: ""
+      releaseJump: PatientConsentFormReviewPage1
+
   # Admin type默认为Share状态
   Admin:
+    - title: "COVID-19 PCR Test Results"
+      type: 238081
+      privateJump: ""
+      releaseJump: Cov19PCRTestResults
+    - title: "Medical Recommendation"
+      type: 204800
+      privateJump: SelectRecommendation
+      releaseJump: RecommendationShared
     - title: "Confidential Morbidity Report"
       type: 168961
       privateJump: ConfidentialMorbidityReport
@@ -1189,5 +1382,55 @@ DocumentList:
       releaseJump: PatientConsentFormShared
     - title: "DocumentAdmin"
       type: 163841
-      privateJump: ""
+      privateJump: DocumentAdmin
       releaseJump: DocumentAdmin
+    - title: "Superbill"
+      type: 184321
+      privateJump: ""
+      releaseJump: SuperbillReview
+AppointmentType:
+  - type: 196608 #0x30000
+    text: Telemedicine
+    belong: Provider
+  - type: 131072 #0x20000
+    text: Office Visit
+    belong: Provider
+  - type: 393216 #0x60000
+    text: COVID-19 Vaccine
+    belong: Room
+  - type: 655360 #0xa0000
+    text: COVID-19 Testing
+    belong: Room
+  - type: 786432 #0xc0000
+    text: Flu Shot
+    belong: Room
+  - type: 917504 #0xe0000
+    text: TB Testing
+    belong: Room
+  - type: 1048576 #0x10 0000
+    text: Drug Screening
+    belong: Room
+  - type: 1179648 #0x12 0000
+    text: Chest XR
+    belong: Room
+  - type: 1310720 #0x14 0000
+    text: Lab Work (Lead and CPP)
+    belong: Room
+
+ActionTypeCode:
+  add: 1
+  cancel: 2
+  change: 3
+  create: 4
+  delete: 5
+  download: 6
+  edit: 7
+  finish: 8
+  invite: 9
+  print: 10
+  private: 11
+  release: 12
+  update: 13
+  upload: 14
+  view: 15
+  copy: 16

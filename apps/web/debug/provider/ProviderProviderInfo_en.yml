@@ -49,16 +49,18 @@ ProviderProviderInfo:
       docRes: ""
       docReq:
         id: .Global.providerId.bsig
-        xfname: E.bvid|E.evid
+        xfname: (E.bvid|E.evid)&(!D.ovid)
         type: .DocType.FacilityProfile #  type: "257"
         ObjType: 12
-        sCondition: "E.type=10002"
+        obfname: "ctime"
+        sCondition: E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x30000
         _nonce: =.Global._nonce
       docAPI:
         get:
           api: rd
           dataIn: ProviderProviderInfo.apiRequest.facilityProfile.docReq
           dataOut: ProviderProviderInfo.apiRequest.facilityProfile.docRes
+
     profile:
       document: ""
       docResponse: ""
@@ -75,31 +77,59 @@ ProviderProviderInfo:
           dataOut: apiRequest.profile.docResponse
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: updateObject
-          dataKey: Global.providerId
-          dataObject: {}
-        - actionType: updateObject
-          dataKey: Global.formData.temporaryFacilityId
-          dataObject: {}
-        - actionType: builtIn
-          funcName: goBack
-
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+          leftClick:
+            - actionType: updateObject
+              dataKey: Global.providerId
+              dataObject: {}
+            - actionType: updateObject
+              dataKey: Global.formData.temporaryFacilityId
+              dataObject: {}
+            - actionType: builtIn
+              funcName: goBack
+        - .BasePublicHeaderRightIcon:
+          path: qrCodeWhilte.svg
+          style:
+            height: "0.028"
+          onClick:
+            - actionType: evalObject
+              object:
+                - .Global.formData.currentProviderQRCode@: =.Global.providerId
+                - goto: ProviderQRCode
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    #   onClick:
+    #     - actionType: updateObject
+    #       dataKey: Global.providerId
+    #       dataObject: {}
+    #     - actionType: updateObject
+    #       dataKey: Global.formData.temporaryFacilityId
+    #       dataObject: {}
+    #     - actionType: builtIn
+    #       funcName: goBack
+    # - .HeaderRightAdd:
+    #   imgPath: qrCodeWhilte.svg
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - .Global.formData.currentProviderQRCode@: =.Global.providerId
+    #         - goto: ProviderQRCode
     #  body
     - type: view
       viewTag: blockImageTag
       style:
         width: "1"
-        marginTop: "0.1"
-        height: "0.18"
+        # marginTop: "0.1"
+        height: "auto"
       children:
         - type: view
           style:
             marginTop: "0"
             width: "0.85"
-            height: "0.18"
+            height: "auto"
             marginLeft: "0.075"
             overflow: hidden
           children:
@@ -152,19 +182,18 @@ ProviderProviderInfo:
                   style:
                     marginTop: "0"
                     marginLeft: "0"
-                    height: "0.035"
+                    height: "auto"
                     width: "0.85"
                   children:
-                    - type: textView
-                      isEditable: false
+                    - type: label
+                      # isEditable: false
                       dataKey: apiRequest.profile.document.name.data.specialty.0.specialty
                       style:
-                        fontSize: .Nfont.h2
+                        fontSize: .Nfont.h14
                         marginTop: "0.01"
-                        height: "0.035"
-                        backgroundColor: "#ffffff"
-                        border:
-                          style: 1
+                        height: "auto"
+                        # backgroundColor: "#ffffff"
+                        wordBreak: break-all
                         width: "0.85"
                         textAlign:
                           x: center
@@ -636,7 +665,7 @@ ProviderProviderInfo:
                 marginTop: "0.01"
               children:
                 - type: label
-                  text: "Specialty and board certified:"
+                  text: "Specialty & Board Certified:"
                   style:
                     color: "0x333333"
                     fontWeight: "400"
@@ -834,7 +863,7 @@ ProviderProviderInfo:
                 marginTop: "0"
               children:
                 - type: label
-                  text: "Education and training:"
+                  text: "Education & Training:"
                   style:
                     color: "0x333333"
                     fontWeight: "400"

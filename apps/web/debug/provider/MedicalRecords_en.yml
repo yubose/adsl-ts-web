@@ -119,7 +119,7 @@ MedicalRecords:
                     fontSize: "13"
                     textAlign:
                       x: left
-                    fontFamily: PMingLiU
+
                 - type: label
                   text=func: .builtIn.string.formatDurationInSecond
                   dataKey: itemObject.tage # hh:mm'ss"
@@ -131,4 +131,3 @@ MedicalRecords:
                     fontSize: "13"
                     textAlign:
                       x: left
-                    fontFamily: PMingLiU

@@ -1,0 +1,379 @@
+ProviderNotes:
+  title: "Medical Documents"
+  pageNumber: ""
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..listNotes.Remoteget
+    - ..patientNotes.Dataget
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..listNotes.Notes1.doc
+          array2: []
+          sortby: "ctime"
+          orders: "desc"
+        dataOut: ProviderNotes.formData.noteList
+    - actionType: updateObject
+      dataKey: Global.Note
+      dataObject: .EmptyObj
+  formData:
+    noteList: ""
+  listNotes:
+    Notes1:
+      document: ""
+    Remoteget:
+      .DocAPI.get: ""
+      api: rd
+      dataKey: listNotes.Notes1
+      ids:
+        - .Global.roomInfo.edge.id
+      xfname: eid
+      obfname: ctime
+      asc: true
+      maxcount: "20"
+      sCondition: "type in (1025,1537,1793,2305,2049,84480,87040,92161,94721,107521,110081,112641,115201,117761,120321,122881,125441,128001,130561)"
+      _nonce: =.Global._nonce
+  patientNotes:
+    resData:
+      document: ""
+    Dataget:
+      .DocAPI.get: ""
+      api: rd
+      dataKey: patientNotes.resData
+      ids:
+        - .Global.roomInfo.edge.id
+      xfname: eid
+      maxcount: "20"
+      obfname: ctime
+      asc: true
+      sCondition: "type in (2561)"
+      _nonce: =.Global._nonce
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    - type: scrollView
+      style:
+        top: "0.1"
+        width: "1"
+        height: "0.75"
+        left: "0"
+        overflow: "scroll"
+        # overflowX: "hidden"
+      children:
+        - type: view
+          style:
+            marginTop: "0"
+            left: "0"
+            width: "1"
+            height: "0.05"
+            backgroundColor: "#f0f0f0"
+            overflow: "hidden"
+          children:
+            - type: label
+              text: "Provider Notes"
+              style:
+                left: "0.1"
+                width: "1"
+                height: "0.05"
+                fontSize: "14"
+                fontWeight: 400
+                color: "#4b4b4b"
+                textAlign:
+                  y: center
+        - type: list
+          contentType: listObject
+          listObject: ..formData.noteList
+          iteratorVar: itemObject
+          style:
+            left: "0"
+            width: "1"
+            marginTop: "0"
+            height: "auto"
+            backgroundColor: "0xffffff"
+            boxShadow: "0px 0px 1px #dededf"
+            margin: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              onClick:
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.Note
+                  dataObject: itemObject
+                - actionType: evalObject
+                  object:
+                    - .Global.formData.blankNoteTitle@: Provider Note
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.DocReference.document.type
+                              string2: 1025
+                        - goto: DocumentDetail
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 1537
+                        - goto: BlankNote
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 1793
+                        - goto: EvaluationNote
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 2049
+                        - goto: Prescription
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 2305
+                        - goto: AbsentNote
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 87040
+                        - goto: PifzerBioNTech2
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 84480
+                        - goto: Moderna2
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.Note.type
+                              string2: 122881
+                        - goto: WorkStatusForm
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.DocReference.document.type
+                              string2: 125441
+                        - goto: PROne
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.DocReference.document.type
+                              string2: 128001
+                        - goto: PRTwo
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.DocReference.document.type
+                              string2: 130561
+                        - goto: DWCFormRFA
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.DocReference.document.type
+                              string2: 143361
+                        - goto: FluVaccinationConsentFormEnglishShared
+                        - continue
+              style:
+                width: "1"
+                left: "0"
+                height: "0.1"
+                border:
+                  style: "2"
+                  width: "1"
+                borderColor: "0xdededf"
+              children:
+                - type: label
+                  dataKey: itemObject.name.title
+                  style:
+                    fontSize: "18"
+                    top: "0.015"
+                    height: "0.03"
+                    left: "0.1"
+                    fontWeight: 400
+                    width: "0.5"
+                - type: label
+                  dataKey: itemObject.name.data.authority
+                  style:
+                    fontSize: "16"
+                    top: "0.04"
+                    height: "0.03"
+                    left: "0.7"
+                    fontWeight: 400
+                    textAlign:
+                      x: left
+                    width: "0.35"
+                    color: itemObject.name.data.fontcolor
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: itemObject.ctime
+                  style:
+                    width: "0.5"
+                    top: "0.055"
+                    height: "0.03"
+                    left: "0.1"
+        - type: view
+          style:
+            width: "1"
+            top: "auto"
+            left: "0"
+            height: "0.05"
+            backgroundColor: "#f0f0f0"
+          children:
+            - type: label
+              text: "Patient Notes"
+              style:
+                width: "1"
+                height: "0.05"
+                left: "0.1"
+                fontSize: "14"
+                fontWeight: 400
+                color: "#4b4b4b"
+                textAlign:
+                  y: center
+        - type: list
+          contentType: listObject
+          listObject: ..patientNotes.resData.doc
+          iteratorVar: itemObject
+          style:
+            left: "0"
+            top: "auto"
+            width: "1"
+            height: "auto"
+            backgroundColor: "0xffffff"
+            boxShadow: "0px 0px 1px #dededf"
+            margin: "0"
+          children:
+            - type: listItem
+              itemObject: ""
+              onClick:
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.Note
+                  dataObject: itemObject
+                - actionType: evalObject
+                  object:
+                    - .Global.formData.blankNoteTitle@: Patient Note
+                - goto: BlankNote
+                # - actionType: evalObject
+                #   object:
+                #     - if:
+                #         - =.builtIn.string.equal:
+                #             dataIn:
+                #               string1: =.Global.Note.type
+                #               string2: 2561
+
+                #         - continue
+                #     - if:
+                #         - =.builtIn.string.equal:
+                #             dataIn:
+                #               string1: =.Global.Note.type
+                #               string2: 1793
+                #         - goto: EvaluationNote
+                #         - continue
+                #     - if:
+                #         - =.builtIn.string.equal:
+                #             dataIn:
+                #               string1: =.Global.Note.type
+                #               string2: 2049
+                #         - goto: Prescription
+                #         - continue
+                #     - if:
+                #         - =.builtIn.string.equal:
+                #             dataIn:
+                #               string1: =.Global.Note.type
+                #               string2: 2305
+                #         - goto: AbsentNote
+                #         - continue
+
+              style:
+                width: "1"
+                left: "0"
+                height: "0.1"
+                border:
+                  style: "2"
+                  width: "1"
+                borderColor: "0xdededf"
+              children:
+                - type: label
+                  dataKey: itemObject.name.title
+                  style:
+                    fontSize: "18"
+                    top: "0.015"
+                    height: "0.03"
+                    left: "0.1"
+                    fontWeight: 400
+                    width: "0.5"
+                - type: label
+                  text: "Shared"
+                  dataKey: itemObject.name.data.authority
+                  style:
+                    fontSize: "16"
+                    top: "0.04"
+                    height: "0.03"
+                    left: "0.7"
+                    fontWeight: 400
+                    textAlign:
+                      x: left
+                    width: "0.35"
+                    color: itemObject.name.data.fontcolor
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  # text: "ala"
+                  dataKey: itemObject.ctime
+                  style:
+                    width: "0.5"
+                    top: "0.055"
+                    height: "0.03"
+                    left: "0.1"
+    - type: view
+      style:
+        top: "0.85"
+        width: "1"
+        height: "0.14"
+        # backgroundColor: "#80b3ff"
+        position: fixed
+      children:
+        - type: view
+          style:
+            left: "0.07"
+            top: "0.01"
+            width: "0.85"
+            height: "0.098"
+            border:
+              style: "3"
+              color: "0x2fb355"
+            borderWidth: "1"
+            # borderColor: "0x2fb355"
+            borderRadius: "15"
+          onClick:
+            - goto: MeetingDocumentsNotes
+          children:
+            - type: image
+              path: addGreen.svg
+              style:
+                left: "0.07"
+                top: "0.02"
+                width: "0.13"
+            - type: label
+              text: "Add new note"
+              style:
+                left: "0.24"
+                top: "0.03"
+                # width: "0.13"
+                fontSize: "20"
+                color: "0x000000"

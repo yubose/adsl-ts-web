@@ -1,0 +1,312 @@
+VaccineFormDM: # 所有与表格有关的数据都存储在这里
+  newPatientFormDM: # New Patient Forms 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      signatureNewPatForm: ""
+      recipientName: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+  cov19TestNewPatFormDM: # COVID-19 Testing Consent - New Patient 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      recipientName: ""
+      id: ""
+      whetherHippaSignature: "true"
+      signatureTime: ""
+    symptomProfile:
+      experience: []
+      remark: ""
+      flag: "none"
+      problem1: ""
+      problem2: ""
+      problem3: ""
+      problem4: ""
+    signatureCoronavirus:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherCoronavirusSignature: "true"
+      signatureTime: ""
+    signatureIsolation:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherIsolationSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+  cov19TestFormDM:
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+    symptomProfile:
+      experience: []
+      remark: ""
+      problem1: ""
+      problem2: ""
+      problem3: ""
+      problem4: ""
+    signatureCoronavirus:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherCoronavirusSignature: "true"
+      signatureTime: ""
+    signatureIsolation:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherIsolationSignature: "true"
+      signatureTime: ""
+  pifzerVaccineFirDoseFormDM: # Pfizer-BioNTech Vaccine - First Dose 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      recipientName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+
+  pifzerVaccineSecDoseFormDM:
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+
+  modernaVaccineFirDoseFormDM: # Moderna - First Dose 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      recipientName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+
+  modernaVaccineSecDoseFormDM: # Moderna Vaccine Form - Second Dose 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+
+  patientConsentFormDM:
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientName: ""
+    signatureHippa:
+      recipientName: ""
+      signatureId: ""
+      whetherSignature: "true"
+      signatureTime: ""

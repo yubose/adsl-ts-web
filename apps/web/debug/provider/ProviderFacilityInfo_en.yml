@@ -9,20 +9,30 @@ ProviderFacilityInfo:
           =.builtIn.math.random: ""
     - ..formData.dataObject@: =.Global.formData.temporaryFacilityId
     - ..formData.bsig@: =.Global.formData.temporaryFacilityId.bsig
-    - ..apiRequest.provderList.docAPI.get
-    - ..apiRequest.getLocationsId.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.provderList.docAPI.get: ""
+            - =..apiRequest.getLocationsId.docAPI.get: ""
     - =.builtIn.array.selectOneToArr:
         dataIn:
           arr: =..apiRequest.getLocationsId.docResp.vertex
           key: "id"
         dataOut: ProviderFacilityInfo.apiRequest.locationsProfile.doc.ids
-    - ..apiRequest.locationsProfile.docAPI.get
+    - =..apiRequest.locationsProfile.docAPI.get: ""
     - ..apiRequest.roomsProfile.doc.id@: =..apiRequest.locationsProfile.docResp.doc.0.bsig
-    - ..apiRequest.roomsProfile.docAPI.get
     - ..apiRequest.photoDEAProfile.docReq.id@: =.Global.formData.temporaryFacilityId.eid
-    - ..apiRequest.photoDEAProfile.docAPI.get
     - ..apiRequest.photoLicenceProfile.docReq.id@: =.Global.formData.temporaryFacilityId.eid
-    - ..apiRequest.photoLicenceProfile.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.roomsProfile.docAPI.get: ""
+            - =..apiRequest.photoDEAProfile.docAPI.get: ""
+            - =..apiRequest.photoLicenceProfile.docAPI.get: ""
     #使用formData.roomList存储当前location的room信息,便于后面对数据的展示与重置
     - .ProviderFacilityInfo.formData.roomList@: =..apiRequest.roomsProfile.docResp.doc
     #获取当前facility第一个location的medicalFacilityName
@@ -138,7 +148,7 @@ ProviderFacilityInfo:
         type: "273921"
         id: ""
         xfname: "E.bvid"
-        sCondition: "E.type=1100"
+        sCondition: "E.type=1100 AND E.tage>=0"
         maxcount: "1000"
         obfname: "ctime"
         _nonce: =.Global._nonce
@@ -606,7 +616,7 @@ ProviderFacilityInfo:
                     display: "inline-block"
                     height: "0.045"
                 - type: label
-                  dataKey: formData.dataObject.name.data.basicInfo.facilityLink
+                  dataKey: formData.dataObject.name.data.basicInfo.website
                   # options: .SelectINformationDM.title
                   style:
                     color: "0x333333"
@@ -721,6 +731,34 @@ ProviderFacilityInfo:
                 marginTop: "0"
               children:
                 - type: label
+                  text: "TIN(EIN)"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.15"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  # placeholder: Enter here
+                  dataKey: formData.dataObject.name.data.basicInfo.tin
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.75"
+                    textAlign:
+                      x: right
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
                   text: "Fax #"
                   style:
                     color: "0x333333"
@@ -801,6 +839,60 @@ ProviderFacilityInfo:
                 marginTop: "0"
               children:
                 - type: label
+                  text: "City:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.35"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.city
+                  style:
+                    display: "inline-block"
+                    width: "0.53"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                    textAlign:
+                      x: right
+                    wordWrap: break-word
+                    marginLeft: "0.02"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "State:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.35"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.state
+                  style:
+                    display: "inline-block"
+                    width: "0.53"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                    textAlign:
+                      x: right
+                    wordWrap: break-word
+                    marginLeft: "0.02"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
                   text: "License Expiration Date:"
                   style:
                     color: "0x333333"
@@ -854,7 +946,6 @@ ProviderFacilityInfo:
                 width: "0.9"
                 height: "auto"
                 marginLeft: "0.05"
-                marginTop: "0"
               children:
                 - type: label
                   text: "Upload:"
@@ -891,6 +982,35 @@ ProviderFacilityInfo:
                         height: "0.15"
                         width: "0.45"
                         display: ..formData.licenceDisplay
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+              children:
+                - type: label
+                  text: "Accepted Insurance"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.7"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                    display: "inline-block"
+                - type: label
+                  text: View
+                  onClick:
+                    - goto: AcceptedInsuranceFacility
+                  style:
+                    width: "0.2"
+                    height: "auto"
+                    display: "inline-block"
+                    lineHeight: "4.5vh"
+                    textAlign: 
+                      x: right
+                    color: "#2988e6"
+                    textDecoration: underline
+                    
             - type: view
               style:
                 width: "1"
@@ -948,7 +1068,7 @@ ProviderFacilityInfo:
                               dataKey: itemObject.name.data.basicInfo.businessLogo
                               style:
                                 height: "0.06"
-                                # width: "0.16"
+                                width: "0.16"
                                 marginTop: "0.02"
                                 border:
                                   style: "3"
@@ -972,7 +1092,7 @@ ProviderFacilityInfo:
                                   style:
                                     width: "0.7"
                                     marginTop: "0.01"
-                                    height: "0.04"
+                                    height: "auto"
                                     fontSize: .Nfont.n2
                                     color: "0x333333"
                                     fontWeight: "400"
@@ -1010,7 +1130,7 @@ ProviderFacilityInfo:
                   itemObject:
                   style:
                     width: "0.9"
-                    height: "0.12"
+                    height: "auto"
                     margin: "0"
                     border:
                       style: 2
@@ -1026,7 +1146,7 @@ ProviderFacilityInfo:
                   children:
                     - type: view
                       style:
-                        height: "0.12"
+                        height: "auto"
                         marginLeft: "0"
                         width: "0.9"
                         marginTop: "0"
@@ -1034,37 +1154,44 @@ ProviderFacilityInfo:
                           style: "1"
                         borderWidth: "1"
                         borderColor: "0x333333"
+                        overflow: hidden
                       children:
-                        - type: image
-                          path=func: =.builtIn.utils.prepareDocToPath
-                          path: providerImage.svg
-                          dataKey: itemObject.name.data.avatar
+                        - type: view
                           style:
-                            width: "0.18"
-                            marginTop: "0.015"
-                            border:
-                              style: "3"
-                            borderWidth: "1"
-                            borderColor: "0xf3f3f3"
+                            height: "0.12"
+                            width: "0.16"
                             verticalAlign: middle
                             display: "inline-block"
-                            borderRadius: "5"
                             textAlign:
                               x: center
+                          children:
+                            - type: image
+                              path=func: =.builtIn.utils.prepareDocToPath
+                              path: providerImage.svg
+                              dataKey: itemObject.name.data.avatar
+                              style:
+                                width: "0.18"
+                                height: "0.08"
+                                marginTop: "0.02"
+                                border:
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xf3f3f3"
+                                borderRadius: "5"
+                                textAlign:
+                                  x: center
                         - type: view
                           style:
                             width: "0.58"
                             display: "inline-block"
-                            height: "0.08"
+                            verticalAlign: middle
                             marginLeft: "0.03"
-                            marginTop: "0.02"
                           children:
                             - type: label
                               dataKey: itemObject.name.data.fullName
                               style:
                                 width: "0.58"
                                 marginTop: "0.01"
-                                height: "0.045"
                                 fontSize: .Nfont.n2
                                 textDecoration: underline
                                 color: "0x333333"
@@ -1074,7 +1201,7 @@ ProviderFacilityInfo:
                               style:
                                 fontSize: .Nfont.n2
                                 width: "0.58"
-                                marginTop: "0"
+                                marginTop: "0.02"
                                 zIndex: "1000"
                                 color: "0x808080"
                                 fontWeight: "400"

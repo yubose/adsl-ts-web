@@ -3,18 +3,57 @@ PRTwoShared:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
-
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: =.DocType.pRTwo
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
 
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.pRTwo.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
+
     - actionType: evalObject
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..formData.name.data.diagnosis.descriptiveList
+              object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
             dataOut: PRTwoShared.formData.listDatalength
 
     - actionType: evalObject
@@ -35,14 +74,30 @@ PRTwoShared:
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
-
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "PR-2"
+        - .Global.formData.downloadPDF.scaleX@: 0.9
+        - .Global.formData.downloadPDF.scaleY@: 0.9
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.PRTwoShared.formData.name.data.signatureId
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
   formData: #Input data here
+    # 控制签名是否显示
+    displaySign: "none"
     listDatalength: ""
     listDataflag: "none"
     flag: "none"
@@ -58,31 +113,63 @@ PRTwoShared:
           modifiedWork:
             isModified: "none"
             modifiedDate: ""
-          other:
-            isShow: none
+        other:
+          isShow: none
+          value: ""
 
   formDataTemp: #Input data temp here, datatemp should not mix with formData
     downFlag: "inline-block"
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
     radioDiagnoses:
       - key: isInvolved
         value: "Yes"
       - key: isInvolved
         value: "No"
 
+  apiRequest: #Input data request here
+    pRTwo:
+      docResp: ""
+      docReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PRTwoShared.apiRequest.pRTwo.docReq
+          dataOut: PRTwoShared.apiRequest.pRTwo.docResp
+
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.pRTwo
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      date: =.Global.formData.auditLog.startTime
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
-        width: "1"
-        height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+        ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
         - type: label
           text: State of California
@@ -193,7 +280,7 @@ PRTwoShared:
             padding: "6px 12px"
             borderRadius: "4"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             backgroundColor: "0xf4f4f4"
             wordWrap: break-word
         - .DocPublicLine:
@@ -275,7 +362,7 @@ PRTwoShared:
                 verticalAlign: middle
                 backgroundColor: "0xf4f4f4"
               children:
-                - type: lable
+                - type: label
                   text: "No content"
                   dataKey: formData.name.data.patientInfo.injuryDate
                   style:
@@ -283,7 +370,7 @@ PRTwoShared:
                     width: "0.504"
                     height: "auto"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -414,7 +501,7 @@ PRTwoShared:
             borderColor: "0xdedede"
             padding: "6px 12px"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             backgroundColor: "0xf4f4f4"
             wordWrap: break-word
 
@@ -431,7 +518,7 @@ PRTwoShared:
               dataKey:
               style:
                 width: "0.92"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h16
                 fontWeight: "600"
                 textAlign:
@@ -571,7 +658,7 @@ PRTwoShared:
             marginTop: "0.01724"
             marginLeft: "0.04"
             width: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: label
@@ -592,7 +679,7 @@ PRTwoShared:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 textAlign:
@@ -610,7 +697,7 @@ PRTwoShared:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h12
                 fontWeight: "600"
                 textAlign:
@@ -630,7 +717,7 @@ PRTwoShared:
             borderRadius: "4"
             boxSizing: "border-box"
             padding: "6px 12px"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
 
@@ -651,7 +738,7 @@ PRTwoShared:
                   dataKey:
                   style:
                     width: "0.92"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     fontWeight: "600"
                     textAlign:
@@ -668,7 +755,7 @@ PRTwoShared:
 
                     color: "0x333333"
                     backgroundColor: "#f4f4f4"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     border:
                       style: "1"
@@ -719,7 +806,7 @@ PRTwoShared:
                 - type: list
                   viewTag: listData
                   contentType: listObject
-                  listObject: ..formData.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                  listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
                   iteratorVar: itemObject
                   style:
                     width: "0.92"
@@ -768,7 +855,7 @@ PRTwoShared:
                                     width: "0.17"
                                     textAlign:
                                       x: left
-                                    fontFamily: "Arial"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
                                     fontWeight: "550"
@@ -786,13 +873,13 @@ PRTwoShared:
                                   dataKey: itemObject.description
                                   style:
                                     verticalAlign: top
-                                    marginLeft: "0.02"
+                                    marginLeft: "0.015"
                                     display: "inline-block"
                                     height: "auto"
                                     width: "0.616"
                                     textAlign:
                                       x: left
-                                    fontFamily: "Arial"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
                                     color: "0x333333"
@@ -804,7 +891,7 @@ PRTwoShared:
                             width: "0.83"
                             height: "auto"
                             color: "0x666666"
-                            fontFamily: "Arial"
+
                             wordWrap: break-word
                             fontSize: .Nfont.h14
             - type: view
@@ -839,7 +926,7 @@ PRTwoShared:
             borderColor: "0xdedede"
             padding: "6px 12px"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             backgroundColor: "0xf4f4f4"
             wordWrap: break-word
         - type: view
@@ -896,7 +983,7 @@ PRTwoShared:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
             - type: view
@@ -915,7 +1002,7 @@ PRTwoShared:
                 verticalAlign: middle
                 backgroundColor: "0xf4f4f4"
               children:
-                - type: lable
+                - type: label
                   text: "No content"
                   dataKey: formData.name.data.workStatus.claimsAd.ClaimsAdDate
                   isEditable: "false"
@@ -924,7 +1011,7 @@ PRTwoShared:
                     width: "0.504"
                     height: "0.037"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -960,7 +1047,7 @@ PRTwoShared:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
             - type: view
@@ -979,7 +1066,7 @@ PRTwoShared:
                 verticalAlign: middle
                 backgroundColor: "0xf4f4f4"
               children:
-                - type: lable
+                - type: label
                   text: "No content"
                   dataKey: formData.name.data.workStatus.modifiedWork.modifiedDate
                   isEditable: "false"
@@ -988,7 +1075,7 @@ PRTwoShared:
                     width: "0.504"
                     height: "0.037"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -1030,7 +1117,7 @@ PRTwoShared:
                 borderColor: "0xdedede"
                 padding: "6px 12px"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 wordWrap: break-word
                 backgroundColor: "0xf4f4f4"
@@ -1063,7 +1150,7 @@ PRTwoShared:
                 display: "inline-block"
                 marginLeft: "0.021"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 verticalAlign: "top"
                 width: "0.82"
@@ -1084,7 +1171,7 @@ PRTwoShared:
             verticalAlign: middle
             backgroundColor: "0xf4f4f4"
           children:
-            - type: lable
+            - type: label
               text: "No content"
               dataKey: formData.name.data.workStatus.fullDuty.fullDutyDate
               isEditable: "false"
@@ -1093,7 +1180,7 @@ PRTwoShared:
                 width: "0.504"
                 height: "0.037"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 display: "inline-block"
                 boxSizing: "border-box"
                 border:
@@ -1118,7 +1205,7 @@ PRTwoShared:
             marginTop: "0.0123"
             marginLeft: "0.04"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             verticalAlign: "middle"
             width: "auto"
@@ -1138,7 +1225,7 @@ PRTwoShared:
             verticalAlign: middle
             backgroundColor: "0xf4f4f4"
           children:
-            - type: lable
+            - type: label
               text: "No content"
               dataKey: formData.name.data.workStatus.examDate
               style:
@@ -1146,7 +1233,7 @@ PRTwoShared:
                 width: "0.504"
                 height: "auto"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 display: "inline-block"
                 boxSizing: "border-box"
                 border:
@@ -1166,6 +1253,55 @@ PRTwoShared:
             wordWrap: break-word
             color: "0x333333"
             fontSize: .Nfont.h14
+
+        - type: label
+          text: "Plan And Recommendations"
+          dataKey:
+          style:
+            marginTop: "0.024630"
+            fontSize: .Nfont.h14
+            color: "#333333"
+            width: "0.92"
+            fontWeight: "600"
+            marginLeft: "0.04"
+        - type: label
+          text: "&#8226 Note"
+          style:
+            width: "0.92"
+            fontSize: .Nfont.h14
+            lineHeight: "2.58vh"
+            marginLeft: "0.04"
+        - type: label
+          text: No content
+          dataKey: formData.name.data.planAndRecommendations
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.009852"
+            height: "auto"
+            width: "0.92"
+            fontSize: .Nfont.h14
+            color: "#333333"
+            boxSizing: border-box
+            borderRadius: "4"
+            padding: "6px 12px"
+            wordBreak: break-word
+            backgroundColor: "#f4f4f4"
+
+        # - type: view
+        #   viewTag: defaultTag
+        #   style:
+        #     ..style.blockBox:
+        #   children:
+        #     - type: image
+        #       path:
+        #         ..event.checkBoxPath:
+        #       style:
+        #         ..style.img:
+        #     - type: label
+        #       text: Superbill
+        #       style:
+        #         ..style.setLabel:
+
         - .DocPublicLine:
         - type: view
           style:
@@ -1218,6 +1354,7 @@ PRTwoShared:
                 top: "0"
                 height: "0.128"
                 overflow: scroll
+                display: ..formData.displaySign
                 zIndex: "1000"
 
         - type: view
@@ -1227,6 +1364,7 @@ PRTwoShared:
             width: "0.92"
             height: "auto"
             overflow: hidden
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -1366,8 +1504,84 @@ PRTwoShared:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+
+    # - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:
+  event:
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.pRTwo.docReq.name.data.statusTag.name@: "Released"
+          - ..apiRequest.pRTwo.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.pRTwo.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      - actionType: evalObject
+        object:
+          - ..apiRequest.pRTwo.docReq.tage@: -1
+          - =..apiRequest.pRTwo.docAPI.store: ""
+
+          - =.builtIn.array.add:
+              dataIn:
+                object: =.Global.currentMeetingDoc
+                value: =..apiRequest.pRTwo.docResp.doc
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: evalObject
+        object:
+          - goto: MoreOptions
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
   style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
     signBox:
       width: "auto"
       height: "auto"
@@ -1376,7 +1590,7 @@ PRTwoShared:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       vertical-align: middle
@@ -1385,7 +1599,7 @@ PRTwoShared:
       height: "auto"
       marginLeft: "0.04"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
     inputBox:
@@ -1397,7 +1611,7 @@ PRTwoShared:
     vitalInput:
       width: "0.44"
       height: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       border:
         style: "1"
@@ -1412,7 +1626,7 @@ PRTwoShared:
       width: "0.92"
       height: "auto"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       color: "0x333333"
@@ -1422,3 +1636,23 @@ PRTwoShared:
       boxSizing: "border-box"
       padding: "6px 12px"
       wordBreak: break-word
+    blockBox:
+      marginTop: "0.024630"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

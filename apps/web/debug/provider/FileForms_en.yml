@@ -33,15 +33,18 @@ FileForms:
   style: #Input style fragment here
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: list
       contentType: listObject
       listObject: ..formData.List
       iteratorVar: itemObject
       style:
-        top: "0.1"
-        left: "0.05"
+        marginLeft: "0.05"
         width: "0.9"
         height: "0.88"
         overflow: scroll
@@ -52,14 +55,14 @@ FileForms:
           style:
             marginTop: "0.02"
             width: "0.89"
-            height: "0.06"
+            height: "auto"
             border:
               style: "3"
             borderWidth: "1"
             borderColor: "0xefefef"
             borderRadius: "5"
             boxSizing: "border-box"
-            boxShadow: "1px 1px 4px 1px #efefef"
+            boxShadow: "0px 0px 5px #80808044"
           children:
             - type: view
               style:
@@ -81,8 +84,8 @@ FileForms:
                     display: "inline-block"
                     height: "0.06"
                     lineHeight: "6vh"
-                    wordBreak: "break-all"
-                    fontFamily: "Arial"
+                    wordBreak: break-word
+
                     fontSize: .Nfont.h15
                     verticalAlign: middle
                     color: "0x4b4b4b"

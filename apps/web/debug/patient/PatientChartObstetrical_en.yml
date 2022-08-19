@@ -1,0 +1,1314 @@
+PatientChartObstetrical:
+  title: Patient Chart
+  pageNumber: "179"
+  init:
+    - .SignInCheck
+    - actionType: evalObject #android use calendar init
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getShow
+    - actionType: evalObject
+      object:
+        - ..calendarDate@: =.BaseComponents.calendarDate
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: PatientChartObstetrical.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: PatientChartObstetrical.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: PatientChartObstetrical.calendarDate.day
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.PatientChartObstetrical.calendarDate.year
+              month: =.PatientChartObstetrical.calendarDate.month
+              today: =.PatientChartObstetrical.calendarDate.day
+            dataOut: PatientChartObstetrical.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.PatientChartObstetrical.calendarDate.month
+            dataOut: PatientChartObstetrical.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.PatientChartObstetrical.calendarDate.year
+              month: =.PatientChartObstetrical.calendarDate.month
+              day: =.PatientChartObstetrical.calendarDate.day
+              formatType: "Y-M-D"
+            dataOut: PatientChartObstetrical.calendarDate.todayDate
+
+    - ..generalInfo@: =.Global.formData.PatientchartInfo.name.data.generalInfo
+    - ..obstetrical@: =.Global.formData.PatientchartInfo.name.data.obstetricalHistory #引用用户总表单对象
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..generalInfo.gender
+                  string2: "Male"
+            - ..obstetrical.isShow@: "none"
+            - ..obstetrical.isShow@: "block"
+
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..obstetrical.mammogram.abnormalResult
+                  string2: "Yes"
+            - ..obstetrical.mammogram.isAbnormalResult@: "block"
+            - ..obstetrical.mammogram.isAbnormalResult@: "none"
+
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..obstetrical.mammogram.haveMammogram
+                  string2: "Yes"
+            - ..obstetrical.mammogram.isHaveMammogram@: "block"
+            - ..obstetrical.mammogram.isHaveMammogram@: "none"
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.flag.isMeetingPatientchart
+              string2: true
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.roomInfo.edge.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.rootNotebookID
+  # #create patient document temple to save
+  apiRequest:
+    newChart:
+      docResp: ""
+      docReq:
+        id: ""
+        eid: .Global.rootNotebookID
+        tage: 0
+        type: .DocType.PatientChart
+        name:
+          data: ""
+          title: ""
+          user: .Global.Profile.name.data.basicInfo.fullName
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientChartObstetrical.apiRequest.newChart.docReq
+          dataOut: PatientChartObstetrical.apiRequest.newChart.docResp
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    monthName: ""
+    todayDate: ""
+    dayLable: []
+
+  obstetrical:
+    isShow: ""
+    mammogram:
+      isAbnormalResult: ""
+      isHaveMammogram: ""
+      abnormalResult: ""
+      abnormalResultDescribe: ""
+      haveMammogram: ""
+      lastTime: ""
+    menses:
+      howOften: ""
+      howlong: ""
+      isEveryMonth: ""
+      isHeavyFlow: ""
+      spottingOrClots: ""
+    pregnancy:
+      abortionsTime: ""
+      children: ""
+      currentlyPregnant: ""
+      pregnantsTimes: ""
+  generalInfo: ""
+
+  obstetricalTemp:
+    pregnancy:
+      yesNo:
+        - key: currentlyPregnant
+          value: "Yes"
+        - key: currentlyPregnant
+          value: "No"
+      input:
+        - key: pregnantsTimes
+          value: "How many times have you been pregnant?"
+        - key: children
+          value: "How many children?"
+        - key: abortionsTime
+          value: "How many abortions?"
+    menses:
+      input:
+        - key: howOften
+          value: "How often?"
+          placeholder: "every 30 days"
+        - key: howlong
+          value: "For how many days?"
+          placeholder: "5 days"
+      yesNo:
+        - key: month
+          value: "Do they occur every month?"
+        - key: heavy
+          value: "Heavy flow?"
+        - key: spotting
+          value: "Any spotting or clots?"
+      month:
+        - key: isEveryMonth
+          value: "Yes"
+        - key: isEveryMonth
+          value: "No"
+      heavy:
+        - key: isHeavyFlow
+          value: "Yes"
+        - key: isHeavyFlow
+          value: "No"
+      spotting:
+        - key: spottingOrClots
+          value: "Yes"
+        - key: spottingOrClots
+          value: "No"
+    mammogram:
+      yesNo1:
+        - key: mammogram
+          value: "Have you had a mammogram?"
+      input1:
+        - key: lastTime
+          value: "When was the last one?"
+      yesNo2:
+        - key: abnormal
+          value: "Ever have an abnormal result?"
+      input2:
+        - key: abnormalResultDescribe
+          value: "If yes, please describe"
+      haveMammogramOrNot:
+        - key: haveMammogram
+          value: "Yes"
+        - key: haveMammogram
+          value: "No"
+      abnormalResultOrNot:
+        - key: abnormalResult
+          value: "Yes"
+        - key: abnormalResult
+          value: "No"
+
+  formData:
+    status: "Yes"
+    yesflag: "block"
+    noflag: "none"
+    formShow: "block"
+
+  formDataTemp:
+    genderTemp:
+      - key: gender
+        value: "Male"
+      - key: gender
+        value: "Female"
+      - key: gender
+        value: "Other"
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - type: view
+          style:
+            ..style.backLeft:
+          children:
+            - type: image
+              path: arrowLeftgrey.svg
+              style:
+                ..style.backLeftImg:
+              onClick:
+                - ..event.backClick
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Skip
+          onClick:
+            - goto: PatientChartSexualHistory
+    - type: view
+      style:
+        ..style.bodyBox:
+      children:
+        - type: view
+          style:
+            ..style.viewBox:
+          children:
+            - type: view
+              style:
+                ..style.titleBox:
+              children:
+                - type: label
+                  text: Obstetrical History
+                  dataKey:
+                  style:
+                    ..style.titlelabel:
+                - type: label
+                  text: "9&nbsp;/&nbsp;11"
+                  dataKey:
+                  style:
+                    ..style.pageNum:
+        - type: scrollView
+          style:
+            ..style.scrollBox:
+          children:
+            - type: label
+              text: Please select your gender
+              style:
+                ..style.secondLabel:
+            - type: view
+              style:
+                ..style.listBox:
+                width: "0.92"
+              children:
+                - type: list
+                  viewTag: genderTag
+                  contentType: listObject
+                  listObject: ..formDataTemp.genderTemp
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.oneRadio:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.oneClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+            - type: label
+              text: "If male, please move to the next area"
+              dataKey:
+              style:
+                ..style.regularLabel:
+
+            - type: view
+              viewTag: showArea
+              style:
+                display: ..obstetrical.isShow
+                width: "auto"
+                height: "auto"
+              children:
+                - type: label
+                  text: Pregnancy
+                  style:
+                    ..style.secondLabel:
+                - type: label
+                  text: "Currently pregnant?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: list
+                  viewTag: pregnancyYesNoTag
+                  contentType: listObject
+                  listObject: ..obstetricalTemp.pregnancy.yesNo
+                  iteratorVar: itemObject
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.twoRadio:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.twoClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+
+                - type: label
+                  text: "How many times have you been pregnant?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: obstetrical.pregnancy.pregnantsTimes
+                  style:
+                    ..style.blockInput:
+                - type: label
+                  text: "How many children?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: obstetrical.pregnancy.children
+                  style:
+                    ..style.blockInput:
+                - type: label
+                  text: "How many abortions?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: obstetrical.pregnancy.abortionsTime
+                  style:
+                    ..style.blockInput:
+
+                - type: label
+                  text: Menses
+                  style:
+                    ..style.secondLabel:
+                - type: label
+                  text: "How often?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: obstetrical.menses.howOften
+                  style:
+                    ..style.blockInput:
+                - type: label
+                  text: "For how many days?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: obstetrical.menses.howlong
+                  style:
+                    ..style.blockInput:
+
+                - type: label
+                  text: "Do they occur every month?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: list
+                  contentType: listObject
+                  listObject: ..obstetricalTemp.menses.month
+                  iteratorVar: itemObject
+                  viewTag: isEveryMonth
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.threeRadio:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.threeClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+
+                - type: label
+                  text: "Heavy flow?"
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: list
+                  contentType: listObject
+                  listObject: ..obstetricalTemp.menses.heavy
+                  iteratorVar: itemObject
+                  viewTag: heavyFlow
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.fourRadio:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.fourClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+
+                - type: label
+                  text: Any spotting or clots?
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: list
+                  contentType: listObject
+                  listObject: ..obstetricalTemp.menses.spotting
+                  iteratorVar: itemObject
+                  viewTag: anySpottingOrClots
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.fiveRadio:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.fiveClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+                - type: label
+                  text: Mammogram
+                  style:
+                    ..style.secondLabel:
+                - type: label
+                  text: Have you had a mammogram?
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: list
+                  contentType: listObject
+                  listObject: ..obstetricalTemp.mammogram.haveMammogramOrNot
+                  iteratorVar: itemObject
+                  viewTag: haveMammogram
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.sixRadio:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.sixClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+                - type: view
+                  viewTag: haveMammogram
+                  style:
+                    width: "auto"
+                    height: "auto"
+                    display: ..obstetrical.mammogram.isHaveMammogram
+                  children:
+                    - type: label
+                      text: When was the last one?
+                      dataKey:
+                      style:
+                        ..style.regularLabel:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: view
+                          viewTag: lastOneView
+                          style:
+                            ..style.dateBox:
+                          children:
+                            - type: textField
+                              placeholder: Select
+                              dataKey: obstetrical.mammogram.lastTime
+                              isEditable: "false"
+                              style:
+                                ..style.dateInput:
+                            - type: image
+                              path: dateImg.svg
+                              style:
+                                ..style.dateImg:
+                          onClick:
+                            - actionType: popUp
+                              popUpView: birthDay
+
+                - type: label
+                  text: Ever have an abnormal result?
+                  dataKey:
+                  style:
+                    ..style.regularLabel:
+                - type: list
+                  contentType: listObject
+                  listObject: ..obstetricalTemp.mammogram.abnormalResultOrNot
+                  iteratorVar: itemObject
+                  viewTag: abnormalResult
+                  style:
+                    ..style.list:
+                  children:
+                    - type: listItem
+                      itemObject:
+                      style:
+                        ..style.listItem:
+                      children:
+                        - type: image
+                          path:
+                            ..event.sevenRadio:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.sevenClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+
+                # yes
+                - type: view
+                  viewTag: yesTag
+                  style:
+                    ..style.contentBox:
+                    display: ..obstetrical.mammogram.isAbnormalResult
+                  children:
+                    - type: label
+                      text: "If yes, please describe"
+                      style:
+                        ..style.regularLabel:
+                    - type: textView
+                      isEditable: "true"
+                      dataKey: obstetrical.mammogram.abnormalResultDescribe
+                      placeholder: My exception is
+                      contentType: text
+                      required: "true"
+                      style:
+                        ..style.describeInput:
+
+            - type: view
+              style:
+                marginTop: "0.03"
+
+    #底部next
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - type: view
+              style:
+                ..style.leftBox:
+              onClick:
+                - ..event.lastStep
+              children:
+                - type: image
+                  path: leftStep.svg
+                  style:
+                    ..style.leftImg:
+                - type: label
+                  text: Last Step
+                  style:
+                    ..style.leftlabel:
+
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.nextBtn:
+              onClick:
+                - ..event.btnClick
+
+    # 弹窗区域
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.86"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.object.set:
+                        dataIn:
+                          object: =..obstetrical.mammogram
+                          key: "lastTime"
+                          value: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: lastOneView
+                - actionType: popUpDismiss
+                  popUpView: birthDay
+
+    - .Normal:
+      message: "Do you want to save your changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartObstetrical.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+      rightButton:
+        - actionType: evalObject
+          object:
+            - .Global.formData.PatientchartInfo.name.data.generalInfo@: =..generalInfo
+            - .Global.formData.PatientchartInfo.name.data.obstetricalHistory@: =..obstetrical
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartObstetrical.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+
+  event:
+    oneRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..generalInfo.gender
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+
+    oneClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..generalInfo.gender
+                      string2: $var.value
+                - continue
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..generalInfo
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..generalInfo.gender
+                    string2: "Male"
+              - actionType: evalObject
+                object:
+                  - ..obstetrical.isShow@: "none"
+                  - ..obstetrical.mammogram.abnormalResult@: ""
+                  - ..obstetrical.mammogram.abnormalResultDescribe@: ""
+                  - ..obstetrical.mammogram.haveMammogram@: ""
+                  - ..obstetrical.mammogram.isAbnormalResult@: "none"
+                  - ..obstetrical.mammogram.isHaveMammogram@: "none"
+                  - ..obstetrical.mammogram.lastTime@: ""
+
+                  - ..obstetrical.menses.howOften@: ""
+                  - ..obstetrical.menses.howlong@: ""
+                  - ..obstetrical.menses.isEveryMonth@: ""
+                  - ..obstetrical.menses.isHeavyFlow@: ""
+                  - ..obstetrical.menses.spottingOrClots@: ""
+
+                  - ..obstetrical.pregnancy.abortionsTime@: ""
+                  - ..obstetrical.pregnancy.children@: ""
+                  - ..obstetrical.pregnancy.currentlyPregnant@: ""
+                  - ..obstetrical.pregnancy.pregnantsTimes@: ""
+              - ..obstetrical.isShow@: "block"
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: genderTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: showArea
+    twoRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.pregnancy.currentlyPregnant
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    twoClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..obstetrical.pregnancy.currentlyPregnant
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..obstetrical.pregnancy
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..obstetrical.pregnancy
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: pregnancyYesNoTag
+    threeRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.menses.isEveryMonth
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    threeClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..obstetrical.menses.isEveryMonth
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..obstetrical.menses
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..obstetrical.menses
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: isEveryMonth
+    fourRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.menses.isHeavyFlow
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    fourClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..obstetrical.menses.isHeavyFlow
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..obstetrical.menses
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..obstetrical.menses
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: heavyFlow
+    fiveRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.menses.spottingOrClots
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    fiveClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..obstetrical.menses.spottingOrClots
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..obstetrical.menses
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..obstetrical.menses
+                      key: $var.key
+                      value: $var.value
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: anySpottingOrClots
+    sixRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.mammogram.haveMammogram
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    sixClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..obstetrical.mammogram.haveMammogram
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..obstetrical.mammogram
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..obstetrical.mammogram
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.mammogram.haveMammogram
+                    string2: "Yes"
+              - ..obstetrical.mammogram.isHaveMammogram@: "block"
+              - actionType: evalObject
+                object:
+                  - ..obstetrical.mammogram.isHaveMammogram@: "none"
+                  - ..obstetrical.mammogram.lastTime@: ""
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: haveMammogram
+    sevenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.mammogram.abnormalResult
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    sevenClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..obstetrical.mammogram.abnormalResult
+                      string2: $var.value
+                - =.builtIn.object.clear:
+                    dataIn:
+                      object: =..obstetrical.mammogram
+                      key: $var.key
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..obstetrical.mammogram
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..obstetrical.mammogram.abnormalResult
+                    string2: "Yes"
+              - ..obstetrical.mammogram.isAbnormalResult@: "block"
+              - actionType: evalObject
+                object:
+                  - ..obstetrical.mammogram.isAbnormalResult@: "none"
+                  - ..obstetrical.mammogram.abnormalResultDescribe@: ""
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: abnormalResult
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: yesTag
+
+    backClick:
+      - actionType: popUp
+        popUpView: judgmentOperation
+        wait: true
+    lastStep:
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.generalInfo@: =..generalInfo
+          - .Global.formData.PatientchartInfo.name.data.obstetricalHistory@: =..obstetrical
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+
+    btnClick:
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.generalInfo@: =..generalInfo
+          - .Global.formData.PatientchartInfo.name.data.obstetricalHistory@: =..obstetrical
+      - goto: PatientChartSexualHistory
+
+  style: #Input style fragment here
+    skipRight:
+      marginTop: "0.016"
+      marginLeft: "0.04"
+      color: "white"
+
+      fontSize: .Nfont.h14
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84729"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    dateBox:
+      display: "inline-block"
+      width: "0.4986"
+      height: "0.0369"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+    dateInput:
+      display: "inline-block"
+      border:
+        style: 1
+      boxSizing: border-box
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "0.03078"
+      verticalAlign: middle
+      textIndent: "12px"
+      width: "0.4266"
+      backgroundColor: "#ffffff"
+    dateImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.02"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    listBox:
+      width: "0.92"
+      height: "auto"
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.7832"
+      boxSizing: border-box
+      overflow: scroll
+    blockBox:
+      marginTop: "0.01"
+      height: "auto"
+      width: "0.92"
+    blockBoxTitle:
+      display: "inline-block"
+      width: "0.42"
+      height: "auto"
+      verticalAlign: middle
+      color: "#333333"
+      fontSize: .Nfont.h14
+    blockBoxLeft:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x666666"
+      fontSize: .Nfont.h12
+      verticalAlign: middle
+    blockBoxRight:
+      marginLeft: "0.0373"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x333333"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      verticalAlign: middle
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0246"
+    text:
+      marginTop: "0.0172"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+      wordWrap: break-word
+    list:
+      width: "0.92"
+      margin: "0"
+      height: auto
+      boxSizing: border-box
+      marginTop: "0.012"
+      font-size: "0"
+      overflow: hidden
+      axis: horizontal
+    listItem:
+      display: "inline-block"
+      width: "0.2666"
+      height: "auto"
+      boxSizing: border-box
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    contentBox:
+      # display: "none"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    describeInput:
+      marginTop: "0.0197"
+      height: "0.1"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+    radioList:
+      margin: "0"
+      marginTop: "0.01477"
+      width: "0.9"
+      axis: horizontal
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    radioItemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    radioItemValue:
+      marginLeft: "0.032"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.01"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    blockInput:
+      marginTop: "0.01"
+      height: "0.0369"
+      width: "0.92"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderRadius: "3"
+      borderWidth: "1.5"
+      borderColor: "0xdedede"
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      textIndent: "12px"
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+    leftBox:
+      marginLeft: "0.05"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "auto"
+      width: "auto"
+      marginTop: "0.0123"
+    leftImg:
+      verticalAlign: middle
+      display: "inline-block"
+      height: "0.02955"
+    leftlabel:
+      marginLeft: "0.02"
+      verticalAlign: middle
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x2988e6"
+      fontWeight: "600"
+    nextBtn:
+      marginTop: "0.0123"
+      marginLeft: "0.156"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.045"
+      width: "0.45333"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: 600
+      textAlign:
+        x: center
+    regularLabel:
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      marginTop: "0.025862"

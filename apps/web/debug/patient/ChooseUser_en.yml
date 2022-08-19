@@ -1,0 +1,290 @@
+ChooseUser:
+  title: "Switch Account"
+  pageNumber: "" # PageNumber
+  init: # Page initialization
+    - .SignInCheck
+    - ..formData.patientProfileList@: []
+    - .Global.createjwt.edge.bvid@: =.Global.loginUser.vertex.id
+    - =.Global.createjwt.edgeAPI.store: ""
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..apiRequest.patientProfile.docAPI.get
+    - ..apiRequest.mainProfile.docAPI.get
+    # 如果是provider用户登陆patient 可以在这个地方判断，直接跳转到 dashboard 去创建 profile
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.patientProfile.docResp.doc
+              len: 0
+        - goto: PatientDashboard
+        - continue
+    - =.builtIn.array.keepLatestDoc:
+        dataIn:
+          docList: =..apiRequest.patientProfile.docResp.doc
+          path: bsig
+        dataOut: ChooseUser.formData.memberProfile
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.patientProfileList
+          value: =..apiRequest.mainProfile.docQueryResp.doc.0
+    - if:
+        - =..formData.memberProfile.0
+        - =.builtIn.array.concat:
+            dataIn:
+              array1: =..formData.patientProfileList
+              array2: =..formData.memberProfile
+            dataOut: ChooseUser.formData.patientProfileList
+        - continue
+    # put default user in the vertex list due to the get too fast
+    - =.builtIn.object.setProperty:
+        dataIn:
+          obj: =..formData.patientProfileList
+          label: "bsig"
+          text: =.Global.currentUser.vertex.id
+          arr: ["borderColor"]
+          valueArr: ["0x2887e5"]
+          errorArr: ["0xeeeeee"]
+    - =.builtIn.object.setProperty:
+        dataIn:
+          obj: =..apiRequest.mainProfile.docQueryResp.doc
+          label: "bsig"
+          text: =.Global.currentUser.vertex.id
+          arr: ["borderColor"]
+          valueArr: ["0x2887e5"]
+          errorArr: ["0xeeeeee"]
+    - ..apiRequest.profile.docQueryReq.ids@: []
+  formData:
+    memberProfile: []
+    vertex: ""
+    tempData: ""
+    patientProfileList: []
+    listNumber: ""
+  apiRequest: #Input data request here
+    mainProfile:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.loginUser.vertex.id
+        type: .DocType.PatientProfile
+        xfname: ovid
+        obfname: mtime
+        maxcount: "1"
+      docAPI:
+        get:
+          api: rd
+          dataIn: ChooseUser.apiRequest.mainProfile.docQueryReq
+          dataOut: ChooseUser.apiRequest.mainProfile.docQueryResp
+    profile:
+      docQueryResp: ""
+      docQueryReq:
+        ids: []
+        type: .DocType.PatientProfile
+        xfname: ovid,eid
+      docAPI:
+        get:
+          api: rd
+          dataIn: ChooseUser.apiRequest.profile.docQueryReq
+          dataOut: ChooseUser.apiRequest.profile.docQueryResp
+    patientProfile:
+      docResp: ""
+      docReq:
+        ObjType: 28
+        id: .Global.loginUser.vertex.id
+        xfname: bvid
+        sfname: '{"result":"D.*", "join": "INNER JOIN Vertex V on V.id = D.ovid INNER JOIN Edge E on E.evid=V.id"}'
+        type: .DocType.PatientProfile
+        _nonce: =.Global._nonce
+        sCondition: "E.type = 1100 AND V.type=10"
+        obfname: mtime
+        asc: false
+      docAPI:
+        get:
+          api: rd
+          dataIn: ChooseUser.apiRequest.patientProfile.docReq
+          dataOut: ChooseUser.apiRequest.patientProfile.docResp
+    currentVertex:
+      vertexQueryResp: ""
+      vertexQueryReq:
+        id: ""
+      vertexAPI:
+        get:
+          api: rv
+          dataIn: ChooseUser.apiRequest.currentVertex.vertexQueryReq
+          dataOut: ChooseUser.apiRequest.currentVertex.vertexQueryResp
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderCenter:
+    - type: scrollView
+      style:
+        marginLeft: "0.04"
+        height: "0.945"
+        width: "0.92"
+        boxSizing: border-box
+        paddingBottom: "0.03"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..formData.patientProfileList
+          iteratorVar: itemObject
+          style:
+            height: "auto"
+            width: "0.92"
+            borderRadius: "7"
+            boxSizing: border-box
+          children:
+            - type: listItem
+              viewTag: switchTag
+              itemObject:
+              style:
+                marginTop: "0.0198"
+                width: "0.92"
+                height: "auto"
+                border:
+                  style: 3
+                borderWidth: "1.5"
+                borderColor: itemObject.borderColor
+                boxShadow: "1px 1px 4px 1px #eeeeee"
+                borderRadius: "7"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+                boxSizing: border-box
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.0198"
+                    height: "auto"
+                    width: "0.92"
+                  children:
+                    - type: image
+                      path: patientImage.svg
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: itemObject.name.data.basicInfo.avatar
+                      style:
+                        marginLeft: "0.0533"
+                        verticalAlign: middle
+                        display: "inline-block"
+                        height: "0.059"
+                        width: "0.128"
+                        borderRadius: "5"
+                    - type: view
+                      style:
+                        verticalAlign: middle
+                        marginLeft: "0.0426"
+                        display: "inline-block"
+                        height: "auto"
+                        width: "0.6"
+                        overflow: hidden
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.data.basicInfo.fullName
+                          style:
+                            width: "0.6"
+                            height: "auto"
+                            fontSize: .Nfont.h14
+                            fontWeight: "600"
+
+                            verticalAlign: middle
+                            color: "0x333333"
+                        - type: label
+                          dataKey: itemObject.name.data.basicInfo.dateOfBirth
+                          style:
+                            marginTop: "0.005"
+                            width: "0.6"
+                            height: "auto"
+                            fontSize: .Nfont.h14
+                            color: "0x666666"
+
+                            verticalAlign: middle
+                    - type: image
+                      path: chooseLeft.svg
+                      style:
+                        display: "inline-block"
+                        verticalAlign: middle
+                        width: "0.064"
+                        height: "0.0295"
+                - type: view
+                  style:
+                    height: "0.0198" #16.08px
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - =.builtIn.object.setProperty:
+                          dataIn:
+                            obj: =..formData.patientProfileList
+                            label: "bsig"
+                            text: $var.bsig
+                            arr: ["borderColor"]
+                            valueArr: ["0x2988e6"]
+                            errorArr: ["0xeeeeee"]
+                      - ..apiRequest.currentVertex.vertexQueryReq.id@: $var.bsig
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.currentVertex.vertexAPI.get: ""
+                    - .ChooseUser.formData.vertex@: ""
+                    - .ChooseUser.formData.vertex@: =..apiRequest.currentVertex.vertexQueryResp.vertex.0
+
+                - actionType: evalObject
+                  object:
+                    - .Global.currentUser.vertex.ctime@: =..formData.vertex.ctime
+                    - .Global.currentUser.vertex.name.firstName@: =..formData.vertex.name.firstName
+                    - .Global.currentUser.vertex.name.lastName@: =..formData.vertex.name.lastName
+                    - .Global.currentUser.vertex.name.fullName@: =..formData.vertex.name.fullName
+                    - .Global.currentUser.vertex.name.phoneNumber@: =..formData.vertex.name.phoneNumber
+                    - .Global.currentUser.vertex.name.userName@: =..formData.vertex.name.userName
+                    - .Global.currentUser.vertex.id@: =..formData.vertex.id
+                    - .Global.rootNotebookID@: =..formData.vertex.deat.rnb64ID
+                    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+                    - =.Global.createjwt.edgeAPI.store: ""
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..apiRequest.profile.docQueryReq.ids
+                          value: =..formData.vertex.id
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..apiRequest.profile.docQueryReq.ids
+                          value: =..formData.vertex.deat.rnb64ID
+                    - =..apiRequest.profile.docAPI.get: ""
+                - actionType: updateObject
+                  dataKey: Global.Profile
+                  dataObject: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: switchTag
+                - actionType: evalObject
+                  object:
+                    - .Global.Profile@: =..apiRequest.profile.docQueryResp.doc.0
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.loginUser.vertex.id
+                              string2: =.Global.currentUser.vertex.id
+                        - .Global.formData.role@: "mainUser"
+                        - .Global.formData.role@: "minor"
+                    - goto: PatientDashboard
+        - type: view
+          style:
+            marginTop: "0.0198"
+            width: "0.92"
+            height: "auto"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aitmedLogoBlack.svg
+              style:
+                height: "0.0948"
+            - type: label
+              text: "You can switch at any time by tapping the switch account button in the menu bar at the top right hand corner of the dashboard. "
+              style:
+                marginTop: "0.0198"
+                height: "auto"
+                width: "0.92"
+                color: "0x333333"
+                lineHeight: "2.2vh"
+                fontSize: .Nfont.h12
+                textAlign:
+                  x: center

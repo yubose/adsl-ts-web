@@ -303,7 +303,7 @@ CreateAppointmentNewNext:
                         borderColor: "0xf8f8f8"
                       children:
                         - type: label
-                          text: "Appointment info"
+                          text: "Appointment Info"
                           style:
                             fontSize: .Nfont.n2
                             width: "0.77"
@@ -384,7 +384,7 @@ CreateAppointmentNewNext:
                         marginLeft: "0.01"
                       children:
                         - type: label
-                          text: "Reason for visit"
+                          text: "Reason for Visit"
                           style:
                             fontSize: .Nfont.n2
                             width: "0.3"
@@ -417,7 +417,6 @@ CreateAppointmentNewNext:
                             display: "inline-block"
                             lineHeight: "3.5vh"
                         - type: label
-                          text: "Office Visits"
                           dataKey: Global.roomInfo.edge.name.visitType
                           style:
                             fontSize: .Nfont.n2
@@ -695,7 +694,7 @@ CreateAppointmentNewNext:
           style:
             width: "1"
             borderBottom: "1px solid #e6e6e6"
-        
+
         - type: view
           style:
             marginTop: "0.05"
@@ -706,7 +705,7 @@ CreateAppointmentNewNext:
               x: center
           children:
             - type: view
-              style: 
+              style:
                 width: "auto"
                 height: "0.022"
               children:
@@ -747,7 +746,7 @@ CreateAppointmentNewNext:
                     fontSize: .Nfont.h16
                     height: "auto"
                     width: "auto"
-                    verticalAlign: middle    
+                    verticalAlign: middle
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeLT_en
                   dataKey: Global.roomInfo.edge.stime
@@ -758,7 +757,7 @@ CreateAppointmentNewNext:
                     color: "0x69AAD8"
                     fontSize: .Nfont.h16
                     height: "auto"
-                    verticalAlign: middle  
+                    verticalAlign: middle
                 - type: label
                   text: "to"
                   style:
@@ -833,6 +832,48 @@ CreateAppointmentNewNext:
                 - actionType: evalObject
                   object:
                     - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =.Global.subtype
+                            string2: 196616
+                      # change telemedicine log
+                      - =.builtIn.utils.createAuditLog:
+                          dataIn:
+                            actionTypeCode: =.ActionTypeCode.change
+                            recordTypeCode: =.EdgeType.scheduleSubtype.Telemedicine
+                            eid: =.Global.formData.currentFacility.relationEdge.id
+                            user: =.Global.MyProfile.name.data.fullName
+                            userId: =.Global.currentUser.vertex.id
+                            targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                            accessPort: provider
+                      - actionType: evalObject
+                        object:
+                          - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.subtype
+                                  string2: 131080
+                            # change office visit log
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.change
+                                  recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  accessPort: provider
+                            # change room log
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.change
+                                  recordTypeCode: =.EdgeType.scheduleSubtype.RoomType
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  accessPort: provider
+                    - if:
                         - =.builtIn.string.equal:
                             dataIn:
                               string1: =..formData.dataObject.evid
@@ -851,24 +892,24 @@ CreateAppointmentNewNext:
                 - actionType: evalObject
                   object:
                     # change to patient jwt
-#                    - =.builtIn.FCM.getAPPID:
-#                        dataIn:
-#                          appName: =.TargetApp.patient
-#                        dataOut: FirebaseToken.edge.evid
-#                    - actionType: evalObject
-#                      object: .Global.updateJwt
+                    #                    - =.builtIn.FCM.getAPPID:
+                    #                        dataIn:
+                    #                          appName: =.TargetApp.patient
+                    #                        dataOut: FirebaseToken.edge.evid
+                    #                    - actionType: evalObject
+                    #                      object: .Global.updateJwt
                     - ..sendNotification.document.fid@: =.Global.patdAPPID
                     - ..sendNotification.document.eid@: =..apiRequest.changeTime.edgeCreateResp.edge.id
                     #send Notification
                     - =..sendNotification.docAPI.store: ""
                     # change the jwt back
-#                    - =.builtIn.FCM.getAPPID:
-#                        dataIn:
-#                          appName: =.AppName
-#                        dataOut: FirebaseToken.edge.evid
-#                    - actionType: evalObject
-#                      object: .Global.updateJwt
-#                    - =.Global.jwt.edgeAPI.store: ""
+                #                    - =.builtIn.FCM.getAPPID:
+                #                        dataIn:
+                #                          appName: =.AppName
+                #                        dataOut: FirebaseToken.edge.evid
+                #                    - actionType: evalObject
+                #                      object: .Global.updateJwt
+                #                    - =.Global.jwt.edgeAPI.store: ""
                 # 发patients
                 - actionType: evalObject
                   object:
@@ -971,7 +1012,7 @@ CreateAppointmentNewNext:
                     - =.builtIn.string.concat:
                         dataIn:
                           - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype in (0x20006,0x30006,0x20064,0x30064,0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064)"
-                        dataOut: Global.queryScondition_participants     
+                        dataOut: Global.queryScondition_participants
                 - actionType: popUp
                   popUpView: success
                   wait: 2000
@@ -986,7 +1027,7 @@ CreateAppointmentNewNext:
         width: "1"
         height: "1"
         backgroundColor: "#00000040"
-        zIndex: "1000"  
+        zIndex: "1000"
       children:
         - type: view
           style:

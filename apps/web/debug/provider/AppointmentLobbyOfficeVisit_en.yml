@@ -2,14 +2,29 @@ AppointmentLobbyOfficeVisit: #xd page
   title: Appointment Lobby
   init:
     - .SignInCheck
+    # 指定providerNotesSelect返回页
+    - .Global.formData.lastPage@: AppointmentLobbyOfficeVisit
+    # 重置diagnoses和recommendation
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.diagnosesDoc
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.recommendationDoc
+      dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.goodNameList
+      dataObject: []
     - ..dataObject@: =.Global.roomInfo.edge
+    #为解决安卓bug，创建完关联预约返回此页面，特加中间页面
+    - .Global.MiddlePage.createRelationAppointment@: "AppointmentLobbyOfficeVisit"
+    # 将当前normal appointment赋值给Global.currentRoomInfo以便后续的invite等操作
+    - .Global.currentRoomInfo@: =.Global.roomInfo
     - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id #change jwt
     - =.Global.createjwt.edgeAPI.store: ""
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - ..listData.get
     - if: # 第三位为1 说明 房间已经checkin
         - =.builtIn.number.typeIsValid:
             dataIn:
@@ -23,7 +38,7 @@ AppointmentLobbyOfficeVisit: #xd page
             - ..formData.roomStatus.canClickChangeButton@: none
             - ..formData.roomStatus.canClickFinishButton@: ""
             - ..formData.roomStatus.finishedButtonColor@: "0x2988e6"
-            - ..formData.enterText@: "Finish appointment"
+            - ..formData.enterText@: "Finish Appointment"
         - actionType: evalObject
           object:
             - ..formData.roomStatus.isCheckedIn@: false
@@ -31,7 +46,7 @@ AppointmentLobbyOfficeVisit: #xd page
             - ..formData.roomStatus.canClickChangeButton@: ""
             - ..formData.roomStatus.canClickFinishButton@: none
             - ..formData.roomStatus.finishedButtonColor@: "0x2988e6"
-            - ..formData.enterText@: "Finish appointment"
+            - ..formData.enterText@: "Finish Appointment"
 
     - if:
         - =.builtIn.string.equal:
@@ -51,17 +66,6 @@ AppointmentLobbyOfficeVisit: #xd page
                   object:
                     - =..apiRequest.accessRoomInfo.edgeAPI.get: ""
                     - .Global.currentRoom.edge@: =..apiRequest.accessRoomInfo.response.edge.0
-    - ..apiRequest.facilityInfo.docAPI.get
-    - if:
-        - =.builtIn.string.equal:
-            dataIn:
-              string1: =..listData.invitees.edge.0.name.name
-              string2: =..dataObject.name.providerName
-        - =.builtIn.array.removeByIndex:
-            dataIn:
-              object: =..listData.invitees.edge
-              index: 0
-        - continue
     - actionType: evalObject
       object:
         .Global._nonce@:
@@ -69,36 +73,36 @@ AppointmentLobbyOfficeVisit: #xd page
     - actionType: evalObject
       object:
         - ..formData.provider.providerId@: =.Global.currentUser.vertex.id
-        - =..patientProfile.get: ""
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.facilityInfo.docAPI.get: ""
+            - =..patientProfile.get: ""
+            - =..apiRequest.appointment_E10.edgeAPI.get: ""
+            - =..apiRequest.paymentEdge.edgeAPI.get: ""
+            - =..apiRequest.getRelatedLink.docAPI.get: ""
+            - =..apiRequest.patientChart.docAPI.get: ""
+            - =..apiRequest.diagnosesDoc.docAPI.get: ""
+            - =..apiRequest.recommendation.docAPI.get: ""
+    - .Global.formData.currentMeetingPatientProfile@: ""
+    - .Global.formData.currentMeetingPatientProfile@: =..patientProfile.docReponse.doc.0
     - .Global.currentMeetingPatientProfile@: ""
     - .Global.currentMeetingPatientProfile@: =..patientProfile.docReponse.doc.0.name.data
-    # judge the provider is on the E2 or not
-    # - if:
-    #     - =.builtIn.string.equal:
-    #         dataIn:
-    #           string1: =.Global.currentUser.vertex.id
-    #           string2: =.Global.roomInfo.edge.bvid
-    #     - continue
-    #     - actionType: evalObject
-    #       object:
-    #         - if:
-    #             - =.builtIn.string.equal:
-    #                 dataIn:
-    #                   string1: =.Global.currentUser.vertex.id
-    #                   string2: =.Global.roomInfo.edge.evid
-    #             - continue
-    #             - ..formData.participants_provider@: none
     # get all E10 and display all the participants
-    - ..apiRequest.appointment_E10.edgeAPI.get
     - if:
-        - =..apiRequest.appointment_E10.edgeQueryResp.edge
-        - ..formData.participants_others@: ""
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.appointment_E10.edgeQueryResp.edge
+              len: 0
         - continue
-    - =.builtIn.object.extract:
-        dataIn:
-          array: =..apiRequest.appointment_E10.edgeQueryResp.edge
-          field: name
-        dataOut: AppointmentLobbyOfficeVisit.formData.participants
+        - actionType: evalObject
+          object:
+            - ..formData.participants_others@: ""
+            - =.builtIn.object.extract:
+                dataIn:
+                  array: =..apiRequest.appointment_E10.edgeQueryResp.edge
+                  field: name
+                dataOut: AppointmentLobbyOfficeVisit.formData.participants
     # According to the design team, only reserve patient and provider roles in participants
     - =.builtIn.array.removeByName:
         dataIn:
@@ -115,10 +119,15 @@ AppointmentLobbyOfficeVisit: #xd page
           object: =..formData.participants
           key: role
           name: Facility
+    # 删去重复显示的provider
+    - =.builtIn.array.removeByName:
+        dataIn:
+          object: =..formData.participants
+          key: roleName
+          name: =.Global.currentRoomInfo.edge.name.providerName
     - actionType: builtIn
       funcName: redraw
       viewTag: participants
-    - =..apiRequest.paymentEdge.edgeAPI.get: ""
     - if:
         - =..apiRequest.paymentEdge.edgeResp.edge.0.id
         - actionType: evalObject
@@ -127,12 +136,29 @@ AppointmentLobbyOfficeVisit: #xd page
             - =..apiRequest.hasPaidProfile.docAPI.get: ""
         - continue
     - if:
-        - =.builtIn.string.equal:
+        - =.builtIn.array.judgeListLength:
             dataIn:
-              string1: =..apiRequest.hasPaidProfile.getDocResp.doc.0.deat.state
-              string2: "COMPLETED"
-        - ..formData.payStatus.fontColor@: "#2FB355"
-        - ..formData.payStatus.fontColor@: "#e24445"
+              array: =..apiRequest.hasPaidProfile.getDocResp.doc
+              len: 0
+        - actionType: evalObject
+          object:
+            - ..formData.payStatus.name@: "Payment"
+            - ..formData.payStatus.fontColor@: "#e24445"
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.hasPaidProfile.getDocResp.doc.0.deat.state
+                      string2: "COMPLETED"
+                - actionType: evalObject
+                  object:
+                    - ..formData.payStatus.fontColor@: "#2FB355"
+                    - ..formData.payStatus.name@: "Receipt"
+                - actionType: evalObject
+                  object:
+                    - ..formData.payStatus.name@: "Payment"
+                    - ..formData.payStatus.fontColor@: "#e24445"
     - if:
         - =.builtIn.utils.judgeAll:
             dataIn:
@@ -159,15 +185,124 @@ AppointmentLobbyOfficeVisit: #xd page
               string2: =.Global.roomInfo.edge.name.providerId
         - ..formData.display_mainButton@: "block"
         - ..formData.display_mainButton@: none
-    - actionType: builtIn
-      funcName: redraw
-      viewTag: tag_payStatus
-    - actionType: builtIn
-      funcName: redraw
-      viewTag: tag_payment
-    - actionType: builtIn
-      funcName: redraw
-      viewTag: tag_footView
+    # 首先我们要获取所有的related appointment的 doc, 用当前的房间id作为reid 去查所有的doc就可以
+    # 有三种情况 1. 0个 doc， 说明是老预约 2. 1个doc 说明只有当前一个 ，也可以说明没有 related app
+    # 3. 有多个 出去当前的房间id 其他的就是当前的 related
+    - actionType: evalObject
+      object:
+        # 获取自己房间的小尾巴， 目的： 1。 reid 是跟房间 2. 自己的id 为下一个 related app的fid
+        - if:
+            - =.builtIn.array.judgeListLength:
+                dataIn:
+                  array: =..apiRequest.getRelatedLink.getResp.doc
+                  len: 0
+            - actionType: evalObject
+              object:
+                - =..apiRequest.getRelatedLink.docAPI.store: ""
+                - .Global.formData.relatedApp.activeRelatedlink@: =..apiRequest.getRelatedLink.docCreateResp.doc
+            # 把自己的东西放到全局
+            - .Global.formData.relatedApp.activeRelatedlink@: =..apiRequest.getRelatedLink.getResp.doc.0
+        - =..apiRequest.getRelatedAppointment.docAPI.get: ""
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..apiRequest.getRelatedAppointment.getResp.doc
+            dataOut: AppointmentLobbyOfficeVisit.formData.relatedAppointmentCountString
+        - =.builtIn.string.retainNumber:
+            dataIn:
+              value: =..formData.relatedAppointmentCountString
+            dataOut: AppointmentLobbyOfficeVisit.formData.relatedAppointmentCount
+        - if:
+            - =.builtIn.math.greater:
+                dataIn:
+                  num1: =..formData.relatedAppointmentCount
+                  num2: 0
+            - =.builtIn.object.extract:
+                dataIn:
+                  array: =..apiRequest.getRelatedAppointment.getResp.doc
+                  field: eid
+                dataOut: AppointmentLobbyOfficeVisit.formData.relatedAppointmentIdList
+            - continue
+        # 把所有的appointment id 存放在 global里面
+        - .Global.currentRoomrelatedAppointment@: =..formData.relatedAppointmentIdList
+        - if:
+            - =.builtIn.math.greater:
+                dataIn:
+                  num1: =..formData.relatedAppointmentCount
+                  num2: 2
+            - actionType: evalObject
+              object:
+                - ..formData.relatedAppointmentDisplay@: "inline-block"
+                - .Global.formData.tabBarShow@: "block"
+            - actionType: evalObject
+              object:
+                - ..formData.relatedAppointmentDisplay@: "none"
+                - .Global.formData.tabBarShow@: "none"
+    # - actionType: builtIn
+    #   funcName: redraw
+    #   viewTag: tag_payStatus
+    # - actionType: builtIn
+    #   funcName: redraw
+    #   viewTag: tag_payment
+    # - actionType: builtIn
+    #   funcName: redraw
+    #   viewTag: tag_footView
+    # 获取当前房间的 patient id 以备后用
+    - actionType: evalObject
+      object:
+        # 获取patient id， F->P, D->P, P->D 只要E6 evid不是provider，那E6 evid一定是patient
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.roomInfo.edge.evid
+                  string2: =.Global.roomInfo.edge.name.providerId
+            - ..formData.patientId@: =.Global.roomInfo.edge.bvid
+            - ..formData.patientId@: =.Global.roomInfo.edge.evid
+        - .Global.formData.relatedApp.activePatientId@: =..formData.patientId
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.patientChart.docQueryResp.doc
+              len: 0
+        - continue
+        - .Global.formData.patientChart@: =..apiRequest.patientChart.docQueryResp.doc.0
+    # 如果是关联预约，显示原provider名字
+    - if:
+        - =.Global.currentRoomInfo.edge.name.mainProviderName
+        # 如果关联预约的主provider和mainProvider一样，则不用显示mainProvider
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.currentRoomInfo.edge.name.mainProviderName
+                      string2: =.Global.currentRoomInfo.edge.name.providerName
+                - ..formData.mainProviderDisplay@: none
+                - ..formData.mainProviderDisplay@: block
+        - ..formData.mainProviderDisplay@: none
+    # 处理diagnoses
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.diagnosesDoc.docResp.doc
+              len: 0
+        - .Global.formData.providerDoc.diagnosesDoc@: ""
+        - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docResp.doc.0
+    # 处理Medical Recommendation
+
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.recommendation.docResp.doc
+              len: 0
+        - actionType: evalObject
+          object:
+            - .Global.formData.isFirstRecommendation@: true
+            - .Global.formData.productionSelectionList@: []
+        - actionType: evalObject
+          object:
+            - .Global.formData.isFirstRecommendation@: false
+            - .Global.formData.providerDoc.recommendationDoc@: =..apiRequest.recommendation.docResp.doc.0
+            - .Global.formData.productionSelectionList@: =..apiRequest.recommendation.docResp.doc.0.name.data.goodsList
   sendNotification:
     document:
       .Document: ""
@@ -202,6 +337,19 @@ AppointmentLobbyOfficeVisit: #xd page
         api: cd
         dataIn: sendNotification.document
   formData:
+    payStatus:
+      name: ""
+      fontColor: ""
+      text: ""
+      borderColor: ""
+      boxShadow: ""
+    mainProviderDisplay: none
+    # 获取当前系统时间
+    currentTime: ""
+    relatedAppointmentCountString: ""
+    relatedAppointmentCount: ""
+    relatedAppointmentDisplay: "none"
+    relatedAppointmentIdList: []
     display_mainButton: "block"
     pointerEvents_payment: ""
     opecity_payment: 1
@@ -220,6 +368,7 @@ AppointmentLobbyOfficeVisit: #xd page
     patient: ""
     provider: ""
     providerId: ""
+    patientId: ""
     FacilityId: ""
     roomStatus:
       isCheckedIn: false
@@ -227,19 +376,6 @@ AppointmentLobbyOfficeVisit: #xd page
       canClickChangeButton: ""
       canClickFinishButton: ""
       finishedButtonColor: "0xc1c1c1"
-  listData:
-    invitees:
-      edge: ""
-    get:
-      .EdgeAPI.get: ""
-      api: re
-      dataKey: listData.invitees
-      id: .Global.roomInfo.edge.id
-      type: .EdgeType.InviteInfo
-      xfname: refid
-      maxcount: "20"
-      sCondition: "tage=0"
-      _nonce: .Global._nonce
   dataObject: .Global.roomInfo.edge
   # get all patient profile
   patientProfile:
@@ -302,7 +438,7 @@ AppointmentLobbyOfficeVisit: #xd page
       name:
         data:
           #邮件内容
-          content: we cannot provider the healthcare service at this time.
+          content: We cannot provide the healthcare service at this time
           #收件人姓名
           receiverName: ""
           #发送人姓名
@@ -323,6 +459,57 @@ AppointmentLobbyOfficeVisit: #xd page
         dataIn: AppointmentLobbyOfficeVisit.cancelEmail.docReq
         dataOut: AppointmentLobbyOfficeVisit.cancelEmail.docRes
   apiRequest:
+    appointmentTage:
+      docCreateResp: ""
+      docCreateReq:
+        eid: =.Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.GroupBitOrTage
+        name:
+          data: ""
+        tage: 9
+      docAPI:
+        store:
+          api: cd
+          dataIn: AppointmentLobbyOfficeVisit.apiRequest.appointmentTage.docCreateReq
+          dataOut: AppointmentLobbyOfficeVisit.apiRequest.appointmentTage.docCreateResp
+    #获取自己房间的realated 小尾巴
+    getRelatedLink:
+      getDocinfo:
+        id: .Global.roomInfo.edge.id
+        xfname: "eid"
+        type: .DocType.RelatedAppTag
+        _nonce: .Global._nonce
+      getResp: ""
+      docCreateResp: ""
+      docCreateReq:
+        eid: .Global.roomInfo.edge.id
+        type: .DocType.RelatedAppTag
+        reid: .Global.roomInfo.edge.id
+        name: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: AppointmentLobbyOfficeVisit.apiRequest.getRelatedLink.docCreateReq
+          dataOut: AppointmentLobbyOfficeVisit.apiRequest.getRelatedLink.docCreateResp
+        get:
+          api: rd
+          dataIn: apiRequest.getRelatedLink.getDocinfo
+          dataOut: AppointmentLobbyOfficeVisit.apiRequest.getRelatedLink.getResp
+    #获取所有的关联预约
+    getRelatedAppointment:
+      getDocinfo:
+        id: =.Global.formData.relatedApp.activeRelatedlink.esig
+        xfname: "reid"
+        type: .DocType.RelatedAppTag
+        obfname: mtime
+        _nonce: .Global._nonce
+      getResp: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: apiRequest.getRelatedAppointment.getDocinfo
+          dataOut: AppointmentLobbyOfficeVisit.apiRequest.getRelatedAppointment.getResp
     financialInfo:
       docQueryResp: ""
       docQueryReq:
@@ -345,13 +532,15 @@ AppointmentLobbyOfficeVisit: #xd page
         _nonce: .Global._nonce
         type: 1113
         obfname: mtime
+        subtype: 1
       edgeAPI:
         get:
           api: re
           dataIn: AppointmentLobbyOfficeVisit.apiRequest.paymentEdge.edgeIn
           dataOut: AppointmentLobbyOfficeVisit.apiRequest.paymentEdge.edgeResp
     hasPaidProfile:
-      getDocResp: ""
+      getDocResp:
+        doc: []
       getDocReq:
         id: ""
         xfname: eid
@@ -382,7 +571,8 @@ AppointmentLobbyOfficeVisit: #xd page
           dataOut: AppointmentLobbyOfficeVisit.apiRequest.cancelMeetingDoc.docCreateResp
     # get the E10
     appointment_E10:
-      edgeQueryResp: ""
+      edgeQueryResp:
+        edge: []
       edgeQueryReq:
         id: .Global.roomInfo.edge.id
         xfname: refid
@@ -427,7 +617,7 @@ AppointmentLobbyOfficeVisit: #xd page
         id:
           - .Global.currentUser.vertex.id
           - .Global.roomInfo.edge.id
-        xfname: "bvid|evid,refid"
+        xfname: "evid,refid"
       edgeAPI:
         .EdgeAPI: ""
         get:
@@ -479,8 +669,57 @@ AppointmentLobbyOfficeVisit: #xd page
           api: rd
           dataIn: AppointmentLobbyOfficeVisit.apiRequest.patientChart.docQueryReq
           dataOut: AppointmentLobbyOfficeVisit.apiRequest.patientChart.docQueryResp
-
+    # 选择的商品清单doc
+    recommendation:
+      docResp: ""
+      docReq:
+        id:
+          - =.Global.roomInfo.edge.id
+        xfname: "reid"
+        sCondition: type & 0xff000 in (0x32000)
+        obfname: "mtime"
+        maxcount: "1"
+        _nonce: .Global._nonce
+      docAPI:
+        .DocAPI: ""
+        get:
+          api: rd
+          dataIn: AppointmentLobbyOfficeVisit.apiRequest.recommendation.docReq
+          dataOut: AppointmentLobbyOfficeVisit.apiRequest.recommendation.docResp
+    # 文档相关的diagnoses
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        id:
+          - =.Global.roomInfo.edge.id
+        xfname: "reid"
+        type: .DocType.Diagnoses
+        obfname: "mtime"
+        maxcount: "1"
+        _nonce: .Global._nonce
+      docAPI:
+        .DocAPI: ""
+        get:
+          api: rd
+          dataIn: AppointmentLobbyOfficeVisit.apiRequest.diagnosesDoc.docReq
+          dataOut: AppointmentLobbyOfficeVisit.apiRequest.diagnosesDoc.docResp
   components:
+    # - .SecondConfirmation:
+    #   viewTag: overtime
+    #   message: The appointment time is over
+    #   btnEvent:
+    #     - actionType: evalObject
+    #       object:
+    #         - =.builtIn.number.inhx:
+    #             dataIn:
+    #               intHex: =..apiRequest.appointmentTage.docCreateReq.tage
+    #               index: 9
+    #               hex: 1
+    #             dataOut: AppointmentLobbyOfficeVisit.apiRequest.appointmentTage.docCreateReq.tage
+    #         - =..apiRequest.appointmentTage.docAPI.store: ""
+    #     - actionType: builtIn
+    #       funcName: goBack
+    #       reload: true
     - .publicDeleteUP:
       viewTag: tag_notPay
       message: "The patient hasn’t paid. Are you sure to finish the appointment?"
@@ -501,14 +740,16 @@ AppointmentLobbyOfficeVisit: #xd page
                 dataOut: AppointmentLobbyOfficeVisit.apiRequest.closeMeetingTag.docCreateReq.tage
             - =..apiRequest.closeMeetingTag.docAPI.store: ""
         - goto: VisitDetial
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: scrollView
       style:
-        top: "0.1"
-        left: "0"
         width: "1"
-        height: "0.795"
+        height: "0.84"
         overflow: scroll
       children:
         - type: view
@@ -522,27 +763,32 @@ AppointmentLobbyOfficeVisit: #xd page
               style:
                 display: "inline-block"
                 marginLeft: "0.05"
-                color: "0x4b4b4b"
+                color: "0x666666"
                 height: "0.05"
-                width: "0.45"
+                width: "0.485"
                 lineHeight: 5vh
-                fontFamily: "Arial"
-                fontSize: .Nfont.h1
+
+                fontSize: .Nfont.h14
+                fontWeight: "600"
                 textAlign:
                   x: left
-            # - type: label
-            #   text: Previous
-            #   style:
-            #     display: "inline-block"
-            #     color: "0x2988e6"
-            #     height: "0.05"
-            #     width: "0.45"
-            #     lineHeight: 5vh
-            #     fontFamily: "Arial"
-            #     fontSize: .Nfont.h1
-            #     textDecoration: underline
-            #     textAlign:
-            #       x: right
+            - type: label
+              text: + Create Appointment
+              onClick:
+                - goto: ScheduleAppointment
+              style:
+                display: "inline-block"
+                marginLeft: "0.01"
+                height: "0.05"
+                width: "0.405"
+                lineHeight: 5vh
+
+                fontSize: .Nfont.h14
+                fontWeight: "400"
+                color: "#2988e6"
+                textDecoration: underline
+                textAlign:
+                  x: right
         - type: view
           style:
             height: "auto"
@@ -550,15 +796,15 @@ AppointmentLobbyOfficeVisit: #xd page
             marginLeft: "0.05"
             color: "0x4b4b4b"
           children:
-            - .PresListView:
-              viewTag: tag_isParticipant
-              style:
-                display: ..formData.display_providerName
-              children:
-                - .PresLabelLeft:
-                  text: Provider Name
-                - .PresLabelRight:
-                  dataKey: dataObject.name.providerName
+            # - .PresListView:
+            #   viewTag: tag_isParticipant
+            #   style:
+            #     display: ..formData.display_providerName
+            #   children:
+            #     - .PresLabelLeft:
+            #       text: Provider Name
+            #     - .PresLabelRight:
+            #       dataKey: dataObject.name.providerName
             - .PresListView:
               children:
                 - .PresLabelLeft:
@@ -607,6 +853,8 @@ AppointmentLobbyOfficeVisit: #xd page
                   dataKey: dataObject.name.location
                   style:
                     width: "0.9"
+                    fontWeight: "normal"
+                    wordBreak: break-word
             - .PresListView:
               viewTag: tag_payStatus
               style:
@@ -620,6 +868,40 @@ AppointmentLobbyOfficeVisit: #xd page
                   text=func: .builtIn.object.transformStatus
                   style:
                     color: ..formData.payStatus.fontColor
+            - .PresListView:
+              children:
+                - .PresLabelLeft:
+                  style:
+                    width: "0.630666"
+                  text: "Medical Recommendation"
+                - .PresLabelRight:
+                  text: View/Edit
+                  style:
+                    color: "#2988e6"
+                    width: "0.2666666"
+
+                    textDecoration: underline
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.Global.formData.providerDoc.recommendationDoc.id
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.typeIsValid:
+                                        dataIn:
+                                          docType: =.Global.formData.providerDoc.recommendationDoc.type
+                                          localArr: [1]
+                                          binaryArr: [1]
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.Note@: =.Global.formData.providerDoc.recommendationDoc
+                                        - goto: RecommendationShared
+                                    - actionType: evalObject
+                                      object:
+                                        - goto: SelectRecommendation
+                            - goto: MedicalRecommendation
         - type: view
           style:
             marginTop: "0.015"
@@ -632,27 +914,38 @@ AppointmentLobbyOfficeVisit: #xd page
               style:
                 display: "inline-block"
                 marginLeft: "0.05"
-                color: "0x4b4b4b"
+                color: "0x666666"
                 height: "0.05"
-                width: "0.45"
+                width: "0.48533333"
                 lineHeight: 5vh
-                fontFamily: "Arial"
-                fontSize: .Nfont.h1
+
+                fontSize: .Nfont.h14
+                fontWeight: "600"
                 textAlign:
                   x: left
-            # - type: label
-            #   text: Document History
-            #   style:
-            #     display: "inline-block"
-            #     color: "0x2988e6"
-            #     height: "0.05"
-            #     width: "0.45"
-            #     lineHeight: 5vh
-            #     fontFamily: "Arial"
-            #     fontSize: .Nfont.h1
-            #     textDecoration: underline
-            #     textAlign:
-            #       x: right
+            - type: view
+              style:
+                width: auto
+                height: auto
+                display: inline-block
+              children:
+                - type: label
+                  text: Related Appointments
+                  onClick:
+                    - goto: RelatedAppointments
+                  style:
+                    display: ..formData.relatedAppointmentDisplay
+                    marginLeft: "0.05"
+                    height: "0.05"
+                    width: "auto"
+                    lineHeight: 5vh
+
+                    fontSize: .Nfont.h14
+                    fontWeight: "400"
+                    color: "#2988e6"
+                    textDecoration: underline
+                    textAlign:
+                      x: left
 
         - type: view
           style:
@@ -663,9 +956,8 @@ AppointmentLobbyOfficeVisit: #xd page
             - type: view
               style:
                 marginTop: "0.02"
-                marginLeft: "0.03"
-                height: "auto"
-                width: "0.84"
+                height: "0.14"
+                width: "0.9"
               children:
                 - type: view
                   onClick:
@@ -674,16 +966,17 @@ AppointmentLobbyOfficeVisit: #xd page
                     display: "inline-block"
                     width: "0.26"
                     height: "0.12"
+                    marginLeft: "0.03"
                     backgroundColor: "0xffffff"
                     border:
                       style: 3
                     borderWidth: "1"
                     borderRadius: "10"
-                    # borderColor: "0xdededf"
-                    borderColor: "0xfc3a3a"
+                    borderColor: "0xdededf"
+                    # borderColor: "0xfc3a3a"
                     box-sizing: border-box
-                    # boxShadow: "0px 0px 6px 0.5px #DEDEDF"
-                    boxShadow: "0px 0px 0px 0.5px #fc3a3a"
+                    boxShadow: "0px 0px 6px 0.5px #DEDEDF"
+                    # boxShadow: "0px 0px 0px 0.5px #fc3a3a"
                     textAlign:
                       x: center
                   children:
@@ -698,9 +991,10 @@ AppointmentLobbyOfficeVisit: #xd page
                         marginTop: "0.01"
                         height: "auto"
                         width: "0.26"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h12
                         color: "0x4b4b4b"
+                        fontWeight: "600"
                         textAlign:
                           x: center
                 - type: view
@@ -733,9 +1027,10 @@ AppointmentLobbyOfficeVisit: #xd page
                         marginTop: "0.01"
                         height: "auto"
                         width: "0.26"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h12
                         color: "0x4b4b4b"
+                        fontWeight: "600"
                         textAlign:
                           x: center
                 - type: view
@@ -768,24 +1063,27 @@ AppointmentLobbyOfficeVisit: #xd page
                         marginTop: "0.01"
                         height: "auto"
                         width: "0.26"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h12
                         color: "0x4b4b4b"
+                        fontWeight: "600"
                         textAlign:
                           x: center
             - type: view
               style:
-                marginTop: "0.02"
-                marginLeft: "0.03"
-                height: "auto"
+                height: "0.14"
                 width: "0.9"
               children:
                 - type: view
                   onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.isRelatedApp@: false
                     - goto: ProviderNotes
                   style:
                     display: "inline-block"
                     width: "0.55"
+                    marginLeft: "0.03"
                     height: "0.12"
                     backgroundColor: "0xffffff"
                     border:
@@ -823,7 +1121,6 @@ AppointmentLobbyOfficeVisit: #xd page
                               text: "Medical Documents"
                               dataKey:
                               style:
-                                fontFamily: "Arial"
                                 fontSize: .Nfont.h12
                                 fontWeight: "600"
                                 color: "#333333"
@@ -832,7 +1129,6 @@ AppointmentLobbyOfficeVisit: #xd page
                               text: "view all documents here"
                               dataKey:
                               style:
-                                fontFamily: "Arial"
                                 fontSize: .Nfont.h12
                                 color: "#666666"
                                 lineHeight: "5vh"
@@ -850,7 +1146,7 @@ AppointmentLobbyOfficeVisit: #xd page
                     #         marginTop: "0.035"
                     #         height: "auto"
                     #         # width: "0.5"
-                    #         fontFamily: "Arial"
+                    #
                     #         fontSize: .Nfont.h12
                     #         color: "0x333333"
                     #     - type: label
@@ -859,7 +1155,7 @@ AppointmentLobbyOfficeVisit: #xd page
                     #         marginTop: "0.01"
                     #         height: "auto"
                     #         # width: "0.5"
-                    #         fontFamily: "Arial"
+                    #
                     #         fontSize: .Nfont.h12
                     #         color: "0x666666"
                 - type: view
@@ -900,19 +1196,19 @@ AppointmentLobbyOfficeVisit: #xd page
                         width: "0.1"
                         height: "0.05"
                     - type: label
-                      text: Payment
+                      dataKey: formData.payStatus.name
                       style:
                         marginTop: "0.01"
                         height: "auto"
                         width: "0.26"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h12
                         color: "0x4b4b4b"
                         textAlign:
                           x: center
         - type: view
           style:
-            marginTop: "0.03"
+            marginTop: "0.01"
             height: "0.05"
             backgroundColor: "0xf0f0f0"
             width: "1"
@@ -926,7 +1222,7 @@ AppointmentLobbyOfficeVisit: #xd page
                 height: "0.05"
                 width: "0.72266"
                 lineHeight: 5vh
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 textAlign:
@@ -945,7 +1241,8 @@ AppointmentLobbyOfficeVisit: #xd page
                 height: "0.05"
                 width: "auto"
                 lineHeight: 5vh
-                fontFamily: "Arial"
+
+                textDecoration: underline
                 fontSize: .Nfont.h14
                 fontWeight: "400"
                 color: "#2988e6"
@@ -962,7 +1259,7 @@ AppointmentLobbyOfficeVisit: #xd page
           children:
             - .PresListView:
               # style:
-                # display: ..formData.participants_provider
+              # display: ..formData.participants_provider
               children:
                 - .PresLabelLeft:
                   text: Provider
@@ -974,6 +1271,14 @@ AppointmentLobbyOfficeVisit: #xd page
                   text: Patient
                 - .PresLabelRight:
                   dataKey: dataObject.name.patientName
+            - .PresListView:
+              style:
+                display: ..formData.mainProviderDisplay
+              children:
+                - .PresLabelLeft:
+                  text: Provider
+                - .PresLabelRight:
+                  dataKey: Global.currentRoomInfo.edge.name.mainProviderName
             - type: list
               contentType: listObject
               listObject: ..formData.participants
@@ -996,18 +1301,18 @@ AppointmentLobbyOfficeVisit: #xd page
                     - type: label
                       style:
                         display: "inline-block"
-                        heigth: "auto"
+                        height: "auto"
                         width: "0.4"
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         fontSize: .Nfont.h14
                       dataKey: itemObject.role
                     - type: label
                       style:
                         display: "inline-block"
-                        heigth: "auto"
+                        height: "auto"
                         width: "0.5"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h14
                         color: "0x666666"
                         wordWrap: break-word
@@ -1123,7 +1428,7 @@ AppointmentLobbyOfficeVisit: #xd page
     #         borderRadius: "2"
     #         borderWidth: "1"
     #         # pointerEvents: ..formData.roomStatus.canClickFinishButton
-    #         fontFamily: "Arial"
+    #
     #         fontSize: .Nfont.h2
     #         color: "0xffffff"
     #         textAlign:
@@ -1324,7 +1629,7 @@ AppointmentLobbyOfficeVisit: #xd page
                     fontSize: "17"
                     fontWeight: "550"
                     display: inline
-                    fontFamily: "sans-serif"
+
                     textAlign:
                       x: center
                 - type: view
@@ -1409,6 +1714,31 @@ AppointmentLobbyOfficeVisit: #xd page
                     - actionType: evalObject
                       object:
                         - =..cancelEmail.docAPI.store: ""
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =.Global.currentRoomInfo.edge.subtype
+                                string2: 131078
+                          # cancel office visit log
+                          - =.builtIn.utils.createAuditLog:
+                              dataIn:
+                                actionTypeCode: =.ActionTypeCode.cancel
+                                recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                                eid: =.Global.formData.currentFacility.relationEdge.id
+                                user: =.Global.MyProfile.name.data.fullName
+                                userId: =.Global.currentUser.vertex.id
+                                targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                accessPort: provider
+                          # cancel room log
+                          - =.builtIn.utils.createAuditLog:
+                              dataIn:
+                                actionTypeCode: =.ActionTypeCode.cancel
+                                recordTypeCode: 393219
+                                eid: =.Global.formData.currentFacility.relationEdge.id
+                                user: =.Global.MyProfile.name.data.fullName
+                                userId: =.Global.currentUser.vertex.id
+                                targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                accessPort: provider
                     - goto: DisagreeRequest2
                 - type: view
                   style:
@@ -1432,6 +1762,91 @@ AppointmentLobbyOfficeVisit: #xd page
                   onClick:
                     - actionType: popUpDismiss
                       popUpView: deleteMeetingTag
+    - .Normal:
+      viewTag: confirmFinish
+      message: Finish the appointment?
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: confirmFinish
+      rightButton:
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: popUpDismiss
+          popUpView: confirmFinish
+        - actionType: evalObject
+          object:
+            - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.currentRoomInfo.edge.name.visitType
+                    string2: Office Visit
+              # finish office visit log
+              - =.builtIn.utils.createAuditLog:
+                  dataIn:
+                    actionTypeCode: =.ActionTypeCode.finish
+                    recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                    eid: =.Global.formData.currentFacility.relationEdge.id
+                    user: =.Global.MyProfile.name.data.fullName
+                    userId: =.Global.currentUser.vertex.id
+                    targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                    accessPort: Provider
+              # finish room log
+              - =.builtIn.utils.createAuditLog:
+                  dataIn:
+                    actionTypeCode: =.ActionTypeCode.finish
+                    recordTypeCode: =.EdgeType.scheduleSubtype.RoomType
+                    eid: =.Global.formData.currentFacility.relationEdge.id
+                    user: =.Global.MyProfile.name.data.fullName
+                    userId: =.Global.currentUser.vertex.id
+                    targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                    accessPort: Provider
+            - if:
+                - =.builtIn.utils.judgeAll:
+                    dataIn:
+                      value:
+                        - =.Global.roomInfo.edge.name.fee
+                        - =..apiRequest.financialInfo.docQueryResp.doc.0.name.data.paymentInfo.fee
+                      index: "0.00"
+                - actionType: evalObject
+                  object:
+                    # refresh appointment status
+                    - =..apiRequest.appointment.edgeAPI.get: ""
+                    - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.closeMeetingTag.docCreateReq.tage
+                          index: 9
+                          hex: 1
+                        dataOut: AppointmentLobbyOfficeVisit.apiRequest.closeMeetingTag.docCreateReq.tage
+                    - =..apiRequest.closeMeetingTag.docAPI.store: ""
+                    - .Global.formData.showBackButton.visitDetail@: "false"
+                    - goto: VisitDetial
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..apiRequest.hasPaidProfile.getDocResp.doc.0.deat.state
+                              string2: "COMPLETED"
+                        - actionType: evalObject
+                          object:
+                            # refresh appointment status
+                            - =..apiRequest.appointment.edgeAPI.get: ""
+                            - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.closeMeetingTag.docCreateReq.tage
+                                  index: 9
+                                  hex: 1
+                                dataOut: AppointmentLobbyOfficeVisit.apiRequest.closeMeetingTag.docCreateReq.tage
+                            - =..apiRequest.closeMeetingTag.docAPI.store: ""
+                            - .Global.formData.showBackButton.visitDetail@: "false"
+                            - goto: VisitDetial
+                        - actionType: popUp
+                          popUpView: tag_notPay
+                          wait: true
     - type: popUp
       viewTag: confirmView
       style:
@@ -1449,7 +1864,6 @@ AppointmentLobbyOfficeVisit: #xd page
             left: "0.15"
             borderRadius: "10px"
             backgroundColor: "0xe8e8e8"
-            filter: brightness(0.95)
           children:
             - .questionTitle:
               text: "Are you sure you want to cancel this appiontment?"
@@ -1457,6 +1871,9 @@ AppointmentLobbyOfficeVisit: #xd page
                 width: "0.6"
                 marginTop: "0.02"
                 marginLeft: "0.05"
+                color: "#333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
                 textAlign:
                   x: left
             - .questionTitle:
@@ -1465,29 +1882,34 @@ AppointmentLobbyOfficeVisit: #xd page
                 textAlign:
                   x: left
                 marginTop: "0.01"
-                fontWeight: "530"
+                fontSize: .Nfont.h14
                 marginLeft: "0.05"
               textBoard:
                 - text: "Reason for"
-                - text: "&nbsp;cancelation"
-                  color: "0xfa4949"
+                  fontWeight: "600"
+                - text: "&nbsp;"
+                - text: "Cancellation"
+                  color: "#fa4949"
                 - text: ":"
-            - type: textField
+            - type: textView
               dataKey: cancelEmail.docReq.name.data.content
               placeholder: "Enter here"
               style:
                 marginLeft: "0.05"
                 marginTop: "0.01"
                 width: "0.6"
-                height: "0.06"
+                height: "0.075"
                 border: "none"
                 borderRadius: "3px"
-                textIndent: 1em
-                backgroundColor: "0xf2f2f2"
+                padding: "6px 12px"
+                backgroundColor: "#ffffff"
+                fontSize: .Nfont.h14
+                boxSizing: border-box
+
             - type: view
               style:
                 backgroundColor: "0xa1a0a1"
-                marginTop: "0.03"
+                marginTop: "0.025"
                 width: "0.7"
                 height: "1px"
             - type: view
@@ -1510,6 +1932,8 @@ AppointmentLobbyOfficeVisit: #xd page
                     border: "1px solid #e8e8e8"
                     borderRight: "1px solid #a9a8a9"
                     borderWidth: "1px"
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
                     borderRadius: "0 0 0 5px"
                   onClick:
                     - actionType: popUpDismiss
@@ -1532,6 +1956,8 @@ AppointmentLobbyOfficeVisit: #xd page
                     border: "1px solid #e8e8e8"
                     borderWidth: "1px"
                     borderRadius: "0 0 5px 0"
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
                   onClick:
                     - actionType: popUpDismiss
                       popUpView: confirmView
@@ -1648,11 +2074,12 @@ AppointmentLobbyOfficeVisit: #xd page
       border:
         style: 5
       borderRadius: "4"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       color: "0xffffff"
       fontWeight: "600"
     imgBox:
+      pointerEvents: ..formData.roomStatus.canClickChangeButton
       display: "inline-block"
       marginTop: "0.011"
       marginLeft: "0.07"
@@ -1664,55 +2091,8 @@ AppointmentLobbyOfficeVisit: #xd page
       height: "0.075"
   event:
     mainBtnClick:
-      - actionType: evalObject
-        object:
-          .Global._nonce@:
-            =.builtIn.math.random: ""
-      - actionType: evalObject
-        object:
-          - if:
-              - =.builtIn.utils.judgeAll:
-                  dataIn:
-                    value:
-                      - =.Global.roomInfo.edge.name.fee
-                      - =..apiRequest.financialInfo.docQueryResp.doc.0.name.data.paymentInfo.fee
-                    index: "0.00"
-              - actionType: evalObject
-                object:
-                  # refresh appointment status
-                  - =..apiRequest.appointment.edgeAPI.get: ""
-                  - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
-                  - =.builtIn.number.inhx:
-                      dataIn:
-                        intHex: =..apiRequest.closeMeetingTag.docCreateReq.tage
-                        index: 9
-                        hex: 1
-                      dataOut: AppointmentLobbyOfficeVisit.apiRequest.closeMeetingTag.docCreateReq.tage
-                  - =..apiRequest.closeMeetingTag.docAPI.store: ""
-                  - goto: VisitDetial
-              - actionType: evalObject
-                object:
-                  - if:
-                      - =.builtIn.string.equal:
-                          dataIn:
-                            string1: =..apiRequest.hasPaidProfile.getDocResp.doc.0.deat.state
-                            string2: "COMPLETED"
-                      - actionType: evalObject
-                        object:
-                          # refresh appointment status
-                          - =..apiRequest.appointment.edgeAPI.get: ""
-                          - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
-                          - =.builtIn.number.inhx:
-                              dataIn:
-                                intHex: =..apiRequest.closeMeetingTag.docCreateReq.tage
-                                index: 9
-                                hex: 1
-                              dataOut: AppointmentLobbyOfficeVisit.apiRequest.closeMeetingTag.docCreateReq.tage
-                          - =..apiRequest.closeMeetingTag.docAPI.store: ""
-                          - goto: VisitDetial
-                      - actionType: popUp
-                        popUpView: tag_notPay
-                        wait: true
+      - actionType: popUp
+        popUpView: confirmFinish
     changePath:
       emit:
         dataKey:

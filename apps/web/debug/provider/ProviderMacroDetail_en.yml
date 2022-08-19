@@ -64,52 +64,95 @@ ProviderMacroDetail:
     goalData: ""
     whetherSign: ""
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: evalObject
-          object:
-            - if:
-                - =.Global.Macro.id
-                - actionType: evalObject
-                  object:
-                    - =.builtIn.string.concat:
-                        dataIn:
-                          - =..macro.document.name.title
-                          - =..macro.document.name.data.content
-                        dataOut: ProviderMacroDetail.formData.checkoutData
-                    - if:
-                        - =.builtIn.string.equal:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.Global.Macro.id
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.concat:
                             dataIn:
-                              string1: =..formData.goalData
-                              string2: =..formData.checkoutData
-                        - goto: ProviderMacros
-                        - actionType: popUp
-                          popUpView: judgmentOperation
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =..macro.document.name.title
-                              string2: ""
-                        - actionType: evalObject
-                          object:
-                            - if:
-                                - =.builtIn.string.equal:
-                                    dataIn:
-                                      string1: =..macro.document.name.data.content
-                                      string2: ""
-                                - goto: ProviderMacros
-                                - actionType: popUp
-                                  popUpView: judgmentOperation
-                        - actionType: popUp
-                          popUpView: judgmentOperation
+                              - =..macro.document.name.title
+                              - =..macro.document.name.data.content
+                            dataOut: ProviderMacroDetail.formData.checkoutData
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.goalData
+                                  string2: =..formData.checkoutData
+                            - goto: ProviderMacros
+                            - actionType: popUp
+                              popUpView: judgmentOperation
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..macro.document.name.title
+                                  string2: ""
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..macro.document.name.data.content
+                                          string2: ""
+                                    - goto: ProviderMacros
+                                    - actionType: popUp
+                                      popUpView: judgmentOperation
+                            - actionType: popUp
+                              popUpView: judgmentOperation
+        - .BasePublicHeaderTitle:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - if:
+    #             - =.Global.Macro.id
+    #             - actionType: evalObject
+    #               object:
+    #                 - =.builtIn.string.concat:
+    #                     dataIn:
+    #                       - =..macro.document.name.title
+    #                       - =..macro.document.name.data.content
+    #                     dataOut: ProviderMacroDetail.formData.checkoutData
+    #                 - if:
+    #                     - =.builtIn.string.equal:
+    #                         dataIn:
+    #                           string1: =..formData.goalData
+    #                           string2: =..formData.checkoutData
+    #                     - goto: ProviderMacros
+    #                     - actionType: popUp
+    #                       popUpView: judgmentOperation
+    #             - actionType: evalObject
+    #               object:
+    #                 - if:
+    #                     - =.builtIn.string.equal:
+    #                         dataIn:
+    #                           string1: =..macro.document.name.title
+    #                           string2: ""
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - if:
+    #                             - =.builtIn.string.equal:
+    #                                 dataIn:
+    #                                   string1: =..macro.document.name.data.content
+    #                                   string2: ""
+    #                             - goto: ProviderMacros
+    #                             - actionType: popUp
+    #                               popUpView: judgmentOperation
+    #                     - actionType: popUp
+    #                       popUpView: judgmentOperation
     - type: scrollView
       style:
         width: "1"
         height: "0.8"
-        top: "0.1"
+        # top: "0.1"
         left: "0"
         overflow: hidden
       children:
@@ -124,7 +167,7 @@ ProviderMacroDetail:
               style:
                 width: "1"
                 height: "0.04"
-                fontSize: .Nfont.h3
+                fontSize: .Nfont.h18
                 textAlign:
                   x: center
             - type: label
@@ -148,7 +191,7 @@ ProviderMacroDetail:
               style: "2"
             borderWidth: "1"
             borderColor: "0x000000"
-            fontSize: .Nfont.h2
+            fontSize: .Nfont.h16
             textAlign:
               x: center
         - type: label
@@ -157,7 +200,7 @@ ProviderMacroDetail:
             marginTop: "0.01"
             width: "1"
             height: "auto"
-            fontSize: .Nfont.h3
+            fontSize: .Nfont.h20
             textAlign:
               x: center
         - type: textView
@@ -168,9 +211,11 @@ ProviderMacroDetail:
             marginTop: "0.01"
             width: "0.8"
             height: "0.61"
-            fontSize: .Nfont.h15
+            fontSize: .Nfont.h14
             textIndent: "10px"
-            fontFamily: sans-serif
+
+            paddingTop: "0.0073891"
+            color: "#333333"
             border:
               style: "3"
               width: "1"
@@ -184,6 +229,8 @@ ProviderMacroDetail:
         height: "0.1"
         top: "0.9"
         left: "0"
+        backgroundColor: "0xffffff"
+        boxShadow: "1px 1px 4px 1px #dededf"
       children:
         - type: button
           text: Delete
@@ -274,7 +321,7 @@ ProviderMacroDetail:
                 marginLeft: "0.035"
                 color: "0x555555"
                 fontSize: .Nfont.h1
-                fontFamily: "Arial"
+
                 # margin: auto
                 marginTop: "0.03"
                 word-break: break-word

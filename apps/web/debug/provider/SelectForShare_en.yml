@@ -160,8 +160,6 @@ SelectForShare:
         subtype:
           mediaType: "application/json"
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
     - .BaseCheckView: ""
       message: "CV"
       viewTag: CVView
@@ -194,100 +192,118 @@ SelectForShare:
               onClick:
                 - actionType: popUpDismiss
                   popUpView: CVView
-    - type: scrollView
-      style:
-        left: "0"
-        width: "1"
-        top: "0.1"
-        height: "0.8"
-        overflow: scroll
+    - .BasePublicHeader:
       children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: view
+      viewTag: blockImageTag
+      style:
+        paddingTop: "0.0246"
+        paddingBottom: "0.0246"
+        width: "1"
+        height: "auto"
+        border:
+          style: 2
+          color: "0xDEDEDF"
+        borderWidth: "2"
+      children:
+        - type: image
+          dataKey: profile.document.name.data.avatar
+          path=func: =.builtIn.utils.prepareDocToPath
+          path: ava_Provder.svg
+          style:
+            marginLeft: "0.064"
+            verticalAlign: middle
+            display: "inline-block"
+            height: "0.0788177"
+            width: "0.1706666"
+            border:
+              style: 3
+            borderWidth: "1"
+            borderColor: "#dedede"
+            boxSizing: border-box
+            borderRadius: "4"
         - type: view
           style:
-            marginTop: "0.02"
-            width: "0.85"
+            verticalAlign: middle
+            marginLeft: "0.032"
+            display: "inline-block"
             height: "auto"
-            marginLeft: "0.1"
+            width: "0.71"
             overflow: hidden
           children:
             - type: view
               style:
-                display: "inline-block"
-                height: "18vw"
-                width: "0.18"
-                verticalAlign: middle
-                border:
-                  style: "1"
-                borderWidth: "1"
-                borderRadius: "5"
+                height: "auto"
+                width: "0.75"
+                overflow: hidden
               children:
-                - type: image
-                  dataKey: profile.document.name.data.avatar
-                  path=func: =.builtIn.utils.prepareDocToPath
-                  path: ava_Provder.svg
-                  viewTag: avatar
+                - type: label
+                  text: "User Name:"
                   style:
-                    width: "20vw"
-                    height: "18vw"
-                    textAlign:
-                      x: center
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    fontWeight: "600"
+                - type: label
+                  dataKey: profile.document.name.data.userName
+                  style:
+                    marginLeft: "0.032"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.465"
+                    wordBreak: break-word
             - type: view
               style:
-                display: "inline-block"
-                width: "0.67"
-                verticalAlign: middle
-                height: "18vw"
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.75"
+                overflow: hidden
               children:
-                - type: view
+                - type: label
+                  text: "Phone #:"
                   style:
-                    marginTop: "0.015"
-                    marginLeft: "0.05"
-                    height: "auto"
-                    width: "0.62"
-                  children:
-                    - type: label
-                      text: "User Name:&nbsp;"
-                      style:
-                        width: "0.25"
-                        display: "inline-block"
-                        fontSize: .Nfot.n2
-                        color: "0x000000"
-                    - type: label
-                      dataKey: profile.document.name.data.userName
-                      style:
-                        width: "0.37"
-                        fontSize: .Nfot.n1
-                        display: "inline-block"
-                        wordWrap: break-word
-                - type: view
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    fontWeight: "600"
+                - type: label
+                  dataKey: profile.document.name.data.phone
                   style:
-                    marginTop: "0.01"
-                    marginLeft: "0.05"
-                    height: "auto"
-                    width: "0.62"
-                  children:
-                    - type: label
-                      text: "Phone #:&nbsp;"
-                      style:
-                        width: "0.2"
-                        display: "inline-block"
-                        fontSize: .Nfot.n2
-                        color: "0x000000"
-                        height: "auto"
-                    - type: label
-                      dataKey: profile.document.name.data.phone
-                      style:
-                        width: "0.42"
-                        display: "inline-block"
-                        fontSize: .Nfot.n1
-                        color: "0x333333"
-                        height: "auto"
-                        wordWrap: break-word
-        - .MyProfileTitle:
-          text: "Basic Info"
+                    marginLeft: "0.032"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.5"
+                    wordBreak: break-word
+
+    - type: scrollView
+      style:
+        width: "1"
+        height: "0.7167487"
+        overflow: scroll
+      children:
+        - type: view
           style:
-            marginTop: "0.01"
-            overflow: hidden
+            width: "1"
+            height: "auto"
+            margin: "0"
+            backgroundColor: "0xf0f0f0"
+          children:
+            - type: label
+              text: Basic Info
+              style:
+                marginLeft: "0.04"
+                color: "0x666666"
+                height: "auto"
+                width: "auto"
+                lineHeight: 5vh
+                fontSize: .Nfont.h14
+                fontWeight: "700"
         - type: view
           style:
             marginTop: "0"
@@ -301,9 +317,6 @@ SelectForShare:
                 width: "1"
               children:
                 - .SelectProfileContentLeft2:
-                  style:
-                    textAlign:
-                      y: center
                   text: "First Name:"
                 - .MyProfileContentRight3:
                   dataKey: profile.document.name.data.firstName #profile.docResponse.doc.0.name.data.firstName
@@ -361,8 +374,8 @@ SelectForShare:
                                 dataIn:
                                   object: =.Global.selected
                                   value: "languages"
-                            - yesSelect.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -394,15 +407,14 @@ SelectForShare:
                     marginLeft: "0.03"
                     display: inline-block
                 - .SelectProfileContentLeft2:
-                  text: "languages spoken"
+                  text: "Language Spoken"
                   style:
                     marginLeft: "0.03"
-                    width: "0.3"
                 - .MyProfileContentRight3:
                   dataKey: profile.document.name.data.languages
                   style:
-                    marginLeft: "0.06"
-                    width: "0.45"
+                    marginLeft: "0.08"
+                    width: "0.3413333"
                     wordWrap: break-word
                 # - type: view
                 #   style:
@@ -455,8 +467,8 @@ SelectForShare:
                                 dataIn:
                                   object: =.Global.selected
                                   value: "gender"
-                            - yesSelect.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -492,11 +504,24 @@ SelectForShare:
                     marginLeft: "0.03"
                 - .MyProfileContentRight3:
                   dataKey: profile.document.name.data.gender
-        - .MyProfileTitle:
+        - type: view
           style:
-            marginTop: "0.01"
-            overflow: hidden
-          text: "Contact"
+            width: "1"
+            height: "auto"
+            # margin: "0"
+            marginTop: "0.0123"
+            backgroundColor: "0xf0f0f0"
+          children:
+            - type: label
+              text: Contact
+              style:
+                marginLeft: "0.04"
+                color: "0x666666"
+                height: "auto"
+                width: "auto"
+                lineHeight: 5vh
+                fontSize: .Nfont.h14
+                fontWeight: "700"
         - type: view
           style:
             marginTop: "0.015"
@@ -515,8 +540,8 @@ SelectForShare:
                             dataIn:
                               object: =.Global.selected
                               value: "email"
-                        - yesSelect.svg
-                        - selectOff.svg
+                        - selectOnBlue.svg
+                        - selectOffBlue.svg
               onClick:
                 - actionType: evalObject
                   object:
@@ -570,8 +595,8 @@ SelectForShare:
                             dataIn:
                               object: =.Global.selected
                               value: "fax"
-                        - yesSelect.svg
-                        - selectOff.svg
+                        - selectOnBlue.svg
+                        - selectOffBlue.svg
               onClick:
                 - actionType: evalObject
                   object:
@@ -607,11 +632,23 @@ SelectForShare:
                 marginLeft: "0.03"
             - .MyProfileContentRight3:
               dataKey: profile.document.name.data.fax
-        - .MyProfileTitle:
+        - type: view
           style:
-            marginTop: "0.005"
-            overflow: hidden
-          text: "Credentials"
+            width: "1"
+            height: "auto"
+            marginTop: "0.0123"
+            backgroundColor: "0xf0f0f0"
+          children:
+            - type: label
+              text: Credentials
+              style:
+                marginLeft: "0.04"
+                color: "0x666666"
+                height: "auto"
+                width: "auto"
+                lineHeight: 5vh
+                fontSize: .Nfont.h14
+                fontWeight: "700"
         - type: view
           style:
             marginTop: "0.01"
@@ -624,7 +661,7 @@ SelectForShare:
                 width: "1"
               children:
                 - .SelectProfileContentLeft2:
-                  text: Specialty and board certified
+                  text: Specialty & Board Certified
                   style:
                     width: "0.8"
             - type: list
@@ -634,7 +671,7 @@ SelectForShare:
               style:
                 width: "1"
                 margin: "0"
-                marginTop: "0.01"
+                # marginTop: "0.01"
                 height: auto
                 overflow: hidden
               children:
@@ -651,6 +688,7 @@ SelectForShare:
                       style:
                         width: "0.94"
                         # height: "0.03"
+                        height: "auto"
                       children:
                         - type: label
                           dataKey: itemObject.specialty
@@ -658,7 +696,7 @@ SelectForShare:
                             marginLeft: "0.06"
                             width: "0.72"
                             color: "0x808080"
-                            fontSize: .Nfont.h1
+                            fontSize: .Nfont.h14
                             display: "inline-block"
                         - type: label
                           dataKey: itemObject.boardCertified
@@ -666,10 +704,22 @@ SelectForShare:
                             width: "0.09"
                             color: "0x808080"
                             marginleft: "0.01"
-                            fontSize: .Nfont.h1
+                            fontSize: .Nfont.h14
                             display: "inline-block"
                             textAlign:
                               x: right
+
+            - type: view
+              style:
+                marginTop: "0.01"
+                display: inline
+                width: "1"
+              children:
+                - .SelectProfileContentLeft2:
+                  text: "Medical License,State and Expiration"
+                  style:
+                    marginLeft: "0.12"
+                    width: "0.8"
             - type: view
               style:
                 marginTop: "0"
@@ -687,8 +737,8 @@ SelectForShare:
                                 dataIn:
                                   object: =.Global.selected
                                   value: "NPI"
-                            - yesSelect.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -725,17 +775,6 @@ SelectForShare:
                     marginLeft: "0.03"
                 - .MyProfileContentRight3:
                   dataKey: profile.document.name.data.NPI
-            - type: view
-              style:
-                marginTop: "0.01"
-                display: inline
-                width: "1"
-              children:
-                - .SelectProfileContentLeft2:
-                  text: "Medical License,State and Expiration"
-                  style:
-                    marginLeft: "0.12"
-                    width: "0.8"
             - type: list
               contentType: listObject
               listObject: ..profile.document.name.data.MedicalLicense
@@ -762,20 +801,20 @@ SelectForShare:
                         marginLeft: "0.06"
                         color: "0x808080"
                         display: "inline-block"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                     - type: label
                       dataKey: itemObject.state
                       style:
                         width: "0.2"
                         color: "0x808080"
                         display: "inline-block"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                     - type: label
                       dataKey: itemObject.expiration
                       style:
                         width: "0.33"
                         color: "0x808080"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                         display: "inline-block"
                         textAlign:
                           x: right
@@ -796,8 +835,8 @@ SelectForShare:
                                 dataIn:
                                   object: =.Global.selected
                                   value: "DEA"
-                            - yesSelect.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -851,8 +890,8 @@ SelectForShare:
                                 dataIn:
                                   object: =.Global.selected
                                   value: "description"
-                            - yesSelect.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -891,11 +930,12 @@ SelectForShare:
               dataKey: profile.document.name.data.description
               style:
                 marginTop: "0.005"
-                fontSize: "13"
+                fontSize: .Nfont.h14
                 color: "0x808080"
                 marginLeft: "0.12"
                 width: "0.84"
                 height: "auto"
+                wordBreak: break-word
                 textAlign:
                   x: left
             - type: view
@@ -915,8 +955,8 @@ SelectForShare:
                                 dataIn:
                                   object: =.Global.selected
                                   value: "education"
-                            - yesSelect.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -948,14 +988,14 @@ SelectForShare:
                     marginLeft: "0.03"
                     display: inline-block
                 - .SelectProfileContentLeft2:
-                  text: "Education and training"
+                  text: "Education & Training"
                   style:
                     marginLeft: "0.03"
-                    width: "0.36"
+                    width: "0.6"
             - .MyProfileContentRight:
               dataKey: profile.document.name.data.education
               style:
-                fontSize: "13"
+                fontSize: .Nfont.h14
                 color: "0x808080"
                 marginTop: "0.001"
                 left: "0.12"
@@ -984,29 +1024,33 @@ SelectForShare:
                   dataKey: Global.MyProfile.name.data.cv
     - type: view
       style:
+        height: "0.0972"
         width: "1"
         backgroundColor: "0xffffff"
-        height: "0.1"
-        top: "0.9"
-        left: "0"
-        borderTop: "1px solid #EEEEEF"
-        borderWidth: "1"
-        borderColor: "#EEEEEF"
         boxSizing: border-box
+
+        boxShadow: "1px 1px 4px 1px #dededf"
+        overflow: hidden
+        textAlign:
+          x: center
+
       children:
         - type: button
           text: Share Profile
           style:
-            marginTop: "0.03"
-            marginLeft: "0.05"
-            width: "0.9"
-            height: "0.05"
-            color: "0xffffff"
-            border: "none"
-            backgroundColor: "#2988E6"
+            marginTop: "0.0123"
+            height: "0.0443"
+            width: "0.84"
+            border:
+              style: 1
+            borderRadius: "5"
+            backgroundColor: "#2988e6"
+            color: "#ffffff"
+            fontSize: .Nfont.h14
+            boxSizing: border-box
+            fontWeight: "600"
             textAlign:
               x: center
-              y: center
           onClick:
             - actionType: evalObject
               object:

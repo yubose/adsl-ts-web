@@ -152,7 +152,7 @@ ContactInformation:
                     textAlign:
                       x: center
                     fontSize: "20"
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
                     color: "0x4B4B4B"
                 - type: image
@@ -197,7 +197,7 @@ ContactInformation:
                     top: "0.07"
                     fontWeight: "100"
                     fontSize: .Nfont.h12
-                    fontFamily: "Arial"
+
                     textAlign:
                       x: center
         - type: view
@@ -300,7 +300,7 @@ ContactInformation:
                       text: "Email"
                       style:
                         fontSize: .Nfont.h12
-                        fontFamily: "Arial"
+
                         top: "0"
                     - .MyProfileContentRight2:
                       dataKey: formData.email
@@ -317,10 +317,10 @@ ContactInformation:
                     height: "auto"
                   children:
                     - .MyProfileContentLeft2:
-                      text: "languages spoken"
+                      text: "Language Spoken"
                       style:
                         fontSize: .Nfont.h12
-                        fontFamily: "Arial"
+
                         top: "0"
                         left: "0.06"
                     - type: list
@@ -347,7 +347,7 @@ ContactInformation:
                               style:
                                 width: "0.88"
                                 fontWeight: "600"
-                                fontFamily: "Arial"
+
                                 fontSize: "13"
                                 color: "#4B4B4B"
                                 height: "0.03"
@@ -366,7 +366,7 @@ ContactInformation:
                       text: "Gender:"
                       style:
                         fontSize: .Nfont.h12
-                        fontFamily: "Arial"
+
                         top: "0"
                         left: "0.06"
                     - .MyProfileContentRight2:
@@ -501,7 +501,7 @@ ContactInformation:
                           style:
                             width: "0.3"
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                             fontSize: "13"
                             color: "#4B4B4B"
                             height: "0.03"
@@ -512,7 +512,7 @@ ContactInformation:
                           style:
                             width: "0.2"
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                             fontSize: "13"
                             color: "#4B4B4B"
                             height: "0.03"
@@ -523,7 +523,7 @@ ContactInformation:
                           style:
                             width: "0.3"
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                             fontSize: "13"
                             color: "#4B4B4B"
                             height: "0.03"
@@ -581,7 +581,7 @@ ContactInformation:
                     display: ..educationHidden
                   children:
                     - .MyProfileContentLeft3:
-                      text: "Education and training"
+                      text: "Education & Training"
                       style:
                         marginTop: "0.01"
                     - .MyProfileContentRight:
@@ -645,7 +645,7 @@ ContactInformation:
                                 left: "0.23"
                                 top: "0"
                                 height: "0.06"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h12
                                 color: "#4B4B4B"
                                 textAlign:

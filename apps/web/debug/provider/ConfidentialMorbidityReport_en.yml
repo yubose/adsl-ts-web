@@ -3,6 +3,19 @@ ConfidentialMorbidityReport:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
+    - =.builtIn.utils.createAuditLog:
+        dataIn:
+          actionTypeCode: .ActionTypeCode.view
+          recordTypeCode: 168961
+          eid: =.Global.formData.currentFacility.relationEdge.id
+          user: =.Global.MyProfile.name.data.fullName
+          userId: =.Global.currentUser.vertex.id
+          targetUserId: =.Global.formData.auditLog.patientId
+          accessPort: provider
+        dataOut: Global.formData.auditLog.result
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: 168961
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
@@ -51,6 +64,13 @@ ConfidentialMorbidityReport:
                   string2: "Released"
             - continue
             - ..formDataTemp.downFlag@: "none"
+
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Confidential Morbidity Report"
+        - .Global.formData.downloadPDF.scaleX@: 0.85
+        - .Global.formData.downloadPDF.scaleY@: 0.85
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
   formData:
     name:
       data:
@@ -400,8 +420,8 @@ ConfidentialMorbidityReport:
       - key: smoker
         value: Current smoker
         itemWidth: "42vw"
-      - key: Immunocompromised 
-        value: Immunocompromised 
+      - key: Immunocompromised
+        value: Immunocompromised
         itemWidth: "80vw"
       - key: e-cigarette
         value: Current e-cigarette or vape use
@@ -421,15 +441,15 @@ ConfidentialMorbidityReport:
       children:
         - .BasePublicHeaderLeft:
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
         width: "1"
         height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -463,7 +483,7 @@ ConfidentialMorbidityReport:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                 - type: label
                   dataKey: formData.name.data.facilityInfo.address
@@ -473,7 +493,7 @@ ConfidentialMorbidityReport:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
         - type: view
           style:
@@ -678,7 +698,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - .DocPublicStyleThreeValue:
@@ -751,7 +771,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
 
@@ -820,7 +840,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - .DocPublicStyleThreeValue:
@@ -893,7 +913,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - .DocPublicStyleThreeValue:
@@ -968,7 +988,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - type: view
@@ -1063,7 +1083,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
 
@@ -1133,7 +1153,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
                     - type: list
@@ -1186,7 +1206,7 @@ ConfidentialMorbidityReport:
                                     display: "inline-block"
                                     marginLeft: "0.021"
                                     fontSize: .Nfont.h14
-                                    fontFamily: "Arial"
+
                                     color: "0x333333"
                                     verticalAlign: "middle"
             - .DocPublicStyleThreeValue:
@@ -1263,7 +1283,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - type: view
@@ -1329,7 +1349,7 @@ ConfidentialMorbidityReport:
                                 display: "inline-block"
                                 marginLeft: "0.021"
                                 fontSize: .Nfont.h14
-                                fontFamily: "Arial"
+
                                 color: "0x333333"
                                 verticalAlign: "middle"
 
@@ -1404,7 +1424,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - .DocPublicStyleThreeValue:
@@ -1667,7 +1687,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
 
@@ -1736,7 +1756,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
 
@@ -1838,7 +1858,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
                     - type: list
@@ -1890,7 +1910,7 @@ ConfidentialMorbidityReport:
                                     display: "inline-block"
                                     marginLeft: "0.021"
                                     fontSize: .Nfont.h14
-                                    fontFamily: "Arial"
+
                                     color: "0x333333"
                                     verticalAlign: "middle"
             - type: textField
@@ -2066,7 +2086,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
         - type: view
@@ -2137,7 +2157,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
         - type: view
@@ -2208,7 +2228,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
         - type: label
@@ -2290,7 +2310,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
         - type: view
@@ -2361,7 +2381,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
 
@@ -2431,7 +2451,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
                     - type: textField
@@ -2492,7 +2512,7 @@ ConfidentialMorbidityReport:
                 display: "inline-block"
                 marginLeft: "0.021"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 verticalAlign: "middle"
                 fontWeight: "600"
@@ -2568,7 +2588,7 @@ ConfidentialMorbidityReport:
                 display: "inline-block"
                 marginLeft: "0.021"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 verticalAlign: "middle"
                 fontWeight: "600"
@@ -2659,7 +2679,7 @@ ConfidentialMorbidityReport:
                 display: "inline-block"
                 marginLeft: "0.021"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 verticalAlign: "middle"
                 fontWeight: "600"
@@ -2750,7 +2770,7 @@ ConfidentialMorbidityReport:
                 display: "inline-block"
                 marginLeft: "0.021"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 verticalAlign: "middle"
                 fontWeight: "600"
@@ -3009,7 +3029,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - type: label
@@ -3103,7 +3123,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - type: label
@@ -3198,7 +3218,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - type: label
@@ -3294,7 +3314,7 @@ ConfidentialMorbidityReport:
                             display: "inline-block"
                             marginLeft: "0.021"
                             fontSize: .Nfont.h14
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                             verticalAlign: "middle"
             - type: textField
@@ -3312,4 +3332,4 @@ ConfidentialMorbidityReport:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:

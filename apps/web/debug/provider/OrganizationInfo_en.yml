@@ -84,7 +84,7 @@ OrganizationInfo:
                     top: "0.05"
                     fontSize: .Nfont.h12
                     color: "0x4b4b4b"
-                    fontFamily: "Arial"
+
                     textAlign:
                       x: center
         - type: view
@@ -176,5 +176,5 @@ OrganizationInfo:
                     fontSize: "13"
                     color: "0x4b4b4b"
                     textAlign:
-                      y: top            
+                      y: top
                   dataKey: dataObject.name.data.basicInfo.location

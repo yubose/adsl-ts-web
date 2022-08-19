@@ -117,7 +117,7 @@ LogOut: # This is page name
                   path: lock.svg
                   style:
                     left: "0.02667"
-                    top: "0.03"
+                    top: "0.0123152"
                     height: "0.04"
                 - type: button
                   text: Lock application
@@ -176,10 +176,10 @@ LogOut: # This is page name
                   path: logout2.svg
                   style:
                     left: "0.02667"
-                    top: "0.05"
+                    top: "0.010591"
                     height: "0.04"
                 - type: button
-                  text: Log out of application
+                  text: Log Out of application
                   onClick:
                     - actionType: evalObject
                       object: ..save

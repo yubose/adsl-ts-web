@@ -21,7 +21,7 @@ Message2:
     - if:
         - =.builtIn.string.equal:
             dataIn:
-              string1: =.Global.emailNumber
+              string1: =.Global.formData.emailNumber
               string2: "0"
         - .Global.inboxHidden@: "true"
         - .Global.inboxHidden@: "false"
@@ -393,7 +393,7 @@ Message2:
                 left: "0.05"
                 fontSize: .Nfont.h14
                 height: "0.4"
-                fontFamily: "Verdana"
+
                 color: "0x757575"
                 fontWeight: 300
                 isEditable: "false"
@@ -425,7 +425,7 @@ Message2:
             - .DashboardFooterTxt:
               text: "Inbox"
             - type: label
-              dataKey: Global.emailNumber
+              dataKey: Global.formData.emailNumber
               style:
                 left: "0.145"
                 top: "0.01"

@@ -4,6 +4,9 @@ InboxDashboard:
   init:
     - .SignInCheck
     - actionType: updateObject
+      dataKey: Global.formData.entrancePageName
+      dataObject: ""
+    - actionType: updateObject
       dataKey: Global.inboxContact
       dataObject: .EmptyObj
     - actionType: updateObject
@@ -19,12 +22,17 @@ InboxDashboard:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
+    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
     - actionType: evalObject
       object:
-        - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
-        - =.Global.createjwt.edgeAPI.store: ""
-        - =..apiRequest.email.docAPI.get: ""
-        - =..apiRequest.unReadEmail.docAPI.get: ""
+        - actionType: evalObject
+          async: true
+          object:
+            - =.Global.createjwt.edgeAPI.store: ""
+            - =..apiRequest.email.docAPI.get: ""
+            - =..apiRequest.unReadEmail.docAPI.get: ""
+    - actionType: evalObject
+      object:
         - =.builtIn.array.getListLength:
             dataIn:
               object: =..apiRequest.unReadEmail.docQueryResp.doc
@@ -57,7 +65,7 @@ InboxDashboard:
     inboxHidden: "true"
   apiRequest:
     emailTypeTag:
-      docQueryResp: 
+      docQueryResp:
         doc: []
       docQueryReq:
         id: ""
@@ -125,18 +133,28 @@ InboxDashboard:
           dataIn: InboxDashboard.apiRequest.unReadEmail.docQueryReq
           dataOut: InboxDashboard.apiRequest.unReadEmail.docQueryResp
   components:
-    - .BaseHeader:
-      style:
-        backgroundColor: "0x2988e6"
-    - .HeaderRightImg:
-      path: sideNav3.svg
-      onClick:
-        - goto: InboxMenu
+    # - .BaseHeader:
+    #   style:
+    #     backgroundColor: "0x2988e6"
+    # - .HeaderRightImg:
+    #   path: sideNav3.svg
+    #   onClick:
+    #     - goto: InboxMenu
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeftEmpty:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: sideNav3.svg
+          style:
+            height: "0.022167"
+          onClick:
+            - goto: InboxMenu
     - type: view
       style:
         left: "0"
         width: "1"
-        top: "0.1"
+        # top: "0.1"
         height: "0.06"
         border:
           style: "2"
@@ -182,9 +200,11 @@ InboxDashboard:
       style:
         left: "0"
         width: "1"
-        top: "0.16"
-        height: "0.74"
+        # top: "0.16"
+        height: "0.78"
         overflow: scroll
+        boxSizing: "border-box"
+        paddingBottom: "0.03"
       children:
         - type: view
           contentType: messageHidden
@@ -221,12 +241,12 @@ InboxDashboard:
           iteratorVar: itemObject
           viewTag: emailList
           style:
-            left: "0"
-            top: "0"
-            width: "1"
-            height: "0.74"
-            margin: "0"
-            overflow: scroll
+            # left: "0"
+            # top: "0"
+            # width: "1"
+            # height: "0.78"
+            # margin: "0"
+            # overflow: scroll
           children:
             - type: listItem
               itemObject: ""
@@ -302,10 +322,10 @@ InboxDashboard:
                                 width: "0.5"
                                 height: "auto"
                                 fontSize: .Nfont.h1
-                                # fontFamily: "Arial"
+                                #
                                 color: "0x707070"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
                             - type: label
                               text: "(No subject)"
@@ -317,7 +337,7 @@ InboxDashboard:
                                 fontSize: .Nfont.h1
                                 color: "0x707070"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
                             - type: label
                               text: "(No content)"
@@ -329,10 +349,10 @@ InboxDashboard:
                                 fontSize: .Nfont.h1
                                 color: "0x00000099"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
-                                # fontFamily: PMingLiU
-                                # wordBreak: "break-all"
+                                #
+                                # wordBreak: break-word
 
                       onClick:
                         - actionType: updateObject
@@ -364,21 +384,21 @@ InboxDashboard:
                             - ..apiRequest.emailTypeTag.docQueryReq.id@: =.Global.email.id
                             - =..apiRequest.emailTypeTag.docAPI.get: ""
                             - if:
-                              - =.builtIn.array.judgeListLength:
-                                  dataIn:
-                                    array: =..apiRequest.emailTypeTag.docQueryResp.doc
-                                    len: 0
-                              - continue
-                              - actionType: evalObject
-                                object:
-                                  - if:
-                                    - =.builtIn.number.typeIsValid:
-                                        dataIn:
-                                          docType: =..apiRequest.emailTypeTag.docQueryResp.doc.0.tage
-                                          localArr: [1]
-                                          binaryArr: [1]
-                                    - goto: AppointmentInviteMessage
-                                    - goto: MessageShow
+                                - =.builtIn.array.judgeListLength:
+                                    dataIn:
+                                      array: =..apiRequest.emailTypeTag.docQueryResp.doc
+                                      len: 0
+                                - goto: MessageShow
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.number.typeIsValid:
+                                            dataIn:
+                                              docType: =..apiRequest.emailTypeTag.docQueryResp.doc.0.tage
+                                              localArr: [1]
+                                              binaryArr: [1]
+                                        - goto: AppointmentInviteMessage
+                                        - goto: MessageShow
                     - type: view
                       style:
                         display: "inline-block"

@@ -97,7 +97,7 @@ OrganizationProvider:
                     top: "0.05"
                     fontSize: .Nfont.h12
                     color: "0x4b4b4b"
-                    fontFamily: "Arial"
+
                     textAlign:
                       x: center
         - type: view
@@ -209,6 +209,6 @@ OrganizationProvider:
                             textAlign:
                               y: center
                             width: "0.4"
-                            fontFamily: "Arial"
+
                             fontSize: "15"
                             zIndex: 100

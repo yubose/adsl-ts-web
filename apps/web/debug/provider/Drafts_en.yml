@@ -216,10 +216,10 @@ Drafts:
                                 width: "0.5"
                                 height: "auto"
                                 fontSize: .Nfont.h1
-                                # fontFamily: "Arial"
+                                #
                                 color: "0x707070"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
                             - type: label
                               text: "(No subject)"
@@ -231,7 +231,7 @@ Drafts:
                                 fontSize: .Nfont.h1
                                 color: "0x707070"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
                             - type: label
                               text: "(No content)"
@@ -243,10 +243,10 @@ Drafts:
                                 fontSize: .Nfont.h1
                                 color: "0x00000099"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
-                                # fontFamily: PMingLiU
-                                # wordBreak: "break-all"
+                                #
+                                # wordBreak: break-word
                     - type: view
                       style:
                         display: "inline-block"

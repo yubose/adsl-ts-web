@@ -47,6 +47,8 @@ BaseComponents:
           year: =.BaseComponents.calendarDate.year
           month: =.BaseComponents.calendarDate.month
           today: =.BaseComponents.calendarDate.day
+          blockPastTime: =.Global.formData.blockPastTime
+          firstLoad: true
         dataOut: BaseComponents.calendarDate.dayLable
     - =.builtIn.date.transformMonth:
         dataIn:
@@ -59,6 +61,13 @@ BaseComponents:
           day: =.BaseComponents.calendarDate.day
           formatType: "M/D/Y"
         dataOut: BaseComponents.calendarDate.todayDate
+    - =.builtIn.date.ShowDateByNumber:
+        dataIn:
+          year: =.BaseComponents.calendarDate.year
+          month: =.BaseComponents.calendarDate.month
+          day: =.BaseComponents.calendarDate.day
+          formatType: "M/D/Y"
+        dataOut: Global.formData.currentDay.date
   calendar:
     type: view
     style:
@@ -106,6 +115,8 @@ BaseComponents:
                       year: =.BaseComponents.calendarDate.year
                       month: =.BaseComponents.calendarDate.month
                       today: 1
+                      blockPastTime: =.Global.formData.blockPastTime
+                      firstLoad: true
                     dataOut: BaseComponents.calendarDate.dayLable
           - actionType: builtIn
             funcName: redraw
@@ -146,6 +157,8 @@ BaseComponents:
                       year: =.BaseComponents.calendarDate.year
                       month: =.BaseComponents.calendarDate.month
                       today: 1
+                      blockPastTime: =.Global.formData.blockPastTime
+                      firstLoad: true
                     dataOut: BaseComponents.calendarDate.dayLable
           - actionType: builtIn
             funcName: redraw
@@ -182,6 +195,8 @@ BaseComponents:
                       year: =.BaseComponents.calendarDate.year
                       month: =.BaseComponents.calendarDate.month
                       today: 1
+                      blockPastTime: =.Global.formData.blockPastTime
+                      firstLoad: true
                     dataOut: BaseComponents.calendarDate.dayLable
                 - .BaseComponents.calendarDate.day@: 1
                 - =.builtIn.date.ShowDateByNumber:
@@ -219,6 +234,7 @@ BaseComponents:
                     year: =.BaseComponents.calendarDate.year
                     month: =.BaseComponents.calendarDate.month
                     today: 1
+                    blockPastTime: =.Global.formData.blockPastTime
                   dataOut: BaseComponents.calendarDate.dayLable
               - .BaseComponents.calendarDate.day@: 1
               - =.builtIn.date.ShowDateByNumber:
@@ -265,6 +281,8 @@ BaseComponents:
                       year: =.BaseComponents.calendarDate.year
                       month: =.BaseComponents.calendarDate.month
                       today: 1
+                      blockPastTime: =.Global.formData.blockPastTime
+                      firstLoad: true
                     dataOut: BaseComponents.calendarDate.dayLable
                 - .BaseComponents.calendarDate.day@: 1
                 - =.builtIn.date.ShowDateByNumber:
@@ -308,6 +326,8 @@ BaseComponents:
                       year: =.BaseComponents.calendarDate.year
                       month: 1
                       today: 1
+                      blockPastTime: =.Global.formData.blockPastTime
+                      firstLoad: true
                     dataOut: BaseComponents.calendarDate.dayLable
           - actionType: evalObject
             object:
@@ -354,6 +374,8 @@ BaseComponents:
                       year: =.BaseComponents.calendarDate.year
                       month: 1
                       today: 1
+                      blockPastTime: =.Global.formData.blockPastTime
+                      firstLoad: true
                     dataOut: BaseComponents.calendarDate.dayLable
           - actionType: evalObject
             object:
@@ -396,6 +418,8 @@ BaseComponents:
                     year: =.BaseComponents.calendarDate.year
                     month: =.BaseComponents.calendarDate.month
                     today: =.BaseComponents.calendarDate.day
+                    blockPastTime: =.Global.formData.blockPastTime
+                    firstLoad: true
                   dataOut: BaseComponents.calendarDate.dayLable
               - =.builtIn.date.transformMonth:
                   dataIn:
@@ -468,6 +492,7 @@ BaseComponents:
                   # backgroundColor: "0xffffff"
                   textAlign:
                     x: center
+
   dayView:
     # viewTag: calendarTag
     type: view
@@ -507,6 +532,7 @@ BaseComponents:
                           year: =.BaseComponents.calendarDate.year
                           month: =.BaseComponents.calendarDate.month
                           today: =.BaseComponents.calendarDate.day
+                          blockPastTime: =.Global.formData.blockPastTime
                         dataOut: BaseComponents.calendarDate.dayLable
                     - =.builtIn.date.ShowDateByNumber:
                         dataIn:
@@ -515,6 +541,41 @@ BaseComponents:
                           day: =.BaseComponents.calendarDate.day
                           formatType: "M/D/Y" #elaine change order of date to us
                         dataOut: BaseComponents.calendarDate.todayDate
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =.Global.formData.blockPastTime
+                            string2: "true"
+                      - actionType: evalObject
+                        object:
+                          - if:
+                              - =.builtIn.date.comTimeStr:
+                                  dataIn:
+                                    timeStr:
+                                      - =.BaseComponents.calendarDate.todayDate
+                                      - =.Global.formData.currentDay.date
+                              - actionType: evalObject
+                                object:
+                                  - .Global.formData.currentDay.btnColor@: "0x2988e6"
+                                  - .Global.formData.currentDay.status@: ""
+                              - actionType: evalObject
+                                object:
+                                  - .Global.formData.currentDay.btnColor@: "0xc1c1c1"
+                                  - .Global.formData.currentDay.status@: "none"
+                          - if:
+                              - =.builtIn.date.comTimeStr:
+                                  dataIn:
+                                    timeStr:
+                                      - =.BaseComponents.calendarDate.todayDate
+                                      - =.Global.formData.currentDay.date
+                              - actionType: popUpDismiss
+                                popUpView: expirationTag
+                              - actionType: popUp
+                                popUpView: expirationTag
+                                wait: 2000
+                      - continue
               - actionType: builtIn
                 funcName: redraw
                 viewTag: calendarTag
@@ -544,6 +605,7 @@ BaseComponents:
                     y: center
   addButton:
     type: button
+    viewTag: btnTag
     text: Add
     style:
       # top: "0.5"
@@ -554,8 +616,10 @@ BaseComponents:
       fontWeight: "500"
       color: "0xffffff"
       height: "8vw"
-      backgroundColor: "0x2988e6"
+      # backgroundColor: "0x2988e6"
+      backgroundColor: =.Global.formData.currentDay.btnColor
       borderRadius: "5"
+      pointerEvents: =.Global.formData.currentDay.status
       textAlign:
         x: center
         y: center
@@ -593,6 +657,8 @@ BaseComponents:
                           year: =.BaseComponents.calendarDate.year
                           month: =.BaseComponents.calendarDate.month
                           today: 1
+                          blockPastTime: =.Global.formData.blockPastTime
+                          firstLoad: true
                         dataOut: BaseComponents.calendarDate.dayLable
               - actionType: builtIn
                 funcName: redraw
@@ -630,6 +696,8 @@ BaseComponents:
                           year: =.BaseComponents.calendarDate.year
                           month: =.BaseComponents.calendarDate.month
                           today: 1
+                          blockPastTime: =.Global.formData.blockPastTime
+                          firstLoad: true
                         dataOut: BaseComponents.calendarDate.dayLable
               - actionType: builtIn
                 funcName: redraw
@@ -660,6 +728,8 @@ BaseComponents:
                           year: =.BaseComponents.calendarDate.year
                           month: 1
                           today: 1
+                          blockPastTime: =.Global.formData.blockPastTime
+                          firstLoad: true
                         dataOut: BaseComponents.calendarDate.dayLable
               - actionType: evalObject
                 object:
@@ -704,6 +774,8 @@ BaseComponents:
                           year: =.BaseComponents.calendarDate.year
                           month: 1
                           today: 1
+                          blockPastTime: =.Global.formData.blockPastTime
+                          firstLoad: true
                         dataOut: BaseComponents.calendarDate.dayLable
               - actionType: evalObject
                 object:
@@ -768,3 +840,55 @@ BaseComponents:
       width: "0.82"
       left: "0.04"
       backgroundColor: "0xEAEAEA"
+
+  components:
+    - type: popUp
+      viewTag: expirationTag
+      message: "Past dates cannot be selected."
+      path: aboutRed.svg
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "0.2"
+        zIndex: "101"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            marginTop: "0.0923"
+            width: "0.84"
+            marginLeft: "0.08"
+            # backgroundColor: "0xE6E6E6"
+            borderRadius: "4px"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                marginTop: "0.0123"
+                width: "0.84"
+                height: "auto"
+              children:
+                - type: image
+                  path: ____.path
+                  style:
+                    marginLeft: "0.08"
+                    display: "inline-block"
+                    height: "0.023"
+                    verticalAlign: middle
+                - type: label
+                  text: ____.message
+                  style:
+                    display: "inline-block"
+                    verticalAlign: middle
+                    width: "0.65"
+                    marginLeft: "0.0186"
+                    fontSize: .Nfont.h14
+
+                    color: "0x333333"
+                    wordWrap: break-word
+                    textAlign:
+                      x: left
+            - type: view
+              style:
+                marginTop: "0.0123"

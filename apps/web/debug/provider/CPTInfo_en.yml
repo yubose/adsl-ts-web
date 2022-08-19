@@ -30,7 +30,7 @@ CPTInfo:
             #     - .Global.ProfileType@: =.DocType.DoctorProfile     
             - actionType: builtIn
               funcName: goBack
-              reload: false    
+              # reload: false    
             # - goto: CPTsearch
 
     - type: view
@@ -76,7 +76,7 @@ CPTInfo:
                 fontSize: .Nfont.h2
                 color: "#1A1A1A"
                 overflow: scroll
-                # textOverflow: ellipsis
+                # text-overflow: ellipsis
                 # whiteSpace: nowrap
 
 

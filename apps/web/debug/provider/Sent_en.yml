@@ -28,7 +28,7 @@ Sent:
       docQueryReq:
         ObjType: 544
         type: 1281
-        sCondition: E.type=10002 AND (D2.Type&0xFF08!=0xE08 OR D2.reid IS NULL OR D2.Type = 66561)
+        sCondition: E.type=10002 AND (D2.Type&0xFF08!=0xE08 OR D2.reid IS NULL OR D2.Type = 66561) AND D.tage = 0
         xfname: (E.bvid|E.evid)&D.ovid
         obfname: ctime
         _nonce: =.Global._nonce
@@ -198,10 +198,10 @@ Sent:
                             width: "0.5"
                             height: "auto"
                             fontSize: .Nfont.h1
-                            # fontFamily: "Arial"
+                            #
                             color: "0x707070"
                             overflow: hidden
-                            textOverflow: ellipsis
+                            text-overflow: ellipsis
                             whiteSpace: nowrap
                         - type: label
                           text: "(No subject)"
@@ -213,7 +213,7 @@ Sent:
                             fontSize: .Nfont.h1
                             color: "0x707070"
                             overflow: hidden
-                            textOverflow: ellipsis
+                            text-overflow: ellipsis
                             whiteSpace: nowrap
                         - type: label
                           text: "(No content)"
@@ -225,10 +225,10 @@ Sent:
                             fontSize: .Nfont.h1
                             color: "0x00000099"
                             overflow: hidden
-                            textOverflow: ellipsis
+                            text-overflow: ellipsis
                             whiteSpace: nowrap
-                            # fontFamily: PMingLiU
-                            # wordBreak: "break-all"
+                            #
+                            # wordBreak: break-word
                     - type: view
                       style:
                         display: "inline-block"

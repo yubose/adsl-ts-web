@@ -8,7 +8,7 @@ HippaConsent:
           =.builtIn.math.random: ""
     - if:
         - =.Global.DocReference.document.id
-        - ..signature3.docAPI.get
+        - =..signature3.docAPI.get: ""
         - continue
     - if:
         - =..signature3.docRes.doc.0
@@ -60,7 +60,6 @@ HippaConsent:
             - type: label
               text: "PATIENT CONSENT FORM"
               style:
-                fontFamily: "Arial"
                 left: "0"
                 top: "0"
                 width: "1"

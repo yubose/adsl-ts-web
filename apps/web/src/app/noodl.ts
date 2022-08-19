@@ -69,7 +69,12 @@ export function getInstance(
     configUrl: lvl3Options.url,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
     dbConfig: undefined,
-    SearchClient,
+    get SearchClient() {
+      if (window.__NOODL_SDK_SEARCH_CLIENT__) {
+        return window.__NOODL_SDK_SEARCH_CLIENT__
+      }
+      return SearchClient
+    },
     ...opts,
   })
 }

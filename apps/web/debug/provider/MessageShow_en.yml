@@ -12,12 +12,17 @@ MessageShow:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    #获取tag
-    - ..apiRequest.emailTag.docAPI.get
-    #获取附件
-    - ..apiRequest.attachment.docAPI.get
-    # 获取文件夹
-    - ..apiRequest.folder.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            #获取tag
+            - =..apiRequest.emailTag.docAPI.get: ""
+            #获取附件
+            - =..apiRequest.attachment.docAPI.get: ""
+            # 获取文件夹
+            - =..apiRequest.folder.docAPI.get: ""
 
     - if:
         - =.builtIn.number.typeIsValid:
@@ -153,7 +158,7 @@ MessageShow:
               style:
                 fontSize: .Nfont.h16
                 # fontWeight: "500"
-                fontFamily: "Arial"
+
                 left: "0.05"
                 top: "0.045"
                 width: "0.9"
@@ -271,7 +276,7 @@ MessageShow:
                 top: "0.01"
                 width: "0.9"
                 left: "0.05"
-                fontFamily: "Verdana"
+
                 fontSize: .Nfont.h14
                 height: "0.4"
                 backgroundColor: "0xffffff"
@@ -341,7 +346,7 @@ MessageShow:
                             width: "0.45"
                             left: "0.13"
                             overflow: hidden
-                            textOverflow: ellipsis
+                            text-overflow: ellipsis
                             whiteSpace: nowrap
                             fontSize: .Nfont.h2
                         - type: label

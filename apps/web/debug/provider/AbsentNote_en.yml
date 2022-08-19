@@ -110,6 +110,9 @@ AbsentNote:
     monthName: ""
   apiRequest:
     absentNote:
+      deleteInfo:
+        id:
+          - =..apiRequest.absentNote.docResp.doc.id
       docResp: ""
       docReq:
         eid: .Global.currentRoom.edge.id
@@ -170,6 +173,9 @@ AbsentNote:
           api: cd
           dataIn: AbsentNote.apiRequest.absentNote.docReq
           dataOut: AbsentNote.apiRequest.absentNote.docResp
+        delet:
+          api: dx
+          dataIn: AbsentNote.apiRequest.absentNote.deleteInfo
     newSign:
       docRes: ""
       docReq: #DOC
@@ -212,6 +218,13 @@ AbsentNote:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =..apiRequest.absentNote.docAPI.delet: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
@@ -257,7 +270,7 @@ AbsentNote:
         width: "1"
         height: "0.846"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -291,7 +304,7 @@ AbsentNote:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -302,7 +315,7 @@ AbsentNote:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
         - type: view
@@ -403,7 +416,7 @@ AbsentNote:
             marginLeft: "0.04"
             fontSize: .Nfont.h16
             width: "auto"
-            fontFamily: "Arial"
+
             fontWeight: "700"
         - type: view
           style:
@@ -428,7 +441,7 @@ AbsentNote:
                       x: "left"
                       y: "center"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
             - type: textField
               placeholder: "Enter here"
@@ -437,7 +450,7 @@ AbsentNote:
                 width: "0.6"
                 height: "0.037"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 textIndent: "12px"
                 display: "inline-block"
                 borderRadius: "4"
@@ -469,7 +482,7 @@ AbsentNote:
                       x: "left"
                       y: "center"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
             - type: view
               viewTag: dateTag
@@ -493,7 +506,7 @@ AbsentNote:
                     width: "0.506"
                     height: "0.037"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -517,7 +530,7 @@ AbsentNote:
             marginLeft: "0.04"
             marginTop: "0.022"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             width: "0.92"
             fontWeight: "600"
         - type: view
@@ -593,7 +606,7 @@ AbsentNote:
                         marginLeft: "0.021"
                         marginTop: "0"
                         fontSize: .Nfont.h12
-                        fontFamily: "Arial"
+
                         display: "inline-block"
                         verticalAlign: "middle"
         # 第二组单选框
@@ -604,7 +617,7 @@ AbsentNote:
             marginLeft: "0.04"
             marginTop: "0.022"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             width: "0.92"
             fontWeight: "600"
         - type: view
@@ -678,7 +691,7 @@ AbsentNote:
                         marginLeft: "0.021"
                         marginTop: "0"
                         fontSize: .Nfont.h12
-                        fontFamily: "Arial"
+
                         display: "inline-block"
                         verticalAlign: "middle"
 
@@ -703,9 +716,9 @@ AbsentNote:
             marginLeft: "0.04"
             width: "0.92"
             height: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
-            wordBreak: "break-all"
+            wordBreak: break-word
           # Notes
         - type: label
           text: "Notes"
@@ -713,7 +726,7 @@ AbsentNote:
           style:
             marginTop: "0.0222"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             marginLeft: "0.04"
             width: "0.92"
             fontWeight: "600"
@@ -729,7 +742,7 @@ AbsentNote:
             textInde: "0.032"
             paddingTop: "7px"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             borderRadius: "4"
             borderColor: "#dedede"
             boxSizing: border-box
@@ -970,7 +983,19 @@ AbsentNote:
                   object:
                     .Global._nonce@:
                       =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.AbsentNote
+                          eid: =.Global.formData.currentFacility.relationEdge.id
 
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
                 - actionType: evalObject
                   object:
                     - goto: ProviderNoteSelect
@@ -1038,32 +1063,91 @@ AbsentNote:
                           index: 1
                           hex: 1
                         dataOut: AbsentNote.apiRequest.absentNote.docReq.type
-
                 - actionType: evalObject
                   object:
-                    # 更新文档状态
-                    - ..apiRequest.absentNote.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.absentNote.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.absentNote.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.absentNote.docAPI.store: ""
-                    - =.builtIn.array.add:
+                    - =.builtIn.utils.createAuditLog:
                         dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.absentNote.docResp.doc
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.AbsentNote
+                          eid: =.Global.formData.currentFacility.relationEdge.id
 
-                - actionType: evalObject
-                  object:
-                    - goto: ProviderNoteSelect
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: popUp
+                  popUpView: dialogueTag
 
     - .BaseWarningView:
       message: "You haven't signed the form"
+
+    # 对话弹窗组件
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        # 保存newNote
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.absentNote.docReq.tage@: 1
+            - =..apiRequest.absentNote.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.absentNote.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag
+
+        - actionType: evalObject
+          object:
+            - goto: ProviderNoteSelect
+      rightButton:
+        - actionType: evalObject
+          object:
+            # 更新文档状态
+            - ..apiRequest.absentNote.docReq.name.data.statusTag.name@: "Released"
+            - ..apiRequest.absentNote.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.absentNote.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.absentNote.docReq.tage@: -1
+            - =..apiRequest.absentNote.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.absentNote.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag
+
+        - actionType: evalObject
+          object:
+            - goto: ProviderNoteSelect
+
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag
+
     # 弹窗区域
     - type: popUp
       viewTag: selectDate

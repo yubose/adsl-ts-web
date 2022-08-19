@@ -1,9 +1,27 @@
 Dashboard:
+  # api 请求
+  # 1. 获取当前provider 与 facility之间的 10002， 没用到 已删除
+  # 2. 获取当前facility下的所有的locationid ， 已处理： 第一次进来获取就行 后面不需要获取，（
+  #  存在隐患 ， 当facility那边添加 location 这边没办法同步更新， 和 6.1 6.2 同样的问题 需要和 Austin商量 @chenchen.xu  ）
+  # 3. 获取邮件,这个不需要实时刷新， 去掉 nonce
+  # 4. 获取所有的telemedicine 请求
+  # 5. 获取所有office请求
+  # 6.1. 获取当前facility下面的room ， 已用cache处理，去掉nonce
+  # 6.2. 获取当前facility下面的profile ， 已用cache处理，去掉nonce
+  # 7. 获取 public profile，并判断是否正常
+  # 8 - 10 获取几个预约， 可以考虑合并
+  # 11 获取当前facility文档， 存在 Global.currentFacilityDoc 已优化， 存在不在获取
+  # 12. 获取所有好友请求， 去掉 nonce 不需要实时更新
+  # 13. 获取所有的reason for visit , 已用cache处理，去掉nonce
+  # 14. 获取自己和当前facility的关系边
   title: Dashboard
   pageNumber: "80"
   viewPort: top
   init:
     - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.formData.entrancePageName
+      dataObject: ""
     - actionType: evalObject
       object:
         # if user on browser, he can not use scan so remove the scan button on the list
@@ -11,7 +29,6 @@ Dashboard:
             - .builtIn.isBrowser
             - ..formDataTemp.switchList@: =..formDataTemp.switchTempOnBrowser
             - ..formDataTemp.switchList@: =..formDataTemp.switchTemp
-    - ..apiRequest.relation.edgeAPI.get
     # reset MedicalInsurance to empty for fix ios bugs
     - actionType: updateObject
       dataKey: Dashboard.listData.organizations
@@ -20,10 +37,9 @@ Dashboard:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    # 清空tab栏状态
     - actionType: updateObject
-      dataKey: Global.formData.currentTabStatus
-      dataObject: .EmptyObj
+      dataKey: Global.formData.currentTabStatusList
+      dataObject: []
     # clear meeting roomInfo edge
     - actionType: updateObject
       dataKey: Global.roomInfo.edge
@@ -43,29 +59,21 @@ Dashboard:
                   - =.Global.formData.profile.lastName
                 dataOut: Dashboard.formData.fullName
             - ..profile.document.name.data.fullName@: =.Dashboard.formData.fullName
-            - =..profile.docAPI.store: "" #登录创建profile
-            - =..publicProfile.docAPI.store: "" #登录创建publicProfile
+            - actionType: evalObject
+              object:
+                - actionType: evalObject
+                  async: true
+                  object:
+                    - =..profile.docAPI.store: "" #登录创建profile
+                    - =..publicProfile.docAPI.store: "" #登录创建publicProfile
             - .Global.MyProfile@: =..profile.docCreateResp.doc
             - =.builtIn.object.clear:
                 dataIn:
                   object: =.Global.formData
                   key: profile
         - continue
-    #获取邮件列表数量 并控制是否显示
     - actionType: evalObject
       object:
-        - =..apiRequest.unReadEmail.docAPI.get: ""
-        - =.builtIn.array.getListLength:
-            dataIn:
-              object: =..apiRequest.unReadEmail.docQueryResp.doc
-            dataOut: Dashboard.formData.unReadEmailNum
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formData.unReadEmailNum
-                  string2: "0"
-            - ..formData.inboxHidden@: "true"
-            - ..formData.inboxHidden@: "false"
         - =.builtIn.date.getMonth:
             dataIn: ""
             dataOut: Dashboard.calendarDate.month
@@ -102,44 +110,85 @@ Dashboard:
         #是否进行获取room，因为tele不需要
         - .Global.isGetRoom@: false
         #获取当前facility下面所有location,并获取当前机构下的所有office的请求
-        - =..apiRequest.locationAll.docAPI.get: ""
+        # 这应该每次用户进来获取一次就可以， 后面如果Global有就不需要获取
         - if:
-            - =..apiRequest.locationAll.docResp.doc.0.id
+            - =.Global.formData.currentFacility.alllocationId.0
             - actionType: evalObject
               object:
-                - .Global.formData.currentFacility.allLocationInforMation@: =..apiRequest.locationAll.docResp.doc.0.name.data.allLocation
-                - =.builtIn.array.selectOneToArr:
-                    dataIn:
-                      arr: =..apiRequest.locationAll.docResp.doc.0.name.data.allLocation
-                      key: "id"
-                    dataOut: Global.formData.currentFacility.alllocationId
-                - =.builtIn.array.push:
-                    dataIn:
-                      messages: =.Global.formData.currentFacility.alllocationId
-                      newMessage: =.Global.currentUser.vertex.id
-                    dataOut: Dashboard.formData.locationAndProviderId
-                - .Global.ids@: []
-                - =.builtIn.array.concat:
-                    dataIn:
-                      array1: =.Global.ids
-                      array2: =..formData.locationAndProviderId
-                    dataOut: Global.ids
-            - =.builtIn.array.push:
-                dataIn:
-                  messages: =.Global.formData.currentFacility.alllocationId
-                  newMessage: =.Global.currentUser.vertex.id
-                dataOut: Dashboard.formData.locationAndProviderId
-    #### all appointment
-    - ..apiRequest.telemedicinelistData.get #Telemedicinelist number
-    #获取当前facility & provider下面所有的office
-    - ..apiRequest.officelistData.get #officelist number
-    #获取当前facility & provider下面所有的room
-    - ..apiRequest.listRoomData.get
+                - ..formData.locationAndProviderId@: =.Global.formData.currentFacility.currentLocationAndProviderId
+            - actionType: evalObject
+              object:
+                - =..apiRequest.locationAll.docAPI.get: ""
+                - if:
+                    - =..apiRequest.locationAll.docResp.doc.0.id
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.currentFacility.locations@: =..apiRequest.locationAll.docResp.doc.0
+                        - .Global.formData.currentFacility.allLocationInforMation@: =..apiRequest.locationAll.docResp.doc.0.name.data.allLocation
+                        - =.builtIn.array.selectOneToArr:
+                            dataIn:
+                              arr: =..apiRequest.locationAll.docResp.doc.0.name.data.allLocation
+                              key: "id"
+                            dataOut: Global.formData.currentFacility.alllocationId
+                        - =.builtIn.array.push:
+                            dataIn:
+                              messages: =.Global.formData.currentFacility.alllocationId
+                              newMessage: =.Global.currentUser.vertex.id
+                            dataOut: Dashboard.formData.locationAndProviderId
+                        - .Global.formData.currentFacility.currentLocationAndProviderId@: =..formData.locationAndProviderId
+                        - .Global.ids@: []
+                        - =.builtIn.array.concat:
+                            dataIn:
+                              array1: =.Global.ids
+                              array2: =..formData.locationAndProviderId
+                            dataOut: Global.ids
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.push:
+                            dataIn:
+                              messages: =.Global.formData.currentFacility.currentLocationAndProviderId
+                              newMessage: =.Global.currentUser.vertex.id
+                            # dataOut: Dashboard.formData.locationAndProviderId
+                        # - .Global.formData.currentFacility.currentLocationAndProviderId@: =..formData.locationAndProviderId
+
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            #### all appointment
+            - =..apiRequest.telemedicinelistData.get: "" #Telemedicinelist number
+            # - =..apiRequest.telemedicinelistData.reportAPI.store: ""
+            #获取当前facility & provider下面所有的office
+            - =..apiRequest.officelistData.get: "" #officelist number
+            #获取当前facility & provider下面所有的room
+            - =..apiRequest.listRoomData.get: ""
+            ## @ 暂时注释
+            - =..newMedical.edgeAPI.get: ""
+            # 获取邀请列表
+            - =..invite.edgeAPI.get: ""
+            #获取邮件列表数量
+            - =..apiRequest.unReadEmail.docAPI.get: ""
+    # 获取自己和当前facility之间的关系边
+    - if:
+        - .Global.formData.currentFacility.relationEdge.id
+        - continue
+        - actionType: evalObject
+          object:
+            - =..apiRequest.relation.edgeAPI.get: ""
+            - .Global.formData.currentFacility.relationEdge@: =..apiRequest.relation.edgeQueryResp.edge.0
     # 获取当前facility doc
-    - =..apiRequest.currentFacilityDoc.docAPI.get: ""
-    - ..formData.tempData@: =..apiRequest.currentFacilityDoc.docResp.doc.0
-    - .Global.currentFacilityDoc@: ""
-    - .Global.currentFacilityDoc@: =.Dashboard.formData.tempData
+    # 如果已经获取过了 可以不再获取
+    - if:
+        - .Global.currentFacilityDoc
+        - continue
+        - actionType: evalObject
+          object:
+            - =..apiRequest.currentFacilityDoc.docAPI.get: ""
+            - ..formData.tempData@: =..apiRequest.currentFacilityDoc.docResp.doc.0
+            - .Global.currentFacilityDoc@: ""
+            - .Global.currentFacilityDoc@: =.Dashboard.formData.tempData
+
     - actionType: evalObject
       object:
         - =.builtIn.array.getListLength:
@@ -161,27 +210,34 @@ Dashboard:
             dataIn:
               object: =..apiRequest.officelistData.WaitingInRoom.edge
             dataOut: Dashboard.formData.OfficeNumber
-    - ..apiRequest.publicProfile.docAPI.get
-    # judge the public profile is normal or not
+    #默认是 false, 第一次进来去 get.
     - if:
-        - =..apiRequest.publicProfile.docQueryResp.doc.0.name.data.userName
-        - .Global.publicProfileViewHidden@: true
-        - actionType: evalObject
-          object:
-            - .Global.publicProfileViewHidden@: false
-            - =.builtIn.object.extract:
-                dataIn:
-                  array: =..apiRequest.publicProfile.docQueryResp.doc
-                  field: id
-                dataOut: Dashboard.formData.problemPublicProfileIdList
-    # if public profile is not normal,delete all bug public profile
-    - if:
-        - =..formData.problemPublicProfileIdList.0
-        - actionType: evalObject
-          object:
-            - ..apiRequest.publicProfile.docDeleteReq.id@: =..formData.problemPublicProfileIdList
-            - =..apiRequest.publicProfile.docAPI.delete: ""
+        - =.Global.publicProfileViewHidden
         - continue
+        - actionType: evalObject
+          object:
+            - =..apiRequest.publicProfile.docAPI.get: ""
+            # get完事之后 应该就不需要get了
+            # judge the public profile is normal or not
+            - if:
+                - =..apiRequest.publicProfile.docQueryResp.doc.0.name.data.userName
+                - .Global.publicProfileViewHidden@: true # 如果正常 以后都不显示了
+                - actionType: evalObject
+                  object:
+                    - .Global.publicProfileViewHidden@: false
+                    - =.builtIn.object.extract:
+                        dataIn:
+                          array: =..apiRequest.publicProfile.docQueryResp.doc
+                          field: id
+                        dataOut: Dashboard.formData.problemPublicProfileIdList
+            # if public profile is not normal,delete all bug public profile， 正常就继续，不正常删掉
+            - if:
+                - =..formData.problemPublicProfileIdList.0
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.publicProfile.docDeleteReq.id@: =..formData.problemPublicProfileIdList
+                    - =..apiRequest.publicProfile.docAPI.delete: ""
+                - continue
     # 获取profile  存在MyProfile就不用重新请求
     - if:
         - =.Global.MyProfile.id
@@ -211,22 +267,32 @@ Dashboard:
                     - =..profile.docAPI.store: "" #登录创建profile
                     - =..publicProfile.docAPI.store: "" #登录创建publicProfile
                     - .Global.MyProfile@: =..profile.docCreateResp.doc
-    ## @ 暂时注释
-    - ..newMedical.edgeAPI.get
     - actionType: evalObject
       object:
-        =.builtIn.array.getListLength:
-          dataIn:
-            object: =..newMedical.newConnectionList.edge
-          dataOut: Dashboard.formData.newConnectionLength
-    # 获取邀请列表
-    - ..invite.edgeAPI.get
-    - actionType: evalObject
-      object:
-        =.builtIn.array.getListLength:
-          dataIn:
-            object: =..invite.inviteList.edge
-          dataOut: Dashboard.newDashboardLength
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..newMedical.newConnectionList.edge
+            dataOut: Dashboard.formData.newConnectionLength
+        - .Global.formData.redDotNum.newConnection@: =..formData.newConnectionLength
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..invite.inviteList.edge
+            dataOut: Dashboard.newDashboardLength
+        - .Global.formData.redDotNum.newPatient@: =..newDashboardLength
+        #控制是否展示邮箱数量
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..apiRequest.unReadEmail.docQueryResp.doc
+            dataOut: Dashboard.formData.unReadEmailNum
+        - .Global.formData.emailNumber@: =..formData.unReadEmailNum
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.unReadEmailNum
+                  string2: "0"
+            - ..formData.inboxHidden@: "true"
+            - ..formData.inboxHidden@: "false"
+
     - if:
         - =.builtIn.string.equal:
             dataIn:
@@ -283,6 +349,21 @@ Dashboard:
             dataIn:
               contentType: messageHidden
               wait: 100
+    # 测试代码，测试完成后需删除
+    # - =.builtIn.date.currentDateTime:
+    #     dataIn:
+    #     dataOut: Global.formData.auditLog.startTime
+    # - =.builtIn.utils.createAuditLog:
+    #     dataIn:
+    #       actionTypeCode: 1
+    #       recordTypeCode: 1
+    #       eid: =.Global.rootNotebookID
+    #
+    #       user: =.Global.MyProfile.name.data.fullName
+    #       userId: =.Global.currentUser.vertex.id
+    #       targetUserId: =.Global.currentUser.vertex.id
+    #       accessPort: provider
+    #     dataOut: Global.formData.auditLog.result
   generalInfo:
     value: true
     flag: true
@@ -301,6 +382,7 @@ Dashboard:
     document:
       name:
         data: ""
+  # facility 或者 provider 邀请
   invite:
     inviteList: ""
     edgeAPI:
@@ -313,19 +395,21 @@ Dashboard:
         dataKey: invite.inviteList
         sCondition: subtype in (0x10000) #,0x20000,0x30000,0x40000,0x5000)
         _nonce: =.Global._nonce
+
+  #
   newMedical: #facility number
     newConnectionList:
       edge: ""
     edgeAPI:
       get:
         api: re
+        _nonce: =.Global._nonce
         type: .EdgeType.InviteInfo
         xfname: evid
         id: .Global.currentUser.vertex.id
         maxcount: "10000"
         dataKey: newMedical.newConnectionList
         sCondition: subtype in (196624,196608,262144,327680)
-        _nonce: =.Global._nonce
   save:
     - ..newRoomInfo.edgeAPI.store
   newRoomInfo:
@@ -348,22 +432,21 @@ Dashboard:
         dataIn: newRoomInfo.edge
         dataOut: createdRoomInfo.edge
   apiRequest:
-    # 10002 edge between provider and facility
     relation:
       edgeQueryResp: ""
       edgeQueryReq:
         id:
           - =.Global.currentUser.vertex.id
           - =.Global.currentFacility.id
-        xfname: Bvid,Evid
+        xfname: (bvid,evid)|(evid,bvid)
         type: 10002
         obfname: mtime
-        maxcount: "1"
+        sCondition: tage>0
         _nonce: =.Global._nonce
       edgeAPI:
         get:
           api: re
-          dataIn: Dashboard.apiRequest.relation.edgeQueryReq
+          dataIn: apiRequest.relation.edgeQueryReq
           dataOut: Dashboard.apiRequest.relation.edgeQueryResp
     reasonForVisit:
       docCreateResp: ""
@@ -378,7 +461,7 @@ Dashboard:
         type: .DocType.VisitReason
         obfname: mtime
         sCondition: E.type=10002 AND E.tage>0
-        _nonce: =.Global._nonce
+        _nonce: .Global._nonce
       docAPI:
         get:
           api: rd
@@ -429,7 +512,6 @@ Dashboard:
         obfname: "ctime"
         maxcount: "1"
         type: .DocType.FacilityProfile
-        _nonce: =.Global._nonce
       docAPI:
         get:
           api: rd
@@ -464,7 +546,6 @@ Dashboard:
         sCondition: "E.type=1053 AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage&0x100=0 AND E2.type=40000"
         obfname: "stime"
         asc: true
-        _nonce: =.Global._nonce
       get:
         api: re
         dataIn: apiRequest.listRoomData.edge
@@ -480,15 +561,27 @@ Dashboard:
         xfname: (E.bvid|E.evid)&!D.ovid
         obfname: ctime
         maxcount: "100"
-        _nonce: =.Global._nonce
       docAPI:
         get:
           api: rd
           dataIn: Dashboard.apiRequest.unReadEmail.docQueryReq
           dataOut: Dashboard.apiRequest.unReadEmail.docQueryResp
     telemedicinelistData:
+      reportResp: ""
+      reportReq:
+        name:
+          nonce: "{\"objType\":\"2\",\"esqlType\":\"20\",\"id\":\"JkOYuSmSRm0Vs6tZdyzfgg==\",\"xfname\":\"E2.evid\",\"maxcount\":\"10000\",\"sCondition\":\" E2.type=40000 AND E.type=40000 AND E.subtype in (0x30006,0x30064) AND E.tage&0x100 in (0)\"}"
+          # nonce: "{\"objType\":\"2\",\"esqlType\":\"20\",\"id\":[\"JkOYuSmSRm0Vs6tZdyzfgg==\",\"XSrZeQAAAAALgwJCrBIABQ==\"],\"xfname\":\"E2.evid,E2.bvid\",\"maxcount\":\"10000\",\"sCondition\":\" E2.type=40000 AND E.type=40000 AND E.subtype in (0x30006,0x30064) AND E.tage&0x100 in (0)\"}"
+          title: "test"
+        type: 4001
+        eid: .Global.rootNotebookID
       WaitingInRoom:
         edge: ""
+      reportAPI:
+        store:
+          api: cd
+          dataIn: Dashboard.apiRequest.telemedicinelistData.reportReq
+          dataOut: Dashboard.apiRequest.telemedicinelistData.reportResp
       get:
         .EdgeAPI.get: ""
         api: re
@@ -534,7 +627,7 @@ Dashboard:
     emailNumber: "0"
     TelemedicineNumber: "0"
     OfficeNumber: "0"
-    locationAndProviderId: ""
+    locationAndProviderId: []
     tempData: ""
     providerId: ""
     providerInfo: ""
@@ -748,18 +841,25 @@ Dashboard:
               text: Dashboard
               dataKey: Global.dashboardName
               style:
-                fontFamily: "Arial"
-                fontSize: .Nfont.h2
+                marginLeft: "0.16"
+                display: "inline-block"
+
+                fontSize: .Nfont.h16
                 color: "0xffffff"
-                width: "1"
+                width: "0.7"
+                verticalAlign: middle
+                overflow: hidden
+                text-overflow: ellipsis
+                whiteSpace: nowrap
                 textAlign:
                   x: center
             - type: image
               path: sideNav.svg
               style:
-                top: "0"
-                left: "0.85"
-                height: "0.025"
+                display: "inline-block"
+                marginLeft: "0.032"
+                verticalAlign: middle
+                height: "0.029556"
               onClick:
                 - actionType: evalObject
                   object:
@@ -818,14 +918,14 @@ Dashboard:
               style:
                 width: "0.9"
                 height: "auto"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h15
                 color: "0x2988e6"
             - type: view
               style:
                 marginTop: "0.01"
                 width: "0.9"
-                height: "0.06"
+                height: "0.08"
               children:
                 - type: view
                   style:
@@ -847,7 +947,7 @@ Dashboard:
                         color: "0x30b354"
                         height: "0.06"
                         width: "0.13"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h4
                         fontWeight: 600
                         textAlign:
@@ -860,7 +960,7 @@ Dashboard:
                         left: "0.13"
                         height: "0.06"
                         width: "0.3"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h1
                         textAlign:
                           x: left
@@ -887,7 +987,8 @@ Dashboard:
                         - =.builtIn.string.concat:
                             dataIn:
                               - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype in (0x30006,0x30064)"
-                            dataOut: Global.queryScondition_participants  
+                            dataOut: Global.queryScondition_participants
+                        - .Global.querySconditionForRelatedRoomInNonScheduled@: "subtype in (0x30006,0x30064) AND tage&0x120 in (0) AND name LIKE '%mainProviderName%' "
                     - goto: WaitingRoom
                 - type: view
                   style:
@@ -910,7 +1011,7 @@ Dashboard:
                         color: "0xf8ae29"
                         height: "0.06"
                         width: "0.13"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h4
                         fontWeight: 600
                         textAlign:
@@ -923,7 +1024,7 @@ Dashboard:
                         left: "0.13"
                         height: "0.06"
                         width: "0.3"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h1
                         textAlign:
                           x: left
@@ -944,8 +1045,9 @@ Dashboard:
                             dataOut: Global.queryScondition
                         - =.builtIn.string.concat:
                             dataIn:
-                              - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype in (0x20006,0x20064,0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064)"
-                            dataOut: Global.queryScondition_participants  
+                              - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype&0xff in (6,100) AND E2.subtype&0xff0000 in (0x20000,0xa0000,0xc0000,0xe0000,0x100000,0x120000,0x140000)"
+                            dataOut: Global.queryScondition_participants
+                        - .Global.querySconditionForRelatedRoomInNonScheduled@: "subtype in (0x20006,0x20064) AND tage&0x120 in (0) AND name LIKE '%mainProviderName%' "
                         - .Global.isGetRoom@: true
                     - goto: WaitingRoom
             - type: view
@@ -975,12 +1077,13 @@ Dashboard:
                         dataOut: Global.queryScondition
                     - =.builtIn.string.concat:
                         dataIn:
-                          - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype in (0x20006,0x30006,0x20064,0x30064,0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064)"
-                        dataOut: Global.queryScondition_participants    
+                          - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype&0xff in (6,100)"
+                        dataOut: Global.queryScondition_participants
+                    - .Global.querySconditionForRelatedRoomInNonScheduled@: "subtype in (0x20006,0x30006,0x20064,0x30064) AND tage&0x120 in (0)  AND name LIKE '%mainProviderName%' "
                     - .Global.isGetRoom@: true
                 - goto: WaitingRoom
               style:
-                marginTop: "0.02"
+                marginTop: "0"
                 width: "0.9"
                 height: "0.12"
                 # backgroundColor: "pink"
@@ -1017,7 +1120,7 @@ Dashboard:
                         left: "0"
                         height: "0.12"
                         width: "0.6"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h2
                         backgroundColor: "0xffffff"
                         textAlign:
@@ -1088,7 +1191,7 @@ Dashboard:
                         left: "0"
                         height: "0.05"
                         width: "0.43"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h15
                         backgroundColor: "0xffffff"
                         color: "0x000000"
@@ -1132,7 +1235,7 @@ Dashboard:
                         left: "0"
                         height: "0.05"
                         width: "0.43"
-                        fontFamily: "Arial"
+
                         backgroundColor: "0xffffff"
                         fontSize: .Nfont.h15
                         color: "0x000000"
@@ -1152,7 +1255,7 @@ Dashboard:
               style:
                 width: "0.9"
                 height: "auto"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h15
                 color: "0x2988e6"
 
@@ -1201,7 +1304,7 @@ Dashboard:
                         left: "0"
                         height: "0.05"
                         width: "0.43"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h15
                         backgroundColor: "0xffffff"
                         color: "0x000000"
@@ -1254,7 +1357,7 @@ Dashboard:
                         left: "0"
                         height: "0.05"
                         width: "0.43"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h15
                         backgroundColor: "0xffffff"
                         color: "0x000000"
@@ -1293,7 +1396,7 @@ Dashboard:
             - .footerMenuLabel:
               text: Inbox
             - .numberMark:
-              dataKey: formData.unReadEmailNum
+              dataKey: Global.formData.emailNumber
               style:
                 isHidden: ..formData.inboxHidden
 
@@ -1372,7 +1475,7 @@ Dashboard:
                 width: "0.72"
                 height: "auto"
                 borderRadius: "10"
-                fontFamily: Airal
+
                 backgroundColor: "0xdcdbdc"
                 box-sizing: border-box
                 overflow: hidden
@@ -1390,8 +1493,6 @@ Dashboard:
                     borderColor: "0x707070"
                     box-sizing: border-box
                     # padding: "0 20px"
-                    paddingLeft: "0.1"
-                    paddingRight: "0.1"
                     textAlign:
                       x: center
                       y: center
@@ -1404,23 +1505,22 @@ Dashboard:
                               fontWeight: "600"
                             - text: "Please update your reason for visit"
                           style:
-                            fontFamily: Airal
                             height: "auto"
+                            paddingLeft: "0.1"
+                            paddingRight: "0.1"
                             width: "auto"
                             textAlign:
                               x: center
                             fontSize: .Nfont.h16
                             fontColor: "0x333333"
                             box-sizing: border-box
-                            # lineHeight: "2.58vh"
-                            # paddingBottom: 2.95vh
                             maxWidth: "0.72"
                 - type: button
                   text: Update Now
                   style:
                     color: "0x2988E6"
                     width: "0.72"
-                    fontFamily: Airal
+
                     fontSize: .Nfont.h14
                     height: "0.054"
                     fontColor: "0x333333"
@@ -1466,7 +1566,7 @@ Dashboard:
             boxSizing: "border-box"
             borderRadius: "5"
             backgroundColor: "0xffffff"
-            fontFamily: "Arial"
+
             border:
               style: 1
             overflow: hidden

@@ -3,13 +3,52 @@ ProgressReportShared:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - ..formData@: =.Global.Note
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: =.DocType.ProgressReport
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.progressReport.docCreateReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
 
     - actionType: evalObject
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..formData.name.data.reportInfo.diagnosis.descriptiveList
+              object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
             dataOut: ProgressReportShared.formDataTemp.listlength
 
     - actionType: evalObject
@@ -45,35 +84,83 @@ ProgressReportShared:
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Progress Report"
+        - .Global.formData.downloadPDF.scaleX@: 0.91
+        - .Global.formData.downloadPDF.scaleY@: 0.91
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
 
-  formData: ""
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.ProgressReportShared.formData.name.data.signatureId
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
+
+  formData:
+    # 控制签名是否显示
+    displaySign: "none"
   formDataTemp:
     downFlag: "inline-block"
     listShow: "none"
     flag: "block"
     listlength: ""
     socialHistoryLength: ""
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
+  apiRequest:
+    progressReport:
+      docCreateResp: ""
+      docCreateReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: ProgressReportShared.apiRequest.progressReport.docCreateReq
+          dataOut: ProgressReportShared.apiRequest.progressReport.docCreateResp
+
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      date: =.Global.formData.auditLog.startTime
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.ProgressReport
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
-        width: "1"
-        height: "0.945"
-        overflow: scroll
-        fontFamily: "Arial"
-
+        ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
         - type: view
           style:
@@ -107,7 +194,7 @@ ProgressReportShared:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordBreak: "break-word"
                 - type: label
@@ -118,7 +205,7 @@ ProgressReportShared:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
         - type: view
           style:
@@ -223,7 +310,6 @@ ProgressReportShared:
               text: "History of Present lllness / Subject Complaints"
               dataKey:
               style:
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 width: "0.92"
@@ -241,7 +327,6 @@ ProgressReportShared:
             marginTop: "0.01"
             padding: "6px 12px"
 
-            fontFamily: "Arial"
             fontSize: .Nfont.h14
             color: "0x333333"
             borderRadius: "4"
@@ -260,7 +345,7 @@ ProgressReportShared:
             width: "0.92"
             marginTop: "0.0222"
             marginLeft: "0.04"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: label
@@ -271,7 +356,7 @@ ProgressReportShared:
             height: "auto"
             marginTop: "0.01"
             marginLeft: "0.04"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             borderRadius: "4"
             backgroundColor: "#f4f4f4"
@@ -301,7 +386,7 @@ ProgressReportShared:
                     width: "0.92"
                     fontSize: .Nfont.h14
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     textAlign:
                       x: "left"
                 - type: label
@@ -311,7 +396,7 @@ ProgressReportShared:
                     width: "0.92"
                     height: "auto"
                     marginTop: "0.01"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     borderRadius: "4"
                     color: "0x333333"
@@ -339,7 +424,7 @@ ProgressReportShared:
                   dataKey:
                   style:
                     width: "0.92"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     fontWeight: "600"
                     textAlign:
@@ -350,7 +435,7 @@ ProgressReportShared:
                   style:
                     width: "0.92"
                     height: "auto"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     marginTop: "0.01"
 
@@ -369,7 +454,7 @@ ProgressReportShared:
             marginTop: "0.0222"
             marginLeft: "0.04"
             width: "0.92"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h16
             fontWeight: "600"
 
@@ -506,7 +591,7 @@ ProgressReportShared:
             marginTop: "0.01724"
             marginLeft: "0.04"
             width: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: label
@@ -522,7 +607,7 @@ ProgressReportShared:
             marginLeft: "0.04"
             height: "auto"
             width: "0.92"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: label
@@ -533,7 +618,7 @@ ProgressReportShared:
             marginLeft: "0.04"
             height: "auto"
             width: "0.92"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h12
             fontWeight: "600"
         # 输入单行
@@ -551,7 +636,7 @@ ProgressReportShared:
             borderRadius: "4"
             boxSizing: "border-box"
             padding: "6px 12px"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
 
@@ -572,7 +657,7 @@ ProgressReportShared:
                   dataKey:
                   style:
                     width: "0.92"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     fontWeight: "600"
                     textAlign:
@@ -587,7 +672,7 @@ ProgressReportShared:
                     borderRadius: "4"
                     color: "0x333333"
                     backgroundColor: "#f4f4f4"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     border:
                       style: "1"
@@ -611,7 +696,7 @@ ProgressReportShared:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontWeight: "600"
                 fontSize: .Nfont.h14
                 textAlign:
@@ -640,7 +725,7 @@ ProgressReportShared:
                 color: "0x333333"
             - type: list
               contentType: listObject
-              listObject: ..formData.name.data.reportInfo.diagnosis.descriptiveList
+              listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
               iteratorVar: itemObject
               style:
                 display: ..formDataTemp.listShow
@@ -691,7 +776,7 @@ ProgressReportShared:
                                 textAlign:
                                   x: left
                                 verticalAlign: "top"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h14
                                 fontWeight: "600"
                                 display: "inline-block"
@@ -710,13 +795,13 @@ ProgressReportShared:
                               style:
                                 width: "0.62"
                                 height: "auto"
-                                marginLeft: "0.02"
+                                marginLeft: "0.015"
                                 verticalAlign: "top"
                                 display: "inline-block"
                                 textAlign:
                                   x: "left"
                                 wordBreak: "break-word"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h14
                     - type: label
                       text:
@@ -726,29 +811,31 @@ ProgressReportShared:
                         height: "auto"
                         marginTop: "0.002"
                         marginLeft: "0.06"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h14
-                        wordBreak: "break-al"
+                        wordBreak: "break-word"
 
         # 文本 plan
         - type: view
           style:
             width: "0.92"
-            height: "0.0234"
+            height: "auto"
             marginTop: "0.0222"
             marginLeft: "0.04"
-            textAlign:
-              y: "center"
           children:
             - type: label
               text: "Plan And Recommendations"
+              dataKey:
               style:
                 width: "0.92"
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 fontWeight: "600"
-                textAlign:
-                  x: "left"
+            - type: label
+              text: "&#8226 Note"
+              style:
+                width: "0.92"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
         # textView
         - type: label
           text: "No content"
@@ -759,7 +846,7 @@ ProgressReportShared:
             marginLeft: "0.04"
             marginTop: "0.01"
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
 
             color: "0x333333"
@@ -769,6 +856,20 @@ ProgressReportShared:
               style: "1"
             padding: "6px 12px"
             wordBreak: break-word
+        # - type: view
+        #   viewTag: defaultTag
+        #   style:
+        #     ..style.blockBox:
+        #   children:
+        #     - type: image
+        #       path:
+        #         ..event.checkBoxPath:
+        #       style:
+        #         ..style.img:
+        #     - type: label
+        #       text: Superbill
+        #       style:
+        #         ..style.setLabel:
         - .DocPublicLine:
         # 签名
         - type: view
@@ -823,6 +924,7 @@ ProgressReportShared:
                 height: "0.128"
                 overflow: scroll
                 zIndex: "1000"
+                display: ..formData.displaySign
         - type: view
           style:
             marginLeft: "0.04"
@@ -830,6 +932,7 @@ ProgressReportShared:
             width: "0.92"
             height: "auto"
             overflow: hidden
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -912,7 +1015,7 @@ ProgressReportShared:
                 width: "0.92"
                 color: "0x666666"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 wordBreak: break-word
 
             - .DocPublicStyleOneBox:
@@ -974,8 +1077,81 @@ ProgressReportShared:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+
+    # - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.progressReport.docCreateReq.name.data.statusTag.name@: "Released"
+          - ..apiRequest.progressReport.docCreateReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.progressReport.docCreateReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      - actionType: evalObject
+        object:
+          - ..apiRequest.progressReport.docCreateReq.tage@: -1
+          - =..apiRequest.progressReport.docAPI.store: ""
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: evalObject
+        object:
+          - goto: MoreOptions
+
   style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+
     signBox:
       width: "auto"
       height: "auto"
@@ -984,7 +1160,7 @@ ProgressReportShared:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       vertical-align: middle
@@ -993,7 +1169,7 @@ ProgressReportShared:
       height: "auto"
       marginLeft: "0.04"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
     inputBox:
@@ -1005,7 +1181,7 @@ ProgressReportShared:
     vitalInput:
       width: "0.44"
       height: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       border:
         style: "1"
@@ -1020,7 +1196,7 @@ ProgressReportShared:
       width: "0.92"
       height: "auto"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       color: "0x333333"
@@ -1030,3 +1206,23 @@ ProgressReportShared:
       boxSizing: "border-box"
       padding: "6px 12px"
       wordBreak: break-word
+    blockBox:
+      marginTop: "0.024630"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

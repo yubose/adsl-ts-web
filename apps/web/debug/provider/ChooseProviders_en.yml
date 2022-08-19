@@ -1,0 +1,159 @@
+ChooseProviders:
+  title: Choose Providers
+  pageNumber:
+  init:
+    - ..apiRequest.providers.docAPI.get
+    - =.builtIn.array.keepLatestDoc:
+        dataIn:
+          docList: =..apiRequest.providers.docRes.doc
+          path: bsig
+        dataOut: ChooseProviders.formData.providers
+  formData:
+    providers: []
+  formDataTemp:
+
+  apiRequest:
+    providers: # 包括所有的facility和location
+      docReq:
+        ObjType: 12
+        type: .DocType.DoctorPublicProfile
+        id: .Global.formData.currentProviderFacility.bsig
+        xfname: E.bvid|E.evid
+        sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+        maxcount: "100"
+        obfname: mtime
+        _nonce: =.Global._nonce
+      docRes: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: ChooseProviders.apiRequest.providers.docReq
+          dataOut: ChooseProviders.apiRequest.providers.docRes
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+          - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        # Providers
+        - type: view
+          style:
+            width: "1"
+            height: "auto"
+            marginTop: "0"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..formData.providers
+              iteratorVar: itemObject
+              style:
+                ..style.DataList:
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    ..style.DataItem:
+                  onClick:
+                    - ..event.providerItem
+                  children:
+                    - type: view
+                      style:
+                        ..style.DataBox:
+                      children:
+                        - type: image
+                          path: ava.png
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: itemObject.name.data.avatar
+                          style:
+                            ..style.listImg:
+                        - type: view
+                          style:
+                            ..style.listValueBox:
+                          children:
+                            - type: label
+                              textBoard:
+                                - text: ""
+                                  dataKey: itemObject.name.data.fullName
+                                - text: "&nbsp;-&nbsp;"
+                                - text: ""
+                                  dataKey: itemObject.name.data.title
+                              dataKey:
+                              style:
+                                ..style.listValue:
+                            - type: label
+                              dataKey: itemObject.name.data.selectedSpecialty.0
+                              style:
+                                ..style.listSpecialty:
+                    - type: view
+                      style:
+                        marginTop: "0.0198"
+
+  event:
+    providerItem:
+      - actionType: updateObject
+        dataKey: Global.ActiveProvider
+        dataObject: itemObject
+      - actionType: updateObject
+        dataKey: Global.formData.relatedApp.activeProvider
+        dataObject: itemObject
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - .Global.formData.relatedApp.activeProviderId@: $var.bsig
+      - goto: CreateSchedule
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.89"
+      boxSizing: border-box
+    DataList:
+      width: "1"
+      height: "0.8226"
+      overflow: scroll
+    DataItem:
+      width: "1"
+      height: "auto"
+      margin: "0"
+      border:
+        style: "2"
+      borderWidth: "1"
+      borderColor: "0xdededf"
+      overflow: hidden
+    DataBox:
+      marginTop: "0.0198" #16.08px
+      marginLeft: "0.0427" #16.01px
+      height: "auto"
+      width: "0.91"
+    listImg:
+      verticalAlign: middle
+      display: "inline-block"
+      height: "0.0554"
+      width: "0.12"
+    listValueBox:
+      verticalAlign: middle
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "auto"
+      width: "0.71"
+      overflow: hidden
+    listValue:
+      width: "0.71"
+      height: "auto"
+
+      wordWrap: break-word
+      fontSize: .Nfont.h16
+      fontWeight: "600"
+      color: "#333333"
+    listSpecialty:
+      marginTop: "0.005"
+      width: "0.71"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+
+      verticalAlign: middle
+      wordWrap: break-word

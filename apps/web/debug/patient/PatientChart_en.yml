@@ -1,0 +1,2827 @@
+PatientChart:
+  title: Patient Chart
+  pageNumber:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+
+    # judge the patient chart is local or in the meeting
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.flag.isMeetingPatientchart
+                  string2: true
+            - actionType: evalObject
+              object:
+                - ..chart.getdocument.id@: =.Global.roomInfo.edge.id
+                - ..apiRequest.newChart.docCreateReq.eid@: =.Global.roomInfo.edge.id
+            - actionType: evalObject
+              object:
+                - ..chart.getdocument.id@: =.Global.rootNotebookID
+                - ..apiRequest.newChart.docCreateReq.eid@: =.Global.rootNotebookID
+    - actionType: evalObject
+      object:
+        - =..chart.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - .PatientChart.chart.document@: =..docResponse.doc.0
+        - .PatientChart.PatientChartObject@: =..docResponse.doc.0
+        - ..charts@: =.PatientChart.PatientChartObject.name.data
+        # - .Global.isShare@: true
+    - if:
+        - =..docResponse.doc.0
+        - actionType: evalObject
+          object:
+            - if:
+                - =.Global.isShare
+                - actionType: evalObject
+                  object:
+                    - ..formData.scrollHeight@: "0.8484"
+                    - ..formData.btnShow@: "block"
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.Global.formData.patientChartStatus
+                        - actionType: evalObject
+                          object:
+                            - ..formData.scrollHeight@: "0.8484"
+                            - ..formData.btnShow@: "block"
+                        - continue
+            - =.builtIn.array.covertToJsonArray:
+                dataIn:
+                  array: =..charts.pastMedicalHistory
+                dataOut: PatientChart.pastMedicalHistoryTemp
+            - =.builtIn.array.covertToJsonArray:
+                dataIn:
+                  array: =..charts.familyHistory
+                dataOut: PatientChart.familyHistoryTemp
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..docResponse.doc.0.name.data.version
+                      string2: "2.0"
+                - actionType: evalObject
+                  object:
+                    - .PatientChartDM.patientChart@: =..docResponse.doc.0.name.data
+                    - ..formData.display.updatePatientChart@: none
+                - ..formData.display.updatePatientChart@: block
+        - actionType: evalObject
+          object:
+            - .PatientChartDM.patientChart.generalInfo.firstName@: =.Global.Profile.name.data.basicInfo.firstName
+            - .PatientChartDM.patientChart.generalInfo.middleName@: =.Global.Profile.name.data.basicInfo.middleName
+            - .PatientChartDM.patientChart.generalInfo.lastName@: =.Global.Profile.name.data.basicInfo.lastName
+            - .PatientChartDM.patientChart.generalInfo.gender@: =.Global.Profile.name.data.basicInfo.gender
+            - .PatientChartDM.patientChart.generalInfo.dateOfBirth@: =.Global.Profile.name.data.basicInfo.dateOfBirth
+            - .PatientChartDM.patientChart.generalInfo.occupation@: =.Global.Profile.name.data.employment.Occupation
+            - ..charts@: =.PatientChartDM.patientChart
+            - ..apiRequest.newChart.docCreateReq.name.data@: =..charts
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: tag_updatePatientChart
+    - =.builtIn.array.formatStringFill:
+        dataIn:
+          strArr: =..charts.sexualHistory.birthControlType
+          sfill: ","
+        dataOut: PatientChart.birthControlType
+    # Past Medical History
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..charts.pastMedicalHistory
+            dataOut: PatientChart.formData.pastMedicalLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.pastMedicalLength
+                  string2: "0"
+            - ..formData.pastMedicalDefault@: "block"
+            - ..formData.pastMedicalList@: "block"
+    # Allergies
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..charts.allergies.allergiesList
+            dataOut: PatientChart.formData.allergiesLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.allergiesLength
+                  string2: "0"
+            - ..formData.allergiesDefault@: "block"
+            - ..formData.allergiesList@: "block"
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..charts.allergies.status
+                  string2: "Yes"
+            - actionType: evalObject
+              object:
+                - ..formData.allergiesStatus@: ""
+            - actionType: evalObject
+              object:
+                - ..formData.allergiesStatus@: =..charts.allergies.status
+    # Current Medications
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..charts.currentMedications.currentMedicationsList
+            dataOut: PatientChart.formData.currentMedicationsLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.currentMedicationsLength
+                  string2: "0"
+            - ..formData.currentMedicationsDefault@: "block"
+            - ..formData.currentMedicationsList@: "block"
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..charts.currentMedications.status
+                  string2: "Yes"
+            - actionType: evalObject
+              object:
+                - ..formData.currentMedicationStatus@: ""
+            - actionType: evalObject
+              object:
+                - ..formData.currentMedicationStatus@: =..charts.currentMedications.status
+    # Immunizations
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..charts.immunizations.immunizationsList
+            dataOut: PatientChart.formData.immunizationsLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.immunizationsLength
+                  string2: "0"
+            - ..formData.immunizationsDefault@: "block"
+            - ..formData.immunizationsList@: "block"
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..charts.immunizations.status
+                  string2: "Yes"
+            - actionType: evalObject
+              object:
+                - ..formData.immunizationStatus@: ""
+            - actionType: evalObject
+              object:
+                - ..formData.immunizationStatus@: =..charts.immunizations.status
+    # Hospitalizations
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..charts.hospitalizations.hospitalizationsList
+            dataOut: PatientChart.formData.hospitalizationsLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.hospitalizationsLength
+                  string2: "0"
+            - ..formData.hospitalizationsDefault@: "block"
+            - ..formData.hospitalizationsList@: "block"
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..charts.hospitalizations.status
+                  string2: "Yes"
+            - actionType: evalObject
+              object:
+                - ..formData.hospitalizationStatus@: ""
+            - actionType: evalObject
+              object:
+                - ..formData.hospitalizationStatus@: =..charts.hospitalizations.status
+    # Surgical History
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..charts.surgicalHistory.surgicalHistoryList
+            dataOut: PatientChart.formData.surgicalHistoryLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.surgicalHistoryLength
+                  string2: "0"
+            - ..formData.surgicalHistoryDefault@: "block"
+            - ..formData.surgicalHistoryList@: "block"
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..charts.surgicalHistory.status
+                  string2: "Yes"
+            - actionType: evalObject
+              object:
+                - ..formData.surgicalHistoryStatus@: ""
+            - actionType: evalObject
+              object:
+                - ..formData.surgicalHistoryStatus@: =..charts.surgicalHistory.status
+    # Family History
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..charts.familyHistory
+            dataOut: PatientChart.formData.familyHistoryLength
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.familyHistoryLength
+                  string2: "0"
+            - ..formData.familyHistoryDefault@: "block"
+            - ..formData.familyHistoryList@: "block"
+  formData:
+    scrollHeight: "0.92"
+    btnShow: "none"
+    display:
+      updatePatientChart: "none"
+    pastMedicalList: "none"
+    pastMedicalDefault: "none"
+    allergiesList: "none"
+    allergiesDefault: "none"
+    currentMedicationsList: "none"
+    currentMedicationsDefault: "none"
+    immunizationsDefault: "none"
+    immunizationsList: "none"
+    hospitalizationsDefault: "none"
+    hospitalizationsList: "none"
+    surgicalHistoryDefault: "none"
+    surgicalHistoryList: "none"
+    familyHistoryDefault: "none"
+    familyHistoryList: "none"
+    allergiesStatus: ""
+    currentMedicationStatus: ""
+    immunizationStatus: ""
+    hospitalizationStatus: ""
+    surgicalHistoryStatus: ""
+    pastMedicalLength: ""
+    allergiesLength: ""
+    currentMedicationsLength: ""
+    immunizationsLength: ""
+    hospitalizationsLength: ""
+    surgicalHistoryLength: ""
+    familyHistoryLength: ""
+  PatientChartObject: ""
+  charts: #.PatientChart.PatientChartObject.name.data
+    obstetricalHistory:
+      mammogram:
+        isHaveMammogram: ""
+        isAbnormalResult: ""
+    sexualHistory:
+      isBirthControlShow: ""
+      papSmear:
+        isLastTime: ""
+        isAbnormalResultShow: ""
+    socialHistory:
+      alcohol:
+        isShow: ""
+      tobacco:
+        isShow: ""
+      caffeine:
+        isShow: ""
+      recreationalDrug:
+        isShow: ""
+      exercise:
+        isShow: ""
+      nutrition:
+        isShow: ""
+
+  save:
+    - =.PatientChart.shareDocuments.docAPI.store: ""
+  pastMedicalHistoryTemp: []
+  familyHistoryTemp: []
+  isExist: ""
+  birthControlType: ""
+
+  apiRequest:
+    newChart:
+      docCreateResp: ""
+      docCreateReq:
+        eid: .Global.rootNotebookID
+        type: .DocType.PatientChart
+        tage: 0
+        name:
+          data: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientChart.apiRequest.newChart.docCreateReq
+          dataOut: PatientChart.apiRequest.newChart.docCreateResp
+  chart:
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      eid: .Global.rootNotebookID
+      type: .DocType.PatientChart
+      name:
+        title: ""
+        type: "application/json"
+        data: ""
+      deat:
+        sig: ""
+        url: ""
+    getdocument:
+      id: "" #.Global.roomInfo.edge.rootNotebookID
+      xfname: eid
+      type: .DocType.PatientChart #  type: "257"
+      obfname: "mtime"
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        api: rd
+        dataIn: PatientChart.chart.getdocument
+        dataOut: PatientChart.docResponse
+  docResponse:
+    doc:
+      - type: .DocType.PatientChart # - type: "257" # private profile
+        eid: .Global.rootNotebookID
+        name: ""
+    error: ""
+    jwt: ""
+  shareDocuments:
+    document: ""
+    docAPI:
+      store:
+        api: cd
+        dataKey: shareDocuments.document
+        subtype:
+          mediaType: "application/json"
+  sharedDoc: ""
+  selectedDoc: ""
+
+  formDataTemp:
+    pregnantTemp:
+      - key: isPregnant
+        value: "Yes"
+      - key: isPregnant
+        value: "No"
+    mensesIsEveryMonthTemp:
+      - key: isEveryMonth
+        value: "Yes"
+      - key: isEveryMonth
+        value: "No"
+    mensesIsHeavyFlowTemp:
+      - key: isHeavyFlow
+        value: "Yes"
+      - key: isHeavyFlow
+        value: "No"
+    mensesSpottingOrClotsTemp:
+      - key: spottingOrClots
+        value: "Yes"
+      - key: spottingOrClots
+        value: "No"
+    mammogramHaveMammogramTemp:
+      - key: haveMammogram
+        value: "Yes"
+      - key: haveMammogram
+        value: "No"
+    mammogramAbnormalResultTemp:
+      - key: abnormalResult
+        value: "Yes"
+      - key: abnormalResult
+        value: "No"
+    sexualSexuallyActiveTemp:
+      - key: sexuallyActive
+        value: "Yes"
+      - key: sexuallyActive
+        value: "No"
+    sexualUseCondomTemp:
+      - key: useCondom
+        value: "Yes"
+      - key: useCondom
+        value: "No"
+    sexualSTDSHistoryTemp:
+      - key: STDSHistory
+        value: "Yes"
+      - key: STDSHistory
+        value: "No"
+    sexualBirthControlTemp:
+      - key: birthControl
+        value: "Yes"
+      - key: birthControl
+        value: "No"
+    papSmearHavePapSmearTemp:
+      - key: havePapSmear
+        value: "Yes"
+      - key: havePapSmear
+        value: "No"
+    papSmearAbnormalResultTemp:
+      - key: abnormalResult
+        value: "Yes"
+      - key: abnormalResult
+        value: "No"
+    socialHistoryAlcoholTemp:
+      - key: drink
+        value: "Yes"
+      - key: drink
+        value: "No"
+    socialHistoryTobaccoTemp:
+      - key: currently
+        value: "Yes"
+      - key: currently
+        value: "No"
+    socialHistoryCaffeineTemp:
+      - key: haveCaffeine
+        value: "Yes"
+      - key: haveCaffeine
+        value: "No"
+    socialHistoryRecreationalDrugTemp:
+      - key: haveIllicitDrugs
+        value: "Yes"
+      - key: haveIllicitDrugs
+        value: "No"
+    socialHistoryExerciseTemp:
+      - key: haveExercise
+        value: "Yes"
+      - key: haveExercise
+        value: "No"
+    socialHistoryNutritionTemp:
+      - key: haveDiet
+        value: "Yes"
+      - key: haveDiet
+        value: "No"
+    socialHistoryPersonalSafetyLiveAloneTemp:
+      - key: liveAlone
+        value: "Yes"
+      - key: liveAlone
+        value: "No"
+    socialHistoryPersonalSafetyFrequentlyFallTemp:
+      - key: frequentlyFall
+        value: "Yes"
+      - key: frequentlyFall
+        value: "No"
+    socialHistoryPersonalSafetyNeedAssistanceWalkingTemp:
+      - key: needAssistanceWalking
+        value: "Yes"
+      - key: needAssistanceWalking
+        value: "No"
+    socialHistoryPersonalSafetyAbusedTemp:
+      - key: abused
+        value: "Yes"
+      - key: abused
+        value: "No"
+    socialHistoryPersonalSafetySeatBeltTemp:
+      - key: seatBelt
+        value: "Yes"
+      - key: seatBelt
+        value: "No"
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Update
+          style:
+            width: "auto"
+          onClick:
+            - ..event.updateClick
+
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+        height: ..formData.scrollHeight
+      children:
+        - type: view
+          style:
+            ..style.generalBox:
+          children:
+            - type: label
+              text: General Information
+              style:
+                ..style.tLabel14:
+
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: First Name
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.firstName
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Middle Name and Initial
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.middleName
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Last Name
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.lastName
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Preferred Name
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.preferredName
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Gender
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  text: Female
+                  dataKey: charts.generalInfo.gender
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Date of Birth
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.dateOfBirth
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Occupation
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.occupation
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Relationship Status
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.relationshipStatus
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Primary Care Physician
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.primaryCarePhysician
+                  style:
+                    ..style.rightValue:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Primary Care Clinic
+                  style:
+                    ..style.leftTitle:
+                - type: label
+                  dataKey: charts.generalInfo.primaryCareClinic
+                  style:
+                    ..style.rightValue:
+
+        - type: label
+          text: Past Medical History
+          style:
+            ..style.inputTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey:
+              style:
+                ..style.default:
+                display: ..formData.pastMedicalDefault
+            - type: label
+              dataKey: charts.pastMedicalHistory
+              style:
+                ..style.inputValue:
+                display: ..formData.pastMedicalList
+        - type: label
+          text: Allergies
+          style:
+            ..style.inputTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: formData.allergiesStatus
+              style:
+                ..style.default:
+                display: ..formData.allergiesDefault
+            - type: list
+              contentType: listObject
+              listObject: ..charts.allergies.allergiesList
+              iteratorVar: itemObject
+              style:
+                ..style.dataList:
+                display: ..formData.allergiesList
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.dataListItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Allergy/Irritant
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.allergy
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                        marginTop: "0.023399"
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: What happens?
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.happen
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.line:
+
+        - type: label
+          text: Current Medications
+          style:
+            ..style.inputTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: formData.currentMedicationStatus
+              style:
+                ..style.default:
+                display: ..formData.currentMedicationsDefault
+            - type: list
+              contentType: listObject
+              listObject: ..charts.currentMedications.currentMedicationsList
+              iteratorVar: itemObject
+              style:
+                ..style.dataList:
+                display: ..formData.currentMedicationsList
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.dataListItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Name
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.name
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                        marginTop: "0.023399"
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Strength
+                          style:
+                            ..style.itemTitle:
+                        - type: label
+                          text: Amount
+                          style:
+                            ..style.itemTitle:
+                            marginLeft: "0.1333"
+                        - type: label
+                          text: Frequency
+                          style:
+                            ..style.itemTitle:
+                            marginLeft: "0.1333"
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                      children:
+                        - type: label
+                          dataKey: itemObject.strength
+                          style:
+                            display: "inline-block"
+                            ..style.itemLabel:
+                            width: "0.250666"
+                        - type: label
+                          dataKey: itemObject.amount
+                          style:
+                            display: "inline-block"
+                            ..style.itemLabel:
+                            width: "0.24"
+                        - type: label
+                          dataKey: itemObject.frequency
+                          style:
+                            display: "inline-block"
+                            ..style.itemLabel:
+                            width: "0.25"
+                    - type: view
+                      style:
+                        ..style.line:
+
+        - type: label
+          text: Immunizations
+          style:
+            ..style.inputTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: formData.immunizationStatus
+              style:
+                ..style.default:
+                display: ..formData.immunizationsDefault
+            - type: list
+              contentType: listObject
+              listObject: ..charts.immunizations.immunizationsList
+              iteratorVar: itemObject
+              style:
+                ..style.dataList:
+                display: ..formData.immunizationsList
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.dataListItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Name
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.name
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                        marginTop: "0.023399"
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: 1 st Dose
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.firstDose
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                        marginTop: "0.023399"
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: 2 st Dose
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.secondDose
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                        marginTop: "0.023399"
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Recent
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.mostRecent
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.line:
+
+        - type: label
+          text: Hospitalizations
+          style:
+            ..style.inputTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: formData.hospitalizationStatus
+              style:
+                ..style.default:
+                display: ..formData.hospitalizationsDefault
+            - type: list
+              contentType: listObject
+              listObject: ..charts.hospitalizations.hospitalizationsList
+              iteratorVar: itemObject
+              style:
+                ..style.dataList:
+                display: ..formData.hospitalizationsList
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.dataListItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Date
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.date
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                        marginTop: "0.023399"
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Reason
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.reason
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.line:
+        - type: label
+          text: Surgical History
+          style:
+            ..style.inputTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: formData.surgicalHistoryStatus
+              style:
+                ..style.default:
+                display: ..formData.surgicalHistoryDefault
+            - type: list
+              contentType: listObject
+              listObject: ..charts.surgicalHistory.surgicalHistoryList
+              iteratorVar: itemObject
+              style:
+                ..style.dataList:
+                display: ..formData.surgicalHistoryList
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.dataListItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Date
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.date
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.itemBox:
+                        marginTop: "0.023399"
+                      children:
+                        - type: label
+                          text: "&#8226"
+                          dataKey:
+                          style:
+                            ..style.dot:
+                        - type: label
+                          text: Reason
+                          style:
+                            ..style.itemTitle:
+                    - type: label
+                      dataKey: itemObject.reason
+                      style:
+                        ..style.itemLabel:
+                    - type: view
+                      style:
+                        ..style.line:
+
+        - type: label
+          text: Family History
+          style:
+            ..style.inputTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey:
+              style:
+                ..style.default:
+                display: ..formData.familyHistoryDefault
+            - type: label
+              dataKey: charts.familyHistory
+              style:
+                ..style.inputValue:
+                display: ..formData.familyHistoryList
+                width: "0.88"
+        - type: label
+          text: Obstetrical History
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Pregnancy
+          style:
+            ..style.secondTitle:
+            fontWeight: "600"
+        - type: label
+          text: Currently pregnant?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.pregnantTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.oneRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: How many times have you been pregnant?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.obstetricalHistory.pregnancy.pregnantsTimes
+              style:
+                ..style.inputValue:
+        - type: label
+          text: How many children?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.obstetricalHistory.pregnancy.children
+              style:
+                ..style.inputValue:
+        - type: label
+          text: How many abortions?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.obstetricalHistory.pregnancy.abortionsTime
+              style:
+                ..style.inputValue:
+        - type: label
+          text: Menses
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: How often?
+          style:
+            ..style.secondTitle:
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.obstetricalHistory.menses.howOften
+              style:
+                ..style.inputValue:
+        - type: label
+          text: For how many days?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: view
+          style:
+            ..style.inputBox:
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.obstetricalHistory.menses.howlong
+              style:
+                ..style.inputValue:
+        - type: label
+          text: Do they occur every month?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.mensesIsEveryMonthTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.twoRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Heavy flow?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.mensesIsHeavyFlowTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.threeRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Any spotting or clots?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.mensesSpottingOrClotsTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.fourRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Mammogram
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Have you had a mammogram?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.mammogramHaveMammogramTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.fiveRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: label
+          text: When was the last one?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+            display: ..charts.obstetricalHistory.mammogram.isHaveMammogram
+        - type: view
+          style:
+            ..style.inputBox:
+            width: "0.501333"
+            display: ..charts.obstetricalHistory.mammogram.isHaveMammogram
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.obstetricalHistory.mammogram.lastTime
+              style:
+                ..style.inputValue:
+                width: "0.501333"
+
+        - type: label
+          text: Ever have an abnormal result?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.mammogramAbnormalResultTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.sixRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: label
+          text: If yes, please describe
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+            display: ..charts.obstetricalHistory.mammogram.isAbnormalResult
+        - type: view
+          style:
+            ..style.inputBox:
+            display: ..charts.obstetricalHistory.mammogram.isAbnormalResult
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.obstetricalHistory.mammogram.abnormalResultDescribe
+              style:
+                ..style.inputValue:
+
+        - type: label
+          text: Sexual History
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Are you sexually active?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.sexualSexuallyActiveTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.sevenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Do you use condoms for protection?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.sexualUseCondomTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.eightRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: History of STD(s)?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.sexualSTDSHistoryTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.nineRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Are you currently on birth control?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.sexualBirthControlTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.tenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: view
+          style:
+            ..style.inputBox:
+            display: ..charts.sexualHistory.isBirthControlShow
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.sexualHistory.birthControlType
+              style:
+                ..style.inputValue:
+
+        - type: label
+          text: Pap smear
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Have you had a smear?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.papSmearHavePapSmearTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.elevenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: label
+          text: When was the last one?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+            display: ..charts.sexualHistory.papSmear.isLastTime
+        - type: view
+          style:
+            ..style.inputBox:
+            display: ..charts.sexualHistory.papSmear.isLastTime
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.sexualHistory.papSmear.lastTime
+              style:
+                ..style.inputValue:
+
+        - type: label
+          text: Ever had an abnormal result?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.papSmearAbnormalResultTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.twelveRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: label
+          text: If yes, please describe
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+            display: ..charts.sexualHistory.papSmear.isAbnormalResultShow
+        - type: view
+          style:
+            ..style.inputBox:
+            display: ..charts.sexualHistory.papSmear.isAbnormalResultShow
+          children:
+            - type: label
+              text: "No content"
+              dataKey: charts.sexualHistory.papSmear.describe
+              style:
+                ..style.inputValue:
+        - type: label
+          text: Social History
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Alcohol
+          style:
+            ..style.secondTitle:
+            fontWeight: "600"
+        - type: label
+          text: Do you drink?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryAlcoholTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.thirteenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: view
+          style:
+            width: "auto"
+            height: "auto"
+            display: ..charts.socialHistory.alcohol.isShow
+          children:
+            - type: label
+              text: What type?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.alcohol.types
+                  style:
+                    ..style.inputValue:
+            - type: label
+              text: How many drinks per week?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.alcohol.timesPerWeek
+                  style:
+                    ..style.inputValue:
+        - type: label
+          text: Tobacco
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Do you currently use tobacco?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryTobaccoTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.fourteenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: view
+          style:
+            width: "auto"
+            height: "auto"
+            display: ..charts.socialHistory.tobacco.isShow
+          children:
+            - type: label
+              text: What type?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.tobacco.types
+                  style:
+                    ..style.inputValue:
+            - type: label
+              text: How many packs per day?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.tobacco.packs
+                  style:
+                    ..style.inputValue:
+            - type: label
+              text: Number of years using?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.tobacco.timesPerWeek
+                  style:
+                    ..style.inputValue:
+        - type: label
+          text: Caffeine
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Do you have caffeine?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryCaffeineTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.fifteenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: view
+          style:
+            width: "auto"
+            height: "auto"
+            display: ..charts.socialHistory.caffeine.isShow
+          children:
+            - type: label
+              text: What type?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.caffeine.types
+                  style:
+                    ..style.inputValue:
+            - type: label
+              text: How many drinks per day?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.caffeine.timesPreDay
+                  style:
+                    ..style.inputValue:
+        - type: label
+          text: Recreational Drugs
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Do you use illicit drugs?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryRecreationalDrugTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.sixteenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: view
+          style:
+            width: "auto"
+            height: "auto"
+            display: ..charts.socialHistory.recreationalDrug.isShow
+          children:
+            - type: label
+              text: What type?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.recreationalDrug.drugsType
+                  style:
+                    ..style.inputValue:
+        - type: label
+          text: Exercise
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Do you exercise?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryExerciseTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.seventeenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: view
+          style:
+            width: "auto"
+            height: "auto"
+            display: ..charts.socialHistory.exercise.isShow
+          children:
+            - type: label
+              text: What type?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.exercise.type
+                  style:
+                    ..style.inputValue:
+            - type: label
+              text: How many days per week?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.exercise.daysPerWeek
+                  style:
+                    ..style.inputValue:
+            - type: label
+              text: How many hours per day?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.exercise.hoursPerDay
+                  style:
+                    ..style.inputValue:
+        - type: label
+          text: Nutrition/Diet
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Do you follow a diet?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryNutritionTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.eighteenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+
+        - type: view
+          style:
+            width: "auto"
+            height: "auto"
+            display: ..charts.socialHistory.nutrition.isShow
+          children:
+            - type: label
+              text: What type?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.nutrition.type
+                  style:
+                    ..style.inputValue:
+            - type: label
+              text: How many meals on average per day?
+              style:
+                ..style.secondTitle:
+                marginTop: "0.0270935"
+            - type: view
+              style:
+                ..style.inputBox:
+              children:
+                - type: label
+                  text: "No content"
+                  dataKey: charts.socialHistory.nutrition.mealsPerDay
+                  style:
+                    ..style.inputValue:
+        - type: label
+          text: Personal Safety
+          style:
+            ..style.inputTitle:
+        - type: label
+          text: Do you live alone?
+          style:
+            ..style.secondTitle:
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryPersonalSafetyLiveAloneTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.nineteenRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Do you frequently fall?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryPersonalSafetyFrequentlyFallTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.twentyRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Need assistance walking?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryPersonalSafetyNeedAssistanceWalkingTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.twentyOneRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Have you ever been abused?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryPersonalSafetyAbusedTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.twentyTwoRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: label
+          text: Do you wear a seatbelt?
+          style:
+            ..style.secondTitle:
+            marginTop: "0.0270935"
+        - type: list
+          contentType: listObject
+          listObject: ..formDataTemp.socialHistoryPersonalSafetySeatBeltTemp
+          iteratorVar: itemObject
+          androidGrid: true
+          style:
+            ..style.selectList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.selectListItem:
+              children:
+                - type: image
+                  path:
+                    ..event.twentyThreeRadio:
+                  style:
+                    ..style.itemImg:
+                - type: label
+                  text:
+                  dataKey: itemObject.value
+                  style:
+                    ..style.itemValue:
+        - type: view
+          style:
+            marginTop: "0.03"
+
+    #底部
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formData.btnShow
+      children:
+        - type: button
+          text: Share
+          dataKey:
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.shareClick
+
+    - type: view
+      viewTag: tag_updatePatientChart
+      message: Please update Patient Chart first
+      style:
+        display: ..formData.display.updatePatientChart
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - ..event.leftButton_updatePatientChart
+      rightButton:
+        - actionType: evalObject
+          object:
+            - .PatientChartDM.patientChart.generalInfo.firstName@: =.Global.Profile.name.data.basicInfo.firstName
+            - .PatientChartDM.patientChart.generalInfo.middleName@: =.Global.Profile.name.data.basicInfo.middleName
+            - .PatientChartDM.patientChart.generalInfo.lastName@: =.Global.Profile.name.data.basicInfo.lastName
+            - .PatientChartDM.patientChart.generalInfo.gender@: =.Global.Profile.name.data.basicInfo.gender
+            - .PatientChartDM.patientChart.generalInfo.dateOfBirth@: =.Global.Profile.name.data.basicInfo.dateOfBirth
+            - .PatientChartDM.patientChart.generalInfo.occupation@: =.Global.Profile.name.data.employment.Occupation
+            - ..charts@: =.PatientChartDM.patientChart
+            - ..apiRequest.newChart.docCreateReq.name.data@: =..charts
+            - =..apiRequest.newChart.docAPI.store: ""
+            - .Global.formData.PatientchartInfo@: ""
+            - .Global.formData.PatientchartInfo@: =..apiRequest.newChart.docCreateResp.doc
+        - goto: PatientChartGeneralInfo
+      children:
+        - type: view
+          style:
+            marginTop: "0.384236"
+            width: "0.7"
+            marginLeft: "0.15"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                width: "0.7"
+                height: "auto"
+                backgroundColor: "0xd81e06"
+                borderRadius: "14px 14px 0 0"
+                overflow: hidden
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.006"
+                    width: "0.7"
+                    height: "auto"
+                  children:
+                    - type: image
+                      path: aboutWhite.svg
+                      style:
+                        display: inline-block
+                        verticalAlign: middle
+                        marginLeft: "0.23"
+                        width: "0.045"
+                    - type: label
+                      text: Warning
+                      style:
+                        fontSize: .Nfont.h14
+                        marginLeft: "0.02"
+                        color: "0xFFFFFF"
+                        display: inline-block
+                        verticalAlign: middle
+
+            - type: view
+              style:
+                height: "0.01"
+                backgroundColor: "0xd81e06"
+            - type: label
+              text: ___.message
+              style:
+                width: "0.576"
+                marginLeft: "0.062"
+                marginTop: "0.027"
+                fontSize: .Nfont.h14
+
+                textAlign:
+                  x: center
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.027"
+                width: "0.7"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+            - type: view
+              style:
+                width: "0.7"
+              children:
+                - type: button
+                  text: "Cancel"
+                  style:
+                    color: "0x007AFF"
+                    display: inline-block
+                    width: "0.349"
+                    borderRadius: "0 0 0 14px"
+                    height: "0.054"
+                    backgroundColor: "0xE6E6E6"
+                    border:
+                      style: "1"
+                  onClick: ____.leftButton
+                - type: view
+                  style:
+                    width: "0.002"
+                    backgroundColor: "0x919192"
+                    display: inline-block
+                    height: "0.054"
+                    zIndex: "50"
+                - type: button
+                  text: "Confirm"
+                  style:
+                    color: "0x007AFF"
+                    fontWeight: "850"
+                    display: inline-block
+                    width: "0.349"
+                    borderRadius: "0 0 14px 0"
+                    height: "0.054"
+                    backgroundColor: "0xE6E6E6"
+                    border:
+                      style: "1"
+                  onClick: ____.rightButton
+    - .SuccessfulOneLine:
+      viewTag: tag_updatePatientChartSuccess
+      message: "Share Successfully!"
+  event:
+    shareClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.Global.flag.isMeetingPatientchart
+              - =.builtIn.ecos.shareDoc:
+                  dataIn:
+                    sourceDoc: =..docResponse.doc.0
+                    targetEdgeID: =.Global.roomInfo.edge.id
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.Global.roomInfo.edge.id
+                      - actionType: evalObject
+                        object:
+                          - .Global.formData.patientDoc.status.sharePatientChart@: true
+                          - =.builtIn.ecos.shareDoc:
+                              dataIn:
+                                sourceDoc: =..docResponse.doc.0
+                                targetEdgeID: =.Global.roomInfo.edge.id
+                      - .Global.formData.patientDoc.status.sharePatientChart@: true
+          - .Global.formData.patientChartInfo@: =..docResponse.doc.0
+          - =.builtIn.array.pushAny:
+              dataIn:
+                newMessage: "Patient Chart"
+                messages: =.Global.optionalForms
+              dataOut: Global.optionalForms
+      - actionType: popUp
+        popUpView: tag_updatePatientChartSuccess
+        wait: 2000
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    leftButton_updatePatientChart:
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    updateClick:
+      - actionType: evalObject
+        object:
+          - ..apiRequest.newChart.docCreateReq.name.data@: =..charts
+          - =..apiRequest.newChart.docAPI.store: ""
+          - .Global.formData.PatientchartInfo@: ""
+          - .Global.formData.PatientchartInfo@: =..apiRequest.newChart.docCreateResp.doc
+      - goto: PatientChartGeneralInfo
+    oneRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.obstetricalHistory.pregnancy.currentlyPregnant
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    twoRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.obstetricalHistory.menses.isEveryMonth
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    threeRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.obstetricalHistory.menses.isHeavyFlow
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    fourRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.obstetricalHistory.menses.spottingOrClots
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    fiveRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.obstetricalHistory.mammogram.haveMammogram
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    sixRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.obstetricalHistory.mammogram.abnormalResult
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    sevenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.sexualHistory.sexuallyActive
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    eightRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.sexualHistory.useCondom
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    nineRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.sexualHistory.STDSHistory
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    tenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.sexualHistory.birthControl
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    elevenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.sexualHistory.papSmear.havePapSmear
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    twelveRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.sexualHistory.papSmear.abnormalResult
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    thirteenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.alcohol.drink
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    fourteenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.tobacco.currently
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    fifteenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.caffeine.haveCaffeine
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    sixteenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.recreationalDrug.haveIllicitDrugs
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    seventeenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.exercise.haveExercise
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    eighteenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.nutrition.haveDiet
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    nineteenRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.personalSafety.liveAlone
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    twentyRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.personalSafety.frequentlyFall
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    twentyOneRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.personalSafety.needAssistanceWalking
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    twentyTwoRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.personalSafety.abused
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+    twentyThreeRadio:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..charts.socialHistory.personalSafety.seatBelt
+                    string2: $var.value
+              - radioOn.svg
+              - radioGray.svg
+
+  style:
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      overflow: scroll
+
+      fontSize: .Nfont.h16
+      color: "#333333"
+    generalBox:
+      marginTop: "0.02709"
+      width: "0.92"
+      height: "auto"
+    tLabel14:
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      fontWeight: "700"
+    blockBox:
+      marginTop: "0.0135467"
+      width: "auto"
+      height: "auto"
+    leftTitle:
+      display: "inline-block"
+      width: "0.4"
+      height: "auto"
+      fontSize: .Nfont.h12
+      color: "#666666"
+      textAlign:
+        x: left
+    rightValue:
+      display: "inline-block"
+      width: "0.52"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      fontWeight: "700"
+      wordBreak: break-word
+      textAlign:
+        x: right
+    inputTitle:
+      ..style.tLabel14:
+      marginTop: "0.0270935"
+    default:
+      color: "#333333"
+      fontSize: .Nfont.h14
+      width: "auto"
+      height: "auto"
+    inputBox:
+      marginTop: "0.011083"
+      width: "0.92"
+      height: "auto"
+      borderRadius: "4"
+      backgroundColor: "#f4f4f4"
+      padding: "6px 12px"
+      # padding: "16px 12px"
+      lineHeight: "2.58vh"
+      boxSizing: border-box
+      fontSize: .Nfont.h14
+      color: "#333333"
+    inputValue:
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+      wordBreak: break-word
+      fontSize: .Nfont.h14
+      color: "#333333"
+      lineHeight: "2.58vh"
+    dataList:
+      width: "auto"
+      margin: "0"
+      height: "auto"
+      boxSizing: border-box
+    dataListItem:
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+      backgroundColor: "#f4f4f4"
+    itemBox:
+      height: "auto"
+      width: "auto"
+      boxSizing: border-box
+    dot:
+      display: "inline-block"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h16
+      color: "#4c5264"
+      verticalAlign: middle
+    itemTitle:
+      marginLeft: "0.016"
+      display: "inline-block"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#666666"
+      verticalAlign: middle
+    itemLabel:
+      ..style.inputValue:
+      marginLeft: "0.02666"
+      marginTop: "0.01"
+      fontWeight: "600"
+    line:
+      marginTop: "0.020935"
+      # marginBottom: "0.0123"
+      height: "0.0123"
+      width: "0.866666"
+      borderTop: "1px #dedede solid"
+
+      borderWidth: "1"
+      # borderColor: "#dedede"
+    secondTitle:
+      marginTop: "0.018472"
+      fontSize: .Nfont.h14
+      color: "#333333"
+    selectList:
+      width: "0.92"
+      height: "auto"
+      margin: "0"
+      marginTop: "0.017241"
+    selectListItem:
+      display: "inline-block"
+      width: "0.25333"
+      height: "auto"
+    itemImg:
+      display: "inline-block"
+      height: "0.02093"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.02133"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      top: "0.9023"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

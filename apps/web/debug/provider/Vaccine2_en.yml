@@ -357,7 +357,7 @@ Vaccine2:
             left: "0"
           children:
             - .H6:
-              text: "Update information"
+              text: "Update Information"
               style:
                 fontStyle: "bold"
                 top: "0"
@@ -668,7 +668,7 @@ Vaccine2:
                     fontSize: .Nfont.h14
                     left: "0.1"
                     color: "0x00000088"
-                    fontFamily: "sans-serif"
+
                     width: "0.8"
                     top: "0.05"
                     height: "0.15"

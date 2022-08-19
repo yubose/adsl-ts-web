@@ -44,7 +44,7 @@ DisagreeRequest:
     #          dataOut: FirebaseToken.edge.evid
     #      - actionType: evalObject
     #        object: .Global.updateJwt
-    - =.Global.jwt.edgeAPI.store: ""
+    # - =.Global.jwt.edgeAPI.store: ""
   save:
     - =.DisagreeRequest.updateE2Edge.edgeAPI.store: ""
   getAvailability:

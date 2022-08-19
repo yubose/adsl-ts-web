@@ -2,7 +2,12 @@ ProviderNotes:
   title: "Medical Documents"
   init:
     - .SignInCheck
+    - .Global.formData.blockPastTime@: "false"
+    - .Global.formData.lastPage@: ProviderNotes
     # 清空 unPageName
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.diagnosesDoc
+      dataObject: .EmptyObj
     - actionType: updateObject
       dataKey: Global.formData.unPageName
       dataObject: .EmptyObj
@@ -24,49 +29,86 @@ ProviderNotes:
     - actionType: updateObject
       dataKey: Global.formData.cov19TestNewPatForm
       dataObject: .EmptyObj
+    - actionType: updateObject
+      dataKey: Global.formData.providerDoc.superbillDoc
+      dataObject: .EmptyObj
+    - .Global.formData.superbillComplete@: false
+    - actionType: updateObject
+      dataKey: Global.formData.parentPage
+      dataObject: .EmptyObj
     - .Global.prescriptionArray@: []
-    # - =.builtIn.utils.setTimer:
-    #     dataIn:
-    #       timeUnix: 2000
+    # 这个地方值的来源可能有多个，related， root room
+    - .Global.currentRoomInfo@: =.Global.roomInfo
+    - if:
+        - =.Global.formData.isRelatedApp
+        - actionType: evalObject
+          object:
+            - .Global.formData.tabBarShow@: block
+            - ..apiRequest.medicalDocuments.docQueryReq.id@: =.Global.currentRleatedRoomInfo.edge.id
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =.Global.currentRleatedRoomInfo.edge.id
+                  messages: =..apiRequest.medicalDocuments.docQueryPrivateReq.id
+                dataOut: ProviderNotes.apiRequest.medicalDocuments.docQueryPrivateReq.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.medicalDocuments.docQueryReq.id@: =.Global.currentRoomInfo.edge.id
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =.Global.currentRoomInfo.edge.id
+                  messages: =..apiRequest.medicalDocuments.docQueryPrivateReq.id
+                dataOut: ProviderNotes.apiRequest.medicalDocuments.docQueryPrivateReq.id
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-
     # get all medical documents from the waiting room
-    - ..apiRequest.medicalDocuments.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.medicalDocuments.docAPI.getPatientDoc: ""
+            - =..apiRequest.medicalDocuments.docAPI.getAdminDoc: ""
+            - =..apiRequest.medicalDocuments.docAPI.getCurrentProviderDoc: ""
+            - =..apiRequest.medicalDocuments.docAPI.getOtherProviderDoc: ""
+            # 如果点击history 获取的是当前预约所有的 related 预约下面的文档， 所以我从global下把当前所有的related 预约的id拿过来
+            - =..apiRequest.medicalDocumentHistory.docAPI.get: ""
+            - =..apiRequest.diagnosesDoc.docAPI.get: ""
     # init the doc list
-    - ..formData.docList@: =..apiRequest.medicalDocuments.docQueryResp.doc
-    # 暂时注释
-    # - if:
-    #     - =.builtIn.array.judgeListLength:
-    #         dataIn:
-    #           array: =.Global.currentMeetingDoc
-    #           len: 0
-    #     - actionType: evalObject
-    #       object:
-    #         - .Global.currentMeetingDoc@: =..apiRequest.medicalDocuments.docQueryResp.doc
-    #     - continue
-
-    # - =.builtIn.array.concatArray:
-    #     dataIn:
-    #       array1: =..formData.docList
-    #       array2: =.Global.currentMeetingDoc
-    #       sortby: ctime
-    #       orders: desc
-    #     dataOut: ProviderNotes.formData.docList
-    # - =.builtIn.array.keepLatestDoc:
-    #     dataIn:
-    #       docList: =.ProviderNotes.formData.docList
-    #       path: id
-    #     dataOut: ProviderNotes.formData.docList
-
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..apiRequest.medicalDocuments.docQueryByAdminResp.doc
+          array2: =..apiRequest.medicalDocuments.docQueryByCurrentProviderResp.doc
+          sortby: ctime
+          orders: desc
+        dataOut: ProviderNotes.formData.medicalDocument
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..formData.medicalDocument
+          array2: =..apiRequest.medicalDocuments.docQueryByOtherProviderResp.doc
+          sortby: ctime
+          orders: desc
+        dataOut: ProviderNotes.formData.medicalDocument
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..formData.medicalDocument
+          array2: =..apiRequest.medicalDocuments.docQueryByPatientResp.doc
+          sortby: ctime
+          orders: desc
+        dataOut: ProviderNotes.formData.medicalDocument
+    - ..formData.docList@: =..formData.medicalDocument
     - =.builtIn.array.setFormJumpPage:
         dataIn:
           objArry: =..formData.docList
           docFormObj: =.DocumentList
         dataOut: ProviderNotes.formData.docJumpList
-
+    # history list
+    - =.builtIn.array.setFormJumpPage:
+        dataIn:
+          objArry: =..apiRequest.medicalDocumentHistory.docQueryResp.doc
+          docFormObj: =.DocumentList
+        dataOut: ProviderNotes.formData.docJumpHistoryList
     - actionType: evalObject
       object:
         - if:
@@ -83,14 +125,74 @@ ProviderNotes:
                       - =.Global.MyProfile.name.data.title
                     dataOut: Global.formData.providerTitle
             - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.tabBarShow
+              string2: "block"
+        - ..formData.listHeight@: "0.77463"
+        - ..formData.listHeight@: "0.83"
+
+    - =.builtIn.array.getObjectByArray:
+        dataIn:
+          array: =..formData.docList
+          key: "type"
+          value: "184321"
+        dataOut: ProviderNotes.formData.currentSuperbill
+
+    - if:
+        - =.ProviderNotes.formData.currentSuperbill.id
+        - actionType: evalObject
+          object:
+            - .Global.formData.superbillComplete@: true
+            - .Global.formData.parentPage@: ProviderNotes
+            - .Global.formData.providerDoc.superbillDoc@: =.ProviderNotes.formData.currentSuperbill
+        - continue
+    # 根据是否是relation appointment来控制右上角按钮的显示与隐藏
+    - if:
+        - =.Global.formData.isRelatedApp
+        - ..formData.display_more@: none
+        - ..formData.display_more@: inline-block
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.diagnosesDoc.docResp.doc
+              len: 0
+        - continue
+        - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docResp.doc.0
+    - actionType: builtIn
+      funcName: redraw
+      viewTag: tag_more
+
+    # 处理patientid
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.roomInfo.edge.evid
+              string2: =.Global.roomInfo.edge.name.providerId
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.bvid
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.evid
 
   formData:
+    medicalDocument: []
+    # 其他人的私有只读文档
+    privateAndReadOnlyByOthers: []
+    currentSuperbill: ""
+    display_more: block
+    relationAppLength: 0
     flag: "none"
     tempData: ""
     tempDataId: ""
     docList: [] # 用于接收处理过的
     docLists: [] # 用于接收处理过的
     docJumpList: []
+    docJumpHistoryList: []
+    listHeight: "0.77463"
+    documentShow: "block"
+    historyShow: "none"
+    roomInfo:
+      edge:
+        id: ""
   formDataTemp:
     selectTemp:
       - key: Add
@@ -99,6 +201,15 @@ ProviderNotes:
       - key: Macro
         path: macro.svg
         pageName: ProviderMacros
+    tabTemp:
+      - title: Documents
+        fontColor: "0x2988e6"
+        fontWeight: "500"
+        block: "block"
+      - title: History
+        fontColor: "0x4b4b4b"
+        fontWeight: "400"
+        block: "none"
     titleData:
       - title: All
         fontColor: "0x2988e6"
@@ -130,17 +241,91 @@ ProviderNotes:
         borderColor: "0xdfedfc"
         backgroundColor: "0xdfedfc"
         tagCategory: statusTag
-      - title: "@Me"
-        fontColor: "0xfc3a3a"
-        borderColor: "0xffeaea"
-        backgroundColor: "0xffeaea"
-        tagCategory: ""
+      # - title: "@Me"
+      #   fontColor: "0xfc3a3a"
+      #   borderColor: "0xffeaea"
+      #   backgroundColor: "0xffeaea"
+      #   tagCategory: ""
   apiRequest:
+    #获取所有的关联预约
+    getRelatedAppointment:
+      getDocinfo:
+        id: ""
+        xfname: "reid"
+        type: .DocType.RelatedAppTag
+        _nonce: =.Global._nonce
+        obfname: mtime
+      getResp: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: ProviderNotes.apiRequest.getRelatedAppointment.getDocinfo
+          dataOut: ProviderNotes.apiRequest.getRelatedAppointment.getResp
     medicalDocuments:
+      # 查回所有release的patient form
+      docQueryByPatientResp: ""
+      docQueryByPatientReq:
+        id: .Global.currentRoomInfo.edge.id
+        xfname: reid
+        sCondition: type in (30721,94721,107521,110081,112641,115201,117761,120321,153601,174081,176641) AND reid!=""
+        obfname: ctime
+        maxcount: 1000
+        _nonce: =.Global._nonce
+      # 查回所有release的admin form
+      docQueryByAdminResp: ""
+      docQueryByAdminReq:
+        id:
+          - .Global.currentRoomInfo.edge.id
+          - .Global.currentRoomInfo.edge.name.facilityId
+        xfname: reid,ovid
+        obfname: ctime
+        _nonce: =.Global._nonce
+        sCondition: type in (1536,1537,1792,1793,2048,2049,2304,2305,122880,122881,125440,125441,128000,128001,130560,130561,133120,133121,135680,135681,138240,138241,140800,140801,151040,151041,156160,156161,163840,163841,168960,168961,184321,204800,204801,238081)
+        maxcount: 1000
+      # 查回所有该provider名下的provider notes
+      docQueryByCurrentProviderResp: ""
+      docQueryByCurrentProviderReq:
+        id:
+          - .Global.currentRoomInfo.edge.id
+          - .Global.currentUser.vertex.id
+        xfname: reid,ovid
+        obfname: ctime
+        _nonce: =.Global._nonce
+        sCondition: type in (1536,1537,1792,1793,2048,2049,2304,2305,122880,122881,125440,125441,128000,128001,130560,130561,133120,133121,135680,135681,140800,140801,151040,151041,156160,156161,184321,204800,204801)
+        maxcount: 1000
+      docQueryByOtherProviderResp: ""
+      docQueryByOtherProviderReq:
+        id:
+          - .Global.currentRoomInfo.edge.id
+          - .Global.currentUser.vertex.id
+          - .Global.currentRoomInfo.edge.name.facilityId
+        xfname: (reid,,)&(,!ovid,)&(,,!ovid)
+        obfname: ctime
+        _nonce: =.Global._nonce
+        sCondition: type in (1536,1537,1792,1793,2048,2049,2304,2305,122880,122881,125440,125441,128000,128001,130560,130561,133120,133121,135680,135681,140800,140801,151040,151041,156160,156161,184321,204800,204801)
+        maxcount: 1000
+      docAPI:
+        getOtherProviderDoc:
+          api: rd
+          dataIn: ProviderNotes.apiRequest.medicalDocuments.docQueryByOtherProviderReq
+          dataOut: ProviderNotes.apiRequest.medicalDocuments.docQueryByOtherProviderResp
+        getCurrentProviderDoc:
+          api: rd
+          dataIn: ProviderNotes.apiRequest.medicalDocuments.docQueryByCurrentProviderReq
+          dataOut: ProviderNotes.apiRequest.medicalDocuments.docQueryByCurrentProviderResp
+        getAdminDoc:
+          api: rd
+          dataIn: ProviderNotes.apiRequest.medicalDocuments.docQueryByAdminReq
+          dataOut: ProviderNotes.apiRequest.medicalDocuments.docQueryByAdminResp
+        getPatientDoc:
+          api: rd
+          dataIn: ProviderNotes.apiRequest.medicalDocuments.docQueryByPatientReq
+          dataOut: ProviderNotes.apiRequest.medicalDocuments.docQueryByPatientResp
+    medicalDocumentHistory:
       docQueryResp: ""
       docQueryReq:
-        id: .Global.roomInfo.edge.id
-        xfname: reid
+        id: .Global.currentRoomrelatedAppointment
+        xfname: Reid
         # patient profile need not display in the list
         sCondition: .DocumentQuery.ProviderAllMeetingDocuments
         obfname: ctime
@@ -150,32 +335,89 @@ ProviderNotes:
       docAPI:
         get:
           api: rd
-          dataIn: ProviderNotes.apiRequest.medicalDocuments.docQueryReq
-          dataOut: ProviderNotes.apiRequest.medicalDocuments.docQueryResp
-  dataObject: .Global.roomInfo.edge
+          dataIn: apiRequest.medicalDocumentHistory.docQueryReq
+          dataOut: ProviderNotes.apiRequest.medicalDocumentHistory.docQueryResp
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        id:
+          - =.Global.roomInfo.edge.id
+        xfname: "reid"
+        type: .DocType.Diagnoses
+        obfname: "mtime"
+        maxcount: "1"
+        _nonce: .Global._nonce
+      docAPI:
+        .DocAPI: ""
+        get:
+          api: rd
+          dataIn: ProviderNotes.apiRequest.diagnosesDoc.docReq
+          dataOut: ProviderNotes.apiRequest.diagnosesDoc.docResp
+  dataObject: .Global.currentRoomInfo.edge
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderRightIcon:
-          path: more.svg
+        - type: view
           style:
-            height: "0.0344"
-          onClick:
-            - actionType: evalObject
-              object:
-                - if:
-                    - =.builtIn.string.equal:
-                        dataIn:
-                          string1: =..formData.flag
-                          string2: "none"
-                    - ..formData.flag@: "block"
-                    - ..formData.flag@: "none"
-            - actionType: builtIn
-              funcName: redraw
-              viewTag: selectTag
+            width: "auto"
+            display: inline-block
+            verticalAlign: middle
+            height: "auto"
+          children:
+            - .BasePublicHeaderRightIcon:
+              path: more.svg
+              viewTag: tag_more
+              style:
+                height: "0.0344"
+                display: ..formData.display_more
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.flag
+                              string2: "none"
+                        - ..formData.flag@: "block"
+                        - ..formData.flag@: "none"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: selectTag
 
+    # tab
+    - type: view
+      style:
+        ..style.tabBox:
+        display: .Global.formData.tabBarShow
+      children:
+        - type: list
+          viewTag: tabTag
+          contentType: listObject
+          listObject: ..formDataTemp.tabTemp
+          iteratorVar: itemObject
+          style:
+            ..style.tabList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.tabListItem:
+              onClick:
+                - ..event.tabSwitch
+              children:
+                - type: label
+                  dataKey: itemObject.title
+                  style:
+                    ..style.tabListTitle:
+                - type: view
+                  style:
+                    ..style.tabListLine:
+                - type: view
+                  viewTag: leftBlockTag
+                  style:
+                    ..style.tabBar:
     - type: view
       style:
         width: "1"
@@ -229,213 +471,385 @@ ProviderNotes:
                       x: center
                       y: center
                   onClick:
+                    - ..event.filterClick
+
+        - type: view
+          style:
+            marginTop: "0.0198"
+    - type: view
+      viewTag: docListTag
+      style:
+        height: auto
+        width: auto
+        display: ..formData.documentShow
+      children:
+        # document List
+        - type: scrollView
+          style:
+            margin: "0"
+            width: "1"
+            height: ..formData.listHeight
+            overflow: scroll
+            boxSizing: "border-box"
+            paddingBottom: "0.03"
+          children:
+            - type: list
+              viewTag: docListTag
+              contentType: listObject
+              listObject: ..formData.docJumpList
+              iteratorVar: itemObject
+              style:
+                # margin: "0"
+                # width: "1"
+                # height: ..formData.listHeight
+                # overflow: scroll
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "1"
+                    height: "auto"
+                    left: "0"
+                    marginTop: "0"
+                    boxSizing: "border-box"
+                    overflow: hidden
+                  children:
+                    - type: view
+                      style:
+                        marginTop: "0.0173"
+                        marginLeft: "0.04"
+                        width: "0.92"
+                        height: "auto"
+                        overflow: hidden
+                      children:
+                        - type: label
+                          text: Document
+                          dataKey: itemObject.name.title
+                          style:
+                            display: "inline-block"
+                            width: "0.525"
+                            height: "auto"
+                            fontSize: .Nfont.h16
+                            fontWeight: "600"
+                            verticalAlign: top
+                            wordBreak: break-word
+                        - type: view
+                          style:
+                            marginLeft: "0.058"
+                            display: "inline-block"
+                            verticalAlign: top
+                            width: "0.16"
+                            height: "auto"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.classTag.name
+                              style:
+                                height: "0.025"
+                                width: "0.16"
+                                fontSize: .Nfont.h12
+                                color: itemObject.name.data.classTag.fontColor
+                                border:
+                                  style: 1
+                                backgroundColor: itemObject.name.data.classTag.backgroundColor
+                                fontWeight: "600"
+                                boxSizing: "border-box"
+                                borderRadius: "3"
+                                textAlign:
+                                  x: center
+                                  y: center
+                        - type: view
+                          style:
+                            marginLeft: "0.013"
+                            display: "inline-block"
+                            verticalAlign: top
+                            width: "0.16"
+                            height: "auto"
+                          children:
+                            - type: view
+                              style:
+                                display: itemObject.name.data.statusTag.display
+                                width: "auto"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name.data.statusTag.name
+                                  style:
+                                    height: "0.025"
+                                    width: "0.16"
+                                    fontSize: .Nfont.h12
+                                    color: itemObject.name.data.statusTag.fontColor
+                                    border:
+                                      style: 1
+                                    backgroundColor: itemObject.name.data.statusTag.backgroundColor
+                                    fontWeight: "600"
+                                    boxSizing: "border-box"
+                                    borderRadius: "3"
+                                    textAlign:
+                                      x: center
+                                      y: center
+                    - type: view
+                      style:
+                        marginTop: "0.001"
+                        marginLeft: "0.04"
+                        width: "0.92"
+                        height: "auto"
+                        overflow: hidden
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.user
+                          style:
+                            display: "inline-block"
+                            width: "0.42"
+                            height: "auto"
+                            fontSize: .Nfont.h14
+                            verticalAlign: middle
+                            wordBreak: break-word
+                            color: "0x666666"
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtime_en
+                          dataKey: itemObject.mtime
+                          style:
+                            marginLeft: "0.08"
+                            display: "inline-block"
+                            width: "0.42"
+                            height: "auto"
+                            fontSize: .Nfont.h12
+                            verticalAlign: middle
+                            wordBreak: break-word
+                            color: "0x999999"
+                            textAlign:
+                              x: right
+                    - type: view
+                      style:
+                        marginTop: "0.015"
+                        height: "0.0013"
+                        width: "1"
+                        backgroundColor: "0xdedede"
+                    - type: view
+                      style:
+                        marginTop: "0"
+                        height: "0.001"
+                  onClick:
                     - emit:
                         dataKey:
                           var: itemObject
                         actions:
-                          - =.builtIn.object.setProperty:
-                              dataIn:
-                                obj: =..formDataTemp.titleData
-                                label: "title"
-                                text: $var.title
-                                arr: ["borderColor"]
-                                valueArr: $var.fontColor
-                                errorArr: ["0x00000000"]
-                          - =.builtIn.array.filterByTag:
-                              dataIn:
-                                sourceDoc: =..apiRequest.medicalDocuments.docQueryResp.doc
-                                tagCategory: $var.tagCategory
-                                tagName: $var.title
-                              dataOut: ProviderNotes.formData.docList
-                          - =.builtIn.array.concatArray:
-                              dataIn:
-                                array1: =..formData.docList
-                                array2: []
-                                sortby: ctime
-                                orders: desc
-                              dataOut: ProviderNotes.formData.docList
-                          - =.builtIn.array.setFormJumpPage:
-                              dataIn:
-                                objArry: =..formData.docList
-                                docFormObj: =.DocumentList
-                              dataOut: ProviderNotes.formData.docJumpList
-                    - actionType: builtIn
-                      funcName: redraw
-                      viewTag: filterTag
-                    - actionType: builtIn
-                      funcName: redraw
-                      viewTag: docListTag
-        - type: view
-          style:
-            marginTop: "0.0198"
-    - type: list
-      viewTag: docListTag
-      contentType: listObject
-      listObject: ..formData.docJumpList
-      iteratorVar: itemObject
+                          - ..formData.tempDataId@: $var.id
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.getObjectByArray:
+                            dataIn:
+                              array: =..formData.docList
+                              key: "id"
+                              value: =..formData.tempDataId
+                            dataOut: ProviderNotes.formData.tempData
+                    - actionType: evalObject
+                      object:
+                        - .Global.DocReference.document@: ""
+                        - .Global.DocReference.document@: =.ProviderNotes.formData.tempData
+                        - .Global.Note@: ""
+                        - .Global.Note@: =.Global.DocReference.document
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.tempData.name.title
+                                  string2: "Medical Recommendation"
+                            - actionType: evalObject
+                              object:
+                                - .Global.formData.providerDoc.recommendationDoc@: ""
+                                - .Global.formData.providerDoc.recommendationDoc@: =..formData.tempData
+                            - continue
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - goto: $var.pageName
+
+    # history List
+    - type: view
+      viewTag: historyTag
       style:
-        margin: "0"
-        width: "1"
-        height: "0.83"
-        overflow: scroll
+        height: auto
+        width: auto
+        display: ..formData.historyShow
       children:
-        - type: listItem
-          itemObject:
+        - type: scrollView
           style:
+            margin: "0"
             width: "1"
-            height: "auto"
-            left: "0"
-            marginTop: "0"
-            # border:
-            #   style: 2
-            # borderWidth: "1"
-            # borderColor: "0xdedede"
+            height: ..formData.listHeight
+            overflow: scroll
             boxSizing: "border-box"
-            overflow: hidden
+            paddingBottom: "0.03"
           children:
-            - type: view
+            - type: list
+              viewTag: historyTag
+              contentType: listObject
+              listObject: ..formData.docJumpHistoryList
+              iteratorVar: itemObject
               style:
-                marginTop: "0.0173"
-                marginLeft: "0.04"
-                width: "0.92"
-                height: "auto"
-                overflow: hidden
+                # margin: "0"
+                # width: "1"
+                # height: ..formData.listHeight
+                # overflow: scroll
               children:
-                - type: label
-                  dataKey: itemObject.name.title
+                - type: listItem
+                  itemObject:
                   style:
-                    display: "inline-block"
-                    width: "0.525"
+                    width: "1"
                     height: "auto"
-                    fontSize: .Nfont.h16
-                    fontWeight: "600"
-                    verticalAlign: top
-                    wordBreak: "break-all"
-                - type: view
-                  style:
-                    marginLeft: "0.058"
-                    display: "inline-block"
-                    verticalAlign: top
-                    width: "0.16"
-                    height: "auto"
-                  children:
-                    - type: label
-                      dataKey: itemObject.name.data.classTag.name
-                      style:
-                        height: "0.025"
-                        width: "0.16"
-                        fontSize: .Nfont.h12
-                        color: itemObject.name.data.classTag.fontColor
-                        border:
-                          style: 1
-                        backgroundColor: itemObject.name.data.classTag.backgroundColor
-                        fontWeight: "600"
-                        boxSizing: "border-box"
-                        borderRadius: "3"
-                        textAlign:
-                          x: center
-                          y: center
-                - type: view
-                  style:
-                    marginLeft: "0.013"
-                    display: "inline-block"
-                    verticalAlign: top
-                    width: "0.16"
-                    height: "auto"
+                    left: "0"
+                    marginTop: "0"
+                    boxSizing: "border-box"
+                    overflow: hidden
                   children:
                     - type: view
                       style:
-                        display: itemObject.name.data.statusTag.display
-                        width: "auto"
+                        marginTop: "0.0173"
+                        marginLeft: "0.04"
+                        width: "0.92"
                         height: "auto"
+                        overflow: hidden
                       children:
                         - type: label
-                          dataKey: itemObject.name.data.statusTag.name
+                          text: Document
+                          dataKey: itemObject.name.title
                           style:
-                            height: "0.025"
-                            width: "0.16"
-                            fontSize: .Nfont.h12
-                            color: itemObject.name.data.statusTag.fontColor
-                            border:
-                              style: 1
-                            backgroundColor: itemObject.name.data.statusTag.backgroundColor
+                            display: "inline-block"
+                            width: "0.525"
+                            height: "auto"
+                            fontSize: .Nfont.h16
                             fontWeight: "600"
-                            boxSizing: "border-box"
-                            borderRadius: "3"
+                            verticalAlign: top
+                            wordBreak: break-word
+                        - type: view
+                          style:
+                            marginLeft: "0.058"
+                            display: "inline-block"
+                            verticalAlign: top
+                            width: "0.16"
+                            height: "auto"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.classTag.name
+                              style:
+                                height: "0.025"
+                                width: "0.16"
+                                fontSize: .Nfont.h12
+                                color: itemObject.name.data.classTag.fontColor
+                                border:
+                                  style: 1
+                                backgroundColor: itemObject.name.data.classTag.backgroundColor
+                                fontWeight: "600"
+                                boxSizing: "border-box"
+                                borderRadius: "3"
+                                textAlign:
+                                  x: center
+                                  y: center
+                        - type: view
+                          style:
+                            marginLeft: "0.013"
+                            display: "inline-block"
+                            verticalAlign: top
+                            width: "0.16"
+                            height: "auto"
+                          children:
+                            - type: view
+                              style:
+                                display: itemObject.name.data.statusTag.display
+                                width: "auto"
+                                height: "auto"
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name.data.statusTag.name
+                                  style:
+                                    height: "0.025"
+                                    width: "0.16"
+                                    fontSize: .Nfont.h12
+                                    color: itemObject.name.data.statusTag.fontColor
+                                    border:
+                                      style: 1
+                                    backgroundColor: itemObject.name.data.statusTag.backgroundColor
+                                    fontWeight: "600"
+                                    boxSizing: "border-box"
+                                    borderRadius: "3"
+                                    textAlign:
+                                      x: center
+                                      y: center
+                    - type: view
+                      style:
+                        marginTop: "0.001"
+                        marginLeft: "0.04"
+                        width: "0.92"
+                        height: "auto"
+                        overflow: hidden
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.user
+                          style:
+                            display: "inline-block"
+                            width: "0.42"
+                            height: "auto"
+                            fontSize: .Nfont.h14
+                            verticalAlign: middle
+                            wordBreak: break-word
+                            color: "0x666666"
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtime_en
+                          dataKey: itemObject.mtime
+                          style:
+                            marginLeft: "0.08"
+                            display: "inline-block"
+                            width: "0.42"
+                            height: "auto"
+                            fontSize: .Nfont.h12
+                            verticalAlign: middle
+                            wordBreak: break-word
+                            color: "0x999999"
                             textAlign:
-                              x: center
-                              y: center
-            - type: view
-              style:
-                marginTop: "0.001"
-                marginLeft: "0.04"
-                width: "0.92"
-                height: "auto"
-                overflow: hidden
-              children:
-                - type: label
-                  dataKey: itemObject.name.user
-                  style:
-                    display: "inline-block"
-                    width: "0.42"
-                    height: "auto"
-                    fontSize: .Nfont.h14
-                    verticalAlign: middle
-                    wordBreak: "break-all"
-                    color: "0x666666"
-                - type: label
-                  text=func: .builtIn.string.formatUnixtime_en
-                  dataKey: itemObject.mtime
-                  style:
-                    marginLeft: "0.08"
-                    display: "inline-block"
-                    width: "0.42"
-                    height: "auto"
-                    fontSize: .Nfont.h12
-                    verticalAlign: middle
-                    wordBreak: "break-all"
-                    color: "0x999999"
-                    textAlign:
-                      x: right
-            - type: view
-              style:
-                marginTop: "0.015"
-                height: "0.0013"
-                width: "1"
-                backgroundColor: "0xdedede"
-            - type: view
-              style:
-                marginTop: "0"
-                height: "0.001"
-          onClick:
-            - emit:
-                dataKey:
-                  var: itemObject
-                actions:
-                  - ..formData.tempDataId@: $var.id
-            - actionType: evalObject
-              object:
-                - =.builtIn.array.getObjectByArray:
-                    dataIn:
-                      array: =..formData.docList
-                      key: "id"
-                      value: =..formData.tempDataId
-                    dataOut: ProviderNotes.formData.tempData
+                              x: right
+                    - type: view
+                      style:
+                        marginTop: "0.015"
+                        height: "0.0013"
+                        width: "1"
+                        backgroundColor: "0xdedede"
+                    - type: view
+                      style:
+                        marginTop: "0"
+                        height: "0.001"
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - ..formData.tempDataId@: $var.id
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.getObjectByArray:
+                            dataIn:
+                              array: =..apiRequest.medicalDocumentHistory.docQueryResp.doc
+                              key: "id"
+                              value: =..formData.tempDataId
+                            dataOut: ProviderNotes.formData.tempData
 
-            # - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-            #   dataKey: Global.Note
-            #   dataObject: =..formData.tempData
-            - actionType: evalObject
-              object:
-                - .Global.DocReference.document@: ""
-                - .Global.DocReference.document@: =.ProviderNotes.formData.tempData
-                - .Global.Note@: ""
-                - .Global.Note@: =.Global.DocReference.document
-            - emit:
-                dataKey:
-                  var: itemObject
-                actions:
-                  - goto: $var.pageName
+                    # - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                    #   dataKey: Global.Note
+                    #   dataObject: =..formData.tempData
+                    - actionType: evalObject
+                      object:
+                        - .Global.DocReference.document@: ""
+                        - .Global.DocReference.document@: =.ProviderNotes.formData.tempData
+                        - .Global.Note@: ""
+                        - .Global.Note@: =.Global.DocReference.document
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - goto: $var.pageName
+
     - type: view
       viewTag: selectTag
       style:
@@ -516,3 +930,160 @@ ProviderNotes:
                       var: itemObject
                     actions:
                       - goto: $var.pageName
+
+  event:
+    filterClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - =.builtIn.object.setProperty:
+                dataIn:
+                  obj: =..formDataTemp.titleData
+                  label: "title"
+                  text: $var.title
+                  arr: ["borderColor"]
+                  valueArr: $var.fontColor
+                  errorArr: ["0x00000000"]
+            - =.builtIn.array.filterByTag:
+                dataIn:
+                  sourceDoc: =..formData.medicalDocument
+                  tagCategory: $var.tagCategory
+                  tagName: $var.title
+                dataOut: ProviderNotes.formData.docList
+            - =.builtIn.array.concatArray:
+                dataIn:
+                  array1: =..formData.docList
+                  array2: []
+                  sortby: ctime
+                  orders: desc
+                dataOut: ProviderNotes.formData.docList
+            - =.builtIn.array.setFormJumpPage:
+                dataIn:
+                  objArry: =..formData.docList
+                  docFormObj: =.DocumentList
+                dataOut: ProviderNotes.formData.docJumpList
+            # history list
+            - =.builtIn.array.filterByTag:
+                dataIn:
+                  sourceDoc: =..apiRequest.medicalDocumentHistory.docQueryResp.doc
+                  tagCategory: $var.tagCategory
+                  tagName: $var.title
+                dataOut: ProviderNotes.formData.docJumpHistoryList
+            - =.builtIn.array.concatArray:
+                dataIn:
+                  array1: =..formData.docJumpHistoryList
+                  array2: []
+                  sortby: ctime
+                  orders: desc
+                dataOut: ProviderNotes.formData.docJumpHistoryList
+            - =.builtIn.array.setFormJumpPage:
+                dataIn:
+                  objArry: =..formData.docJumpHistoryList
+                  docFormObj: =.DocumentList
+                dataOut: ProviderNotes.formData.docJumpHistoryList
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: filterTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: docListTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: historyTag
+    tabSwitch:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - =.builtIn.object.setProperty:
+                dataIn:
+                  obj: =..formDataTemp.tabTemp
+                  label: "title"
+                  text: $var.title
+                  arr: ["fontColor", "fontWeight", "block"]
+                  valueArr: ["0x2988e6", "500", "block"]
+                  errorArr: ["0x4b4b4b", "400", "none"]
+            - =.builtIn.object.setProperty:
+                dataIn:
+                  obj: =..formDataTemp.titleData
+                  label: "title"
+                  text: "All"
+                  arr: ["borderColor"]
+                  valueArr: $var.fontColor
+                  errorArr: ["0x00000000"]
+            - =.builtIn.array.concatArray:
+                dataIn:
+                  array1: =..formData.medicalDocument
+                  array2: []
+                  sortby: ctime
+                  orders: desc
+                dataOut: ProviderNotes.formData.docList
+            - =.builtIn.array.setFormJumpPage:
+                dataIn:
+                  objArry: =..formData.docList
+                  docFormObj: =.DocumentList
+                dataOut: ProviderNotes.formData.docJumpList
+            # history list
+            - =.builtIn.array.concatArray:
+                dataIn:
+                  array1: =..apiRequest.medicalDocumentHistory.docQueryResp.doc
+                  array2: []
+                  sortby: ctime
+                  orders: desc
+                dataOut: ProviderNotes.formData.docJumpHistoryList
+            - =.builtIn.array.setFormJumpPage:
+                dataIn:
+                  objArry: =..formData.docJumpHistoryList
+                  docFormObj: =.DocumentList
+                dataOut: ProviderNotes.formData.docJumpHistoryList
+            - ..formData.documentShow@: =..formDataTemp.tabTemp.0.block
+            - ..formData.historyShow@: =..formDataTemp.tabTemp.1.block
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: tabTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: filterTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: docListTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: historyTag
+  style:
+    tabBox:
+      height: "auto"
+      width: "1"
+      overflow: hidden
+    tabList:
+      width: "1"
+      margin: "0"
+      axis: horizontal
+      height: "auto"
+      overflow: hidden
+      marginTop: "0.02"
+    tabListItem:
+      width: "0.5"
+      height: "auto"
+    tabListTitle:
+      color: itemObject.fontColor
+      height: "auto"
+      width: "0.5"
+      fontWeight: itemObject.fontWeight
+      textAlign:
+        x: center
+      fontSize: .Nfont.h16
+    tabListLine:
+      marginTop: "0.005"
+      height: "0.0025" #2.03px
+      width: "0.5"
+      backgroundColor: "0xdededf"
+    tabBar:
+      display: itemObject.block
+      top: "0.031"
+      left: "0.2"
+      width: "0.08"
+      height: "0.0025"
+      backgroundColor: "0x2988e6"
+      zIndex: 10

@@ -3,12 +3,33 @@ NewPatFormReviewPage1:
 
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - if:
         - =.Global.roomInfo.edge.id
         - ..apiRequest.newPatientForm.docAPI.get
         - continue
 
     - .Global.formData.newPatientForm@: =..apiRequest.newPatientForm.docRes.doc.0
+
+    # 多页PDF下载配置
+    - actionType: evalObject
+      object:
+        - .Global.formData.downloadPDF.PdfPageList@:
+            - pageName: NewPatFormReviewPage1
+              viewTag: mainView
+            - pageName: NewPatFormReviewPage2
+              viewTag: mainView
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "New Patient Forms"
+        - .Global.formData.downloadPDF.pageIntervalList@:
+            - 100
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
   # 请求文档
   apiRequest: #Input data request here
     newPatientForm:
@@ -36,8 +57,27 @@ NewPatFormReviewPage1:
         - .BasePublicHeader:
           children:
             - .BasePublicHeaderLeft:
+              leftClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          date: =.Global.formData.auditLog.startTime
+                          actionTypeCode: .ActionTypeCode.view
+                          recordTypeCode: 94721
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
             - .BasePublicHeaderTitle:
+            - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -55,7 +95,7 @@ NewPatFormReviewPage1:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "1&nbsp;/&nbsp;3"
+                      text: "1&nbsp;/&nbsp;2"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -282,7 +322,6 @@ NewPatFormReviewPage1:
                   style:
                     ..style.listBox:
                     marginTop: "0.0320"
-                    width: "0.92"
                     display: block
                   children:
                     - type: list
@@ -292,7 +331,6 @@ NewPatFormReviewPage1:
                       iteratorVar: itemObject
                       style:
                         ..style.list:
-                        width: "0.92"
                       children:
                         - type: listItem
                           itemObject:
@@ -326,6 +364,7 @@ NewPatFormReviewPage1:
                 ..style.btn:
               onClick:
                 - goto: NewPatFormReviewPage2
+    - .HeaderPopUpMultiplePDF:
   event:
     checkBox:
       emit:
@@ -348,13 +387,13 @@ NewPatFormReviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
     bodyBox:
       width: "auto"
-      height: "0.84852"
+      height: "auto"
     backLeft:
       marginLeft: "0.04"
       display: "inline-block"
@@ -369,7 +408,7 @@ NewPatFormReviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -403,10 +442,10 @@ NewPatFormReviewPage1:
         x: center
     scrollBox:
       left: "0.04"
-      width: "0.92"
+      width: "0.96"
       height: "0.7832"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -495,7 +534,7 @@ NewPatFormReviewPage1:
       width: "0.92"
       boxSizing: border-box
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
       color: "0x333333"
@@ -507,7 +546,6 @@ NewPatFormReviewPage1:
     checkItem:
       margin: "0"
       marginTop: "0.01724"
-      width: "0.92"
       height: "auto"
       boxSizing: border-box
     btnBox:
@@ -515,7 +553,7 @@ NewPatFormReviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

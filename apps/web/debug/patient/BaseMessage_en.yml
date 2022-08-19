@@ -1,0 +1,241 @@
+#When we add a new person, (in a to 1 to room)
+#we need to create a new 1091 with subtype=1(group chat),
+#but we can copy docs from (subtype=0) edge to it.
+#If Don't include chat history, then we simple create a new chat group(subtype=1).
+
+MessageObjStore:
+  currentChatEdge: ""
+
+  newChatInfo: #save information for NewChat Page, will be referenced in ChatInviteeInfo
+    rootChat: ""  # the group chat root edge
+    bufferChat: ""
+
+
+FirebaseToken:
+  edge:
+    .Edge: ""
+    type: 1090
+    name:
+      accessToken: "" # FCM Token
+      apns2Token: "" # specifically for regular iOS alert notification
+      VoIPToken: "" # specifically for iOS ringtone VoIP notification
+      apnsTopic: "" # .AppName for iOS target app bundle id
+      # deviceType: "Android" # backend use subtype to differentiate iOS=1 and Android=0
+    evid: ""
+    refid: ""
+  response: ""
+  edgeAPI:
+    .EdgeAPI: ""
+    store:
+      api: ce
+      dataIn: FirebaseToken.edge
+      dataOut: FirebaseToken.response
+    delete:
+      api: dx
+      dataKey: FirebaseToken.response.edge
+
+  # registerToken:
+  #   async: =.builtIn.retrieveFCMToken
+  #   onCallback:
+  #     - .FirebaseToken.edge.name.accessToken@: =.builtIn.getFCMToken
+  #     - .FirebaseToken.edge.evid@: =.builtIn.getAPPID
+  #     - .FirebaseToken.edge.refid@: =.builtIn.getFCMTokenSHA256Half
+  #     - =.FirebaseToken.edgeAPI.store
+
+#  unregisterToken:
+#    - =.FirebaseToken.edgeAPI.delete
+#
+#  checkTokenExpire:
+#    if:
+#      - =.builtIn.needUpdateToken
+#      - =.FirebaseToken.registerToken
+#      - continue
+
+
+CreateChatRelation:
+
+  inviteToChat:
+    edge:
+      id: ""
+      type: 1091
+      refid: ""
+      name:
+        phoneNumber: ""
+        firstName: ""
+        lastName: ""
+        fullName: ""
+        InviterName: .Global.currentUser.vertex.name.userName
+      subtype: 1  # 0 for 1 to 1 chat ,  1 for group chat
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: inviteToChat.edge
+
+
+  fun_createGroupChatRootEdge:
+    parameter:
+      name:  # content of name that should go in 1091
+        InviteePhoneNumber: ""
+        InviterName: ""
+    execute:
+      - .CreateChatRelation.createChatEdge.edge.id@: "" # clean id because we are creating a new edge
+      - .CreateChatRelation.createChatEdge.edge.refid@: ""
+      - .CreateChatRelation.createChatEdge.edge.subtype@: 1
+      - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_createGroupChatRootEdge.parameter.name
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+
+  fun_createGroupChatInviteEdge:
+    parameter:
+      refid: "" # need the group chat root edge id
+      name:  # content of name that should go in 1091
+        InviteePhoneNumber: ""
+        InviterName: ""
+    execute:
+      - .CreateChatRelation.createChatEdge.edge.id@: ""  # clean id because we are creating a new edge
+      - .CreateChatRelation.createChatEdge.edge.refid@: =.CreateChatRelation.fun_createGroupChatInviteEdge.parameter.refid
+      - .CreateChatRelation.createChatEdge.edge.subtype@: 1
+      - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_createGroupChatInviteEdge.parameter.name
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+
+
+  fun_create1To1ChatEdge:
+    parameter:
+      refid: "" # need the group chat root edge id
+      name:  # content of name that should go in 1091
+        InviteePhoneNumber: ""
+        InviterName: ""
+    execute:
+      - .CreateChatRelation.createChatEdge.edge.id@: ""  # clean id because we are creating a new edge
+      #- .CreateChatRelation.createChatEdge.edge.refid@: =.builtIn.getAPPID  TODO uncomment
+      - .CreateChatRelation.createChatEdge.edge.subType@: 0
+      - .CreateChatRelation.createChatEdge.edge.name@: =.CreateChatRelation.fun_create1To1ChatEdge.parameter.name
+      - =.CreateChatRelation.createChatEdge.edgeAPI.store
+
+CreateDocInChat:
+
+  document:
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        eid: ""
+        type: 0
+        subtype:
+          isOnServer: auto
+          isZipped: 0  # 0 not gziped  1  gziped
+          isBinary: 0 # 0 Base64       1  binary
+          isEncrypted: 0  #0 no         1  encrypted
+          isExtraKeyNeeded: 0  #0 no   1  yes
+          isEditable: 0  #0  no        1  yes
+          applicationDataType: 0   #0 data
+          mediaType: 0
+        name:
+          title: default title
+          data: ""
+
+
+  fun_createFileDoc:
+    parameter:
+      name:
+        data:
+          fileContent: bntData  # todo this key will corrupt the base document.. must remove it after each use
+          senderName: ""
+
+    execute:
+      - .CreateDocInChat.document.docAPI.store.subtype.isOnServer@: 0
+      - .CreateDocInChat.document.docAPI.store.subtype.mediaType@: 4
+      - .CreateDocInChat.document.docAPI.store.type@: 1025  # uploadFile
+      - .CreateDocInChat.document.docAPI.store.name.data@:  =.CreateDocInChat.fun_createFileDoc.parameter.name.data
+      - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createFileDoc.parameter.eid
+      - =.CreateDocInChat.document.docAPI.store
+
+
+  fun_createMessageDoc: # each doc represent a message
+    parameter:
+      eid: "" # need the group chat root edge id
+      data: # message content will go into the name field's data
+        text: ""
+        #senderId: ""
+        senderName: ""
+        senderAvatar: ""
+    execute:
+      - .CreateDocInChat.document.docAPI.store.subtype.isOnServer@: 1
+      - .CreateDocInChat.document.docAPI.store.subtype.mediaType@: 8 # text
+      - .CreateDocInChat.document.docAPI.store.type@: 769  # short message
+      - .CreateDocInChat.document.docAPI.store.name.data@:  =.CreateDocInChat.fun_createMessageDoc.parameter.data
+      - .CreateDocInChat.document.docAPI.store.eid@: =.CreateDocInChat.fun_createMessageDoc.parameter.eid
+      - =.CreateDocInChat.document.docAPI.store
+
+  fun_createInviteDoc: # every time a user is invited to a group chat, put in a doc to the root chat
+    parameter:
+      eid: "" # need the group chat root edge id
+      data:
+        inviteeName: ""
+        inviteePhoneNumber: ""
+        #senderId: ""
+        senderName: ""
+    execute:
+      - .CreateDocInChat.document.docAPI.store.type@:  1281 # InviteUserMessage
+      - .CreateDocInChat.document.docAPI.store.name.data@:  =.CreateDocInChat.fun_createInviteDoc.parameter.data
+      - .CreateDocInChat.document.docAPI.store.eid@:  =.CreateDocInChat.fun_createInviteDoc.parameter.eid
+      - =.CreateDocInChat.document.docAPI.store
+
+
+ReceiveMessagePopUp:
+  type: popUp # view
+  viewTag: receiveMessagePopUp
+  style:
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.7"
+    backgroundColor: "0x00000066"
+  children:
+    - type: view
+      style:
+        left: "0.05"
+        top: "0.2"
+        width: "0.89333"
+        height: "0.3"
+        backgroundColor: "0xeeeeeeff"
+        border:
+          style: "5"
+        borderRadius: "15"
+      children:
+        - type: label
+          text: "Received a new message"
+          style:
+            .LabelStyle:
+              left: "0"
+              top: "0.04"
+              width: "0.89333"
+              height: "0.027247"
+              color: "0x00000088"
+              fontSize: "20"
+              fontStyle: bold
+              display: inline
+              textAlign:
+                x: center
+                y: center
+
+        - type: button
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: receiveMessagePopUp
+          text: OK
+          style:
+            .LabelStyle:
+              left: "0"
+              top: "0.225"
+              width: "0.89333"
+              height: "0.06812"
+              color: "0x007affff"
+              fontSize: "17"
+              display: inline
+              textAlign:
+                x: center
+                y: center
+              border:
+                style: "5"
+              borderRadius: "15"

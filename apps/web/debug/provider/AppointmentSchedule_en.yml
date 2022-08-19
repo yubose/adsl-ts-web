@@ -1,7 +1,12 @@
 AppointmentSchedule: #xdpage:9
+  # api 请求
+  # 1. 无用请求
   title: "Schedule"
   init:
     - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.formData.entrancePageName
+      dataObject: ""
     - actionType: updateObject
       dataKey: Global.formData.appointment
       dataObject: .AppointmentSchedule.formData.appointment
@@ -110,7 +115,7 @@ AppointmentSchedule: #xdpage:9
               - "(E.stime<="
               - =.AppointmentSchedule.calendarDate.todayStamp.start
               - " AND "
-              - "E.etime>="
+              - "E.etime>"
               - =.AppointmentSchedule.calendarDate.todayStamp.start
               - " OR "
               - "E.stime>="
@@ -134,7 +139,7 @@ AppointmentSchedule: #xdpage:9
               - "(E.stime<="
               - =.AppointmentSchedule.calendarDate.todayStamp.start
               - " AND "
-              - "E.etime>="
+              - "E.etime>"
               - =.AppointmentSchedule.calendarDate.todayStamp.start
               - " OR "
               - "E.stime>="
@@ -143,7 +148,7 @@ AppointmentSchedule: #xdpage:9
               - "E.etime<="
               - =.AppointmentSchedule.calendarDate.todayStamp.end
               - " OR "
-              - "E.stime<="
+              - "E.stime<"
               - =.AppointmentSchedule.calendarDate.todayStamp.end
               - " AND "
               - "E.etime>="
@@ -173,9 +178,13 @@ AppointmentSchedule: #xdpage:9
               messages: =..formData.ids
               newMessage: =.Global.currentUser.vertex.id
             dataOut: AppointmentSchedule.formData.ids
-    - ..scheduleSetting.get
-    - ..schedule.get
-    - ..apiRequest.listRoomData.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..schedule.get: ""
+            - =..apiRequest.listRoomData.get: ""
     - =.builtIn.array.concatArray:
         dataIn:
           array1: =..schedule.scheduleList.edge
@@ -193,39 +202,10 @@ AppointmentSchedule: #xdpage:9
 
     - actionType: evalObject
       object:
-        - .Global.scheduleId@: =.AppointmentSchedule.scheduleSetting.schedule.edge.0.id
-    # - ..requestList.get
-    # - actionType: evalObject
-    #   object:
-    #     - =.builtIn.array.getListLength:
-    #         dataIn:
-    #           object: =..requestList.requestData.edge
-    #         dataOut: AppointmentSchedule.patientNumber
-    # - actionType: evalObject
-    #   object:
-    #     - =.builtIn.array.getListLength:
-    #         dataIn:
-    #           object: =..requestList.requestData.edge
-    #         dataOut: Global.requestListNum
-    # - if:
-    #     - =.builtIn.string.equal:
-    #         dataIn:
-    #           string1: =.Global.requestListNum
-    #           string2: "0"
-    #     - ..requestListHidden@: "true"
-    #     - ..requestListHidden@: "false"
-    #获取未读邮件数量
-    - actionType: evalObject
-      object:
-        - =..apiRequest.unReadEmail.docAPI.get: ""
-        - =.builtIn.array.getListLength:
-            dataIn:
-              object: =..apiRequest.unReadEmail.docQueryResp.doc
-            dataOut: AppointmentSchedule.formData.unReadEmailNum
         - if:
             - =.builtIn.string.equal:
                 dataIn:
-                  string1: =..formData.unReadEmailNum
+                  string1: =.Global.formData.emailNumber
                   string2: "0"
             - ..formData.inboxHidden@: "true"
             - ..formData.inboxHidden@: "false"
@@ -234,27 +214,30 @@ AppointmentSchedule: #xdpage:9
         dataIn:
           obj: =..formData.response
         dataOut: AppointmentSchedule.formData.manageList
+
     - actionType: updateObject
       dataKey: Global.clock
       dataObject: .EmptyObj
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.array.judgeListLength:
+                dataIn:
+                  array: =.AppointmentSchedule.formData.manageList
+                  len: 0
+            - actionType: evalObject
+              object:
+                - ..formData.timeAreaShow@: "none"
+                - ..formData.tipsAreaShow@: "block"
+            - actionType: evalObject
+              object:
+                - ..formData.timeAreaShow@: "block"
+                - ..formData.tipsAreaShow@: "none"
+
   #获取未读邮件
   apiRequest:
-    unReadEmail:
-      docQueryResp: ""
-      docQueryReq:
-        id: .Global.currentUser.vertex.id
-        ObjType: 544
-        type: 1281
-        sCondition: E.type=10002 AND (D2.Type&0xFF02=0xE00 OR D2.reid IS NULL OR D2.Type = 66561)
-        xfname: (E.bvid|E.evid)&!D.ovid
-        obfname: ctime
-        maxcount: "100"
-        _nonce: =.Global._nonce
-      docAPI:
-        get:
-          api: rd
-          dataIn: AppointmentSchedule.apiRequest.unReadEmail.docQueryReq
-          dataOut: AppointmentSchedule.apiRequest.unReadEmail.docQueryResp
+    # 获取room的邀请 自己作为 room的 医生
     listRoomData:
       response:
         edge: []
@@ -280,56 +263,6 @@ AppointmentSchedule: #xdpage:9
   splitTime: []
   patientNumber: "0"
   requestListHidden: "true"
-  # requestList:
-  #   requestData: ""
-  #   edgeReq:
-  #     id:
-  #       - .Global.currentFacility.id
-  #       - .Global.currentUser.vertex.id
-  #     maxcount: "10000"
-  #     ObjType: 20
-  #     xfname: "(,E.evid)&(,E2.evid)"
-  #     obfname: "ctime"
-  #     sCondition: "E2.type=40000 AND E2.subtype in (196609,131073) AND E.type = 40000 AND E.subtype in (196610,131074)"
-  #     asc: false
-  #     _nonce: =.Global._nonce
-  #   get:
-  #     api: re
-  #     dataIn: AppointmentSchedule.requestList.edgeReq
-  #     dataOut: requestList.requestData
-  # get subtype=3 edge
-  scheduleSetting:
-    response: ""
-    schedule:
-      edge: ""
-    get:
-      .EdgeAPI.get: ""
-      api: re
-      dataKey: scheduleSetting.schedule
-      type: 40000
-      id: .Global.currentUser.vertex.id
-      sCondition: "subtype=65535" #会议中的大于65535
-      xfname: "bvid"
-      maxcount: "1"
-      obfname: "ctime"
-      _nonce: =.Global._nonce
-  resetData:
-    - name:
-        roomName: "today dont have appoinment"
-  # get all edge include available (subtype=1) accepted(subtype=5)
-  teleMedicine:
-    edgeRes: ""
-    edgeReq:
-      ObjType: 4
-      obfname: stime
-      sCondition: (E.type=40000 OR E.type = 1053) AND E2.type=40000  AND E2.subtype in (0x30006,0x20006,0x30064) AND E2.tage=0
-      xfname: E.bvid|E.evid
-      _nonce: =.Global._nonce
-    edgeAPI:
-      get:
-        api: re
-        dataIn: AppointmentSchedule.teleMedicine.edgeReq
-        dataOut: AppointmentSchedule.teleMedicine.edgeRes
   schedule:
     scheduleList:
       edge:
@@ -340,7 +273,6 @@ AppointmentSchedule: #xdpage:9
       dataOut: AppointmentSchedule.schedule.scheduleList
     edge:
       ObjType: 20
-      # type: 40000
       id: =..formData.ids
       sCondition: =.Global.scheduleScondition3
       maxcount: "10000"
@@ -348,29 +280,11 @@ AppointmentSchedule: #xdpage:9
       obfname: "stime"
       asc: true
       _nonce: "=.Global._nonce"
-  save:
-    - =.AppointmentSchedule.newAppointment.edgeAPI.store: ""
-  newAppointment:
-    edge:
-      .Edge: ""
-      evid: .Global.currentUser.vertex.id
-      # evid: .Global.InviteInfo.evid
-      bvid: .Global.currentUser.vertex.id
-      id: ""
-      refid: "" #the_selected_time_slot_edge.id
-      subtype: 2
-      type: 40000
-      name:
-        patientName: .Global.currentUser.vertex.name.userName
-        date: ""
-    edgeAPI:
-      .EdgeAPI: ""
-      store:
-        api: ce
-        dataIn: newAppointment.edge
-        dataOut: newAppointment.response
+
   todaySchedule: ""
   formData:
+    timeAreaShow: "none"
+    tipsAreaShow: "block"
     color: "0xbababa"
     ids: []
     manageList: []
@@ -386,7 +300,6 @@ AppointmentSchedule: #xdpage:9
         docu: ""
       selectTime: []
     response: []
-    unReadEmailNum: "0"
     inboxHidden: "true"
     tempData: ""
     tempDataId: ""
@@ -420,22 +333,26 @@ AppointmentSchedule: #xdpage:9
     - .TipsOneLine:
       message: Please add a facility
       viewTag: noOrganizationView
-    - .BaseHeader:
-    - .HeaderRightImg:
-      path: setting.svg
-      onClick:
-        - actionType: evalObject
-          object:
-            - if:
-                - =.Global.hasOrganization
-                - goto: ScheduleProfile
-                - actionType: popUp
-                  popUpView: noOrganizationView
-                  popUpDismiss: 2000
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeftEmpty:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: setting.svg
+          style:
+            height: "0.022167"
+          onClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.Global.hasOrganization
+                    - goto: ScheduleProfile
+                    - actionType: popUp
+                      popUpView: noOrganizationView
+                      popUpDismiss: 2000
     - type: view
       viewTag: setSchedule
       style:
-        marginTop: "0.099"
         marginLeft: "0"
         width: "1"
         height: "auto"
@@ -461,7 +378,8 @@ AppointmentSchedule: #xdpage:9
                 border:
                   style: 1
                 color: "0xffffff"
-                fontSize: .Nfont.h1
+                fontSize: .Nfont.h12
+                fontWeight: "600"
                 backgroundColor: "0x2988e6"
               onChange:
                 - actionType: evalObject
@@ -509,7 +427,8 @@ AppointmentSchedule: #xdpage:9
                 border:
                   style: 1
                 color: "0xffffff"
-                fontSize: .Nfont.h1
+                fontSize: .Nfont.h12
+                fontWeight: "600"
                 backgroundColor: "0x2988e6"
               onChange:
                 - actionType: evalObject
@@ -557,11 +476,12 @@ AppointmentSchedule: #xdpage:9
               style:
                 verticalAlign: "middle"
                 display: "inline-block"
-                fontFamily: "Arial"
+
                 height: "auto"
                 width: "0.57"
                 color: "0xffffff"
-                fontSize: .Nfont.h1
+                fontSize: .Nfont.h12
+                fontWeight: "600"
                 textAlign:
                   x: right
 
@@ -570,12 +490,13 @@ AppointmentSchedule: #xdpage:9
             marginTop: "0.01"
             height: "auto"
             width: "1"
+            marginLeft: "0"
           children:
             - type: view
               style:
                 display: "inline-block"
                 height: "0.08"
-                width: "0.08"
+                width: "0.1"
                 textAlign:
                   x: center
                 boxSizing: "border-box"
@@ -583,9 +504,9 @@ AppointmentSchedule: #xdpage:9
                 - type: image
                   path: leftDate.svg
                   style:
-                    top: "0.02"
-                    left: "0"
+                    marginTop: "0.02"
                     height: "0.05"
+                    width: "0.1"
                     zIndex: 10
                   onClick:
                     - actionType: evalObject
@@ -625,7 +546,7 @@ AppointmentSchedule: #xdpage:9
               style:
                 display: "inline-block"
                 height: "0.08"
-                width: "0.84"
+                width: "0.8"
                 boxSizing: "border-box"
               children:
                 - type: list
@@ -635,15 +556,15 @@ AppointmentSchedule: #xdpage:9
                   viewTag: setSchedule3
                   style:
                     axis: horizontal
-                    width: "0.84"
+                    width: "0.8"
                     height: "0.08"
                     boxSizing: "border-box"
                   children:
                     - type: listItem
                       itemObject: ""
                       style:
-                        marginLeft: "0.01"
-                        width: "0.11"
+                        marginLeft: "0.004"
+                        width: auto
                         height: "0.08"
                         boxSizing: "border-box"
                         backgroundColor: itemObject.backgroundColor
@@ -654,9 +575,9 @@ AppointmentSchedule: #xdpage:9
                           dataKey: itemObject.weekDay
                           style:
                             marginTop: "0.01"
-                            width: "0.1115"
+                            width: "0.108"
                             color: itemObject.color
-                            fontSize: .Nfont.h1
+                            fontSize: .Nfont.h12
                             textAlign:
                               x: center
                             boxSizing: "border-box"
@@ -664,10 +585,11 @@ AppointmentSchedule: #xdpage:9
                           dataKey: itemObject.day
                           style:
                             marginTop: "0.01"
-                            width: "0.1115"
+                            width: "0.108"
                             height: "0.045"
                             color: itemObject.color
-                            fontSize: .Nfont.h2
+                            fontSize: .Nfont.h16
+                            fontWeight: "600"
                             borderRadius: "80"
                             textAlign:
                               x: center
@@ -760,7 +682,7 @@ AppointmentSchedule: #xdpage:9
                                   - "(E.stime<="
                                   - =.AppointmentSchedule.calendarDate.todayStamp.start
                                   - " AND "
-                                  - "E.etime>="
+                                  - "E.etime>"
                                   - =.AppointmentSchedule.calendarDate.todayStamp.start
                                   - " OR "
                                   - "E.stime>="
@@ -769,7 +691,7 @@ AppointmentSchedule: #xdpage:9
                                   - "E.etime<="
                                   - =.AppointmentSchedule.calendarDate.todayStamp.end
                                   - " OR "
-                                  - "E.stime<="
+                                  - "E.stime<"
                                   - =.AppointmentSchedule.calendarDate.todayStamp.end
                                   - " AND "
                                   - "E.etime>="
@@ -778,9 +700,13 @@ AppointmentSchedule: #xdpage:9
                                   - " AND "
                                   - "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage>=0"
                                 dataOut: Global.roomScondition4
-                            # - =..teleMedicine.edgeAPI.get: ""
-                            - =..schedule.get: ""
-                            - =..apiRequest.listRoomData.get: ""
+                            - actionType: evalObject
+                              object:
+                                - actionType: evalObject
+                                  async: true
+                                  object:
+                                    - =..schedule.get: ""
+                                    - =..apiRequest.listRoomData.get: ""
                             - =.builtIn.array.concatArray:
                                 dataIn:
                                   array1: =..schedule.scheduleList.edge
@@ -800,6 +726,23 @@ AppointmentSchedule: #xdpage:9
                                 dataIn:
                                   obj: =..formData.response
                                 dataOut: AppointmentSchedule.formData.manageList
+
+                        #判断是否有可用的时间
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.array.judgeListLength:
+                                    dataIn:
+                                      array: =.AppointmentSchedule.formData.manageList
+                                      len: 0
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.timeAreaShow@: "none"
+                                    - ..formData.tipsAreaShow@: "block"
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.timeAreaShow@: "block"
+                                    - ..formData.tipsAreaShow@: "none"
                         - actionType: builtIn
                           funcName: redraw
                           viewTag: setSchedule3
@@ -811,11 +754,17 @@ AppointmentSchedule: #xdpage:9
                           viewTag: setSchedule
                         - actionType: popUpDismiss
                           popUpView: uploading
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: timeAreaTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: tipsAreaTag
             - type: view
               style:
                 display: "inline-block"
                 height: "0.08"
-                width: "0.08"
+                width: "0.1"
                 textAlign:
                   x: center
                 boxSizing: "border-box"
@@ -863,283 +812,347 @@ AppointmentSchedule: #xdpage:9
           style:
             marginTop: "0.02"
     - type: view
+      viewTag: tipsAreaTag
       style:
-        marginTop: "0"
-        height: "0.64"
+        display: ..formData.tipsAreaShow
+        height: "auto"
+        width: "1"
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: createAppTips.svg
+          style:
+            marginTop: "0.09482758"
+            height: "0.258620"
+            width: "0.586666"
+        - type: label
+          text: No available time.
+          dataKey:
+          style:
+            marginTop: "0.098522"
+            fontSize: .Nfont.h14
+            color: "#666666"
+            textAlign:
+              x: center
+            width: "1"
+            height: "auto"
+    - type: view
+      viewTag: timeAreaTag
+      style:
+        display: ..formData.timeAreaShow
+        height: "auto"
         width: "1"
         overflow: hidden
       children:
-        - type: view
+        - type: scrollView
           style:
-            marginTop: "0.02"
-            height: "auto"
-            width: "9"
-            marginLeft: "0.05"
-            # backgroundColor: "yellow"
+            height: "0.6834975"
+            width: "1"
+            overflow: hidden
           children:
-            # - .numberMark:
-            #   dataKey: Global.requestListNum
-            #   contentType: messageHidden
-            #   style:
-            #     left: "0.38"
-            #     top: "-0.01"
-            #     isHidden: ..requestListHidden
-            #     zIndex: 10
-            - type: view
+            - type: list
+              viewTag: schedule
+              contentType: listObject
+              listObject: ..formData.manageList
+              iteratorVar: itemObject
               style:
-                display: "inline-block"
-                width: "0.42"
-                height: "0.045"
-                backgroundColor: "0xffffff"
-                border:
-                  style: "3"
-                borderColor: "0x2fb355"
-                borderWidth: "1"
-                boxSizing: "border-box"
-                borderRadius: "5"
-              children:
-                - type: image
-                  path: newReq.svg
-                  style:
-                    marginLeft: "0.02"
-                    display: "inline-block"
-                    height: "0.02"
-                    verticalAlign: middle
-                - type: label
-                  text: Overview
-                  style:
-                    marginLeft: "0.02"
-                    height: "0.045"
-                    display: "inline-block"
-                    verticalAlign: middle
-                    lineHeight: "4.5vh"
-                    fontFamily: "Arial"
-                    fontSize: .Nfont.h1
-                    color: "0x2fb355"
-                    textDecoration: underline
-                    fontWeight: 600
-              onClick:
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.Global.hasOrganization
-                        - actionType: evalObject
-                          object:
-                            #为后续跳转patient in waiting的id做准备
-                            - .Global.ids@: []
-                            - =.builtIn.array.concat:
-                                dataIn:
-                                  array1: =.Global.ids
-                                  array2: =.Global.formData.currentFacility.alllocationId
-                                dataOut: Global.ids
-                            - =.builtIn.array.push:
-                                dataIn:
-                                  messages: =.Global.ids
-                                  newMessage: =.Global.currentFacility.id
-                                dataOut: Global.ids
-                            - =.builtIn.array.push:
-                                dataIn:
-                                  messages: =.Global.ids
-                                  newMessage: =.Global.currentUser.vertex.id
-                                dataOut: Global.ids
-                            - =.builtIn.string.concat:
-                                dataIn:
-                                  - " E2.type=40000 AND E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.type=40000 AND E.tage&0x100 in (0)"
-                                dataOut: Global.queryScondition
-                            - =.builtIn.string.concat:
-                                dataIn:
-                                  - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype in (0x20006,0x30006,0x20064,0x30064,0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064)"
-                                dataOut: Global.queryScondition_participants    
-                            - .Global.isGetRoom@: true
-                            - goto: NewRequest
-                        - actionType: popUp
-                          popUpView: noOrganizationView
-                          popUpDismiss: 2000
-
-            - type: view
-              style:
-                marginLeft: "0.04"
-                display: "inline-block"
-                width: "0.44"
-                height: "0.045"
-                backgroundColor: "0xffffff"
-                boxSizing: "border-box"
-                border:
-                  style: "3"
-                borderColor: "0x2988e6"
-                borderWidth: "1"
-                borderRadius: "5"
-              children:
-                - type: image
-                  path: createApp.svg
-                  style:
-                    marginLeft: "0.02"
-                    display: "inline-block"
-                    height: "0.02"
-                    verticalAlign: middle
-                    color: "0x2fb355"
-                - type: label
-                  text: Create Appointment
-                  style:
-                    display: "inline-block"
-                    marginLeft: "0.015"
-                    verticalAlign: middle
-                    lineHeight: "4.5vh"
-                    fontFamily: "Arial"
-                    fontSize: .Nfont.h1
-                    color: "0x2988e6"
-                    textDecoration: underline
-                    fontWeight: 600
-                    height: "0.045"
-              onClick:
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.Global.hasOrganization
-                        - goto: MobileContacts
-                        - actionType: popUp
-                          popUpView: noOrganizationView
-                          popUpDismiss: 2000
-
-        # - type: view
-        #   style:
-        #     marginTop: "0"
-        #     height: "0.565"
-        #     overflow: scroll
-        #   children:
-        - type: list
-          viewTag: schedule
-          contentType: listObject
-          listObject: ..formData.manageList
-          iteratorVar: itemObject
-          style:
-            width: "0.95"
-            margin: "0"
-            marginLeft: "0.05"
-            height: "0.565"
-            overflow: scroll
-            boxSizing: "border-box"
-          children:
-            - type: listItem
-              itemObject: ""
-              style:
-                marginTop: "0.01"
                 width: "0.9"
+                margin: "0"
+                marginLeft: "0.05"
                 height: "auto"
-                border:
-                  style: 3
-                borderColor: itemObject.name.borderColor
-                borderWidth: "1"
-                borderRadius: "5"
-                backgroundColor: itemObject.name.backgroundColor
                 boxSizing: "border-box"
                 overflow: hidden
               children:
-                - type: view
+                - type: listItem
+                  itemObject: ""
                   style:
-                    marginLeft: "0.05"
-                    marginTop: "0.015"
+                    marginTop: "0.0147783"
+                    width: "0.9"
                     height: "auto"
-                    width: "0.85"
+                    border:
+                      style: 3
+                    borderColor: itemObject.name.borderColor
+                    borderWidth: "1"
+                    borderRadius: "5"
+                    backgroundColor: itemObject.name.backgroundColor
                     boxSizing: "border-box"
+                    overflow: hidden
                   children:
-                    - type: label
-                      dataKey: itemObject.name.visitReason
+                    - type: view
                       style:
-                        display: "inline-block"
-                        width: "0.55"
-                        fontFamily: "Arial"
-                        fontSize: .Nfont.h15
-                        verticalAlign: middle
+                        marginLeft: "0.05"
+                        marginTop: "0.015"
+                        height: "auto"
+                        width: "0.85"
                         boxSizing: "border-box"
-                    - type: label
-                      dataKey: itemObject.name.visitType
-                      style:
-                        display: "inline-block"
-                        width: "0.25"
-                        fontFamily: "Arial"
-                        verticalAlign: middle
-                        fontSize: .Nfont.h1
-                        color: itemObject.name.fontColor
-                        boxSizing: "border-box"
-                        textAlign:
-                          x: right
-                - type: view
-                  style:
-                    marginLeft: "0.05"
-                    marginTop: "0.01"
-                    height: "auto"
-                    width: "0.85"
-                    boxSizing: "border-box"
-                  children:
-                    - type: image
-                      path: waitTime.svg
-                      style:
-                        display: "inline-block"
-                        height: "0.018"
-                        verticalAlign: middle
-                        boxSizing: "border-box"
-                    - type: label
-                      text=func: .builtIn.date.ShowTimeSpan
-                      dataKey: itemObject
-                      style:
-                        marginLeft: "0.015"
-                        display: "inline-block"
-                        fontFamily: "Arial"
-                        fontSize: .Nfont.h1
-                        verticalAlign: middle
-                        color: "0x5a5a5a"
-                        boxSizing: "border-box"
-                - type: view
-                  style:
-                    marginTop: "0.015"
-                    boxSizing: "border-box"
-              onClick:
-                - emit:
-                    dataKey:
-                      var: itemObject
-                    actions:
-                      - ..formData.tempDataId@: $var.id
-                - actionType: evalObject
-                  object:
-                    - =.builtIn.array.getObjectByArray:
-                        dataIn:
-                          array: =..formData.response
-                          key: "id"
-                          value: =..formData.tempDataId
-                        dataOut: AppointmentSchedule.formData.tempData
-                # - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-                #   dataKey: Global.roomInfo.edge
-                #   dataObject: ..formData.tempData
+                        fontSize: "0"
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.visitReason
+                          style:
+                            display: "inline-block"
+                            width: "0.55"
 
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =..formData.tempData
-                        - actionType: evalObject
-                          object:
-                            - if:
-                                - =.builtIn.number.typeIsValid:
-                                    dataIn:
-                                      docType: =..formData.tempData.subtype
-                                      localArr: [1]
-                                      binaryArr: [1]
-                                - continue
-                                - actionType: evalObject
-                                  object:
-                                    - .Global.roomInfo.edge@: =..formData.tempData
-                                    - actionType: updateObject
-                                      dataKey: Global.currentMeetingDoc
-                                      dataObject: []
-                                    - if:
-                                        - =.builtIn.number.typeIsValid:
-                                            dataIn:
-                                              docType: =..formData.tempData.subtype
-                                              localArr: [17]
-                                              binaryArr: [1]
-                                        - goto: AppointmentLobby
-                                        - goto: AppointmentLobbyOfficeVisit
-                        - continue
+                            fontSize: .Nfont.h14
+                            verticalAlign: middle
+                            boxSizing: "border-box"
+                            color: itemObject.name.fontColor
+                            fontWeight: "700"
+                        - type: label
+                          dataKey: itemObject.name.visitType
+                          style:
+                            display: "inline-block"
+                            width: "0.25"
+
+                            verticalAlign: middle
+                            fontSize: .Nfont.h14
+                            color: "#333333"
+                            boxSizing: "border-box"
+                            fontWeight: "400"
+                            textAlign:
+                              x: right
+                    - type: view
+                      style:
+                        marginLeft: "0.05"
+                        marginTop: "0.01"
+                        height: "auto"
+                        width: "0.85"
+                        boxSizing: "border-box"
+                        fontSize: "0"
+                      children:
+                        - type: image
+                          path: waitTime.svg
+                          style:
+                            display: "inline-block"
+                            height: "0.018"
+                            verticalAlign: middle
+                            boxSizing: "border-box"
+                        - type: label
+                          text=func: .builtIn.date.ShowTimeSpan
+                          dataKey: itemObject
+                          style:
+                            marginLeft: "0.015"
+                            display: "inline-block"
+
+                            fontSize: .Nfont.h12
+                            verticalAlign: middle
+                            boxSizing: "border-box"
+                            color: "#666666"
+                            fontWeight: "400"
+                    - type: view
+                      style:
+                        marginTop: "0.015"
+                        boxSizing: "border-box"
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - ..formData.tempDataId@: $var.id
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.getObjectByArray:
+                            dataIn:
+                              array: =..formData.response
+                              key: "id"
+                              value: =..formData.tempDataId
+                            dataOut: AppointmentSchedule.formData.tempData
+                    # - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                    #   dataKey: Global.roomInfo.edge
+                    #   dataObject: ..formData.tempData
+
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =..formData.tempData
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.number.typeIsValid:
+                                        dataIn:
+                                          docType: =..formData.tempData.subtype
+                                          localArr: [1]
+                                          binaryArr: [1]
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.roomInfo.edge@: =..formData.tempData
+                                        - actionType: updateObject
+                                          dataKey: Global.currentMeetingDoc
+                                          dataObject: []
+                                        - if:
+                                            - =.builtIn.number.typeIsValid:
+                                                dataIn:
+                                                  docType: =..formData.tempData.subtype
+                                                  localArr: [17]
+                                                  binaryArr: [1]
+                                            - goto: AppointmentLobby
+                                            - goto: AppointmentLobbyOfficeVisit
+                            - continue
+            - type: view
+              style:
+                marginTop: "0.08"
+    # 2022年8月17日10:23:13 暂时注释等待产品确认
+    # - type: view
+    #   style:
+    #     top: "0.8103448"
+    #     left: "0.04"
+    #     zIndex: "100"
+    #     width: "0.92"
+    #     height: "auto"
+    #     boxSizing: "border-box"
+    #     textAlign:
+    #       x: center
+    #   children:
+    #     - type: image
+    #       path: createAddImg.png
+    #       style:
+    #         width: "0.92"
+    #         height: "0.091133"
+    #     - type: view
+    #       style:
+    #         top: "0.0184729"
+    #         left: "0.04"
+    #         width: "0.84"
+    #         height: "0.0541871"
+    #         boxSizing: "border-box"
+    #         borderRadius: "2.70935vh"
+    #       onClick:
+    #         - actionType: evalObject
+    #           object:
+    #             - if:
+    #                 - =.Global.hasOrganization
+    #                 - goto: MobileContacts
+    #                 - actionType: popUp
+    #                   popUpView: noOrganizationView
+    #                   popUpDismiss: 2000
+
+    # 注释 Overview 入口
+    # - type: view
+    #   style:
+    #     marginTop: "0.02"
+    #     height: "auto"
+    #     width: "9"
+    #     marginLeft: "0.05"
+    #   children:
+    # - type: view
+    #   style:
+    #     display: "inline-block"
+    #     width: "0.42"
+    #     height: "0.045"
+    #     backgroundColor: "0xffffff"
+    #     border:
+    #       style: "3"
+    #     borderColor: "0x2fb355"
+    #     borderWidth: "1"
+    #     boxSizing: "border-box"
+    #     borderRadius: "5"
+    #   children:
+    #     - type: image
+    #       path: newReq.svg
+    #       style:
+    #         marginLeft: "0.02"
+    #         display: "inline-block"
+    #         height: "0.02"
+    #         verticalAlign: middle
+    #     - type: label
+    #       text: Overview
+    #       style:
+    #         marginLeft: "0.02"
+    #         height: "0.045"
+    #         display: "inline-block"
+    #         verticalAlign: middle
+    #         lineHeight: "4.5vh"
+    #
+    #         fontSize: .Nfont.h1
+    #         color: "0x2fb355"
+    #         textDecoration: underline
+    #         fontWeight: 600
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - if:
+    #             - =.Global.hasOrganization
+    #             - actionType: evalObject
+    #               object:
+    #                 #为后续跳转patient in waiting的id做准备
+    #                 - .Global.ids@: []
+    #                 - =.builtIn.array.concat:
+    #                     dataIn:
+    #                       array1: =.Global.ids
+    #                       array2: =.Global.formData.currentFacility.alllocationId
+    #                     dataOut: Global.ids
+    #                 - =.builtIn.array.push:
+    #                     dataIn:
+    #                       messages: =.Global.ids
+    #                       newMessage: =.Global.currentFacility.id
+    #                     dataOut: Global.ids
+    #                 - =.builtIn.array.push:
+    #                     dataIn:
+    #                       messages: =.Global.ids
+    #                       newMessage: =.Global.currentUser.vertex.id
+    #                     dataOut: Global.ids
+    #                 - =.builtIn.string.concat:
+    #                     dataIn:
+    #                       - " E2.type=40000 AND E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.type=40000 AND E.tage&0x100 in (0)"
+    #                     dataOut: Global.queryScondition
+    #                 - =.builtIn.string.concat:
+    #                     dataIn:
+    #                       - "E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0) AND E2.subtype in (0x20006,0x30006,0x20064,0x30064,0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064)"
+    #                     dataOut: Global.queryScondition_participants
+    #                 - .Global.isGetRoom@: true
+    #                 - goto: NewRequest
+    #             - actionType: popUp
+    #               popUpView: noOrganizationView
+    #               popUpDismiss: 2000
+
+    # - type: view
+    #   style:
+    #     marginLeft: "0.04"
+    #     display: "inline-block"
+    #     width: "0.44"
+    #     height: "0.045"
+    #     backgroundColor: "0xffffff"
+    #     boxSizing: "border-box"
+    #     border:
+    #       style: "3"
+    #     borderColor: "0x2988e6"
+    #     borderWidth: "1"
+    #     borderRadius: "5"
+    #   children:
+    #     - type: image
+    #       path: createApp.svg
+    #       style:
+    #         marginLeft: "0.02"
+    #         display: "inline-block"
+    #         height: "0.02"
+    #         verticalAlign: middle
+    #         color: "0x2fb355"
+    #     - type: label
+    #       text: Create Appointment
+    #       style:
+    #         display: "inline-block"
+    #         marginLeft: "0.015"
+    #         verticalAlign: middle
+    #         lineHeight: "4.5vh"
+    #
+    #         fontSize: .Nfont.h1
+    #         color: "0x2988e6"
+    #         textDecoration: underline
+    #         fontWeight: 600
+    #         height: "0.045"
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - if:
+    #             - =.Global.hasOrganization
+    #             - goto: MobileContacts
+    #             - actionType: popUp
+    #               popUpView: noOrganizationView
+    #               popUpDismiss: 2000
+
     - .footerBox:
       style:
         top: "0.9"
@@ -1162,7 +1175,7 @@ AppointmentSchedule: #xdpage:9
             - .footerMenuLabel:
               text: Inbox
             - .numberMark:
-              dataKey: formData.unReadEmailNum
+              dataKey: Global.formData.emailNumber
               style:
                 isHidden: ..formData.inboxHidden
 

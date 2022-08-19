@@ -3,151 +3,396 @@ BlankNoteShared:
   init:
     - .SignInCheck
     - ..formData@: =.Global.Note
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: =.DocType.MeetingNote
+
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
 
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.blankNote.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
+
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
-  formData: ""
+
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Blank Note"
+        - .Global.formData.downloadPDF.scaleX@: 0.85
+        - .Global.formData.downloadPDF.scaleY@: 0.85
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.BlankNoteShared.formData.name.data.signatureId
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
+
+  formData:
+    # 控制签名是否显示
+    displaySign: "none"
+
   formDataTemp:
     downFlag: "inline-block"
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
+  apiRequest:
+    blankNote:
+      docRes: ""
+      docReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: BlankNoteShared.apiRequest.blankNote.docReq
+          dataOut: BlankNoteShared.apiRequest.blankNote.docRes
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      date: =.Global.formData.auditLog.startTime
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.MeetingNote
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
-        marginLeft: "0.04"
-        width: "1"
-        height: "0.846"
-        overflow: scroll
-        fontFamily: "Arial"
+        ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
-        - type: label
-          text: "Name your notes"
-          style:
-            width: "auto"
-            height: "0.023"
-            color: "0x333333"
-            marginTop: "0.022"
-            fontSize: .Nfont.h14
-            fontWeight: "600"
-        - type: textField
-          isEditable: "false"
-          placeholder: "Blank Note"
-          dataKey: formData.name.title
-          style:
-            fontSize: .Nfont.h14
-            height: "0.037"
-            width: "0.92"
-            marginTop: "0.00985" #8
-            overflow: hidden
-            backgroundColor: "0xf4f4f4"
-            border:
-              style: 1
-            borderRadius: "4"
-            textIndent: "12px"
-            color: "0x333333"
-        - type: label
-          text: "Notes"
-          style:
-            width: "0.1093"
-            height: "0.023"
-            color: "0x333333"
-            marginTop: "0.0258"
-            fontSize: .Nfont.h14
-            fontWeight: "600"
-        - type: label
-          text: "No content"
-          dataKey: formData.name.data.note
-          style:
-            marginTop: "0.00985" # 8px
-            height: "auto"
-            width: "0.92"
-            fontSize: .Nfont.h14
-            border:
-              style: "1"
-            backgroundColor: "0xf4f4f4"
-            borderRadius: "4"
-            padding: "6px 12px"
-            wordBreak: break-word
-            boxSizing: border-box
         - type: view
           style:
-            width: "0.92"
+            marginLeft: "0.04"
+            marginTop: "0.0246"
             height: "auto"
-            marginTop: "0.022"
-            boxSizing: border-box
+            width: "0.92"
           children:
-            - type: label
-              text: "Signature"
+            - type: image
+              path: office-building.svg
+              path=func: =.builtIn.utils.prepareDocToPath
+              dataKey: formData.name.data.facilityInfo.facilityAvatarID
               style:
+                verticalAlign: middle
                 display: "inline-block"
-                width: "0.816"
-                height: "0.023"
-                color: "0x333333"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-            # 签名区域canvas
+                height: "0.0578"
+                width: "5.78vh"
             - type: view
               style:
-                marginTop: "0.0098"
-                height: "0.128"
-                width: "0.91"
-                border:
-                  style: "4"
-                  color: "0xA9A9A9"
-                borderWidth: "2"
+                verticalAlign: middle
+                marginLeft: "0.08"
+                display: "inline-block"
+                height: "auto"
+                width: "0.71"
+                overflow: hidden
               children:
                 - type: label
-                  text: X
+                  dataKey: formData.name.data.facilityInfo.facilityName
                   style:
-                    .SignLabelStyle:
-                - type: canvas
-                  dataKey: BlankNoteShared.formData.name.data
-                  viewTag: signatureTag
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h20
+                    fontWeight: "600"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+                - type: label
+                  dataKey: formData.name.data.facilityInfo.location
                   style:
-                    left: "0"
-                    width: "0.88"
-                    height: "0.128"
-                    overflow: scroll
-                  # 显示暂存的签名
-                - type: image
-                  viewTag: signatureShowTag
-                  path=func: .builtIn.utils.prepareDocToPath
-                  # 传入签名文档的id
-                  dataKey: BlankNoteShared.formData.name.data.signatureId
-                  style:
-                    # 控制显示
-                    left: "0"
-                    width: "0.88"
-                    top: "0"
-                    height: "0.128"
-                    overflow: scroll
+                    marginTop: "0.0110"
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Email
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.email
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Website
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.website
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Main #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.main
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Fax #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.fax
+
+        - .DocPublicLine:
 
         - type: view
           style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Exam Date
+                - .DocPublicStyleTwoRight:
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: formData.name.data.patientInfo.examDate
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Patient Name
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.patientName
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Date of Birth
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.dob
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Phone #"
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.phone
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Email"
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.email
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Patient Address"
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  dataKey: formData.name.data.patientInfo.address
+                  style:
+                    height: "auto"
+                    width: "0.92"
+                    fontSize: .Nfont.h14
+                    wordWrap: break-word
+                    color: "0x333333"
+                    fontWeight: "600"
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.027093"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              text: Title
+              style:
+                fontSize: .Nfont.h14
+                color: "#333333"
+                fontWeight: "600"
+                width: "0.92"
+                height: "auto"
+            - type: label
+              text: "No content"
+              dataKey: formData.name.title
+              style:
+                marginTop: "0.01108374"
+                height: "auto"
+                width: "0.92"
+                padding: "6px 12px"
+                boxSizing: border-box
+                borderRadius: "3"
+                fontSize: .Nfont.h14
+                color: "#333333"
+
+                backgroundColor: "#f4f4f4"
+                wordBreak: break-word
+
+            - type: label
+              text: Notes
+              style:
+                marginTop: "0.027093596"
+                fontSize: .Nfont.h14
+                color: "#333333"
+                fontWeight: "600"
+                width: "0.92"
+                height: "auto"
+
+            - type: label
+              text: "No content"
+              dataKey: formData.name.data.note
+              style:
+                marginTop: "0.01108374"
+                height: "auto"
+                width: "0.92"
+                padding: "6px 12px"
+                boxSizing: border-box
+                borderRadius: "3"
+                fontSize: .Nfont.h14
+                color: "#333333"
+
+                backgroundColor: "#f4f4f4"
+                wordBreak: break-word
+
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.03"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                height: "auto"
+                width: "0.92"
+              children:
+                - type: label
+                  text: "Signature"
+                  style:
+                    display: "inline-block"
+                    width: "0.816"
+                    fontSize: .Nfont.h14
+                    height: "auto"
+                    color: "0x333333"
+                    fontWeight: "600"
+                    textAlign:
+                      x: left
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.01"
+            height: "0.128"
+            width: "0.9"
+            border:
+              style: "4"
+              color: "0xa9a9a9"
+            borderWidth: "2"
+          children:
+            - type: label
+              text: X
+              style:
+                .SignLabelStyle:
+            # 显示暂存的签名
+            - type: image
+              viewTag: signatureShowTag
+              path=func: .builtIn.utils.prepareDocToPath
+              # 传入签名文档的id
+              dataKey: BlankNoteShared.formData.name.data.signatureId
+              style:
+                # 控制显示
+                # display: =..formData.flag
+                left: "0"
+                width: "0.88"
+                top: "0"
+                height: "0.128"
+                overflow: scroll
+                zIndex: "1000"
+                display: ..formData.displaySign
+
+        - type: view
+          style:
+            marginLeft: "0.04"
             marginTop: "0.0146"
             width: "0.92"
             height: "auto"
             overflow: hidden
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
               style:
+                # display: ..formData.flag
                 marginTop: "0.01"
                 height: "auto"
                 width: "0.92"
@@ -198,10 +443,161 @@ BlankNoteShared:
                     color: "0x333333"
                     fontSize: .Nfont.h12
                     fontWeight: "600"
-
-        - .DocPublicLine:
+        - type: view
           style:
+            marginLeft: "0.04"
             marginTop: "0.0246"
             width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - type: label
+              dataKey: formData.name.data.providerInfo.physicianName
+              style:
+                height: "auto"
+                width: "0.92"
+                color: "0x333333"
+                fontSize: .Nfont.h16
+                fontWeight: "600"
+                wordWrap: break-word
+            - type: label
+              dataKey: formData.name.data.providerInfo.specialty
+              style:
+                marginTop: "0.006"
+                height: "auto"
+                width: "0.92"
+                color: "0x666666"
+                fontSize: .Nfont.h14
+                wordWrap: break-word
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "LIC #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.license
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "NPI #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.npi
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "DEA #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.dea
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Email"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.providerInfo.email
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Fax #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.fax
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Main #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.main
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Address"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.location
+            - .DocPublicLine:
+              style:
+                marginTop: "0.0246"
+                height: "0.00369"
+        - type: label
+          dataKey: formData.name.data.facilityInfo.website
+          style:
+            marginTop: "0.01"
+            width: "1"
+            height: "auto"
+            color: "0x666666"
+            fontSize: .Nfont.h12
+            textAlign:
+              x: center
+        - type: view
+          style:
+            marginTop: "0.03"
 
-    - .HeaderPopUpDownload:
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+    - .HeaderPopUpMenu:
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag
+
+  event:
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.blankNote.docReq.name.data.statusTag.name@: Released
+          - ..apiRequest.blankNote.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.blankNote.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      # 保存newNote
+      - actionType: evalObject
+        object:
+          - ..apiRequest.blankNote.docReq.tage@: -1
+          - =..apiRequest.blankNote.docAPI.store: ""
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: popUp
+        popUpView: successTag
+
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

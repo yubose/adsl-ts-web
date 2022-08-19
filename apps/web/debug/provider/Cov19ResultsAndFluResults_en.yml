@@ -3,6 +3,19 @@ Cov19ResultsAndFluResults:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
+    - =.builtIn.utils.createAuditLog:
+        dataIn:
+          actionTypeCode: .ActionTypeCode.view
+          recordTypeCode: 138241
+          eid: =.Global.formData.currentFacility.relationEdge.id
+          user: =.Global.MyProfile.name.data.fullName
+          userId: =.Global.currentUser.vertex.id
+          targetUserId: =.Global.formData.auditLog.patientId
+          accessPort: provider
+        dataOut: Global.formData.auditLog.result
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: 138241
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
@@ -60,7 +73,24 @@ Cov19ResultsAndFluResults:
                   string2: "Released"
             - continue
             - ..formDataTemp.downFlag@: "none"
-  formData: ""
+
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.Cov19ResultsAndFluResults.formData.name.data.MAsignature
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
+
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "COVID-19 Results & Flu A&B Results"
+        - .Global.formData.downloadPDF.scaleX@: 0.85
+        - .Global.formData.downloadPDF.scaleY@: 0.85
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+  formData:
+    # 控制签名是否显示
+    displaySign: "none"
 
   formDataTemp: #Input data temp here, datatemp should not mix with formData
     downFlag: "inline-block"
@@ -83,15 +113,15 @@ Cov19ResultsAndFluResults:
         - .BasePublicHeaderTitle:
           style:
             fontSize: .Nfont.h14
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
         width: "1"
         height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -125,7 +155,7 @@ Cov19ResultsAndFluResults:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -136,7 +166,7 @@ Cov19ResultsAndFluResults:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
         - type: view
@@ -795,6 +825,7 @@ Cov19ResultsAndFluResults:
                 height: "0.128"
                 overflow: scroll
                 zIndex: "1000"
+                display: ..formData.displaySign
 
         - type: view
           style:
@@ -803,6 +834,7 @@ Cov19ResultsAndFluResults:
             width: "0.92"
             height: "auto"
             overflow: hidden
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -813,7 +845,7 @@ Cov19ResultsAndFluResults:
               children:
                 - type: label
                   text=func: .builtIn.string.formatUnixtime_en
-                  dataKey: formData.name.data.signatureCtime
+                  dataKey: formData.name.data.signatureTime
                   style:
                     display: "inline-block"
                     width: "auto"
@@ -823,7 +855,6 @@ Cov19ResultsAndFluResults:
                     verticalAlign: middle
                 - type: label
                   text: "Digitally Signed"
-                  dataKey:
                   style:
                     marginLeft: "0.02"
                     display: "inline-block"
@@ -860,4 +891,4 @@ Cov19ResultsAndFluResults:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:

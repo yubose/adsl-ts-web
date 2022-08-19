@@ -35,14 +35,15 @@ ChooseFacilitiesInvite:
       docCreateReq:
         type: .DocType.InboxMessage
         eid: ""
+        tage: 4
         name:
-          data: 
+          data:
             content: ""
             receiverName: ""
             senderName: ""
             senderAvatarId: ""
             appointmentId: ""
-          title: Appointment Invite Notification  
+          title: Appointment Invite Notification
           user: ""
       docAPI:
         store:
@@ -57,7 +58,7 @@ ChooseFacilitiesInvite:
         evid: ""
         tage: 1
         subtype: .EInboxSubtype.ProviderProvider
-      edgeQueryResp: 
+      edgeQueryResp:
         edge: []
       edgeQueryReq:
         id: []
@@ -102,7 +103,7 @@ ChooseFacilitiesInvite:
       edge:
         bvid: .Global.currentUser.vertex.id #inviter's id
         evid: "" #invitee's id
-        refid: .Global.roomInfo.edge.id
+        refid: .Global.currentRoomInfo.edge.id
         type: .EdgeType.InviteInfo
         subtype: "" # 110 / 120 / 130 / 140
         name:
@@ -122,52 +123,58 @@ ChooseFacilitiesInvite:
       children:
         - .BasePublicHeaderLeft:
         - .BasePublicHeaderTitle:
-    - type: list
-      contentType: listObject
-      listObject: ..formData.providers
-      iteratorVar: itemObject
+    - type: scrollView
       style:
-        ..style.dataList:
+        height: "0.945"
+        width: "1"
+        overflow: scroll
       children:
-        - type: listItem
-          itemObject: ""
+        - type: list
+          contentType: listObject
+          listObject: ..formData.providers
+          iteratorVar: itemObject
           style:
-            ..style.dataListItem:
-          onClick:
-            - ..event.providerItemClick
+            ..style.dataList:
           children:
-            - type: view
+            - type: listItem
+              itemObject: ""
               style:
-                ..style.itemBox:
+                ..style.dataListItem:
+              onClick:
+                - ..event.providerItemClick
               children:
-                - type: image
-                  path: providerImage.svg
-                  path=func: .builtIn.utils.prepareDocToPath
-                  dataKey: itemObject.name.data.avatar
-                  style:
-                    ..style.listImg:
                 - type: view
                   style:
-                    ..style.itemValueBox:
+                    ..style.itemBox:
                   children:
-                    - type: label
-                      textBoard:
-                        - text: ""
-                          dataKey: itemObject.name.data.fullName
-                        - text: "&nbsp;-&nbsp;"
-                        - text: ""
-                          dataKey: itemObject.name.data.title
-                      dataKey:
+                    - type: image
+                      path: providerImage.svg
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: itemObject.name.data.avatar
                       style:
-                        ..style.fullLabel:
-                    - type: label
-                      text: ""
-                      dataKey: itemObject.name.data.selectedSpecialty.0
+                        ..style.listImg:
+                    - type: view
                       style:
-                        ..style.specialty:
-            - type: view
-              style:
-                marginTop: "0.0198"
+                        ..style.itemValueBox:
+                      children:
+                        - type: label
+                          textBoard:
+                            - text: ""
+                              dataKey: itemObject.name.data.fullName
+                            - text: "&nbsp;-&nbsp;"
+                            - text: ""
+                              dataKey: itemObject.name.data.title
+                          dataKey:
+                          style:
+                            ..style.fullLabel:
+                        - type: label
+                          text: ""
+                          dataKey: itemObject.name.data.selectedSpecialty.0
+                          style:
+                            ..style.specialty:
+                - type: view
+                  style:
+                    marginTop: "0.0198"
 
     # 弹窗区域
     - .TipsOneLine:
@@ -194,18 +201,18 @@ ChooseFacilitiesInvite:
                 dataIn:
                   newMessage: =..formData.currentInviteInfo.bsig
                   messages: =..apiRequest.relation.edgeQueryReq.id
-                dataOut: ChooseFacilitiesInvite.apiRequest.relation.edgeQueryReq.id   
+                dataOut: ChooseFacilitiesInvite.apiRequest.relation.edgeQueryReq.id
             - =..apiRequest.relation.edgeAPI.get: ""
             - if:
-              - =.builtIn.array.judgeListLength:
-                  dataIn:
-                    array: =..apiRequest.relation.edgeQueryResp.edge
-                    len: 0
-              - actionType: evalObject
-                object:
-                  - ..apiRequest.relation.edgeCreateReq.evid@: =..formData.currentInviteInfo.bsig
-                  - =..apiRequest.relation.edgeAPI.store: ""
-              - ..apiRequest.relation.edgeCreateResp@: =..apiRequest.relation.edgeQueryResp
+                - =.builtIn.array.judgeListLength:
+                    dataIn:
+                      array: =..apiRequest.relation.edgeQueryResp.edge
+                      len: 0
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.relation.edgeCreateReq.evid@: =..formData.currentInviteInfo.bsig
+                    - =..apiRequest.relation.edgeAPI.store: ""
+                - ..apiRequest.relation.edgeCreateResp@: =..apiRequest.relation.edgeQueryResp
             - =.builtIn.string.concat:
                 dataIn:
                   - "Hello, You are invited to an appointment by"
@@ -216,7 +223,7 @@ ChooseFacilitiesInvite:
             - ..apiRequest.inviteEmail.docCreateReq.name.data.receiverName@: =..formData.currentInviteInfo.name.data.fullName
             - ..apiRequest.inviteEmail.docCreateReq.name.data.senderName@: =.Global.MyProfile.name.data.fullName
             - ..apiRequest.inviteEmail.docCreateReq.name.data.senderAvatarId@: =.Global.MyProfile.name.data.avatar
-            - ..apiRequest.inviteEmail.docCreateReq.name.data.appointmentId@: =.Global.roomInfo.edge.id
+            - ..apiRequest.inviteEmail.docCreateReq.name.data.appointmentId@: =.Global.currentRoomInfo.edge.id
             - ..apiRequest.inviteEmail.docCreateReq.name.title@: "Appointment Invite Notification"
             - ..apiRequest.inviteEmail.docCreateReq.name.user@: =..formData.currentInviteInfo.name.data.avatar
             - =..apiRequest.inviteEmail.docAPI.store: ""
@@ -326,39 +333,49 @@ ChooseFacilitiesInvite:
             =.builtIn.math.random: ""
       - actionType: evalObject
         object:
+          # invite participants log
+          - =.builtIn.utils.createAuditLog:
+              dataIn:
+                actionTypeCode: =.ActionTypeCode.invite
+                recordTypeCode: =.EdgeType.InviteInfo
+                eid: =.Global.formData.currentFacility.relationEdge.id
+                user: =.Global.MyProfile.name.data.fullName
+                userId: =.Global.currentUser.vertex.id
+                targetUserId: =..formData.currentInviteInfo.bsig
+                accessPort: provider
           - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =.Global.roomInfo.edge.name.providerId
-                  string2: =..formData.currentInviteInfo.bsig
-            - actionType: popUp
-              popUpView: warnView
-              wait: true
-              popUpDismiss: 2000
-            - continue
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.currentRoomInfo.edge.name.providerId
+                    string2: =..formData.currentInviteInfo.bsig
+              - actionType: popUp
+                popUpView: warnView
+                wait: true
+                popUpDismiss: 2000
+              - continue
           - ..apiRequest.invite.edgeQueryResp.edge@: []
           - ..apiRequest.invite.edgeQueryReq.id@: []
           - =.builtIn.array.pushAny:
               dataIn:
-                newMessage: =.Global.roomInfo.edge.id
+                newMessage: =.Global.currentRoomInfo.edge.id
                 messages: =..apiRequest.invite.edgeQueryReq.id
               dataOut: ChooseFacilitiesInvite.apiRequest.invite.edgeQueryReq.id
           - =.builtIn.array.pushAny:
               dataIn:
                 newMessage: =..formData.currentInviteInfo.bsig
                 messages: =..apiRequest.invite.edgeQueryReq.id
-              dataOut: ChooseFacilitiesInvite.apiRequest.invite.edgeQueryReq.id  
+              dataOut: ChooseFacilitiesInvite.apiRequest.invite.edgeQueryReq.id
           - =..apiRequest.invite.edgeAPI.get: ""
           - if:
-            - =.builtIn.array.judgeListLength:
-                dataIn:
-                  array: =..apiRequest.invite.edgeQueryResp.edge
-                  len: 0
-            - continue
-            - actionType: popUp
-              popUpView: warnView
-              wait: true
-              popUpDismiss: 2000
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.invite.edgeQueryResp.edge
+                    len: 0
+              - continue
+              - actionType: popUp
+                popUpView: warnView
+                wait: true
+                popUpDismiss: 2000
       - actionType: builtIn
         funcName: redraw
         viewTag: InviteTip
@@ -369,9 +386,9 @@ ChooseFacilitiesInvite:
       margin: "0"
       padding: "0"
       width: "1"
-      height: "0.94"
+      height: "auto"
       boxSizing: border-box
-      overflow: scroll
+      # overflow: scroll
     dataListItem:
       width: "1"
       height: "auto"
@@ -403,7 +420,7 @@ ChooseFacilitiesInvite:
     fullLabel:
       width: "0.75"
       height: "auto"
-      fontFamily: "Arial"
+
       verticalAlign: middle
       fontSize: .Nfont.h16
       fontWeight: "600"
@@ -414,7 +431,7 @@ ChooseFacilitiesInvite:
       height: "auto"
       fontSize: .Nfont.h14
       color: "#666666"
-      fontFamily: "Arial"
+
       verticalAlign: middle
       wordWrap: break-word
     popBox:
@@ -437,7 +454,7 @@ ChooseFacilitiesInvite:
       marginTop: "0.029"
       fontWeight: "600"
       fontSize: .Nfont.h16
-      fontFamily: "Arial"
+
       color: "0x4B4B4B"
       textAlign:
         x: center
@@ -475,7 +492,7 @@ ChooseFacilitiesInvite:
       height: "auto"
       width: "0.45"
       overflow: hidden
-      textOverflow: ellipsis
+      text-overflow: ellipsis
       whiteSpace: nowrap
     popTitle:
       marginTop: "0.01231"

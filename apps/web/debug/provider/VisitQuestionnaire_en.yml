@@ -4,21 +4,43 @@ VisitQuestionnaire:
   init: #Page initialization
     - .SignInCheck
     - ..formData@: =.Global.Note
+
+    - =.builtIn.utils.createAuditLog:
+        dataIn:
+          actionTypeCode: .ActionTypeCode.view
+          recordTypeCode: 30721
+          eid: =.Global.formData.currentFacility.relationEdge.id
+          user: =.Global.MyProfile.name.data.fullName
+          userId: =.Global.currentUser.vertex.id
+          targetUserId: =.Global.formData.auditLog.patientId
+          accessPort: provider
+        dataOut: Global.formData.auditLog.result
+
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-  formData: 
+
+    - actionType: evalObject
+      object:
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Visit Questionnaire"
+        - .Global.formData.downloadPDF.scaleX@: 0.98
+        - .Global.formData.downloadPDF.scaleY@: 0.98
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
+  formData:
     name:
       data:
-        newDrug: 
-          isShow: none 
+        newDrug:
+          isShow: none
         emergency:
-          isShow: none 
+          isShow: none
         problems:
-          isShow: none 
+          isShow: none
         familyHistoryChanges:
-          isShow: none 
+          isShow: none
 
   formDataTemp: #Input data temp here, datatemp should not mix with formData
     takeMedTemp:
@@ -56,12 +78,16 @@ VisitQuestionnaire:
       children:
         - .BasePublicHeaderLeft:
         - .BasePublicHeaderTitle:
+        - .BasePublicHeaderMenu:
     - type: scrollView
+      viewTag: mainView
       style:
         width: "1"
         height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+        # overflow: scroll
+        boxSizing: "border-box"
+        paddingBottom: "0.03"
+
       children:
         - type: label
           text: Today's Visit
@@ -98,7 +124,7 @@ VisitQuestionnaire:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             wordWrap: break-word
@@ -127,7 +153,7 @@ VisitQuestionnaire:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             wordWrap: break-word
@@ -146,7 +172,7 @@ VisitQuestionnaire:
             height: "auto"
             width: "0.92"
             marginLeft: "0.04"
-            fontFamily: "Arial"
+
           children:
             - type: list
               viewTag: takeMedTag
@@ -212,7 +238,7 @@ VisitQuestionnaire:
             marginLeft: "0.04"
             height: "auto"
             width: "0.92"
-            fontFamily: "Arial"
+
           children:
             - type: list
               viewTag: proofMedTag
@@ -278,13 +304,13 @@ VisitQuestionnaire:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             wordWrap: break-word
         - .DocPublicLine:
         - type: label
-          text: Update information
+          text: Update Information
           dataKey:
           style:
             height: "auto"
@@ -309,7 +335,7 @@ VisitQuestionnaire:
             marginLeft: "0.04"
             height: "auto"
             width: "0.92"
-            fontFamily: "Arial"
+
           children:
             - type: list
               viewTag: upEmergTag
@@ -375,7 +401,7 @@ VisitQuestionnaire:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             wordWrap: break-word
@@ -394,7 +420,7 @@ VisitQuestionnaire:
             marginLeft: "0.04"
             height: "auto"
             width: "0.92"
-            fontFamily: "Arial"
+
           children:
             - type: list
               viewTag: upNewcondTag
@@ -461,7 +487,7 @@ VisitQuestionnaire:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             wordWrap: break-word
@@ -481,7 +507,7 @@ VisitQuestionnaire:
             marginLeft: "0.04"
             height: "auto"
             width: "0.92"
-            fontFamily: "Arial"
+
           children:
             - type: list
               viewTag: upEnvirallTag
@@ -563,7 +589,7 @@ VisitQuestionnaire:
                 border:
                   style: 1
                 borderRadius: "4"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 color: "0x333333"
                 wordWrap: break-word
@@ -593,7 +619,7 @@ VisitQuestionnaire:
                 border:
                   style: 1
                 borderRadius: "4"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 color: "0x333333"
                 wordWrap: break-word
@@ -623,7 +649,7 @@ VisitQuestionnaire:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             wordWrap: break-word
@@ -679,7 +705,7 @@ VisitQuestionnaire:
                     height: "auto"
                     width: "0.6"
                     borderColor: "0xdedede"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     verticalAlign: "top"
                     color: "0x333333"
@@ -718,7 +744,7 @@ VisitQuestionnaire:
                     height: "auto"
                     width: "0.6"
                     borderColor: "0xdedede"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     verticalAlign: "top"
                     color: "0x333333"
@@ -757,7 +783,7 @@ VisitQuestionnaire:
                     height: "auto"
                     width: "0.6"
                     borderColor: "0xdedede"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     verticalAlign: "top"
                     color: "0x333333"
@@ -796,7 +822,7 @@ VisitQuestionnaire:
                     height: "auto"
                     width: "0.6"
                     borderColor: "0xdedede"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h14
                     verticalAlign: "top"
                     color: "0x333333"
@@ -828,7 +854,7 @@ VisitQuestionnaire:
                 height: "auto"
                 width: "0.92"
                 borderColor: "0xdedede"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 color: "0x333333"
                 fontWeight: "600"
@@ -837,3 +863,4 @@ VisitQuestionnaire:
         - type: view
           style:
             marginTop: "0.03"
+    - .HeaderPopUpMenu:

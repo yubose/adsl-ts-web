@@ -11,8 +11,9 @@ MyQRCode:
               - =.Global.MyProfile.name.data.fullName
               - '","id":"'
               - =.Global.currentUser.vertex.id
-              - '","uid": "'
-              - =.Global.currentUser.vertex.uid
+              #uid会暴露医生号码信息,暂时注释
+              # - '","uid": "'
+              # - =.Global.currentUser.vertex.uid
               - '","identify": 10' # 10 provider 20 patient 30 facility
               - ',"function": 10' # 10 预约 provider  20   30 预约facility
               - "}"
@@ -51,36 +52,27 @@ MyQRCode:
         dataKey: profile.docResponse
         _nonce: =.Global._nonce
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-    - .HeaderRightButton:
-      text: Save
-      onClick:
-        - actionType: evalObject
-          object:
-            - =.builtIn.downloadQRCode:
-                dataIn:
-                  content: =.MyQRCode.imagepath
-                  scale: 12
-                  viewTag: saveQRCodeTag
-        - actionType: popUp
-          popUpView: successTag
-      # children:
-      #   - type: image
-      #     path: download.svg
-      #     style:
-      #       left: "0.08"
-      #       top: "0.04"
-      #       height: "0.023"
-      #       zIndex: 100
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Save
+          style:
+            marginLeft: "0.017333"
+          onClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.downloadQRCode:
+                    dataIn:
+                      content: =.MyQRCode.imagepath
+                      scale: 12
+                      viewTag: saveQRCodeTag
+            - actionType: popUp
+              popUpView: successTag
     - type: scrollView
       viewTag: saveQRCodeTag
       style:
-        top: "0.1"
         left: "0.04"
         height: "0.88"
         width: "0.92"
@@ -153,90 +145,6 @@ MyQRCode:
                 fontWeight: "400"
                 textAlign:
                   x: center
-    # - type: scrollView
-    #   viewTag: saveQRCodeTag
-    #   style:
-    #     top: "0.15"
-    #     width: "1"
-    #     height: "0.85"
-    #   children:
-    #     - type: view
-    #       style:
-    #         marginTop: "0.01"
-    #         width: "0.9"
-    #         left: "0.05"
-    #         height: "0.6"
-    #         backgroundColor: "0xF0F0F0"
-    #         borderRadius: "5"
-    #       children:
-    #         - type: view
-    #           style:
-    #             marginTop: "0.01"
-    #             top: "0"
-    #             left: "0.05"
-    #             height: "0.1"
-    #             width: "0.22"
-    #           children:
-    #             - type: image
-    #               path: providerImage.svg
-    #               path=func: =.builtIn.utils.prepareDocToPath
-    #               dataKey: Global.MyProfile.name.data.avatar
-    #               # path:
-    #               #   emit:
-    #               #     actions:
-    #               #       - if:
-    #               #         - =.builtIn.string.equal:
-    #               #             dataIn:
-    #               #               string1: =..avatar.showdocument.name.data
-    #               #               string2: "binFile"
-    #               #         - ava.png
-    #               #         - ..avatar.url
-    #               style:
-    #                 height: "0.1"
-    #                 width: "0.22"
-    #         - type: label
-    #           dataKey: MenuBars.formData.providerTitle   #Global.currentUser.vertex.name.userName
-    #           style:
-    #             left: "0.28"
-    #             marginTop: "0.02"
-    #             fontWeight: "650"
-    #             height: "0.08"
-    #             width: "0.5"
-    #             top: "0"
-    #             fontFamily: "Arial"
-    #             fontSize: .Nfont.h16
-    #             textAlign:
-    #               y: center
-    #         # - type: view
-    #         #   style:
-    #         #     top: '0.12'
-    #         #     width: "0.74"
-    #         #     left: "0.08"
-    #         #     height: "0.4"
-    #         #     backgroundColor
-    #         - type: image
-    #           contentType: QRCode
-    #           dataKey: imagepath
-    #           style:
-    #             top: "0.117"
-    #             width: "0.8"
-    #             height: "0.4"
-    #             box-sizing: "border-box"
-    #             left: "0.05"
-    #             # border:
-    #             #   style: 3
-    #             # borderColor: "#ffffff"
-    #             # borderWidth: "20"
-    #         - type: label
-    #           text: "Scan the QR code to add me on AiTmed"
-    #           style:
-    #             top: "0.543"
-    #             width: "0.9"
-    #             height: "0.08"
-    #             fontSize: .Nfont.h14
-    #             left: "0"
-    #             textAlign:
-    #               x: center
     - type: popUp
       viewTag: SendLinkTag
       style:
@@ -261,14 +169,12 @@ MyQRCode:
               style:
                 top: "0.01"
                 width: "0.9"
-                # left: "0.05"
                 height: "0.06"
                 fontSize: "18"
                 color: "0x1d88fc"
                 backgroundColor: "0xe9e9e9"
                 textAlign:
                   x: center
-                # borderRadius: "5"
                 border:
                   style: "2"
                   width: "0.0001"
@@ -276,13 +182,11 @@ MyQRCode:
             - type: button
               text: Save Image
               style:
-                # left: "0.05"
                 top: "0.07"
                 width: "0.9"
                 height: "0.06"
                 fontSize: "18"
                 color: "0x1d88fc"
-                # borderRadius: "5"
                 backgroundColor: "0xe9e9e9"
                 textAlign:
                   x: center

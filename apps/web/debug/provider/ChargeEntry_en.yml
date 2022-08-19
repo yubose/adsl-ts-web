@@ -1,0 +1,2633 @@
+ChargeEntry:
+  title: Charge Entry
+  pageNumber:
+  init:
+    - .SignInCheck
+
+    - =.builtIn.utils.getPageNames:
+        dataIn:
+        dataOut: ChargeEntry.formData.routeList
+    # 获取所有有关系的Facility
+    - =..apiRequest.allFacility.docAPI.get: ""
+
+    - actionType: evalObject #android use calendar init
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getShow
+    - actionType: evalObject
+      object:
+        - ..calendarDate@: =.BaseComponents.calendarDate
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: ChargeEntry.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: ChargeEntry.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: ChargeEntry.calendarDate.day
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.ChargeEntry.calendarDate.year
+              month: =.ChargeEntry.calendarDate.month
+              today: =.ChargeEntry.calendarDate.day
+              blockPastTime: =.Global.formData.blockPastTime
+            dataOut: ChargeEntry.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.ChargeEntry.calendarDate.month
+            dataOut: ChargeEntry.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.ChargeEntry.calendarDate.year
+              month: =.ChargeEntry.calendarDate.month
+              day: =.ChargeEntry.calendarDate.day
+              formatType: "M/D/Y"
+            dataOut: ChargeEntry.calendarDate.todayDate
+
+    - =.builtIn.date.AddOrModifyTimeInterval:
+        dataIn:
+          currentDate: =..calendarDate.todayDate
+          interval: 30
+          unit: "days"
+        dataOut: ChargeEntry.formData.tempDate
+    # 判断本地会议是否有diagnoses存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.diagnosesDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.diagnosesDoc.docReq@: =.Global.formData.providerDoc.diagnosesDoc
+        - actionType: evalObject
+          object:
+            - =.ChargeEntry.apiRequest.diagnosesDoc.docAPI.store: ""
+            - ..apiRequest.diagnosesDoc.docReq@: =.ChargeEntry.apiRequest.diagnosesDoc.docResp.doc
+            - .Global.formData.providerDoc.diagnosesDoc@: =.ChargeEntry.apiRequest.diagnosesDoc.docResp.doc
+
+    - if:
+        - =.Global.formData.providerDoc.superbillDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.superbillDoc.docReq@: =.Global.formData.providerDoc.superbillDoc
+            # 判断是否选择了Select facility
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                      string2: "Select facility"
+                - actionType: evalObject
+                  object:
+                    # facility信息bsig
+                    - =.builtIn.array.getValueByKey:
+                        dataIn:
+                          array: =..apiRequest.allFacility.docQueryResp.doc
+                          key1: "name.data.basicInfo.medicalFacilityName"
+                          value: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.selectedFacility
+                          key2: bsig
+                        dataOut: ChargeEntry.formData.currentBsig
+                    - ..apiRequest.allLocation.docQueryReq.id@: =..formData.currentBsig
+                    - =..apiRequest.allLocation.docAPI.get: ""
+                    # 获取选择的location信息
+                    - =.builtIn.array.getValueByKey:
+                        dataIn:
+                          array: =..apiRequest.allLocation.docQueryResp.doc
+                          key1: "name.data.basicInfo.medicalFacilityName"
+                          value: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.Location
+                          key2: "name.data.basicInfo"
+                        dataOut: ChargeEntry.formData.currentBasicInfo
+
+                    - ? ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo@
+                      : facilityName: =.Global.currentFacilityDoc.name.data.basicInfo.medicalFacilityName
+                        Location: =..formData.currentBasicInfo.medicalFacilityName
+                        address: ""
+                        City: =..formData.currentBasicInfo.city
+                        County: =..formData.currentBasicInfo.county
+                        State: =..formData.currentBasicInfo.state
+                        ZipCode: =..formData.currentBasicInfo.zipCode
+                        NPI: =..formData.currentBasicInfo.NPI
+                        FacilityID: =..formData.currentBasicInfo.locationID
+
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - =..formData.currentBasicInfo.addressFirstLine
+                          - =..formData.currentBasicInfo.addressSecondLine
+                        dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.address
+
+                - actionType: evalObject
+                  object:
+                    # 否则取第一个location的信息
+                    - ..apiRequest.allLocation.docQueryReq.id@: =.Global.currentFacilityDoc.bsig
+                    - =..apiRequest.allLocation.docAPI.get: ""
+                    - ..formData.currentBasicInfo@: =..apiRequest.allLocation.docQueryResp.doc.0.name.data.basicInfo
+                    - ? ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo@
+                      : facilityName: =.Global.currentFacilityDoc.name.data.basicInfo.medicalFacilityName
+                        Location: =..formData.currentBasicInfo.medicalFacilityName
+                        address: ""
+                        City: =..formData.currentBasicInfo.city
+                        County: =..formData.currentBasicInfo.county
+                        State: =..formData.currentBasicInfo.state
+                        ZipCode: =..formData.currentBasicInfo.zipCode
+                        NPI: =..formData.currentBasicInfo.NPI
+                        FacilityID: =..formData.currentBasicInfo.locationID
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - =..formData.currentBasicInfo.addressFirstLine
+                          - =..formData.currentBasicInfo.addressSecondLine
+                        dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.address
+
+        - actionType: evalObject
+          object:
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =.Global.currentFacilityDoc.name.data.basicInfo.addressFirstLine
+                  - ","
+                  - =.Global.currentFacilityDoc.name.data.basicInfo.addressSecondLine
+                dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.facilityInfo.location
+            - =..apiRequest.superbillDoc.docAPI.store: ""
+            - ..apiRequest.superbillDoc.docReq@: =..apiRequest.superbillDoc.docResp.doc
+            - ..apiRequest.allLocation.docQueryReq.id@: =.Global.currentFacilityDoc.bsig
+            - =..apiRequest.allLocation.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListByKey:
+            dataIn:
+              array: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
+              keyId: code
+            dataOut: ChargeEntry.formData.ICDList
+        - =.builtIn.array.concatArray:
+            dataIn:
+              array1: =..formDataTemp.ICDTemp
+              array2: =..formData.ICDList
+            dataOut: ChargeEntry.formDataTemp.ICDTemp
+
+    - actionType: evalObject
+      object:
+        - =.builtIn.string.concat:
+            dataIn:
+              - =.Global.MyProfile.name.data.fullName
+              - ","
+              - =.Global.MyProfile.name.data.title
+            dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.providerName
+
+    # 获取数组最后一项
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.GetSomeData:
+            dataIn:
+              dataArray: =..apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+            dataOut: ChargeEntry.formData.lastItem
+    - actionType: evalObject
+      object:
+        - =.builtIn.object.setProperty:
+            dataIn:
+              obj: =..apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+              label: "hashCode"
+              text: =..formData.lastItem.hashCode
+              arr: ["borderShow"]
+              valueArr: ["none"]
+              errorArr: ["2px solid red"]
+            dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+
+    # 处理Service Facility Location Information
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                  string2: ""
+            - actionType: evalObject
+              object:
+                - ..formData.useCurrentShow@: "none"
+                - ..formData.selectFacilityShow@: "none"
+                - ..formData.enterManuallyShow@: "none"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                          string2: "Use current"
+                    - actionType: evalObject
+                      object:
+                        - ..formData.useCurrentShow@: "block"
+                        - ..formData.selectFacilityShow@: "none"
+                        - ..formData.enterManuallyShow@: "none"
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                                  string2: "Select facility"
+                            - actionType: evalObject
+                              object:
+                                - ..formData.useCurrentShow@: "none"
+                                - ..formData.selectFacilityShow@: "block"
+                                - ..formData.enterManuallyShow@: "none"
+                            - actionType: evalObject
+                              object:
+                                - ..formData.useCurrentShow@: "none"
+                                - ..formData.selectFacilityShow@: "none"
+                                - ..formData.enterManuallyShow@: "block"
+
+    # 处理facility options
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getDataByPath:
+            dataIn:
+              objArr: =..apiRequest.allFacility.docQueryResp.doc
+              path: "name.data.basicInfo.medicalFacilityName"
+            dataOut: ChargeEntry.formData.facilityDM
+
+        - =.builtIn.array.getDataByPath:
+            dataIn:
+              objArr: =..apiRequest.allLocation.docQueryResp.doc
+              path: "name.data.basicInfo.medicalFacilityName"
+            dataOut: ChargeEntry.formData.locationDM
+
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    dayLable: []
+    todayDate: ""
+    monthName: ""
+
+  formData:
+    currentBsig: ""
+    currentBasicInfo: ""
+    currentList: []
+    currentCode: ""
+    selectedCode: ""
+    currentListLength: ""
+    ICDList: []
+    routeList: []
+    lastItem: ""
+    # Service Facility Location Information
+    useCurrentShow: "block"
+    selectFacilityShow: "none"
+    enterManuallyShow: "none"
+    # facility options
+    facilityDM: []
+    locationDM: []
+
+    tempObj: ""
+  formDataTemp:
+    ICDTemp:
+      - "Select"
+    outsideLab:
+      - "Select"
+      - "Yes"
+      - "No"
+  apiRequest:
+    allLocation:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 28
+        id: ""
+        type: .DocType.FacilityProfile
+        sfname: '{"result":"D.*", "join": "INNER JOIN Edge E on E.evid=D.ovid INNER JOIN Vertex V on E.evid=V.id"}'
+        xfname: E.bvid
+        sCondition: "E.type=1100 AND V.type=21"
+        obfname: D.ctime
+        _nonce: =.Global._nonce
+        maxcount: "1000"
+      docAPI:
+        get:
+          api: rd
+          dataIn: ChargeEntry.apiRequest.allLocation.docQueryReq
+          dataOut: ChargeEntry.apiRequest.allLocation.docQueryResp
+    allFacility:
+      docQueryResp: ""
+      docQueryReq:
+        ObjType: 12
+        id: .Global.currentUser.vertex.id
+        type: .DocType.FacilityProfile
+        xfname: E.bvid|E.evid
+        sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xff0000=0x30000
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: ChargeEntry.apiRequest.allFacility.docQueryReq
+          dataOut: ChargeEntry.apiRequest.allFacility.docQueryResp
+    superbillDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: ""
+        type: .DocType.Superbill
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            classTag:
+              name: Provider
+              fontColor: "0x30b354"
+              backgroundColor: "0xe4f5e9"
+              display: block
+            statusTag:
+              display: none
+            facilityInfo:
+              facilityAvatarID: .Global.currentFacilityDoc.name.data.basicInfo.businessLogo
+              facilityName: .Global.currentFacilityDoc.name.data.basicInfo.medicalFacilityName
+              location: ""
+              email: .Global.currentFacilityDoc.name.data.basicInfo.email
+              main: .Global.currentFacilityDoc.name.data.basicInfo.phoneNumber
+              fax: .Global.currentFacilityDoc.name.data.basicInfo.fax
+              website: .Global.currentFacilityDoc.name.data.basicInfo.website
+              City: .Global.currentFacilityDoc.name.data.basicInfo.city
+              County: .Global.currentFacilityDoc.name.data.basicInfo.county
+              State: .Global.currentFacilityDoc.name.data.basicInfo.state
+              ZipCode: .Global.currentFacilityDoc.name.data.basicInfo.zipCode
+              NPI: .Global.currentFacilityDoc.name.data.basicInfo.NPI
+              FacilityID: .Global.currentFacilityDoc.name.data.basicInfo.locationID
+            patientInfo:
+              examDate: .Global.roomInfo.edge.stime
+              patientName: .Global.currentMeetingPatientProfile.basicInfo.fullName
+              dob: .Global.currentMeetingPatientProfile.basicInfo.dateOfBirth
+              phone: .Global.currentMeetingPatientProfile.basicInfo.phone
+              email: .Global.currentMeetingPatientProfile.contactInfo.email
+              address: .Global.currentMeetingPatientProfile.contactInfo.address.fullAddress
+            providerName: ""
+            diagnosis: ""
+            procedureCodeList: .Global.currentFolder
+            # Service Facility
+            serviceFacilitySelect: "Use current"
+            selectFacilityInfo:
+              selectedFacility: ""
+              Location: ""
+              facilityName: ""
+              address: ""
+              City: ""
+              County: ""
+              State: ""
+              ZipCode: ""
+              NPI: ""
+              FacilityID: ""
+            manuallyFacilityInfo:
+              facilityName: ""
+              address: ""
+              City: ""
+              County: ""
+              State: ""
+              ZipCode: ""
+              NPI: ""
+              FacilityID: ""
+          title: "Superbill"
+          user: .Global.formData.providerTitle
+          uploadUserName: .Global.MyProfile.name.data.fullName
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: ChargeEntry.apiRequest.superbillDoc.docReq
+          dataOut: ChargeEntry.apiRequest.superbillDoc.docResp
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.Diagnoses
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            diagnosis:
+              descriptiveList: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: ChargeEntry.apiRequest.diagnosesDoc.docReq
+          dataOut: ChargeEntry.apiRequest.diagnosesDoc.docResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: popUp
+                popUpView: judgmentOperation
+          - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.0246"
+            height: "auto"
+            width: "0.92"
+          children:
+            - type: image
+              path: office-building.svg
+              path=func: =.builtIn.utils.prepareDocToPath
+              dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.facilityAvatarID
+              style:
+                verticalAlign: middle
+                display: "inline-block"
+                height: "0.0578"
+                width: "5.78vh"
+            - type: view
+              style:
+                verticalAlign: middle
+                marginLeft: "0.08"
+                display: "inline-block"
+                height: "auto"
+                width: "0.71"
+                overflow: hidden
+              children:
+                - type: label
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.facilityName
+                  style:
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h20
+                    fontWeight: "600"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+                - type: label
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.location
+                  style:
+                    marginTop: "0.0110"
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Email
+                - .DocPublicStyleOneRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.email
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Website
+                - .DocPublicStyleOneRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.website
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Main #"
+                - .DocPublicStyleOneRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.main
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Fax #"
+                - .DocPublicStyleOneRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.fax
+
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Exam Date
+                - .DocPublicStyleTwoRight:
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.patientInfo.examDate
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Patient Name
+                - .DocPublicStyleTwoRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.patientInfo.patientName
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Date of Birth
+                - .DocPublicStyleTwoRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.patientInfo.dob
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Phone #"
+                - .DocPublicStyleTwoRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.patientInfo.phone
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Email"
+                - .DocPublicStyleTwoRight:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.patientInfo.email
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Patient Address"
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.patientInfo.address
+                  style:
+                    height: "auto"
+                    width: "0.92"
+                    fontSize: .Nfont.h14
+                    wordWrap: break-word
+                    color: "0x333333"
+                    fontWeight: "600"
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            ..style.secondBox:
+            marginTop: "0.027093596"
+          children:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Diagnosis
+                  style:
+                    ..style.secondLeftLabel:
+                - type: label
+                  text: Edit Diagnosis
+                  onClick:
+                    - ..event.editDiagnosisClcick
+                  style:
+                    ..style.secondRightLabel:
+            - type: list
+              contentType: listObject
+              listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
+              iteratorVar: itemObject
+              style:
+                ..style.diagnosisList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.diagnosisListItem:
+                  children:
+                    - type: label
+                      textBoard:
+                        - text: ""
+                          dataKey: itemObject.code
+                        - text: "&nbsp;-&nbsp;"
+                        - text: ""
+                          dataKey: itemObject.description
+                      style:
+                        ..style.diagnosisValue:
+                    - type: label
+                      dataKey: itemObject.comment
+                      style:
+                        ..style.diagnosisValue:
+                        color: "#666666"
+
+        - type: view
+          style:
+            ..style.dividingLine:
+
+        - type: view
+          viewTag: procedureCodeTag
+          style:
+            width: "0.92"
+            height: "auto"
+            marginLeft: "0.04"
+            marginTop: "0.027093596"
+          children:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Procedure code
+                  style:
+                    ..style.secondLeftLabel:
+                    width: "0.721"
+                - type: label
+                  text: + Add code
+                  onClick:
+                    - ..event.addCodeClick
+                  style:
+                    ..style.secondRightLabel:
+            - type: list
+              contentType: listObject
+              listObject: ..apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+              iteratorVar: itemObject
+              style:
+                ..style.conventionalList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.conventionalListItem:
+                    marginTop: "0.01"
+                  children:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: image
+                          path: x.svg
+                          style:
+                            display: "inline-block"
+                            height: "0.025"
+                          onClick:
+                            - ..event.codeDelClick
+                        - type: label
+                          textBoard:
+                            - text: ""
+                              dataKey: itemObject.code
+                            - text: "&nbsp;-&nbsp;"
+                            - text: ""
+                              dataKey: itemObject.description
+                          style:
+                            ..style.codeLabel:
+                    - type: view
+                      viewTag: listData
+                      style:
+                        ..style.autoBox:
+                      children:
+                        - type: label
+                          text: Quantity
+                          style:
+                            ..style.inputTitle:
+                        - type: textField
+                          placeholder: Enter here
+                          dataKey: itemObject.quantity
+                          style:
+                            ..style.input:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                            marginTop: "0.01724137"
+                          children:
+                            - type: label
+                              text: Modifiers
+                              style:
+                                ..style.inputSecondTitle:
+                            - type: label
+                              viewTag: numTag
+                              textBoard:
+                                - text: "("
+                                - text: "0"
+                                  dataKey: itemObject.num
+                                - text: "/4)"
+                              style:
+                                ..style.tipsNum:
+                        - type: select
+                          viewTag: CodeListTag
+                          options: .SelectINformationDM.modifiers
+                          dataKey: itemObject.searchCode
+                          style:
+                            ..style.searchInput:
+                        - type: label
+                          text: + Add modifier
+                          onClick:
+                            - ..event.addModifierClick
+                          style:
+                            ..style.addLabel:
+
+                        - type: view
+                          # viewTag: listData
+                          style:
+                            ..style.autoBox:
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: itemObject.modifiers
+                              iteratorVar: itemObject
+                              style:
+                                ..style.publicList:
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    ..style.publicListItem:
+                                  children:
+                                    - type: view
+                                      style:
+                                        ..style.blockBox:
+                                      children:
+                                        - type: image
+                                          path: x.svg
+                                          style:
+                                            display: "inline-block"
+                                            height: "0.025"
+                                          onClick:
+                                            - ..event.delClick
+                                        - type: view
+                                          style:
+                                            ..style.secondListBox:
+                                          children:
+                                            - type: label
+                                              textBoard:
+                                                - text: Mod
+                                                - text: "&nbsp;"
+                                                - text: ""
+                                                  dataKey: listAttr.index
+                                              style:
+                                                ..style.secondListIndex:
+                                            - type: label
+                                              dataKey: itemObject
+                                              style:
+                                                ..style.secondValue:
+
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                        marginTop: "0.01847290"
+                      children:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                          children:
+                            - type: label
+                              text: ICD1
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: select
+                              dataKey: itemObject.icd.icd1
+                              options: ..formDataTemp.ICDTemp
+                              style:
+                                ..style.inputInline:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.04"
+                          children:
+                            - type: label
+                              text: ICD2
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: select
+                              dataKey: itemObject.icd.icd2
+                              options: ..formDataTemp.ICDTemp
+                              style:
+                                ..style.inputInline:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.04"
+                          children:
+                            - type: label
+                              text: ICD3
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: select
+                              dataKey: itemObject.icd.icd3
+                              options: ..formDataTemp.ICDTemp
+                              style:
+                                ..style.inputInline:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.04"
+                          children:
+                            - type: label
+                              text: ICD4
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: select
+                              dataKey: itemObject.icd.icd4
+                              options: ..formDataTemp.ICDTemp
+                              style:
+                                ..style.inputInline:
+                        - type: label
+                          textBoard:
+                            - text: "------------------------"
+                            - text: "&nbsp;Next code&nbsp;"
+                            - text: "------------------------"
+                          style:
+                            ..style.dividingSecondLine:
+                            display: itemObject.borderShow
+
+        - .DocPublicLine:
+
+        - type: view
+          viewTag: ServiceTag
+          style:
+            ..style.secondBox:
+          children:
+            - type: label
+              text: Service Facility Location Information
+              style:
+                ..style.thirdInputTitle:
+                fontSize: .Nfont.h16
+            - type: view
+              style:
+                marginTop: "0.0172413"
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxUsePath:
+                  style:
+                    ..style.checkBoxImg:
+                  onClick:
+                    - ..event.checkBoxUseClick
+                - type: label
+                  text: Use current facility information
+                  dataKey:
+                  style:
+                    ..style.checkBoxLabel:
+            - type: view
+              style:
+                ..style.blockSecondBox:
+                display: ..formData.useCurrentShow
+              children:
+                - type: label
+                  text: Facility's Name
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.facilityName
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Address
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.location
+                  style:
+                    ..style.inputPreview:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: City
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.City
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: County
+                          style:
+                            ..style.inputTitle:
+                            width: "0.44"
+                            marginTop: "0"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.County
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: State
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.State
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: Zip Code
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.ZipCode
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: label
+                  text: NPI
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.NPI
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Facility ID
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.facilityInfo.FacilityID
+                  style:
+                    ..style.inputPreview:
+
+            - type: view
+              style:
+                marginTop: "0.0172413"
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxSelectPath:
+                  style:
+                    ..style.checkBoxImg:
+                  onClick:
+                    - ..event.checkBoxSelectClick
+                - type: label
+                  text: Select facility
+                  dataKey:
+                  style:
+                    ..style.checkBoxLabel:
+            - type: view
+              viewTag: selectFacilityTag
+              style:
+                ..style.blockSecondBox:
+                display: ..formData.selectFacilityShow
+              children:
+                - type: label
+                  text: Facility
+                  style:
+                    ..style.inputTitle:
+                - type: select
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.selectedFacility
+                  options: .ChargeEntry.formData.facilityDM
+                  style:
+                    ..style.searchInput:
+                  onChange:
+                    - ..event.facilityChange
+                - type: label
+                  text: Location
+                  style:
+                    ..style.inputTitle:
+                - type: select
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.Location
+                  options: .ChargeEntry.formData.locationDM
+                  style:
+                    ..style.searchInput:
+                  onChange:
+                    - ..event.locationChange
+                - type: label
+                  text: Facility's Name
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.facilityName
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Address
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.address
+                  style:
+                    ..style.inputPreview:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: City
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.City
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: County
+                          style:
+                            ..style.inputTitle:
+                            width: "0.44"
+                            marginTop: "0"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.County
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: State
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.State
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: Zip Code
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.ZipCode
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: label
+                  text: NPI
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.NPI
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Facility ID
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.FacilityID
+                  style:
+                    ..style.inputPreview:
+
+            - type: view
+              style:
+                marginTop: "0.0172413"
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxManuallyPath:
+                  style:
+                    ..style.checkBoxImg:
+                  onClick:
+                    - ..event.checkBoxManuallyClick
+                - type: label
+                  text: Enter Manually
+                  dataKey:
+                  style:
+                    ..style.checkBoxLabel:
+
+            - type: view
+              style:
+                ..style.blockSecondBox:
+                display: ..formData.enterManuallyShow
+              children:
+                - type: label
+                  text: Facility's Name
+                  style:
+                    ..style.inputTitle:
+                - type: textField
+                  placeholder: "Enter here"
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.facilityName
+                  style:
+                    ..style.input:
+                - type: label
+                  text: Address
+                  style:
+                    ..style.inputTitle:
+                - type: textField
+                  placeholder: "Enter here"
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.address
+                  style:
+                    ..style.input:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: City
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: textField
+                          placeholder: "Enter here"
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.City
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: County
+                          style:
+                            ..style.inputTitle:
+                            width: "0.44"
+                            marginTop: "0"
+                        - type: textField
+                          placeholder: "Enter here"
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.County
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: State
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: select
+                          options: .SelectINformationDM.state
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.State
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: Zip Code
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: textField
+                          placeholder: "Enter here"
+                          dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.ZipCode
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                - type: label
+                  text: NPI
+                  style:
+                    ..style.inputTitle:
+                - type: textField
+                  placeholder: "Enter here"
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.NPI
+                  style:
+                    ..style.input:
+                - type: label
+                  text: Facility ID
+                  style:
+                    ..style.inputTitle:
+                - type: textField
+                  placeholder: "Enter here"
+                  dataKey: apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo.FacilityID
+                  style:
+                    ..style.input:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.secondBox:
+            marginTop: "0.024630"
+          children:
+            - type: label
+              text: Provider
+              style:
+                ..style.leftTitle:
+            - type: label
+              dataKey: apiRequest.superbillDoc.docReq.name.data.providerName
+              style:
+                ..style.rightValue:
+
+        - type: view
+          style:
+            marginTop: "0.03"
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            ..style.auto:
+          children:
+            - .DocButtonPrivate:
+              text: Cancel
+              onClick:
+                - actionType: popUp
+                  popUpView: judgmentOperation
+            - .DocButtonRelease:
+              text: Save
+              onClick:
+                - ..event.btnClick
+    # 弹窗区域
+    - .BaseWarningView:
+      message: "Select a modifier first."
+      viewTag: unSelectTag
+
+    - .BaseWarningView:
+      message: "Please add modifiers differently!"
+      viewTag: diffModifiersTag
+
+    - .Normal:
+      message: "Do you want to save your changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - actionType: evalObject
+          object:
+            - .Global.formData.backPage@: ""
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+      rightButton:
+        # 处理Diagnosis
+        - actionType: evalObject
+          object:
+            # 同步线上
+            - =.ChargeEntry.apiRequest.diagnosesDoc.docAPI.store: ""
+            # 更新本地
+            - .Global.formData.providerDoc.diagnosesDoc@: =.ChargeEntry.apiRequest.diagnosesDoc.docResp.doc
+        - actionType: evalObject
+          object:
+            - ..apiRequest.superbillDoc.docReq.reid@: =.Global.roomInfo.edge.id
+            - =.ChargeEntry.apiRequest.superbillDoc.docAPI.store: ""
+            - .Global.formData.superbillComplete@: true
+            - .Global.formData.providerDoc.superbillDoc@: =..apiRequest.superbillDoc.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - =.builtIn.utils.createAuditLog:
+                dataIn:
+                  actionTypeCode: .ActionTypeCode.create
+                  recordTypeCode: .DocType.Superbill
+                  eid: =.Global.formData.currentFacility.relationEdge.id
+
+                  user: =.Global.MyProfile.name.data.fullName
+                  userId: =.Global.currentUser.vertex.id
+                  targetUserId: =.Global.formData.auditLog.patientId
+                  accessPort: provider
+                dataOut: Global.formData.auditLog.result
+
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.unPageName
+                      string2: ""
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.array.has:
+                            dataIn:
+                              object: =.ChargeEntry.formData.routeList
+                              value: "MoreOptions"
+                        - goto: MoreOptions
+                        - goto: =.Global.formData.lastPage
+
+                - goto: =.Global.formData.unPageName
+
+    #
+    - .BaseWarningView:
+      message: "Add up to four modifiers."
+      viewTag: exceedTag
+    - .publicDeleteUP:
+      viewTag: BaseDelWarningView
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: BaseDelWarningView
+      rightButton:
+        - actionType: evalObject
+          object:
+            - =.builtIn.array.removeByName:
+                dataIn:
+                  object: =..apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+                  key: code
+                  name: =..formData.selectedCode.code
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: procedureCodeTag
+        - actionType: popUpDismiss
+          popUpView: BaseDelWarningView
+
+    - type: popUp
+      viewTag: effectiveDate
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.9"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.superbillDoc.docReq.name.data.effectiveDate@: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: effectiveDateTag
+                - actionType: popUpDismiss
+                  popUpView: effectiveDate
+
+    - type: popUp
+      viewTag: expirationDate
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.9"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.superbillDoc.docReq.name.data.expirationDate@: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: expirationDateTag
+                - actionType: popUpDismiss
+                  popUpView: expirationDate
+
+    - type: popUp
+      viewTag: fromDate
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.9"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.superbillDoc.docReq.name.data.fromDate@: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: fromDateTag
+                - actionType: popUpDismiss
+                  popUpView: fromDate
+    - type: popUp
+      viewTag: toDate
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.9"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.superbillDoc.docReq.name.data.toDate@: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: toDateTag
+                - actionType: popUpDismiss
+                  popUpView: toDate
+  event:
+    editDiagnosisClcick:
+      - actionType: evalObject
+        object:
+          - =.ChargeEntry.apiRequest.superbillDoc.docAPI.store: ""
+          - .Global.formData.providerDoc.superbillDoc@: =..apiRequest.superbillDoc.docResp.doc
+      - goto: SelectDiagnosis
+    addCodeClick:
+      - actionType: evalObject
+        object:
+          - =.ChargeEntry.apiRequest.superbillDoc.docAPI.store: ""
+          - .Global.formData.providerDoc.superbillDoc@: =..apiRequest.superbillDoc.docResp.doc
+          - .Global.formData.backPage@: ChargeEntry
+      - goto: SelectSuperbill
+    codeDelClick:
+      - actionType: popUp
+        popUpView: BaseDelWarningView
+      - actionType: updateObject
+        dataKey: ChargeEntry.formData.selectedCode
+        dataObject: itemObject
+    addModifierClick:
+      - actionType: updateObject
+        dataKey: ChargeEntry.formData.currentCode
+        dataObject: itemObject
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.currentCode.searchCode
+                    string2: ""
+              - actionType: popUp
+                popUpView: unSelectTag
+                wait: true
+                popUpDismiss: 2000
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..formData.currentCode.searchCode
+                            string2: "Select"
+                      - actionType: popUp
+                        popUpView: unSelectTag
+                        wait: true
+                        popUpDismiss: 2000
+                      - continue
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..formData.currentCode.modifiers
+                    value: =..formData.currentCode.searchCode
+              - actionType: popUp
+                popUpView: diffModifiersTag
+                wait: true
+                popUpDismiss: 2000
+              - continue
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - ..formData.currentListLength@: $var.num
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.currentListLength
+                    string2: "4"
+              - actionType: popUp
+                popUpView: exceedTag
+                wait: true
+                popUpDismiss: 2000
+              - continue
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - =.builtIn.array.add:
+                dataIn:
+                  object: $var.modifiers
+                  value: $var.searchCode
+            - =.builtIn.array.getListLength:
+                dataIn:
+                  object: $var.modifiers
+                dataOut: ChargeEntry.formData.currentListLength
+      - actionType: evalObject
+        object:
+          #     - =.builtIn.array.getListLength:
+          #         dataIn:
+          #           object: =..formData.currentCode.modifiers
+          #         dataOut: ChargeEntry.formData.currentListLength
+
+          - =.builtIn.array.setObjectByKey:
+              dataIn:
+                objectArr: =..apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+                keyOne: "hashCode"
+                keyTwo: "num"
+                valueOne: =..formData.currentCode.hashCode
+                valueTwo: =..formData.currentListLength
+              dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+          - =.builtIn.array.setObjectByKey:
+              dataIn:
+                objectArr: =..apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+                keyOne: "hashCode"
+                keyTwo: "searchCode"
+                valueOne: =..formData.currentCode.hashCode
+                valueTwo: "Select"
+              dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: procedureCodeTag
+    delClick:
+      - emit:
+          dataKey:
+            var: itemObject
+            var2: listAttr
+          actions:
+            - =.builtIn.array.removeByValue:
+                dataIn:
+                  object: $var2.parent.modifiers
+                  value: $var
+
+            - =.builtIn.array.setObjectByKey:
+                dataIn:
+                  objectArr: =..apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+                  keyOne: "hashCode"
+                  keyTwo: "num"
+                  valueOne: $var2.parent.hashCode
+                  valueTwo: $var2.dataObject.length
+                dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.procedureCodeList
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: procedureCodeTag
+    effectiveDateClick:
+      - actionType: evalObject #android use calendar init
+        object:
+          - .BaseComponents.calendarDate.year@: ""
+          - .BaseComponents.calendarDate.month@: ""
+          - .BaseComponents.calendarDate.day@: ""
+          - .BaseComponents.calendarDate.monthName@: ""
+          - .BaseComponents.calendarDate.todayDate@: ""
+          - .BaseComponents.calendarDate.flag@: ""
+          - .BaseComponents.calendarDate.dayLable@: []
+          - .BaseComponents.year@: []
+          - .BaseComponents.flag: ""
+          #生成年份
+          - =.builtIn.date.generateYear:
+              dataIn:
+                last: 121
+                next: 10
+              dataOut: BaseComponents.year
+      - actionType: evalObject #android use calendar init
+        object: .BaseComponents.getDate
+      - actionType: evalObject #android use calendar init
+        object: .BaseComponents.getShow
+      - actionType: evalObject
+        object:
+          - ..calendarDate@: =.BaseComponents.calendarDate
+      - actionType: evalObject #IOS use calendar init
+        object:
+          - =.builtIn.date.getMonth:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.month
+          - =.builtIn.date.getYear:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.year
+          - =.builtIn.date.getDate:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.day
+      - actionType: evalObject #IOS use calendar init
+        object:
+          - =.builtIn.date.calendarArray:
+              dataIn:
+                year: =.ChargeEntry.calendarDate.year
+                month: =.ChargeEntry.calendarDate.month
+                today: =.ChargeEntry.calendarDate.day
+                blockPastTime: =.Global.formData.blockPastTime
+              dataOut: ChargeEntry.calendarDate.dayLable
+          - =.builtIn.date.transformMonth:
+              dataIn:
+                month: =.ChargeEntry.calendarDate.month
+              dataOut: ChargeEntry.calendarDate.monthName
+          - =.builtIn.date.ShowDateByNumber:
+              dataIn:
+                year: =.ChargeEntry.calendarDate.year
+                month: =.ChargeEntry.calendarDate.month
+                day: =.ChargeEntry.calendarDate.day
+                formatType: "M/D/Y"
+              dataOut: ChargeEntry.calendarDate.todayDate
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: effectiveDate
+      - actionType: popUp
+        popUpView: effectiveDate
+    expirationDateClick:
+      - actionType: evalObject #IOS use calendar init
+        object:
+          - ..calendarDate.month@: =..formData.tempDate.month
+          - ..calendarDate.year@: =..formData.tempDate.year
+          - ..calendarDate.day@: =..formData.tempDate.day
+          - =.builtIn.date.calendarArray:
+              dataIn:
+                year: =..formData.tempDate.year
+                month: =..formData.tempDate.month
+                today: =..formData.tempDate.day
+                blockPastTime: =.Global.formData.blockPastTime
+              dataOut: ChargeEntry.calendarDate.dayLable
+          - =.builtIn.date.transformMonth:
+              dataIn:
+                month: =..formData.tempDate.month
+              dataOut: ChargeEntry.calendarDate.monthName
+          - =.builtIn.date.ShowDateByNumber:
+              dataIn:
+                year: =..formData.tempDate.year
+                month: =..formData.tempDate.month
+                day: =..formData.tempDate.day
+                formatType: "M/D/Y"
+              dataOut: ChargeEntry.calendarDate.todayDate
+          - .BaseComponents.calendarDate.year@: =..formData.tempDate.year
+          - .BaseComponents.calendarDate.month@: =..formData.tempDate.month
+          - .BaseComponents.calendarDate.day@: =..formData.tempDate.day
+          - .BaseComponents.calendarDate.monthName@: =.ChargeEntry.calendarDate.monthName
+          - .BaseComponents.calendarDate.todayDate@: =.ChargeEntry.formData.tempDate.date
+          - .BaseComponents.calendarDate.dayLable@: =.ChargeEntry.calendarDate.dayLable
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: expirationDate
+      - actionType: popUp
+        popUpView: expirationDate
+    fromDateClick:
+      - actionType: evalObject #android use calendar init
+        object:
+          - .BaseComponents.calendarDate.year@: ""
+          - .BaseComponents.calendarDate.month@: ""
+          - .BaseComponents.calendarDate.day@: ""
+          - .BaseComponents.calendarDate.monthName@: ""
+          - .BaseComponents.calendarDate.todayDate@: ""
+          - .BaseComponents.calendarDate.flag@: ""
+          - .BaseComponents.calendarDate.dayLable@: []
+          - .BaseComponents.year@: []
+          - .BaseComponents.flag: ""
+          #生成年份
+          - =.builtIn.date.generateYear:
+              dataIn:
+                last: 121
+                next: 10
+              dataOut: BaseComponents.year
+      - actionType: evalObject #android use calendar init
+        object: .BaseComponents.getDate
+      - actionType: evalObject #android use calendar init
+        object: .BaseComponents.getShow
+      - actionType: evalObject
+        object:
+          - ..calendarDate@: =.BaseComponents.calendarDate
+      - actionType: evalObject #IOS use calendar init
+        object:
+          - =.builtIn.date.getMonth:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.month
+          - =.builtIn.date.getYear:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.year
+          - =.builtIn.date.getDate:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.day
+      - actionType: evalObject #IOS use calendar init
+        object:
+          - =.builtIn.date.calendarArray:
+              dataIn:
+                year: =.ChargeEntry.calendarDate.year
+                month: =.ChargeEntry.calendarDate.month
+                today: =.ChargeEntry.calendarDate.day
+                blockPastTime: =.Global.formData.blockPastTime
+              dataOut: ChargeEntry.calendarDate.dayLable
+          - =.builtIn.date.transformMonth:
+              dataIn:
+                month: =.ChargeEntry.calendarDate.month
+              dataOut: ChargeEntry.calendarDate.monthName
+          - =.builtIn.date.ShowDateByNumber:
+              dataIn:
+                year: =.ChargeEntry.calendarDate.year
+                month: =.ChargeEntry.calendarDate.month
+                day: =.ChargeEntry.calendarDate.day
+                formatType: "M/D/Y"
+              dataOut: ChargeEntry.calendarDate.todayDate
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: fromDate
+      - actionType: popUp
+        popUpView: fromDate
+    toClick:
+      - actionType: evalObject #android use calendar init
+        object:
+          - .BaseComponents.calendarDate.year@: ""
+          - .BaseComponents.calendarDate.month@: ""
+          - .BaseComponents.calendarDate.day@: ""
+          - .BaseComponents.calendarDate.monthName@: ""
+          - .BaseComponents.calendarDate.todayDate@: ""
+          - .BaseComponents.calendarDate.flag@: ""
+          - .BaseComponents.calendarDate.dayLable@: []
+          - .BaseComponents.year@: []
+          - .BaseComponents.flag: ""
+          #生成年份
+          - =.builtIn.date.generateYear:
+              dataIn:
+                last: 121
+                next: 10
+              dataOut: BaseComponents.year
+      - actionType: evalObject #android use calendar init
+        object: .BaseComponents.getDate
+      - actionType: evalObject #android use calendar init
+        object: .BaseComponents.getShow
+      - actionType: evalObject
+        object:
+          - ..calendarDate@: =.BaseComponents.calendarDate
+      - actionType: evalObject #IOS use calendar init
+        object:
+          - =.builtIn.date.getMonth:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.month
+          - =.builtIn.date.getYear:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.year
+          - =.builtIn.date.getDate:
+              dataIn:
+              dataOut: ChargeEntry.calendarDate.day
+      - actionType: evalObject #IOS use calendar init
+        object:
+          - =.builtIn.date.calendarArray:
+              dataIn:
+                year: =.ChargeEntry.calendarDate.year
+                month: =.ChargeEntry.calendarDate.month
+                today: =.ChargeEntry.calendarDate.day
+                blockPastTime: =.Global.formData.blockPastTime
+              dataOut: ChargeEntry.calendarDate.dayLable
+          - =.builtIn.date.transformMonth:
+              dataIn:
+                month: =.ChargeEntry.calendarDate.month
+              dataOut: ChargeEntry.calendarDate.monthName
+          - =.builtIn.date.ShowDateByNumber:
+              dataIn:
+                year: =.ChargeEntry.calendarDate.year
+                month: =.ChargeEntry.calendarDate.month
+                day: =.ChargeEntry.calendarDate.day
+                formatType: "M/D/Y"
+              dataOut: ChargeEntry.calendarDate.todayDate
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: toDate
+      - actionType: popUp
+        popUpView: toDate
+    # Service Facility Location Information
+
+    checkBoxUsePath:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                    string2: "Use current"
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxUseClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                    string2: "Use current"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect@: ""
+                  - ..formData.useCurrentShow@: "none"
+                  - ..formData.enterManuallyShow@: "none"
+                  - ..formData.selectFacilityShow@: "none"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect@: "Use current"
+                  - ..formData.useCurrentShow@: "block"
+                  - ..formData.enterManuallyShow@: "none"
+                  - ..formData.selectFacilityShow@: "none"
+
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: ServiceTag
+    checkBoxSelectPath:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                    string2: "Select facility"
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+
+    checkBoxSelectClick:
+      - actionType: evalObject
+        object:
+          - ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.selectedFacility@: =..formData.facilityDM.0
+          - ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.Location@: =..formData.locationDM.0
+          - =.builtIn.array.getValueByKey:
+              dataIn:
+                array: =..apiRequest.allLocation.docQueryResp.doc
+                key1: "name.data.basicInfo.medicalFacilityName"
+                value: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.Location
+                key2: "name.data.basicInfo"
+              dataOut: ChargeEntry.formData.currentBasicInfo
+      - actionType: evalObject
+        object:
+          - ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo@:
+              facilityName: =.Global.currentFacilityDoc.name.data.basicInfo.medicalFacilityName
+              Location: =..formData.currentBasicInfo.medicalFacilityName
+              address: ""
+              City: =..formData.currentBasicInfo.city
+              County: =..formData.currentBasicInfo.county
+              State: =..formData.currentBasicInfo.state
+              ZipCode: =..formData.currentBasicInfo.zipCode
+              NPI: =..formData.currentBasicInfo.NPI
+              FacilityID: =..formData.currentBasicInfo.locationID
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..formData.currentBasicInfo.addressFirstLine
+                - ","
+                - =..formData.currentBasicInfo.addressSecondLine
+              dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.address
+
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                    string2: "Select facility"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect@: ""
+                  - ..formData.useCurrentShow@: "none"
+                  - ..formData.enterManuallyShow@: "none"
+                  - ..formData.selectFacilityShow@: "none"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect@: "Select facility"
+                  - ..formData.useCurrentShow@: "none"
+                  - ..formData.enterManuallyShow@: "none"
+                  - ..formData.selectFacilityShow@: "block"
+
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: ServiceTag
+
+    checkBoxManuallyPath:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                    string2: "Enter Manually"
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+
+    checkBoxManuallyClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                    string2: "Enter Manually"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect@: ""
+                  - ..formData.useCurrentShow@: "none"
+                  - ..formData.enterManuallyShow@: "none"
+                  - ..formData.selectFacilityShow@: "none"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect@: "Enter Manually"
+                  - ..formData.useCurrentShow@: "none"
+                  - ..formData.enterManuallyShow@: "block"
+                  - ..formData.selectFacilityShow@: "none"
+
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: ServiceTag
+    facilityChange:
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.getValueByKey:
+              dataIn:
+                array: =..apiRequest.allFacility.docQueryResp.doc
+                key1: "name.data.basicInfo.medicalFacilityName"
+                value: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.selectedFacility
+                key2: "name.data.basicInfo"
+              dataOut: ChargeEntry.formData.currentBasicInfo
+          - =.builtIn.array.getValueByKey:
+              dataIn:
+                array: =..apiRequest.allFacility.docQueryResp.doc
+                key1: "name.data.basicInfo.medicalFacilityName"
+                value: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.selectedFacility
+                key2: bsig
+              dataOut: ChargeEntry.formData.currentBsig
+          - ..apiRequest.allLocation.docQueryReq.id@: =..formData.currentBsig
+          - =..apiRequest.allLocation.docAPI.get: ""
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.getDataByPath:
+              dataIn:
+                objArr: =..apiRequest.allLocation.docQueryResp.doc
+                path: "name.data.basicInfo.medicalFacilityName"
+              dataOut: ChargeEntry.formData.locationDM
+      - actionType: evalObject
+        object:
+          - ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.Location@: =..formData.locationDM.0
+          - =.builtIn.array.getValueByKey:
+              dataIn:
+                array: =..apiRequest.allLocation.docQueryResp.doc
+                key1: "name.data.basicInfo.medicalFacilityName"
+                value: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.Location
+                key2: "name.data.basicInfo"
+              dataOut: ChargeEntry.formData.currentBasicInfo
+      - actionType: evalObject
+        object:
+          - ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo@:
+              facilityName: =.Global.currentFacilityDoc.name.data.basicInfo.medicalFacilityName
+              Location: =..formData.currentBasicInfo.medicalFacilityName
+              address: ""
+              City: =..formData.currentBasicInfo.city
+              County: =..formData.currentBasicInfo.county
+              State: =..formData.currentBasicInfo.state
+              ZipCode: =..formData.currentBasicInfo.zipCode
+              NPI: =..formData.currentBasicInfo.NPI
+              FacilityID: =..formData.currentBasicInfo.locationID
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..formData.currentBasicInfo.addressFirstLine
+                - ","
+                - =..formData.currentBasicInfo.addressSecondLine
+              dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.address
+          - ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.facilityName@: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.selectedFacility
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: selectFacilityTag
+
+    locationChange:
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.getValueByKey:
+              dataIn:
+                array: =..apiRequest.allLocation.docQueryResp.doc
+                key1: "name.data.basicInfo.medicalFacilityName"
+                value: =..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.Location
+                key2: "name.data.basicInfo"
+              dataOut: ChargeEntry.formData.currentBasicInfo
+      - actionType: evalObject
+        object:
+          - ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo@:
+              facilityName: =.Global.currentFacilityDoc.name.data.basicInfo.medicalFacilityName
+              Location: =..formData.currentBasicInfo.medicalFacilityName
+              address: ""
+              City: =..formData.currentBasicInfo.city
+              County: =..formData.currentBasicInfo.county
+              State: =..formData.currentBasicInfo.state
+              ZipCode: =..formData.currentBasicInfo.zipCode
+              NPI: =..formData.currentBasicInfo.NPI
+              FacilityID: =..formData.currentBasicInfo.locationID
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..formData.currentBasicInfo.addressFirstLine
+                - ","
+                - =..formData.currentBasicInfo.addressSecondLine
+              dataOut: ChargeEntry.apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo.address
+
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: selectFacilityTag
+    btnClick:
+      # 处理Diagnosis
+      - actionType: evalObject
+        object:
+          # 同步线上
+          - =.ChargeEntry.apiRequest.diagnosesDoc.docAPI.store: ""
+          # 更新本地
+          - .Global.formData.providerDoc.diagnosesDoc@: =.ChargeEntry.apiRequest.diagnosesDoc.docResp.doc
+      - actionType: evalObject
+        object:
+          - ..apiRequest.superbillDoc.docReq.reid@: =.Global.roomInfo.edge.id
+
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                    string2: "Use current"
+              - actionType: evalObject
+                object:
+                  # 清空Select facility
+                  - ? ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo@
+                    : City: ""
+                      County: ""
+                      FacilityID: ""
+                      Location: ""
+                      NPI: ""
+                      State: ""
+                      ZipCode: ""
+                      address: ""
+                      facilityName: ""
+                      selectedFacility: ""
+                  # 清空 Enter Manually
+                  - ? ..apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo@
+                    : City: ""
+                      County: ""
+                      FacilityID: ""
+                      NPI: ""
+                      State: ""
+                      ZipCode: ""
+                      address: ""
+                      facilityName: ""
+
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.superbillDoc.docReq.name.data.serviceFacilitySelect
+                            string2: "Select facility"
+                      - actionType: evalObject
+                        object:
+                          # 清空 Enter Manually
+                          - ? ..apiRequest.superbillDoc.docReq.name.data.manuallyFacilityInfo@
+                            : City: ""
+                              County: ""
+                              FacilityID: ""
+                              NPI: ""
+                              State: ""
+                              ZipCode: ""
+                              address: ""
+                              facilityName: ""
+                      - actionType: evalObject
+                        object:
+                          # 清空Select facility
+                          - ? ..apiRequest.superbillDoc.docReq.name.data.selectFacilityInfo@
+                            : City: ""
+                              County: ""
+                              FacilityID: ""
+                              Location: ""
+                              NPI: ""
+                              State: ""
+                              ZipCode: ""
+                              address: ""
+                              facilityName: ""
+                              selectedFacility: ""
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: evalObject
+        object:
+          - =.builtIn.utils.createAuditLog:
+              dataIn:
+                actionTypeCode: .ActionTypeCode.create
+                recordTypeCode: .DocType.Superbill
+                eid: =.Global.formData.currentFacility.relationEdge.id
+
+                user: =.Global.MyProfile.name.data.fullName
+                userId: =.Global.currentUser.vertex.id
+                targetUserId: =.Global.formData.auditLog.patientId
+                accessPort: provider
+              dataOut: Global.formData.auditLog.result
+
+      - actionType: evalObject
+        object:
+          - =.ChargeEntry.apiRequest.superbillDoc.docAPI.store: ""
+          - .Global.formData.superbillComplete@: true
+          - .Global.formData.providerDoc.superbillDoc@: =..apiRequest.superbillDoc.docResp.doc
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.unPageName
+                    string2: ""
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.array.has:
+                          dataIn:
+                            object: =.ChargeEntry.formData.routeList
+                            value: "MoreOptions"
+                      - goto: MoreOptions
+                      - goto: =.Global.formData.lastPage
+
+              - goto: =.Global.formData.unPageName
+
+  style:
+    auto:
+      width: "auto"
+      height: "auto"
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      color: "#333333"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+
+    secondBox:
+      width: "0.94"
+      height: "auto"
+      marginLeft: "0.04"
+      overflow: hidden
+    blockBox:
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    secondLeftLabel:
+      fontSize: .Nfont.h14
+      color: "#333333"
+      height: "auto"
+      width: "0.683"
+      fontWeight: "600"
+      display: "inline-block"
+      verticalAlign: middle
+    secondRightLabel:
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      height: "auto"
+      width: "auto"
+      display: "inline-block"
+      verticalAlign: middle
+      textDecoration: underline
+    diagnosisList:
+      width: "0.92"
+      margin: "0"
+      height: "auto"
+    diagnosisListItem:
+      width: "0.92"
+      height: "auto"
+      marginLeft: "0"
+      marginTop: "0.0184729"
+    diagnosisValue:
+      width: "0.92"
+      height: "auto"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      lineHeight: "2.093596vh"
+      wordBreak: break-word
+    dividingLine:
+      marginTop: "0.0258620"
+      width: "1"
+      height: "2px"
+      backgroundColor: "#dedede"
+    inputTitle:
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+      width: "0.92"
+      marginTop: "0.01724137"
+      textAlign:
+        x: left
+    input:
+      marginTop: "0.009852"
+      height: "0.03694"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+      textIndent: "12px"
+
+    inputSecondTitle:
+      display: "inline-block"
+      width: "0.8266666666"
+      height: "auto"
+      color: "#333333"
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+    tipsNum:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+    addLabel:
+      marginLeft: "0.6666666666"
+      marginTop: "0.01724137"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      height: "auto"
+      width: "auto"
+      textDecoration: underline
+    inlineBlock:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+      boxSizing: border-box
+    inputInlineTitle:
+      width: "auto"
+      height: "auto"
+      color: "#333333"
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+    inputInline:
+      marginTop: "0.01"
+      width: "0.2"
+      height: "0.0369458"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      borderWidth: "1"
+      borderRadius: "4"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      textIndent: "8px"
+    dividingSecondLine:
+      marginTop: "0.0246305"
+      marginBottom: "0.0246305"
+      width: "0.92"
+      height: "auto"
+      color: "#999999"
+      fontSize: .Nfont.h12
+      textAlign:
+        x: center
+    thirdInputTitle:
+      marginTop: "0.024630"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.92"
+      fontWeight: "600"
+    dateBox:
+      marginTop: "0.009852"
+      width: "0.6"
+      height: "auto"
+      border:
+        style: 3
+      borderWidth: "1"
+      borderRadius: "4"
+      boxSizing: "border-box"
+      borderColor: "#dedede"
+      overflow: hidden
+    dateFild:
+      marginLeft: "0.032"
+      width: "0.504"
+      height: "0.037"
+      fontSize: .Nfont.h14
+
+      display: "inline-block"
+      boxSizing: "border-box"
+      border:
+        style: 1
+      verticalAlign: middle
+      backgroundColor: "0xffffff"
+      color: "0x333333"
+    dateImg:
+      display: "inline-block"
+      height: "0.0172"
+      verticalAlign: middle
+    inlineBlockLeft:
+      display: inline-block
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    inlineBlockRight:
+      display: inline-block
+      marginLeft: "0.04"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    leftTitle:
+      fontSize: .Nfont.h12
+      color: "#666666"
+      height: "auto"
+      width: "auto"
+      display: "inline-block"
+      verticalAlign: middle
+    rightValue:
+      marginLeft: "0.032"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      height: "auto"
+      width: "auto"
+      display: "inline-block"
+      verticalAlign: middle
+      fontWeight: "600"
+    symbol:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      lineHeight: "3.694vh"
+      textIndent: "0"
+      marginLeft: "0.032"
+      verticalAlign: middle
+    symbolInput:
+      marginLeft: "0.032"
+      border:
+        style: "1"
+      display: "inline-block"
+      width: "0.3"
+      height: "0.03694"
+      boxSizing: border-box
+      fontSize: .Nfont.h14
+      color: "#333333"
+      verticalAlign: middle
+    searchBox:
+      marginTop: "0.009852"
+      height: "0.03694"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+
+      overflow: hidden
+    searchImg:
+      marginLeft: "0.032"
+      display: "inline-block"
+      height: "0.0197044"
+      verticalAlign: middle
+    searchInput:
+      marginTop: "0.009852"
+      height: "0.03694"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderRadius: "4"
+      borderColor: "#dededf"
+      textIndent: "8px"
+    conventionalList:
+      width: "0.92"
+      margin: "0"
+      height: auto
+    conventionalListItem:
+      width: "0.92"
+      height: "auto"
+    codeLabel:
+      marginLeft: "0.032"
+      display: "inline-block"
+      width: "0.75733333333"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      lineHeight: "2.093596vh"
+      wordBreak: break-word
+    searchShow:
+      top: "0.16748768"
+      # left: "0.04"
+      width: "auto"
+      height: "auto"
+      backgroundColor: "0xffffff"
+      borderRadius: "4"
+      boxSizing: "border-box"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      zIndex: "2000"
+    codeView:
+      display: "none"
+      width: "0.92"
+      height: "auto"
+
+      borderRadius: "4"
+      boxSizing: "border-box"
+      backgroundColor: "0xffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      zIndex: 10
+    scrollShow:
+      width: "0.9"
+      height: "0.3"
+      marginLeft: "0.02"
+      overflow: scroll
+    dataList:
+      width: "0.9"
+      height: "0.3"
+      margin: "0"
+    dataListItem:
+      width: "0.9"
+      marginTop: "0.002"
+      height: "auto"
+      overflow: hidden
+    dataListItemValue:
+      width: "0.88"
+      textIndent: 20px
+      marginTop: "0.005"
+      textAlign:
+        x: left
+        y: center
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x143459"
+      wordWrap: break-word
+    secondListBox:
+      marginLeft: "0.032"
+      display: "inline-block"
+      width: "0.75733333333"
+      color: "#333333"
+      fontSize: .Nfont.h14
+    secondListIndex:
+      fontSize: .Nfont.h14
+      color: "#333333"
+      height: "auto"
+      width: "auto"
+    autoBox:
+      height: auto
+      width: auto
+    publicList:
+      width: "0.92"
+      margin: "0"
+      height: "auto"
+    publicListItem:
+      marginTop: "0.01"
+      width: "0.92"
+      height: "auto"
+    secondValue:
+      marginTop: "0.01"
+      width: "0.75733333333"
+      color: "#666666"
+      fontSize: .Nfont.h14
+      lineHeight: "2.093596vh"
+      wordBreak: break-word
+    # ------------------------
+    checkBoxImg:
+      verticalAlign: middle
+      height: "0.019704"
+      width: "0.0426666"
+    checkBoxLabel:
+      display: "inline-block"
+      verticalAlign: middle
+      marginLeft: "0.032"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+    blockSecondBox:
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    inputPreview:
+      marginTop: "0.009852"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+      wordBreak: break-word
+      backgroundColor: "#f4f4f4"
