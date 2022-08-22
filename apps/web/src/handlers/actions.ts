@@ -152,11 +152,11 @@ const createActions = function createActions(app: App) {
           const results = u.array(result)
 
           while (results.length) {
-            let result = results.shift()
+            let result = results.pop()
 
             while (u.isArr(result)) {
               results.push(...result)
-              result = results.shift()
+              result = results.pop()
             }
 
             if (u.isObj(result)) {
