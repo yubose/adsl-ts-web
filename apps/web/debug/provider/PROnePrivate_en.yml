@@ -3,6 +3,21 @@ PROnePrivate:
 
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    - .Global.formData.lastPage@: ProviderNotes
+    # 判断本地会议是否有diagnoses存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.diagnosesDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.diagnosesDoc.docReq@: =.Global.formData.providerDoc.diagnosesDoc
+        - actionType: evalObject
+          object:
+            - =.PROnePrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+            - ..apiRequest.diagnosesDoc.docReq@: =.PROnePrivate.apiRequest.diagnosesDoc.docResp.doc
+            - .Global.formData.providerDoc.diagnosesDoc@: =.PROnePrivate.apiRequest.diagnosesDoc.docResp.doc
     - if:
         - =.Global.Note.id
         - actionType: evalObject
@@ -17,6 +32,7 @@ PROnePrivate:
           object:
             - ..apiRequest.pROne.docReq@: =.Global.formData.providerDoc.pROne
             - ..formData.selectStatus@: =..apiRequest.pROne.docReq.name.data.selectStatus
+            - ..apiRequest.pROne.docReq.name.data.superbill@: =.Global.formData.superbillComplete
         - actionType: evalObject
           object:
             - =..apiRequest.pROne.docAPI.store: ""
@@ -36,7 +52,7 @@ PROnePrivate:
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..apiRequest.pROne.docReq.name.data.diagnosis.descriptiveList
+              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
             dataOut: PROnePrivate.formData.listDatalength
 
     - actionType: evalObject
@@ -234,6 +250,25 @@ PROnePrivate:
           api: cd
           dataIn: PROnePrivate.apiRequest.pROne.docReq
           dataOut: PROnePrivate.apiRequest.pROne.docResp
+
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.Diagnoses
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            diagnosis:
+              descriptiveList: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PROnePrivate.apiRequest.diagnosesDoc.docReq
+          dataOut: PROnePrivate.apiRequest.diagnosesDoc.docResp
   components:
     - .BasePublicHeader:
       children:
@@ -382,7 +417,7 @@ PROnePrivate:
                         ..style.input:
                         width: "0.44"
             - type: label
-              text: Nature of business（ e.g. food manufacturing）
+              text: Nature of Business（ e.g. food manufacturing）
               style:
                 ..style.inputTitle:
             - type: textField
@@ -878,6 +913,7 @@ PROnePrivate:
                           dataKey: formData.diagnosis.descriptiveList.code
                           style:
                             ..style.ICDField:
+                            fontSize: .Nfont.h14
                           onInput:
                             - ..event.diSearch
                     - type: textField
@@ -886,59 +922,65 @@ PROnePrivate:
                       dataKey: formData.diagnosis.descriptiveList.description
                       style:
                         ..style.description:
+                        fontSize: .Nfont.h14
                 - type: textView
                   viewTag: CommentsTag
                   placeholder: Comments
                   dataKey: formData.diagnosis.descriptiveList.comment
                   style:
                     ..style.commentView:
-                
+                    fontSize: .Nfont.h14
             - type: label
               text: + add more
               style:
                 ..style.addBox:
               onClick:
                 - ..event.addClick
-            - type: list
+            - type: view
               viewTag: listData
-              contentType: listObject
-              listObject: ..apiRequest.pROne.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
-              iteratorVar: itemObject
               style:
-                ..style.listDataShowList:
+                height: auto
+                width: auto
                 display: ..formData.listDataflag
               children:
-                - type: listItem
-                  itemObject: ""
+                - type: list
+                  contentType: listObject
+                  listObject: .apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                  iteratorVar: itemObject
                   style:
-                    ..style.listDataShowListItem:
+                    ..style.listDataShowList:
                   children:
-                    - type: view
+                    - type: listItem
+                      itemObject: ""
                       style:
-                        ..style.showListItemBox:
+                        ..style.listDataShowListItem:
                       children:
-                        - type: image
-                          path: x.svg
+                        - type: view
                           style:
-                            ..style.xImg:
-                          onClick:
-                            - ..event.delClick
+                            ..style.showListItemBox:
+                          children:
+                            - type: image
+                              path: x.svg
+                              style:
+                                ..style.xImg:
+                              onClick:
+                                - ..event.delClick
+                            - type: label
+                              dataKey: itemObject.code
+                              style:
+                                ..style.codeValue:
+                            - type: label
+                              text: "-"
+                              style:
+                                ..style.decollator:
+                            - type: label
+                              dataKey: itemObject.description
+                              style:
+                                ..style.descriptionValue:
                         - type: label
-                          dataKey: itemObject.code
+                          dataKey: itemObject.comment
                           style:
-                            ..style.codeValue:
-                        - type: label
-                          text: "-"
-                          style:
-                            ..style.decollator:
-                        - type: label
-                          dataKey: itemObject.description
-                          style:
-                            ..style.descriptionValue:
-                    - type: label
-                      dataKey: itemObject.comment
-                      style:
-                        ..style.commentValue:
+                            ..style.commentValue:
 
             - type: view
               style:
@@ -1080,11 +1122,11 @@ PROnePrivate:
                                     ..style.dataListItemValue:
                                   onClick:
                                     - ..event.searchDataClick
-        
-            
+
         - type: view
           style:
-            ..style.box:    
+            ..style.box:
+          children:
             - type: label
               text: TREATMENT RENDERED
               style:
@@ -1260,6 +1302,93 @@ PROnePrivate:
               style:
                 ..style.input:
                 marginTop: "0.009852"
+
+            - type: label
+              text: "Plan And Recommendations"
+              dataKey:
+              style:
+                ..style.thirdInputTitle:
+            - type: label
+              text: You can add recommendations after finishing this note
+              style:
+                ..style.thirdInputTitle:
+                margin: "0"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                fontWeight: "400"
+            - type: label
+              text: "&#8226 Note"
+              style:
+                width: "0.92"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+            - type: textView
+              placeholder: "Enter here"
+              dataKey: apiRequest.pROne.docReq.name.data.planAndRecommendations
+              style:
+                ..style.thirdInput:
+
+        # - type: view
+        #   viewTag: defaultTag
+        #   style:
+        #     ..style.blockBox:
+        #     marginLeft: "0.04"
+        #   children:
+        #     - type: image
+        #       path:
+        #         ..event.checkBoxPath:
+        #       style:
+        #         ..style.img:
+        #     - type: label
+        #       text: Superbill
+        #       onClick:
+        #         # 签名处理
+        #         - actionType: saveSignature
+        #           dataObject: BLOB
+        #           dataKey: PROnePrivate.apiRequest.newSign.docReq.name.data
+        #           isEmpty: PROnePrivate.formData.whetherSign
+        #         # 保存签名
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.newSign.docReq.reid@: =.PROnePrivate.apiRequest.pROne.docReq.id
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =..formData.whetherSign
+        #                 - continue
+        #                 - =..apiRequest.newSign.docAPI.store: ""
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =..formData.temporarySignature
+        #                 - actionType: evalObject
+        #                   object:
+        #                     - ..apiRequest.pROne.docReq.name.data.signatureCtime@: =..formData.signatureTime
+        #                     - ..apiRequest.pROne.docReq.name.data.signatureId@: =..formData.temporarySignature
+        #                     - ..apiRequest.pROne.docReq.name.data.whetherSign@: false
+        #                     - ..formData.whetherSign@: false
+        #                 - actionType: evalObject
+        #                   object:
+        #                     - ..apiRequest.pROne.docReq.name.data.signatureCtime@: =..apiRequest.newSign.docResp.doc.ctime
+        #                     - ..apiRequest.pROne.docReq.name.data.signatureId@: =..apiRequest.newSign.docResp.doc.id
+        #                     - ..apiRequest.pROne.docReq.name.data.whetherSign@: =..formData.whetherSign
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.pROne.docReq.name.data.selectStatus@: =..formData.selectStatus
+        #             - =.PROnePrivate.apiRequest.pROne.docAPI.store: ""
+        #             - .Global.formData.providerDoc.pROne@: =..apiRequest.pROne.docResp.doc
+        #         - actionType: evalObject
+        #           object:
+        #             - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
+        #             - .Global.formData.parentPage@: PROnePrivate
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =..apiRequest.pROne.docReq.name.data.superbill
+        #                 - goto: SuperbillReview
+        #                 - goto: SelectSuperbill
+        #       style:
+        #         ..style.setLabel:
         - .DocPublicLine:
         - type: view
           style:
@@ -1726,7 +1855,7 @@ PROnePrivate:
           object:
             - =.builtIn.array.removeByName:
                 dataIn:
-                  object: =..apiRequest.pROne.docReq.name.data.diagnosis.descriptiveList
+                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                   key: code
                   name: =..formData.selectedDiagnosis.code
             - ..formData.listDataflag@: "block"
@@ -1736,7 +1865,80 @@ PROnePrivate:
         - actionType: popUpDismiss
           popUpView: BaseDelWarningView
 
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        # 保存
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pROne.docReq.name.data.selectStatus@: =..formData.selectStatus
+            - ..apiRequest.pROne.docReq.tage@: 1
+            - =.PROnePrivate.apiRequest.pROne.docAPI.store: ""
+
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.pROne.docResp.doc
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+      rightButton:
+        # 更新文档状态
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pROne.docReq.name.data.statusTag.name@: "Released"
+            - ..apiRequest.pROne.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.pROne.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        # 保存
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pROne.docReq.name.data.selectStatus@: =..formData.selectStatus
+            - ..apiRequest.pROne.docReq.tage@: -1
+            - =.PROnePrivate.apiRequest.pROne.docAPI.store: ""
+
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.pROne.docResp.doc
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+    - .BaseWarningView:
+      message: "Do not add repeatedly"
+      viewTag: repeatWarning
+
   event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..apiRequest.pROne.docReq.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+
     raidoPath:
       emit:
         dataKey:
@@ -1984,6 +2186,9 @@ PROnePrivate:
         funcName: hide
         viewTag: ShowTag
       - actionType: builtIn
+        funcName: redraw
+        viewTag: listData
+      - actionType: builtIn
         funcName: show
         viewTag: listData
       - actionType: builtIn
@@ -2003,11 +2208,26 @@ PROnePrivate:
                 popUpView: SearchWarning
                 wait: true
                 popUpDismiss: 2000
+
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.containingValue:
+                  dataIn:
+                    object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+                    key: code
+                    value: =..formData.diagnosis.descriptiveList.code
+              - actionType: popUp
+                popUpView: repeatWarning
+                wait: true
+                popUpDismiss: 2000
+              - continue
+
       - emit:
           actions:
             - =.builtIn.array.add:
                 dataIn:
-                  object: =..apiRequest.pROne.docReq.name.data.diagnosis.descriptiveList
+                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                   value: =..formData.diagnosis.descriptiveList
       - actionType: evalObject
         object:
@@ -2113,6 +2333,9 @@ PROnePrivate:
     macroClick:
       - actionType: evalObject
         object:
+          - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
+      - actionType: evalObject
+        object:
           - ..apiRequest.pROne.docReq.name.data.selectStatus@: =..formData.selectStatus
           - =.PROnePrivate.apiRequest.pROne.docAPI.store: ""
           - .Global.formData.providerDoc.pROne@: =..apiRequest.pROne.docResp.doc
@@ -2123,7 +2346,12 @@ PROnePrivate:
         object:
           - ..apiRequest.pROne.docReq.eid@: =.Global.currentRoom.edge.id
           - ..apiRequest.pROne.docReq.reid@: =.Global.roomInfo.edge.id
-
+      - actionType: evalObject
+        object:
+          # 同步线上
+          - =.PROnePrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+          # 更新本地
+          - .Global.formData.providerDoc.diagnosesDoc@: =.PROnePrivate.apiRequest.diagnosesDoc.docResp.doc
       #  修改type
       - actionType: evalObject
         object:
@@ -2151,20 +2379,33 @@ PROnePrivate:
 
       - actionType: evalObject
         object:
-          - if:
-              - =.builtIn.string.equal:
-                  dataIn:
-                    string1: =.Global.formData.unPageName
-                    string2: ""
-              - goto: ProviderNotes
-              - goto: =.Global.formData.unPageName
+          - =.builtIn.utils.createAuditLog:
+              dataIn:
+                actionTypeCode: .ActionTypeCode.edit
+                recordTypeCode: .DocType.pROne
+                eid: =.Global.formData.currentFacility.relationEdge.id
+                date: =.Global.formData.auditLog.startTime
+                user: =.Global.MyProfile.name.data.fullName
+                userId: =.Global.currentUser.vertex.id
+                targetUserId: =.Global.formData.auditLog.patientId
+                accessPort: provider
+              dataOut: Global.formData.auditLog.result
+
+      - actionType: evalObject
+        object:
+          - goto: MoreOptions
     releaseClick:
       #  指定 eid 和 reid
       - actionType: evalObject
         object:
           - ..apiRequest.pROne.docReq.eid@: =.Global.currentRoom.edge.id
           - ..apiRequest.pROne.docReq.reid@: =.Global.roomInfo.edge.id
-
+      - actionType: evalObject
+        object:
+          # 同步线上
+          - =.PROnePrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+          # 更新本地
+          - .Global.formData.providerDoc.diagnosesDoc@: =.PROnePrivate.apiRequest.diagnosesDoc.docResp.doc
       #  修改type
       - actionType: evalObject
         object:
@@ -2267,45 +2508,27 @@ PROnePrivate:
                 wait: true
                 popUpDismiss: 2000
               - continue
-
-      # 更新文档状态
       - actionType: evalObject
         object:
-          - ..apiRequest.pROne.docReq.name.data.statusTag.name@: "Released"
-          - ..apiRequest.pROne.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-          - ..apiRequest.pROne.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
-      # 保存
-      - actionType: evalObject
-        object:
-          - ..apiRequest.pROne.docReq.name.data.selectStatus@: =..formData.selectStatus
-          - =.PROnePrivate.apiRequest.pROne.docAPI.store: ""
-
-          - =.builtIn.array.add:
+          - =.builtIn.utils.createAuditLog:
               dataIn:
-                object: =.Global.currentMeetingDoc
-                value: =..apiRequest.pROne.docResp.doc
-
-      - actionType: evalObject
-        object:
-          .Global._nonce@:
-            =.builtIn.math.random: ""
-
-      - actionType: evalObject
-        object:
-          - if:
-              - =.builtIn.string.equal:
-                  dataIn:
-                    string1: =.Global.formData.unPageName
-                    string2: ""
-              - goto: ProviderNotes
-              - goto: =.Global.formData.unPageName
+                actionTypeCode: .ActionTypeCode.edit
+                recordTypeCode: .DocType.pROne
+                eid: =.Global.formData.currentFacility.relationEdge.id
+                date: =.Global.formData.auditLog.startTime
+                user: =.Global.MyProfile.name.data.fullName
+                userId: =.Global.currentUser.vertex.id
+                targetUserId: =.Global.formData.auditLog.patientId
+                accessPort: provider
+              dataOut: Global.formData.auditLog.result
+      - actionType: popUp
+        popUpView: dialogueTag
   style:
     scrollBox:
       width: "1"
       height: "0.846"
       overflow: scroll
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h16
       color: "#333333"
     box:
@@ -2359,7 +2582,7 @@ PROnePrivate:
       boxSizing: border-box
       borderRadius: "4"
       textIndent: "12px"
-      fontFamily: "Arial"
+
     blockBox:
       marginTop: "0.024630"
       width: "0.92"
@@ -2425,7 +2648,7 @@ PROnePrivate:
       boxSizing: border-box
       borderRadius: "4"
       padding: "6px 12px"
-      fontFamily: "Arial"
+
     dateBox:
       marginTop: "0.009852"
       width: "0.6"
@@ -2442,7 +2665,7 @@ PROnePrivate:
       width: "0.504"
       height: "0.037"
       fontSize: .Nfont.h14
-      fontFamily: "Arial"
+
       display: "inline-block"
       boxSizing: "border-box"
       border:
@@ -2493,7 +2716,7 @@ PROnePrivate:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       verticalAlign: top
@@ -2505,7 +2728,7 @@ PROnePrivate:
     signInput:
       width: "0.44"
       height: "0.037"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       textIndent: "12px"
       border:
@@ -2520,20 +2743,20 @@ PROnePrivate:
       width: "0.92"
       height: "auto"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
     fourTitle:
       marginTop: "0.0221674"
       marginLeft: "0.04"
       width: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
     searchTitle:
       marginLeft: "0.04"
       width: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
     searchView:
@@ -2577,14 +2800,14 @@ PROnePrivate:
         style: 1
       fontSize: .Nfont.h12
       verticalAlign: middle
-      fontFamily: "Arial"
+
       color: "0x333333"
     objectiveFindings:
       marginTop: "0.014778"
       marginLeft: "0.04"
       width: "0.92"
       height: "0.087"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       borderColor: "#dedede"
@@ -2605,7 +2828,7 @@ PROnePrivate:
       borderRadius: "4"
       borderWidth: "1.5"
       borderColor: "#dedede"
-      fontFamily: "Arial"
+
       color: "0x333333"
     commentView:
       marginTop: "0.01"
@@ -2618,7 +2841,7 @@ PROnePrivate:
       borderRadius: "4"
       borderWidth: "1.5"
       borderColor: "#dedede"
-      fontFamily: "Arial"
+
       color: "0x333333"
       paddingTop: "6px"
     searchShow:
@@ -2635,9 +2858,10 @@ PROnePrivate:
       display: "none"
       width: "0.92"
       height: "auto"
-      fontFamily: "Arial"
+
       borderRadius: "4"
       boxSizing: "border-box"
+      backgroundColor: "0xffffff"
       boxShadow: "1px 1px 4px 1px #dededf"
       zIndex: 10
     scrollShow:
@@ -2699,7 +2923,7 @@ PROnePrivate:
       width: "0.17"
       textAlign:
         x: left
-      fontFamily: "Arial"
+
       backgroundColor: "0xffffff"
       wordWrap: break-word
       fontSize: .Nfont.h14
@@ -2714,14 +2938,14 @@ PROnePrivate:
       fontSize: .Nfont.h2
     descriptionValue:
       verticalAlign: top
-      marginLeft: "0.02"
+      marginLeft: "0.015"
       display: "inline-block"
       height: "auto"
       width: "0.64"
       textAlign:
         x: left
       backgroundColor: "0xffffff"
-      fontFamily: "Arial"
+
       wordWrap: break-word
       fontSize: .Nfont.h14
       color: "0x333333"
@@ -2731,7 +2955,7 @@ PROnePrivate:
       width: "0.845"
       height: "auto"
       color: "0x666666"
-      fontFamily: "Arial"
+
       wordWrap: break-word
       fontSize: .Nfont.h14
     signatureBox:
@@ -2869,3 +3093,17 @@ PROnePrivate:
       height: "auto"
       width: "0.92"
       color: "#333333"
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

@@ -1,0 +1,175 @@
+ChooseRooms:
+  title: "Type of service"
+  init:
+    - .SignInCheck
+
+    - ..rooms.docAPI.get
+  rooms: # 包括所有的facility和location
+    docReq:
+      ObjType: 12
+      type: .DocType.RoomProfile
+      id: .Global.ActiveLocation.bsig
+      xfname: E.bvid
+      sCondition: E.type=1100 AND E.tage>=0
+      maxcount: "100"
+      _nonce: =.Global._nonce
+      obfname: mtime
+    docRes: ""
+    docAPI:
+      get:
+        api: rd
+        dataIn: ChooseRooms.rooms.docReq
+        dataOut: ChooseRooms.rooms.docRes
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      style:
+        backgroundColor: "0x2988e6"
+    - type: view
+      style:
+        top: "0.1"
+        width: "1"
+        height: "0.08"
+        backgroundColor: "0x2988e6"
+      onClick:
+        - goto: SearchProvider
+      children:
+        - .SearchField:
+          placeholder: "Search"
+          style:
+            left: "0.04"
+            top: "0.01"
+            backgroundColor: "0xffffff"
+            textAlign:
+              x: center
+        - type: image
+          path: search.svg
+          style:
+            top: "0.02"
+            left: "0.35"
+            height: "0.03"
+    - type: view
+      style:
+        top: "0.18"
+        left: "0"
+        width: "1"
+        height: "0.82"
+      children:
+        - type: label
+          contentType: messageHidden
+          text: "No contacts added"
+          style:
+            left: "0.32"
+            top: "0.02"
+            width: "0.6"
+            height: "0.04"
+            fontSize: "18"
+            isHidden: "true"
+        - type: scrollView
+          style:
+            top: "0"
+            left: "0"
+            width: "1"
+            height: "0.76"
+            overflow: "scroll"
+            backgroundColor: "#ffffff"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..rooms.docRes.doc
+              iteratorVar: itemObject
+              style:
+                top: "0"
+                left: "0"
+                width: "1"
+                height: "0.76"
+                margin: "0"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    width: "1"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - ..providerId@: $var.bsig
+                    - actionType: updateObject
+                      dataKey: Global.formData.activeRoom
+                      dataObject: itemObject
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.data.serviceType
+                                    string2: "393219"
+                              - .Global.E2Subtype@: "393218"
+                              - continue
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.data.serviceType
+                                    string2: "655363"
+                              - .Global.E2Subtype@: "655362"
+                              - continue
+                          - if:
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: $var.name.data.serviceType
+                                    string2: "786435"
+                              - .Global.E2Subtype@: "786434"
+                              - continue
+                    - goto: MobileContacts2
+                  children:
+                    - type: label
+                      text=func: .builtIn.string.getFirstChar
+                      dataKey: itemObject.name.data.roomName
+                      style:
+                        top: "0.0275"
+                        left: "0.08"
+                        height: "0.045"
+                        width: "0.1"
+                        backgroundColor: "#ffc0cb"
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        textAlign:
+                          x: center
+                          y: center
+                        zIndex: 100
+                    - type: label
+                      dataKey: itemObject.name.data.roomName
+                      style:
+                        left: "0.23"
+                        height: "0.04"
+                        top: "0.012"
+                        textAlign:
+                          y: center
+                        width: "0.75"
+
+                        fontSize: .Nfont.h3
+                        zIndex: 100
+                        overflow: hidden
+                        whiteSpace: nowrap
+                    - type: label
+                      dataKey: itemObject.name.data.service
+                      style:
+                        left: "0.23"
+                        height: "0.04"
+                        top: "0.05"
+                        textAlign:
+                          y: center
+                        width: "0.4"
+
+                        fontSize: .Nfont.h1
+                        zIndex: 100

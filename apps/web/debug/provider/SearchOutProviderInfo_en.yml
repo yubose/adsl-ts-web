@@ -1,5 +1,5 @@
 SearchOutProviderInfo:
-  title: "Provider information"
+  title: "Provider Information"
   pageNumber: ""
   init:
     - .SignInCheck
@@ -206,30 +206,33 @@ SearchOutProviderInfo:
           api: cd
           dataIn: apiRequest.sendNotification.document
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: evalObject
-          object:
-            - .Global.ProfileType@: =.DocType.DoctorProfile
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-        - actionType: updateObject
-          dataKey: Global.temporaryId
-          dataObject: {}
-    - .HeaderRightAdd:
-      imgPath: qrCodeWhilte.svg
-      onClick:
-        - actionType: evalObject
-          object:
-            - .Global.formData.currentProviderQRCode@: =.Global.temporaryId
-            - goto: ProviderQRCode
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - .Global.ProfileType@: =.DocType.DoctorProfile
+            - actionType: updateObject
+              dataKey: Global.temporaryId
+              dataObject: {}
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: qrCodeWhilte.svg
+          style:
+            height: "0.0246305"
+          onClick:
+            - actionType: evalObject
+              object:
+                - .Global.formData.currentProviderQRCode@: =.Global.temporaryId
+                - goto: ProviderQRCode
     #  body
     - type: view
       style:
         width: "1"
-        marginTop: "0.1"
         left: "0"
         height: "auto"
         backgroundColor: "0xffffff"
@@ -260,7 +263,7 @@ SearchOutProviderInfo:
                 textAlign:
                   x: center
                 fontSize: .Nfont.h18
-                fontFamily: "Arial"
+
                 fontWeight: "600"
                 color: "0x4B4B4B"
         - type: label
@@ -278,7 +281,7 @@ SearchOutProviderInfo:
               y: center
               x: center
             overflow: hidden
-            textOverflow: ellipsis
+            text-overflow: ellipsis
             whiteSpace: nowrap
         - type: view
           style:
@@ -788,7 +791,7 @@ SearchOutProviderInfo:
                 marginTop: "0.01"
               children:
                 - type: label
-                  text: "Specialty and board certified:"
+                  text: "Specialty & Board Certified:"
                   style:
                     color: "0x333333"
                     fontWeight: "400"
@@ -988,7 +991,7 @@ SearchOutProviderInfo:
                 marginTop: "0"
               children:
                 - type: label
-                  text: "Education and training:"
+                  text: "Education & Training:"
                   style:
                     color: "0x333333"
                     fontWeight: "400"
@@ -1094,9 +1097,9 @@ SearchOutProviderInfo:
                             - actionType: updateObject
                               dataKey: Global.formData.temporaryFacilityId
                               dataObject: itemObject
-                            - actionType: updateObject
-                              dataKey: Global.currentFacility
-                              dataObject: itemObject
+                            # - actionType: updateObject
+                            #   dataKey: Global.currentFacility
+                            #   dataObject: itemObject
                             - goto: ProviderFacilityInfo
                         - type: label
                           text: Accepted Insurance
@@ -1114,9 +1117,9 @@ SearchOutProviderInfo:
                             - actionType: updateObject
                               dataKey: Global.formData.facilityProfileInfo
                               dataObject: itemObject
-                            - actionType: updateObject
-                              dataKey: Global.currentFacility
-                              dataObject: itemObject
+                            # - actionType: updateObject
+                            #   dataKey: Global.currentFacility
+                            #   dataObject: itemObject
                             - goto: AcceptedInsurance
                         - type: view
                           style:
@@ -1133,9 +1136,9 @@ SearchOutProviderInfo:
                             - actionType: updateObject
                               dataKey: Global.formData.temporaryFacilityId
                               dataObject: itemObject
-                            - actionType: updateObject
-                              dataKey: Global.currentFacility
-                              dataObject: itemObject
+                            # - actionType: updateObject
+                            #   dataKey: Global.currentFacility
+                            #   dataObject: itemObject
                             - goto: ProviderFacilityInfo
     - type: popUp
       viewTag: confirmView
@@ -1170,7 +1173,7 @@ SearchOutProviderInfo:
                     marginTop: "0.02"
                     textAlign:
                       x: "center"
-                    fontFamily: "Arial"
+
                     color: "#4B4B4B"
                     fontWeight: "500"
                     fontSize: "2vh"
@@ -1201,21 +1204,18 @@ SearchOutProviderInfo:
                         - type: label
                           dataKey: formData.providerInfo.fullName
                           style:
-                            fontFamily: "Arial"
                             color: "#4B4B4B"
                             fontWeight: "500"
                             fontSize: "1.5vh"
                         - type: label
                           dataKey: formData.providerInfo.specialty.0.specialty
                           style:
-                            fontFamily: "Arial"
                             color: "#4B4B4B"
                             fontWeight: "500"
                             fontSize: "1.5vh"
                         - type: label
                           dataKey: facilityProfile.docRes.doc.0.name.data.basicInfo.medicalFacilityName
                           style:
-                            fontFamily: "Arial"
                             color: "#4B4B4B"
                             fontWeight: "500"
                             fontSize: "1.5vh"
@@ -1232,7 +1232,7 @@ SearchOutProviderInfo:
                   style:
                     color: "#007aff"
                     fontSize: "1.7vh"
-                    fontFamily: "Arial"
+
                     width: "0.36"
                     height: "0.05"
                     borderRight: "1px solid #3f3f3f"
@@ -1248,7 +1248,7 @@ SearchOutProviderInfo:
                   style:
                     color: "#007aff"
                     fontSize: "1.7vh"
-                    fontFamily: "Arial"
+
                     width: "0.36"
                     height: "0.05"
                     fontWeight: 500
@@ -1297,7 +1297,7 @@ SearchOutProviderInfo:
               text: "Successfully!"
               style:
                 color: "#171725"
-                fontFamily: "Arial"
+
                 fontSize: "1.8vh"
                 marginTop: "0.02"
 
@@ -1351,7 +1351,7 @@ SearchOutProviderInfo:
                 marginTop: "0.029"
                 fontWeight: "600"
                 fontSize: .Nfont.h16
-                fontFamily: "Arial"
+
                 color: "0x4B4B4B"
                 textAlign:
                   x: center
@@ -1455,23 +1455,23 @@ SearchOutProviderInfo:
                     - actionType: evalObject
                       object:
                         - =.SearchOutProviderInfo.apiRequest.invite.edgeAPI.store: ""
-#                        - =.builtIn.FCM.getAPPID:
-#                            dataIn:
-#                              appName: =.TargetApp.provider
-#                            dataOut: FirebaseToken.edge.evid
-#                        - actionType: evalObject
-#                          object: .Global.updateJwt
-#                        - =.Global.jwt.edgeAPI.store: ""
+                        #                        - =.builtIn.FCM.getAPPID:
+                        #                            dataIn:
+                        #                              appName: =.TargetApp.provider
+                        #                            dataOut: FirebaseToken.edge.evid
+                        #                        - actionType: evalObject
+                        #                          object: .Global.updateJwt
+                        #                        - =.Global.jwt.edgeAPI.store: ""
                         - ..apiRequest.sendNotification.document.fid@: =.Global.prodAPPID
                         - ..apiRequest.sendNotification.document.eid@: =..apiRequest.invite.edgeRes.edge.id
                         - =..apiRequest.sendNotification.docAPI.store: ""
-#                        - =.builtIn.FCM.getAPPID:
-#                            dataIn:
-#                              appName: =.AppName
-#                            dataOut: FirebaseToken.edge.evid
-#                        - actionType: evalObject
-#                          object: .Global.updateJwt
-#                        - =.Global.jwt.edgeAPI.store: ""
+                    #                        - =.builtIn.FCM.getAPPID:
+                    #                            dataIn:
+                    #                              appName: =.AppName
+                    #                            dataOut: FirebaseToken.edge.evid
+                    #                        - actionType: evalObject
+                    #                          object: .Global.updateJwt
+                    #                        - =.Global.jwt.edgeAPI.store: ""
                     - actionType: popUpDismiss
                       popUpView: uploading
                     - actionType: popUp

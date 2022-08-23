@@ -40,7 +40,7 @@ InboxFolder:
     # - if:
     #   - =.builtIn.string.equal:
     #       dataIn:
-    #         string1: =.Global.emailNumber
+    #         string1: =.Global.formData.emailNumber
     #         string2: "0"
     #   - .Global.inboxHidden@: "true"
     #   - .Global.inboxHidden@: "false"
@@ -278,7 +278,6 @@ InboxFolder:
                     fontSize: .Nfont.h12
                     textAlign:
                       x: left
-                    fontFamily: PMingLiU
 
                 - type: label
                   text: 1:30 PM
@@ -292,7 +291,7 @@ InboxFolder:
                     fontSize: "13"
                     textAlign:
                       x: left
-                    fontFamily: PMingLiU
+
                 - type: image
                   path: pin.svg
                   style:

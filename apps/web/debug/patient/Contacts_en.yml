@@ -1,0 +1,221 @@
+Contacts:
+  pageNumber: "350"
+  title: Contacts
+  init:
+    - .SignInCheck
+    - ..listData.get  
+    - if:
+      - ..listData.contactList.0.doc.0
+      - continue
+      - =.builtIn.checkField:
+          dataIn:
+            contentType: messageHidden
+            wait: 100   
+  save:
+    - =.Contacts.contactInfo.docAPI.store: ""  
+  searchData:
+    searchContact: ""
+  listData:
+    contactList:
+      - .Document:
+        name:
+          data:
+            firstName: "Test"
+            isFavorite: false
+    get:
+      .DocAPI.get : ""
+      api: rd
+      dataKey: listData.contactList
+      ids:
+        - .Global.rootNotebookID
+      xfname: eid
+      # type: .DocType.Contact
+      maxcount : "500"
+      obfname : "mtime" 
+      sCondition: .DocType.GetAllContact
+      _nonce: =.Global._nonce
+  contactInfo:
+    document: ""
+    docAPI:
+      .DocAPI: "" 
+      store:
+        api: cd
+        dataKey: Contacts.contactInfo.document   
+  generalInfo:
+    value: true  
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+      onClick:
+        - goto: PatientDashboard
+    - .HeaderRightImg:
+      path: addMeeting.svg
+      style: 
+        width: "0.08"
+        height: "0.04"
+      onClick:
+        - goto: AddContact
+    - type: view
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+      children:
+        - type: view
+          style:
+            height: "0.1"
+        - type: view
+          style:
+            top: "0.095"
+            backgroundColor: "0x2887e5"
+            height: "0.05"
+            width: "1"
+            zIndex: "10"
+          children:
+            - type: label
+              text: "Contacts"
+              style:
+                top: "0.01"
+                left: "0.18"
+                color: "0xffffffff"
+                fontSize: "18"
+            - type: button
+              text: "Favorites"
+              onClick:
+                - goto: FavoriteContact
+              style:
+                top: "0.01"
+                left: "0.6"
+                width: "0.2"
+                height: "0.03"
+                color: "0x9cc7e6ff"
+                backgroundColor: "0x2887e5"
+                fontSize: "18"
+                border: 
+                  style: "1"
+        - type: view
+          style:
+            top: "0.15"
+            left: "0"
+            width: "1"
+            height: "0.7"
+          children:
+            - type: label
+              contentType: messageHidden
+              text: "No Contacts"
+              style:
+                left: "0"
+                top: "0.1"
+                width: "1"
+                height: "0.04"
+                color: "0x000058"
+                fontSize: "20"
+                isHidden: "true"
+                textAlign: 
+                  x: center
+            - type: list
+              contentType: listObject
+              listObject: ..listData.contactList.0.doc # to dataObject to enumerate the list
+              iteratorVar: itemObject
+              style:
+                top: "0"
+                left: "0.05"
+                width: "0.9"
+                height: "0.7"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    left: "0"
+                    width: "0.9"
+                    height: "0.1"
+                    border:
+                      style: "2"
+                    borderWidth: "1"
+                    borderColor: "0x00000011"
+                  children:
+                    - type: image
+                      viewTag: select
+                      style:
+                        top: "0.03"
+                        left: "0"
+                        height: "0.04"
+                      path: 
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..generalInfo.value
+                                      string2: $var.name.data.isFavorite
+                                - providerOn.svg
+                                - providerOff.svg
+                      onClick:
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                          dataKey: Contacts.contactInfo.document
+                          dataObject: itemObject # this must be a rootRoom
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =..generalInfo.value
+                                        string2: $var.name.data.isFavorite
+                                  - =.builtIn.object.set:
+                                      dataIn:
+                                        object: $var
+                                        key: name.data.isFavorite
+                                        value: false
+                                  - =.builtIn.object.set:
+                                      dataIn:
+                                        object: $var
+                                        key: name.data.isFavorite
+                                        value: true
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: select    
+                        - actionType: evalObject
+                          object: 
+                            - if:
+                                - =.Contacts.contactInfo.document.name.data.isFavorite
+                                - .Contacts.contactInfo.document.type@: =.DocType.ContactFav
+                                - .Contacts.contactInfo.document.type@: =.DocType.Contact
+                        - actionType: evalObject
+                          object: ..save
+                        - actionType: evalObject
+                          object: 
+                            .Global._nonce@: 
+                              =.builtIn.math.random: "" 
+                    - type: image
+                      path: drImg.png
+                      style:
+                        borderRadius: "10000"
+                        height: "0.07"
+                        top: "0.015"
+                        left: "0.16"
+                    - type: label
+                      dataKey: itemObject.name.data.firstName
+                      onClick: 
+                        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                          dataKey: Global.DocReference.document
+                          dataObject: itemObject
+                        - goto: ContactInformation
+                      style:
+                        left: "0.35"
+                        height: "0.1"
+                        width: "0.45"
+                        textAlign:
+                          y: center
+                    - type: image
+                      path: rightYellowArrow.svg
+                      style:
+                        left: "0.87"
+                        top: "0.04"
+                        height: "0.02"
+                      onClick:
+                        - goto: VideoChat

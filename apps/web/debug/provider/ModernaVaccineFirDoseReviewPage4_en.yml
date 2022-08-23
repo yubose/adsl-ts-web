@@ -26,6 +26,7 @@ ModernaVaccineFirDoseReviewPage4:
               style:
                 fontSize: .Nfont.h14
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -43,7 +44,7 @@ ModernaVaccineFirDoseReviewPage4:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "4&nbsp;/&nbsp;5"
+                      text: "4&nbsp;/&nbsp;4"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -237,12 +238,13 @@ ModernaVaccineFirDoseReviewPage4:
             ..style.btnBox:
           children:
             - type: button
-              text: Next
+              text: Done
               dataKey:
               style:
                 ..style.btn:
               onClick:
-                - goto: ModernaVaccineFirDoseReviewPage5
+                - goto: ProviderNotes
+    - .HeaderPopUpMenu:
   event:
     checkBox:
       emit:
@@ -265,7 +267,7 @@ ModernaVaccineFirDoseReviewPage4:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -286,7 +288,7 @@ ModernaVaccineFirDoseReviewPage4:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -323,7 +325,7 @@ ModernaVaccineFirDoseReviewPage4:
       width: "0.92"
       height: "0.7487"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -371,7 +373,7 @@ ModernaVaccineFirDoseReviewPage4:
       boxSizing: border-box
       border:
         style: 1
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "3"
       backgroundColor: "0xf4f4f4"
@@ -403,14 +405,14 @@ ModernaVaccineFirDoseReviewPage4:
       fontSize: .Nfont.h12
       verticalAlign: middle
       width: "0.8266"
-      heigth: "auto"
+      height: "auto"
     signClear:
       display: "inline-block"
       fontSize: .Nfont.h14
       color: "#e24445"
       verticalAlign: middle
       width: "auto"
-      heigth: "auto"
+      height: "auto"
     canvasBox:
       marginTop: "0.01"
       height: "0.128"
@@ -425,7 +427,7 @@ ModernaVaccineFirDoseReviewPage4:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

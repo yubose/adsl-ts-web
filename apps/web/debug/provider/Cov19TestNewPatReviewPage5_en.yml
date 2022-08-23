@@ -6,6 +6,7 @@ Cov19TestNewPatReviewPage5:
   init: # Page initialization
     - .SignInCheck
 
+
   components:
     - type: view
       style:
@@ -18,6 +19,7 @@ Cov19TestNewPatReviewPage5:
               style:
                 fontSize: .Nfont.h14
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -35,7 +37,7 @@ Cov19TestNewPatReviewPage5:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "5&nbsp;/&nbsp;6"
+                      text: "5&nbsp;/&nbsp;5"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -215,13 +217,12 @@ Cov19TestNewPatReviewPage5:
             ..style.btnBox:
           children:
             - type: button
-              text: Next
+              text: Done
               dataKey:
               style:
                 ..style.btn:
               onClick:
-                - goto: Cov19TestNewPatReviewPage6
-
+                - goto: ProviderNotes
   style: #Input style fragment here
     formatting:
       margin: "0"
@@ -230,7 +231,7 @@ Cov19TestNewPatReviewPage5:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -251,7 +252,7 @@ Cov19TestNewPatReviewPage5:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -288,7 +289,6 @@ Cov19TestNewPatReviewPage5:
       width: "0.92"
       height: "0.7832"
       boxSizing: border-box
-      overflow: scroll
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -310,7 +310,7 @@ Cov19TestNewPatReviewPage5:
       width: "0.92"
       boxSizing: border-box
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       color: "0x333333"
       padding: "6px 12px"
@@ -343,14 +343,14 @@ Cov19TestNewPatReviewPage5:
       fontSize: .Nfont.h12
       verticalAlign: middle
       width: "0.8266"
-      heigth: "auto"
+      height: "auto"
     signClear:
       display: "inline-block"
       fontSize: .Nfont.h14
       color: "#e24445"
       verticalAlign: middle
       width: "auto"
-      heigth: "auto"
+      height: "auto"
     canvasBox:
       marginTop: "0.01"
       height: "0.128"
@@ -364,7 +364,7 @@ Cov19TestNewPatReviewPage5:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

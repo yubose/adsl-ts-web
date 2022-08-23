@@ -3,6 +3,19 @@ InitEvalReport:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
+
+    - .Global.formData.lastPage@: ProviderNoteSelect
+    # 判断本地会议是否有diagnoses存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.diagnosesDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.diagnosesDoc.docReq@: =.Global.formData.providerDoc.diagnosesDoc
+        - actionType: evalObject
+          object:
+            - =.InitEvalReport.apiRequest.diagnosesDoc.docAPI.store: ""
+            - ..apiRequest.diagnosesDoc.docReq@: =.InitEvalReport.apiRequest.diagnosesDoc.docResp.doc
+            - .Global.formData.providerDoc.diagnosesDoc@: =.InitEvalReport.apiRequest.diagnosesDoc.docResp.doc
     #  判断medicalLicense是否为空
     - actionType: evalObject
       object:
@@ -51,21 +64,35 @@ InitEvalReport:
                 dataOut: InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.familyHistory
             - continue
         - if:
-            - =.Global.formData.patientChart.name.data.allergiesList
-            - =.builtIn.array.formatStringFill:
+            - =.builtIn.array.judgeListLength:
                 dataIn:
-                  strArr: =.Global.formData.patientChart.name.data.allergiesList
+                  array: =.Global.formData.patientChart.name.data.allergies.allergiesList
+                  len: 0
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.Global.formData.patientChart.name.data.allergies.status
+                          string2: No known allergies (including drugs)
+                    - ..apiRequest.initialEvaluationReport.docReq.name.data.allergies@: =.Global.formData.patientChart.name.data.allergies.status
+                    - continue
+            - =.builtIn.array.objArrFormatStringFill:
+                dataIn:
+                  objArr: =.Global.formData.patientChart.name.data.allergies.allergiesList
                   sfill: ";"
                 dataOut: InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.allergies
-            - continue
         - if:
-            - =.Global.formData.patientChart.name.data.medicationsList
-            - =.builtIn.array.formatStringFill:
+            - =.builtIn.string.equal:
                 dataIn:
-                  strArr: =.Global.formData.patientChart.name.data.medicationsList
+                  string1: =.Global.formData.patientChart.name.data.currentMedications.status
+                  string2: Not taking any medications
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.medications@: Not taking any medications
+            - =.builtIn.array.objArrFormatStringFill:
+                dataIn:
+                  objArr: =.Global.formData.patientChart.name.data.currentMedications.currentMedicationsList
                   sfill: ";"
                 dataOut: InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.medications
-            - continue
         # 自动填入socialHistory
         - if:
             - =.Global.formData.patientChart.name.data.socialHistory.alcohol.display
@@ -156,10 +183,21 @@ InitEvalReport:
                   - =.Global.formData.patientChart.name.data.socialHistory.personalSafety.seatBelt
                 dataOut: InitEvalReport.formData.socialHistory.personalSafety.seatBelt
             - continue
+        # - if:
+        #     - =.Global.formData.patientChart.name.data.surgeryList
+        #     - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.pastSurgicalHistory@: =.Global.formData.patientChart.name.data.surgeryList
+        #     - continue
         - if:
-            - =.Global.formData.patientChart.name.data.surgeryList
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.pastSurgicalHistory@: =.Global.formData.patientChart.name.data.surgeryList
-            - continue
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.formData.patientChart.name.data.surgicalHistory.status
+                  string2: "None"
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.pastSurgicalHistory@: "None"
+            - =.builtIn.array.objArrFormatStringFill:
+                dataIn:
+                  objArr: =.Global.formData.patientChart.name.data.surgicalHistory.surgicalHistoryList
+                  sfill: ";"
+                dataOut: InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.pastSurgicalHistory
         - =.builtIn.array.formatStringFill:
             dataIn:
               strArr: =..formData.socialHistoryList
@@ -259,6 +297,7 @@ InitEvalReport:
         - actionType: evalObject
           object:
             - ..apiRequest.initialEvaluationReport.docReq@: =.Global.formData.providerDoc.initialEvaluationReport
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.superbill@: =.Global.formData.superbillComplete
         - actionType: evalObject
           object:
             #页面进入时就创建文档
@@ -282,7 +321,7 @@ InitEvalReport:
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
             dataOut: InitEvalReport.formData.listDatalength
     - actionType: evalObject
       object:
@@ -307,25 +346,25 @@ InitEvalReport:
     - if:
         - =.builtIn.string.equal:
             dataIn:
-              string1: =.vitalNum
+              string1: =..vitalNum
               string2: "0"
         - continue
         - actionType: evalObject
           object:
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.BP@: =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.0.data1
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.HR@: =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.0.data2
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.RR@: =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.1.data1
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.PO@: =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.2.data1
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.temperature@: =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.3.data1
+            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.BP@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.0.data1
+            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.HR@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.0.data2
+            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.RR@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.1.data1
+            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.PO@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.2.data1
+            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.temperature@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.3.data1
             - =.builtIn.string.concat:
                 dataIn:
-                  - =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.4.data1
-                  - "' "
-                  - =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.4.data2
+                  - =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.5.data1
+                  - "'"
+                  - =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.5.data2
                   - '"'
                 dataOut: InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.height
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.weight@: =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.5.data1
-            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.BMI@: =.InitEvalReport.apiRequest.vital.docQueryResp.doc.0.name.data.6.data1
+            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.weight@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.6.data1
+            - .InitEvalReport.apiRequest.initialEvaluationReport.docReq.name.data.vitalSigns.BMI@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.7.data1
 
   formData: #Input data here
     signatureTime: ""
@@ -406,6 +445,9 @@ InitEvalReport:
 
   apiRequest: #Input data request here
     initialEvaluationReport:
+      deleteInfo:
+        id:
+          - =..apiRequest.initialEvaluationReport.docResp.doc.id
       docResp: ""
       docReq:
         type: .DocType.InitEvalReport
@@ -483,11 +525,15 @@ InitEvalReport:
               descriptiveList: []
               isInvolved: "" # Diagnoses的Yes or No
             planAndRecommendations: ""
+            superbill: .Global.formData.superbillComplete
       docAPI:
         store:
           api: cd
           dataIn: InitEvalReport.apiRequest.initialEvaluationReport.docReq
           dataOut: InitEvalReport.apiRequest.initialEvaluationReport.docResp
+        delet:
+          api: dx
+          dataIn: InitEvalReport.apiRequest.initialEvaluationReport.deleteInfo
     newSign:
       docResp: ""
       docReq: #DOC
@@ -507,25 +553,53 @@ InitEvalReport:
     vital:
       docQueryResp: ""
       docQueryReq:
-        id:
-          - .Global.roomInfo.edge.id
-          - .Global.roomInfo.edge.id
-        xfname: "eid,reid"
+        id: .Global.roomInfo.edge.id
+        xfname: "reid"
         type: .DocType.VitalSigns
+        obfname: ctime
+        sCondition: "ctime>1650038400"
         _nonce: =.Global._nonce
       docAPI:
         get:
           api: rd
           dataIn: InitEvalReport.apiRequest.vital.docQueryReq
           dataOut: InitEvalReport.apiRequest.vital.docQueryResp
-
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.Diagnoses
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            diagnosis:
+              descriptiveList: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: InitEvalReport.apiRequest.diagnosesDoc.docReq
+          dataOut: InitEvalReport.apiRequest.diagnosesDoc.docResp
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =..apiRequest.initialEvaluationReport.docAPI.delet: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
+            # 处理Diagnosis
+            - actionType: evalObject
+              object:
+                - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
             # 签名处理
             - actionType: saveSignature
               dataObject: BLOB
@@ -571,7 +645,7 @@ InitEvalReport:
         width: "1"
         height: "0.84"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -605,7 +679,7 @@ InitEvalReport:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordBreak: "break-word"
                 - type: label
@@ -616,7 +690,7 @@ InitEvalReport:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordBreak: "break-word"
         - type: view
@@ -731,7 +805,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
             fontSize: .Nfont.h14
@@ -760,9 +834,10 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             textIndent: 12px
+            fontSize: .Nfont.h14
         - type: label
           text: Reason For Evaluation
           style:
@@ -787,7 +862,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
             fontSize: .Nfont.h14
@@ -816,9 +891,10 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
+            fontSize: .Nfont.h14
         - type: label
           text: Past Medical History
           style:
@@ -835,7 +911,7 @@ InitEvalReport:
           style:
             marginLeft: "0.04"
             marginTop: "0.01"
-
+            fontSize: .Nfont.h14
             height: "0.087"
             width: "0.92"
             boxSizing: border-box
@@ -844,7 +920,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
         - type: label
@@ -863,7 +939,7 @@ InitEvalReport:
           style:
             marginLeft: "0.04"
             marginTop: "0.01"
-
+            fontSize: .Nfont.h14
             height: "0.0874"
             width: "0.92"
             boxSizing: border-box
@@ -872,7 +948,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
         - type: label
@@ -891,7 +967,7 @@ InitEvalReport:
           style:
             marginLeft: "0.04"
             marginTop: "0.01"
-
+            fontSize: .Nfont.h14
             height: "0.087"
             width: "0.92"
             boxSizing: border-box
@@ -900,7 +976,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
         - type: label
@@ -919,7 +995,7 @@ InitEvalReport:
           style:
             marginLeft: "0.04"
             marginTop: "0.01"
-
+            fontSize: .Nfont.h14
             height: "0.087"
             width: "0.92"
             boxSizing: border-box
@@ -928,7 +1004,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
         - type: label
@@ -947,7 +1023,7 @@ InitEvalReport:
           style:
             marginLeft: "0.04"
             marginTop: "0.01"
-
+            fontSize: .Nfont.h14
             height: "0.0874"
             width: "0.92"
             boxSizing: border-box
@@ -956,7 +1032,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
         - type: label
@@ -975,7 +1051,7 @@ InitEvalReport:
           style:
             marginLeft: "0.04"
             marginTop: "0.01"
-
+            fontSize: .Nfont.h14
             height: "0.0874"
             width: "0.92"
             boxSizing: border-box
@@ -984,7 +1060,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
         - type: label
@@ -1008,7 +1084,7 @@ InitEvalReport:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 textAlign:
@@ -1042,7 +1118,7 @@ InitEvalReport:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1060,7 +1136,6 @@ InitEvalReport:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1100,7 +1175,7 @@ InitEvalReport:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1118,7 +1193,6 @@ InitEvalReport:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1158,7 +1232,7 @@ InitEvalReport:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1176,7 +1250,6 @@ InitEvalReport:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1216,7 +1289,7 @@ InitEvalReport:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1233,7 +1306,7 @@ InitEvalReport:
                 width: "0.44"
                 height: "0.037"
                 marginLeft: "0.04"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1250,7 +1323,7 @@ InitEvalReport:
             marginTop: "0.01724"
             marginLeft: "0.04"
             width: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: textView
@@ -1282,6 +1355,7 @@ InitEvalReport:
           placeholder: Enter here
           dataKey: apiRequest.initialEvaluationReport.docReq.name.data.bloodGlucose
           style:
+            fontSize: .Nfont.h14
             marginLeft: "0.04"
             marginTop: "0.01"
             textIndent: "12px"
@@ -1293,7 +1367,7 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
         - type: label
           text: Imaging Studies
@@ -1311,7 +1385,7 @@ InitEvalReport:
           style:
             marginLeft: "0.04"
             marginTop: "0.01"
-
+            fontSize: .Nfont.h14
             height: "0.0874"
             width: "0.92"
             boxSizing: border-box
@@ -1320,14 +1394,14 @@ InitEvalReport:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
         - type: view
           style:
             width: "1"
             height: "auto"
-            overflow: "auto"
+            overflow: "hidden"
             marginTop: "0.0185"
           children:
             - type: label
@@ -1387,9 +1461,9 @@ InitEvalReport:
                             boxSizing: border-box
                             border:
                               style: 1
-                            fontSize: .Nfont.h12
+                            fontSize: .Nfont.h14
                             verticalAlign: middle
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                           onInput:
                             - actionType: evalObject
@@ -1444,6 +1518,7 @@ InitEvalReport:
                       placeholder: Description
                       dataKey: formData.diagnosis.descriptiveList.description
                       style:
+                        fontSize: .Nfont.h14
                         marginLeft: "0.02"
                         display: "inline-block"
                         height: "0.037"
@@ -1455,7 +1530,6 @@ InitEvalReport:
                         borderRadius: "4"
                         borderWidth: "1.5"
                         borderColor: "0xcdcdcd"
-                        fontFamily: "Arial"
                         color: "0x333333"
                 - type: textView
                   viewTag: CommentsTag
@@ -1471,11 +1545,9 @@ InitEvalReport:
                     borderRadius: "4"
                     borderWidth: "1.5"
                     borderColor: "0xcdcdcd"
-                    fontFamily: "Arial"
                     color: "0x333333"
                     padding: "6px 12px"
-
-                
+                    fontSize: .Nfont.h14
             - type: label
               text: + add more
               style:
@@ -1499,11 +1571,26 @@ InitEvalReport:
                           popUpView: SearchWarning
                           wait: true
                           popUpDismiss: 2000
+
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.array.containingValue:
+                                dataIn:
+                                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+                                  key: code
+                                  value: =..formData.diagnosis.descriptiveList.code
+                            - actionType: popUp
+                              popUpView: repeatWarning
+                              wait: true
+                              popUpDismiss: 2000
+                            - continue
+
                 - emit:
                     actions:
                       - =.builtIn.array.add:
                           dataIn:
-                            object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+                            object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                             value: =..formData.diagnosis.descriptiveList
                 - actionType: evalObject
                   object:
@@ -1549,7 +1636,7 @@ InitEvalReport:
                     - type: list
                       viewTag: listData
                       contentType: listObject
-                      listObject: ..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                      listObject: ..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
                       iteratorVar: itemObject
                       style:
                         width: "0.92"
@@ -1593,7 +1680,7 @@ InitEvalReport:
                                     width: "0.17"
                                     textAlign:
                                       x: left
-                                    fontFamily: "Arial"
+
                                     backgroundColor: "0xffffff"
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
@@ -1612,14 +1699,14 @@ InitEvalReport:
                                   dataKey: itemObject.description
                                   style:
                                     verticalAlign: top
-                                    marginLeft: "0.02"
+                                    marginLeft: "0.015"
                                     display: "inline-block"
                                     height: "auto"
                                     width: "0.64"
                                     textAlign:
                                       x: left
                                     backgroundColor: "0xffffff"
-                                    fontFamily: "Arial"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
                                     color: "0x333333"
@@ -1631,7 +1718,7 @@ InitEvalReport:
                                 width: "0.845"
                                 height: "auto"
                                 color: "0x666666"
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
 
@@ -1645,13 +1732,29 @@ InitEvalReport:
                 height: "auto"
                 color: "0x333333"
                 fontSize: .Nfont.h14
+            - type: label
+              text: You can add recommendations after finishing this note
+              style:
+                marginLeft: "0.04"
+                width: "0.92"
+                height: "auto"
+                color: "0x333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+            - type: label
+              text: "&#8226 Note"
+              style:
+                marginLeft: "0.04"
+                width: "0.92"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
             - type: textView
               placeholder: Enter here
               dataKey: apiRequest.initialEvaluationReport.docReq.name.data.planAndRecommendations
               style:
                 marginLeft: "0.04"
                 marginTop: "0.01"
-
+                fontSize: .Nfont.h14
                 height: "0.0874"
                 width: "0.92"
                 boxSizing: border-box
@@ -1660,9 +1763,75 @@ InitEvalReport:
                 borderRadius: "4"
                 borderWidth: "1.5"
                 borderColor: "0xdedede"
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 padding: "6px 12px"
+            # - type: view
+            #   viewTag: defaultTag
+            #   style:
+            #     ..style.blockBox:
+            #   children:
+            #     - type: image
+            #       path:
+            #         ..event.checkBoxPath:
+            #       style:
+            #         ..style.img:
+            #     - type: label
+            #       text: Superbill
+            #       onClick:
+            #         # 签名处理
+            #         - actionType: saveSignature
+            #           dataObject: BLOB
+            #           dataKey: InitEvalReport.apiRequest.newSign.docReq.name.data
+            #           isEmpty: InitEvalReport.formData.whetherSign
+            #         # 保存签名
+            #         - actionType: evalObject
+            #           object:
+            #             - ..apiRequest.newSign.docReq.reid@: =.InitEvalReport.apiRequest.initialEvaluationReport.docReq.id
+
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..formData.whetherSign
+            #                 - actionType: evalObject
+            #                   object:
+            #                     - ..apiRequest.newSign.docResp.doc.id@: ""
+            #                     - ..apiRequest.newSign.docResp.doc.ctime@: ""
+            #                 - =..apiRequest.newSign.docAPI.store: ""
+
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..formData.temporarySignature
+            #                 - actionType: evalObject
+            #                   object:
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureTime@: =..formData.signatureTime
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureId@: =..formData.temporarySignature
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.whetherSign@: false
+            #                     - ..formData.whetherSign@: false
+            #                 - actionType: evalObject
+            #                   object:
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureTime@: =..apiRequest.newSign.docResp.doc.ctime
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureId@: =..apiRequest.newSign.docResp.doc.id
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.whetherSign@: =..formData.whetherSign
+            #         - actionType: evalObject
+            #           object:
+            #             - =.InitEvalReport.apiRequest.initialEvaluationReport.docAPI.store: ""
+            #             - .Global.formData.providerDoc.initialEvaluationReport@: =..apiRequest.initialEvaluationReport.docResp.doc
+            #         - actionType: evalObject
+            #           object:
+            #             # 更新本地
+            #             - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
+            #             - .Global.formData.parentPage@: InitEvalReport
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..apiRequest.initialEvaluationReport.docReq.name.data.superbill
+            #                 - goto: SuperbillReview
+            #                 - goto: SelectSuperbill
+            #       style:
+            #         ..style.setLabel:
+
             - type: view
               viewTag: searchShowTag
               style:
@@ -1683,17 +1852,18 @@ InitEvalReport:
                     display: "none"
                     width: "0.92"
                     height: "auto"
-                    fontFamily: "Arial"
+
                     zIndex: 10
                     borderRadius: "4"
                     boxSizing: "border-box"
+                    backgroundColor: "0xffffff"
                     boxShadow: "1px 1px 4px 1px #dededf"
                   children:
                     - type: view
                       viewTag: ShowTag
                       style:
                         width: "0.9"
-                        height: "0.27"
+                        height: "0.25"
                         marginLeft: "0.02"
                         overflow: scroll
                       children:
@@ -1745,6 +1915,9 @@ InitEvalReport:
                                     - actionType: builtIn
                                       funcName: hide
                                       viewTag: ShowTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: listData
                                     - actionType: builtIn
                                       funcName: show
                                       viewTag: listData
@@ -2028,6 +2201,13 @@ InitEvalReport:
           children:
             - .DocButtonPrivate:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.InitEvalReport.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.InitEvalReport.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -2095,13 +2275,32 @@ InitEvalReport:
                   object:
                     .Global._nonce@:
                       =.builtIn.math.random: ""
-
                 - actionType: evalObject
                   object:
-                    - goto: ProviderNoteSelect
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.InitEvalReport
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: evalObject
+                  object:
+                    - goto: MoreOptions
 
             - .DocButtonRelease:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.InitEvalReport.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.InitEvalReport.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -2169,26 +2368,20 @@ InitEvalReport:
 
                 - actionType: evalObject
                   object:
-                    # 更新文档状态
-                    - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.initialEvaluationReport.docAPI.store: ""
-                    - =.builtIn.array.add:
+                    - =.builtIn.utils.createAuditLog:
                         dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.initialEvaluationReport.docResp.doc
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.InitEvalReport
+                          eid: =.Global.formData.currentFacility.relationEdge.id
 
-                - actionType: evalObject
-                  object:
-                    - goto: ProviderNoteSelect
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+
+                - actionType: popUp
+                  popUpView: dialogueTag
 
     - .BaseWarningView:
       message: "Please complete required fields: Search&Description"
@@ -2196,6 +2389,61 @@ InitEvalReport:
 
     - .BaseWarningView:
       message: "You haven't signed the form"
+
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.initialEvaluationReport.docReq.tage@: 1
+            - =..apiRequest.initialEvaluationReport.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.initialEvaluationReport.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+      rightButton:
+        - actionType: evalObject
+          object:
+            # 更新文档状态
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.name@: "Released"
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.initialEvaluationReport.docReq.tage@: -1
+            - =..apiRequest.initialEvaluationReport.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.initialEvaluationReport.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
     # 弹窗区域
     - type: popUp
       viewTag: selectDate
@@ -2245,7 +2493,7 @@ InitEvalReport:
           object:
             - =.builtIn.array.removeByName:
                 dataIn:
-                  object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                   key: code
                   name: =..formData.selectedDiagnosis.code
             - ..formData.listDataflag@: "block"
@@ -2254,6 +2502,19 @@ InitEvalReport:
               viewTag: listData
         - actionType: popUpDismiss
           popUpView: BaseDelWarningView
+
+    - .BaseWarningView:
+      message: "Do not add repeatedly"
+      viewTag: repeatWarning
+
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..apiRequest.initialEvaluationReport.docReq.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
   style: #Input style fragment here
     signBox:
       width: "auto"
@@ -2263,7 +2524,7 @@ InitEvalReport:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       verticalAlign: top
@@ -2277,7 +2538,7 @@ InitEvalReport:
       marginLeft: "0.04"
       width: "0.92"
       height: "0.087"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       borderColor: "#dedede"
@@ -2286,3 +2547,23 @@ InitEvalReport:
       borderWidth: "1"
       boxSizing: "border-box"
       padding: "6px 12px"
+    blockBox:
+      marginTop: "0.024630"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

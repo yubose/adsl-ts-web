@@ -1,0 +1,573 @@
+PatientChartFamilyHistory:
+  title: "Patient Chart"
+  pageNumber: "178"
+  init: #Page initialization
+    - .SignInCheck
+    - ..familyHistory@: =.Global.formData.PatientchartInfo.name.data.familyHistory #引用用户总表单对象
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.flag.isMeetingPatientchart
+              string2: true
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.roomInfo.edge.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq.eid@: =.Global.rootNotebookID
+  # #create patient document temple to save
+  apiRequest:
+    newChart:
+      docResp: ""
+      docReq:
+        id: ""
+        eid: .Global.rootNotebookID
+        tage: 0
+        type: .DocType.PatientChart
+        name:
+          data: ""
+          title: ""
+          user: .Global.Profile.name.data.basicInfo.fullName
+          type: "application/json"
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientChartFamilyHistory.apiRequest.newChart.docReq
+          dataOut: PatientChartFamilyHistory.apiRequest.newChart.docResp
+  familyHistory: ""
+
+  familyHistoryTemp:
+    - key: Abnormal imaging or lab report
+      value: Abnormal imaging or lab report
+    - key: Anesthesia complication
+      value: Anesthesia complication
+    - key: Anxiety, depression, or other mental illnesses
+      value: Anxiety, depression, or other mental illnesses
+    - key: Bleeding disorder
+      value: Bleeding disorder
+    - key: Cancer
+      value: Cancer
+    - key: Diabetes
+      value: Diabetes
+    - key: Genetic disorders
+      value: Genetic disorders
+    - key: Headaches / Migraines
+      value: Headaches / Migraines
+    - key: Heart disease
+      value: Heart disease
+    - key: High blood pressure / Hypertension
+      value: High blood pressure / Hypertension
+    - key: High cholesterol
+      value: High cholesterol
+    - key: Kidney disease
+      value: Kidney disease
+    - key: Liver disease
+      value: Liver disease
+    - key: Lung Disease
+      value: Lung Disease
+    - key: Osteoporosis
+      value: Osteoporosis
+    - key: Prostatic Disease
+      value: Prostatic Disease
+    - key: Rheumatologic disease
+      value: Rheumatologic disease
+    - key: Serizures / Epilepsy
+      value: Serizures / Epilepsy
+    - key: Stroke / TIA
+      value: Stroke / TIA
+    - key: Thyroid disease
+      value: Thyroid disease
+    - key: I am adopted
+      value: I am adopted
+  formData: #Input data here
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  components:
+    - .BasePublicHeader:
+      children:
+        - type: view
+          style:
+            ..style.backLeft:
+          children:
+            - type: image
+              path: arrowLeftgrey.svg
+              style:
+                ..style.backLeftImg:
+              onClick:
+                - ..event.backClick
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Skip
+          onClick:
+            - ..event.skipClick
+    - type: view
+      style:
+        ..style.bodyBox:
+      children:
+        - type: view
+          style:
+            ..style.viewBox:
+          children:
+            - type: view
+              style:
+                ..style.titleBox:
+              children:
+                - type: label
+                  text: Family History
+                  dataKey:
+                  style:
+                    ..style.titlelabel:
+                - type: label
+                  text: "8&nbsp;/&nbsp;11"
+                  dataKey:
+                  style:
+                    ..style.pageNum:
+        - type: scrollView
+          style:
+            ..style.scrollBox:
+          children:
+            - type: label
+              text: "Have any of your family members had these conditions?"
+              dataKey:
+              style:
+                ..style.secondLabel:
+            - type: view
+              viewTag: noneTag
+              style:
+                ..style.itemView:
+              children:
+                - type: image
+                  path:
+                    ..event.checkNone:
+                  style:
+                    ..style.itemImg:
+                  onClick:
+                    - ..event.checkNoneClick
+                - type: label
+                  text: None
+                  style:
+                    ..style.itemValue:
+            - type: list
+              contentType: listObject
+              listObject: ..familyHistoryTemp
+              iteratorVar: itemObject
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemView:
+                      children:
+                        - type: image
+                          viewTag: experienceSelectTag
+                          path:
+                            ..event.checkBox:
+                          style:
+                            ..style.itemImg:
+                          onClick:
+                            - ..event.checkBoxClick
+                        - type: label
+                          text:
+                          dataKey: itemObject.value
+                          style:
+                            ..style.itemValue:
+            #底部
+            - type: view
+              style:
+                height: "0.03"
+                width: "0.92"
+
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - type: view
+              style:
+                ..style.leftBox:
+              onClick:
+                - ..event.lastStep
+              children:
+                - type: image
+                  path: leftStep.svg
+                  style:
+                    ..style.leftImg:
+                - type: label
+                  text: Last Step
+                  style:
+                    ..style.leftlabel:
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.nextBtn:
+              onClick:
+                - ..event.btnClick
+
+    # 弹窗区域
+    - .Normal:
+      message: The information you added will be cleared
+      viewTag: alertDialog
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: alertDialog
+      rightButton:
+        - actionType: evalObject
+          object:
+            - ..familyHistory@: []
+            - ..familyHistory@: ["None"]
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: experienceSelectTag
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: noneTag
+        - actionType: popUpDismiss
+          popUpView: alertDialog
+    - .TipsOneLine:
+      type: popUp
+      viewTag: emptyWarn
+      message: "If not, Select None"
+
+    - .Normal:
+      message: "Do you want to save your changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: evalObject
+          object:
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartFamilyHistory.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+      rightButton:
+        - actionType: evalObject
+          object:
+            - .Global.formData.PatientchartInfo.name.data.familyHistory@: =..familyHistory
+            - ..apiRequest.newChart.docReq@: =.Global.formData.PatientchartInfo
+
+            - =.PatientChartFamilyHistory.apiRequest.newChart.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - goto: PatientChart
+
+  event:
+    skipClick:
+      - goto: PatientChartObstetrical
+    checkBox:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..familyHistory
+                    value: $var.key
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkNone:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..familyHistory
+                    value: None
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    checkBoxClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..familyHistory
+                    value: "None"
+              - actionType: evalObject
+                object:
+                  - =.builtIn.array.removeByValue:
+                      dataIn:
+                        object: =..familyHistory
+                        value: "None"
+              - continue
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.array.has:
+                    dataIn:
+                      object: =..familyHistory
+                      value: $var.value
+                - =.builtIn.array.removeByValue:
+                    dataIn:
+                      object: =..familyHistory
+                      value: $var.value
+                - =.builtIn.array.add:
+                    dataIn:
+                      object: =..familyHistory
+                      value: $var.value
+
+      - actionType: builtIn
+        funcName: redrawCurrent
+        viewTag: experienceSelectTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: noneTag
+
+    checkNoneClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..familyHistory
+                    value: "None"
+              - actionType: evalObject
+                object:
+                  - =.builtIn.array.removeByValue:
+                      dataIn:
+                        object: =..familyHistory
+                        value: "None"
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.array.judgeListLength:
+                          dataIn:
+                            array: =..familyHistory
+                            len: 0
+                      - =.builtIn.array.add:
+                          dataIn:
+                            object: =..familyHistory
+                            value: None
+                      - actionType: popUp
+                        popUpView: alertDialog
+                        wait: true
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: experienceSelectTag
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: noneTag
+
+    backClick:
+      - actionType: popUp
+        popUpView: judgmentOperation
+        wait: true
+    lastStep:
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.familyHistory@: =..familyHistory
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    btnClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..familyHistory
+                    len: 0
+              - actionType: popUp
+                popUpView: emptyWarn
+                wait: true
+                popUpDismiss: 2000
+              - continue
+      - actionType: evalObject
+        object:
+          - .Global.formData.PatientchartInfo.name.data.familyHistory@: =..familyHistory
+      - goto: PatientChartObstetrical
+
+  style: #Input style fragment here
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84729"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.7832"
+      boxSizing: border-box
+      overflow: scroll
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0246"
+    blockBox:
+      marginTop: "0.01477"
+      height: "auto"
+      width: "0.92"
+    blockBoxTitle:
+      display: "inline-block"
+      width: "0.42"
+      height: "auto"
+      verticalAlign: middle
+      color: "#333333"
+      fontSize: .Nfont.h14
+    blockBoxInput:
+      display: "inline-block"
+      width: "0.4986"
+      height: "0.0369"
+      border:
+        style: 3
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderWidth: "1.5"
+      borderRadius: "3"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      textIndent: "12px"
+      verticalAlign: middle
+    listBox:
+      display: "inline-block"
+      width: "auto"
+      height: auto
+      boxSizing: border-box
+      overflow: hidden
+    list:
+      width: "0.92"
+      margin: "0"
+      boxSizing: border-box
+      # overflow-x: hidden
+      # overflow-y: scroll
+    listItem:
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+      overflow: auto
+    itemView:
+      width: "auto"
+      height: "auto"
+      marginTop: "0.01724"
+    itemImg:
+      display: "inline-block"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.0213"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+
+    checkItem:
+      margin: "0"
+      marginTop: "0.01724"
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+    leftBox:
+      marginLeft: "0.05"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "auto"
+      width: "auto"
+      marginTop: "0.0123"
+    leftImg:
+      verticalAlign: middle
+      display: "inline-block"
+      height: "0.02955"
+    leftlabel:
+      marginLeft: "0.02"
+      verticalAlign: middle
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x2988e6"
+      fontWeight: "600"
+    nextBtn:
+      marginTop: "0.0123"
+      marginLeft: "0.156"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.045"
+      width: "0.45333"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: 600
+      textAlign:
+        x: center

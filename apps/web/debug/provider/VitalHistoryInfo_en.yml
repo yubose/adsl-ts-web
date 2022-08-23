@@ -1,0 +1,331 @@
+#For Android Only
+VitalHistoryInfo:
+  title: "Vital Signs"
+  init:
+    - .VitalHistoryInfo.tempVitalsData@: =.Global.vitalsInfo.name.data.vitals
+    - =.builtIn.date.formatDataPro:
+        dataIn:
+          date: =.Global.vitalsInfo.ctime
+          separator: "/"
+        dataOut: VitalHistoryInfo.title
+  isConnectedTemp: "false"
+  currentVital: ""
+  tempVitalsData:
+    - time: ""
+      id: "bp"
+      measurements: []
+      label1: "Blood Pressure"
+      label2: "Heart Rate"
+      unit1: "mmHg"
+      unit2: "bpm"
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeart.svg
+      imgPath2: vitalsRate.svg
+    - time: ""
+      id: "resp"
+      measurements: []
+      label1: "Respiratory Rate"
+      unit1: "breaths/min"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsGeneric.svg
+      imgPath2: null.png
+    - time: ""
+      id: "spo2"
+      measurements: []
+      label1: "Pulse Oximetry"
+      label2: "Heart Rate"
+      unit1: "O₂ %"
+      unit2: "bpm"
+      data1: ""
+      data2: ""
+      imgPath: vitalsOximetry.svg
+      imgPath2: vitalsRate.svg
+    - time: " "
+      id: "temp"
+      measurements: []
+      label1: "Temperature"
+      unit1: "°F/°C"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsTemperature.svg
+      imgPath2: null.png
+    - time: " "
+      id: "glucose"
+      measurements: []
+      label1: "Blood Glucose Levels"
+      unit1: "mmol/L"
+      data1: " "
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsGeneric.svg
+      imgPath2: null.png
+    - time: " "
+      id: "height"
+      measurements: []
+      label1: "Height"
+      unit1: "ft."
+      unit2: "in."
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeight.svg
+      imgPath2: null.png
+    - time: " "
+      id: "weight"
+      measurements: []
+      label1: "Weight"
+      unit1: "lbs"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsWeight.svg
+      imgPath2: null.png
+    - time: ""
+      id: "bmi"
+      measurements: []
+      label1: "Body Mass Index (BMI)"
+      unit1: "kg/m²"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsBMI.svg
+      imgPath2: null.png
+  components:
+    - .BasePublicHeader: # height: "0.055" # 44.66px
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+          style:
+            fontSize: .Nfont.h18
+
+    - type: scrollView
+      style:
+        width: "1"
+        marginTop: "0.0148"
+        height: "0.845"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..tempVitalsData
+          iteratorVar: itemObject
+          viewTag: dataList
+          style:
+            margin: "0"
+            width: "1"
+            isRefresh: true
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                marginLeft: "0.04"
+                width: "0.92"
+                marginTop: "0.01478"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+                borderRadius: "5"
+                boxShadow: "0px 0px 5px #0000001a"
+              children:
+                - type: view
+                  style:
+                    width: "0.7147"
+                    height: "0.1"
+                    display: inline-block
+                  children:
+                    - type: view
+                      style:
+                        display: inline-block
+                        verticalAlign: bottom
+                        minWidth: "0.3573"
+                        height: "0.1"
+                      children:
+                        - type: view
+                          style:
+                            width: auto
+                            marginTop: "0.0123"
+                            marginLeft: "0.032"
+                            fontSize: "0px"
+                            height: auto
+                          children:
+                            - type: image
+                              path: itemObject.imgPath
+                              style:
+                                display: inline-block
+                                width: "0.032"
+                                height: "0.01478"
+                                verticalAlign: middle
+                            - type: label
+                              dataKey: itemObject.label1
+                              style:
+                                fontSize: .Nfont.h14
+                                fontWeight: "400"
+
+                                lineHeight: "20px"
+                                display: inline-block
+                                verticalAlign: middle
+                                marginLeft: "0.0106"
+                        - type: view
+                          style:
+                            width: auto
+                            fontSize: "0px"
+                            marginTop: "0.005"
+                            marginLeft: "0.032"
+                            height: auto
+                          children:
+                            - type: textField
+                              dataKey: itemObject.data1
+                              style:
+                                width: "0.208"
+                                height: "0.04"
+                                display: inline-block
+                                textIndent: 1em
+                                boxSizing: "border-box"
+
+                                fontSize: .Nfont.h14
+                                border:
+                                  style: "3"
+                                borderWidth: "1"
+                                verticalAlign: bottom
+                                borderRadius: "5"
+                                borderColor: "0xDEDEDF"
+                              onChange:
+                                - actionType: builtIn
+                                  funcName: calculateVital
+                                  id: bmi
+                            - type: label
+                              dataKey: itemObject.unit1
+                              style:
+                                fontSize: .Nfont.h14
+                                display: inline-block
+                                marginLeft: "0.0053"
+
+                                verticalAlign: bottom
+                                color: "0x999999"
+                    - type: view
+                      style:
+                        display: inline-block
+                        marginLeft: "0.0266"
+                        height: "0.1"
+                        verticalAlign: bottom
+                      children:
+                        - type: view
+                          style:
+                            width: auto
+                            marginTop: "0.0123"
+                            fontSize: "0px"
+                            height: auto
+                          children:
+                            - type: image
+                              path: itemObject.imgPath2
+                              style:
+                                display: inline-block
+                                width: "0.032"
+                                height: "0.01478"
+                                verticalAlign: middle
+                            - type: label
+                              dataKey: itemObject.label2
+                              style:
+                                fontSize: .Nfont.h14
+                                fontWeight: "400"
+                                height: "20px"
+
+                                lineHeight: "20px"
+                                display: inline-block
+                                verticalAlign: middle
+                                marginLeft: "0.0106"
+                        - type: view
+                          style:
+                            width: auto
+                            fontSize: "0px"
+                            marginTop: "0.005"
+                            height: auto
+                          children:
+                            - type: textField
+                              dataKey: itemObject.data2
+                              style:
+                                width: "0.208"
+                                height: "0.04"
+                                display: inline-block
+                                boxSizing: "border-box"
+
+                                fontSize: .Nfont.h14
+                                border:
+                                  style: "3"
+                                borderWidth: "1"
+                                verticalAlign: bottom
+                                borderRadius: "5"
+                                textIndent: 1em
+                                borderColor: "0xDEDEDF"
+                              onChange:
+                                - actionType: builtIn
+                                  funcName: calculateVital
+                                  id: bmi
+                            - type: label
+                              dataKey: itemObject.unit2
+                              style:
+                                fontSize: .Nfont.h14
+                                display: inline-block
+                                marginLeft: "0.0053"
+
+                                verticalAlign: bottom
+                                color: "0x999999"
+                # - type: view
+                #   style:
+                #     height: "0.1"
+                #     display: inline-block
+                #   children:
+                #     - type: button
+                #       #text: Get Data
+                #       text: Connect
+                #       onClick:
+                #         - emit:
+                #             dataKey:
+                #               var: itemObject
+                #             actions:
+                #               - actionType: evalObject
+                #                 object:
+                #                   - =.builtIn.object.get:
+                #                       dataIn:
+                #                         object: =.Global.isDeviceConnected
+                #                         key: $var.id
+                #                       dataOut: VitalSigns.isConnectedTemp
+                #                   - if:
+                #                       - =.builtIn.string.equal:
+                #                           dataIn:
+                #                             string1: =.VitalSigns.isConnectedTemp
+                #                             string2: "false"
+                #                       - if:
+                #                           - .builtIn.isAndroid
+                #                           - actionType: evalObject
+                #                             object:
+                #                               - goto: BluetoothDevices
+                #                           - continue
+                #                       - actionType: builtIn
+                #                         funcName: getBluetoothData
+                #                         deviceType: $var.id
+                #               # btRedraw not working here dont know why
+                #               - actionType: builtIn
+                #                 funcName: btRedraw
+                #       style:
+                #         #backgroundColor: "#2988e6"    #blue
+                #         backgroundColor: "0xC1C1C1"   #grey
+                #         marginTop: "0.0443"
+                #         height: "0.03"
+                #         # borderRadius: "2"
+                #         # display: inline-block
+                #         # marginLeft: "0"
+                #
+                #         width: "0.1653"
+                #         color: "0xffffff"
+                #         borderRadius: "3"
+                #         textAlign:
+                #           x: center
+                #         fontSize: .Nfont.h12
+                - type: label
+                  # text: 03/14/2022 03:04 pm
+                  dataKey: itemObject.time
+                  #viewTag: dataTag
+                  style:
+                    fontSize: .Nfont.h0
+                    top: "0.012"
+                    left: "0.6346"
+                    textAlign:
+                      x: right
+                    color: "0x999999"

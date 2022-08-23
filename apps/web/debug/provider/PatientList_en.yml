@@ -1,12 +1,9 @@
 PatientList:
+  # api
+  # 1. 好友邀请列表
   title: "My Patient"
   init:
     - .SignInCheck
-    - actionType: evalObject
-      object:
-        .Global._nonce@:
-          =.builtIn.math.random: ""
-    - ..invite.edgeAPI.get
     - ..patient.docAPI.get
     - =.builtIn.array.getListLength:
         dataIn:
@@ -34,105 +31,33 @@ PatientList:
   numberIsHidden: "true"
   allPatientLength: "0"
   phone: ""
-  invite:
-    inviteList:
-      edge: ""
-    edgeAPI:
-      get:
-        api: re
-        type: .EdgeType.InviteInfo
-        xfname: evid
-        id: .Global.currentUser.vertex.id
-        maxcount: "10000"
-        dataKey: invite.inviteList
-        sCondition: subtype=65536
-        _nonce: =.Global._nonce
   formData:
     patientList: []
   patient:
     patientList:
       edge: ""
+    req:
+      type: .DocType.PatientProfile
+      ObjType: 28
+      id: .Global.currentUser.vertex.id
+      xfname: E.bvid|E.evid
+      sfname: "{\"result\":\"D.*\", \"join\": \"INNER JOIN Edge E on E.id = D.eid INNER JOIN Vertex V on D.ovid=V.id AND V.type>0\"}"
+      sCondition: "E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x10000"
     docAPI:
       get:
         api: rd
-        type: .DocType.PatientProfile
-        xfname: E.bvid|E.evid
-        id: .Global.currentUser.vertex.id
-        ObjType: 8
-        dataKey: patient.patientList
-        sCondition: E.type=10002 AND E.tage>0
-        _nonce: =.Global._nonce
+        dataIn: patient.req
+        dataOut: PatientList.patient.patientList
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: view
       style:
-        top: "0.1"
-        width: "1"
-        height: "0.08"
-        backgroundColor: "0x2988e6"
-      children:
-        - .SearchField:
-          placeholder: "Search"
-          style:
-            left: "0.04"
-            top: "0.01"
-            backgroundColor: "0xffffff"
-            textAlign:
-              x: center
-              y: center
-        - type: image
-          path: search.svg
-          style:
-            top: "0.02"
-            left: "0.35"
-            height: "0.03"
-    - .SubMenuView:
-      style:
-        top: "0.18"
-        height: "0.08"
-        border:
-          style: "2"
-          width: "1"
-          color: "0xdededf"
-        zIndex: "10"
-      children:
-        - type: label
-          text: New Patients
-          style:
-            fontSize: ".Nfont.h16"
-            marginLeft: "0.15"
-            marginTop: "0.025"
-            display: inline-block
-        - type: label
-          dataKey: newPatientLength
-          style:
-            fontSize: ".Nfont.h16"
-            fontWeight: "500"
-            marginTop: "0.025"
-            display: inline-block
-            marginLeft: "0.03"
-        - type: label
-          text: All Patients
-          style:
-            fontSize: ".Nfont.h16"
-            marginTop: "0.025"
-            display: inline-block
-            marginLeft: "0.08"
-        - type: label
-          dataKey: allPatientLength
-          style:
-            fontSize: ".Nfont.h16"
-            fontWeight: "500"
-            marginTop: "0.025"
-            display: inline-block
-            marginLeft: "0.03"
-    - type: view
-      style:
-        top: "0.26"
         left: "0"
         width: "1"
-        height: "0.74"
+        height: "0.94"
       children:
         - type: label
           contentType: messageHidden
@@ -144,175 +69,164 @@ PatientList:
             height: "0.04"
             fontSize: "18"
             isHidden: "true"
-        - type: view
+
+        - type: list
+          contentType: listObject
+          listObject: ..patient.patientList.doc
+          iteratorVar: itemObject
           style:
-            top: "0"
             left: "0"
             width: "1"
-            height: "0.74"
-            backgroundColor: "#f0f0f0"
+            overflow: "scroll"
+            height: "0.94"
+            margin: "0"
           children:
-            - type: view
+            - type: listItem
+              itemObject: ""
               style:
-                top: "0"
-                left: "0"
                 width: "1"
-                height: "0.08"
-                backgroundColor: "#ffffff"
-                # boxShadow: "0px 5px 0px 2px #dededf"
+                height: "auto"
+                marginTop: "0"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0xdededf"
+                overflow: hidden
               onClick:
-                - goto: NewPatients
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.middleInformation.PatientVisitInfo
+                  dataObject: itemObject
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.string.phoneNumberSplit:
+                        dataIn:
+                          phoneNumber: =.Global.middleInformation.PatientVisitInfo.name.data.basicInfo.phone
+                          sign: " "
+                        dataOut: phone #Global.middleInformation.PatientVisitInfo.phoneNumber
+                    - .Global.middleInformation.PatientVisitInfo.phoneNumber@: =..phone
+                    - .Global.middleInformation.PatientVisitInfo.inputPhone@: =..phone.1
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
               children:
-                - type: image
-                  path: newConnection.svg
-                  style:
-                    top: "0.02"
-                    left: "0.08"
-                    height: "0.05"
-                    width: "0.13"
-                    zIndex: 100
-                - type: image
-                  path:
-                    emit:
-                      actions:
-                        - if:
-                            - =.builtIn.string.equal:
-                                dataIn:
-                                  string1: =..newPatientLength
-                                  string2: "0"
-                            - null.png
-                            - dot.svg
-                  style:
-                    top: "0.016"
-                    left: "0.17"
-                    width: "0.045"
-                    zIndex: 200
-                - type: label
-                  dataKey: newPatientLength
-                  style:
-                    top: "0.015"
-                    left: "0.18"
-                    width: "0.025"
-                    height: "0.03"
-                    isHidden: ..numberIsHidden
-                    fontFamily: "Arial"
-                    color: "0xffffff"
-                    fontSize: "10"
-                    zIndex: 300
-                    textAlign:
-                      x: center
-                      # y: center
-                - type: label
-                  text: "New Patients"
-                  style:
-                    left: "0.23"
-                    top: "0.03"
-                    width: "0.4"
-                    fontFamily: "Arial"
-                    fontSize: .Nfont.h16
-                    zIndex: 100
-            - type: view
-              style:
-                top: "0.08"
-                left: "0"
-                width: "1"
-                height: "0.66"
-                overflow: "scroll"
-              children:
-                # - type: view
-                #   text: "# A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
-                #   style:
-                #     top: "0.05"
-                #     left: "0.96"
-                #     width: "0.03"
-                #     height: "0.55"
-                #     color: "#0a84ff"
-                #     fontSize: .Nfont.h16
-                #     lineHeight: '1'
-                #     textAlign:
-                #       x: center
-                #     zIndex: 200
-                - type: label
-                  text: "Patients"
-                  style:
-                    top: "0"
-                    left: "0.1"
-                    width: "0.5"
-                    textAlign:
-                      y: center
-                    height: "0.05"
                 - type: view
                   style:
-                    top: "0.05"
-                    left: "0"
-                    width: "1"
-                    height: "0.61"
-                    backgroundColor: "#ffffff"
-                    overflow: "scroll"
+                    paddingTop: "0.0123"
+                    paddingBottom: "0.0123"
                   children:
-                    - type: list
-                      contentType: listObject
-                      listObject: ..patient.patientList.doc
-                      iteratorVar: itemObject
+                    - type: image
+                      path: patientImage.png
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: itemObject.name.data.basicInfo.avatar
                       style:
-                        top: "0"
-                        left: "0"
-                        width: "1"
-                        marginTop: "0"
-                        height: "0.61"
-                        margin: "0"
-                      children:
-                        - type: listItem
-                          itemObject: ""
-                          style:
-                            left: "0"
-                            width: "1"
-                            height: "auto"
-                            overflow: hidden
-                          onClick:
-                            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-                              dataKey: Global.middleInformation.PatientVisitInfo
-                              dataObject: itemObject
-                            - actionType: evalObject
-                              object:
-                                - =.builtIn.string.phoneNumberSplit:
-                                    dataIn:
-                                      phoneNumber: =.Global.middleInformation.PatientVisitInfo.name.data.basicInfo.phone
-                                      sign: " "
-                                    dataOut: phone #Global.middleInformation.PatientVisitInfo.phoneNumber
-                                - .Global.middleInformation.PatientVisitInfo.phoneNumber@: =..phone
-                                - .Global.middleInformation.PatientVisitInfo.inputPhone@: =..phone.1
-                            - actionType: builtIn
-                              funcName: goBack
-                              reload: true
-                          children:
-                            - type: view
-                              style:
-                                marginTop: "0.01"
-                                width: "0.9"
-                                height: "auto"
-                              children:
-                                - type: image
-                                  path: patientImage.svg
-                                  viewTag: showFileTag
-                                  path=func: .builtIn.utils.prepareDocToPath
-                                  dataKey: itemObject.name.data.basicInfo.avatar
-                                  style:
-                                    marginLeft: "0.05"
-                                    verticalAlign: middle
-                                    display: "inline-block"
-                                    width: "7vh"
-                                    height: "7vh"
-                                - type: label
-                                  dataKey: itemObject.name.data.basicInfo.fullName
-                                  style:
-                                    marginLeft: "0.02"
-                                    verticalAlign: middle
-                                    display: "inline-block"
-                                    height: "auto"
-                                    width: "0.6"
-                                    fontFamily: "Arial"
-                                    fontSize: .Nfont.h15
-                            - type: view
-                              style:
-                                marginTop: "0.01"
+                        marginLeft: "0.04"
+                        height: "12vw"
+                        width: "12vw"
+                        border:
+                          style: 3
+                        borderRadius: "5"
+                        borderWidth: "1"
+                        borderColor: "0xdededf"
+                        overflow: hidden
+                        verticalAlign: middle
+                        display: "inline-block"
+                    - type: label
+                      dataKey: itemObject.name.data.basicInfo.fullName
+                      style:
+                        marginLeft: "0.032"
+                        display: "inline-block"
+                        width: "0.78"
+                        height: "auto"
+                        fontSize: .Nfont.h16
+                        fontWeight: "400"
+
+                        verticalAlign: middle
+                        wordWrap: break-word
+        # - type: view
+        #   style:
+        #     top: "0"
+        #     left: "0"
+        #     width: "1"
+        #     height: "0.74"
+        #   children:
+        #     - type: view
+        #       style:
+        #         left: "0"
+        #         width: "1"
+        #         height: "0.66"
+        #         overflow: "scroll"
+        #       children:
+        #         - type: view
+        #           style:
+        #             left: "0"
+        #             width: "1"
+        #             height: "0.61"
+        #             backgroundColor: "#ffffff"
+        #             overflow: "scroll"
+        #           children:
+        #             - type: list
+        #               contentType: listObject
+        #               listObject: ..patient.patientList.doc
+        #               iteratorVar: itemObject
+        #               style:
+        #                 top: "0"
+        #                 left: "0"
+        #                 width: "1"
+        #                 marginTop: "0"
+        #                 height: "0.61"
+        #                 margin: "0"
+        #               children:
+        #                 - type: listItem
+        #                   itemObject: ""
+        #                   style:
+        #                     left: "0"
+        #                     width: "1"
+        #                     height: "auto"
+        #                     overflow: hidden
+        #                   onClick:
+        #                     - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+        #                       dataKey: Global.middleInformation.PatientVisitInfo
+        #                       dataObject: itemObject
+        #                     - actionType: evalObject
+        #                       object:
+        #                         - =.builtIn.string.phoneNumberSplit:
+        #                             dataIn:
+        #                               phoneNumber: =.Global.middleInformation.PatientVisitInfo.name.data.basicInfo.phone
+        #                               sign: " "
+        #                             dataOut: phone #Global.middleInformation.PatientVisitInfo.phoneNumber
+        #                         - .Global.middleInformation.PatientVisitInfo.phoneNumber@: =..phone
+        #                         - .Global.middleInformation.PatientVisitInfo.inputPhone@: =..phone.1
+        #                     - actionType: builtIn
+        #                       funcName: goBack
+        #                       reload: true
+        #                   children:
+        #                     - type: view
+        #                       style:
+        #                         marginTop: "0.01"
+        #                         width: "0.9"
+        #                         height: "auto"
+        #                       children:
+        #                         - type: image
+        #                           path: patientImage.svg
+        #                           viewTag: showFileTag
+        #                           path=func: .builtIn.utils.prepareDocToPath
+        #                           dataKey: itemObject.name.data.basicInfo.avatar
+        #                           style:
+        #                             marginLeft: "0.05"
+        #                             verticalAlign: middle
+        #                             display: "inline-block"
+        #                             width: "7vh"
+        #                             height: "7vh"
+        #                         - type: label
+        #                           dataKey: itemObject.name.data.basicInfo.fullName
+        #                           style:
+        #                             marginLeft: "0.02"
+        #                             verticalAlign: middle
+        #                             display: "inline-block"
+        #                             height: "auto"
+        #                             width: "0.6"
+        #
+        #                             fontSize: .Nfont.h15
+        #                     - type: view
+        #                       style:
+        #                         marginTop: "0.01"

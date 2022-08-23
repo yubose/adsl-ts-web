@@ -404,7 +404,7 @@ NewPatFormPreviewPage3:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -425,7 +425,7 @@ NewPatFormPreviewPage3:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -516,7 +516,7 @@ NewPatFormPreviewPage3:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

@@ -1,5 +1,5 @@
 DocumentForReason:
-  title: "Select attached files"
+  title: "Select Attached Files"
   init:
     - .SignInCheck
     - .Global.ReasonForVisitReason@: false
@@ -7,10 +7,23 @@ DocumentForReason:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.array.judgeListLength:
+                dataIn:
+                  array: =.Global.formData.currentTabStatusList
+                  len: 0
+            - ..formData.currentTab@: "TELEMEDICINE"
+            - =.builtIn.array.getOrReplaceAnArrayItem:
+                dataIn:
+                  strArr: =.Global.formData.currentTabStatusList
+                  tag: false
+                dataOut: DocumentForReason.formData.currentTab
     - if:
         - =.builtIn.string.equal:
             dataIn:
-              string1: =.Global.formData.currentTabStatus
+              string1: =..formData.currentTab
               string2: "TELEMEDICINE"
         - actionType: evalObject
           object:
@@ -25,12 +38,13 @@ DocumentForReason:
           object:
             - if:
                 - =.builtIn.string.equal:
-                  dataIn:
-                    string1: =.Global.formData.chooseDocLen.officeLength
-                    string2: "0"
+                    dataIn:
+                      string1: =.Global.formData.chooseDocLen.officeLength
+                      string2: "0"
                 - continue
                 - ..formData.selectDocument@: =.Global.documentForReason.officeReason
   formData:
+    currentTab: ""
     length: ""
     checkLocalLength: ""
     selectDocument: []
@@ -50,6 +64,10 @@ DocumentForReason:
         pageName: ModernaVaccineFirDosePreviewPage1
       - title: Moderna Vaccine Form - Second Dose
         pageName: ModernaVaccineSecDosePreviewPage1
+      - title: Flu Vaccination Consent Form
+        pageName: FluVaccinationConsentFormPreviewPage1
+      - title: Patient Consent Form - HIPPA
+        pageName: PatientConsentFormPreviewPage1
   components:
     - .SuccessfulOneLine:
       message: Save Successfully!
@@ -74,7 +92,7 @@ DocumentForReason:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.h14
-                fontFamily: "sans-serif"
+
                 textAlign:
                   x: center
             - type: view
@@ -148,7 +166,7 @@ DocumentForReason:
                         - if:
                             - =.builtIn.string.equal:
                                 dataIn:
-                                  string1: =.Global.formData.currentTabStatus
+                                  string1: =..formData.currentTab
                                   string2: "TELEMEDICINE"
                             - actionType: evalObject
                               object:
@@ -168,93 +186,96 @@ DocumentForReason:
                     - actionType: builtIn
                       funcName: goBack
                       reload: true
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =..formData.selectDocument
-                dataOut: DocumentForReason.formData.length
-        - actionType: evalObject
-          object:
-            - if:
-                - =.builtIn.string.equal:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
                     dataIn:
-                      string1: =.Global.formData.currentTabStatus
-                      string2: "TELEMEDICINE"
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.chooseDocLen.teleLength
-                              string2: ""
-                        - ..formData.checkLocalLength@: "0"
-                        - ..formData.checkLocalLength@: =.Global.formData.chooseDocLen.teleLength
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.chooseDocLen.officeLength
-                              string2: ""
-                        - ..formData.checkLocalLength@: "0"
-                        - ..formData.checkLocalLength@: =.Global.formData.chooseDocLen.officeLength
-            - if:
-                - =.builtIn.string.equal:
+                      object: =..formData.selectDocument
+                    dataOut: DocumentForReason.formData.length
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.currentTab
+                          string2: "TELEMEDICINE"
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.formData.chooseDocLen.teleLength
+                                  string2: ""
+                            - ..formData.checkLocalLength@: "0"
+                            - ..formData.checkLocalLength@: =.Global.formData.chooseDocLen.teleLength
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.formData.chooseDocLen.officeLength
+                                  string2: ""
+                            - ..formData.checkLocalLength@: "0"
+                            - ..formData.checkLocalLength@: =.Global.formData.chooseDocLen.officeLength
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.length
+                          string2: =..formData.checkLocalLength
+                    - continue
+                    - actionType: popUp
+                      popUpView: changePopUpView
+                      wait: true
+            - actionType: evalObject
+              object:
+                .Global._nonce@:
+                  =.builtIn.math.random: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Save
+          onClick:
+            - actionType: popUp
+              popUpView: successTag
+              wait: 2000
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
                     dataIn:
-                      string1: =..formData.length
-                      string2: =..formData.checkLocalLength
-                - continue
-                - actionType: popUp
-                  popUpView: changePopUpView
-                  wait: true
-        - actionType: evalObject
-          object:
-            .Global._nonce@:
-              =.builtIn.math.random: ""
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-    - .HeaderRightButton:
-      text: Save
-      onClick:
-        - actionType: popUp
-          popUpView: successTag
-          wait: 2000
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =..formData.selectDocument
-                dataOut: DocumentForReason.formData.length
-        - actionType: evalObject
-          object:
-            - if:
-                - =.builtIn.string.equal:
-                    dataIn:
-                      string1: =.Global.formData.currentTabStatus
-                      string2: "TELEMEDICINE"
-                - actionType: evalObject
-                  object:
-                    - .Global.formData.chooseDocLen.teleLength@: =..formData.length
-                    - .Global.documentForReason.teleReason@: =..formData.selectDocument
-                - actionType: evalObject
-                  object:
-                    - .Global.formData.chooseDocLen.officeLength@: =..formData.length
-                    - .Global.documentForReason.officeReason@: =..formData.selectDocument
-        - actionType: popUpDismiss
-          popUpView: successTag
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-      style:
-        zIndex: 100
+                      object: =..formData.selectDocument
+                    dataOut: DocumentForReason.formData.length
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.currentTab
+                          string2: "TELEMEDICINE"
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.chooseDocLen.teleLength@: =..formData.length
+                        - .Global.documentForReason.teleReason@: =..formData.selectDocument
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.chooseDocLen.officeLength@: =..formData.length
+                        - .Global.documentForReason.officeReason@: =..formData.selectDocument
+            - actionType: popUpDismiss
+              popUpView: successTag
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+
     - type: view
       style:
-        marginTop: "0.1"
         width: "1"
         height: "0.0874"
         overflow: hidden
@@ -262,7 +283,7 @@ DocumentForReason:
           style: 2
         borderWidth: "1.5"
         borderColor: "0xdededf"
-        fontFamily: "Arial"
+
       children:
         - type: label
           text: "Select document(s) that you would like each patient to fill out for this specific reason for visit"
@@ -285,7 +306,7 @@ DocumentForReason:
         marginLeft: "0.04"
         marginTop: "0.011"
         height: "0.78"
-        fontFamily: "Arial"
+
         overflow: scroll
       children:
         - type: listItem
@@ -357,7 +378,7 @@ DocumentForReason:
                         - if:
                             - =.builtIn.string.equal:
                                 dataIn:
-                                  string1: =.Global.formData.currentTabStatus
+                                  string1: =..formData.currentTab
                                   string2: "TELEMEDICINE"
                             - .Global.documentForReason.teleReason@: =..formData.selectDocument
                             - .Global.documentForReason.officeReason@: =..formData.selectDocument

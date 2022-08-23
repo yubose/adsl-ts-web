@@ -1,0 +1,1936 @@
+MyProfile:
+  title: "My Profile"
+  init:
+    # sign in check
+    - .SignInCheck
+    - =.builtIn.object.setProperty:
+        dataIn:
+          obj: =..formDataTemp.titleData
+          label: "title"
+          text: .Global.patientProfileVar
+          arr: ["fontColor", "fontWeight", "block"]
+          valueArr: ["0x2988e6", "500", "block"]
+          errorArr: ["0x333333", "400", "none"]
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.patientProfileVar
+              string2: "About"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.leftStyle@: "11.5vw"
+            - ..formDataTemp.blockEmploymentInfo@: "none"
+            - ..formDataTemp.blockInsuranceInfo@: "none"
+            - ..formDataTemp.blockAboutInfo@: "block"
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.patientProfileVar
+              string2: "Employment"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.blockAboutInfo@: "none"
+            - ..formDataTemp.leftStyle@: "44vw"
+            - ..formDataTemp.blockInsuranceInfo@: "none"
+            - ..formDataTemp.blockEmploymentInfo@: "block"
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.patientProfileVar
+              string2: "Insurance"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.leftStyle@: "78vw"
+            - ..formDataTemp.blockInsuranceInfo@: "block"
+            - ..formDataTemp.blockEmploymentInfo@: "none"
+            - ..formDataTemp.blockAboutInfo@: "none"
+        - continue
+    # show id image
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Profile.name.data.identification.imageId
+              string2: ""
+        - ..formDataTemp.idImageStyle@: "none"
+        - ..formDataTemp.idImageStyle@: "block"
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    # get insurance
+    - =..apiRequest.insurance.docAPI.get: ""
+    - .Global.selfMedicalLicense@: =..apiRequest.insurance.docQueryResp.doc
+    #合并
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..apiRequest.insurance.docQueryResp.doc
+          array2: =.Global.selfMedicalLicense
+          sortby: ctime
+          orders: desc
+        dataOut: MyProfile.apiRequest.insurance.docQueryResp.doc
+    #去重
+    - =.builtIn.array.keepLatestDoc:
+        dataIn:
+          docList: =..apiRequest.insurance.docQueryResp.doc
+          path: id
+        dataOut: MyProfile.apiRequest.insurance.docQueryResp.doc
+    #android
+    - ..formData.aboutAddressTemporary@: []
+    - ..formData.employerAddressTemporary@: []
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.aboutAddressTemporary
+          value: =.Global.Profile.name.data.contactInfo.address.line
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.aboutAddressTemporary
+          value: =.Global.Profile.name.data.contactInfo.address.secondLine
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.aboutAddressTemporary
+          value: =.Global.Profile.name.data.contactInfo.address.city
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.aboutAddressTemporary
+          value: =.Global.Profile.name.data.contactInfo.address.county
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.aboutAddressTemporary
+          value: =.Global.Profile.name.data.contactInfo.address.state
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.aboutAddressTemporary
+          value: =.Global.Profile.name.data.contactInfo.address.zipCode
+    - =.builtIn.array.formatStringFill:
+        dataIn:
+          strArr: =..formData.aboutAddressTemporary
+          sfill: ",&nbsp;"
+        dataOut: MyProfile.formData.aboutAddress
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.employerAddressTemporary
+          value: =.Global.Profile.name.data.employment.address.line
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.employerAddressTemporary
+          value: =.Global.Profile.name.data.employment.address.secondLine
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.employerAddressTemporary
+          value: =.Global.Profile.name.data.employment.address.city
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.employerAddressTemporary
+          value: =.Global.Profile.name.data.employment.address.county
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.employerAddressTemporary
+          value: =.Global.Profile.name.data.employment.address.state
+    - =.builtIn.array.add:
+        dataIn:
+          object: =..formData.employerAddressTemporary
+          value: =.Global.Profile.name.data.employment.address.zipCode
+    - =.builtIn.array.formatStringFill:
+        dataIn:
+          strArr: =..formData.employerAddressTemporary
+          sfill: ",&nbsp;"
+        dataOut: MyProfile.formData.employerAddress
+  formData:
+    employerAddressTemporary: []
+    aboutAddressTemporary: []
+    aboutAddress: ""
+    employerAddress: ""
+  apiRequest:
+    #保险
+    insurance:
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.InsuranceCard
+        ids:
+          - .Global.rootNotebookID
+          - .Global.Profile.id
+        xfname: eid,fid
+        _nonce: =.Global._nonce
+        obfname: mtime
+      docAPI:
+        get:
+          api: rd
+          dataIn: MyProfile.apiRequest.insurance.docQueryReq
+          dataOut: MyProfile.apiRequest.insurance.docQueryResp
+        delete:
+          api: dx
+          dataIn: MyProfile.apiRequest.insurance.docDeleteReq
+    profile:
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.PatientProfile
+        id: .Global.rootNotebookID
+        xfname: eid
+        maxcount: "1"
+        obfname: mtime
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: MyProfile.apiRequest.profile.docQueryReq
+          dataOut: MyProfile.apiRequest.profile.docQueryResp
+  formDataTemp:
+    countryC: .CountryCode
+    countryCode: "+1"
+    titleData:
+      - title: About
+        fontColor: "0x2988e6"
+        fontWeight: "500"
+        block: "block"
+      - title: Employment
+        fontColor: "0x333333"
+        fontWeight: "400"
+        block: "none"
+      - title: Insurance
+        fontColor: "0x333333"
+        fontWeight: "400"
+        block: "none"
+    patientProfileVar: "About"
+    blockAboutInfo: "block"
+    blockEmploymentInfo: "none"
+    blockInsuranceInfo: "none"
+    blockImageStyle: "none"
+    idImageStyle: "none"
+    gender:
+      - key: gender
+        value: Male
+      - key: gender
+        value: Female
+      - key: gender
+        value: Other
+  components:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    #   onClick:
+    #     - actionType: builtIn
+    #       funcName: goBack
+    # - .HeaderRightButton:
+    #   text: Edit
+    #   onClick:
+    #     - goto: EditProfile
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Edit
+          onClick:
+            - actionType: evalObject
+              object:
+                - .Global.formData.editInsuranceFromMyProfile@: false
+            - goto: EditProfile
+    - type: view
+      style:
+        paddingTop: "0.0246"
+        paddingBottom: "0.0246"
+        width: "1"
+        height: "auto"
+        border:
+          style: 2
+          color: "0xDEDEDF"
+        borderWidth: "2"
+      children:
+        - type: image
+          path: patientImage.png
+          path=func: =.builtIn.utils.prepareDocToPath
+          dataKey: Global.Profile.name.data.basicInfo.avatar
+          contentType: file
+          style:
+            marginLeft: "0.064"
+            verticalAlign: middle
+            display: "inline-block"
+            height: "0.0788177"
+            width: "0.1706666"
+            border:
+              style: 3
+            borderWidth: "1"
+            borderColor: "#dedede"
+            boxSizing: border-box
+            borderRadius: "4"
+        - type: view
+          style:
+            verticalAlign: middle
+            marginLeft: "0.032"
+            display: "inline-block"
+            height: "auto"
+            width: "0.71"
+            overflow: hidden
+          children:
+            - type: view
+              style:
+                height: "auto"
+                width: "0.75"
+                overflow: hidden
+              children:
+                - type: label
+                  text: "User Name:"
+                  style:
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    fontWeight: "600"
+                - type: label
+                  dataKey: Global.Profile.name.data.basicInfo.userName
+                  style:
+                    marginLeft: "0.032"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.465"
+                    wordBreak: break-word
+            - type: view
+              style:
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.75"
+                overflow: hidden
+              children:
+                - type: label
+                  text: "Phone #:"
+                  style:
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x333333"
+                    fontWeight: "600"
+                - type: label
+                  dataKey: Global.Profile.name.data.basicInfo.phone
+                  style:
+                    marginLeft: "0.032"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.5"
+                    wordBreak: break-word
+    # - type: view
+    #   style:
+    #     width: "1"
+    #     height: "0.15"
+    #     border:
+    #       style: 2
+    #       color: "0xDEDEDF"
+    #     borderWidth: "2px"
+    #     overflow: hidden
+    #   children:
+    #     - type: view
+    #       style:
+    #         height: "18vw"
+    #         width: "0.18"
+    #         marginTop: "0.03"
+    #         marginLeft: "0.1"
+    #         display: "inline-block"
+    #         border:
+    #           style: "1"
+    #         borderWidth: "1"
+    #         borderColor: "0xffffff"
+    #         borderRadius: "5"
+    #         overflow: hidden
+    #       children:
+    #         - type: view
+    #           style:
+    #             height: auto
+    #             width: "0.18"
+    #             textAlign:
+    #               x: center
+    #               y: center
+    #           children:
+    #             - type: image
+    #               path: patientImage.svg
+    #               path=func: =.builtIn.utils.prepareDocToPath
+    #               dataKey: Global.Profile.name.data.basicInfo.avatar
+    #               style:
+    #                 height: "18vw"
+
+    #     - type: view
+    #       style:
+    #         width: "0.67"
+    #         marginLeft: "0.02"
+    #         display: "inline-block"
+    #         height: "auto"
+    #         marginTop: "0.04"
+    #       children:
+    #         - type: view
+    #           style:
+    #             height: "auto"
+    #             width: "0.62"
+    #           children:
+    #             - type: label
+    #               text: "User Name:"
+    #               style:
+    #                 display: "inline-block"
+    #                 fontSize: .Nfont.h14
+    #                 color: "0x333333"
+    #                 fontWeight: "600"
+    #             - type: label
+    #               dataKey: Global.Profile.name.data.basicInfo.userName
+    #               style:
+    #                 marginLeft: "0.02"
+    #                 fontSize: .Nfont.h14
+    #                 display: "inline-block"
+    #                 color: "0x333333"
+    #                 height: "auto"
+    #         - type: view
+    #           style:
+    #             width: "0.65"
+    #             marginTop: "0.01"
+    #             height: "auto"
+    #           children:
+    #             - type: label
+    #               text: "Phone #:"
+    #               style:
+    #                 display: "inline-block"
+    #                 fontSize: .Nfont.h14
+    #                 color: "#333333"
+    #                 height: "auto"
+    #                 fontWeight: "600"
+    #             - type: label
+    #               dataKey: Global.Profile.name.data.basicInfo.phone
+    #               style:
+    #                 marginLeft: "0.02"
+    #                 display: "inline-block"
+    #                 fontSize: .Nfont.h14
+    #                 color: "0x333333"
+    #                 height: "auto"
+    - type: view
+      viewTag: blockMarginTag
+      style:
+        width: "1"
+        height: "0.05"
+        zIndex: "100"
+        backgroundColor: "0xffffff"
+        border:
+          style: 2
+          color: "0xDEDEDF"
+        borderWidth: "2px"
+      children:
+        - type: list
+          viewTag: profileInfoTag
+          contentType: listObject
+          listObject: ..formDataTemp.titleData
+          iteratorVar: itemObject
+          style:
+            width: "1"
+            margin: "0"
+            axis: horizontal
+            height: auto
+            border:
+              style: "2"
+            borderColor: "0xdededf"
+            borderWidth: "2px"
+            zIndex: 100
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                width: "0.333"
+                height: "auto"
+                marginTop: "0"
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - =.builtIn.object.setProperty:
+                          dataIn:
+                            obj: =..formDataTemp.titleData
+                            label: "title"
+                            text: $var.title
+                            arr: ["fontColor", "fontWeight", "block"]
+                            valueArr: ["0x2988e6", "600", "block"]
+                            errorArr: ["0x333333", "400", "none"]
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockAboutInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockEmploymentInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockInsuranceInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.patientProfileVar@: "About"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Employment"
+                          - ..formDataTemp.blockAboutInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Employment"
+                          - ..formDataTemp.blockEmploymentInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Employment"
+                          - ..formDataTemp.blockInsuranceInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Employment"
+                          - ..formDataTemp.patientProfileVar@: "Employment"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Insurance"
+                          - ..formDataTemp.blockInsuranceInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Insurance"
+                          - ..formDataTemp.blockAboutInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Insurance"
+                          - ..formDataTemp.blockEmploymentInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Insurance"
+                          - ..formDataTemp.patientProfileVar@: "Insurance"
+                          - continue
+                - actionType: evalObject
+                  object:
+                    - .Global.patientProfileVar@: =..formDataTemp.patientProfileVar
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: leftBlockTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: profileInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: AboutInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: EmploymentInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: InsuranceInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockImageTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockMarginTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockHeightTag
+              children:
+                - type: label
+                  dataKey: itemObject.title
+                  style:
+                    color: itemObject.fontColor
+                    lineHeight: "5vh"
+                    height: "0.05"
+                    width: "0.333"
+                    fontWeight: itemObject.fontWeight
+                    display: "inline-block"
+                    textAlign:
+                      x: center
+                    fontSize: .Nfont.h14
+                - type: view
+                  viewTag: leftBlockTag
+                  style:
+                    display: itemObject.block
+                    top: "0.0453"
+                    left: "0.12"
+                    width: "0.08"
+                    height: "0.005"
+                    backgroundColor: "0x2988e6"
+                    borderRadius: "20"
+    - type: scrollView
+      viewTag: blockHeightTag
+      style:
+        margin: "0"
+        height: "0.73"
+        width: "1"
+      children:
+        - type: view
+          viewTag: AboutInfoTag
+          style:
+            width: "1"
+            display: ..formDataTemp.blockAboutInfo
+            height: "auto"
+            fontSize: .Nfont.h14
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                margin: "0"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: Basic Info
+                  style:
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "First Name:"
+                  style:
+                    color: "0x333333"
+                    width: "0.21"
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  # text: "Lisa"
+                  dataKey: Global.Profile.name.data.basicInfo.firstName
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.69"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Middle Name: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    display: "inline-block"
+                    height: "0.03"
+                    width: "0.25"
+                - type: label
+                  dataKey: Global.Profile.name.data.basicInfo.middleName
+                  style:
+                    height: "0.03"
+                    width: "0.65"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Last Name: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.21"
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.basicInfo.lastName
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.69"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+                boxSizing: border-box
+              children:
+                - type: label
+                  text: "Date of Birth: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    display: "inline-block"
+                    width: "0.3"
+                    fontSize: .Nfont.h14
+                    height: "0.03"
+                    boxSizing: border-box
+                - type: label
+                  dataKey: Global.Profile.name.data.basicInfo.dateOfBirth
+                  style:
+                    height: "0.03"
+                    width: "0.6"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    boxSizing: border-box
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Gender: "
+                  style:
+                    color: "0x333333"
+                    width: "0.15"
+                    fontWeight: "600"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.basicInfo.gender
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    width: "0.75"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Social Security #: "
+                  style:
+                    color: "0x333333"
+                    width: "0.35"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.basicInfo.socialSecurity
+                  style:
+                    height: "0.03"
+                    width: "0.55"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                marginTop: "0.02"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: Contact
+                  style:
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Alternate Phone #: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    width: "0.35"
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.contactInfo.alternatePhone.fullPhone
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.55"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Email:"
+                  style:
+                    color: "0x333333"
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
+                    display: "inline-block"
+                    height: "0.03"
+                    width: "0.12"
+                - type: label
+                  dataKey: Global.Profile.name.data.contactInfo.email
+                  style:
+                    height: "0.03"
+                    width: "0.78"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Address: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    height: "0.03"
+                    width: "0.9"
+                - type: label
+                  text: ""
+                  dataKey: MyProfile.formData.aboutAddress
+                  style:
+                    height: "auto"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: left
+                    width: "0.9"
+                    wordWrap: break-word
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                marginTop: "0.02"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: Emergency Contact
+                  style:
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "First Name: "
+                  style:
+                    color: "0x333333"
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
+                    display: "inline-block"
+                    width: "0.21"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.emergencyContact.firstName
+                  style:
+                    height: "0.03"
+                    width: "0.69"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Middle Name: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    display: "inline-block"
+                    width: "0.25"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.emergencyContact.middleName
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.65"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Last Name: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    width: "0.21"
+                    fontSize: .Nfont.h14
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.emergencyContact.lastName
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    width: "0.69"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Relation: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    width: "0.17"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.emergencyContact.relation
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    width: "0.73"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Phone #: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    display: "inline-block"
+                    height: "0.03"
+                    fontSize: .Nfont.h14
+                    width: "0.17"
+                - type: label
+                  dataKey: Global.Profile.name.data.emergencyContact.phone.fullPhone
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    width: "0.73"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                marginTop: "0.02"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: "Identification"
+                  style:
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "ID Type: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    display: "inline-block"
+                    height: "0.03"
+                    fontSize: .Nfont.h14
+                    width: "0.15"
+                - type: label
+                  dataKey: Global.Profile.name.data.identification.type
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    width: "0.75"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "ID #: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    width: "0.1"
+                    fontSize: .Nfont.h14
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.identification.id
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.8"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "ID Image: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    width: "0.17"
+                    fontSize: .Nfont.h14
+                    height: "0.03"
+                - type: image
+                  path: null.png
+                  path=func: =.builtIn.utils.prepareDocToPath
+                  dataKey: Global.Profile.name.data.identification.imageId
+                  style:
+                    display: ..formDataTemp.idImageStyle
+                    marginTop: "0.01"
+                    width: "0.73"
+
+        - type: view
+          viewTag: EmploymentInfoTag
+          style:
+            width: "1"
+            height: "auto"
+            fontSize: .Nfont.h14
+            display: ..formDataTemp.blockEmploymentInfo
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: "Employment Info"
+                  style:
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Employer Name"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    width: "0.3"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.employment.employerName
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.6"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Dept: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    width: "0.11"
+                    fontSize: .Nfont.h14
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.employment.dept
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.79"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Nature of Business"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    width: "0.35"
+                    fontSize: .Nfont.h14
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.employment.NatureBusiness
+                  style:
+                    height: "0.03"
+                    width: "0.55"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Occupation"
+                  style:
+                    color: "0x333333"
+                    fontSize: .Nfont.h14
+                    width: "0.24"
+                    fontWeight: "600"
+                    display: "inline-block"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.employment.Occupation
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.66"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.03"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Telephone"
+                  style:
+                    color: "0x333333"
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
+                    display: "inline-block"
+                    height: "0.03"
+                    width: "0.25"
+                - type: label
+                  dataKey: Global.Profile.name.data.employment.Telephone
+                  style:
+                    height: "0.03"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    width: "0.65"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.03"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Fax #"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+                    width: "0.11"
+                    height: "0.03"
+                - type: label
+                  dataKey: Global.Profile.name.data.employment.fax
+                  style:
+                    height: "0.03"
+                    width: "0.79"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.03"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Email"
+                  style:
+                    color: "0x333333"
+                    fontSize: .Nfont.h14
+                    fontWeight: "600"
+                    display: "inline-block"
+                    height: "0.03"
+                    width: "0.11"
+                - type: label
+                  dataKey: Global.Profile.name.data.employment.email
+                  style:
+                    height: "0.03"
+                    width: "0.79"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+                paddingBottom: "0.01"
+              children:
+                - type: label
+                  text: "Address"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    height: "0.03"
+                - type: label
+                  dataKey: MyProfile.formData.employerAddress
+                  style:
+                    height: "auto"
+                    color: "0x666666"
+                    fontWeight: "400"
+                    width: "0.9"
+                    wordWrap: break-word
+                    fontSize: .Nfont.h14
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                fontSize: .Nfont.h14
+              children:
+                - type: view
+                  style:
+                    width: "1"
+                    height: "auto"
+                    backgroundColor: "0xf0f0f0"
+                  children:
+                    - type: label
+                      text: "Attorneys Info"
+                      style:
+                        marginLeft: "0.04"
+                        color: "0x666666"
+                        height: "auto"
+                        width: "auto"
+                        lineHeight: 5vh
+                        fontSize: .Nfont.h14
+                        fontWeight: "700"
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "auto"
+                    marginLeft: "0.05"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Attorneys name"
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        width: "0.3"
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                        height: "0.03"
+                    - type: label
+                      dataKey: Global.Profile.name.data.attorneysInfo.name
+                      style:
+                        height: "0.03"
+                        color: "0x666666"
+                        fontWeight: "400"
+                        width: "0.6"
+                        textAlign:
+                          x: right
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "0.03"
+                    marginLeft: "0.05"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Phone #"
+                      style:
+                        color: "0x333333"
+                        fontSize: .Nfont.h14
+                        fontWeight: "600"
+                        display: "inline-block"
+                        height: "0.03"
+                        width: "0.25"
+                    - type: label
+                      dataKey: Global.Profile.name.data.attorneysInfo.phone
+                      style:
+                        height: "0.03"
+                        color: "0x666666"
+                        fontWeight: "400"
+                        textAlign:
+                          x: right
+                        width: "0.65"
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "0.03"
+                    marginLeft: "0.05"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Fax #"
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                        width: "0.11"
+                        height: "0.03"
+                    - type: label
+                      dataKey: Global.Profile.name.data.attorneysInfo.fax
+                      style:
+                        height: "0.03"
+                        width: "0.79"
+                        color: "0x666666"
+                        fontWeight: "400"
+                        textAlign:
+                          x: right
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "auto"
+                    marginLeft: "0.05"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: "Address: "
+                      style:
+                        color: "0x333333"
+                        fontWeight: "600"
+                        fontSize: .Nfont.h14
+                        height: "0.03"
+                    - type: label
+                      dataKey: Global.Profile.name.data.attorneysInfo.address.fullAddress
+                      style:
+                        height: "auto"
+                        color: "0x666666"
+                        fontWeight: "400"
+                        width: "0.9"
+                        wordWrap: break-word
+                        fontSize: .Nfont.h14
+        - type: view
+          viewTag: InsuranceInfoTag
+          style:
+            ..style.insuranceInfoBox:
+            display: ..formDataTemp.blockInsuranceInfo
+          children:
+            - type: view
+              style:
+              children:
+                - type: label
+                  text: Medical Insurance
+                  style:
+                    ..style.insuranceTitle:
+            - type: list
+              contentType: listObject
+              listObject: ..apiRequest.insurance.docQueryResp.doc
+              iteratorVar: itemObject
+              viewTag: insuranceTag
+              style:
+                ..style.insuranceList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.insuranceInfoItem:
+                  onClick:
+                    - ..event.insuranceClick
+                  children:
+                    - type: view
+                      style:
+                        marginTop: "0"
+                      children:
+                        - type: image
+                          path: companyNameIcon.svg
+                          style:
+                            ..style.insuranceInfoImg:
+                        - type: view
+                          style:
+                            display: "inline-block"
+                          children:
+                            - type: label
+                              text:
+                              dataKey: itemObject.name.data.companyName
+                              style:
+                                ..style.insuranceInfoText:
+
+                    - type: view
+                      style:
+                        marginTop: "0.0123"
+                      children:
+                        - type: image
+                          path: planOrMedicalGroupIcon.svg
+                          style:
+                            ..style.insuranceInfoImg:
+                        - type: view
+                          style:
+                            display: "inline-block"
+                          children:
+                            - type: label
+                              text:
+                              dataKey: itemObject.name.data.planOrMedicalGroup
+                              style:
+                                ..style.insuranceInfoText:
+                    - type: view
+                      style:
+                        marginTop: "0.0123"
+                      children:
+                        - type: image
+                          path: memberNameIcon.svg
+                          style:
+                            ..style.insuranceInfoImg:
+                        - type: view
+                          style:
+                            display: "inline-block"
+                          children:
+                            - type: label
+                              text:
+                              dataKey: itemObject.name.data.memberName
+                              style:
+                                ..style.insuranceInfoText:
+                    - type: view
+                      style:
+                        marginTop: "0.0123"
+                      children:
+                        - type: image
+                          path: memberIdIcon.svg
+                          style:
+                            ..style.insuranceInfoImg:
+                        - type: view
+                          style:
+                            display: "inline-block"
+                          children:
+                            - type: label
+                              text:
+                              dataKey: itemObject.name.data.memberId
+                              style:
+                                ..style.insuranceInfoText:
+                    - type: view
+                      style:
+                        ..style.primaryBox:
+                      children:
+                        - type: image
+                          path:
+                            ..event.defaultPath:
+                          style:
+                            ..style.primaryBlock:
+                        - type: label
+                          text: "View"
+                          style:
+                            ..style.insuranceAddBtn:
+                            marginLeft: "0.56"
+                            textDecoration: "none"
+
+        # 2022年7月20日11:01:05 注释
+        # - type: view
+        #   viewTag: InsuranceInfoTag
+        #   style:
+        #     width: "1"
+        #     height: "auto"
+        #     fontSize: .Nfont.h14
+        #     display: ..formDataTemp.blockInsuranceInfo
+        #   children:
+        #     - type: view
+        #       style:
+        #         width: "1"
+        #         height: "auto"
+        #         backgroundColor: "0xf0f0f0"
+        #       children:
+        #         - type: label
+        #           text: "Medical Insurance"
+        #           style:
+        #             marginLeft: "0.04"
+        #             color: "0x666666"
+        #             height: "auto"
+        #             width: "auto"
+        #             lineHeight: 5vh
+        #             fontSize: .Nfont.h14
+        #             fontWeight: "700"
+        #     - type: view
+        #       style:
+        #         width: "0.9"
+        #         height: "auto"
+        #         marginLeft: "0.04"
+        #       children:
+        #         - type: list
+        #           contentType: listObject
+        #           listObject: ..apiRequest.insurance.docQueryResp.doc
+        #           iteratorVar: itemObject
+        #           viewTag: insuranceTag
+        #           style:
+        #             ..style.insuranceList:
+        #           children:
+        #             - type: listItem
+        #               itemObject:
+        #               style:
+        #                 ..style.item:
+        #               onClick:
+        #                 - ..event.insuranceClick
+        #               children:
+        #                 - type: view
+        #                   style:
+        #                     ..style.itemView:
+        #                   children:
+        #                     - type: view
+        #                       style:
+        #                         ..style.blockBox:
+        #                       children:
+        #                         - type: label
+        #                           text: "&#8226"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.dot:
+        #                         - type: label
+        #                           text: "Insurance Company Name"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.title:
+        #                     - type: label
+        #                       dataKey: itemObject.name.data.companyName
+        #                       style:
+        #                         ..style.value:
+        #                     - type: view
+        #                       style:
+        #                         ..style.blockBox:
+        #                         marginTop: "0.017241"
+        #                       children:
+        #                         - type: label
+        #                           text: "&#8226"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.dot:
+        #                         - type: label
+        #                           text: "Insurance Plan / Medical Group"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.title:
+        #                     - type: label
+        #                       dataKey: itemObject.name.data.planOrMedicalGroup
+        #                       style:
+        #                         ..style.value:
+        #                     - type: view
+        #                       style:
+        #                         ..style.blockBox:
+        #                         marginTop: "0.017241"
+        #                       children:
+        #                         - type: label
+        #                           text: "&#8226"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.dot:
+        #                         - type: label
+        #                           text: "Insured Name"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.title:
+        #                     - type: label
+        #                       dataKey: itemObject.name.data.memberName
+        #                       style:
+        #                         ..style.value:
+        #                     - type: view
+        #                       style:
+        #                         ..style.blockBox:
+        #                         marginTop: "0.017241"
+        #                       children:
+        #                         - type: label
+        #                           text: "&#8226"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.dot:
+        #                         - type: label
+        #                           text: "Insurance ID #"
+        #                           dataKey:
+        #                           style:
+        #                             ..style.title:
+        #                     - type: view
+        #                       style:
+        #                         ..style.blockBox:
+        #                       children:
+        #                         - type: label
+        #                           dataKey: itemObject.name.data.memberId
+        #                           style:
+        #                             ..style.idValue:
+        #                         - type: image
+        #                           path:
+        #                             ..event.defaultPath:
+        #                           style:
+        #                             ..style.defaultImg:
+
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.86"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - .BaseComponents.dayView:
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.object.set:
+                        dataIn:
+                          object: =..formData.patientInfo
+                          key: dateOfBirth
+                          value: =.BaseComponents.calendarDate.todayDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: birthTag
+                - actionType: popUpDismiss
+                  popUpView: birthDay
+  event:
+    defaultPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Profile.name.data.insuranceId
+                    string2: $var.id
+              - primaryIcon.png
+              - null.png
+    insuranceClick:
+      - actionType: updateObject
+        dataKey: Global.formData.insurance
+        dataObject: itemObject
+      - actionType: evalObject
+        object:
+          - .Global.formData.editInsuranceFromMyProfile@: true
+          - .Global.formData.module_insurance.display_editFromUpdateProfile@: inline-block
+      - goto: MedicalInsuranceShow
+  style:
+    # Insurance
+    insuranceInfoBox:
+      fontSize: .Nfont.h14
+      width: "1"
+      boxSizing: border-box
+      paddingTop: "0.017241"
+    insuranceTitle:
+      color: "0x333333"
+      width: "0.8"
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+    insuranceAddBtn:
+      width: "0.118666"
+      color: "0x2988e6"
+      textDecoration: underline
+      textDecorationColor: "0x2988e6"
+      textAlign:
+        x: right
+      display: "inline-block"
+      verticalAlign: middle
+      fontSize: .Nfont.h14
+    insuranceInfoItem:
+      boxSizing: border-box
+      paddingTop: "0.0123"
+      marginLeft: "0.04"
+      paddingLeft: "0.04"
+      paddingBottom: "0.01"
+      borderRadius: "8"
+      width: "0.92"
+      backgroundColor: "0xffffff"
+      boxShadow: "1px 1px 4px 2px #f0f0f0"
+      marginTop: "0.019704"
+    insuranceInfoImg:
+      width: "0.037333"
+      height: "0.017241"
+      display: "inline-block"
+      verticalAlign: middle
+    insuranceInfoText:
+      # display: "inline-block"
+      fontSize: .Nfont.h14
+      fontColor: "#000000"
+      boxSizing: border-box
+      paddingLeft: "0.026666"
+      width: "280px"
+      webkitLineClamp: 2
+      display: -webkit-box
+      webkitBoxOrient: vertical
+      overflow: hidden
+      textOverflow: ellipsis
+    insuranceDelIcon:
+      width: "0.08"
+      height: "0.036945"
+      top: "0"
+      left: "0.84"
+    primaryBox:
+      width: "0.842666"
+      marginTop: "0.0123"
+      borderTop: "1px solid #f0f0f0"
+      boxSizing: border-box
+      paddingTop: "0.009852"
+    primaryBlock:
+      width: "0.16"
+      height: "0.024630"
+      verticalAlign: middle
+    # 2022年7月20日11:03:30 注释
+    insuranceList:
+      height: "auto"
+      width: "1"
+      margin: "0"
+      boxSizing: border-box
+    # item:
+    #   width: "auto"
+    #   height: "auto"
+    #   overflow: hidden
+    #   boxSizing: border-box
+    # itemView:
+    #   marginTop: "0.0197044"
+    #   width: "0.92"
+    #   height: "auto"
+    #   backgroundColor: "#f0f2f4"
+    #   borderRadius: "8"
+    #   boxSizing: border-box
+    #   padding: "12px 12px"
+    # blockBox:
+    #   width: "auto"
+    #   height: "auto"
+    #   overflow: hidden
+    # dot:
+    #   boxSizing: border-box
+    #   display: "inline-block"
+    #   height: "auto"
+    #   width: "auto"
+    #   fontSize: .Nfont.h16
+    #   verticalAlign: middle
+    # title:
+    #   marginLeft: "0.01"
+    #   boxSizing: border-box
+    #   display: "inline-block"
+    #   height: "auto"
+    #   width: "0.784"
+    #   fontSize: .Nfont.h12
+    #   verticalAlign: middle
+    # delImg:
+    #   verticalAlign: middle
+    #   height: "0.019704"
+    # value:
+    #   marginTop: "0.01"
+    #   marginLeft: "0.021333"
+    #   fontSize: .Nfont.h12
+    #   fontWeight: "600"
+    #   width: "0.78"
+    #   height: "auto"
+    #   overflow: hidden
+    #   text-overflow: ellipsis
+    #   whiteSpace: nowrap
+    # idValue:
+    #   ..style.value:
+    #   marginTop: "0"
+    #   display: "inline-block"
+    #   width: "0.7013333"
+    #   verticalAlign: middle
+    # defaultImg:
+    #   display: "inline-block"
+    #   height: "0.019704"
+    #   verticalAlign: middle
+    # deleteArea:
+    #   top: "0"
+    #   left: "0"
+    #   width: "0.83"
+    #   height: "0.302955"

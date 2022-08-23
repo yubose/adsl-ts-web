@@ -5,7 +5,7 @@ H1:
   type: label
   style:
     height: "0.1"
-    fontFamily: sans-serif
+
     fontSize: "48"
     fontWeight: 400
     textAlign:
@@ -15,7 +15,7 @@ H2:
   type: label
   style:
     height: "0.1"
-    fontFamily: sans-serif
+
     fontSize: "42"
     fontWeight: 500
     textAlign:
@@ -25,7 +25,7 @@ H3:
   type: label
   style:
     height: "0.1"
-    fontFamily: sans-serif
+
     fontSize: "36"
     fontWeight: 400
     textAlign:
@@ -35,7 +35,7 @@ H4:
   type: label
   style:
     height: "0.1"
-    fontFamily: sans-serif
+
     fontSize: "30"
     fontWeight: 400
     textAlign:
@@ -45,7 +45,7 @@ H5:
   type: label
   style:
     height: "0.08"
-    fontFamily: sans-serif
+
     fontSize: "24"
     fontWeight: 400
     textAlign:
@@ -55,7 +55,7 @@ H6:
   type: label
   style:
     height: "0.1"
-    fontFamily: sans-serif
+
     fontSize: "18"
     fontWeight: 400
     textAlign:
@@ -65,7 +65,7 @@ P:
   type: label
   style:
     fontSize: "18"
-    fontFamily: sans-serif
+
     height: "0.05"
     lineHeight: "2"
     width: "0.84" # justify | left | center |right
@@ -121,7 +121,7 @@ LargeButton:
     left: "0.15"
     color: "0xffffff"
     fontSize: "18"
-    fontFamily: sans-serif
+
     fontWeight: "400"
     border:
       style: 1
@@ -134,7 +134,7 @@ DefaultButton:
     backgroundColor: "0x337ab7"
     color: "0xffffff"
     fontSize: .Nfont.h16
-    fontFamily: sans-serif
+
     fontWeight: "400"
     border:
       style: 1
@@ -147,7 +147,7 @@ DefaultButton:
 #     backgroundColor: "0x337ab7"
 #     color: "0xffffff"
 #     fontSize: .Nfont.h16
-#     fontFamily: sans-serif
+#
 #     letterSpacing: 0
 #     fontWeight: "300"
 #     border:

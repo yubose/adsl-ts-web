@@ -39,7 +39,7 @@ SignUp: # This is page name
               string1: =..verificationCode.response.edge.tage
               string2: "0"
         - ..formData.code@: ""
-        - ..formData.code@: =.SignUp.verificationCode.response.edge.tage 
+        - ..formData.code@: =.SignUp.verificationCode.response.edge.tage
   check:
     - =.SignUp.loginNewDevice.edgeAPI.store: ""
     - if:
@@ -97,7 +97,7 @@ SignUp: # This is page name
         top: "0"
         width: "1"
         height: "1"
-        fontFamily: "Airal"
+
         overflow: hidden
         # backgroundColor: "#e4cdd7"
       children:
@@ -130,7 +130,7 @@ SignUp: # This is page name
                 textShadow: "0 2px #0000001a"
                 letterSpacing: "0.1em"
                 textIndent: "0.2em"
-                fontFamily: "Airal"
+
                 textAlign:
                   x: center
         - type: view
@@ -143,11 +143,11 @@ SignUp: # This is page name
             borderColor: "0xffffff"
             borderRadius: "40px 40px 0 0"
             height: "1"
-            fontFamily: Airal
+
             boxSizing: "border-box"
           children:
             - type: label
-              text: Create an Account with AiTmed
+              text: Create An Account With AiTmed
               style:
                 marginTop: "0.04"
                 fontSize: ".Nfont.h2"
@@ -174,7 +174,7 @@ SignUp: # This is page name
                         left: "0"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: ".Nfont.h1"
                     - type: select
                       contentType: countryCode
@@ -196,10 +196,54 @@ SignUp: # This is page name
                         box-sizing: "border-box"
                         border:
                           style: "1"
+                      onChange:
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.countryCode
+                                      string2: "+965" # Kuwait
+                                - .SignUp.flag@: true
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.string.phoneVerification:
+                                        dataIn:
+                                          phoneNumber: =..formData.phoneNumber
+                                          countryCode: =..formData.countryCode
+                                        dataOut: SignUp.flag
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "uid like '%"
+                                  - =..formData.countryCode # =.SignUp.formData.countryCode
+                                  - " "
+                                  - =..formData.phoneNumber # =.SignUp.formData.phoneNumber
+                                  - "'"
+                                dataOut: SignUp.rvCondition
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..flag
+                                      string2: true
+                                - actionType: evalObject
+                                  object:
+                                    - ..btnColor@: "0x2988e6"
+                                    - ..btText@: "Continue"
+                                    - ..btContinue@: "block"
+                                - actionType: evalObject
+                                  object:
+                                    - ..btnColor@: "0xC1C1C1"
+                                    - ..btText@: "Sign Up"
+                                    - ..btContinue@: "none"
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: btnView
                 - type: view
                   style:
                     display: "inline-block"
-                    marginLeft: "0.05"
+                    marginLeft: "0.045"
                     # height: "0.09"
                   children:
                     - type: label
@@ -212,7 +256,7 @@ SignUp: # This is page name
                         fontWeight: "500"
                         fontSize: ".Nfont.h1"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                     - type: textField
                       contentType: phoneNumber
                       placeholder: "(000) 000-0000"
@@ -227,21 +271,29 @@ SignUp: # This is page name
                           funcName: redraw
                           viewTag: phoneNumberVT
                       onInput:
-                        - emit:
-                            actions:
-                              - =.builtIn.string.phoneVerification:
-                                  dataIn:
-                                    phoneNumber: =..formData.phoneNumber
-                                    countryCode: =..formData.countryCode
-                                  dataOut: SignUp.flag
-                              - =.builtIn.string.concat:
-                                  dataIn:
-                                    - "uid like '%"
-                                    - =..formData.countryCode # =.SignUp.formData.countryCode
-                                    - " "
-                                    - =..formData.phoneNumber # =.SignUp.formData.phoneNumber
-                                    - "'"
-                                  dataOut: SignUp.rvCondition
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.countryCode
+                                      string2: "+965" # Kuwait
+                                - .SignUp.flag@: true
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.string.phoneVerification:
+                                        dataIn:
+                                          phoneNumber: =..formData.phoneNumber
+                                          countryCode: =..formData.countryCode
+                                        dataOut: SignUp.flag
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - "uid like '%"
+                                  - =..formData.countryCode # =.SignUp.formData.countryCode
+                                  - " "
+                                  - =..formData.phoneNumber # =.SignUp.formData.phoneNumber
+                                  - "'"
+                                dataOut: SignUp.rvCondition
                         - actionType: evalObject
                           object:
                             - if:
@@ -267,8 +319,9 @@ SignUp: # This is page name
                           x: left
                         fontSize: .Nfont.h1
                         left: "0"
-                        width: "0.55"
+                        width: "0.555"
                         height: "0.05"
+
                         marginTop: "0.01"
                         required: "true"
                         borderColor: ..phone.color
@@ -286,27 +339,25 @@ SignUp: # This is page name
         - type: view
           viewTag: btnView
           style:
-            marginTop: "0.05"
+            marginTop: "0.045"
           children:
             - type: button
               dataKey: btText
               style:
                 color: "0xffffffff"
-                # fontSize: .Nfont.h16
-                fontSize: .Nfont.h18
+                fontSize: ".Nfont.h18"
+                fontStyle: bold
+                left: "0.1"
+
                 width: "0.8"
-                marginLeft: "0.1"
-                fontFamily: "Airal"
+                borderRadius: "8"
                 height: "0.05"
                 backgroundColor: ..btnColor
-                # isHidden: "true"
-                borderRadius: "8"
                 border:
                   style: "1"
                 display: inline
                 textAlign:
                   x: center
-                  y: center
               onClick:
                 - actionType: evalObject
                   object:
@@ -316,13 +367,19 @@ SignUp: # This is page name
                         - actionType: popUp
                           popUpView: NoPhoneNum
                           wait: true
-                - actionType: evalObject
-                  object:
-                    - =.builtIn.string.phoneVerification:
-                        dataIn:
-                          phoneNumber: =..formData.phoneNumber
-                          countryCode: =..formData.countryCode
-                        dataOut: SignUp.formData.checkOk
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.countryCode
+                              string2: "+965" # Kuwait
+                        - .SignUp.formData.checkOk@: true
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.string.phoneVerification:
+                                dataIn:
+                                  phoneNumber: =..formData.phoneNumber
+                                  countryCode: =..formData.countryCode
+                                dataOut: SignUp.formData.checkOk
                     - if:
                         - =..formData.checkOk
                         - continue
@@ -337,16 +394,16 @@ SignUp: # This is page name
                   object:
                     - =..getVertex.vertexAPI.get: ""
                     - if:
-                      - =..getVertex.response.vertex.0.id
-                      - actionType: evalObject
-                        object:
-                          - if:
-                            - =..getVertex.response.vertex.0.pk
-                            - actionType: popUp
-                              popUpView: existUser
-                              wait: true
-                            - ..formData.userId@: =..getVertex.response.vertex.0.id
-                      - continue
+                        - =..getVertex.response.vertex.0.id
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =..getVertex.response.vertex.0.pk
+                                - actionType: popUp
+                                  popUpView: existUser
+                                  wait: true
+                                - ..formData.userId@: =..getVertex.response.vertex.0.id
+                        - continue
                     - .Global.newAccountFlag@: "1"
                 - actionType: evalObject
                   object: ..save
@@ -395,7 +452,7 @@ SignUp: # This is page name
                 left: "0.75"
         - type: view
           style:
-            marginTop: "0.03"
+            marginTop: "0.0375"
             width: "0.98"
             textAlign:
               x: center
@@ -408,7 +465,7 @@ SignUp: # This is page name
                     color: "0xb1b1b1"
                     fontSize: .Nfont.h1
                     display: inline-block
-                    fontFamily: "Airal"
+
                 - type: label
                   text: Sign In
                   style:
@@ -417,7 +474,7 @@ SignUp: # This is page name
                     fontWeight: "400"
                     marginLeft: "0.02"
                     display: inline-block
-                    fontFamily: "Airal"
+
                   onClick:
                     - goto: SignIn
     - .TipsMultiLine:
@@ -460,7 +517,7 @@ SignUp: # This is page name
                 marginLeft: "0.06"
                 marginTop: "0.027"
                 fontSize: .Nfont.n1_1
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -471,7 +528,7 @@ SignUp: # This is page name
                 marginLeft: "0.06"
                 marginTop: "0.015"
                 fontSize: .Nfont.n1_1
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -563,7 +620,7 @@ SignUp: # This is page name
                 fontWeight: "550"
                 marginTop: "0.029"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"

@@ -3,25 +3,89 @@ AbsentNoteShared:
   # pageNumber: "184"
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime: 
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: =.DocType.AbsentNote
+
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
 
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.absentNote.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
+
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Absence / Excuse Note"
+        - .Global.formData.downloadPDF.scaleX@: 0.78
+        - .Global.formData.downloadPDF.scaleY@: 0.78
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
 
-  formData: ""
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.AbsentNoteShared.formData.name.data.signatureId
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
+
+  formData:
+    # 控制签名是否显示
+    displaySign: "none"
+
   formDataTemp:
     downFlag: "inline-block"
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
     place:
       - key: place
         value: school
@@ -36,20 +100,46 @@ AbsentNoteShared:
         value: illness
       - key: reason
         value: other
+  apiRequest:
+    absentNote:
+      docRes: ""
+      docReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: AbsentNoteShared.apiRequest.absentNote.docReq
+          dataOut: AbsentNoteShared.apiRequest.absentNote.docRes
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      date: =.Global.formData.auditLog.startTime
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.AbsentNote
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
-        width: "1"
-        height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+        ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
         - type: view
           style:
@@ -83,7 +173,7 @@ AbsentNoteShared:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
 
@@ -95,7 +185,7 @@ AbsentNoteShared:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
 
@@ -196,7 +286,7 @@ AbsentNoteShared:
             marginLeft: "0.04"
             fontSize: .Nfont.h16
             width: "auto"
-            fontFamily: "Arial"
+
             fontWeight: "700"
         - type: view
           style:
@@ -221,7 +311,7 @@ AbsentNoteShared:
                       x: "left"
                       y: "center"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
             - type: textField
               placeholder: "No content"
@@ -231,7 +321,7 @@ AbsentNoteShared:
                 width: "0.6"
                 height: "0.037"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 textIndent: "12px"
                 display: "inline-block"
                 borderRadius: "4"
@@ -263,7 +353,7 @@ AbsentNoteShared:
                       x: "left"
                       y: "center"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
             - type: view
               viewTag: dateTag
@@ -288,7 +378,7 @@ AbsentNoteShared:
                     width: "0.506"
                     height: "0.037"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -303,7 +393,7 @@ AbsentNoteShared:
             marginLeft: "0.04"
             marginTop: "0.022"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             width: "0.92"
             fontWeight: "600"
         - type: view
@@ -357,7 +447,7 @@ AbsentNoteShared:
                         marginLeft: "0.021"
                         marginTop: "0"
                         fontSize: .Nfont.h12
-                        fontFamily: "Arial"
+
                         display: "inline-block"
                         verticalAlign: "middle"
         # 第二组单选框
@@ -368,7 +458,7 @@ AbsentNoteShared:
             marginLeft: "0.04"
             marginTop: "0.022"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             width: "0.92"
             fontWeight: "600"
         - type: view
@@ -421,7 +511,7 @@ AbsentNoteShared:
                         marginLeft: "0.021"
                         marginTop: "0"
                         fontSize: .Nfont.h12
-                        fontFamily: "Arial"
+
                         display: "inline-block"
                         verticalAlign: "middle"
 
@@ -446,9 +536,9 @@ AbsentNoteShared:
             marginLeft: "0.04"
             width: "0.92"
             height: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
-            wordBreak: "break-all"
+            wordBreak: break-word
           # Notes
         - type: label
           text: "Notes"
@@ -456,7 +546,7 @@ AbsentNoteShared:
           style:
             marginTop: "0.0222"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             marginLeft: "0.04"
             width: "0.92"
             fontWeight: "600"
@@ -474,7 +564,7 @@ AbsentNoteShared:
               style: 1
             borderRadius: "4"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
             backgroundColor: "0xfafafa"
@@ -533,6 +623,7 @@ AbsentNoteShared:
                 height: "0.128"
                 overflow: scroll
                 zIndex: "1000"
+                display: ..formData.displaySign
 
         - type: view
           style:
@@ -541,6 +632,7 @@ AbsentNoteShared:
             width: "0.92"
             height: "auto"
             overflow: hidden
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -600,4 +692,79 @@ AbsentNoteShared:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+    # - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:
+
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag
+
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+
+  event:
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.absentNote.docReq.name.data.statusTag.name@: Released
+          - ..apiRequest.absentNote.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.absentNote.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      # 保存newNote
+      - actionType: evalObject
+        object:
+          - ..apiRequest.absentNote.docReq.tage@: -1
+          - =..apiRequest.absentNote.docAPI.store: ""
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: popUp
+        popUpView: successTag
+
+      # 返回路径
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

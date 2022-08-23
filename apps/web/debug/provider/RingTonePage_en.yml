@@ -6,29 +6,13 @@ RingTonePage:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - actionType: updateObject
-      dataKey: Global.roomInfoDoc.document
-      dataObject: .EmptyObj
-    # 清空 providerDiagnosis.pROne
-    - actionType: updateObject
-      dataKey: Global.formData.providerDiagnosis.pROne
-      dataObject: .EmptyObj
-    # 清空 providerDiagnosis.pRTwo
-    - actionType: updateObject
-      dataKey: Global.formData.providerDiagnosis.pRTwo
-      dataObject: .EmptyObj
-    # 清空 providerDiagnosis.progressReport
-    - actionType: updateObject
-      dataKey: Global.formData.providerDiagnosis.progressReport
-      dataObject: .EmptyObj
-    # 清空 providerDiagnosis.progressReport
-    - actionType: updateObject
-      dataKey: Global.formData.providerDiagnosis.initialEvaluationReport
-      dataObject: .EmptyObj
+    # - actionType: updateObject
+    #   dataKey: Global.roomInfoDoc.document
+    #   dataObject: .EmptyObj
     # - ..dataObject@: =.Global.roomInfo.edge
     #change jwt
-    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
-    - =.Global.createjwt.edgeAPI.store: ""
+    # - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+    # - =.Global.createjwt.edgeAPI.store: ""
 
     # get roomInfo
     - actionType: evalObject
@@ -37,67 +21,98 @@ RingTonePage:
             dataIn:
               edgeId: =.Global.ecosDocObj.doc.0.eid
             dataOut: Global.ecosEdgeObj
-        - .Global.roomInfo.edge@: =.Global.ecosEdgeObj
+        - .RingTonePage.roomInfo.edge@: =.Global.ecosEdgeObj
 
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    # get currentRoom fo into 
+    # get currentRoom fo into
     - if:
         - =.builtIn.string.equal:
             dataIn:
-              string1: =.Global.roomInfo.edge.bvid
+              string1: =.RingTonePage.roomInfo.edge.bvid
               string2: =.Global.currentUser.vertex.id
-        - .Global.currentRoom.edge@: =.Global.roomInfo.edge
+        - .RingTonePage.currentRoom.edge@: =.RingTonePage.roomInfo.edge
         - actionType: evalObject
           object:
             - if:
                 - =.builtIn.string.equal:
                     dataIn:
-                      string1: =.Global.roomInfo.edge.evid
+                      string1: =.RingTonePage.roomInfo.edge.evid
                       string2: =.Global.currentUser.vertex.id
-                - .Global.currentRoom.edge@: =.Global.roomInfo.edge
+                - .RingTonePage.currentRoom.edge@: =.RingTonePage.roomInfo.edge
                 - actionType: evalObject
                   object:
                     - =..apiRequest.accessRoomInfo.edgeAPI.get: ""
-                    - .Global.currentRoom.edge@: =..apiRequest.accessRoomInfo.response.edge.0
+                    - .RingTonePage.currentRoom.edge@: =..apiRequest.accessRoomInfo.response.edge.0
+    # get all E10 and display all the participants
+    - ..apiRequest.appointment_E10.edgeAPI.get
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.appointment_E10.edgeQueryResp.edge
+              len: 0
+        - continue
+        - ..formData.participants_others@: ""
+    - =.builtIn.object.extract:
+        dataIn:
+          array: =..apiRequest.appointment_E10.edgeQueryResp.edge
+          field: name
+        dataOut: RingTonePage.formData.participants
+    # According to the design team, only reserve patient and provider roles in participants
+    - =.builtIn.array.removeByName:
+        dataIn:
+          object: =..formData.participants
+          key: role
+          name: Location
+    - =.builtIn.array.removeByName:
+        dataIn:
+          object: =..formData.participants
+          key: role
+          name: Room
+    - =.builtIn.array.removeByName:
+        dataIn:
+          object: =..formData.participants
+          key: role
+          name: Facility
+    - =.builtIn.object.extract:
+        dataIn:
+          array: =..formData.participants
+          field: roleName
+        dataOut: RingTonePage.formData.participantsName
 
     #patient&provider profile
     - actionType: evalObject
       object:
         - ..formData.providerId@: =.Global.currentUser.vertex.id
         - =..patientProfile.get: ""
-    - .Global.currentMeetingPatientProfile@: ""
-    - .Global.currentMeetingPatientProfile@: =..patientProfile.docReponse.doc.0.name.data
+    - .RingTonePage.currentMeetingPatientProfile@: ""
+    - .RingTonePage.currentMeetingPatientProfile@: =..patientProfile.docReponse.doc.0.name.data
     - =.builtIn.phoneService.minRingtoneVibrate
+
   # tony 3/18/22 discussed with Austin don't need to switch facility in ringTone page need more debug and discussing
   # `.Global.roomInfo.edge.name.facilityId` is not the `.Global.currentFacility.id`
   #   # facility
-  #   - .RingTonePage.facilityId@: =.Global.roomInfo.edge.name.facilityId
-  #   # 获取fac
-  #   - =.builtIn.array.getObjectByArray:
-  #       dataIn:
-  #         array: =.Global.organizations
-  #         key: "id"
-  #         value: =.RingTonePage.facilityId
-  #       dataOut: Global.currentFacility
-  #   - actionType: evalObject
-  #     object:
-  #       - =..apiRequest.currentFacilityDoc.docAPI.get: ""
-  #       - .Global.currentFacilityDoc@:  =..apiRequest.currentFacilityDoc.docResp.doc.0
-  #       - .Global.formData.location@: =.Global.currentFacility
-  #       - .Global.dashboardName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName        
-  # facilityId: ""
+
+  facilityId: ""
+  roomInfo:
+    edge: ""
+  currentRoom:
+    edge: ""
+  currentMeetingPatientProfile: ""
   formData:
     providerId: ""
+    participants_others: "none"
+    participants: []
+    participantsName: []
   patientProfile:
     docReponse: ""
     doc:
       ids:
-        - .Global.roomInfo.edge.name.providerId
-        - .Global.roomInfo.edge.bvid
-        - .Global.roomInfo.edge.evid
+        - =.RingTonePage.roomInfo.edge.name.providerId
+        - =.RingTonePage.roomInfo.edge.bvid
+        - =.RingTonePage.roomInfo.edge.evid
       xfname: (!D.ovid) & E.Bvid
       type: .DocType.PatientProfile #  type: "102401"
       obfname: "ctime"
@@ -114,7 +129,7 @@ RingTonePage:
     edge:
       id:
         - .Global.currentUser.vertex.id
-        - =.Global.roomInfo.edge.id
+        - =.RingTonePage.roomInfo.edge.id
       xfname: bvid,refid
       type: 40000
       sCondition: "subtype=0"
@@ -124,6 +139,22 @@ RingTonePage:
       dataIn: selfRoomInfo.edge
       dataOut: RingTonePage.selfRoomInfo.response
   apiRequest:
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - =.Global.currentUser.vertex.id
+          - =.Global.currentFacility.id
+        xfname: (bvid,evid)|(evid,bvid)
+        type: 10002
+        obfname: mtime
+        sCondition: tage>0
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: apiRequest.relation.edgeQueryReq
+          dataOut: RingTonePage.apiRequest.relation.edgeQueryResp
     currentFacilityDoc:
       docResp: ""
       docReq:
@@ -145,7 +176,7 @@ RingTonePage:
         type: .EdgeType.InviteInfo
         id:
           - .Global.currentUser.vertex.id
-          - .Global.roomInfo.edge.id
+          - =.RingTonePage.roomInfo.edge.id
         xfname: "bvid|evid,refid"
       edgeAPI:
         .EdgeAPI: ""
@@ -153,26 +184,39 @@ RingTonePage:
           api: re
           dataIn: apiRequest.accessRoomInfo.edge
           dataOut: apiRequest.accessRoomInfo.response
+    appointment_E10:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: =.RingTonePage.roomInfo.edge.id
+        xfname: refid
+        type: .EdgeType.InviteInfo
+        sCondition: subtype!=0
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: RingTonePage.apiRequest.appointment_E10.edgeQueryReq
+          dataOut: RingTonePage.apiRequest.appointment_E10.edgeQueryResp
     #开始会议的tag
     startMeetingTag:
       docCreateResp: ""
       docCreateReq:
         type: .DocType.GroupBitOrTage
         tage: 128
-        eid: .Global.currentRoom.edge.id
-        reid: .Global.roomInfo.edge.id
+        eid: =.RingTonePage.currentRoom.edge.id
+        reid: =.RingTonePage.roomInfo.edge.id
         name:
           data: ""
       docAPI:
         store:
           api: cd
           dataIn: RingTonePage.apiRequest.startMeetingTag.docCreateReq
-          dataOut: RingTonePage.apiRequest.startMeetingTag.docCreateResp          
+          dataOut: RingTonePage.apiRequest.startMeetingTag.docCreateResp
     newVideoMessage:
       response: ""
       document:
-        eid: =.Global.currentRoom.edge.id
-        reid: =.Global.roomInfo.edge.id
+        eid: =.RingTonePage.currentRoom.edge.id
+        reid: =.RingTonePage.roomInfo.edge.id
         subtype:
           isOnServer: 1
           isZipped: 0
@@ -245,135 +289,326 @@ RingTonePage:
         api: cd
         dataIn: sendNotification.document
   selfNumber: "0"
-  roomInfo:
-    response: ""
-    edge:
-      # .Global.VideoChatObjStore.reference.edge: ""
-      id: ..emptyId # create a new edge
-      bvid: .Global.currentUser.vertex.id # always current userId
-      evid: ..emptyId
-      name: ..dataObject.name
-      refid: ..dataObject.id
-      type: 40000 # may from 1053, need to be override
-      subtype: 0
-      _nonce: =.Global._nonce
-    edgeAPI:
-      .EdgeAPI: ""
-      store:
-        api: ce
-        dataIn: roomInfo.edge # return result should updated to roomInfo.edge as well
-        dataOut: roomInfo.response
+  # roomInfo:
+  #   response: ""
+  #   edge:
+  #     # .Global.VideoChatObjStore.reference.edge: ""
+  #     id: ..emptyId # create a new edge
+  #     bvid: .Global.currentUser.vertex.id # always current userId
+  #     evid: ..emptyId
+  #     name: ..dataObject.name
+  #     refid: ..dataObject.id
+  #     type: 40000 # may from 1053, need to be override
+  #     subtype: 0
+  #     _nonce: =.Global._nonce
+  #   edgeAPI:
+  #     .EdgeAPI: ""
+  #     store:
+  #       api: ce
+  #       dataIn: roomInfo.edge # return result should updated to roomInfo.edge as well
+  #       dataOut: roomInfo.response
 
   components:
     - type: view
       style:
-        left: "0"
-        top: "0"
-        width: "1"
-        height: "1"
-        # backgroundColor: "0x000000"
-        backgroundColor: "0xffffff"
+        ..style.content:
       children:
-        - type: image
-          path: aitmedLogoBlack.svg # waitingroom.png
-          style:
-            left: "0.25"
-            top: "0.2"
-            width: "0.5"
-            height: "0.8"
-            position: "fixed"
-            # objectFit: "none!important"
-        # - type: label
-        #   contentType: hidden # passwordHidden
-        #   viewTag: waitForOtherTag
-        #   text: "Waiting for others to join"
-        #   #viewTag: needHidden
-        #   style:
-        #     left: "0"
-        #     top: "0.4"
-        #     width: "1"
-        #     height: "0.04"
-        #     fontSize: .Nfont.h16
-        #     fontStyle: bold
-        #     color: "0x000000"
-        #     textAlign:
-        #       x: center
         - type: view
           style:
-            left: "0"
-            top: "0.9"
-            width: "1"
-            height: "0.1"
-            border:
-              style: "5"
-            backgroundColor: "0x000000"
-            position: "fixed"
+            height: auto
+            width: "0.92"
           children:
-            - type: image
-              path: pickup_phone.png
-              onClick:
-                - =.builtIn.phoneService.stopVibrate
-                - =.builtIn.phoneService.stopRingtone
-                - actionType: evalObject
-                  object:
-                    # get deat: roomId&token
-                    - if:
-                        - =.Global.roomInfoDoc.document.deat.roomID
-                        - continue
-                        - actionType: evalObject
-                          object:
-                            - =..apiRequest.newVideoMessage.docAPI.store: ""
-                            - .Global.roomInfoDoc.document@: =..apiRequest.newVideoMessage.response.doc
-                    # 如果已经打过tag，则不再重复创建
-                    - if:
-                        - =.builtIn.number.typeIsValid:
+            - type: view
+              style:
+                ..style.cardView:
+              children:
+                - type: view
+                  style:
+                    ..style.cardHeader:
+                - type: image
+                  path: aitmedLogoBlack.svg # waitingroom.png
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.string.equal:
                             dataIn:
-                              docType: =.Global.roomInfo.edge.tage
-                              localArr: [8]
-                              binaryArr: [1]
-                        - continue
-                        # 建立开始会议的tag
-                        - =..apiRequest.startMeetingTag.docAPI.store: ""
-                - goto: VideoChat
-                # - goto: VideoChat
+                              string1: =..apiRequest.appointment_E10.edgeQueryResp
+                              string2: ""
+                  style:
+                    ..style.cardImg:
+                - type: view
+                  style:
+                    ..style.cardContent:
+                  children:
+                    - type: view
+                      style:
+                        ..style.cardListView:
+                      children:
+                        - type: label
+                          text: "Date&Time"
+                          style:
+                            ..style.cardListLeft:
+                        - type: view
+                          style:
+                            ..style.cardListRight:
+                          children:
+                            - type: view
+                              style:
+                                width: auto
+                              children:
+                                - type: label
+                                  text=func: .builtIn.string.formatUnixtimeL_en
+                                  dataKey: RingTonePage.roomInfo.edge.stime
+                                  style:
+                                    width: auto
+                                    display: "inline-block"
+                                    fontWeight: "600"
+                                    height: auto
+                                - type: label
+                                  text=func: .builtIn.date.ShowTimeSpan
+                                  dataKey: RingTonePage.roomInfo.edge
+                                  style:
+                                    width: auto
+                                    display: "inline-block"
+                                    marginLeft: "0.01"
+                                    fontWeight: "600"
+                                    height: auto
+                    - type: view
+                      style:
+                        ..style.cardListView:
+                      children:
+                        - type: label
+                          text: "Reason for Visit"
+                          style:
+                            ..style.cardListLeft:
+                            width: "0.3"
+                        - type: label
+                          dataKey: RingTonePage.roomInfo.edge.name.Reason
+                          style:
+                            ..style.cardListRight:
+                            width: "0.53"
+                    - type: view
+                      style:
+                        ..style.cardListView:
+                      children:
+                        - type: label
+                          text: "Provider Name"
+                          style:
+                            ..style.cardListLeft:
+                            width: "0.3"
+                        - type: label
+                          dataKey: RingTonePage.roomInfo.edge.name.providerName
+                          style:
+                            ..style.cardListRight:
+                            width: "0.53"
+                    - type: view
+                      style:
+                        ..style.cardListView:
+                      children:
+                        - type: label
+                          text: "Patient Name"
+                          style:
+                            ..style.cardListLeft:
+                            width: "0.3"
+                        - type: label
+                          dataKey: RingTonePage.roomInfo.edge.name.patientName
+                          style:
+                            ..style.cardListRight:
+                            width: "0.53"
+                    - type: view
+                      style:
+                        ..style.cardListView:
+                        display: ..formData.participants_others
+                      children:
+                        - type: label
+                          text: "Participants"
+                          style:
+                            ..style.cardListLeft:
+                            width: "0.3"
+                    - type: view
+                      style:
+                        ..style.cardListView:
+                      children:
+                        - type: label
+                          dataKey: formData.participantsName
+                          style:
+                            ..style.cardListLeft:
+                            width: "0.83"
+                            fontWeight: "600"
+                            display: ..formData.participants_others
+            - type: view
+              style:
+                width: "0.92"
+              children:
+                - type: label
+                  text: Connecting…
+                  dataKey:
+                  style:
+                    width: "0.92"
+                    fontSize: .Nfont.h16
+                    textAlign:
+                      x: center
+                    marginTop: "0.0468"
+    - type: view
+      style:
+        left: "0"
+        top: "0.851"
+        width: "1"
+        height: "0.149"
+        backgroundColor: "0xF0F2F4"
+        border:
+          style: "5"
+        textAlign:
+          x: center
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - type: view
+              style:
+                display: inline-block
+              children:
+                - type: image
+                  path: hangUp.png
+                  onClick:
+                    - =.builtIn.phoneService.stopVibrate
+                    - =.builtIn.phoneService.stopRingtone
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: false
+                    # - goto: RingTonePage
+                    # - actionType: popUp
+                    #   popUpView: confirmView
+                    # - actionType: builtIn
+                    #   funcName: disconnectMeeting
+                  style:
+                    borderRadius: "100"
+                    width: "0.13"
+                - type: label
+                  text: Decline
+                  style:
+                    fontSize: .Nfont.h16
+                    fontWeight: "600"
+
+            - type: view
+              style:
+                display: inline-block
+                marginLeft: "0.2533"
+              children:
+                - type: image
+                  path: pickup_phone.png
+                  onClick:
+                    - .Global.currentRoom.edge@: =.RingTonePage.currentRoom.edge
+                    - .Global.roomInfo.edge@: =.RingTonePage.roomInfo.edge
+                    - .Global.currentMeetingPatientProfile@: =.RingTonePage.currentMeetingPatientProfile
+                    - actionType: updateObject
+                      dataKey: Global.roomInfoDoc.document
+                      dataObject: .EmptyObj
+                    - =.builtIn.phoneService.stopVibrate
+                    - =.builtIn.phoneService.stopRingtone
+                    - actionType: evalObject
+                      object:
+                        # get deat: roomId&token
+                        - if:
+                            - =.Global.roomInfoDoc.document.deat.roomID
+                            - continue
+                            - actionType: evalObject
+                              object:
+                                - =..apiRequest.newVideoMessage.docAPI.store: ""
+                                - .Global.roomInfoDoc.document@: =..apiRequest.newVideoMessage.response.doc
+                        # 如果已经打过tag，则不再重复创建
+                        - if:
+                            - =.builtIn.number.typeIsValid:
+                                dataIn:
+                                  docType: =.Global.roomInfo.edge.tage
+                                  localArr: [8]
+                                  binaryArr: [1]
+                            - continue
+                            # 建立开始会议的tag
+                            - =..apiRequest.startMeetingTag.docAPI.store: ""
+
+                    - .RingTonePage.facilityId@: =.Global.roomInfo.edge.name.facilityId
+                    # 获取fac
+                    - =.builtIn.array.getObjectByArray:
+                        dataIn:
+                          array: =.Global.organizations
+                          key: "id"
+                          value: =.RingTonePage.facilityId
+                        dataOut: Global.currentFacility
+                    
+                    # 获取 自己和当前facility之间的边
+                    - actionType: evalObject
+                      object:
+                        - =..apiRequest.relation.edgeAPI.get: ""
+                        - .Global.formData.currentFacility.relationEdge@: =..apiRequest.relation.edgeQueryResp.edge.0
+                        - =..apiRequest.currentFacilityDoc.docAPI.get: ""
+                        - .Global.currentFacilityDoc@: =..apiRequest.currentFacilityDoc.docResp.doc.0
+                        - .Global.formData.location@: =.Global.currentFacility
+                        - .Global.dashboardName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName
+                    - goto: VideoChat
+                    # - goto: VideoChat
                     # - .Global.VideoChatObjStore.reference.edge@: =..dataObject
-                # - goto: VideoChat
-                # - actionType: popUp
-                #   popUpView: confirmView
-                # - actionType: builtIn
-                #   funcName: disconnectMeeting
-              style:
-                left: "0.20"
-                top: "0.0185"
-                width: "0.13"
-                # height: "0.05"
-                backgroundColor: "0xd81e06"
-                border:
-                  style: "3"
-                  width: "1"
-                # borderWidth: "0.0001px"
-                borderRadius: "100"
-            - type: image
-              path: hangUp.svg
-              onClick:
-                - =.builtIn.phoneService.stopVibrate
-                - =.builtIn.phoneService.stopRingtone
-                - actionType: builtIn
-                  funcName: goBack
-                  reload: false
-                # - goto: AppointmentLobby
-                # - actionType: popUp
-                #   popUpView: confirmView
-                # - actionType: builtIn
-                #   funcName: disconnectMeeting
-              style:
-                left: "0.66"
-                top: "0.0185"
-                width: "0.13"
-                # height: "0.05"
-                backgroundColor: "0xd81e06"
-                border:
-                  style: "3"
-                  width: "1"
-                # borderWidth: "0.0001px"
-                borderRadius: "100"
+                    # - goto: VideoChat
+                    # - actionType: popUp
+                    #   popUpView: confirmView
+                    # - actionType: builtIn
+                    #   funcName: disconnectMeeting
+                  style:
+                    borderRadius: "100"
+                    width: "0.13"
+                - type: label
+                  text: Accept
+                  style:
+                    fontSize: .Nfont.h16
+                    fontWeight: "600"
+
+  style:
+    content:
+      left: "0"
+      top: "0"
+      width: "1"
+      height: "0.851"
+      backgroundColor: "0xF0F2F4"
+      textAlign:
+        x: center
+        y: center
+    cardView:
+      width: "0.92"
+      backgroundColor: "0xffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      borderRadius: "10"
+      paddingBottom: "0.02"
+      overflow: hidden
+      textAlign:
+        x: left
+    cardHeader:
+      marginTop: "0"
+      width: "0.92"
+      height: "0.01478"
+      backgroundColor: "0x3890CE"
+    cardImg:
+      width: "0.12277"
+      marginTop: "0.0098"
+      marginLeft: "0.045"
+    cardContent:
+      width: "0.83"
+      marginLeft: "0.045"
+      height: "auto"
+
+    cardListView:
+      width: "0.83"
+
+      marginTop: "0.0123"
+    cardListLeft:
+      fontSize: .Nfont.h14
+      display: "inline-block"
+      width: "0.256"
+    cardListRight:
+      fontSize: .Nfont.h14
+      display: "inline-block"
+      fontWeight: "600"
+      width: "0.574"
+      textAlign:
+        x: right

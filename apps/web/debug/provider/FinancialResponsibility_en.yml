@@ -43,12 +43,17 @@ FinancialResponsibility: #xd page
     # - actionType: evalObject
     #   object:
     #     - ..website@: =..squareCheckout.response.edge.deat.squareID
-    - =..apiRequest.facilityProfile.docAPI.get: ""
-    - =..apiRequest.FinancialInfo.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.facilityProfile.docAPI.get: ""
+            - =..apiRequest.FinancialInfo.docAPI.get: ""
     - if:
-      - =..apiRequest.FinancialInfo.docQueryResp.doc.0
-      - ..formData.amount@: =..apiRequest.FinancialInfo.docQueryResp.doc.0.name.data.paymentInfo.fee
-      - ..formData.amount@: =.Global.roomInfo.edge.name.fee
+        - =..apiRequest.FinancialInfo.docQueryResp.doc.0
+        - ..formData.amount@: =..apiRequest.FinancialInfo.docQueryResp.doc.0.name.data.paymentInfo.fee
+        - ..formData.amount@: =.Global.roomInfo.edge.name.fee
   formData:
     splitAmount: []
     url: ""
@@ -61,7 +66,7 @@ FinancialResponsibility: #xd page
         xfname: reid
         obfname: mtime
         maxcount: "1"
-        nonce: =.Global._nonce
+        _nonce: =.Global._nonce
         type: .DocType.FinancialInfo
       docAPI:
         get:
@@ -96,7 +101,7 @@ FinancialResponsibility: #xd page
         url: "https://patd3.aitmed.io/index.html?PaymentConfirmation"
         currency: "USD"
         quantity: "1"
-        itemName: "Appointment fee"
+        itemName: "Appointment Fee"
         note: "for testing"
     edgeAPI:
       .EdgeAPI: ""
@@ -161,12 +166,12 @@ FinancialResponsibility: #xd page
             # padding: "1px"
           children:
             - type: label
-              text: "Appointment fee"
+              text: "Appointment Fee"
               style:
                 height: "0.04"
                 fontWeight: "550"
                 color: "0x666666"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h15
                 marginLeft: "0.05"
                 # marginTop: "0.01"
@@ -231,7 +236,7 @@ FinancialResponsibility: #xd page
                 marginTop: "0.01"
               children:
                 - type: label
-                  text: "Reason for payment"
+                  text: "Reason for Payment"
                   style:
                     width: "0.4"
                     display: "inline-block"
@@ -312,7 +317,6 @@ FinancialResponsibility: #xd page
             - type: label
               text: "You may request for a billing statement after your visit and submit a reimbursement request through your insurance company."
               style:
-                width: "0.93"
                 fontSize: .Nfont.h0_1
                 color: "0x666666"
                 wordBreak: break-word

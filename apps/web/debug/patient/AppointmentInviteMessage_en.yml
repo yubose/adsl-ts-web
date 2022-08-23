@@ -1,0 +1,804 @@
+AppointmentInviteMessage:
+  title: Message
+  init:
+    - =.AppointmentInviteMessage.apiRequest.room.edgeAPI.get: ""
+    - =.AppointmentInviteMessage.apiRequest.folder.docAPI.get: ""
+  formData:
+
+  formDataTemp:
+
+  apiRequest:
+    room:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: .Global.email.name.data.appointmentId
+      edgeAPI:
+        get:
+          api: re
+          dataIn: AppointmentInviteMessage.apiRequest.room.edgeQueryReq
+          dataOut: AppointmentInviteMessage.apiRequest.room.edgeQueryResp
+    emailTag:
+      docQueryResp: ""
+      docQueryReq:
+        sCondition: type & 0xFF00 = 0xE00
+        ids:
+          - .Global.rootNotebookID
+          - .Global.email.id
+        xfname: eid,reid
+        _nonce: =.Global._nonce
+      docCreateResp: ""
+      docCreateReq:
+        type: .DocType.MailTag
+        eid: .Global.rootNotebookID
+        name:
+          data: ""
+        reid: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: AppointmentInviteMessage.apiRequest.emailTag.docQueryReq
+          dataOut: AppointmentInviteMessage.apiRequest.emailTag.docQueryResp
+        store:
+          api: cd
+          dataIn: AppointmentInviteMessage.apiRequest.emailTag.docCreateReq
+          dataOut: AppointmentInviteMessage.apiRequest.emailTag.docCreateResp
+    folder:
+      docGetResp: ""
+      docCreateReq:
+        type: .DocType.MailFolder
+        eid: .Global.rootNotebookID
+        name:
+          data: ""
+          title: ""
+      docGetReq:
+        type: .DocType.MailFolder
+        id: .Global.rootNotebookID
+        xfname: eid
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: AppointmentInviteMessage.apiRequest.folder.docGetReq
+          dataOut: AppointmentInviteMessage.apiRequest.folder.docGetResp
+        store:
+          api: cd
+          dataIn: AppointmentInviteMessage.apiRequest.folder.docCreateReq
+    folderTag:
+      docCreateResp: ""
+      docCreateReq:
+        type: .DocType.MailFolderTag
+        eid: .Global.rootNotebookID
+        fid: ""
+        reid: .Global.email.id
+        name:
+          data: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: AppointmentInviteMessage.apiRequest.folderTag.docCreateReq
+          dataOut: AppointmentInviteMessage.apiRequest.folderTag.docCreateResp
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          style:
+            ..style.titleBox:
+          children:
+            - type: label
+              text: Aug 3, 2021 , 3:35pm
+              dataKey:
+              style:
+                ..style.titleTime:
+            - type: label
+              text: Appointment Invite Notification
+              dataKey:
+              style:
+                ..style.titleContent:
+            - type: view
+              style:
+                ..style.infoBox:
+              children:
+                - type: view
+                  style:
+                    ..style.leftBox:
+                  children:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: label
+                          text: "Form:"
+                          style:
+                            ..style.leftTitle:
+                        - type: label
+                          text: "automatic-reply@aitmed.com"
+                          dataKey: Global.email.name.data.senderName
+                          style:
+                            ..style.leftValue:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: label
+                          text: "To:"
+                          style:
+                            ..style.leftTitle:
+                        - type: label
+                          text: "Urgent Care"
+                          dataKey: Global.email.name.data.receiverName
+                          style:
+                            ..style.leftValue:
+                - type: image
+                  path:
+                    emit:
+                      actions:
+                        - if:
+                            - =.builtIn.number.typeIsValid:
+                                dataIn:
+                                  docType: =.Global.email.tage
+                                  localArr: [2]
+                                  binaryArr: [1]
+                            - providerOn.svg
+                            - providerOff.svg
+                  style:
+                    ..style.img:
+
+        - type: view
+          style:
+            ..style.messageBox:
+          children:
+            - type: label
+              textBoard:
+                - text: "Hello,"
+                - br:
+                - br:
+                - text: "You are invited to an appointment by "
+                - text: "Sara Brown."
+                  dataKey: Global.email.name.data.senderName
+                  color: "#2988e6"
+                - text: " Please check the appointment details follow."
+              style:
+                ..style.message:
+
+        - type: view
+          style:
+            ..style.lineBox:
+          children:
+            - type: view
+              style:
+                width: auto
+                height: auto
+              children:
+                - type: label
+                  text: "………………"
+                  dataKey:
+                  style:
+                    ..style.line:
+                - type: label
+                  text: "&nbsp;&nbsp;Original Appointment&nbsp;&nbsp;"
+                  dataKey:
+                  style:
+                    ..style.lineTips:
+                - type: label
+                  text: "………………"
+                  dataKey:
+                  style:
+                    ..style.line:
+
+        - type: view
+          style:
+            ..style.contentBox:
+          children:
+            - type: view
+              style:
+                ..style.topBox:
+              onClick:
+                - ..event.enterRoom
+              children:
+                - type: label
+                  text: Appointment Info
+                  style:
+                    ..style.topTitle:
+                - type: label
+                  text: Enter
+                  dataKey:
+                  style:
+                    ..style.enterBtn:
+                - type: image
+                  path: rightEnter.svg
+                  style:
+                    ..style.enterImg:
+            - type: view
+              style:
+                ..style.secondBox:
+              children:
+                - type: view
+                  style:
+                    ..style.secondBlock:
+                  children:
+                    - type: label
+                      text: Date
+                      dataKey:
+                      style:
+                        ..style.leftLabel:
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtimeL_en
+                      dataKey: Global.roomInfo.edge.stime
+                      style:
+                        ..style.rightLabel:
+                - type: view
+                  style:
+                    ..style.secondBlock:
+                  children:
+                    - type: label
+                      text: Time
+                      dataKey:
+                      style:
+                        ..style.leftLabel:
+                    - type: label
+                      text=func: .builtIn.date.ShowTimeSpan
+                      dataKey: Global.roomInfo.edge
+                      style:
+                        ..style.rightLabel:
+                - type: view
+                  style:
+                    ..style.secondBlock:
+                  children:
+                    - type: label
+                      text: Reason for Visit
+                      dataKey:
+                      style:
+                        ..style.leftLabel:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.Reason
+                      style:
+                        ..style.rightLabel:
+                - type: view
+                  style:
+                    ..style.secondBlock:
+                  children:
+                    - type: label
+                      text: Appointment Type
+                      dataKey:
+                      style:
+                        ..style.leftLabel:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.visitType
+                      style:
+                        ..style.rightLabel:
+                - type: view
+                  style:
+                    ..style.secondBlock:
+                  children:
+                    - type: label
+                      text: Provider
+                      dataKey:
+                      style:
+                        ..style.leftLabel:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.providerName
+                      style:
+                        ..style.rightLabel:
+                - type: view
+                  style:
+                    ..style.secondBlock:
+                  children:
+                    - type: label
+                      text: Facility
+                      dataKey:
+                      style:
+                        ..style.leftLabel:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.locationName
+                      style:
+                        ..style.rightLabel:
+
+        - type: view
+          style:
+            marginTop: "0.03"
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            ..style.bottomImgBox:
+          children:
+            - type: view
+              style:
+                width: "auto"
+                height: auto
+              children:
+                - type: image
+                  path: trash.svg
+                  style:
+                    ..style.bottomImg:
+                  onClick:
+                    - ..event.openTrashPopUp
+                - type: image
+                  path: move.svg
+                  style:
+                    ..style.centerImg:
+                  onClick:
+                    - ..event.openMovePopUp
+                - type: image
+                  path: reply.svg
+                  style:
+                    ..style.bottomImg:
+                  onClick: #reply 只能发送一个，再次回复只有一个邮件发生变化，而不是生成
+                    - goto: NewMessage2
+    - .simplePopup:
+      message: "Are you sure you want to delete the message?"
+      viewTag: tashComfirm
+      children:
+        - .simplePopupView:
+          children:
+            - .simplePopupLable:
+            - .simplePopupSplit1:
+            - .simplePopupSplit2:
+            - .simplePopupLeftButton:
+            - .simplePopupRightButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - =..apiRequest.emailTag.docAPI.get: ""
+                    - ..apiRequest.emailTag.docCreateReq@: =..apiRequest.emailTag.docQueryResp.doc.0
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.emailTag.docCreateReq.type
+                          index: 3
+                          hex: 1
+                        dataOut: AppointmentInviteMessage.apiRequest.emailTag.docCreateReq.type
+                    - =..apiRequest.emailTag.docAPI.store: ""
+                - goto: InboxDashboard
+    - type: popUp
+      viewTag: folderPopUpView
+      style:
+        left: "0"
+        top: "0"
+        height: "1"
+        width: "1"
+        zIndex: "100"
+        backgroundColor: "0x00000033"
+      children:
+        - type: view
+          style:
+            width: "1"
+            height: "0.64"
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: folderPopUpView
+        - type: view
+          style:
+            top: "0.64"
+            left: "0"
+            width: "1"
+            height: "0.36"
+            backgroundColor: "0xFFFFFF"
+            borderRadius: "10px 10px 0 0"
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..apiRequest.folder.docGetResp.doc
+              iteratorVar: itemObject
+              style:
+                marginTop: "0.01"
+                width: "1"
+                height: "0.2"
+                overflow: scroll
+              children:
+                - type: listItem
+                  itemObject:
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - ..apiRequest.folderTag.docCreateReq.fid@: $var.id
+                          - =..apiRequest.folderTag.docAPI.store: ""
+                    - goto: InboxDashboard
+                  style:
+                    width: "1"
+                    height: "0.049"
+                    marginTop: "0.001"
+                    border:
+                      style: 2
+                    borderColor: "0xf0f0f0"
+                    borderWidth: "1"
+                  children:
+                    - type: image
+                      path: folderShow.svg
+                      style:
+                        marginTop: "0.4vw"
+                        height: "0.03"
+                        left: "0.08"
+                        top: "0.01"
+                    - type: label
+                      dataKey: itemObject.name.title
+                      style:
+                        left: "0.18"
+                        width: "0.3"
+                        height: "0.048"
+                        top: "0"
+                        textAlign:
+                          y: center
+            - type: view
+              style:
+                marginTop: "0.01"
+                width: "1"
+                height: "0.08"
+                textAlign:
+                  # x: center
+                  y: center
+              children:
+                - type: image
+                  path: AddNewFolder.svg
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: folderPopUpView
+                    - actionType: popUp
+                      popUpView: addFolderPopUpView
+                  style:
+                    height: "0.055"
+                    width: "0.6"
+                    left: "0.2"
+    - type: popUp
+      title: Add New Folder
+      viewTag: addFolderPopUpView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0xffffff55"
+        zIndex: 100000
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            width: "0.7"
+            top: "0.32"
+            height: "0.18"
+            backgroundColor: "0xe5e5e5"
+            border:
+              style: "5"
+            borderWidth: "1"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: ___.title
+              style:
+                left: "0.1"
+                width: "0.5"
+                top: "0.01"
+                height: "0.06"
+                fontSize: .Nfont.h2
+                color: "0x4b4b4b"
+                backgroundColor: "0xe5e5e5"
+                borderWidth: "1"
+                borderColor: "0x3f3f3f66"
+                textAlign:
+                  x: center
+                  y: center
+            - type: textField
+              placeholder: Enter name here
+              dataKey: apiRequest.folder.docCreateReq.name.title
+              style:
+                left: "0.04"
+                top: "0.07"
+                width: "0.62"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xc4c4c6"
+                height: "0.03"
+                backgroundColor: "0xffffff"
+                textAlign:
+                  x: left
+                  y: center
+            - type: view
+              style:
+                left: "0"
+                top: "0.128"
+                width: "0.7"
+                height: "0.001"
+                backgroundColor: "0x999999"
+                margin: "0"
+            - type: view
+              style:
+                left: "0.35"
+                top: "0.128"
+                width: "0.002"
+                height: "0.052"
+                backgroundColor: "0x999999"
+            - type: label
+              text: Cancel
+              style:
+                left: "0.01"
+                width: "0.33"
+                top: "0.13"
+                height: "0.045"
+                fontSize: .Nfont.h2
+                backgroundColor: "0xe5e5e5"
+                border:
+                  style: "1"
+                color: "0x007aff"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: addFolderPopUpView
+            - type: label
+              text: Ok
+              style:
+                left: "0.36"
+                width: "0.33"
+                top: "0.13"
+                height: "0.045"
+                fontSize: .Nfont.h2
+                backgroundColor: "0xe5e5e5"
+                border:
+                  style: "1"
+                color: "0x007aff"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.array.checkElememtExist:
+                            dataIn:
+                              objArr: =..apiRequest.folder.docGetResp.doc
+                              values: =..apiRequest.folder.docCreateReq.name.title
+                        - actionType: popUp
+                          popUpView: folderUniqueErrorPopUp
+                        - actionType: evalObject
+                          object:
+                            - =..apiRequest.folder.docAPI.store: ""
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.folder.docAPI.get: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: folderPopUpView
+                - actionType: popUpDismiss
+                  popUpView: addFolderPopUpView
+                - actionType: popUp
+                  popUpView: folderPopUpView
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.folder.docCreateReq.name.title@: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: addFolderPopUpView
+    - .BaseMessageWarnPopup:
+      message: The folder name is duplicate or empty
+      viewTag: folderUniqueErrorPopUp
+  event:
+    openMovePopUp:
+      - actionType: popUp
+        popUpView: folderPopUpView
+    openTrashPopUp:
+      - actionType: popUp
+        popUpView: tashComfirm
+    enterRoom:
+      - actionType: evalObject
+        object:
+          - .Global.roomInfo.edge@: ""
+          - .Global.roomInfo.edge@: =..apiRequest.room.edgeQueryResp.edge.0
+          - .Global.status.isParticipant@: true
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.roomInfo.edge.name.visitType
+                    string2: "Telemedicine"
+              - goto: AppointmentLobby
+              - goto: AppointmentLobbyOfficeVisit
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: border-box
+      overflow: scroll
+
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    titleBox:
+      marginTop: "0.02463"
+      height: "auto"
+      width: "auto"
+      boxSizing: border-box
+      border:
+        style: 2
+      borderColor: "#f0f0f0"
+      borderWidth: "1"
+      paddingBottom: "2.58vh"
+      overflow: hidden
+    titleTime:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h12
+      color: "#999999"
+    titleContent:
+      marginLeft: "0.04"
+      marginTop: "0.005"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h16
+      color: "#333333"
+      lineHeight: "2.58vh"
+      fontWeight: "600"
+    infoBox:
+      marginLeft: "0.04"
+      marginTop: "0.020935"
+      height: "auto"
+      width: "auto"
+      overflow: hidden
+    leftBox:
+      display: "inline-block"
+      width: "0.82"
+      height: "auto"
+    blockBox:
+      marginTop: "0.005"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    leftTitle:
+      display: "inline-block"
+      width: "0.12"
+      height: "auto"
+      fontSize: .Nfont.h12
+      fontWeight: "700"
+      color: "#333333"
+    leftValue:
+      display: "inline-block"
+      width: "0.65"
+      height: "auto"
+      fontSize: .Nfont.h12
+      color: "#666666"
+      wordBreak: break-word
+    img:
+      marginLeft: "0.032"
+      display: "inline-block"
+      height: "0.02463"
+      width: "0.05333"
+    messageBox:
+      marginTop: "0.01477"
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+    message:
+      fontSize: .Nfont.h14
+      width: "0.925"
+      height: "auto"
+      color: "#333333"
+      lineHeight: "2.58vh"
+      wordBreak: break-word
+    lineBox:
+      marginLeft: "0.04"
+      marginTop: "0.092364"
+      width: "0.92"
+      height: "auto"
+      textAlign:
+        x: center
+    line:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      lineHeight: "0.738vh"
+      color: "#666666"
+    lineTips:
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      color: "#666666"
+    contentBox:
+      marginTop: "0.02586"
+      marginLeft: "0.04"
+      paddingBottom: "1.97vh"
+      height: "auto"
+      width: "0.92"
+      backgroundColor: "#f4f4f4"
+      borderRadius: "4"
+      overflow: hidden
+    topBox:
+      marginTop: "0.017241"
+      marginLeft: "0.04"
+      width: "0.84"
+      height: "auto"
+    topTitle:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      fontWeight: "600"
+      width: "0.486"
+      height: "auto"
+      verticalAlign: middle
+      textAlign:
+        x: left
+
+    secondBox:
+      marginLeft: "0.04"
+      marginTop: "0.0160"
+      width: "0.84"
+      height: "auto"
+      borderTop: "1px solid #dedede"
+      overflow: hidden
+    secondBlock:
+      marginTop: "0.013546"
+      width: "0.84"
+      height: "auto"
+      overflow: hidden
+    leftLabel:
+      display: "inline-block"
+      width: "0.4"
+      height: "auto"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "#333333"
+      textAlign:
+        x: left
+    rightLabel:
+      display: "inline-block"
+      width: "0.44"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      textAlign:
+        x: right
+    enterBtn:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "600"
+      width: "0.3"
+      height: "auto"
+      verticalAlign: middle
+      textDecoration: underline
+      textAlign:
+        x: right
+    enterImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.01970"
+      marginLeft: "0.010666"
+    bottomImgBox:
+      marginTop: "0.01970"
+      textAlign:
+        x: center
+    bottomImg:
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.04187"
+      width: "0.22933"
+    centerImg:
+      marginLeft: "0.07733"
+      marginRight: "0.07733"
+      height: "0.04187"
+      width: "0.22933"
+      display: "inline-block"
+      verticalAlign: middle

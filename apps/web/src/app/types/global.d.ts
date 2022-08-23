@@ -25,6 +25,8 @@ declare global {
   }
 
   interface Window {
+    __NOODL_SDK_SEARCH_CLIENT__: any
+    __NOODL_SEARCH_CLIENT__: any
     ac: any
     app: any
     build: any

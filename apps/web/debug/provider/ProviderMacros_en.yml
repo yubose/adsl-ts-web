@@ -10,7 +10,7 @@ ProviderMacros:
     - =.builtIn.utils.setTimer:
         dataIn:
           timeUnix: 1000
-    - ..listNotes.Remoteget
+
     # - ..listNotes.Localget
     # - ..patientNotes.Dataget
     # - =.builtIn.array.concatArray:
@@ -23,7 +23,13 @@ ProviderMacros:
     - actionType: updateObject
       dataKey: Global.Macro
       dataObject: .EmptyObj
-    - ..provider.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..listNotes.Remoteget: ""
+            - =..provider.docAPI.get: ""
     - actionType: evalObject
       object:
         # - .Global.getDoc.patient@: =..patient.docReponse
@@ -105,21 +111,23 @@ ProviderMacros:
       sCondition: "type in (2561)"
       _nonce: =.Global._nonce
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    #   onClick:
+    #     - actionType: builtIn
+    #       funcName: goBack
+    #       reload: true
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: list
       contentType: listObject
       listObject: ..formData.noteList.doc
       iteratorVar: itemObject
       style:
-        top: "0.1"
-        left: "0"
         width: "1"
-        height: "0.75"
+        height: "0.8"
         margin: "0"
         overflow: scroll
       children:
@@ -157,7 +165,7 @@ ProviderMacros:
                         fontSize: .Nfont.h16
                         boxSizing: "border-box"
                         fontWeight: "600"
-                        wordBreak: "break-all"
+                        wordBreak: break-word
                     - type: label
                       text=func: .builtIn.string.formatUnixtime_en
                       dataKey: itemObject.ctime

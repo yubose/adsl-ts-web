@@ -1,0 +1,647 @@
+PublicComponents:
+  title: PublicComponents
+  init:
+    - .SignInCheck
+
+  formData: ""
+
+  formDataTemp:
+
+  apiRequest:
+
+  components:
+    # - type: label
+    #   text: "不管费映环有多么开明，不管娄氏有多么机智，他们在费家是无法做主的。父为子纲，真正的大事，老太爷说了算！还不能主动要求分家，父母在世，分家析产，是为不孝。不孝乃大罪，比贪污严重得多。若被人弹劾，可以直接罢官，还没法为自己辩解。没有老太爷点头，费如兰别想正正经经嫁给赵瀚。那就只能暗度陈仓。流民大量存在的时期，比如成化皇帝继位之初。为了解决百万流民问题，甚至不需出示田契，只要实际开垦有荒地，官府就会给流民办理户籍。明代中晚期的豪奴们，大都携款去外地购买田产，然后贿赂官府获得户籍身份。可是，一旦被其旧主人发现，把卖身契往州县长官那里一拍，这种豪奴的新身份立即就要作废。娄氏又递出几张田契：“我的随嫁田都在九江，这是你父亲名下的田产，皆为考取举人时乡邻投献。只有田骨，没有田皮，租子也收得低，你拿去送给瀚哥儿。我再派一家奴，陪他去贿赂师爷，把良民户籍给落实了。”其根本原因，是“一条鞭法”之后，徭役改为丁役银子上交。逃役的人越来越多，丁役钱就集中在少数农民身上，导致每年需要上交的丁役钱，竟然超过了需要上交的田赋。而官员和士子，正好可以优免丁役，双方岂非一拍即合？一品京官，只能免粮三十石，却可免田一万亩。不是说一万亩土地不收税，而是附着在一万亩土地上的徭役关系，可以直接免除！费映环作为举人，只能免粮二石，却可免除一千二百亩土地的徭役。于是，许多农民就把土地，无偿赠送给费映环，以此来逃脱繁重的丁役钱。但这些土地，不能随意夺佃，只能佃给原有田主耕种，否则就是不要脸皮、名声尽丧！转送给赵瀚十亩地，其实无所谓的，官府不会更改鱼鳞册，该逃役的还是能逃役。费如兰双手接过田契，小心放入怀中。娄氏又取来二十两银子，叮嘱道：“流民落户，这些须够了，师爷肯定能答应。莫要惊动知县，县太爷胃口更大，少不得要刁难一番。”费如兰收下银子，给母亲磕三个响头。娄氏笑道：“等这些办妥，你们在九江成亲之时，再给你陪嫁许多妆田，定不会让你们饿着的。”费如兰又羞又喜，红着脸说：“娘真好。”娄氏笑道：“你让弟弟护送，亲自把身契送去，瀚哥儿必然感动，今后把你当宝贝捧在手心里。"
+    #   dataKey:
+    #   style:
+    #     top: "0"
+    - type: view
+      style:
+        width: "1"
+        height: "auto"
+      children:
+        - .TestButton: ""
+          onClick:
+            - actionType: popUp
+              popUpView: operationSucceeded
+        - .TestButton: ""
+          text: "操作成功2"
+          onClick:
+            - actionType: popUp
+              popUpView: operationSucceededSecond
+        - .TestButton: ""
+          text: "轻提示1"
+          style:
+            backgroundColor: "0xe24445"
+          onClick:
+            - actionType: popUp
+              popUpView: lightPrompt
+        - .TestButton: ""
+          text: "轻提示2"
+          style:
+            backgroundColor: "0xe24445"
+          onClick:
+            - actionType: popUp
+              popUpView: lightPromptSecond
+        - .TestButton: ""
+          text: "判断操作1"
+          style:
+            backgroundColor: "0xe5e5e5"
+            color: "0xcccccc"
+          onClick:
+            - actionType: popUp
+              popUpView: judgmentOperation
+        - .TestButton: ""
+          text: "warning判断"
+          style:
+            backgroundColor: "0xe24445"
+            color: "0xffffff"
+          onClick:
+            - actionType: popUp
+              popUpView: warningTag
+        - .TestButton: ""
+          text: "告知用户"
+          style:
+            backgroundColor: "0xe4e4e5"
+            color: "0xffffff"
+          onClick:
+            - actionType: popUp
+              popUpView: informUser
+        - .TestButton: ""
+          text: "告知用户标红标蓝"
+          style:
+            backgroundColor: "0x2791f7"
+            color: "0xffffff"
+          onClick:
+            - actionType: popUp
+              popUpView: informUserRedBlue
+        - .TestButton: ""
+          text: "填写信息"
+          style:
+            backgroundColor: "0x2791f7"
+            color: "0xffffff"
+          onClick:
+            - actionType: popUp
+              popUpView: FillInformationTag
+        - .TestButton: ""
+          text: "填写多行信息"
+          style:
+            backgroundColor: "0x2791f7"
+            color: "0xffffff"
+          onClick:
+            - actionType: popUp
+              popUpView: FillMultipleLinesInformationTag
+        - .TestButton: ""
+          text: "弹窗叠加"
+          style:
+            backgroundColor: "0x2791f7"
+            color: "0xffffff"
+          onClick:
+            - actionType: popUp
+              popUpView: popUpOverlay
+
+    - .BackgroundColorGray:
+      viewTag: operationSucceeded
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: operationSucceeded
+      children:
+        - type: view
+          style:
+            width: "0.4"
+            height: "auto"
+            backgroundColor: "0xe5e5e5"
+            borderRadius: "12"
+            top: "0.43"
+            left: "0.3"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: deleteTrue.svg
+              style:
+                width: "0.105"
+                # marginLeft: "0.145"
+                marginTop: "0.025"
+            - type: label
+              text: "Change Successfully!"
+              dataKey:
+              style:
+                color: "0x555555"
+                fontSize: .Nfont.h0
+
+                word-break: break-word
+                width: "0.35"
+                marginLeft: "0.025"
+                marginTop: "0.009"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                width: "0.01"
+                height: "0.02"
+    - .BackgroundColorGray:
+      viewTag: operationSucceededSecond
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: operationSucceededSecond
+      children:
+        - type: view
+          style:
+            width: "0.51"
+            height: auto
+            backgroundColor: "0xe5e5e5"
+            borderRadius: "12"
+            top: "0.41"
+            left: "0.24"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: deleteTrue.svg
+              style:
+                width: "0.105"
+                marginTop: "0.03"
+                textAlign:
+                  x: center
+            - type: label
+              text: "The document has been downladed to medical document"
+              dataKey:
+              style:
+                color: "0x555555"
+                fontSize: .Nfont.h0
+                width: "0.43"
+                height: auto
+                marginLeft: "0.04"
+
+                word-break: break-word
+                marginTop: "0.01"
+            - type: view
+              style:
+                width: "0.01"
+                height: "0.02"
+
+    - .BackgroundColorGray:
+      viewTag: lightPrompt
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: lightPrompt
+      children:
+        - type: view
+          style:
+            width: "0.4"
+            height: "auto"
+            backgroundColor: "0xe5e5e5"
+            borderRadius: "12"
+            top: "0.43"
+            left: "0.3"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                width: "0.105"
+                marginTop: "0.025"
+            - type: label
+              text: "Please add a recipient"
+              dataKey:
+              style:
+                color: "0x555555"
+                fontSize: .Nfont.h0
+
+                word-break: break-word
+                width: "0.35"
+                marginLeft: "0.025"
+                marginTop: "0.009"
+                # textAlign:
+                #   x: center
+            - type: view
+              style:
+                width: "0.01"
+                height: "0.02"
+    - .BackgroundColorGray:
+      viewTag: lightPromptSecond
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: lightPromptSecond
+      children:
+        - type: view
+          style:
+            width: "0.51"
+            height: auto
+            backgroundColor: "0xe5e5e5"
+            borderRadius: "12"
+            top: "0.41"
+            left: "0.24"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                width: "0.105"
+                marginTop: "0.03"
+                textAlign:
+                  x: center
+            - type: label
+              text: "Please select or change an appropriate start & end time "
+              dataKey:
+              style:
+                color: "0x555555"
+                fontSize: .Nfont.h0
+                width: "0.43"
+                height: auto
+
+                marginLeft: "0.04"
+                word-break: break-word
+                marginTop: "0.01"
+            - type: view
+              style:
+                width: "0.01"
+                height: "0.015"
+
+    - .BackgroundColorGray:
+      viewTag: judgmentOperation
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.43"
+            width: "0.72"
+            height: auto
+            backgroundColor: "0xe4e4e5"
+            borderRadius: "10"
+          children:
+            - type: label
+              text: Are you sure you want to delete the message?
+              style:
+                width: "0.65"
+                height: auto
+                color: "0x555555"
+                fontSize: .Nfont.h1
+
+                marginLeft: "0.035"
+                marginTop: "0.03"
+                word-break: break-word
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                width: "0.72"
+                height: "0.02"
+                borderBottom: "1px solid #848484"
+            - .ButtonView:
+              children:
+                - .JudgmentCancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: judgmentOperation
+                - .DividerLine:
+                - .JudgmentConfirmButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: judgmentOperation
+
+    - .BackgroundColorGray:
+      viewTag: warningTag
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.41"
+            width: "0.72"
+            height: auto
+            backgroundColor: "0xe4e4e5"
+            borderRadius: "10"
+          children:
+            - type: view
+              style:
+                width: "0.72"
+                height: "0.04"
+                # borderRadius: "10"
+                backgroundColor: "0xe24445"
+                border-top-left-radius: "10px"
+                border-top-right-radius: "10px"
+              children:
+                - type: image
+                  path: aboutWhite.svg
+                  style:
+                    height: "0.02"
+                    top: "0.01"
+                    zIndex: "100"
+                    left: "0.23"
+                - type: label
+                  text: "Warning"
+                  dataKey:
+                  style:
+                    color: "0xffffff"
+                    fontSize: .Nfont.h1
+                    left: "0.3"
+                    top: "0.01"
+            - type: label
+              text: Are you sure you want to delete the message? Are you sure you want to delete the message? Are you sure you want to delete the message? Are you sure you want to delete the message?
+              style:
+                width: "0.65"
+                height: auto
+                color: "0x555555"
+                fontSize: .Nfont.h1
+
+                # margin: auto
+                marginLeft: "0.035"
+                marginTop: "0.03"
+                word-break: break-word
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                width: "0.72"
+                height: "0.015"
+                borderBottom: "1px solid #848484"
+            - .ButtonView:
+              children:
+                - .JudgmentCancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: warningTag
+                - .DividerLine:
+                - .JudgmentConfirmButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: warningTag
+
+    - .BackgroundColorGray:
+      viewTag: informUser
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: informUser
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.45"
+            width: "0.72"
+            height: auto
+            backgroundColor: "0xe4e4e5"
+            borderRadius: "10"
+            textAlign:
+              x: center
+          children:
+            - type: label
+              text: "You need to sign before click next"
+              dataKey:
+              style:
+                width: "0.45"
+                color: "0x555555"
+                fontSize: .Nfont.h1
+                # margin: auto
+                marginLeft: "0.135"
+                marginTop: "0.025"
+                height: auto
+
+                word-break: break-word
+            - type: view
+              style:
+                width: "0.72"
+                height: "0.02"
+
+    - .BackgroundColorGray:
+      viewTag: informUserRedBlue
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: informUserRedBlue
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.38"
+            width: "0.72"
+            height: "auto"
+            backgroundColor: "0xe4e4e5"
+            borderRadius: "10"
+            margin: auto
+            marginTop: "0.025"
+            textAlign:
+              x: left
+          children:
+            - type: view
+              style:
+                marginTop: "0.025"
+              children:
+                - .RedBlueLabel: ""
+                  text: "The appointment has been "
+                  style:
+                    width: "0.6"
+                    marginLeft: "0.095"
+                    word-break: break-word
+                - .RedBlueLabel:
+                  text: " CANCELED "
+                  style:
+                    color: "0xe24445"
+                    marginLeft: "0.095"
+                    word-break: break-word
+                - .RedBlueLabel: ""
+                  text: " by patient"
+                  style:
+                    marginLeft: "0.02"
+                    word-break: break-word
+
+            - type: view
+              style:
+                marginTop: "0.015"
+              children:
+                - .RedBlueLabel: ""
+                  text: "Reason for cancellation: "
+                  style:
+                    width: "0.43"
+                    marginLeft: "0.095"
+                    word-break: break-word
+                    textAlign:
+                      x: left
+                - .RedBlueLabel: ""
+                  text: " My Plan has been changed for something"
+                  style:
+                    marginLeft: "0.095"
+                    color: "0x4998e6"
+                    width: "0.45"
+                    word-break: break-word
+                    textAlign:
+                      x: left
+            - type: view
+              style:
+                width: "0.72"
+                height: "0.02"
+
+    - .BackgroundColorGray:
+      viewTag: FillInformationTag
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.41"
+            width: "0.72"
+            height: "auto"
+            backgroundColor: "0xe4e4e5"
+            borderRadius: "10"
+            textAlign:
+              x: center
+          children:
+            - type: label
+              text: Add New Folder
+              style:
+                width: "0.65"
+                height: "auto"
+                color: "0x555555"
+                fontSize: .Nfont.h2
+
+                margin: auto
+                word-break: break-word
+                marginTop: "0.03"
+                textAlign:
+                  x: center
+            - type: textField
+              placeholder: Enter name here
+              dataKey:
+              style:
+                border:
+                  style: "1"
+                borderRadius: "2"
+                width: "0.63"
+                fontSize: .Nfont.h0
+                height: "0.028"
+            - type: view
+              style:
+                width: "0.72"
+                height: "0.00001"
+                borderTop: "1px solid #848484"
+                marginTop: "0.015"
+            - .ButtonView:
+              children:
+                - .JudgmentCancelButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: FillInformationTag
+                - .DividerLine:
+                - .JudgmentConfirmButton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: FillInformationTag
+
+    - .BackgroundColorGray:
+      viewTag: FillMultipleLinesInformationTag
+      children:
+        - type: view
+          style:
+            left: "0.15"
+            top: "0.365"
+            width: "0.72"
+            height: "0.277"
+            backgroundColor: "0xe4e4e5"
+            borderRadius: "10"
+            textAlign:
+              x: left
+          children:
+            - type: label
+              text: Are you sure you want to cancel this appointment?
+              style:
+                width: "0.6"
+                height: "0.05"
+                color: "0x555555"
+
+                margin: auto
+                marginTop: "0.03"
+                fontSize: .Nfont.h1
+                word-break: break-word
+                textAlign:
+                  x: left
+            - type: label
+              text: "Reason for"
+              dataKey:
+              style:
+                fontSize: .Nfont.h1
+                color: "0x555555"
+                display: "inline-block"
+                marginLeft: "0.08"
+                word-break: break-word
+                marginTop: "0.005"
+            - type: label
+              text: "cancellation:"
+              dataKey:
+              style:
+                color: "0xfc3a3a"
+                display: "inline-block"
+                fontSize: .Nfont.h1
+                marginLeft: "0.01"
+                word-break: break-word
+                marginTop: "0.005"
+            - type: textView
+              placeholder: Enter name here
+              dataKey:
+              style:
+                border:
+                  style: "1"
+                borderRadius: "2"
+                width: "0.59"
+                fontSize: .Nfont.h0
+                color: "0x555555"
+                textIndent: 1em
+                marginLeft: "0.062"
+                marginTop: "0.02"
+                height: "0.07"
+            - type: view
+              style:
+                width: "0.72"
+                height: "0.00001"
+                borderTop: "1px solid #848484"
+                marginTop: "0.02"
+            - .ButtonView:
+              children:
+                - .JudgmentCancelButton:
+                  text: "No"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: FillMultipleLinesInformationTag
+                - .DividerLine:
+                - .JudgmentConfirmButton:
+                  text: "Yes"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: FillMultipleLinesInformationTag
+
+    - .BackgroundColorGray:
+      viewTag: popUpOverlay
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: popUpOverlay
+      children:
+        - type: view
+          style:
+            left: "0.08"
+            top: "0.092"
+            width: "0.84"
+            height: "auto"
+            backgroundColor: "0xe1e5e8"
+            borderRadius: "5"
+            textAlign:
+              x: left
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                height: "0.025"
+                top: "0.012"
+                left: "0.08"
+            - type: label
+              text: "Please enter reason for Cancellation"
+              dataKey:
+              style:
+                fontSize: .Nfont.h0
+                color: "0x555555"
+                word-break: break-word
+                marginTop: "0.013"
+                left: "0.19"
+                width: "0.5"
+            - type: view
+              style:
+                width: "0.1"
+                height: "0.015"

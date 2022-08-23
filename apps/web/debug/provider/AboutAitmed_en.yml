@@ -16,32 +16,28 @@ AboutAitmed:
     debug: "True"
     value: "debug"
   components:
-    - type: view
-      style:
-        top: "0"
-        height: "0.1"
-        width: "1"
+    - .BasePublicHeader:
       children:
-        - .BaseHeader:
-        - .HeaderLeftButton:
-          onClick:
+        - .BasePublicHeaderLeft:
+          leftClick:
             - goto: MenuBars
+        - .BasePublicHeaderTitle:
     - type: view
       style:
-        top: "0.13"
-        width: "0.9"
-        height: "0.84"
-        left: "0.05"
+        marginTop: "0.0246"
+        width: "0.92"
+        height: "0.9"
+        left: "0.04"
         border:
-          style: '3'
-          color: '0x9f9f9f'
+          style: "3"
+          color: "0x9f9f9f"
       children:
         - type: scrollView
           style:
             width: "0.86"
             left: "0.02"
             top: "0.005"
-            height: "0.80"
+            height: "0.87"
             overflow: scroll
           children:
             - .AboutTitle:

@@ -1,8 +1,18 @@
 AppointmentInviteMessage:
   title: Message
   init:
-    - =.AppointmentInviteMessage.apiRequest.room.edgeAPI.get: ""
-    - =.AppointmentInviteMessage.apiRequest.folder.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =.AppointmentInviteMessage.apiRequest.room.edgeAPI.get: ""
+            - =.AppointmentInviteMessage.apiRequest.folder.docAPI.get: ""
+    - if:
+        - =.Global.roomInfo.edge.id
+        - continue
+        - .Global.roomInfo.edge@: =..apiRequest.room.edgeQueryResp.edge.0
+
   formData:
 
   formDataTemp:
@@ -171,21 +181,26 @@ AppointmentInviteMessage:
           style:
             ..style.lineBox:
           children:
-            - type: label
-              text: ".................."
-              dataKey:
+            - type: view
               style:
-                ..style.line:
-            - type: label
-              text: "&nbsp;&nbsp;Original Appointment&nbsp;&nbsp;"
-              dataKey:
-              style:
-                ..style.lineTips:
-            - type: label
-              text: ".................."
-              dataKey:
-              style:
-                ..style.line:
+                width: auto
+                height: auto
+              children:
+                - type: label
+                  text: "………………"
+                  dataKey:
+                  style:
+                    ..style.line:
+                - type: label
+                  text: "&nbsp;&nbsp;Original Appointment&nbsp;&nbsp;"
+                  dataKey:
+                  style:
+                    ..style.lineTips:
+                - type: label
+                  text: "………………"
+                  dataKey:
+                  style:
+                    ..style.line:
 
         - type: view
           style:
@@ -198,7 +213,7 @@ AppointmentInviteMessage:
                 - ..event.enterRoom
               children:
                 - type: label
-                  text: Appointment info
+                  text: Appointment Info
                   style:
                     ..style.topTitle:
                 - type: label
@@ -225,7 +240,6 @@ AppointmentInviteMessage:
                       style:
                         ..style.leftLabel:
                     - type: label
-                      text: 07/30/2021
                       text=func: .builtIn.string.formatUnixtimeL_en
                       dataKey: Global.roomInfo.edge.stime
                       style:
@@ -240,7 +254,6 @@ AppointmentInviteMessage:
                       style:
                         ..style.leftLabel:
                     - type: label
-                      text: 9:45am-10:00am
                       text=func: .builtIn.date.ShowTimeSpan
                       dataKey: Global.roomInfo.edge
                       style:
@@ -254,7 +267,6 @@ AppointmentInviteMessage:
                       style:
                         ..style.leftLabel:
                     - type: label
-                      text: Fever
                       dataKey: Global.roomInfo.edge.name.Reason
                       style:
                         ..style.rightLabel:
@@ -268,7 +280,6 @@ AppointmentInviteMessage:
                       style:
                         ..style.leftLabel:
                     - type: label
-                      text: Telemedicine
                       dataKey: Global.roomInfo.edge.name.visitType
                       style:
                         ..style.rightLabel:
@@ -282,7 +293,6 @@ AppointmentInviteMessage:
                       style:
                         ..style.leftLabel:
                     - type: label
-                      text: Aomas Mueller
                       dataKey: Global.roomInfo.edge.name.providerName
                       style:
                         ..style.rightLabel:
@@ -296,7 +306,6 @@ AppointmentInviteMessage:
                       style:
                         ..style.leftLabel:
                     - type: label
-                      text: A&C Urgentcare
                       dataKey: Global.roomInfo.edge.name.locationName
                       style:
                         ..style.rightLabel:
@@ -312,24 +321,29 @@ AppointmentInviteMessage:
           style:
             ..style.bottomImgBox:
           children:
-            - type: image
-              path: trash.svg
+            - type: view
               style:
-                ..style.bottomImg:
-              onClick:
-                - ..event.openTrashPopUp
-            - type: image
-              path: move.svg
-              style:
-                ..style.centerImg:
-              onClick:
-                - ..event.openMovePopUp
-            - type: image
-              path: reply.svg
-              style:
-                ..style.bottomImg:
-              onClick: #reply 只能发送一个，再次回复只有一个邮件发生变化，而不是生成
-                - goto: NewMessage2
+                width: "auto"
+                height: auto
+              children:
+                - type: image
+                  path: trash.svg
+                  style:
+                    ..style.bottomImg:
+                  onClick:
+                    - ..event.openTrashPopUp
+                - type: image
+                  path: move.svg
+                  style:
+                    ..style.centerImg:
+                  onClick:
+                    - ..event.openMovePopUp
+                - type: image
+                  path: reply.svg
+                  style:
+                    ..style.bottomImgRight:
+                  onClick: #reply 只能发送一个，再次回复只有一个邮件发生变化，而不是生成
+                    - goto: NewMessage2
     - .simplePopup:
       message: "Are you sure you want to delete the message?"
       viewTag: tashComfirm
@@ -613,13 +627,13 @@ AppointmentInviteMessage:
       height: "0.84729"
       boxSizing: border-box
       overflow: scroll
-      fontFamily: "Arial"
+
     btnBox:
       height: "0.0972"
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:
@@ -698,9 +712,8 @@ AppointmentInviteMessage:
       lineHeight: "2.58vh"
       wordBreak: break-word
     lineBox:
-      marginLeft: "0.04"
       marginTop: "0.092364"
-      width: "0.92"
+      width: "1"
       height: "auto"
       textAlign:
         x: center
@@ -721,8 +734,6 @@ AppointmentInviteMessage:
       width: "0.92"
       backgroundColor: "#f4f4f4"
       borderRadius: "4"
-      textAlign:
-        x: center
       overflow: hidden
     topBox:
       marginTop: "0.017241"
@@ -741,13 +752,13 @@ AppointmentInviteMessage:
         x: left
 
     secondBox:
+      marginLeft: "0.04"
       marginTop: "0.0160"
-      width: "1"
+      width: "0.842"
       height: "auto"
       borderTop: "1px solid #dedede"
       overflow: hidden
     secondBlock:
-      marginLeft: "0.04"
       marginTop: "0.013546"
       width: "0.84"
       height: "auto"
@@ -787,13 +798,23 @@ AppointmentInviteMessage:
       marginLeft: "0.010666"
     bottomImgBox:
       marginTop: "0.01970"
+      width: "1"
       textAlign:
         x: center
     bottomImg:
+      display: "inline-block"
+      verticalAlign: middle
       height: "0.04187"
       width: "0.22933"
     centerImg:
       marginLeft: "0.07733"
-      marginRight: "0.07733"
       height: "0.04187"
       width: "0.22933"
+      display: "inline-block"
+      verticalAlign: middle
+    bottomImgRight:
+      marginLeft: "0.07733"
+      height: "0.04187"
+      width: "0.22933"
+      display: "inline-block"
+      verticalAlign: middle

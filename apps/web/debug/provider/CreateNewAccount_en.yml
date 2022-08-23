@@ -109,15 +109,14 @@ CreateNewAccount: # This is page name
                         color: "0x333333"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: ".Nfont.h1"
                     - type: select
                       # contentType: countryCode
                       placeholder: ..formData.vertex.name.countryCode
                       dataKey: formData.vertex.name.countryCode # formData.countryCode : inputValue
                       # options: .SelectINformationDM.CountryCode
-                      options:
-                        ..formData.vertex.name.countryCode
+                      options: ..formData.vertex.name.countryCode
                       required: "true"
                       style:
                         width: "0.2"
@@ -144,7 +143,7 @@ CreateNewAccount: # This is page name
                         color: "0x333333"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: ".Nfont.h1"
                       textBoard:
                         - text: Phone
@@ -208,7 +207,7 @@ CreateNewAccount: # This is page name
                         color: "0x333333"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: ".Nfont.h1"
                     - type: textField
                       contentType: text
@@ -245,7 +244,7 @@ CreateNewAccount: # This is page name
                         color: "0x333333"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: ".Nfont.h1"
                     - type: textField
                       contentType: text
@@ -283,7 +282,7 @@ CreateNewAccount: # This is page name
                         color: "0x333333"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: .Nfont.h1
                     - type: textField
                       contentType: text
@@ -321,7 +320,7 @@ CreateNewAccount: # This is page name
                         color: "0x333333"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: .Nfont.h1
                     - type: view
                       style:
@@ -368,7 +367,7 @@ CreateNewAccount: # This is page name
                         color: "0x333333"
                         fontWeight: "500"
                         marginTop: "0.01"
-                        fontFamily: "Airal"
+
                         fontSize: .Nfont.h1
                     - type: view
                       style:
@@ -412,7 +411,7 @@ CreateNewAccount: # This is page name
                         fontWeight: "500"
                         marginTop: "0.01"
                         width: "0.86"
-                        fontFamily: "Airal"
+
                         fontSize: .Nfont.h1
             - type: view
               children:
@@ -459,7 +458,7 @@ CreateNewAccount: # This is page name
                             color: "0x333333"
                             fontWeight: "500"
                             # display: "inline-block"
-                            fontFamily: "Airal"
+
                             fontSize: .Nfont.h1
                           onClick:
                             - goto: UserAgreement
@@ -472,7 +471,7 @@ CreateNewAccount: # This is page name
                             color: "0x333333"
                             fontWeight: "500"
                             # display: "inline-block"
-                            fontFamily: "Airal"
+
                             fontSize: .Nfont.h1
                           onClick:
                             - goto: ServicesAgreement
@@ -533,7 +532,7 @@ CreateNewAccount: # This is page name
                             color: "0x333333"
                             fontWeight: "500"
                             # display: "inline-block"
-                            fontFamily: "Airal"
+
                             fontSize: .Nfont.h1
                           onClick:
                             - goto: PrivacyPolicy
@@ -1003,11 +1002,17 @@ CreateNewAccount: # This is page name
                   object: ..update
                 - actionType: evalObject
                   object:
-                    =.builtIn.eccNaCl.decryptAES:
-                      dataIn:
-                        key: =..formData.vertex.name.password
-                        message: =..formData.response.vertex.esk
-                      dataOut: Global.currentUser.vertex.sk
+                    - =.builtIn.eccNaCl.decryptAES:
+                        dataIn:
+                          key: =..formData.vertex.name.password
+                          message: =..formData.response.vertex.esk
+                        dataOut: Global.currentUser.vertex.sk
+                    - =.builtIn.storeCredentials:
+                        dataIn:
+                          sk: =.Global.currentUser.vertex.sk
+                          pk: =.Global.currentUser.vertex.pk
+                          userId: =.Global.currentUser.vertex.id
+                          esk: =.Global.currentUser.vertex.esk
                 - actionType: evalObject
                   object:
                     - .Global.organizations@: =..listData.organization.vertex
@@ -1043,7 +1048,7 @@ CreateNewAccount: # This is page name
                       style:
                         display: "inline-block"
                         color: "0x00000088"
-                        fontFamily: "Airal"
+
                         fontSize: .Nfont.h1
                         textAlign:
                           x: center
@@ -1053,7 +1058,7 @@ CreateNewAccount: # This is page name
                       style:
                         display: "inline-block"
                         color: "0x3185c7ff"
-                        fontFamily: "Airal"
+
                         fontSize: .Nfont.h1
                         fontStyle: bold
                         marginLeft: "0.01"

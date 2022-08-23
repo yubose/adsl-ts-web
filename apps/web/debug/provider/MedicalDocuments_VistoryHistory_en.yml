@@ -47,15 +47,15 @@ MedicalDocuments_VistoryHistory:
           - ","
           - =.DocType.InitEvalReport #135681
           - ","
-          - =.DocType.FluVaccinationConsentFormEnglish #143361
-          - ","
-          - =.DocType.FluVaccinationConsentFormSpanish #145921
-          - ","
+          # - =.DocType.FluVaccinationConsentFormEnglish #143361
+          # - ","
+          # - =.DocType.FluVaccinationConsentFormSpanish #145921
+          # - ","
           - =.DocType.ProgressReport #140801
           - ","
           - =.DocType.surgeryForm #133121
-          - ","
-          - =.DocType.FluVaccinationConsentFormEnglish #133121
+          # - ","
+          # - =.DocType.FluVaccinationConsentFormEnglish #133121
           - )
         dataOut: MedicalDocuments_VistoryHistory.apiRequest.medicalDocuments.docQueryReq.sCondition
     #清除缓存

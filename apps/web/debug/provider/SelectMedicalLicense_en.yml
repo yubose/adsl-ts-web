@@ -2,6 +2,7 @@ SelectMedicalLicense:
   title: "Select Medical License"
   init:
     - .SignInCheck
+    - .Global.formData.blockPastTime@: "false"
     - if:
         - =.Global.MyProfile.id
         - actionType: evalObject
@@ -104,8 +105,8 @@ SelectMedicalLicense:
                 width: "0.64"
                 height: "auto"
                 color: "0x4b4b4b"
-                fontSize: .Nfont.h2
-                fontFamily: "sans-serif"
+                fontSize: .Nfont.h16
+
                 textAlign:
                   x: center
             - type: view
@@ -126,10 +127,12 @@ SelectMedicalLicense:
                     width: "0.35"
                     height: "0.049"
                     color: "0x007affff"
-                    fontSize: .Nfont.h2
+                    fontSize: .Nfont.h14
                     display: inline-block
                     backgroundColor: "0xe6e6e6"
                     borderRadius: "15"
+                    fontWeight: "600"
+
                     textAlign:
                       x: center
                       y: center
@@ -160,10 +163,12 @@ SelectMedicalLicense:
                     width: "0.35"
                     height: "0.049"
                     color: "0x007affff"
-                    fontSize: .Nfont.h2
+                    fontSize: .Nfont.h14
                     display: inline-block
                     backgroundColor: "0xe6e6e6"
+
                     borderRadius: "15"
+                    fontWeight: "600"
                     textAlign:
                       x: center
                       y: center
@@ -185,64 +190,40 @@ SelectMedicalLicense:
                     - actionType: builtIn
                       funcName: goBack
                       reload: true
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: popUp
-          popUpView: changePopUpView
-    - type: button
-      style:
-        top: "0"
-        left: "0.85"
-        width: "0.15"
-        height: "0.1"
-        backgroundColor: "0x2988e6"
-        zIndex: 100
-        textAlign:
-          y: center
-        border:
-          style: "1"
+    - .BasePublicHeader:
       children:
-        - type: label
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: popUp
+              popUpView: changePopUpView
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
           text: Save
-          style:
-            # left: "0.05"
-            top: "0.001"
-            width: "0.15"
-            height: "0.1"
-            zIndex: 100
-            fontSize: .Nfont.h2
-            color: "0xffffffff"
-            textAlign:
-              x: center
-              y: center
-      onClick:
-        - actionType: evalObject
-          object:
-            - .Global.MyProfile.name.data.MedicalLicense@: =..selectedMedicalLicense.document.name.data.MedicalLicense
-        - actionType: popUp
-          popUpView: successPopUpView
-        - actionType: builtIn
-          funcName: goBack
-          wait: 2000
-          reload: true
+          onClick:
+            - actionType: evalObject
+              object:
+                - .Global.MyProfile.name.data.MedicalLicense@: =..selectedMedicalLicense.document.name.data.MedicalLicense
+            - actionType: popUp
+              popUpView: successPopUpView
+            - actionType: builtIn
+              funcName: goBack
+              wait: 2000
+              reload: true
     - type: scrollView
       style:
-        top: "0.1"
         width: "1"
         height: "0.9"
-        left: "0"
       children:
         - type: label
           textBoard:
             - text: Please add all your Medical License
           style:
-            marginTop: "0.02"
+            marginTop: "0.025"
             width: "1"
             left: "0"
             fontSize: .Nfont.h14
             height: "0.06"
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             border:
@@ -255,7 +236,7 @@ SelectMedicalLicense:
             width: "0.9"
             left: "0.05"
             height: "0.1"
-            marginTop: "0.01"
+            marginTop: "0.0246"
           children:
             - type: label
               text: "Medical License #"
@@ -263,18 +244,20 @@ SelectMedicalLicense:
                 width: "0.4"
                 height: "0.03"
                 left: "0"
-                fontSize: ".Nfont.h2"
+                fontSize: ".Nfont.h14"
+                fontWeight: "600"
                 top: "0"
             - type: label
               text: State
               style:
                 width: "0.4"
                 height: "0.03"
-                left: "0.5"
+                left: "0.40266666"
                 top: "0"
                 textAlign:
                   x: center
-                fontSize: ".Nfont.h2"
+                fontSize: ".Nfont.h14"
+                fontWeight: "600"
             - .MyProfileTextFile:
               onInput:
                 # - actionType: popUpDismiss
@@ -337,40 +320,62 @@ SelectMedicalLicense:
               dataKey: medicalLicenseObj.state
         - type: view
           style:
+            marginTop: "0.01"
             width: "0.9"
-            height: "0.05"
+            height: "auto"
             left: "0.05"
-            marginTop: "0"
           children:
             - type: label
               text: License Expiration
               style:
-                width: "0.45"
-                height: "0.05"
-                left: "0"
-                top: "0"
-                textAlign:
-                  y: center
+                display: "inline-block"
+                width: "0.4"
+                height: "auto"
+                fontSize: .Nfont.h14
+                verticalAlign: middle
+                fontWeight: "600"
+                color: "#333333"
             - type: view
-              viewTag: expirationTag
+              viewTag: expirationFlag
               onClick:
                 - actionType: popUp
                   popUpView: expirationDay
               style:
-                top: "0"
-                height: "0.05"
-                width: "0.5"
-                left: "0.4"
+                marginLeft: "0.05"
+                width: "0.45"
+                height: "auto"
+                display: "inline-block"
+                border:
+                  style: 3
+                borderRadius: "5"
+                borderWidth: "1"
+                borderColor: "#dededf"
+                boxSizing: border-box
+                verticalAlign: middle
+                overflow: hidden
               children:
-                - .MyProfileTextFile:
+                - type: textField
+                  placeholder: Select
                   dataKey: medicalLicenseObj.expiration
                   isEditable: "false"
                   style:
-                    top: "0"
-                    left: "0"
+                    width: "0.344"
                     height: "0.05"
-                    width: "0.5"
-                    backgroundColor: "0xffffff"
+                    display: "inline-block"
+                    textIndent: "12px"
+                    boxSizing: border-box
+                    backgroundColor: "#ffffff"
+                    verticalAlign: middle
+                    border:
+                      style: 1
+                - type: image
+                  path: dateImg.svg
+                  style:
+                    marginLeft: "0.032"
+                    height: "0.025"
+                    display: "inline-block"
+                    verticalAlign: middle
+
         - type: button
           viewTag: addBtn
           style:
@@ -378,11 +383,13 @@ SelectMedicalLicense:
             width: "0.9"
             left: "0.05"
             color: "0xFFFFFF"
-            marginTop: "0.01"
+            marginTop: "0.0246"
             height: "0.05"
+            fontSize: ".Nfont.h14"
             border:
               style: "5"
             backgroundColor: ..formData.btnColor
+            borderRadius: "5"
             textAlign:
               x: center
               y: center
@@ -444,7 +451,7 @@ SelectMedicalLicense:
               viewTag: medicineLicenseTag
             - actionType: builtIn
               funcName: redraw
-              viewTag: expirationTag
+              viewTag: expirationFlag
             - actionType: builtIn
               funcName: redraw
               viewTag: specialtyTag
@@ -453,7 +460,7 @@ SelectMedicalLicense:
               viewTag: addBtn
         - type: view
           style:
-            marginTop: "0.02"
+            marginTop: "0.0246"
             width: "0.9"
             left: "0.05"
             height: "0.04"
@@ -463,19 +470,25 @@ SelectMedicalLicense:
               style:
                 height: "0.04"
                 width: "0.4"
+                fontSize: ".Nfont.h14"
+                fontWeight: "600"
                 left: "0"
                 top: "0"
             - type: label
-              text: state
+              text: State
               style:
                 height: "0.04"
                 width: "0.2"
+                fontSize: ".Nfont.h14"
+                fontWeight: "600"
                 top: "0"
                 left: "0.4"
             - type: label
               text: Expiration
               style:
                 height: "0.04"
+                fontSize: ".Nfont.h14"
+                fontWeight: "600"
                 width: "0.25"
                 top: "0"
                 left: "0.65"
@@ -528,7 +541,7 @@ SelectMedicalLicense:
                     height: "0.04"
                     left: "0.15"
                     top: "0"
-                    fontSize: .Nfont.h1
+                    fontSize: ".Nfont.h14"
                     textAlign:
                       y: center
                 - type: label
@@ -536,6 +549,7 @@ SelectMedicalLicense:
                   style:
                     width: "0.3"
                     height: "0.04"
+                    fontSize: ".Nfont.h14"
                     left: "0.45"
                     top: "0"
                     textAlign:
@@ -545,6 +559,7 @@ SelectMedicalLicense:
                   style:
                     width: "0.3"
                     height: "0.04"
+                    fontSize: ".Nfont.h14"
                     left: "0.7"
                     top: "0"
                     textAlign:
@@ -582,7 +597,7 @@ SelectMedicalLicense:
                     - ..medicalLicenseObj.expiration@: =.BaseComponents.calendarDate.todayDate
                 - actionType: builtIn
                   funcName: redraw
-                  viewTag: expirationTag
+                  viewTag: expirationFlag
                 - actionType: popUpDismiss
                   popUpView: expirationDay
                 - actionType: evalObject
@@ -727,8 +742,8 @@ SelectMedicalLicense:
     #           dataKey:
     #           style:
     #             color: "0x555555"
-    #             fontSize: .Nfont.h12
-    #             fontFamily: "Arial"
+    #             fontSize: .Nfont.h14
+    #
     #             word-break: break-word
     #             width: "0.45"
     #             marginLeft: "0.025"

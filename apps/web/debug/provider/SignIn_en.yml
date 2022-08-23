@@ -7,13 +7,50 @@ SignIn: # xd page number:4
         dataOut: FirebaseToken.edge.evid
     - if:
         - =.Global.currentUser.vertex.sk #.builtIn.SignInOk
-        - goto: Dashboard
-        - continue
+        - actionType: evalObject
+          object:
+            - actionType: evalObject
+              object: ..getFac
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.Global.currentUser.vertex.sk
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =.Global.organizations
+                            dataOut: SignIn.formData.facilityNum
+                        - =.builtIn.string.retainNumber:
+                            dataIn:
+                              value: =..formData.facilityNum
+                            dataOut: SignIn.formData.facilityNum
+                        # 根据何静的要求，如果provider有多个facility，则进入选择facility页面，否则直接进入Dashboard
+                        - =.builtIn.utils.setLockScreen:
+                            dataIn:
+                              names: ["lockTime","lockSelect","lockPageName"]
+                              values:
+                                - =..apiRequest.logOutDoc.docResp.doc.0.name.data.time
+                                - =.Global.autolock
+                                - "LockPage"
+                        - if:
+                          - =.builtIn.math.greater:
+                              dataIn:
+                                num1: =..formData.facilityNum
+                                num2: 2
+                          - goto: SwitchFacility
+                          - goto: Dashboard
+                    - continue
+        - if:
+          - =.Global.currentUser.vertex.esk
+          - goto: LockPage
+          - continue
   listData:
     organization:
       vertex: ""
     vertex:
       ObjType: 4
+      id: =.Global.currentUser.vertex.id
       xfname: E.bvid|E.evid
       sCondition: E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x30000
       type: 20
@@ -119,10 +156,21 @@ SignIn: # xd page number:4
   getFac:
     - actionType: evalObject
       object:
-        - ..listData.vertex.ids@: =.Global.currentUser.vertex.id
+        - ..listData.vertex.id@: =.Global.currentUser.vertex.id
         - =..listData.get: ""
+
+        - ..apiRequest.profile.doc.id@: =.Global.rootNotebookID
         - ..apiRequest.currentFacilityDoc.docReq.id@: =..listData.organization.vertex.0.id
-        - =..apiRequest.currentFacilityDoc.docAPI.get: ""
+        
+        - actionType: evalObject
+          object:
+            - actionType: evalObject
+              async: true
+              object:
+                - =..apiRequest.currentFacilityDoc.docAPI.get: ""
+                - =..apiRequest.logOutDoc.docAPI.get: ""
+                - =..apiRequest.profile.docAPI.get: ""
+        # fac
         - .Global.organizations@: =..listData.organization.vertex
         - if:
             - =..listData.organization.vertex.0.id
@@ -136,13 +184,22 @@ SignIn: # xd page number:4
               object:
                 - .Global.dashboardName@: ""
                 - .Global.currentFacility@: []
-        - ..apiRequest.profile.doc.id@: =.Global.rootNotebookID
-        - =..apiRequest.profile.docAPI.get: ""
+        # logout doc
+        - if:
+          - =.builtIn.array.judgeListLength:
+              dataIn:
+                array: =..apiRequest.logOutDoc.docResp.doc
+                len: 0
+          - .Global.autolock@: false
+          - .Global.autolock@: =..apiRequest.logOutDoc.docResp.doc.0.name.data.autolock
+        # profile
         - if:
             - =..apiRequest.profile.docResponse.doc.0.id
             - .Global.nonFirstProfile@: true
             - .Global.nonFirstProfile@: false
   formData:
+    # provider对应facility的数目
+    facilityNum: ""
     checkOk: false
     checkMessage: "no message"
     countryCode: "+1"
@@ -235,6 +292,32 @@ SignIn: # xd page number:4
       popUpView: WrongPhoneNum
       wait: true
   apiRequest:
+    logOutDoc:
+      documentResp: ""
+      document: 
+        type: .DocType.autoLogOut
+        eid: =.Global.rootNotebookID
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            autolock: false
+            time: "20min"
+      docReq:
+        id: =.Global.rootNotebookID
+        type: .DocType.autoLogOut
+        xfname: eid
+        _nonce: =.Global._nonce
+      docResp: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: SignIn.apiRequest.logOutDoc.document
+          dataOut: SignIn.apiRequest.logOutDoc.documentResp
+        get:
+          api: rd
+          dataIn: SignIn.apiRequest.logOutDoc.docReq
+          dataOut: SignIn.apiRequest.logOutDoc.docResp
     # rd currentFacilityDoc
     currentFacilityDoc:
       docResp: ""
@@ -350,7 +433,7 @@ SignIn: # xd page number:4
                 textShadow: "0 2px #0000001a"
                 letterSpacing: "0.1em"
                 textIndent: "0.2em"
-                fontFamily: "Airal"
+
                 textAlign:
                   x: center
         - type: view
@@ -363,7 +446,7 @@ SignIn: # xd page number:4
             borderColor: "0xffffff"
             borderRadius: "40px 40px 0 0"
             height: "1"
-            fontFamily: Airal
+
             boxSizing: "border-box"
           children:
             - type: label
@@ -374,7 +457,7 @@ SignIn: # xd page number:4
                 marginTop: "0.04" #32.48px
                 width: "0.72"
                 fontSize: .Nfont.h4
-                fontFamily: "Airal"
+
                 fontStyle: bold
                 textAlign:
                   x: left
@@ -400,7 +483,7 @@ SignIn: # xd page number:4
                   style:
                     display: inline-block
                     backgroundColor: "0xE9F2FC"
-                    borderRadius: "20px 0 0 20px"
+                    borderRadius: "40px 0 0 40px"
                   children:
                     - type: label
                       text: "Phone"
@@ -413,7 +496,7 @@ SignIn: # xd page number:4
                         color: ..changeColor.phone.color
                         fontSize: .Nfont.h14
                         backgroundColor: ..changeColor.phone.backgroundColor
-                        borderRadius: "20"
+                        borderRadius: "40px"
                       onClick:
                         - actionType: builtIn
                           funcName: show
@@ -449,7 +532,7 @@ SignIn: # xd page number:4
                   style:
                     display: inline-block
                     backgroundColor: "0xE9F2FC"
-                    borderRadius: "0 20px 20px 0"
+                    borderRadius: "0 40px 40px 0"
                   children:
                     - type: label
                       text: "User Name"
@@ -462,7 +545,7 @@ SignIn: # xd page number:4
                         backgroundColor: ..changeColor.userName.backgroundColor
                         fontSize: .Nfont.h14
                         color: ..changeColor.userName.color
-                        borderRadius: "20"
+                        borderRadius: "40px"
                       onClick:
                         - actionType: builtIn
                           funcName: hide
@@ -517,7 +600,7 @@ SignIn: # xd page number:4
                       style:
                         color: "0x333333"
                         fontWeight: "500"
-                        fontFamily: "Airal"
+
                         fontSize: ".Nfont.h14"
                     - type: textField
                       viewTag: userNameVT
@@ -580,7 +663,8 @@ SignIn: # xd page number:4
                   viewTag: usePhoneNumber
                   style:
                     marginLeft: "0.1"
-                    fontFamily: "Airal"
+
+                    width: "0.8"
                     isHidden: false
                   children:
                     - type: view
@@ -595,7 +679,7 @@ SignIn: # xd page number:4
                           style:
                             color: "0x333333"
                             fontWeight: "500"
-                            fontFamily: "Airal"
+
                             fontSize: ".Nfont.h14"
                         - type: select
                           contentType: countryCode
@@ -612,11 +696,17 @@ SignIn: # xd page number:4
                                       - " "
                                       - =.SignIn.formData.phoneNumber
                                     dataOut: SignIn.apiData.phoneNumber
-                                - =.builtIn.string.phoneVerification:
-                                    dataIn:
-                                      phoneNumber: =..formData.phoneNumber
-                                      countryCode: =..formData.countryCode
-                                    dataOut: SignIn.formData.checkOk
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.countryCode
+                                          string2: "+965" # Kuwait
+                                    - ..formData.checkOk@: true
+                                    - =.builtIn.string.phoneVerification:
+                                        dataIn:
+                                          phoneNumber: =..formData.phoneNumber
+                                          countryCode: =..formData.countryCode
+                                        dataOut: SignIn.formData.checkOk
                                 - =.builtIn.string.concat:
                                     dataIn:
                                       - "uid like '%"
@@ -659,7 +749,7 @@ SignIn: # xd page number:4
                     - type: view
                       style:
                         display: "inline-block"
-                        marginLeft: "0.0535" #20.06px
+                        marginLeft: "0.045"
                         # height: "0.09"
                       children:
                         - type: label
@@ -670,7 +760,7 @@ SignIn: # xd page number:4
                           style:
                             color: "0x333333"
                             fontWeight: "500"
-                            fontFamily: "Airal"
+
                             fontSize: ".Nfont.h14"
                         - type: textField # take users' input
                           viewTag: phoneNumberVT
@@ -683,11 +773,17 @@ SignIn: # xd page number:4
                           onInput:
                             - actionType: evalObject
                               object:
-                                - =.builtIn.string.phoneVerification:
-                                    dataIn:
-                                      phoneNumber: =..formData.phoneNumber
-                                      countryCode: =..formData.countryCode
-                                    dataOut: SignIn.formData.checkOk
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.countryCode
+                                          string2: "+965" # Kuwait
+                                    - ..formData.checkOk@: true
+                                    - =.builtIn.string.phoneVerification:
+                                        dataIn:
+                                          phoneNumber: =..formData.phoneNumber
+                                          countryCode: =..formData.countryCode
+                                        dataOut: SignIn.formData.checkOk
                             - actionType: evalObject
                               object:
                                 - if:
@@ -710,11 +806,17 @@ SignIn: # xd page number:4
                                 actions:
                                   - actionType: evalObject
                                     object:
-                                      - =.builtIn.string.phoneVerification:
-                                          dataIn:
-                                            phoneNumber: =..formData.phoneNumber
-                                            countryCode: =..formData.countryCode
-                                          dataOut: SignIn.formData.checkOk
+                                      - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..formData.countryCode
+                                                string2: "+965" # Kuwait
+                                          - ..formData.checkOk@: true
+                                          - =.builtIn.string.phoneVerification:
+                                              dataIn:
+                                                phoneNumber: =..formData.phoneNumber
+                                                countryCode: =..formData.countryCode
+                                              dataOut: SignIn.formData.checkOk
                                       - if:
                                           - =..formData.checkOk
                                           - continue
@@ -748,10 +850,11 @@ SignIn: # xd page number:4
                               x: left
                             fontSize: .Nfont.h1
                             left: "0"
-                            width: "0.55"
+                            width: "0.555"
                             height: "0.049"
                             marginTop: "0.005"
                             required: "true"
+
                             borderColor: ..changeColor.phone.borderColor
                             borderRadius: "4"
                             borderWidth: "1"
@@ -803,7 +906,7 @@ SignIn: # xd page number:4
                 marginTop: "0.02"
                 color: "0x333333"
                 fontWeight: "500"
-                fontFamily: "Airal"
+
                 fontSize: ".Nfont.h14"
                 width: "auto"
                 textAlign:
@@ -837,6 +940,7 @@ SignIn: # xd page number:4
                 borderColor: ..changeColor.password.borderColor
                 borderWidth: "1"
                 marginLeft: "0.1"
+                boxSizing: "border-box"
                 borderRadius: "4"
                 marginTop: "0.005"
                 border:
@@ -855,7 +959,8 @@ SignIn: # xd page number:4
                     width: "0.8"
                     height: "0.049"
                     textIndent: "1em"
-                    fontFamily: "Airal"
+                    boxSizing: "border-box"
+
                     borderWidth: "1"
                     backgroundColor: "0xF4F4F5"
                     border:
@@ -924,8 +1029,8 @@ SignIn: # xd page number:4
             color: "0xffffffff"
             fontSize: ".Nfont.h18"
             fontStyle: bold
-            left: "0.1"
-            fontFamily: "Airal"
+            marginLeft: "0.1"
+
             width: "0.8"
             marginTop: "0.045"
             borderRadius: "8"
@@ -948,14 +1053,22 @@ SignIn: # xd page number:4
                       wait: true
                 # judge phoneNumber is valid or not
                 - if:
-                    - =.builtIn.string.phoneVerification:
+                    - =.builtIn.string.equal:
                         dataIn:
-                          phoneNumber: =..formData.phoneNumber
-                          countryCode: =..formData.countryCode
+                          string1: =..formData.countryCode
+                          string2: "+965" # Kuwait
                     - continue
-                    - actionType: popUp
-                      popUpView: WrongPhoneNum
-                      wait: true
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.phoneVerification:
+                                dataIn:
+                                  phoneNumber: =..formData.phoneNumber
+                                  countryCode: =..formData.countryCode
+                            - continue
+                            - actionType: popUp
+                              popUpView: WrongPhoneNum
+                              wait: true
                 # judge provider is input the password or not
                 - if:
                     - =..formData.password
@@ -1035,7 +1148,7 @@ SignIn: # xd page number:4
                         - .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
                         - .Global.rootNotebookID@: =.Global.currentUser.vertex.deat.rnb64ID
                         - .Global.currentUser.dataCache.loadingDateTime@: =.Global.currentDateTime
-                        - ..listData.vertex.ids@: =.Global.currentUser.vertex.id
+                        - ..listData.vertex.id@: =.Global.currentUser.vertex.id
                         - =..listData.get: ""
                         - .Global.organizations@: =..listData.organization.vertex
                         - if:
@@ -1098,6 +1211,7 @@ SignIn: # xd page number:4
                 dataOut: SignIn.rvCondition
             - actionType: evalObject
               object:
+                - ..getVertex.response.vertex@: []
                 - if:
                     - =..userNameRv
                     - ..rvCondition@: =..userNameRv
@@ -1108,11 +1222,11 @@ SignIn: # xd page number:4
                     - actionType: evalObject
                       object:
                         - if:
-                          - =..getVertex.response.vertex.0.pk
-                          - continue
-                          - actionType: popUp
-                            popUpView: inviteUser
-                            wait: true
+                            - =..getVertex.response.vertex.0.pk
+                            - continue
+                            - actionType: popUp
+                              popUpView: inviteUser
+                              wait: true
                     - actionType: popUp
                       popUpView: userCannotfind
                       wait: true
@@ -1158,7 +1272,7 @@ SignIn: # xd page number:4
                   style:
                     color: "0xb1b1b1"
                     fontSize: .Nfont.h1
-                    fontFamily: "Airal"
+
                     display: inline-block
                     # backgroundColor: "0xcdcdcd"
                 - type: label
@@ -1166,7 +1280,7 @@ SignIn: # xd page number:4
                   style:
                     color: "0x2988E6"
                     fontSize: .Nfont.h1
-                    fontFamily: "Airal"
+
                     fontWeight: "400"
                     marginLeft: "0.02"
                     display: inline-block
@@ -1174,7 +1288,7 @@ SignIn: # xd page number:4
                       style: "1"
                   onClick:
                     - goto: SignUp
-    - type: popUp 
+    - type: popUp
       viewTag: inviteUser
       style:
         top: "0"
@@ -1202,7 +1316,7 @@ SignIn: # xd page number:4
                 marginLeft: "0.062"
                 marginTop: "0.018"
                 fontSize: .Nfont.n2
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -1213,7 +1327,7 @@ SignIn: # xd page number:4
                 marginLeft: "0.062"
                 marginTop: "0.018"
                 fontSize: .Nfont.n2
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -1296,7 +1410,7 @@ SignIn: # xd page number:4
                 fontWeight: "550"
                 marginTop: "0.029"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -1351,7 +1465,7 @@ SignIn: # xd page number:4
                     display: inline-block
                     height: "0.054"
                 - type: button
-                  text: "OK"
+                  text: "Confirm"
                   style:
                     color: "0x007AFF"
                     fontWeight: "850"
@@ -1367,6 +1481,14 @@ SignIn: # xd page number:4
                     - actionType: popUpDismiss
                       popUpView: inputVerificationCode
                     - actionType: evalObject
+                      object:
+                        - if:
+                            - =..formData.code  
+                            - continue
+                            - actionType: popUp
+                              popUpView: emptyCode
+                              wait: true
+                    - actionType: evalObject
                       object: ..check
                     - actionType: evalObject
                       object: ..verify
@@ -1378,7 +1500,31 @@ SignIn: # xd page number:4
                       object:
                         - if:
                             - =.Global.currentUser.vertex.sk
-                            - goto: Dashboard
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =.Global.organizations
+                                    dataOut: SignIn.formData.facilityNum
+                                - =.builtIn.string.retainNumber:
+                                    dataIn:
+                                      value: =..formData.facilityNum
+                                    dataOut: SignIn.formData.facilityNum
+                                - =.builtIn.utils.setLockScreen:
+                                    dataIn:
+                                      names: ["lockTime","lockSelect","lockPageName"]
+                                      values:
+                                        - =..apiRequest.logOutDoc.docResp.doc.0.name.data.time
+                                        - =.Global.autolock
+                                        - "LockPage"
+                                # 根据何静的要求，如果provider有多个facility，则进入选择facility页面，否则直接进入Dashboard
+                                - if:
+                                  - =.builtIn.math.greater:
+                                      dataIn:
+                                        num1: =..formData.facilityNum
+                                        num2: 2
+                                  - goto: SwitchFacility
+                                  - goto: Dashboard
                             - continue
     - .TipsMultiLine:
       message: "Incorrect phone number and password"
@@ -1450,6 +1596,17 @@ SignIn: # xd page number:4
           popUpView: inputVerificationCode
         - actionType: popUpDismiss
           popUpView: __.viewTag
+
+    - .TipsOneLine:
+      message: "VerificationCode required"
+      viewTag: emptyCode
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: emptyCode
+        - actionType: popUp
+          popUpView: inputVerificationCode
+          wait: true
+
     - .TipsMultiLine:
       message: "Invalid Username: Required length should be 6 to 16"
       viewTag: invaliduserid
@@ -1491,7 +1648,7 @@ SignIn: # xd page number:4
                 fontSize: .Nfont.n1_1
                 fontWeight: "600"
                 width: "0.576"
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 textAlign:
                   x: center
@@ -1502,7 +1659,7 @@ SignIn: # xd page number:4
                 marginLeft: "0.062"
                 marginTop: "0.018"
                 fontSize: .Nfont.n2
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -1513,7 +1670,7 @@ SignIn: # xd page number:4
                 marginLeft: "0.062"
                 marginTop: "0.018"
                 fontSize: .Nfont.n2
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -1524,7 +1681,7 @@ SignIn: # xd page number:4
                 marginLeft: "0.062"
                 marginTop: "0.018"
                 fontSize: .Nfont.n2
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -1535,7 +1692,7 @@ SignIn: # xd page number:4
                 marginLeft: "0.062"
                 marginTop: "0.018"
                 fontSize: .Nfont.n2
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"

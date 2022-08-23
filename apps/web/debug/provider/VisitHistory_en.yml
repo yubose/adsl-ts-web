@@ -146,6 +146,9 @@ VisitHistory:
                     - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                       dataKey: Global.roomInfo.edge
                       dataObject: itemObject
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.showBackButton.visitDetail@: "true"
                     - goto: VisitDetial
                   style:
                     left: "0"

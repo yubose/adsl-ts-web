@@ -130,7 +130,7 @@ PatientBlankNote:
                 height: "0.61"
                 fontSize: .Nfont.h12
                 textIndent: "10px"
-                fontFamily: sans-serif
+
                 border:
                   style: "3"
                   width: "1"

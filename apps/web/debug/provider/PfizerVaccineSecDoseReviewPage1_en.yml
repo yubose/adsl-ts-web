@@ -3,11 +3,32 @@ PfizerVaccineSecDoseReviewPage1:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - if:
         - =.Global.roomInfo.edge.id
         - ..apiRequest.pifzerVaccineSecDoseForm.docAPI.get
         - continue
     - .Global.formData.pifzerVaccineSecDoseForm@: =..apiRequest.pifzerVaccineSecDoseForm.docRes.doc.0
+
+    # 多页PDF下载配置
+    - actionType: evalObject
+      object:
+        - .Global.formData.downloadPDF.PdfPageList@:
+            - pageName: PfizerVaccineSecDoseReviewPage1
+              viewTag: mainView
+            - pageName: PfizerVaccineSecDoseReviewPage2
+              viewTag: mainView
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Pfizer-BioNTech Vaccine - Second Dose"
+        - .Global.formData.downloadPDF.pageIntervalList@:
+            - 0
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
   formData: #Input data here
     screeningEligibility:
       recevingDose: ""
@@ -43,10 +64,29 @@ PfizerVaccineSecDoseReviewPage1:
         - .BasePublicHeader:
           children:
             - .BasePublicHeaderLeft:
+              leftClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          date: =.Global.formData.auditLog.startTime
+                          actionTypeCode: .ActionTypeCode.view
+                          recordTypeCode: 115201
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14
+            - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -191,6 +231,7 @@ PfizerVaccineSecDoseReviewPage1:
                 ..style.btn:
               onClick:
                 - goto: PfizerVaccineSecDoseReviewPage2
+    - .HeaderPopUpMultiplePDF:
   event:
     recevingDosePath:
       emit:
@@ -226,7 +267,7 @@ PfizerVaccineSecDoseReviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "#333333"
       fontSize: .Nfont.h16
     backLeft:
@@ -243,7 +284,7 @@ PfizerVaccineSecDoseReviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -280,7 +321,7 @@ PfizerVaccineSecDoseReviewPage1:
       width: "0.92"
       height: "0.7487"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     blockBox:
       marginTop: "0.01"
       height: "auto"
@@ -346,7 +387,7 @@ PfizerVaccineSecDoseReviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

@@ -26,13 +26,17 @@ SearchProvider:
           dataOut: SearchProvider.apiRequest.getProviderPublicProfile.resp
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: view
       style:
-        top: "0.1"
+        # top: "0.1"
         weidth: "1"
-        height: "0.9"
+        height: "0.94"
         overflow: hidden
       children:
         - type: view
@@ -44,7 +48,7 @@ SearchProvider:
             borderColor: "0xdededf"
           children:
             - type: textField
-              placeholder: Try Speciaty, or doctor name
+              placeholder: Try specialty, or doctor name
               dataKey: formData.searchContent
               debounce: 200
               viewTag: specialtyTag
@@ -112,17 +116,17 @@ SearchProvider:
               viewTag: startSearch
               scrollable: false
               style:
-                width: '0.95'
-                margin: '0'
-                left: '0.04'
+                width: "0.95"
+                margin: "0"
+                left: "0.04"
                 height: "auto"
               children:
                 - type: listItem
-                  itemObject: 
+                  itemObject:
                   style:
-                    width: '0.95'
-                    height: '0.042'
-                    left: '0'
+                    width: "0.95"
+                    height: "0.042"
+                    left: "0"
                     lineHeight: "4.2vh"
                     verticalAlign: middle
                   children:
@@ -132,7 +136,7 @@ SearchProvider:
                         color: "#FF6666"
                       dataKey: itemObject.text
                       style:
-                        height: '0.042'
+                        height: "0.042"
                         width: auto
                         fontSize: .Nfont.h14
                         fontColor: "0x333333"
@@ -140,7 +144,7 @@ SearchProvider:
                           y: center
                   onClick:
                     - emit:
-                        dataKey: 
+                        dataKey:
                           var: itemObject
                         actions:
                           - ..formData.searchContent@: $var.text
@@ -154,8 +158,7 @@ SearchProvider:
                       viewTag: startSearch
                     - actionType: popUpDismiss
                       popUpView: startSearch
-           
-        
+
         - type: view
           viewTag: ProvidersTag
           style:
@@ -172,7 +175,7 @@ SearchProvider:
                 width: "1"
                 margin: "0"
                 left: "0"
-                height: "0.84"
+                height: "0.87"
                 overflow: scroll
               children:
                 - type: listItem
@@ -215,7 +218,7 @@ SearchProvider:
                                 height: "auto"
                                 fontSize: .Nfont.h16
                                 fontWeight: "500"
-                                fontFamily: "Arial"
+
                                 verticalAlign: middle
                                 wordWrap: break-word
                             - type: label
@@ -226,7 +229,7 @@ SearchProvider:
                                 height: "auto"
                                 fontSize: .Nfont.h14
                                 color: "0x666666"
-                                fontFamily: "Arial"
+
                                 verticalAlign: middle
                                 wordWrap: break-word
                             - type: label
@@ -238,7 +241,7 @@ SearchProvider:
                                 fontSize: .Nfont.h14
                                 fontWeight: "600"
                                 color: "0x666666"
-                                fontFamily: "Arial"
+
                                 verticalAlign: middle
                                 wordWrap: break-word
                       onClick:

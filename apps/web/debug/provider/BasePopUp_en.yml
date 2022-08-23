@@ -36,7 +36,7 @@ SuccessfulOneLine:
             marginLeft: "0.037"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -82,7 +82,7 @@ SuccessfulMultiLine:
             marginLeft: "0.037"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -133,7 +133,7 @@ Tip:
             marginLeft: "0.062"
             marginTop: "0.006"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -222,7 +222,7 @@ SuccessfulTitleMultiLine:
             fontSize: .Nfont.h14
             fontWeight: "600"
             width: "0.51"
-            fontFamily: "Arial"
+
             color: "0x333333"
             textAlign:
               x: center
@@ -233,7 +233,7 @@ SuccessfulTitleMultiLine:
             marginLeft: "0.037"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -279,7 +279,7 @@ TipsOneLine:
             marginLeft: "0.037"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -325,7 +325,7 @@ TipsMultiLine:
             marginLeft: "0.037"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -372,7 +372,7 @@ TipsTitleMultiLine:
             fontSize: .Nfont.h14
             width: "0.55"
             fontWeight: "600"
-            fontFamily: "Arial"
+
             color: "0x333333"
             textAlign:
               x: center
@@ -383,7 +383,7 @@ TipsTitleMultiLine:
             marginLeft: "0.037"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -435,6 +435,115 @@ publicDeleteUP:
             color: "0x333333"
             fontSize: .Nfont.h14
             marginTop: "0.00738"
+            fontWeight: "600"
+            textAlign:
+              x: center
+        - type: view
+          style:
+            marginTop: "0.0295"
+            width: "0.7"
+            border:
+              style: 2
+              color: "0x919192"
+            borderWidth: "1"
+        - type: view
+          style:
+            width: "0.7"
+            boxSizing: border-box
+          children:
+            - type: button
+              text: "Cancel"
+              style:
+                color: "0x007AFF"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.349"
+                borderRadius: "0 0 0 14px"
+                fontSize: .Nfont.h14
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.leftButton
+            - type: view
+              style:
+                width: "0.002"
+                backgroundColor: "0x919192"
+                display: inline-block
+                height: "0.054"
+                zIndex: "50"
+            - type: button
+              text: "Confirm"
+              style:
+                color: "0x007AFF"
+                fontWeight: "850"
+                backgroundColor: "0xE6E6E6"
+                display: inline-block
+                width: "0.349"
+                fontSize: .Nfont.h14
+                borderRadius: "0 0 14px 0"
+                height: "0.054"
+                border:
+                  style: "1"
+              onClick: ____.rightButton
+
+warnDialogue:
+  type: popUp
+  viewTag: warnDialogue
+  title: "Repeat Create"
+  message: You have already created this kind of option, view or edit it now? Or you can view or edit it in the medical document list
+  leftButton:
+    - actionType: popUpDismiss
+      popUpView: warnDialogue
+  rightButton:
+    - actionType: popUpDismiss
+      popUpView: warnDialogue
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "1000"
+    textAlign:
+      y: center
+  children:
+    - type: view
+      style:
+        width: "0.7"
+        marginLeft: "0.15"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "14"
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: image
+          path: aboutRed.svg
+          style:
+            marginTop: "0.0295"
+            height: "0.04926"
+        - type: label
+          text: ___.title
+          dataKey:
+          style:
+            height: "auto"
+            width: "0.7"
+            color: "0x333333"
+            fontSize: .Nfont.h14
+            marginTop: "0.00738"
+            fontWeight: "600"
+            textAlign:
+              x: center
+        - type: label
+          text: ___.message
+          dataKey:
+          style:
+            height: "auto"
+            width: "0.7"
+            color: "0x333333"
+            fontSize: .Nfont.h14
+            marginTop: "0.00738"
+            # fontWeight: "600"
             textAlign:
               x: center
         - type: view
@@ -489,6 +598,8 @@ Normal:
   type: popUp
   viewTag: normal
   message: "Are you sure you want to delete the message?"
+  leftText: "Cancel"
+  rightText: "Confirm"
   leftButton:
     - actionType: popUpDismiss
       popUpView: normal
@@ -501,7 +612,7 @@ Normal:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "50000"
     textAlign:
       y: center
 
@@ -519,11 +630,11 @@ Normal:
         - type: label
           text: ___.message
           style:
-            width: "0.576"
-            marginLeft: "0.062"
+            width: "0.6"
+            marginLeft: "0.05"
             marginTop: "0.027"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -541,7 +652,7 @@ Normal:
             boxSizing: border-box
           children:
             - type: button
-              text: "Cancel"
+              text: ____.leftText
               style:
                 color: "0x007AFF"
                 backgroundColor: "0xE6E6E6"
@@ -561,7 +672,7 @@ Normal:
                 height: "0.054"
                 zIndex: "50"
             - type: button
-              text: "Confirm"
+              text: ____.rightText
               style:
                 color: "0x007AFF"
                 fontWeight: "850"
@@ -616,7 +727,7 @@ Success:
             marginLeft: "0.062"
             marginTop: "0.006"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -723,10 +834,11 @@ Warning:
                     color: "0xFFFFFF"
                     display: inline-block
                     verticalAlign: middle
-                    fontFamily: "Arial"
+
         - type: view
           style:
             height: "0.01"
+            width: "0.7"
             backgroundColor: "0xd81e06"
         - type: label
           text: ___.message
@@ -735,7 +847,7 @@ Warning:
             marginLeft: "0.062"
             marginTop: "0.027"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -816,7 +928,7 @@ SoftTips:
             marginLeft: "0.082"
             marginTop: "0.027"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -856,7 +968,7 @@ SoftTipsEmphasisMultiLine:
             marginLeft: "0.082"
             marginTop: "0.027"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             textAlign:
               x: left
@@ -870,7 +982,7 @@ SoftTipsEmphasisMultiLine:
             marginLeft: "0.082"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: left
             color: "0x333333"
@@ -882,7 +994,7 @@ SoftTipsEmphasisMultiLine:
             marginTop: "0.012"
             fontSize: .Nfont.h14
             fontWeight: "650"
-            fontFamily: "Arial"
+
             textAlign:
               x: left
             color: "0x4B4B4B"
@@ -893,7 +1005,7 @@ SoftTipsEmphasisMultiLine:
             marginLeft: "0.082"
             marginTop: "0.012"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: left
             color: "0x2988E6"
@@ -935,7 +1047,7 @@ InputPopUp:
             fontWeight: "550"
             marginTop: "0.029"
             fontSize: .Nfont.h16
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             color: "0x333333"
@@ -1033,7 +1145,7 @@ InputMultiLine:
             marginLeft: "0.052"
             marginTop: "0.029"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x4B4B4B"
         - type: label
           textBoard:
@@ -1046,7 +1158,7 @@ InputMultiLine:
             marginTop: "0.0124"
             fontWeight: "550"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: left
             color: "0x4B4B4B"
@@ -1145,7 +1257,7 @@ InviteOneorMultLine:
             marginTop: "0.029"
             fontWeight: "600"
             fontSize: .Nfont.h16
-            fontFamily: "Arial"
+
             color: "0x4B4B4B"
             textAlign:
               x: center
@@ -1284,7 +1396,7 @@ InvitePhone:
             marginTop: "0.029"
             fontWeight: "600"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x4B4B4B"
             textAlign:
               x: center
@@ -1380,7 +1492,7 @@ HelloPerson:
         width: "0.72"
         height: "auto"
         borderRadius: "8"
-        fontFamily: Airal
+
         backgroundColor: "0xdcdbdc"
         box-sizing: border-box
         overflow: hidden
@@ -1444,7 +1556,7 @@ HelloPerson:
           style:
             color: "0x2988E6"
             width: "0.72"
-            fontFamily: Airal
+
             fontSize: ".Nfont.h16"
             height: "0.054"
             fontColor: "0x333333"
@@ -1507,7 +1619,7 @@ TwoChoices:
         - type: view
           style:
             width: "0.9"
-            height: "0.0003"
+            height: "0.001"
             backgroundColor: "0x00000066"
             zIndex: "100"
         - type: button
@@ -1608,7 +1720,7 @@ ThreeChoices:
         - type: view
           style:
             width: "0.9"
-            height: "0.0003"
+            height: "0.001"
             zIndex: "100"
             backgroundColor: "0x00000066"
         - type: button
@@ -1629,7 +1741,7 @@ ThreeChoices:
         - type: view
           style:
             width: "0.9"
-            height: "0.0003"
+            height: "0.001"
             backgroundColor: "0x00000066"
             zIndex: "100"
         - type: button
@@ -1673,3 +1785,130 @@ ThreeChoices:
             border:
               style: "1"
           onClick: ___.lastChoiceButton
+
+SecondConfirmation:
+  type: popUp
+  viewTag: secondConfirmation
+  message: "The appointment time is over"
+  btnEvent:
+    - actionType: popUpDismiss
+      popUpView: secondConfirmation
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    backgroundColor: "0x00000066"
+    zIndex: "50"
+    textAlign:
+      y: center
+      x: center
+  children:
+    - type: view
+      style:
+        width: "0.72"
+        height: "auto"
+        borderRadius: "10"
+
+        backgroundColor: "0xdcdbdc"
+        box-sizing: border-box
+        overflow: hidden
+        textAlign:
+          x: center
+      children:
+        - type: view
+          style:
+            marginTop: "0.0295"
+            width: "0.72"
+            height: "auto"
+            border:
+              style: 2
+            borderWidth: "1"
+            borderColor: "0x707070"
+            boxSizing: border-box
+            paddingLeft: "0.0533"
+            paddingRight: "0.0533"
+          children:
+            - type: label
+              text: ____.message
+              style:
+                height: "auto"
+                width: "0.6134"
+                fontSize: .Nfont.h14
+                fontColor: "0x333333"
+                boxSizing: border-box
+                lineHeight: "2.58vh"
+                paddingBottom: 2.95vh
+                textAlign:
+                  x: center
+        - type: button
+          text: OK
+          style:
+            color: "0x2988E6"
+            width: "0.72"
+
+            fontSize: .Nfont.h14
+            height: "0.054"
+            fontColor: "0x333333"
+            fontWeight: "600"
+            backgroundColor: "0xdcdbdc"
+            box-sizing: border-box
+            border:
+              style: "1"
+          onClick: ___.btnEvent
+
+cancelResonTips:
+  type: popUp
+  viewTag: cancelResonTips
+  message: "Please enter reason for Cancellation"
+  path: aboutRed.svg
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    # backgroundColor: "0x00000066"
+    zIndex: "101"
+    overflow: hidden
+  onClick:
+    - actionType: popUpDismiss
+      popUpView: __.viewTag
+  children:
+    - type: view
+      style:
+        marginTop: "0.0923"
+        width: "0.84"
+        marginLeft: "0.08"
+        backgroundColor: "0xE6E6E6"
+        borderRadius: "4px"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            marginTop: "0.0123"
+            width: "0.84"
+            height: "auto"
+          children:
+            - type: image
+              path: ____.path
+              style:
+                marginLeft: "0.08"
+                display: "inline-block"
+                height: "0.023"
+                verticalAlign: middle
+            - type: label
+              text: ____.message
+              style:
+                display: "inline-block"
+                verticalAlign: middle
+                width: "0.65"
+                marginLeft: "0.0186"
+                fontSize: .Nfont.h14
+
+                color: "0x333333"
+                wordWrap: break-word
+                textAlign:
+                  x: left
+        - type: view
+          style:
+            marginTop: "0.0123"

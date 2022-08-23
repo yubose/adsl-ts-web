@@ -38,7 +38,13 @@ NewRequest:
             dataIn:
               date: =.NewRequest.calendarDate.todayDate
             dataOut: NewRequest.calendarDate.todayStamp
-    - ..inviteList.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..inviteList.get: ""
+            - =..requestList.get: ""
     - actionType: evalObject
       object:
         - if:
@@ -54,7 +60,7 @@ NewRequest:
                       orders: "asc"
                     dataOut: NewRequest.inviteList.inviteInfo.edge
             - continue
-    - ..requestList.get
+
     - if:
         - ..inviteList.inviteInfo.edge.0
         - continue
@@ -165,6 +171,7 @@ NewRequest:
             borderColor: "#dededf"
             borderWidth: "1"
             borderRadius: "5"
+            backgroundColor: "0xffffff"
             boxShadow: "1px 1px 4px 1px #dededf"
           children:
             - type: view

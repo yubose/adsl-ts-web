@@ -106,74 +106,78 @@ SelectLanguages:
     - text: Uzbek
     - text: Vitenamese
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =..formData.selectLanguages.document.name.data.languages
-                dataOut: SelectLanguages.formData.checkArray
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =.Global.MyProfile.name.data.languages
-                dataOut: SelectLanguages.formData.localLength
-        - actionType: evalObject
-          object:
-            - if:
-                - =.builtIn.string.equal:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
                     dataIn:
-                      string1: =..formData.checkArray
-                      string2: =..formData.localLength
-                - continue
-                - actionType: popUp
-                  popUpView: changePopUpView
-                  wait: true
-        - actionType: evalObject
-          object:
-            .Global._nonce@:
-              =.builtIn.math.random: ""
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-    - .HeaderSaveButton:
-      onClick:
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =..formData.selectLanguages.document.name.data.languages
-                dataOut: SelectLanguages.formData.checkArray
-        - actionType: evalObject
-          object:
-            - if:
-                - =.builtIn.string.equal:
+                      object: =..formData.selectLanguages.document.name.data.languages
+                    dataOut: SelectLanguages.formData.checkArray
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
                     dataIn:
-                      string1: =..formData.checkArray
-                      string2: "0"
-                - actionType: popUp
-                  popUpView: checkEmptyView
-                  wait: true
-                - continue
-        - actionType: evalObject
-          object:
-            - .Global.MyProfile.name.data.languages@: =..formData.selectLanguages.document.name.data.languages
-        - actionType: popUp
-          popUpView: successPopUpView
-        - actionType: evalObject
-          object:
-            .Global._nonce@:
-              =.builtIn.math.random: ""
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
+                      object: =.Global.MyProfile.name.data.languages
+                    dataOut: SelectLanguages.formData.localLength
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.checkArray
+                          string2: =..formData.localLength
+                    - continue
+                    - actionType: popUp
+                      popUpView: changePopUpView
+                      wait: true
+            - actionType: evalObject
+              object:
+                .Global._nonce@:
+                  =.builtIn.math.random: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Save
+          style:
+            marginLeft: "0.01"
+          onClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
+                    dataIn:
+                      object: =..formData.selectLanguages.document.name.data.languages
+                    dataOut: SelectLanguages.formData.checkArray
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.checkArray
+                          string2: "0"
+                    - actionType: popUp
+                      popUpView: checkEmptyView
+                      wait: true
+                    - continue
+            - actionType: evalObject
+              object:
+                - .Global.MyProfile.name.data.languages@: =..formData.selectLanguages.document.name.data.languages
+            - actionType: popUp
+              popUpView: successPopUpView
+            - actionType: evalObject
+              object:
+                .Global._nonce@:
+                  =.builtIn.math.random: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
     - type: view
       style:
-        top: "0.1"
-        height: "0.88"
+        height: "auto"
         width: "1"
       children:
         - type: label
@@ -181,8 +185,8 @@ SelectLanguages:
           style:
             marginTop: "0.02"
             width: "1"
-            fontFamily: "Arial"
-            fontSize: .Nfont.h15
+
+            fontSize: .Nfont.h14
             color: "0x000000"
             textAlign:
               x: center
@@ -195,7 +199,7 @@ SelectLanguages:
         - type: view
           style:
             marginTop: "0.02"
-            width: "0.9"
+            width: "0.93"
             marginLeft: "0.05"
             height: "0.2"
             overflow: hidden
@@ -204,9 +208,9 @@ SelectLanguages:
               text: Popular Languages
               style:
                 marginTop: "0"
-                width: "1"
-                fontFamily: "Arial"
-                fontSize: .Nfont.h15
+                width: "0.93"
+
+                fontSize: .Nfont.h14
                 color: "0x000000"
                 textAlign:
                   x: left
@@ -217,14 +221,14 @@ SelectLanguages:
               listObject: ..suggestList
               iteratorVar: itemObject
               style:
-                width: "1"
+                width: "0.93"
                 margin: "0"
                 height: auto
               children:
                 - type: listItem
                   itemObject:
                   style:
-                    width: "0.3"
+                    width: "0.309"
                     height: "auto"
                     display: "inline-block"
                   children:
@@ -244,8 +248,8 @@ SelectLanguages:
                                     dataIn:
                                       object: =..formData.selectLanguages.document.name.data.languages
                                       value: $var.text
-                                - selectOnBlack.svg
-                                - selectOffBlack.svg
+                                - selectOnBlue.svg
+                                - selectOffBlue.svg
                       onClick:
                         - emit:
                             dataKey:
@@ -278,8 +282,8 @@ SelectLanguages:
                         marginTop: "0.02"
                         height: "auto"
                         verticalAlign: middle
-                        fontFamily: "Arial"
-                        fontSize: .Nfont.h15
+
+                        fontSize: .Nfont.h14
                         textAlign:
                           x: left
         - type: view
@@ -295,7 +299,7 @@ SelectLanguages:
           style:
             marginTop: "0.01"
             marginLeft: "0.05"
-            height: "0.56"
+            height: "0.62"
             width: "0.9"
             overflow: "scroll"
           children:
@@ -328,8 +332,8 @@ SelectLanguages:
                                     dataIn:
                                       object: =..formData.selectLanguages.document.name.data.languages
                                       value: $var.text
-                                - selectOnBlack.svg
-                                - selectOffBlack.svg
+                                - selectOnBlue.svg
+                                - selectOffBlue.svg
                       onClick:
                         - emit:
                             dataKey:
@@ -361,8 +365,8 @@ SelectLanguages:
                         display: "inline-block"
                         height: "auto"
                         verticalAlign: middle
-                        fontFamily: "Arial"
-                        fontSize: .Nfont.h15
+
+                        fontSize: .Nfont.h14
                         textAlign:
                           x: left
 
@@ -384,7 +388,7 @@ SelectLanguages:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.h2
-                fontFamily: "sans-serif"
+
                 # backgroundColor: "pink"
                 textAlign:
                   x: center
@@ -454,7 +458,7 @@ SelectLanguages:
                 marginTop: "0.01"
                 height: "auto"
                 width: "0.7"
-                fontSize: .Nfont.h15
+                fontSize: .Nfont.h14
                 textAlign:
                   x: center
                   y: center
@@ -502,7 +506,7 @@ SelectLanguages:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.h2
-                fontFamily: "sans-serif"
+
                 # backgroundColor: "pink"
                 textAlign:
                   x: center

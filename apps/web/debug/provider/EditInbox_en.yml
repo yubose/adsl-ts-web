@@ -23,11 +23,17 @@ EditInbox:
           objectArr: =..formData.email
           key: isSelected
           value: false
-    - ..apiRequest.folder.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.folder.docAPI.get: ""
+            - =..apiRequest.unReadEmail.docAPI.get: ""
     #获取未读邮件数量
     - actionType: evalObject
       object:
-        - =..apiRequest.unReadEmail.docAPI.get: ""
+        
         - =.builtIn.array.getListLength:
             dataIn:
               object: =..apiRequest.unReadEmail.docQueryResp.doc
@@ -701,11 +707,11 @@ EditInbox:
                                 width: "0.5"
                                 height: "auto"
                                 fontSize: .Nfont.h1
-                                # fontFamily: "Arial"
+                                #
                                 color: "0x707070"
                                 # textAlign:
                                 #   x: left
-                                wordBreak: "break-all"
+                                wordBreak: break-word
                             - type: label
                               text: "(No subject)"
                               dataKey: itemObject.name.title # text: sss🔗
@@ -716,9 +722,9 @@ EditInbox:
                                 fontSize: .Nfont.h1
                                 color: "0x707070"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
-                                wordBreak: "break-all"
+                                wordBreak: break-word
                             - type: label
                               text: "(No content)"
                               dataKey: itemObject.name.data.content
@@ -729,10 +735,10 @@ EditInbox:
                                 fontSize: .Nfont.h1
                                 color: "0x00000099"
                                 overflow: hidden
-                                textOverflow: ellipsis
+                                text-overflow: ellipsis
                                 whiteSpace: nowrap
-                                # fontFamily: PMingLiU
-                                # wordBreak: "break-all"
+                                #
+                                # wordBreak: break-word
                     - type: view
                       style:
                         display: "inline-block"

@@ -3,6 +3,19 @@ PRTwo:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
+
+    - .Global.formData.lastPage@: ProviderNoteSelect
+    # 判断本地会议是否有diagnoses存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.diagnosesDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.diagnosesDoc.docReq@: =.Global.formData.providerDoc.diagnosesDoc
+        - actionType: evalObject
+          object:
+            - =.PRTwo.apiRequest.diagnosesDoc.docAPI.store: ""
+            - ..apiRequest.diagnosesDoc.docReq@: =.PRTwo.apiRequest.diagnosesDoc.docResp.doc
+            - .Global.formData.providerDoc.diagnosesDoc@: =.PRTwo.apiRequest.diagnosesDoc.docResp.doc
     - if:
         #判断是否从ProviderMacros回来，需要复现之前已填的数据
         - =.Global.formData.providerDoc.pRTwo.id
@@ -13,6 +26,7 @@ PRTwo:
             - ..formData.diagnosis.treatmentPlan@: =.Global.formData.providerDoc.pRTwo.name.data.diagnosis.treatmentPlan
             - ..formData.reportList@: =.Global.formData.providerDoc.pRTwo.name.data.submitReport
             - ..formData.other@: =.Global.formData.providerDoc.pRTwo.name.data.other
+            - ..apiRequest.pRTwo.docReq.name.data.superbill@: =.Global.formData.superbillComplete
         - actionType: evalObject
           object:
             #页面进入时就创建文档
@@ -37,7 +51,7 @@ PRTwo:
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList
+              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
             dataOut: PRTwo.formData.listDatalength
 
     - actionType: evalObject
@@ -144,20 +158,20 @@ PRTwo:
         - continue
         - actionType: evalObject
           object:
-            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.BP@: =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.0.data1
-            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.HR@: =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.0.data2
-            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.RR@: =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.1.data1
-            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.PO@: =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.2.data1
-            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.temperature@: =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.3.data1
+            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.BP@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.0.data1
+            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.HR@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.0.data2
+            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.RR@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.1.data1
+            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.PO@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.2.data1
+            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.temperature@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.3.data1
             - =.builtIn.string.concat:
                 dataIn:
-                  - =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.4.data1
+                  - =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.5.data1
                   - "'"
-                  - =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.4.data2
+                  - =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.5.data2
                   - '"'
                 dataOut: PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.height
-            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.weight@: =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.5.data1
-            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.BMI@: =.PRTwo.apiRequest.vital.docQueryResp.doc.0.name.data.6.data1
+            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.weight@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.6.data1
+            - .PRTwo.apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.BMI@: =..apiRequest.vital.docQueryResp.doc.0.name.data.vitals.7.data1
 
   calendarDate:
     year: ""
@@ -169,6 +183,9 @@ PRTwo:
   vitalNum: "0"
   apiRequest: #Input data request here
     pRTwo:
+      deleteInfo:
+        id:
+          - =..apiRequest.pRTwo.docResp.doc.id
       docResp: ""
       docReq:
         eid: .Global.currentRoom.edge.id
@@ -244,12 +261,17 @@ PRTwo:
               descriptiveList: []
               isInvolved: "" # Diagnoses的Yes or No
             workStatus:
+            superbill: .Global.formData.superbillComplete
+            planAndRecommendations: ""
       docAPI:
         .DocAPI: ""
         store:
           api: cd
           dataIn: PRTwo.apiRequest.pRTwo.docReq
           dataOut: PRTwo.apiRequest.pRTwo.docResp
+        delet:
+          api: dx
+          dataIn: PRTwo.apiRequest.pRTwo.deleteInfo
     newSign:
       docRes: ""
       docReq: #DOC
@@ -269,17 +291,35 @@ PRTwo:
     vital:
       docQueryResp: ""
       docQueryReq:
-        id:
-          - .Global.roomInfo.edge.id
-          - .Global.roomInfo.edge.id
-        xfname: "eid,reid"
+        id: .Global.roomInfo.edge.id
+        xfname: "reid"
         type: .DocType.VitalSigns
+        obfname: ctime
+        sCondition: "ctime>1650038400"
         _nonce: =.Global._nonce
       docAPI:
         get:
           api: rd
           dataIn: PRTwo.apiRequest.vital.docQueryReq
           dataOut: PRTwo.apiRequest.vital.docQueryResp
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.Diagnoses
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            diagnosis:
+              descriptiveList: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PRTwo.apiRequest.diagnosesDoc.docReq
+          dataOut: PRTwo.apiRequest.diagnosesDoc.docResp
   formData: #Input data here
     searchShow: "none"
     listDatalength: ""
@@ -340,9 +380,20 @@ PRTwo:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =..apiRequest.pRTwo.docAPI.delet: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
+            # 处理Diagnosis
+            - actionType: evalObject
+              object:
+                - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
             # 签名处理
             - actionType: saveSignature
               dataObject: BLOB
@@ -388,7 +439,7 @@ PRTwo:
         width: "1"
         height: "0.846"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: label
           text: State of California
@@ -428,7 +479,6 @@ PRTwo:
             fontSize: .Nfont.h12
             wordWrap: break-word
         - type: list
-          viewTag: checkBoxItemTag
           contentType: listObject
           listObject: ..formDataTemp.checkBoxTemp
           iteratorVar: itemObject
@@ -439,6 +489,7 @@ PRTwo:
             height: auto
           children:
             - type: listItem
+              viewTag: checkBoxItemTag
               itemObject:
               style:
                 width: "0.92"
@@ -498,7 +549,7 @@ PRTwo:
                           funcName: redraw
                           viewTag: otherTag
                         - actionType: builtIn
-                          funcName: redraw
+                          funcName: redrawCurrent
                           viewTag: checkBoxItemTag
                     - type: label
                       dataKey: itemObject.text
@@ -530,7 +581,7 @@ PRTwo:
             padding: "6px 12px"
             borderRadius: "4"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
         - .DocPublicLine:
 
         - type: view
@@ -621,7 +672,7 @@ PRTwo:
                     width: "0.504"
                     height: "0.037"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -753,7 +804,6 @@ PRTwo:
             borderColor: "0xdedede"
             padding: "6px 12px"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
 
         - type: label
           text: "Objective Findings"
@@ -776,7 +826,7 @@ PRTwo:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 textAlign:
@@ -810,7 +860,7 @@ PRTwo:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -828,7 +878,6 @@ PRTwo:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -868,7 +917,7 @@ PRTwo:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -886,7 +935,6 @@ PRTwo:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -926,7 +974,7 @@ PRTwo:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -944,7 +992,6 @@ PRTwo:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -984,7 +1031,7 @@ PRTwo:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1002,7 +1049,6 @@ PRTwo:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -1020,7 +1066,7 @@ PRTwo:
             marginTop: "0.01724"
             marginLeft: "0.04"
             width: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: textView
@@ -1041,7 +1087,7 @@ PRTwo:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 textAlign:
@@ -1059,7 +1105,7 @@ PRTwo:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h12
                 fontWeight: "600"
                 textAlign:
@@ -1080,7 +1126,7 @@ PRTwo:
             borderRadius: "4"
             boxSizing: "border-box"
             textIndent: "12px"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
         # Object Fidings
@@ -1096,7 +1142,7 @@ PRTwo:
               dataKey:
               style:
                 width: "0.92"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 textAlign:
@@ -1110,7 +1156,7 @@ PRTwo:
                 marginTop: "0.01"
                 borderRadius: "4"
                 borderColor: "#dedede"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 border:
                   style: "3"
@@ -1182,9 +1228,9 @@ PRTwo:
                             boxSizing: border-box
                             border:
                               style: 1
-                            fontSize: .Nfont.h12
+                            fontSize: .Nfont.h14
                             verticalAlign: middle
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                           onInput:
                             - actionType: evalObject
@@ -1253,7 +1299,7 @@ PRTwo:
                         borderRadius: "4"
                         borderWidth: "1.5"
                         borderColor: "0xcdcdcd"
-                        fontFamily: "Arial"
+                        fontSize: .Nfont.h14
                         color: "0x333333"
                 - type: textView
                   viewTag: CommentsTag
@@ -1270,10 +1316,10 @@ PRTwo:
                     borderRadius: "4"
                     borderWidth: "1.5"
                     borderColor: "0xcdcdcd"
-                    fontFamily: "Arial"
+                    fontSize: .Nfont.h14
                     color: "0x333333"
                     paddingTop: "6px"
-                
+
             - type: label
               text: + add more
               style:
@@ -1297,11 +1343,26 @@ PRTwo:
                           popUpView: SearchWarning
                           wait: true
                           popUpDismiss: 2000
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.array.containingValue:
+                            dataIn:
+                              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+                              key: code
+                              value: =..formData.diagnosis.descriptiveList.code
+                        - actionType: popUp
+                          popUpView: repeatWarning
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+
                 - emit:
                     actions:
                       - =.builtIn.array.add:
                           dataIn:
-                            object: =..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList
+                            object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                             value: =..formData.diagnosis.descriptiveList
                 - actionType: evalObject
                   object:
@@ -1348,7 +1409,7 @@ PRTwo:
                     - type: list
                       viewTag: listData
                       contentType: listObject
-                      listObject: ..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                      listObject: ..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
                       iteratorVar: itemObject
                       style:
                         width: "0.92"
@@ -1392,7 +1453,7 @@ PRTwo:
                                     width: "0.17"
                                     textAlign:
                                       x: left
-                                    fontFamily: "Arial"
+
                                     backgroundColor: "0xffffff"
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
@@ -1411,14 +1472,14 @@ PRTwo:
                                   dataKey: itemObject.description
                                   style:
                                     verticalAlign: top
-                                    marginLeft: "0.02"
+                                    marginLeft: "0.015"
                                     display: "inline-block"
                                     height: "auto"
                                     width: "0.64"
                                     textAlign:
                                       x: left
                                     backgroundColor: "0xffffff"
-                                    fontFamily: "Arial"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
                                     color: "0x333333"
@@ -1430,7 +1491,7 @@ PRTwo:
                                 width: "0.845"
                                 height: "auto"
                                 color: "0x666666"
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
 
@@ -1462,7 +1523,7 @@ PRTwo:
                 borderColor: "0xdedede"
                 padding: "6px 12px"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
             - type: view
               viewTag: searchShowTag
               style:
@@ -1483,9 +1544,10 @@ PRTwo:
                     display: "none"
                     width: "0.92"
                     height: "auto"
-                    fontFamily: "Arial"
+
                     borderRadius: "4"
                     boxSizing: "border-box"
+                    backgroundColor: "0xffffff"
                     boxShadow: "1px 1px 4px 1px #dededf"
                     zIndex: 10
                   children:
@@ -1545,6 +1607,9 @@ PRTwo:
                                     - actionType: builtIn
                                       funcName: hide
                                       viewTag: ShowTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: listData
                                     - actionType: builtIn
                                       funcName: show
                                       viewTag: listData
@@ -1648,7 +1713,7 @@ PRTwo:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
             - type: view
@@ -1675,7 +1740,7 @@ PRTwo:
                     width: "0.504"
                     height: "0.037"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -1761,7 +1826,7 @@ PRTwo:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
             - type: view
@@ -1788,7 +1853,7 @@ PRTwo:
                     width: "0.504"
                     height: "0.037"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                     boxSizing: "border-box"
                     border:
@@ -1839,7 +1904,7 @@ PRTwo:
                 borderColor: "0xdedede"
                 padding: "6px 12px"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
         - type: view
           style:
             marginLeft: "0.04"
@@ -1912,7 +1977,7 @@ PRTwo:
                 display: "inline-block"
                 marginLeft: "0.021"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 verticalAlign: "top"
                 width: "0.6"
@@ -1941,7 +2006,7 @@ PRTwo:
                 width: "0.504"
                 height: "0.037"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 display: "inline-block"
                 boxSizing: "border-box"
                 border:
@@ -1975,7 +2040,7 @@ PRTwo:
             marginTop: "0.0123"
             marginLeft: "0.04"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             verticalAlign: "middle"
             width: "auto"
@@ -2004,7 +2069,7 @@ PRTwo:
                 width: "0.504"
                 height: "0.037"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 display: "inline-block"
                 boxSizing: "border-box"
                 border:
@@ -2032,6 +2097,102 @@ PRTwo:
             wordWrap: break-word
             color: "0x333333"
             fontSize: .Nfont.h14
+
+        - type: label
+          text: "Plan And Recommendations"
+          dataKey:
+          style:
+            ..style.thirdInputTitle:
+            marginLeft: "0.04"
+        - type: label
+          text: You can add recommendations after finishing this note
+          style:
+            ..style.thirdInputTitle:
+            margin: "0"
+            fontSize: .Nfont.h14
+            lineHeight: "2.58vh"
+            marginLeft: "0.04"
+            fontWeight: "400"
+        - type: label
+          text: "&#8226 Note"
+          style:
+            width: "0.92"
+            fontSize: .Nfont.h14
+            lineHeight: "2.58vh"
+            marginLeft: "0.04"
+        - type: textView
+          placeholder: "Enter here"
+          dataKey: apiRequest.pRTwo.docReq.name.data.planAndRecommendations
+          style:
+            ..style.thirdInput:
+            marginLeft: "0.04"
+
+        # - type: view
+        #   viewTag: defaultTag
+        #   style:
+        #     ..style.blockBox:
+        #   children:
+        #     - type: image
+        #       path:
+        #         ..event.checkBoxPath:
+        #       style:
+        #         ..style.img:
+        #     - type: label
+        #       text: Superbill
+        #       onClick:
+        #         # 签名处理
+        #         - actionType: saveSignature
+        #           dataObject: BLOB
+        #           dataKey: PRTwo.apiRequest.newSign.docReq.name.data
+        #           isEmpty: PRTwo.formData.whetherSign
+        #         # 保存签名
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.newSign.docReq.reid@: =.PRTwo.apiRequest.pRTwo.docReq.id
+
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =..formData.whetherSign
+        #                 - continue
+        #                 - =..apiRequest.newSign.docAPI.store: ""
+
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =..formData.temporarySignature
+        #                 - actionType: evalObject
+        #                   object:
+        #                     - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..formData.signatureTime
+        #                     - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..formData.temporarySignature
+        #                     - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: false
+        #                     - ..formData.whetherSign@: false
+        #                 - actionType: evalObject
+        #                   object:
+        #                     - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..apiRequest.newSign.docRes.doc.ctime
+        #                     - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+        #                     - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: =..formData.whetherSign
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.pRTwo.docReq.name.data.other@: =..formData.other
+        #             - ..apiRequest.pRTwo.docReq.name.data.workStatus@: =..formData.workStatus
+        #             - ..apiRequest.pRTwo.docReq.name.data.submitReport@: =..formData.reportList
+        #             - =.PRTwo.apiRequest.pRTwo.docAPI.store: ""
+        #             - .Global.formData.providerDoc.pRTwo@: =..apiRequest.pRTwo.docResp.doc
+
+        #         - actionType: evalObject
+        #           object:
+        #             # 更新本地
+        #             - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
+        #             - .Global.formData.parentPage@: PRTwo
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =..apiRequest.pRTwo.docReq.name.data.superbill
+        #                 - goto: SuperbillReview
+        #                 - goto: SelectSuperbill
+        #       style:
+        #         ..style.setLabel:
         - .DocPublicLine:
         - type: view
           style:
@@ -2280,6 +2441,13 @@ PRTwo:
           children:
             - .DocButtonPrivate:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.PRTwo.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.PRTwo.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -2352,13 +2520,32 @@ PRTwo:
                   object:
                     .Global._nonce@:
                       =.builtIn.math.random: ""
-
                 - actionType: evalObject
                   object:
-                    - goto: ProviderNoteSelect
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.pRTwo
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: evalObject
+                  object:
+                    - goto: MoreOptions
 
             - .DocButtonRelease:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.PRTwo.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.PRTwo.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -2427,7 +2614,7 @@ PRTwo:
                   object:
                     - =.builtIn.array.getListLength:
                         dataIn:
-                          object: =..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList
+                          object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                         dataOut: PRTwo.formData.listDatalength
                 - actionType: evalObject
                   object:
@@ -2535,13 +2722,6 @@ PRTwo:
                           popUpDismiss: 2000
                         - continue
 
-                # 更新文档状态
-                - actionType: evalObject
-                  object:
-                    - ..apiRequest.pRTwo.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.pRTwo.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.pRTwo.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
                 #  修改type
                 - actionType: evalObject
                   object:
@@ -2551,25 +2731,78 @@ PRTwo:
                           index: 1
                           hex: 1
                         dataOut: PRTwo.apiRequest.pRTwo.docReq.type
-
-                # 保存
                 - actionType: evalObject
                   object:
-                    - =..apiRequest.pRTwo.docAPI.store: ""
-
-                    - =.builtIn.array.add:
+                    - =.builtIn.utils.createAuditLog:
                         dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.pRTwo.docResp.doc
+                          actionTypeCode: .ActionTypeCode.create
+                          recordTypeCode: .DocType.pRTwo
+                          eid: =.Global.formData.currentFacility.relationEdge.id
 
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: popUp
+                  popUpView: dialogueTag
 
-                - actionType: evalObject
-                  object:
-                    - goto: ProviderNoteSelect
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        # 保存
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pRTwo.docReq.tage@: 1
+            - =..apiRequest.pRTwo.docAPI.store: ""
+
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.pRTwo.docResp.doc
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+      rightButton:
+        # 更新文档状态
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pRTwo.docReq.name.data.statusTag.name@: "Released"
+            - ..apiRequest.pRTwo.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.pRTwo.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        # 保存
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pRTwo.docReq.tage@: -1
+            - =..apiRequest.pRTwo.docAPI.store: ""
+
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.pRTwo.docResp.doc
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
 
     - .BaseWarningView:
       message: "Please complete required fields: Search&Description"
@@ -2782,7 +3015,7 @@ PRTwo:
           object:
             - =.builtIn.array.removeByName:
                 dataIn:
-                  object: =..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList
+                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                   key: code
                   name: =..formData.selectedDiagnosis.code
             - ..formData.listDataflag@: "block"
@@ -2791,7 +3024,40 @@ PRTwo:
               viewTag: listData
         - actionType: popUpDismiss
           popUpView: BaseDelWarningView
+
+    - .BaseWarningView:
+      message: "Do not add repeatedly"
+      viewTag: repeatWarning
+
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..apiRequest.pRTwo.docReq.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
   style:
+    thirdInputTitle:
+      marginTop: "0.024630"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.92"
+      fontWeight: "600"
+    thirdInput:
+      marginTop: "0.009852"
+      height: "0.087438"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+
     signBox:
       width: "auto"
       height: "auto"
@@ -2800,7 +3066,7 @@ PRTwo:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       verticalAlign: top
@@ -2814,7 +3080,7 @@ PRTwo:
       marginLeft: "0.04"
       width: "0.92"
       height: "0.087"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       borderColor: "#dedede"
@@ -2823,3 +3089,23 @@ PRTwo:
       borderWidth: "1"
       boxSizing: "border-box"
       padding: "6px 12px"
+    blockBox:
+      marginTop: "0.024630"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

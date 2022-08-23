@@ -1,5 +1,5 @@
 SelectSpecialty:
-  title: Specialty and board certified
+  title: Specialty & Board Certified
   init:
     - .SignInCheck
     - if:
@@ -57,7 +57,7 @@ SelectSpecialty:
     - Dermatopathology
     - Developmental and Behavioral Pediatrics
     - Diagnosis Imaging
-    - Diagnosis Laboratory 
+    - Diagnosis Laboratory
     - Diagnostic Radiology
     - Endocrinology, Diabetes, and Metabolism
     - Endovascular Surgical Neuroradiology
@@ -143,6 +143,7 @@ SelectSpecialty:
     - Physical Therapy
     - Physician Assistant
     - Plastic Surgery
+    - Podiatry
     - Preventive Medicine
     - Psychiatry
     - Psychology
@@ -183,9 +184,9 @@ SelectSpecialty:
                 marginLeft: "0.03"
                 width: "0.64"
                 height: "auto"
-                color: "0x4b4b4b"
-                fontSize: .Nfont.h2
-                fontFamily: "sans-serif"
+                color: "0x333333"
+                fontSize: .Nfont.h16
+
                 textAlign:
                   x: center
             - type: view
@@ -200,16 +201,18 @@ SelectSpecialty:
                 width: "0.72"
               children:
                 - type: button
-                  text: "NO"
+                  text: "No"
                   style:
                     marginTop: "0.01"
                     width: "0.35"
                     height: "0.049"
                     display: "inline-block"
                     color: "0x007affff"
-                    fontSize: .Nfont.h2
+                    fontSize: .Nfont.h16
                     backgroundColor: "0xe6e6e6"
                     borderRadius: "15"
+                    fontWeight: "600"
+
                     textAlign:
                       x: center
                       y: center
@@ -241,9 +244,11 @@ SelectSpecialty:
                     width: "0.35"
                     height: "0.049"
                     color: "0x007affff"
-                    fontSize: .Nfont.h2
+                    fontSize: .Nfont.h16
                     backgroundColor: "0xe6e6e6"
+
                     borderRadius: "15"
+                    fontWeight: "600"
                     textAlign:
                       x: center
                       y: center
@@ -268,56 +273,34 @@ SelectSpecialty:
                     - actionType: builtIn
                       funcName: goBack
                       reload: true
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: popUp
-          popUpView: changePopUpView
-    - type: button
-      style:
-        top: "0"
-        left: "0.85"
-        width: "0.15"
-        height: "0.1"
-        backgroundColor: "0x2988e6"
-        zIndex: 100
-        textAlign:
-          y: center
-        border:
-          style: "1"
+    - .BasePublicHeader:
       children:
-        - type: label
-          text: Save
-          style:
-            top: "0.001"
-            width: "0.15"
-            height: "0.1"
-            zIndex: 100
-            fontSize: .Nfont.h2
-            color: "0xffffffff"
-            textAlign:
-              x: center
-              y: center
-      onClick:
-        - actionType: evalObject
-          object:
-            - .Global.MyProfile.name.data.selectedSpecialty@: []
-            - .Global.MyProfile.name.data.specialty@: []
-            - .Global.MyProfile.name.data.specialty@: =..selectSpecialty.document.name.data.specialty
-            - .Global.MyProfile.name.data.selectedSpecialty@: =..formData.selected
+        - .BasePublicHeaderLeft:
+          leftClick:
             - actionType: popUp
-              popUpView: successPopUpView
-        - actionType: builtIn
-          funcName: goBack
-          wait: 2000
-          reload: true
+              popUpView: changePopUpView
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: Save
+          onClick:
+            - actionType: evalObject
+              object:
+                - .Global.MyProfile.name.data.selectedSpecialty@: []
+                - .Global.MyProfile.name.data.specialty@: []
+                - .Global.MyProfile.name.data.specialty@: =..selectSpecialty.document.name.data.specialty
+                - .Global.MyProfile.name.data.selectedSpecialty@: =..formData.selected
+                - actionType: popUp
+                  popUpView: successPopUpView
+            - actionType: builtIn
+              funcName: goBack
+              wait: 2000
+              reload: true
     - type: view
       style:
-        top: "0.1"
         width: "1"
         height: "0.9"
-        left: "0"
-        overflow: "scroll"
+        overflowX: "hidden"
+        overflowY: "scroll"
       children:
         - type: label
           textBoard:
@@ -330,7 +313,7 @@ SelectSpecialty:
             left: "0"
             fontSize: .Nfont.h14
             height: "0.06"
-            fontFamily: "Arial"
+
             textAlign:
               x: center
             border:
@@ -342,7 +325,7 @@ SelectSpecialty:
             width: "0.9"
             left: "0.05"
             height: "0.1"
-            marginTop: "0.01"
+            marginTop: "0.04"
           children:
             - type: label
               text: Your Specialities
@@ -350,8 +333,9 @@ SelectSpecialty:
                 width: "0.4"
                 height: "0.03"
                 left: "0"
-                fontSize: ".Nfont.h2"
+                fontSize: .Nfont.h14
                 top: "0"
+                fontWeight: "600"
             - type: label
               text: Board certified?
               style:
@@ -361,18 +345,19 @@ SelectSpecialty:
                 top: "0"
                 textAlign:
                   x: center
-                fontSize: ".Nfont.h2"
+                fontSize: .Nfont.h14
+                fontWeight: "600"
             # - .MyProfileSelect:
             - type: select
               dataKey: specialtyObj.specialty
               viewTag: specialtySelectTag
-              options: ..SpecialtyList
+              options: .SelectSpecialty.SpecialtyList
               style:
                 width: "0.5"
                 height: "0.05"
                 boxSizing: "border-box"
                 top: "0.04"
-                fontFamily: "Arial"
+
                 color: "#4B4B4B"
                 textIndent: "12px"
                 left: "0"
@@ -410,6 +395,7 @@ SelectSpecialty:
                 width: "0.4"
                 left: "0.55"
                 height: "0.05"
+                # backgroundColor: "pink"
               children:
                 - type: image
                   viewTag: boardCertifiedTag
@@ -421,8 +407,8 @@ SelectSpecialty:
                                 dataIn:
                                   string1: "Yes"
                                   string2: =..specialtyObj.boardCertified
-                            - selectOn.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -463,21 +449,21 @@ SelectSpecialty:
                       funcName: redraw
                       viewTag: boardCertifiedTag
                   style:
-                    top: "0.015"
-                    left: "0"
+                    marginTop: "0.01"
+                    marginLeft: "0.016"
+                    display: "inline-block"
                     height: "0.025"
                     width: "0.042"
+                    verticalAlign: middle
                 - type: label
                   text: "Yes"
                   style:
-                    top: "0.015"
-                    width: "0.1"
-                    left: "0.06"
-                    height: "0.025"
+                    marginTop: "0.01"
+                    marginLeft: "0.02"
+                    display: "inline-block"
                     fontWeight: "600"
                     fontSize: .Nfont.h14
-                    textAlign:
-                      x: left
+                    verticalAlign: middle
                 - type: image
                   viewTag: boardCertifiedTag
                   path:
@@ -488,8 +474,8 @@ SelectSpecialty:
                                 dataIn:
                                   string1: "No"
                                   string2: =..specialtyObj.boardCertified
-                            - selectOn.svg
-                            - selectOff.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - emit:
                         actions:
@@ -533,21 +519,21 @@ SelectSpecialty:
                       funcName: redraw
                       viewTag: boardCertifiedTag
                   style:
-                    top: "0.015"
-                    left: "0.19"
+                    marginTop: "0.01"
+                    marginLeft: "0.064"
+                    display: "inline-block"
                     height: "0.025"
-                    width: "0.04"
+                    width: "0.042"
+                    verticalAlign: middle
                 - type: label
                   text: "No"
                   style:
-                    top: "0.015"
-                    width: "0.1"
-                    height: "0.025"
-                    left: "0.25"
+                    marginTop: "0.01"
+                    marginLeft: "0.02"
+                    display: "inline-block"
                     fontWeight: "600"
                     fontSize: .Nfont.h14
-                    textAlign:
-                      x: left
+                    verticalAlign: middle
         - type: button
           viewTag: addBtn
           style:
@@ -555,11 +541,13 @@ SelectSpecialty:
             color: "0xFFFFFF"
             width: "0.9"
             left: "0.05"
-            marginTop: "0"
+            fontSize: .Nfont.h14
+            marginTop: "0.0123"
             border:
               style: "5"
             height: "0.05"
             backgroundColor: ..formData.btnColor
+            borderRadius: "5"
             textAlign:
               x: center
               y: center
@@ -591,7 +579,7 @@ SelectSpecialty:
               viewTag: specialtyTag
         - type: view
           style:
-            marginTop: "0.02"
+            marginTop: "0.03"
             width: "0.9"
             left: "0.05"
             height: "0.04"
@@ -599,35 +587,33 @@ SelectSpecialty:
             - type: label
               text: Your Specialities
               style:
-                fontSize: .Nfont.n2
+                fontSize: .Nfont.h14
                 height: "0.04"
-                width: "0.62"
+                width: "0.4"
                 left: "0"
                 top: "0"
+                fontWeight: "600"
             - type: label
               text: Board certified?
               style:
                 height: "0.04"
-                fontSize: .Nfont.n2
-                width: "0.28"
+                fontSize: .Nfont.h14
+                width: "0.4"
                 top: "0"
-                left: "0.62"
+                left: "0.568"
+                fontWeight: "600"
         - type: list
           contentType: listObject
           listObject: ..selectSpecialty.document.name.data.specialty
           iteratorVar: itemObject
           viewTag: specialtyTag
           style:
-            width: "1"
             margin: "0"
-            left: "0"
             height: auto
-            marginTop: "0"
           children:
             - type: listItem
               itemObject: ""
               style:
-                width: "1"
                 height: "0.04"
                 left: "0"
                 marginTop: "0"
@@ -665,7 +651,7 @@ SelectSpecialty:
                     height: "0.04"
                     left: "0.15"
                     top: "0"
-                    fontSize: .Nfont.h1
+                    fontSize: .Nfont.h14
                     textAlign:
                       y: center
                 - type: label
@@ -675,7 +661,7 @@ SelectSpecialty:
                     height: "0.04"
                     left: "0.7"
                     top: "0"
-                    fontSize: .Nfont.h1
+                    fontSize: .Nfont.h14
                     textAlign:
                       y: center
     - .BaseMessageWarnPopup:

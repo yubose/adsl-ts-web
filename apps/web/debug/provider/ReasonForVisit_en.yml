@@ -1,4 +1,7 @@
 ReasonForVisit:
+  # api
+  # 1. 获取自己和当前facility之间的关系边 , 初始化dashboard 的时候获取， 切换的时候清空 已移除
+  # 2. 获取reason文档
   title: "Reason for Visit"
   init: #Page initialization
     - .SignInCheck
@@ -9,18 +12,22 @@ ReasonForVisit:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - ..apiRequest.relation.edgeAPI.get
-    - ..apiRequest.reasonForVisit.docQueryReq.id@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+    - ..apiRequest.reasonForVisit.docQueryReq.id@: =.Global.formData.currentFacility.relationEdge.id
     - ..apiRequest.reasonForVisit.docAPI.get
+
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            - =.builtIn.array.judgeListLength:
                 dataIn:
-                  string1: =.Global.formData.currentTabStatus
-                  string2: ""
-            - .Global.formData.currentTabStatus@: "TELEMEDICINE"
-            - continue
+                  array: =.Global.formData.currentTabStatusList
+                  len: 0
+            - ..formData.currentTab@: "TELEMEDICINE"
+            - =.builtIn.array.getOrReplaceAnArrayItem:
+                dataIn:
+                  strArr: =.Global.formData.currentTabStatusList
+                  tag: false
+                dataOut: ReasonForVisit.formData.currentTab
 
     - actionType: evalObject
       object:
@@ -29,7 +36,7 @@ ReasonForVisit:
                 dataIn:
                   array: =..apiRequest.reasonForVisit.docQueryResp.doc
                   len: 0
-            - ..apiRequest.reasonForVisit.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+            - ..apiRequest.reasonForVisit.docCreateReq.eid@: =.Global.formData.currentFacility.relationEdge.id
             - ..apiRequest.reasonForVisit.docCreateReq@: =..apiRequest.reasonForVisit.docQueryResp.doc.0
         - ..formData.reasonSelect.document@: []
         - ..formData.reasonSelect.document@: =.Global.documentForReason.teleReason
@@ -115,13 +122,14 @@ ReasonForVisit:
             - =.Global.ReasonForVisitReason
             - .Global.formData.reasonForVisit.OfficeVisits@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
             - ..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits@: =.Global.formData.reasonForVisit.OfficeVisits
+
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            - =.builtIn.array.judgeListLength:
                 dataIn:
-                  string1: =.Global.formData.currentTabStatus
-                  string2: ""
+                  array: =.Global.formData.currentTabStatusList
+                  len: 0
             - continue
             - actionType: evalObject
               object:
@@ -129,13 +137,14 @@ ReasonForVisit:
                     dataIn:
                       obj: =..formDataTemp.titleData
                       label: "title"
-                      text: =.Global.formData.currentTabStatus
+                      text: =..formData.currentTab
                       arr: ["fontColor", "fontWeight", "block"]
                       valueArr: ["0x2988e6", "700", "block"]
                       errorArr: ["0x999999", "400", "none"]
                     dataOut: ReasonForVisit.formDataTemp.titleData
                 - ..formData.telemedicineBoxBlock@: =..formDataTemp.titleData.0.block
                 - ..formData.officeVisitBoxBlock@: =..formDataTemp.titleData.1.block
+
     # tele选择文档数量
     - if:
         - =.builtIn.string.equal:
@@ -168,6 +177,7 @@ ReasonForVisit:
                   - ")"
                 dataOut: ReasonForVisit.formData.docOfficeNum
   formData:
+    currentTab: ""
     res: ""
     pointerEvents_officeFee: ""
     pointerEvents_teleFee: ""
@@ -219,23 +229,6 @@ ReasonForVisit:
         dur: "15min"
         fee: "20$"
   apiRequest: #Input data request here
-    # 10002 edge between provider and facility
-    relation:
-      edgeQueryResp: ""
-      edgeQueryReq:
-        id:
-          - =.Global.currentUser.vertex.id
-          - =.Global.currentFacility.id
-        xfname: (bvid,evid)|(evid,bvid)
-        type: 10002
-        obfname: mtime
-        sCondition: tage>0
-        _nonce: =.Global._nonce
-      edgeAPI:
-        get:
-          api: re
-          dataIn: ReasonForVisit.apiRequest.relation.edgeQueryReq
-          dataOut: ReasonForVisit.apiRequest.relation.edgeQueryResp
     reasonForVisit:
       docQueryResp: ""
       docQueryReq:
@@ -294,7 +287,7 @@ ReasonForVisit:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.h14
-                fontFamily: "sans-serif"
+
                 textAlign:
                   x: center
             - type: view
@@ -382,152 +375,168 @@ ReasonForVisit:
                       reload: true
       style:
         zIndex: 1000
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: evalObject
-          object:
-            # reset user input
-            - ..formData.reasonSelect.reason@: ""
-            - ..formData.reasonSelect.duration@: "5 min"
-            - ..formData.reasonSelect.document@: []
-            - .Global.documentForReason.teleReason@: []
-            - .Global.formData.chooseDocLen.teleLength@: ""
-            - ..formData.docTeleNum@: ""
-            # 清空currentFillReason
-            - .Global.formData.currentFillReason.teleReason@: =..formData.reasonReset
-        - actionType: evalObject
-          object:
-            # reset user input
-            - ..formData.reasonSelect_officeVisits.reason@: ""
-            - ..formData.reasonSelect_officeVisits.duration@: "5 min"
-            - ..formData.reasonSelect_officeVisits.document@: []
-            - .Global.documentForReason.officeReason@: []
-            - .Global.formData.chooseDocLen.officeLength@: ""
-            - ..formData.docOfficeNum@: ""
-            # 清空currentFillReason
-            - .Global.formData.currentFillReason.officeReason@: =..formData.reasonReset
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =.Global.formData.reasonForVisit.Telemedicine
-                dataOut: ReasonForVisit.formData.checkLocalTeleLength
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.Telemedicine
-                dataOut: ReasonForVisit.formData.teleLength
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =.Global.formData.reasonForVisit.OfficeVisits
-                dataOut: ReasonForVisit.formData.checkLocalOfficeLength
-        - actionType: evalObject
-          object:
-            - =.builtIn.array.getListLength:
-                dataIn:
-                  object: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
-                dataOut: ReasonForVisit.formData.officeLength
-        - actionType: evalObject
-          object:
-            - if:
-                - =.builtIn.string.equal:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                # reset user input
+                - ..formData.reasonSelect.reason@: ""
+                - ..formData.reasonSelect.duration@: "5 min"
+                - ..formData.reasonSelect.document@: []
+                - .Global.documentForReason.teleReason@: []
+                - .Global.formData.chooseDocLen.teleLength@: ""
+                - ..formData.docTeleNum@: ""
+                # 清空currentFillReason
+                - .Global.formData.currentFillReason.teleReason@: =..formData.reasonReset
+            - actionType: evalObject
+              object:
+                # reset user input
+                - ..formData.reasonSelect_officeVisits.reason@: ""
+                - ..formData.reasonSelect_officeVisits.duration@: "5 min"
+                - ..formData.reasonSelect_officeVisits.document@: []
+                - .Global.documentForReason.officeReason@: []
+                - .Global.formData.chooseDocLen.officeLength@: ""
+                - ..formData.docOfficeNum@: ""
+                # 清空currentFillReason
+                - .Global.formData.currentFillReason.officeReason@: =..formData.reasonReset
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
                     dataIn:
-                      string1: =.Global.formData.currentTabStatus
-                      string2: "TELEMEDICINE"
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =..formData.checkLocalTeleLength
-                              string2: =..formData.teleLength
-                        - actionType: builtIn
-                          funcName: goBack
-                          reload: true
-                        - actionType: popUp
-                          popUpView: changePopUpView
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =..formData.checkLocalOfficeLength
-                              string2: =..formData.officeLength
-                        - actionType: builtIn
-                          funcName: goBack
-                          reload: true
-                        - actionType: popUp
-                          popUpView: changePopUpView
+                      object: =.Global.formData.reasonForVisit.Telemedicine
+                    dataOut: ReasonForVisit.formData.checkLocalTeleLength
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
+                    dataIn:
+                      object: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.Telemedicine
+                    dataOut: ReasonForVisit.formData.teleLength
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
+                    dataIn:
+                      object: =.Global.formData.reasonForVisit.OfficeVisits
+                    dataOut: ReasonForVisit.formData.checkLocalOfficeLength
+            - actionType: evalObject
+              object:
+                - =.builtIn.array.getListLength:
+                    dataIn:
+                      object: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
+                    dataOut: ReasonForVisit.formData.officeLength
 
-    - .HeaderRightButton:
-      text: Save
-      onClick:
-        - actionType: popUp
-          popUpView: successTag
-          wait: 2000
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.array.judgeListLength:
+                        dataIn:
+                          array: =.Global.formData.currentTabStatusList
+                          len: 0
+                    - ..formData.currentTab@: "TELEMEDICINE"
+                    - =.builtIn.array.getOrReplaceAnArrayItem:
+                        dataIn:
+                          strArr: =.Global.formData.currentTabStatusList
+                          tag: false
+                        dataOut: ReasonForVisit.formData.currentTab
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.currentTab
+                          string2: "TELEMEDICINE"
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.checkLocalTeleLength
+                                  string2: =..formData.teleLength
+                            - actionType: builtIn
+                              funcName: goBack
+                              reload: true
+                            - actionType: popUp
+                              popUpView: changePopUpView
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.checkLocalOfficeLength
+                                  string2: =..formData.officeLength
+                            - actionType: builtIn
+                              funcName: goBack
+                              reload: true
+                            - actionType: popUp
+                              popUpView: changePopUpView
+        - .BasePublicHeaderTitle:
 
-        - actionType: evalObject
-          object:
-            # reset user input
-            - ..formData.reasonSelect.reason@: ""
-            - ..formData.reasonSelect.duration@: "5 min"
-            - ..formData.reasonSelect.document@: []
-            - .Global.documentForReason.teleReason@: []
-            - .Global.formData.chooseDocLen.teleLength@: ""
-            - ..formData.docTeleNum@: ""
-            # 清空Telemedicine
-            - .Global.formData.reasonForVisit.Telemedicine@: []
-            # 清空currentFillReason
-            - .Global.formData.currentFillReason.teleReason@: =..formData.reasonReset
-        # - actionType: evalObject
-        #   object:
-        #     - =.builtIn.search.updateEsData:
-        #         dataIn:
-        #           id: =.Global.currentUser.vertex.id
-        #           type: "79360"
-        #           bvid: =.Global.currentFacility.id
-        #         dataOut: ReasonForVisit.formData.res
-        # - actionType: evalObject
-        #   object:
-        #     - if:
-        #       - =.builtIn.Object.isEmpty:
-        #           dataIn:
-        #             object: =..formData.res
-        #       - actionType: popUp
-        #         popUpView: tipsOneLine
-        #         wait: true
-        #         popUpDismiss: 2000
-        #       - continue
-        - actionType: evalObject
-          object:
-            # reset user input
-            - ..formData.reasonSelect_officeVisits.reason@: ""
-            - ..formData.reasonSelect_officeVisits.duration@: "5 min"
-            - ..formData.reasonSelect_officeVisits.document@: []
-            - .Global.documentForReason.officeReason@: []
-            - .Global.formData.chooseDocLen.officeLength@: ""
-            - ..formData.docOfficeNum@: ""
-            # 清空office visit
-            - .Global.formData.reasonForVisit.OfficeVisits@: []
-            # 清空currentFillReason
-            - .Global.formData.currentFillReason.officeReason@: =..formData.reasonReset
-        - actionType: evalObject
-          object:
-            - =..apiRequest.reasonForVisit.docAPI.store: ""
-        - actionType: popUpDismiss
-          popUpView: successTag
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-      style:
-        zIndex: 100
+        - .BasePublicHeaderRightText:
+          text: Save
+          onClick:
+            - actionType: popUp
+              popUpView: successTag
+              wait: 2000
+
+            - actionType: evalObject
+              object:
+                # reset user input
+                - ..formData.reasonSelect.reason@: ""
+                - ..formData.reasonSelect.duration@: "5 min"
+                - ..formData.reasonSelect.document@: []
+                - .Global.documentForReason.teleReason@: []
+                - .Global.formData.chooseDocLen.teleLength@: ""
+                - ..formData.docTeleNum@: ""
+                # 清空Telemedicine
+                - .Global.formData.reasonForVisit.Telemedicine@: []
+                # 清空currentFillReason
+                - .Global.formData.currentFillReason.teleReason@: =..formData.reasonReset
+            # - actionType: evalObject
+            #   object:
+            #     - =.builtIn.search.updateEsData:
+            #         dataIn:
+            #           id: =.Global.currentUser.vertex.id
+            #           type: "79360"
+            #           bvid: =.Global.currentFacility.id
+            #         dataOut: ReasonForVisit.formData.res
+            # - actionType: evalObject
+            #   object:
+            #     - if:
+            #       - =.builtIn.Object.isEmpty:
+            #           dataIn:
+            #             object: =..formData.res
+            #       - actionType: popUp
+            #         popUpView: tipsOneLine
+            #         wait: true
+            #         popUpDismiss: 2000
+            #       - continue
+            - actionType: evalObject
+              object:
+                # reset user input
+                - ..formData.reasonSelect_officeVisits.reason@: ""
+                - ..formData.reasonSelect_officeVisits.duration@: "5 min"
+                - ..formData.reasonSelect_officeVisits.document@: []
+                - .Global.documentForReason.officeReason@: []
+                - .Global.formData.chooseDocLen.officeLength@: ""
+                - ..formData.docOfficeNum@: ""
+                # 清空office visit
+                - .Global.formData.reasonForVisit.OfficeVisits@: []
+                # 清空currentFillReason
+                - .Global.formData.currentFillReason.officeReason@: =..formData.reasonReset
+            - actionType: evalObject
+              object:
+                - =..apiRequest.reasonForVisit.docAPI.store: ""
+            - actionType: popUpDismiss
+              popUpView: successTag
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
     - type: view
       style:
-        marginTop: "0.1"
+        # marginTop: "0.1"
         width: "1"
         height: "auto"
         overflow: hidden
@@ -610,7 +619,13 @@ ReasonForVisit:
                         valueArr: ["0x2988e6", "700", "block"]
                         errorArr: ["0x999999", "400", "none"]
                   # 保存当前tab栏状态
-                  - .Global.formData.currentTabStatus@: $var.title
+                  - =.builtIn.array.getOrReplaceAnArrayItem:
+                      dataIn:
+                        strArr: =.Global.formData.currentTabStatusList
+                        tag: true
+                        index: 1
+                        value: $var.title
+                      dataOut: Global.formData.currentTabStatusList
             - actionType: evalObject
               object:
                 - ..formData.telemedicineBoxBlock@: =..formDataTemp.titleData.0.block
@@ -651,7 +666,7 @@ ReasonForVisit:
                 boxSizing: border-box
               children:
                 - type: label
-                  text: Reason for visit
+                  text: Reason for Visit
                   style:
                     height: "auto"
                     width: "0.448"
@@ -723,6 +738,7 @@ ReasonForVisit:
                     borderColor: "0xdededf"
                     borderWidth: "1"
                     borderRadius: "5"
+                    fontSize: .Nfont.h14
         - type: view
           viewTag: selectAttachTag
           style:
@@ -745,6 +761,8 @@ ReasonForVisit:
                   object:
                     - .Global.formData.reasonForVisit.Telemedicine@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.Telemedicine
                     - .Global.formData.currentFillReason.teleReason@: =..formData.reasonSelect
+                    - .Global.formData.reasonForVisit.OfficeVisits@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
+                    - .Global.formData.currentFillReason.officeReason@: =..formData.reasonSelect_officeVisits
                 - goto: DocumentForReason
             - type: label
               dataKey: formData.docTeleNum
@@ -756,7 +774,7 @@ ReasonForVisit:
                 width: "auto"
                 color: "0x2988e6"
         - type: button
-          text: Create new reason
+          text: Create New Reason
           viewTag: mainButton
           onClick:
             - actionType: evalObject
@@ -820,7 +838,7 @@ ReasonForVisit:
             height: "0.0455"
           children:
             - type: label
-              text: Reason for visit
+              text: Reason for Visit
               style:
                 display: "inline-block"
                 marginLeft: "0.12"
@@ -858,7 +876,7 @@ ReasonForVisit:
           listObject: ..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.Telemedicine
           iteratorVar: itemObject
           style:
-            height: "0.39"
+            height: "0.45"
             width: "1"
             margin: "0"
             overflow: scroll
@@ -890,6 +908,10 @@ ReasonForVisit:
                                     key: reason
                                     name: $var.reason
                               - .Global.formData.reasonForVisit.Telemedicine@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.Telemedicine
+
+                        - actionType: evalObject
+                          object:
+                            - =..apiRequest.reasonForVisit.docAPI.store: ""
                         - actionType: builtIn
                           funcName: redraw
                           viewTag: telemedicine
@@ -906,7 +928,7 @@ ReasonForVisit:
                         verticalAlign: middle
                         fontSize: .Nfont.h12
                         width: "0.38"
-                        wordBreak: break-all
+                        wordBreak: break-word
                     - type: label
                       dataKey: itemObject.duration
                       style:
@@ -915,7 +937,7 @@ ReasonForVisit:
                         verticalAlign: middle
                         fontSize: .Nfont.h12
                         width: "0.18"
-                        wordBreak: break-all
+                        wordBreak: break-word
                     - type: label
                       text: View
                       onClick:
@@ -937,7 +959,7 @@ ReasonForVisit:
                         fontSize: .Nfont.h12
                         width: "auto"
                         color: "0x2988e6"
-                        wordBreak: break-all
+                        wordBreak: break-word
                         textDecoration: underline
                         cursor: pointer
     - type: view
@@ -964,7 +986,7 @@ ReasonForVisit:
                 boxSizing: border-box
               children:
                 - type: label
-                  text: Reason for visit
+                  text: Reason for Visit
                   style:
                     height: "auto"
                     width: "0.573"
@@ -1036,6 +1058,7 @@ ReasonForVisit:
                     borderColor: "0xdededf"
                     borderWidth: "1"
                     borderRadius: "5"
+                    fontSize: .Nfont.h14
         - type: view
           viewTag: selectAttachOfficeTag
           style:
@@ -1056,6 +1079,8 @@ ReasonForVisit:
               onClick:
                 - actionType: evalObject
                   object:
+                    - .Global.formData.reasonForVisit.Telemedicine@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.Telemedicine
+                    - .Global.formData.currentFillReason.teleReason@: =..formData.reasonSelect
                     - .Global.formData.reasonForVisit.OfficeVisits@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
                     - .Global.formData.currentFillReason.officeReason@: =..formData.reasonSelect_officeVisits
                 - goto: DocumentForReason
@@ -1069,7 +1094,7 @@ ReasonForVisit:
                 width: "auto"
                 color: "0x2988e6"
         - type: button
-          text: Create new reason
+          text: Create New Reason
           viewTag: mainButtonOfficeVisits
           onClick:
             - actionType: evalObject
@@ -1133,7 +1158,7 @@ ReasonForVisit:
             height: "0.0455"
           children:
             - type: label
-              text: Reason for visit
+              text: Reason for Visit
               style:
                 display: "inline-block"
                 marginLeft: "0.12"
@@ -1171,7 +1196,7 @@ ReasonForVisit:
           listObject: ..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
           iteratorVar: itemObject
           style:
-            height: "0.39"
+            height: "0.45"
             width: "1"
             margin: "0"
             overflow: scroll
@@ -1202,6 +1227,9 @@ ReasonForVisit:
                                     object: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
                                     key: reason
                                     name: $var.reason
+                        - actionType: evalObject
+                          object:
+                            - =..apiRequest.reasonForVisit.docAPI.store: ""
                         - actionType: builtIn
                           funcName: redraw
                           viewTag: officeVisits
@@ -1218,7 +1246,7 @@ ReasonForVisit:
                         verticalAlign: middle
                         fontSize: .Nfont.h12
                         width: "0.38"
-                        wordBreak: break-all
+                        wordBreak: break-word
                     - type: label
                       dataKey: itemObject.duration
                       style:
@@ -1227,7 +1255,7 @@ ReasonForVisit:
                         verticalAlign: middle
                         fontSize: .Nfont.h12
                         width: "0.18"
-                        wordBreak: break-all
+                        wordBreak: break-word
                     - type: label
                       text: View
                       onClick:
@@ -1235,7 +1263,11 @@ ReasonForVisit:
                             dataKey:
                               var: itemObject
                             actions:
-                              # - ..formData.reasonSelected@: $var
+                              # 将填过的reason暂存
+                              - .Global.formData.reasonForVisit.Telemedicine@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.Telemedicine
+                              - .Global.formData.currentFillReason.teleReason@: =..formData.reasonSelect
+                              - .Global.formData.reasonForVisit.OfficeVisits@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
+                              - .Global.formData.currentFillReason.officeReason@: =..formData.reasonSelect_officeVisits
                               - .Global.formData.reasonSelected@: []
                               - .Global.formData.reasonSelected@: $var.document
                               - .Global.formData.reasonForVisit.OfficeVisits@: =..apiRequest.reasonForVisit.docCreateReq.name.data.reasonForVisit.OfficeVisits
@@ -1249,6 +1281,6 @@ ReasonForVisit:
                         fontSize: .Nfont.h12
                         width: "auto"
                         color: "0x2988e6"
-                        wordBreak: break-all
+                        wordBreak: break-word
                         textDecoration: underline
                         cursor: pointer

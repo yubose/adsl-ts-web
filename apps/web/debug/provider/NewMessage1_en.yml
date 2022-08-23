@@ -317,7 +317,7 @@ NewMessage1:
         width: "0.96"
         height: "0.49"
         top: "0.27"
-        fontFamily: sans-sarif
+
         textAlign:
           y: top
         border:
@@ -367,7 +367,7 @@ NewMessage1:
                     left: "0.02"
                     width: "0.28"
                     height: "0.048"
-                    textOverflow: ellipsis
+                    text-overflow: ellipsis
                     whiteSpace: nowrap
                     overflow: hidden
                     fontSize: .Nfont.h2

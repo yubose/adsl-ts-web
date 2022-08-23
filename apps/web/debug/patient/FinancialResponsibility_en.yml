@@ -1,0 +1,540 @@
+FinancialResponsibility: #xd page
+  title: Financial Responsibility
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    # 判断会议里面存的facilityId是否确实为facility，如果不是，则查回对应的facilityId,保证付款的1113是发给facility的
+    - =..apiRequest.facility.vertexAPI.get: ""
+    - if:
+      - =.builtIn.string.equal:
+          dataIn:
+            string1: =..apiRequest.facility.vertexQueryResp.vertex.0.type
+            string2: 20
+      - continue
+      - actionType: evalObject
+        object:
+          - ..apiRequest.facilityProfile.docQueryReqByLocationId.id@: =.Global.roomInfo.edge.name.facilityId
+          - =..apiRequest.facilityProfile.docAPI.getByLocationId: ""
+          - .Global.roomInfo.edge.name.facilityId@: =..apiRequest.facilityProfile.docQueryRespByLocationId.doc.0.bsig
+    - =..squareCheckout.edgeAPI.get: ""
+    - if:
+        - =..squareCheckout.edgeQueryResp.edge.0
+        - actionType: evalObject
+          object:
+            - ..squareOrder.docQueryReq.id@: =..squareCheckout.edgeQueryResp.edge.0.id
+            - =..squareOrder.docAPI.get: ""
+        - continue
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..squareOrder.docQueryResp.doc.0.deat.state
+              string2: "COMPLETED"
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.roomInfo.edge.name.visitType
+                      string2: "Telemedicine"
+                - goto: AppointmentLobby
+                - goto: AppointmentLobbyOfficeVisit
+        - continue
+    - =..apiRequest.financialInfo.docAPI.get: ""
+    - if:
+        - =..apiRequest.financialInfo.docQueryResp.doc.0
+        - ..formData.amount@: =..apiRequest.financialInfo.docQueryResp.doc.0.name.data.paymentInfo.fee
+        - ..formData.amount@: =.Global.roomInfo.edge.name.fee
+    - actionType: evalObject
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 80
+              next: 10
+            dataOut: BaseComponents.year
+        - =.builtIn.math.toFixedNum:
+            dataIn:
+              num: =..formData.amount
+            dataOut: FinancialResponsibility.squareCheckout.edge.name.amount
+    - actionType: evalObject
+      object: .BaseComponents.getDate
+    - actionType: evalObject
+      object: .BaseComponents.getShow
+    - ..squareCheckout.edge.name.url@: =.Global.formData.payment.squareCheckoutUrl
+    - =..squareCheckout.edgeAPI.store: ""
+    - actionType: evalObject
+      object:
+        - ..website@: =..squareCheckout.response.edge.deat.squareID
+        - =..apiRequest.facilityProfile.docAPI.get: ""
+  formData:
+    splitAmount: []
+    url: ""
+    amount: ""
+  apiRequest:
+    facility:
+      vertexQueryResp: ""
+      vertexQueryReq:
+        id: .Global.roomInfo.edge.name.facilityId
+        _nonce: .Global._nonce
+      vertexAPI:
+        get:
+          api: rv
+          dataIn: FinancialResponsibility.apiRequest.facility.vertexQueryReq
+          dataOut: FinancialResponsibility.apiRequest.facility.vertexQueryResp
+    financialInfo:
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.roomInfo.edge.id
+        xfname: reid
+        obfname: mtime
+        maxcount: "1"
+        _nonce: =.Global._nonce
+        type: .DocType.FinancialInfo
+      docAPI:
+        get:
+          api: rd
+          dataIn: FinancialResponsibility.apiRequest.financialInfo.docQueryReq
+          dataOut: FinancialResponsibility.apiRequest.financialInfo.docQueryResp
+    # get facility's profile for this appointment
+    facilityProfile:
+      docQueryRespByLocationId: ""
+      docQueryReqByLocationId:
+        ObjType: 12
+        id: ""
+        type: .DocType.FacilityProfile
+        xfname: E.evid
+        sCondition: E.type=1100 AND D.ovid = E.bvid
+        _nonce: .Global._nonce
+        obfname: mtime
+        maxcount: 1
+      docQueryResp: ""
+      docQueryReq:
+        id: .Global.roomInfo.edge.name.facilityId
+        xfname: ovid
+        type: .DocType.FacilityProfile
+        obfname: mtime
+        maxcount: "1"
+      docAPI:
+        get:
+          api: rd
+          dataIn: FinancialResponsibility.apiRequest.facilityProfile.docQueryReq
+          dataOut: FinancialResponsibility.apiRequest.facilityProfile.docQueryResp
+        getByLocationId:
+          api: rd
+          dataIn: FinancialResponsibility.apiRequest.facilityProfile.docQueryReqByLocationId
+          dataOut: FinancialResponsibility.apiRequest.facilityProfile.docQueryRespByLocationId
+  squareCheckout:
+    edgeQueryResp: ""
+    edgeQueryReq:
+      id: .Global.roomInfo.edge.id
+      xfname: refid
+      type: .EdgeType.SquareCheckout
+      obfname: mtime
+      maxcount: "1"
+      
+    response: ""
+    # 所有与预约有关的信息都在Global.roomInfo.edge
+    edge:
+      .Edge: ""
+      type: .EdgeType.SquareCheckout
+      bvid: .Global.currentUser.vertex.id
+      refid: .Global.roomInfo.edge.id
+      evid: .Global.roomInfo.edge.name.facilityId
+      subtype: "1"
+      name:
+        amount: ""
+        url: "https://patd3.aitmed.io/index.html?PaymentConfirmation"
+        currency: "USD"
+        quantity: "1"
+        itemName: "Appointment Fee"
+        note: "for testing"
+    edgeAPI:
+      .EdgeAPI: ""
+      get:
+        api: re
+        dataIn: FinancialResponsibility.squareCheckout.edgeQueryReq
+        dataOut: FinancialResponsibility.squareCheckout.edgeQueryResp
+      store:
+        api: ce
+        dataIn: FinancialResponsibility.squareCheckout.edge
+        dataOut: FinancialResponsibility.squareCheckout.response
+  squareOrder:
+    docQueryResp: ""
+    docQueryReq:
+      type: .DocType.CheckOrder
+      id: ""
+      xfname: eid
+      obfname: mtime
+      maxcount: "1"
+    docReq:
+      type: .DocType.CheckOrder
+      eid: ""
+      name:
+        data:
+          orderInfo: # 订单信息
+            squareID: ""
+            squareURL: ""
+            amount: ""
+            # balance: "" in deat
+            # status: ""  in deat
+            processFee: "" # 手续费
+            payee: .Global.currentFacility.name.data.basicInfo.medicalFacilityName
+            location: .Global.currentFacility.name.data.basicInfo.location
+            payer: .Global.Profile.name.data.basicInfo.fullName
+          appointmentInfo: # 预约信息/会议信息
+            reason: .Global.roomInfo.edge.name.Reason
+            providerName: .Global.roomInfo.edge.name.providerName
+            visitType: .Global.roomInfo.edge.name.visitType # appointment type: egg.Telemedicine,Office Visit
+            appTime: .Global.roomInfo.edge.stime
+        nonce: ""
+      subtype:
+        isEncrypted: "0"
+        isOnServer: "1"
+    docRes: ""
+    docAPI:
+      get:
+        api: rd
+        dataIn: FinancialResponsibility.squareOrder.docQueryReq
+        dataOut: FinancialResponsibility.squareOrder.docQueryResp
+      store:
+        api: cd
+        dataIn: squareOrder.docReq
+        dataOut: FinancialResponsibility.squareOrder.docRes
+  website: ""
+  components:
+    - .SuccessfulOneLine:
+      viewTag: paySuccess
+      message: "You have paid successfully!"
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: view
+      style:
+        width: "1"
+        height: "0.84729"
+        overflow: scroll
+      children:
+        - type: label
+          text: "The payment below must be paid in full before the appointment can be made"
+          style:
+            width: "0.9"
+            marginLeft: "0.05"
+            marginTop: "0.02"
+            fontSize: .Nfont.h0_1
+        - type: view
+          style:
+            width: "1"
+            height: "0.04"
+            marginTop: "0.02"
+            backgroundColor: "0xf0f0f0"
+            # padding: "1px"
+          children:
+            - type: label
+              text: "Appointment Fee"
+              style:
+                height: "0.04"
+                fontWeight: "550"
+                color: "0x666666"
+
+                fontSize: .Nfont.h15
+                marginLeft: "0.05"
+                # marginTop: "0.01"
+                textAlign:
+                  y: center
+        - type: view
+          style:
+            width: "0.9"
+            height: "0.15"
+            marginLeft: "0.05"
+            marginTop: "0.015"
+            border:
+              style: 2
+              color: "0xdededf"
+            borderWidth: "1px"
+          children:
+            - type: view
+              style:
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Payment Date"
+                  style:
+                    width: "0.4"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x333333"
+                - type: label
+                  dataKey: BaseComponents.calendarDate.todayDate
+                  style:
+                    width: "0.5"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x666666"
+                    fontWeight: "500"
+                    textAlign:
+                      x: right
+            - type: view
+              style:
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Appointment Type"
+                  style:
+                    width: "0.4"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x333333"
+                - type: label
+                  text: "Telemedicine"
+                  dataKey: Global.roomInfo.edge.name.visitType
+                  style:
+                    width: "0.5"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x666666"
+                    fontWeight: "500"
+                    textAlign:
+                      x: right
+            - type: view
+              style:
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Reason for Payment"
+                  style:
+                    width: "0.4"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x333333"
+                - type: label
+                  text: "Visit fee"
+                  dataKey: Global.roomInfo.edge.name.Reason
+                  style:
+                    width: "0.5"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x666666"
+                    fontWeight: "500"
+                    textAlign:
+                      x: right
+            - type: view
+              style:
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Payment Due"
+                  style:
+                    width: "0.4"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x333333"
+                - type: label
+                  text: ""
+                  text=func: .builtIn.string.dollarFormat
+                  dataKey: formData.amount
+                  style:
+                    width: "0.5"
+                    display: "inline-block"
+                    fontSize: .Nfont.h1_1
+                    color: "0x666666"
+                    fontWeight: "500"
+                    textAlign:
+                      x: right
+        - type: view
+          style:
+            width: "0.9"
+            marginLeft: "0.05"
+            marginTop: "0.02"
+          children:
+            - type: label
+              text: "Total Payment"
+              style:
+                width: "0.4"
+                display: "inline-block"
+                fontSize: .Nfont.h1_1
+                fontWeight: "bold"
+                color: "0x2988e6"
+            - type: label
+              text: ""
+              text=func: .builtIn.string.dollarFormat
+              dataKey: formData.amount
+              style:
+                width: "0.5"
+                display: "inline-block"
+                fontSize: .Nfont.h1_1
+                fontWeight: "bold"
+                color: "0x2988e6"
+                textAlign:
+                  x: right
+        - type: view
+          style:
+            width: "0.9"
+            marginLeft: "0.05"
+            marginTop: "0.05"
+          children:
+            - type: label
+              text: "Patients with medical coverage"
+              style:
+                fontSize: .Nfont.h0_2
+                color: "0x333333"
+                fontWeight: "600"
+            - type: label
+              text: "You may request for a billing statement after your visit and submit a reimbursement request through your insurance company."
+              style:
+                fontSize: .Nfont.h0_1
+                color: "0x666666"
+                wordBreak: break-word
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  textBoard:
+                    - text: "Refunds may be requested to&nbsp;"
+                      color: "0x666666"
+                    - dataKey: apiRequest.facilityProfile.docQueryResp.doc.0.name.data.basicInfo.medicalFacilityName
+                      color: "0x666666"
+                      fontWeight: "700"
+                      textDecoration: underline
+                    - text: ", please contact them directly at&nbsp;"
+                      color: "0x666666"
+                    - dataKey: apiRequest.facilityProfile.docQueryResp.doc.0.name.data.basicInfo.phoneNumber
+                      color: "0x666666"
+                      textDecoration: underline
+                      fontWeight: "700"
+                    - text: "."
+                      color: "0x666666"
+                  style:
+                    width: "0.9"
+                    height: "auto"
+                    fontSize: .Nfont.h0_1
+        - type: view
+          style:
+            top: "0.788177"
+            width: "1"
+            height: "auto"
+            marginTop: "0"
+            backgroundColor: "0xffffff"
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+              children:
+                - type: label
+                  text: "Payment are processed by "
+                  style:
+                    width: "0.48"
+                    height: "0.0462"
+                    fontSize: .Nfont.h1
+                    marginLeft: "0.18"
+                    verticalAlign: middle
+                    lineHeight: 4.62vh
+                    textAlign:
+                      x: center
+                    display: "inline-block"
+                - type: view
+                  style:
+                    height: "0.0462"
+                    width: "0.2"
+                    display: "inline-block"
+                    textAlign:
+                      y: center
+                  children:
+                    - type: image
+                      path: SquareIncLogoWine.svg
+                      style:
+                        width: "0.15"
+                        marginLeft: "0"
+        #     - type: button
+        #       text: Pay Now
+        #       style:
+        #         width: "0.85"
+        #         marginLeft: "0.075"
+        #         height: "0.045"
+        #         marginTop: "0.01"
+        #         border: none
+        #         borderRadius: "5"
+        #         backgroundColor: "0x2988E6"
+        #         color: "0xffffff"
+        #         fontSize: .Nfont.n2
+        #         textAlign:
+        #           x: center
+        #           y: center
+        #       onClick:
+        #         - actionType: evalObject
+        #           object:
+        #             - ..squareOrder.docReq.eid@: =..squareCheckout.response.edge.id
+        #             - ..squareOrder.docReq.name.data.orderInfo.squareURL@: =..squareCheckout.response.edge.deat.squareURL
+        #             - ..squareOrder.docReq.name.data.orderInfo.squareID@: =..squareCheckout.response.edge.deat.squareID
+        #             - ..squareOrder.docReq.name.data.orderInfo.amount@: =..squareCheckout.response.edge.name.amount
+        #             - ..squareOrder.docReq.name.nonce@: =..squareCheckout.response.edge.deat.squareID
+        #             - .Global.paymentCheck.id@: =..squareCheckout.response.edge.id
+        #         - actionType: evalObject
+        #           object:
+        #             - =..squareOrder.docAPI.store: ""
+        #             - .Global.paymentOrder.document@: =..squareOrder.docRes.doc
+        #             - goto: =..squareCheckout.response.edge.deat.squareURL #website
+
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: button
+          text: Pay Now
+          dataKey:
+          style:
+            ..style.btn:
+          onClick:
+            - actionType: evalObject
+              object:
+                - ..squareOrder.docReq.eid@: =..squareCheckout.response.edge.id
+                - ..squareOrder.docReq.name.data.orderInfo.squareURL@: =..squareCheckout.response.edge.deat.squareURL
+                - ..squareOrder.docReq.name.data.orderInfo.squareID@: =..squareCheckout.response.edge.deat.squareID
+                - ..squareOrder.docReq.name.data.orderInfo.amount@: =..squareCheckout.response.edge.name.amount
+                - ..squareOrder.docReq.name.nonce@: =..squareCheckout.response.edge.deat.squareID
+                - .Global.paymentCheck.id@: =..squareCheckout.response.edge.id
+            - actionType: evalObject
+              object:
+                - =..squareOrder.docAPI.store: ""
+                - .Global.paymentOrder.document@: =..squareOrder.docRes.doc
+                - goto: =..squareCheckout.response.edge.deat.squareURL #website
+  style:
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      borderTop: "1px solid #E2E8ED"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

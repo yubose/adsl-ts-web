@@ -3,6 +3,9 @@ SurgeryAuthorizationReviewPage1:
 
   init: #Page initialization
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
@@ -13,7 +16,7 @@ SurgeryAuthorizationReviewPage1:
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..formData.name.data.surgeryInfo.diagnosis.descriptiveList
+              object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
             dataOut: SurgeryAuthorizationReviewPage1.formDataTemp.listDatalength
 
     - actionType: evalObject
@@ -23,13 +26,47 @@ SurgeryAuthorizationReviewPage1:
               object: =..formData.name.data.surgeryInfo.proRequest.descriptiveList
             dataOut: SurgeryAuthorizationReviewPage1.formDataTemp.proListDatalength
 
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.surgeryForm.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
+
     # 判断Diagnoses
     - actionType: evalObject
       object:
         - if:
             - =.builtIn.string.equal:
                 dataIn:
-                  string1: =..formDataTemp.proListDatalength
+                  string1: =..formDataTemp.listDatalength
                   string2: "0"
             - actionType: evalObject
               object:
@@ -59,14 +96,37 @@ SurgeryAuthorizationReviewPage1:
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Surgery Authorization"
+        - .Global.formData.downloadPDF.scaleX@: 0.92
+        - .Global.formData.downloadPDF.scaleY@: 0.92
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
+        # 记录下载行为
+        - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+        - .Global.formData.auditLog.recordTypeCode@: =.DocType.surgeryForm
+
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.SurgeryAuthorizationReviewPage1.formData.name.data.signatureId
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
 
   formData:
+    # 控制签名是否显示
+    displaySign: "none"
+
     name:
       data:
         surgeryInfo:
@@ -74,6 +134,11 @@ SurgeryAuthorizationReviewPage1:
             isExplain: none
             isRequired: ""
   formDataTemp: #Input data temp here, datatemp should not mix with formData
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
+
     downFlag: "inline-block"
     listDatalength: ""
     flag: "block"
@@ -123,23 +188,48 @@ SurgeryAuthorizationReviewPage1:
         value: EKG
       - key: covid
         value: COVID-19 test
-
-  style: #Input style fragment here
+  apiRequest:
+    surgeryForm:
+      docRes: ""
+      docReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: SurgeryAuthorizationReviewPage1.apiRequest.surgeryForm.docReq
+          dataOut: SurgeryAuthorizationReviewPage1.apiRequest.surgeryForm.docRes
 
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.surgeryForm
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      date: =.Global.formData.auditLog.startTime
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
-        width: "1"
-        height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+        ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
+
       children:
         - type: view
           style:
@@ -173,7 +263,7 @@ SurgeryAuthorizationReviewPage1:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -184,7 +274,7 @@ SurgeryAuthorizationReviewPage1:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
         - type: view
@@ -302,7 +392,7 @@ SurgeryAuthorizationReviewPage1:
             borderWidth: "1.5"
             borderColor: "0xdedede"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
             backgroundColor: "0xf4f4f4"
@@ -335,23 +425,25 @@ SurgeryAuthorizationReviewPage1:
             overflow: hidden
             verticalAlign: middle
           children:
-            - type: textField
-              placeholder: "No content"
+            - type: label
+              text: "No content"
               dataKey: formData.name.data.surgeryInfo.surgicalDate
               isEditable: "false"
               style:
-                marginLeft: "0.032"
                 width: "0.504"
                 height: "0.037"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
                 display: "inline-block"
                 boxSizing: "border-box"
                 border:
                   style: 1
-                verticalAlign: middle
-                backgroundColor: "0xf4f4f4"
+                borderRadius: "4"
+                borderWidth: "1.5"
+                borderColor: "0xdedede"
                 color: "0x333333"
+                padding: "6px 12px"
+                wordWrap: break-word
+                backgroundColor: "0xf4f4f4"
 
         - type: label
           text: "Diagnoses"
@@ -391,7 +483,7 @@ SurgeryAuthorizationReviewPage1:
             - type: list
               viewTag: listData
               contentType: listObject
-              listObject: ..formData.name.data.surgeryInfo.diagnosis.descriptiveList # to dataObject to enumerate the list
+              listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
               iteratorVar: itemObject
               style:
                 display: ..formDataTemp.listFlag
@@ -441,7 +533,7 @@ SurgeryAuthorizationReviewPage1:
                                 width: "0.17"
                                 textAlign:
                                   x: left
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
                                 fontWeight: "550"
@@ -459,13 +551,13 @@ SurgeryAuthorizationReviewPage1:
                               dataKey: itemObject.description
                               style:
                                 verticalAlign: top
-                                marginLeft: "0.02"
+                                marginLeft: "0.015"
                                 display: "inline-block"
                                 height: "auto"
                                 width: "0.616"
                                 textAlign:
                                   x: left
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
                                 color: "0x333333"
@@ -477,7 +569,7 @@ SurgeryAuthorizationReviewPage1:
                         width: "0.83"
                         height: "auto"
                         color: "0x666666"
-                        fontFamily: "Arial"
+
                         wordWrap: break-word
                         fontSize: .Nfont.h14
             - type: view
@@ -572,7 +664,7 @@ SurgeryAuthorizationReviewPage1:
                                 width: "0.17"
                                 textAlign:
                                   x: left
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
                                 fontWeight: "550"
@@ -590,13 +682,13 @@ SurgeryAuthorizationReviewPage1:
                               dataKey: itemObject.description
                               style:
                                 verticalAlign: top
-                                marginLeft: "0.02"
+                                marginLeft: "0.015"
                                 display: "inline-block"
                                 height: "auto"
                                 width: "0.616"
                                 textAlign:
                                   x: left
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
                                 color: "0x333333"
@@ -608,7 +700,7 @@ SurgeryAuthorizationReviewPage1:
                         width: "0.83"
                         height: "auto"
                         color: "0x666666"
-                        fontFamily: "Arial"
+
                         wordWrap: break-word
                         fontSize: .Nfont.h14
             - type: view
@@ -641,7 +733,7 @@ SurgeryAuthorizationReviewPage1:
             borderWidth: "1.5"
             borderColor: "0xdedede"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
             wordWrap: break-word
@@ -707,7 +799,7 @@ SurgeryAuthorizationReviewPage1:
                         display: "inline-block"
                         marginLeft: "0.021"
                         fontSize: .Nfont.h14
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         verticalAlign: "middle"
         - .DocPublicStyleFiveBox:
@@ -719,13 +811,25 @@ SurgeryAuthorizationReviewPage1:
               text: "If “no,” please explain below:"
               style:
                 fontWeight: "400"
-            - .DocPublicStyleFiveinput:
+            - type: label
+              dataKey: formData.name.data.surgeryInfo.physician.content
+              text: "No content"
               style:
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.92"
+                boxSizing: border-box
                 border:
                   style: 1
+                borderRadius: "4"
+                borderWidth: "1.5"
+                borderColor: "0xdedede"
+                fontSize: .Nfont.h14
+
+                color: "0x333333"
+                padding: "6px 12px"
+                wordWrap: break-word
                 backgroundColor: "0xf4f4f4"
-              text: "No content"
-              dataKey: formData.name.data.surgeryInfo.physician.content
         - type: label
           text: "Postoperative  Therapy"
           dataKey:
@@ -787,7 +891,7 @@ SurgeryAuthorizationReviewPage1:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
 
@@ -842,7 +946,7 @@ SurgeryAuthorizationReviewPage1:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
         - .DocPublicStyleFiveBox:
@@ -852,13 +956,25 @@ SurgeryAuthorizationReviewPage1:
               style:
                 marginTop: "0.006"
                 fontWeight: "400"
-            - .DocPublicStyleFiveinput:
+            - type: label
+              dataKey: formData.name.data.surgeryInfo.postTherapy.body
+              text: "No content"
               style:
+                marginTop: "0.01"
+                height: "auto"
+                width: "0.92"
+                boxSizing: border-box
                 border:
                   style: 1
+                borderRadius: "4"
+                borderWidth: "1.5"
+                borderColor: "0xdedede"
+                fontSize: .Nfont.h14
+
+                color: "0x333333"
+                padding: "6px 12px"
+                wordWrap: break-word
                 backgroundColor: "0xf4f4f4"
-              placeholder: "No content"
-              dataKey: formData.name.data.surgeryInfo.postTherapy.body
 
         - type: label
           text: "Special Supplies / Equipment"
@@ -886,7 +1002,7 @@ SurgeryAuthorizationReviewPage1:
             borderWidth: "1.5"
             borderColor: "0xdedede"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
             backgroundColor: "0xf4f4f4"
@@ -912,7 +1028,6 @@ SurgeryAuthorizationReviewPage1:
             margin: "0"
             left: "0.04"
             marginTop: "0.006"
-            height: "0.138"
             width: "0.92"
           children:
             - type: listItem
@@ -953,7 +1068,7 @@ SurgeryAuthorizationReviewPage1:
                         display: "inline-block"
                         marginLeft: "0.021"
                         fontSize: .Nfont.h14
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         verticalAlign: "middle"
 
@@ -1017,7 +1132,7 @@ SurgeryAuthorizationReviewPage1:
                         display: "inline-block"
                         marginLeft: "0.021"
                         fontSize: .Nfont.h14
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         verticalAlign: "middle"
         - type: label
@@ -1097,6 +1212,7 @@ SurgeryAuthorizationReviewPage1:
                 height: "0.128"
                 overflow: scroll
                 zIndex: "1000"
+                display: ..formData.displaySign
 
         - type: view
           style:
@@ -1105,6 +1221,7 @@ SurgeryAuthorizationReviewPage1:
             width: "0.92"
             height: "auto"
             overflow: hidden
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -1245,4 +1362,77 @@ SurgeryAuthorizationReviewPage1:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+    # - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:
+    # 成功提示
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag
+  event:
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.surgeryForm.docReq.name.data.statusTag.name@: Released
+          - ..apiRequest.surgeryForm.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.surgeryForm.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      # 保存newNote
+      - actionType: evalObject
+        object:
+          - ..apiRequest.surgeryForm.docReq.tage@: -1
+          - =..apiRequest.surgeryForm.docAPI.store: ""
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: popUp
+        popUpView: successTag
+
+      # 返回路径
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

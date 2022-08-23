@@ -1,0 +1,1266 @@
+SuperbillReview:
+  title: Superbill
+  pageNumber:
+  init:
+    - .SignInCheck
+    - =.builtIn.utils.createAuditLog:
+        dataIn:
+          actionTypeCode: .ActionTypeCode.view
+          recordTypeCode: .DocType.Superbill
+          eid: =.Global.formData.currentFacility.relationEdge.id
+
+          user: =.Global.MyProfile.name.data.fullName
+          userId: =.Global.currentUser.vertex.id
+          targetUserId: =.Global.formData.auditLog.patientId
+          accessPort: provider
+        dataOut: Global.formData.auditLog.result
+    - ..formData@: =.Global.formData.providerDoc.superbillDoc
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    # 处理Service Facility Location Information
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.name.data.serviceFacilitySelect
+                  string2: ""
+            - actionType: evalObject
+              object:
+                - ..formData.useCurrentShow@: "none"
+                - ..formData.selectFacilityShow@: "none"
+                - ..formData.enterManuallyShow@: "none"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.name.data.serviceFacilitySelect
+                          string2: "Use current"
+                    - actionType: evalObject
+                      object:
+                        - ..formData.useCurrentShow@: "block"
+                        - ..formData.selectFacilityShow@: "none"
+                        - ..formData.enterManuallyShow@: "none"
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.name.data.serviceFacilitySelect
+                                  string2: "Select facility"
+                            - actionType: evalObject
+                              object:
+                                - ..formData.useCurrentShow@: "none"
+                                - ..formData.selectFacilityShow@: "block"
+                                - ..formData.enterManuallyShow@: "none"
+                            - actionType: evalObject
+                              object:
+                                - ..formData.useCurrentShow@: "none"
+                                - ..formData.selectFacilityShow@: "none"
+                                - ..formData.enterManuallyShow@: "block"
+  formData:
+    currentCode: ""
+    selectedCode: ""
+    currentListLength: ""
+    ICDList: []
+  formDataTemp:
+    ICDTemp:
+      - "Select"
+    outsideLab:
+      - "Select"
+      - "Yes"
+      - "No"
+  apiRequest:
+
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+          - .BasePublicHeaderTitle:
+          - .BasePublicHeaderRightText:
+            text: "Edit"
+            onClick:
+              - actionType: evalObject
+                object:
+                  - =.builtIn.utils.createAuditLog:
+                      dataIn:
+                        actionTypeCode: .ActionTypeCode.edit
+                        recordTypeCode: .DocType.Superbill
+                        eid: =.Global.formData.currentFacility.relationEdge.id
+
+                        user: =.Global.MyProfile.name.data.fullName
+                        userId: =.Global.currentUser.vertex.id
+                        targetUserId: =.Global.formData.auditLog.patientId
+                        accessPort: provider
+                      dataOut: Global.formData.auditLog.result
+                  - goto: ChargeEntry
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.0246"
+            height: "auto"
+            width: "0.92"
+          children:
+            - type: image
+              path: office-building.svg
+              path=func: =.builtIn.utils.prepareDocToPath
+              dataKey: formData.name.data.facilityInfo.facilityAvatarID
+              style:
+                verticalAlign: middle
+                display: "inline-block"
+                height: "0.0578"
+                width: "5.78vh"
+            - type: view
+              style:
+                verticalAlign: middle
+                marginLeft: "0.08"
+                display: "inline-block"
+                height: "auto"
+                width: "0.71"
+                overflow: hidden
+              children:
+                - type: label
+                  dataKey: formData.name.data.facilityInfo.facilityName
+                  style:
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h20
+                    fontWeight: "600"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+                - type: label
+                  dataKey: formData.name.data.facilityInfo.location
+                  style:
+                    marginTop: "0.0110"
+                    width: "0.71"
+                    height: "auto"
+                    fontSize: .Nfont.h14
+                    color: "0x666666"
+
+                    verticalAlign: middle
+                    wordWrap: break-word
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Email
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.email
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: Website
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.website
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Main #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.main
+            - .DocPublicStyleOneBox:
+              children:
+                - .DocPublicStyleOneLeft:
+                  text: "Fax #"
+                - .DocPublicStyleOneRight:
+                  dataKey: formData.name.data.facilityInfo.fax
+
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            marginLeft: "0.04"
+            marginTop: "0.00738"
+            width: "0.92"
+            height: "auto"
+            overflow: hidden
+          children:
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Exam Date
+                - .DocPublicStyleTwoRight:
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: formData.name.data.patientInfo.examDate
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Patient Name
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.patientName
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Date of Birth
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.dob
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Phone #"
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.phone
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Email"
+                - .DocPublicStyleTwoRight:
+                  dataKey: formData.name.data.patientInfo.email
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Patient Address"
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  dataKey: formData.name.data.patientInfo.address
+                  style:
+                    height: "auto"
+                    width: "0.92"
+                    fontSize: .Nfont.h14
+                    wordWrap: break-word
+                    color: "0x333333"
+                    fontWeight: "600"
+        - .DocPublicLine:
+
+        - type: view
+          style:
+            ..style.secondBox:
+            marginTop: "0.027093596"
+          children:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Diagnosis
+                  style:
+                    ..style.secondLeftLabel:
+            - type: list
+              contentType: listObject
+              listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
+              iteratorVar: itemObject
+              style:
+                ..style.diagnosisList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.diagnosisListItem:
+                  children:
+                    - type: label
+                      textBoard:
+                        - text: ""
+                          dataKey: itemObject.code
+                        - text: "&nbsp;-&nbsp;"
+                        - text: ""
+                          dataKey: itemObject.description
+                      style:
+                        ..style.diagnosisValue:
+                    - type: label
+                      dataKey: itemObject.comment
+                      style:
+                        ..style.diagnosisValue:
+                        color: "#666666"
+
+        - type: view
+          style:
+            ..style.dividingLine:
+
+        - type: view
+          viewTag: procedureCodeTag
+          style:
+            width: "0.92"
+            height: "auto"
+            marginLeft: "0.04"
+            marginTop: "0.027093596"
+          children:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Procedure code
+                  style:
+                    ..style.secondLeftLabel:
+                    width: "0.722666666"
+            - type: list
+              contentType: listObject
+              listObject: ..formData.name.data.procedureCodeList
+              iteratorVar: itemObject
+              style:
+                ..style.conventionalList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.conventionalListItem:
+                    marginTop: "0.01"
+                  children:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: label
+                          textBoard:
+                            - text: ""
+                              dataKey: itemObject.code
+                            - text: "&nbsp;-&nbsp;"
+                            - text: ""
+                              dataKey: itemObject.description
+                          style:
+                            ..style.codeLabel:
+                    - type: view
+                      style:
+                        width: "auto"
+                        height: "auto"
+                      children:
+                        - type: label
+                          text: Quantity
+                          style:
+                            ..style.inputTitle:
+                        - type: label
+                          text: "No content"
+                          dataKey: itemObject.quantity
+                          style:
+                            ..style.input:
+                        - type: view
+                          style:
+                            ..style.blockBox:
+                            marginTop: "0.01724137"
+                          children:
+                            - type: label
+                              text: Modifiers
+                              style:
+                                ..style.inputSecondTitle:
+                        - type: view
+                          viewTag: listData
+                          style:
+                            height: auto
+                            width: auto
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: itemObject.modifiers
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.92"
+                                margin: "0"
+                                height: "auto"
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.92"
+                                    height: "auto"
+                                  children:
+                                    - type: view
+                                      style:
+                                        ..style.blockBox:
+                                      children:
+                                        - type: label
+                                          textBoard:
+                                            - text: ""
+                                              dataKey: listAttr.index
+                                            - text: ")"
+                                            - text: "&nbsp;"
+                                            - text: ""
+                                              dataKey: itemObject
+                                          style:
+                                            ..style.codeLabel:
+
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                        marginTop: "0.01847290"
+                      children:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                          children:
+                            - type: label
+                              text: ICD1
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: label
+                              text: "--"
+                              dataKey: itemObject.icd.icd1
+                              style:
+                                ..style.inputInline:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.04"
+                          children:
+                            - type: label
+                              text: ICD2
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: label
+                              dataKey: itemObject.icd.icd2
+                              text: "--"
+                              style:
+                                ..style.inputInline:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.04"
+                          children:
+                            - type: label
+                              text: ICD3
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: label
+                              dataKey: itemObject.icd.icd3
+                              text: "--"
+                              style:
+                                ..style.inputInline:
+                        - type: view
+                          style:
+                            ..style.inlineBlock:
+                            marginLeft: "0.04"
+                          children:
+                            - type: label
+                              text: ICD4
+                              style:
+                                ..style.inputInlineTitle:
+                            - type: label
+                              dataKey: itemObject.icd.icd4
+                              text: "--"
+                              style:
+                                ..style.inputInline:
+                        - type: label
+                          textBoard:
+                            - text: "-----------------------------"
+                            - text: "&nbsp;Next code&nbsp;"
+                            - text: "-----------------------------"
+                          style:
+                            ..style.dividingSecondLine:
+                            display: itemObject.borderShow
+
+        - .DocPublicLine:
+        - type: view
+          viewTag: ServiceTag
+          style:
+            ..style.secondBox:
+          children:
+            - type: label
+              text: Service Facility Location Information
+              style:
+                ..style.thirdInputTitle:
+                fontSize: .Nfont.h16
+            - type: view
+              style:
+                marginTop: "0.0172413"
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxUsePath:
+                  style:
+                    ..style.checkBoxImg:
+                  onClick:
+                    - ..event.checkBoxUseClick
+                - type: label
+                  text: Use current facility information
+                  dataKey:
+                  style:
+                    ..style.checkBoxLabel:
+            - type: view
+              style:
+                ..style.blockSecondBox:
+                display: ..formData.useCurrentShow
+              children:
+                - type: label
+                  text: Facility's Name
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.facilityInfo.facilityName
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Address
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.facilityInfo.location
+                  style:
+                    ..style.inputPreview:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: City
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.facilityInfo.City
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: County
+                          style:
+                            ..style.inputTitle:
+                            width: "0.44"
+                            marginTop: "0"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.facilityInfo.County
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: State
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.facilityInfo.State
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: Zip Code
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.facilityInfo.ZipCode
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: label
+                  text: NPI
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.facilityInfo.NPI
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Facility ID
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.facilityInfo.FacilityID
+                  style:
+                    ..style.inputPreview:
+
+            - type: view
+              style:
+                marginTop: "0.0172413"
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxSelectPath:
+                  style:
+                    ..style.checkBoxImg:
+                  onClick:
+                    - ..event.checkBoxSelectClick
+                - type: label
+                  text: Select facility
+                  dataKey:
+                  style:
+                    ..style.checkBoxLabel:
+            - type: view
+              viewTag: selectFacilityTag
+              style:
+                ..style.blockSecondBox:
+                display: ..formData.selectFacilityShow
+              children:
+                - type: label
+                  text: Facility
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: "No content"
+                  dataKey: formData.name.data.selectFacilityInfo.selectedFacility
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Location
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: "No content"
+                  dataKey: formData.name.data.selectFacilityInfo.Location
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Facility's Name
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.selectFacilityInfo.facilityName
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Address
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.selectFacilityInfo.address
+                  style:
+                    ..style.inputPreview:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: City
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.selectFacilityInfo.City
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: County
+                          style:
+                            ..style.inputTitle:
+                            width: "0.44"
+                            marginTop: "0"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.selectFacilityInfo.County
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: State
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.selectFacilityInfo.State
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: Zip Code
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: No content
+                          dataKey: formData.name.data.selectFacilityInfo.ZipCode
+                          style:
+                            ..style.inputPreview:
+                            width: "0.44"
+                - type: label
+                  text: NPI
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.selectFacilityInfo.NPI
+                  style:
+                    ..style.inputPreview:
+                - type: label
+                  text: Facility ID
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: No content
+                  dataKey: formData.name.data.selectFacilityInfo.FacilityID
+                  style:
+                    ..style.inputPreview:
+
+            - type: view
+              style:
+                marginTop: "0.0172413"
+              children:
+                - type: image
+                  path:
+                    ..event.checkBoxManuallyPath:
+                  style:
+                    ..style.checkBoxImg:
+                  onClick:
+                    - ..event.checkBoxManuallyClick
+                - type: label
+                  text: Enter Manually
+                  dataKey:
+                  style:
+                    ..style.checkBoxLabel:
+
+            - type: view
+              style:
+                ..style.blockSecondBox:
+                display: ..formData.enterManuallyShow
+              children:
+                - type: label
+                  text: Facility's Name
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: "No conetnt"
+                  dataKey: formData.name.data.manuallyFacilityInfo.facilityName
+                  style:
+                    ..style.input:
+                - type: label
+                  text: Address
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: "No conetnt"
+                  dataKey: formData.name.data.manuallyFacilityInfo.address
+                  style:
+                    ..style.input:
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: City
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: "No conetnt"
+                          dataKey: formData.name.data.manuallyFacilityInfo.City
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: County
+                          style:
+                            ..style.inputTitle:
+                            width: "0.44"
+                            marginTop: "0"
+                        - type: label
+                          text: "No conetnt"
+                          dataKey: formData.name.data.manuallyFacilityInfo.County
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                - type: view
+                  style:
+                    ..style.blockBox:
+                    marginTop: "0.024630"
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBlockLeft:
+                      children:
+                        - type: label
+                          text: State
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: "No content"
+                          dataKey: formData.name.data.manuallyFacilityInfo.State
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                    - type: view
+                      style:
+                        ..style.inlineBlockRight:
+                      children:
+                        - type: label
+                          text: Zip Code
+                          style:
+                            ..style.inputTitle:
+                            marginTop: "0"
+                            width: "0.44"
+                        - type: label
+                          text: "No conetnt"
+                          dataKey: formData.name.data.manuallyFacilityInfo.ZipCode
+                          style:
+                            ..style.input:
+                            width: "0.44"
+                - type: label
+                  text: NPI
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: "No conetnt"
+                  dataKey: formData.name.data.manuallyFacilityInfo.NPI
+                  style:
+                    ..style.input:
+                - type: label
+                  text: Facility ID
+                  style:
+                    ..style.inputTitle:
+                - type: label
+                  text: "No conetnt"
+                  dataKey: formData.name.data.manuallyFacilityInfo.FacilityID
+                  style:
+                    ..style.input:
+        - .DocPublicLine:
+        - type: view
+          style:
+            ..style.secondBox:
+            marginTop: "0.024630"
+          children:
+            - type: label
+              text: Provider
+              style:
+                ..style.leftTitle:
+            - type: label
+              dataKey: formData.name.data.providerName
+              style:
+                ..style.rightValue:
+
+        - type: view
+          style:
+            marginTop: "0.03"
+  event:
+    checkBoxUsePath:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.name.data.serviceFacilitySelect
+                    string2: "Use current"
+              - selectOnBlue.svg
+              - selectOffGray.svg
+    checkBoxSelectPath:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.name.data.serviceFacilitySelect
+                    string2: "Select facility"
+              - selectOnBlue.svg
+              - selectOffGray.svg
+    checkBoxManuallyPath:
+      emit:
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.name.data.serviceFacilitySelect
+                    string2: "Enter Manually"
+              - selectOnBlue.svg
+              - selectOffGray.svg
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.94"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+    secondBox:
+      width: "0.92"
+      height: "auto"
+      marginLeft: "0.04"
+      overflow: hidden
+    blockBox:
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+    secondLeftLabel:
+      fontSize: .Nfont.h14
+      color: "#333333"
+      height: "auto"
+      width: "0.68533333"
+      fontWeight: "600"
+      display: "inline-block"
+      verticalAlign: middle
+    secondRightLabel:
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      height: "auto"
+      width: "auto"
+      display: "inline-block"
+      verticalAlign: middle
+      textDecoration: underline
+    diagnosisList:
+      width: "0.92"
+      margin: "0"
+      height: "auto"
+    diagnosisListItem:
+      width: "0.92"
+      height: "auto"
+      marginLeft: "0"
+      marginTop: "0.0184729"
+    diagnosisValue:
+      width: "0.92"
+      height: "auto"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      lineHeight: "2.093596vh"
+      wordBreak: break-word
+    dividingLine:
+      marginTop: "0.0258620"
+      width: "1"
+      height: "0.002"
+      backgroundColor: "#dedede"
+    inputTitle:
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+      width: "0.92"
+      marginTop: "0.01724137"
+      textAlign:
+        x: left
+    input:
+      marginTop: "0.009852"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+      backgroundColor: "#f4f4f4"
+
+      wordBreak: break-word
+    inputSecondTitle:
+      display: "inline-block"
+      width: "0.8266666666"
+      height: "auto"
+      color: "#333333"
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+    tipsNum:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+    addLabel:
+      marginLeft: "0.6666666666"
+      marginTop: "0.01724137"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      height: "auto"
+      width: "auto"
+      textDecoration: underline
+    inlineBlock:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+      boxSizing: border-box
+    inputInlineTitle:
+      width: "auto"
+      height: "auto"
+      color: "#333333"
+      fontWeight: "600"
+      fontSize: .Nfont.h14
+    inputInline:
+      marginTop: "0.01"
+      width: "0.2"
+      height: "auto"
+      boxSizing: border-box
+      padding: "6px 12px"
+      backgroundColor: "#f4f4f4"
+      borderRadius: "4"
+      fontSize: .Nfont.h14
+      wordBreak: break-word
+      color: "#333333"
+    dividingSecondLine:
+      marginTop: "0.0246305"
+      marginBottom: "0.0246305"
+      width: "0.92"
+      height: "auto"
+      color: "#999999"
+      fontSize: .Nfont.h12
+      textAlign:
+        x: center
+    thirdInputTitle:
+      marginTop: "0.024630"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "0.92"
+      fontWeight: "600"
+    dateBox:
+      marginTop: "0.009852"
+      width: "0.6"
+      height: "auto"
+      borderRadius: "4"
+      boxSizing: "border-box"
+      overflow: hidden
+      backgroundColor: "#f4f4f4"
+    dateFild:
+      width: "0.504"
+      height: "auto"
+      fontSize: .Nfont.h14
+
+      boxSizing: "border-box"
+      border:
+        style: 1
+      backgroundColor: "#f4f4f4"
+      color: "0x333333"
+      padding: "6px 12px"
+      wordBreak: break-word
+    inlineBlockLeft:
+      display: inline-block
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    inlineBlockRight:
+      display: inline-block
+      marginLeft: "0.04"
+      width: "auto"
+      height: "auto"
+      boxSizing: border-box
+    leftTitle:
+      fontSize: .Nfont.h12
+      color: "#666666"
+      height: "auto"
+      width: "auto"
+      display: "inline-block"
+      verticalAlign: middle
+    rightValue:
+      marginLeft: "0.032"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      height: "auto"
+      width: "auto"
+      display: "inline-block"
+      verticalAlign: middle
+      fontWeight: "600"
+    symbol:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      lineHeight: "3.694vh"
+      textIndent: "0"
+      verticalAlign: middle
+    symbolInput:
+      marginLeft: "0.032"
+      border:
+        style: "1"
+      display: "inline-block"
+      width: "0.3"
+      height: "0.03694"
+      boxSizing: border-box
+      fontSize: .Nfont.h14
+      lineHeight: "3.694vh"
+      color: "#333333"
+      verticalAlign: middle
+    searchBox:
+      marginTop: "0.009852"
+      height: "0.03694"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+
+      overflow: hidden
+    searchImg:
+      marginLeft: "0.032"
+      display: "inline-block"
+      height: "0.0197044"
+      verticalAlign: middle
+    searchInput:
+      marginTop: "0.009852"
+      height: "0.03694"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderRadius: "4"
+      borderColor: "#dededf"
+      textIndent: "8px"
+    conventionalList:
+      width: "0.92"
+      margin: "0"
+      height: auto
+    conventionalListItem:
+      width: "0.92"
+      height: "auto"
+    codeLabel:
+      width: "0.75733333333"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      lineHeight: "2.093596vh"
+      wordBreak: break-word
+    searchShow:
+      top: "0.16748768"
+      # left: "0.04"
+      width: "auto"
+      height: "auto"
+      backgroundColor: "0xffffff"
+      borderRadius: "4"
+      boxSizing: "border-box"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      zIndex: "2000"
+    codeView:
+      display: "none"
+      width: "0.92"
+      height: "auto"
+
+      borderRadius: "4"
+      boxSizing: "border-box"
+      backgroundColor: "0xffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      zIndex: 10
+    scrollShow:
+      width: "0.9"
+      height: "0.3"
+      marginLeft: "0.02"
+      overflow: scroll
+    dataList:
+      width: "0.9"
+      height: "0.3"
+      margin: "0"
+    dataListItem:
+      width: "0.9"
+      marginTop: "0.002"
+      height: "auto"
+      overflow: hidden
+    dataListItemValue:
+      width: "0.88"
+      textIndent: 20px
+      marginTop: "0.005"
+      textAlign:
+        x: left
+        y: center
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "0x143459"
+      wordWrap: break-word
+    # ------------------------
+    checkBoxImg:
+      verticalAlign: middle
+      height: "0.019704"
+      width: "0.0426666"
+    checkBoxLabel:
+      display: "inline-block"
+      verticalAlign: middle
+      marginLeft: "0.032"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+    blockSecondBox:
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    inputPreview:
+      marginTop: "0.009852"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+      wordBreak: break-word
+      backgroundColor: "#f4f4f4"

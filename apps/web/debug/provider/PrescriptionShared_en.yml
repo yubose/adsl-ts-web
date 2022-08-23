@@ -4,12 +4,52 @@ PrescriptionShared:
   appointmentInfo: .Global.roomInfo.edge
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: =.DocType.Prescription
+
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
 
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.prescription.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
     - actionType: evalObject
       object:
         - =.builtIn.array.getListLength:
@@ -35,35 +75,70 @@ PrescriptionShared:
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Prescription(RX)"
+        - .Global.formData.downloadPDF.scaleX@: 0.86
+        - .Global.formData.downloadPDF.scaleY@: 0.86
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
   formData: ""
   formDataTemp:
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
     listDatalength: ""
     listFlag: "none"
     flag: "none"
     downFlag: "inline-block"
+  apiRequest:
+    prescription:
+      docRes: ""
+      docReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PrescriptionShared.apiRequest.prescription.docReq
+          dataOut: PrescriptionShared.apiRequest.prescription.docRes
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.Prescription
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      date: =.Global.formData.auditLog.startTime
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
-          onClick:
-            - actionType: popUp
-              popUpView: selectTag
     - type: scrollView
+      viewTag: mainView
       style:
-        width: "1"
-        height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+        ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
         - type: view
           style:
@@ -97,7 +172,7 @@ PrescriptionShared:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -108,7 +183,7 @@ PrescriptionShared:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
         - type: view
@@ -493,7 +568,7 @@ PrescriptionShared:
           children:
             - type: label
               textBoard:
-                - text: PrescriptionShared is
+                - text: Prescription is
                 - text: "&nbsp;VOID&nbsp;"
                   color: "0xfb5051"
                 - text: if the number of drugs prescribed is not noted.
@@ -723,73 +798,263 @@ PrescriptionShared:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
-      viewTag: selectTag
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
       children:
-        - .DashboardPopDismiss:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+
+    - type: popUp
+      viewTag: MenuBoxTag
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        marginTop: "0"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            width: "1"
+            height: "1"
           onClick:
             - actionType: popUpDismiss
-              popUpView: selectTag
-        - .DashboardPopUpBox:
+              popUpView: MenuBoxTag
+        - type: view
+          bubble: true
           style:
-            marginTop: "0.0517"
+            top: "0.0431034"
+            left: "0.52266666"
+            width: "0.4453333"
+            boxSizing: "border-box"
+            borderRadius: "5"
+            border: "1px solid #dedede"
+            backgroundColor: "#ffffff"
+            overflow: hidden
+            zIndex: 10
           children:
-            - .DashboardPopUpBoxChild:
-              style:
-                height: "0.15"
+            - type: view
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.downloadPDF:
+                        dataIn:
+                          viewTag: mainView
+                          titleName: =.Global.formData.downloadPDF.titleName
+                          scaleX: =.Global.formData.downloadPDF.scaleX
+                          scaleY: =.Global.formData.downloadPDF.scaleY
+                          originX: =.Global.formData.downloadPDF.originX
+                          originY: =.Global.formData.downloadPDF.originY
+                    - actionType: popUpDismiss
+                      popUpView: MenuBoxTag
               children:
-                - .DashboardFlexColumnView:
+                - type: image
+                  path: PDFIcon.svg
                   style:
-                    borderTopLeftRadius: "5px"
-                    borderTopRightRadius: "5px"
-                  children:
-                    - .DashboardListBox:
-                      onClick:
-                        - actionType: evalObject
-                          object:
-                            - =.builtIn.EcosObj.exportPDF:
-                                dataIn:
-                                  ecosObj: =.Global.Note
-                                  viewTag: mainView
-                            - actionType: popUpDismiss
-                              popUpView: selectTag
-                      children:
-                        - .DashboardListImg:
-                          path: pdf.png
-                        - .DashboardListText0:
-                          text: "Download PDF"
-                          style:
-                            textAlign:
-                              y: center
-                    - .DashboardListBox:
-                      onClick:
-                        - actionType: evalObject
-                          object:
-                            - =.builtIn.array.add:
-                                dataIn:
-                                  object: =.Global.sendModule.selectDoc
-                                  value: =.Global.Note
-                            - =.builtIn.ecos.copyDocToAttachment:
-                                dataIn:
-                                  sourceDocList: =.Global.sendModule.selectDoc
-                                  newType: =.DocType.Attachment
-                                dataOut: Global.sendModule.attachments
-                            - =.builtIn.object.extract:
-                                dataIn:
-                                  array: =.Global.sendModule.attachments
-                                  field: doc
-                                dataOut: Global.sendModule.attachments
-                            - =.builtIn.array.concat:
-                                dataIn:
-                                  array1: =.Global.sendModule.attachments
-                                  array2: =.Global.formData.attachments
-                                dataOut: Global.formData.attachments
-                        - goto: PharmacyList
-                      children:
-                        - .DashboardListImg:
-                          path: send.png
-                        - .DashboardListText0:
-                          text: "Send"
-                          style:
-                            textAlign:
-                              y: center
+                    marginLeft: "0.053"
+                    display: "inline-block"
+                    verticalAlign: middle
+                    height: "0.024"
+                    width: "0.05333"
+                - type: label
+                  text: Download PDF
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    wordWrap: break-word
+                    verticalAlign: middle
+                    fontSize: .Nfont.h14
+                    lineHeight: 5.75492vh
+                    fontWeight: "400"
+                    color: "0x333333"
+
+            - type: view
+              style:
+                borderTop: "1px solid #dedede"
+                width: "0.4453333"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =.Global.sendModule.selectDoc
+                          value: =.Global.Note
+                    - =.builtIn.ecos.copyDocToAttachment:
+                        dataIn:
+                          sourceDocList: =.Global.sendModule.selectDoc
+                          newType: =.DocType.Attachment
+                        dataOut: Global.sendModule.attachments
+                    - =.builtIn.object.extract:
+                        dataIn:
+                          array: =.Global.sendModule.attachments
+                          field: doc
+                        dataOut: Global.sendModule.attachments
+                    - =.builtIn.array.concat:
+                        dataIn:
+                          array1: =.Global.sendModule.attachments
+                          array2: =.Global.formData.attachments
+                        dataOut: Global.formData.attachments
+                - goto: PharmacyList
+              children:
+                - type: image
+                  path: sendIcon.svg
+                  style:
+                    marginLeft: "0.053"
+                    display: "inline-block"
+                    verticalAlign: middle
+                    height: "0.024"
+                    width: "0.05333"
+                - type: label
+                  text: Send
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    wordWrap: break-word
+                    verticalAlign: middle
+                    fontSize: .Nfont.h14
+                    lineHeight: 5.75492vh
+                    fontWeight: "400"
+                    color: "0x333333"
+
+    # - .HeaderPopUpDownload:
+    #     viewTag: selectTag
+    #     children:
+    #       - .DashboardPopDismiss:
+    #         onClick:
+    #           - actionType: popUpDismiss
+    #             popUpView: selectTag
+    #       - .DashboardPopUpBox:
+    #         style:
+    #           marginTop: "0.0517"
+    #         children:
+    #           - .DashboardPopUpBoxChild:
+    #             style:
+    #               height: "0.15"
+    #             children:
+    #               - .DashboardFlexColumnView:
+    #                 style:
+    #                   borderTopLeftRadius: "5px"
+    #                   borderTopRightRadius: "5px"
+    #                 children:
+    #                   - .DashboardListBox:
+
+    #                     children:
+    #                       - .DashboardListImg:
+    #                         path: pdf.png
+    #                       - .DashboardListText0:
+    #                         text: "Download PDF"
+    #                         style:
+    #                           textAlign:
+    #                             y: center
+    #                         onClick:
+    #                           - actionType: evalObject
+    #                             object:
+    #                               - =.builtIn.utils.downloadPDF:
+    #                                   dataIn:
+    #                                     viewTag: mainView
+    #                                     scaleX: =.Global.formData.downloadPDF.scaleX
+    #                                     scaleY: =.Global.formData.downloadPDF.scaleY
+    #                                     originX: =.Global.formData.downloadPDF.originX
+    #                                     originY: =.Global.formData.downloadPDF.originY
+    #                               - actionType: popUpDismiss
+    #                                 popUpView: selectTag
+    #                   - .DashboardListBox:
+    #                     onClick:
+    #                       - actionType: evalObject
+    #                         object:
+    #                           - =.builtIn.array.add:
+    #                               dataIn:
+    #                                 object: =.Global.sendModule.selectDoc
+    #                                 value: =.Global.Note
+    #                           - =.builtIn.ecos.copyDocToAttachment:
+    #                               dataIn:
+    #                                 sourceDocList: =.Global.sendModule.selectDoc
+    #                                 newType: =.DocType.Attachment
+    #                               dataOut: Global.sendModule.attachments
+    #                           - =.builtIn.object.extract:
+    #                               dataIn:
+    #                                 array: =.Global.sendModule.attachments
+    #                                 field: doc
+    #                               dataOut: Global.sendModule.attachments
+    #                           - =.builtIn.array.concat:
+    #                               dataIn:
+    #                                 array1: =.Global.sendModule.attachments
+    #                                 array2: =.Global.formData.attachments
+    #                               dataOut: Global.formData.attachments
+    #                       - goto: PharmacyList
+    #                     children:
+    #                       - .DashboardListImg:
+    #                         path: send.png
+    #                       - .DashboardListText0:
+    #                         text: "Send"
+    #                         style:
+    #                           textAlign:
+    #                             y: center
+    #成功提示
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag
+  event:
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.prescription.docReq.name.data.statusTag.name@: Released
+          - ..apiRequest.prescription.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.prescription.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      # 保存newNote
+      - actionType: evalObject
+        object:
+          - ..apiRequest.prescription.docReq.tage@: -1
+          - =..apiRequest.prescription.docAPI.store: ""
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: popUp
+        popUpView: successTag
+
+      # 返回路径
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

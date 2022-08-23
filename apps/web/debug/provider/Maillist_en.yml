@@ -84,12 +84,12 @@ Maillist: # This is page name
           dataOut: Maillist.apiRequest.doctorProfile.docResp
     patientProfile:
       docReq:
-        ObjType: 8
-        id: .Global.currentUser.vertex.id
-        xfname: "E.bvid|E.evid"
         type: .DocType.PatientProfile
-        _nonce: =.Global._nonce
-        sCondition: "E.type=10002 AND E.tage>0"
+        ObjType: 28
+        id: .Global.currentUser.vertex.id
+        xfname: E.bvid|E.evid
+        sfname: "{\"result\":\"D.*\", \"join\": \"INNER JOIN Edge E on E.id = D.eid INNER JOIN Vertex V on D.ovid=V.id AND V.type>0\"}"
+        sCondition: "E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x10000"
       docResp: ""
       docAPI:
         get:

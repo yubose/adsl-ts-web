@@ -131,8 +131,13 @@ AppointmentScheduleListView: #xdpage:9
           messages: =..formData.ids
           newMessage: =.Global.currentUser.vertex.id
         dataOut: AppointmentScheduleListView.formData.ids
-    - =..scheduleReGet.get: ""
-    - =..apiRequest.listRoomData.get: ""
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..scheduleReGet.get: ""
+            - =..apiRequest.listRoomData.get: ""
     - =.builtIn.array.concatArray:
         dataIn:
           array1: =..scheduleReGet.scheduleList.edge
@@ -316,7 +321,7 @@ AppointmentScheduleListView: #xdpage:9
                 width: "0.4"
                 height: "0.05"
                 color: "#30B354"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h12
                 backgroundColor: "#ffffff"
                 borderRadius: "5"
@@ -363,7 +368,7 @@ AppointmentScheduleListView: #xdpage:9
                 left: "0.535"
                 width: "0.4"
                 color: "#2988E6"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h12
                 height: "0.05"
                 borderRadius: "5"
@@ -390,7 +395,7 @@ AppointmentScheduleListView: #xdpage:9
                   style:
                     fontSize: .Nfont.h14
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     width: "0.95"
                     left: "0"
                 - type: view
@@ -571,8 +576,13 @@ AppointmentScheduleListView: #xdpage:9
                                       =.builtIn.math.random: ""
                                 - actionType: evalObject
                                   object:
-                                    - =..apiRequest.listRoomData.get: ""
-                                    - =..scheduleReGet.get: ""
+                                    - actionType: evalObject
+                                      object:
+                                        - actionType: evalObject
+                                          async: true
+                                          object:
+                                            - =..apiRequest.listRoomData.get: ""
+                                            - =..scheduleReGet.get: ""
                                     - =.builtIn.array.concatArray:
                                         dataIn:
                                           array1: =..scheduleReGet.scheduleList.edge
@@ -590,7 +600,7 @@ AppointmentScheduleListView: #xdpage:9
                               style:
                                 backgroundColor: itemObject.backgroundColor
                                 fontWeight: "600"
-                                fontFamily: "Arial"
+
                                 border:
                                   style: 3
                                 borderWidth: "1"
@@ -719,7 +729,7 @@ AppointmentScheduleListView: #xdpage:9
                               - =.builtIn.string.equal:
                                   dataIn:
                                     string1: $var.name.visitTypeShow
-                                    string2: "Office Visits"
+                                    string2: "Office Visit"
                               - goto: AppointmentLobbyOfficeVisit
                               - continue
                   style:

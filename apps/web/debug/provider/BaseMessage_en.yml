@@ -16,8 +16,11 @@ FirebaseToken:
     .Edge: ""
     type: 1090
     name:
-      accessToken: ""
-      deviceType: "Android"
+      accessToken: "" # FCM Token
+      apns2Token: "" # specifically for regular iOS alert notification
+      VoIPToken: "" # specifically for iOS ringtone VoIP notification
+      apnsTopic: "" # .AppName for iOS target app bundle id
+      # deviceType: "Android" # backend use subtype to differentiate iOS=1 and Android=0
     evid: ""
     refid: ""
   response: ""

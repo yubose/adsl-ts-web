@@ -1,0 +1,687 @@
+SearchSpecialty:
+  tiile: "Serach"
+  init: 
+    # - .SignInCheck
+  formData:
+    searchCond: ""
+    suggestAll: 
+      uniqSym_suggestion: []
+      symptom_suggestion: []
+      speciality_suggestion: []
+    showRes: "none"
+    displayResult:
+      startBlock: block
+      inputBlock: none
+    isResultNull: true
+    searchInput: ""
+    popularSpe:
+      - COVID-19 Testing
+      - COVID-19 Vaccine
+      - Family Medicine
+      - Orthopedic
+      - Emergency Medicine
+      - Dermatology
+      - Pediatrics
+    allSpe:
+      - Abdominal Radiology
+      - Acupuncture
+      - Addiction Psychiatry
+      - Adolescent Medicine
+      - Adult Cardiothoracic Anesthesiology
+      - Adult Reconstructive Orthopaedics
+      - Advanced Heart Failure and Transplant Cardiology
+      - Allergy and Immunology
+      - Anatomic and Clinical Pathology
+      - Anesthesiology
+      - Biochemical Genetics
+      - Blood Banking-Transfusion Medicine
+      - Cardiothoracic Radiology
+      - Cardiothoracic Surgery
+      - Cardiovascular Disease
+      - Cardiovascular Surgery
+      - Chemical Pathology
+      - Child Abuse Pediatrics
+      - Child and Adolescent Psychiatry
+      - Child Neurology
+      - Chinese Medicine(Traditional Chinese Medicine-TCM)
+      - Chiropractor
+      - Clinical Cardiac Electrophysiology
+      - Clinical Neurophysiology
+      - Colon and Rectal Surgery
+      - Congenital Cardiac Surgery
+      - Craniofacial Surgery
+      - Critical Care Medicine
+      - Cytopathology
+      - Dentistry
+      - Dermatology
+      - Dermatopathology
+      - Developmental and Behavioral Pediatrics
+      - Diagnosis Imaging
+      - Diagnosis Laboratory 
+      - Diagnostic Radiology
+      - Endocrinology, Diabetes, and Metabolism
+      - Endovascular Surgical Neuroradiology
+      - Family Medicine/Primary Care
+      - Family Therapy
+      - Female Pelvic Medicine and Reconstructive Surgery
+      - Foot and Ankle Orthopaedics
+      - Forensic Pathology
+      - Forensic Psychiatry
+      - Gastroenterology
+      - General Surgery
+      - Geriatric Medicine
+      - Geriatric Psychiatry
+      - Hand Surgery
+      - Hematology
+      - Hematology and Oncology
+      - Hospice and Palliative Medicine
+      - Infectious Disease
+      - Integrated Plastic Surgery
+      - Integrated Thoracic Surgery
+      - Integrated Vascular Surgery
+      - Internal Medicine
+      - Internal Medicine-Emergency Medicine
+      - Internal Medicine-Pediatrics
+      - Interventional Cardiology
+      - Medical Genetics
+      - Medical Microbiology
+      - Medical Toxicology
+      - Mental Therapy
+      - Micrographic Surgery and Dermatologic Oncology
+      - Midwifery
+      - Molecular Genetic Pathology
+      - Musculoskeletal Oncology
+      - Musculoskeletal Radiology
+      - Neonatal-Perinatal Medicine
+      - Nephrology
+      - Neurological Surgery
+      - Neurology
+      - Neuromuscular Medicine
+      - Neuromuscular Medicine and Osteopathic Manipulative Medicine/Osteopathic Neuromusculoskeletal Medicine
+      - Neuropathology
+      - Neuroradiology
+      - Nuclear Medicine
+      - Nuclear Radiology
+      - Nurse Practitioner
+      - Nutrition & Diet Therapy
+      - Obstetric Anesthesiology
+      - Obstetrics and Gynecology
+      - Occupational Therapy
+      - Oncology
+      - Ophthalmic Plastic and Reconstructive Surgery
+      - Ophthalmology
+      - Optometry
+      - Orthopaedic Sports Medicine
+      - Orthopaedic Surgery
+      - Orthopaedic Surgery of the Spine
+      - Orthopaedic Trauma
+      - Otolaryngology
+      - Otology-Neurotology
+      - Pain Medicine
+      - Pediatric Anesthesiology
+      - Pediatric Cardiology
+      - Pediatric Critical Care Medicine
+      - Pediatric Emergency Medicine
+      - Pediatric Endocrinology
+      - Pediatric Gastroenterology
+      - Pediatric Hematology-Oncology
+      - Pediatric Infectious Disease
+      - Pediatric Nephrology
+      - Pediatric Orthopaedics
+      - Pediatric Otolaryngology
+      - Pediatric Pathology
+      - Pediatric Pulmonology
+      - Pediatric Radiology
+      - Pediatric Rheumatology
+      - Pediatric Sports Medicine
+      - Pediatric Surgery
+      - Pediatric Transplant Hepatology
+      - Pediatric Urology
+      - Pediatrics
+      - Pharmacy
+      - Physical Medicine and Rehabilitation
+      - Physical Therapy
+      - Physician Assistant
+      - Plastic Surgery
+      - Podiatry
+      - Preventive Medicine
+      - Psychiatry
+      - Psychology
+      - Pulmonary Disease
+      - Pulmonary Disease and Critical Care Medicine
+      - Pulmonary Therapy
+      - Radiation Oncology
+      - Reproductive Endocrinology and Infertility
+      - Rheumatology
+      - Sleep Medicine
+      - Speech Therapy
+      - Spinal Cord Injury Medicine
+      - Sports Medicine
+      - Surgical Critical Care
+      - Thoracic Surgery
+      - Transplant Hepatology
+      - Urology
+      - Vascular and Interventional Radiology
+      - Vascular Surgery
+  formDataTemp:
+  components:
+    - type: view
+      style:
+        marginTop: "0"
+        width: "1"
+        height: "0.055"
+        backgroundColor: "0x2988e6"
+        textAlign:
+          y: center
+      children:
+        - type: view
+          style:
+            width: "1"
+            height: "auto"
+          children:
+            - type: label
+              text: Cancel
+              style:
+                height: "auto"
+                marginLeft: "0.0373"
+                color: "0xffffff"
+                fontSize: .Nfont.h14
+                display: inline-block
+              onClick:
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+            - type: label
+              text: Search
+              style:
+                height: "auto"
+                marginLeft: "0.27"
+                fontSize: .Nfont.h18
+                color: "0xffffff"
+                display: inline-block
+            - type: label
+              text: Done
+              style:
+                height: "auto"
+                marginLeft: "0.3"
+                fontSize: .Nfont.h14
+                color: "0xffffff"
+                display: inline-block
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                      - =.builtIn.array.judgeListLength:
+                          dataIn:
+                            array: =..formData.suggestAll.symptom_suggestion
+                            len: 0
+                      - continue
+                      - =.builtIn.string.parseSpliceString:
+                          dataIn:
+                              value: =..formData.searchInput
+                              objArr: =..formData.suggestAll.symptom_suggestion
+                          dataOut: SearchSpecialty.formData.searchCond
+                - actionType: evalObject
+                  object:
+                    - if: 
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..formData.searchCond
+                            string2: ""
+                      - .Global.symptomCond@: ""
+                      - .Global.symptomCond@: =..formData.searchCond
+                    - .Global.cond@: =..formData.searchInput
+                    - goto: AppointmentSearch
+    - type: view
+      style:
+        width: "1"
+        height: "0.045"
+        left: "0"
+        border:
+          style: 2
+          color: "0xf3f3f3"
+        borderWidth: 1px
+      children:
+        - type: textField
+          viewTag: specialtyTag
+          debounce: 500
+          placeholder: "Try dentist, migraine, flu shot, or doctor name"
+          dataKey: formData.searchInput
+          style:
+            width: "0.75"
+            left: "0.0467"
+            height: "0.045"
+            lineHeight: "4.3vh"
+            verticalAlign: middle
+            color: "0x000000"
+            border:
+              style: 1
+          onInput:
+            - actionType: evalObject
+              object:
+                - ..formData.suggestAll.uniqSym_suggestion@: []
+                - ..formData.suggestAll.speciality_suggestion@: []
+                - ..formData.suggestAll.symptom_suggestion@: []
+                - =.builtIn.search.suggest:
+                    dataIn:
+                      prefix: =..formData.searchInput
+                    dataOut: SearchSpecialty.formData.suggestAll
+                - if:
+                  - =.builtIn.array.judgeListLength:
+                      dataIn:
+                        array: =..formData.suggestAll.symptom_suggestion
+                        len: 0
+                  - actionType: evalObject
+                    object:
+                      - if:
+                        - =.builtIn.array.judgeListLength:
+                            dataIn:
+                              array: =..formData.suggestAll.speciality_suggestion
+                              len: 0
+                        - ..formData.isResultNull@: true
+                        - continue  
+                  - ..formData.isResultNull@: false
+            - actionType: evalObject
+              object:
+                - if:
+                    - ..formData.isResultNull
+                    - actionType: evalObject
+                      object:
+                        - ..formData.displayResult.startBlock@: "block"
+                        - ..formData.displayResult.inputBlock@: "none"
+                        - ..formData.showRes@: "block"
+                    - actionType: evalObject
+                      object:
+                        - ..formData.displayResult.startBlock@: "none"
+                        - ..formData.displayResult.inputBlock@: "block"
+                        - ..formData.showRes@: "none"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formData.searchInput
+                          string2: ""
+                    - actionType: evalObject
+                      object:
+                        - ..formData.displayResult.startBlock@: "block"
+                        - ..formData.displayResult.inputBlock@: "none"
+                        - ..formData.showRes@: "none"
+                    - continue
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: startSearch
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: inputSearch
+            - actionType: builtIn
+              funcName: redraw
+              viewTag: noResultSearch
+    - type: view
+      viewTag: startSearch
+      style:
+        width: "1"
+        height: "0.899"
+        display: ..formData.displayResult.startBlock
+      children:
+        - type: scrollView 
+          style:
+            width: "1"
+            height: "0.899"
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+              children:
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.1"
+                    display: ..formData.showRes
+                    textAlign:
+                      x: center
+                      y: center
+                  children:
+                    - type: image
+                      path: nosuggestion.svg
+                      style:
+                        marginTop: "0.01"
+                        height: "0.066"
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.04"
+                    backgroundColor: "0xf3f3f3"
+                  children:
+                    - type: label
+                      text: Popular Specialities
+                      style:
+                        left: "0.04"
+                        height: "0.04"
+                        width: "0.75"
+                        lineHeight: "4vh"
+                        fontSize: .Nfont.h14
+                        color: "0x666666"
+            - type: view
+              style:
+                width: "0.95"
+                height: "auto"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.popularSpe
+                  iteratorVar: itemObject
+                  scrollable: false
+                  style:
+                    width: '0.95'
+                    margin: '0'
+                    left: '0.04'
+                    height: "auto"
+                  children:
+                    - type: listItem
+                      itemObject: 
+                      style:
+                        width: '0.95'
+                        height: '0.042'
+                        left: '0'
+                        lineHeight: "4.2vh"
+                        verticalAlign: middle
+                      children:
+                        - type: label
+                          dataKey: itemObject
+                          style:
+                            height: '0.042'
+                            width: auto
+                            fontSize: .Nfont.h14
+                            fontColor: "0x333333"
+                            textAlign:
+                              y: center
+                      onClick:
+                        - emit:
+                            dataKey: 
+                              var: itemObject
+                            actions:
+                              - ..formData.searchInput@: $var
+                              - .Global.cond@: $var
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: specialtyTag
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =.builtIn.array.judgeListLength:
+                                  dataIn:
+                                    array: =..formData.suggestAll.symptom_suggestion
+                                    len: 0
+                              - continue
+                              - =.builtIn.string.parseSpliceString:
+                                  dataIn:
+                                      value: =..formData.searchInput
+                                      objArr: =..formData.suggestAll.symptom_suggestion
+                                  dataOut: SearchSpecialty.formData.searchCond
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.searchCond
+                                    string2: ""
+                              - .Global.symptomCond@: ""
+                              - .Global.symptomCond@: =..formData.searchCond
+                            - .Global.cond@: =..formData.searchInput
+                        - goto: AppointmentSearch
+            - type: view
+              viewTag: startSearch
+              style:
+                width: "1"
+                height: "auto"
+              children:
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.04"
+                    backgroundColor: "0xf3f3f3"
+                  children:
+                    - type: label
+                      text:  All Specialties
+                      dataKey: 
+                      style:
+                        left: "0.04"
+                        height: "0.04"
+                        width: "0.75"
+                        lineHeight: "4vh"
+                        fontSize: .Nfont.h14
+                        color: "0x666666"
+            - type: view
+              style:
+                width: "0.95"
+                height: "auto"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.allSpe
+                  iteratorVar: itemObject
+                  scrollable: false
+                  style:
+                    width: '0.95'
+                    margin: '0'
+                    left: '0.04'
+                    height: "auto"
+                  children:
+                    - type: listItem
+                      itemObject: 
+                      style:
+                        width: '0.95'
+                        height: '0.042'
+                        left: '0'
+                        lineHeight: "4.2vh"
+                        verticalAlign: middle
+                      children:
+                        - type: label
+                          dataKey: itemObject
+                          style:
+                            height: '0.042'
+                            width: auto
+                            fontSize: .Nfont.h14
+                            fontColor: "0x333333"
+                            textAlign:
+                              y: center
+                      onClick:
+                        - emit:
+                            dataKey: 
+                              var: itemObject
+                            actions:
+                              - ..formData.searchInput@: $var
+                              - .Global.cond@: $var
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: specialtyTag
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =.builtIn.array.judgeListLength:
+                                  dataIn:
+                                    array: =..formData.suggestAll.symptom_suggestion
+                                    len: 0
+                              - continue
+                              - =.builtIn.string.parseSpliceString:
+                                  dataIn:
+                                      value: =..formData.searchInput
+                                      objArr: =..formData.suggestAll.symptom_suggestion
+                                  dataOut: SearchSpecialty.formData.searchCond
+                        - actionType: evalObject
+                          object:
+                            - if: 
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =..formData.searchCond
+                                    string2: ""
+                              - .Global.symptomCond@: ""
+                              - .Global.symptomCond@: =..formData.searchCond
+                            - .Global.cond@: =..formData.searchInput
+                        - goto: AppointmentSearch
+    - type: view
+      viewTag: inputSearch
+      style:
+        width: "1"
+        height: "0.899"
+        display: ..formData.displayResult.inputBlock
+      children:    
+        - type: scrollView
+          style:
+            width: "1"
+            height: "0.899"
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+              children:
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.04"
+                    backgroundColor: "0xf3f3f3"
+                  children:
+                    - type: label
+                      text: Symptoms
+                      style:
+                        left: "0.04"
+                        height: "0.04"
+                        width: "0.75"
+                        lineHeight: "4vh"
+                        fontSize: .Nfont.h14
+                        color: "0x666666"
+            - type: view
+              style:
+                width: "0.95"
+                height: "auto"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.suggestAll.uniqSym_suggestion
+                  iteratorVar: itemObject
+                  scrollable: false
+                  style:
+                    width: '0.95'
+                    margin: '0'
+                    left: '0.04'
+                    height: "auto"
+                  children:
+                    - type: listItem
+                      itemObject: 
+                      style:
+                        width: '0.95'
+                        height: '0.042'
+                        left: '0'
+                        lineHeight: "4.2vh"
+                        verticalAlign: middle
+                      children:
+                        - type: label
+                          highlightKey: formData.searchInput
+                          highlightStyle:
+                            color: "#FF6666"
+                          dataKey: itemObject
+                          style:
+                            height: '0.042'
+                            width: auto
+                            fontSize: .Nfont.h14
+                            textAlign:
+                              y: center
+                            fontColor: "0x333333"
+                      onClick:
+                        - emit:
+                            dataKey: 
+                              var: itemObject
+                            actions:
+                              - .Global.cond@: $var
+                              - ..formData.searchInput@: $var
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: specialtyTag
+                        - goto: AppointmentSearch
+            - type: view
+              viewTag: startSearch
+              style:
+                width: "1"
+                height: "auto"
+              children:
+                - type: view
+                  style:
+                    width: "1"
+                    height: "0.04"
+                    backgroundColor: "0xf3f3f3"
+                  children:
+                    - type: label
+                      text: Specialties
+                      dataKey: 
+                      style:
+                        left: "0.04"
+                        height: "0.04"
+                        width: "0.75"
+                        lineHeight: "4vh"
+                        fontSize: .Nfont.h14
+                        color: "0x666666"
+            - type: view
+              style:
+                width: "0.95"
+                height: "auto"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formData.suggestAll.speciality_suggestion
+                  iteratorVar: itemObject
+                  scrollable: false
+                  style:
+                    width: '0.95'
+                    margin: '0'
+                    left: '0.04'
+                    height: "auto"
+                  children:
+                    - type: listItem
+                      itemObject: 
+                      style:
+                        width: '0.95'
+                        height: '0.042'
+                        left: '0'
+                        lineHeight: "4.2vh"
+                        verticalAlign: middle
+                      children:
+                        - type: label
+                          highlightKey: formData.searchInput
+                          highlightStyle:
+                            color: "#FF6666"
+                          dataKey: itemObject.text
+                          style:
+                            height: '0.042'
+                            width: auto
+                            fontSize: .Nfont.h14
+                            textAlign:
+                              y: center
+                            fontColor: "0x333333"     
+                      onClick:
+                        - emit:
+                            dataKey: 
+                              var: itemObject
+                            actions:
+                              - .Global.cond@: $var.text
+                              - ..formData.searchInput@: $var.text  
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: specialtyTag
+                        - goto: AppointmentSearch
+
+                    
+                
+            
+
+
+              
+
+                
+                
+
+
+
+            

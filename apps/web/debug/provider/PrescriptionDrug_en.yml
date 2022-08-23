@@ -29,7 +29,7 @@ PrescriptionDrug:
       style:
         width: "1"
         height: "0.94"
-        fontFamily: "Arial"
+
         overflow: scroll
       children:
         - type: label
@@ -67,7 +67,7 @@ PrescriptionDrug:
                 marginLeft: "0.0346"
                 height: "0.037"
                 width: "0.926"
-                fontFamily: "Arial"
+
                 border:
                   style: 3
                   width: "1.5px"

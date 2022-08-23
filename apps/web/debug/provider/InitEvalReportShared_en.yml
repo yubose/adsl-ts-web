@@ -3,8 +3,49 @@ InitEvalReportShared:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
-
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - ..formData@: =.Global.Note
+
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: =.DocType.InitEvalReport
+
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.initialEvaluationReport.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - actionType: evalObject
+          object:
+            # 显示重置滚动条高度按钮
+            - ..formDataTemp.scrollHeight@: "0.945"
+            # 显示分享按钮
+            - ..formDataTemp.displayBtn@: "none"
+
     - actionType: evalObject
       object:
         .Global._nonce@:
@@ -14,7 +55,7 @@ InitEvalReportShared:
       object:
         - =.builtIn.array.getListLength:
             dataIn:
-              object: =..formData.name.data.diagnosis.descriptiveList
+              object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
             dataOut: InitEvalReportShared.formDataTemp.desListLength
 
     - actionType: evalObject
@@ -36,36 +77,82 @@ InitEvalReportShared:
     - actionType: evalObject
       object:
         - if:
-            - =.builtIn.string.equal:
+            # 根据Liz要求，所有release后的，不管是否让patient看，都可以下载pdf
+            - =.builtIn.number.typeIsValid:
                 dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
+                  docType: =.Global.Note.type
+                  localArr: [1]
+                  binaryArr: [1]
             - continue
             - ..formDataTemp.downFlag@: "none"
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Initial Evaluation Report"
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
 
-  formData: ""
+    # 判断签名是否存在
+    - actionType: evalObject
+      object:
+        - if:
+            - =.InitEvalReportShared.formData.name.data.signatureId
+            - ..formData.displaySign@: "block"
+            - ..formData.displaySign@: "none"
+
+  formData:
+    # 控制签名是否显示
+    displaySign: "none"
 
   formDataTemp: #Input data temp here, datatemp should not mix with formData
     downFlag: "inline-block"
     desListLength: ""
     desListFlag: "none"
     listFlag: "none"
+    # 控制当前滚动条高度
+    scrollHeight: "0.84729"
+    # 是否显示分享按钮
+    displayBtn: "none"
   apiRequest: #Input data request here
+    initialEvaluationReport:
+      docResp: ""
+      docReq: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: InitEvalReportShared.apiRequest.initialEvaluationReport.docReq
+          dataOut: InitEvalReportShared.apiRequest.initialEvaluationReport.docResp
 
   components:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      date: =.Global.formData.auditLog.startTime
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: .DocType.InitEvalReport
+                      eid: =.Global.formData.currentFacility.relationEdge.i
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderDownload:
+        - .BasePublicHeaderMenu:
           style:
             display: ..formDataTemp.downFlag
     - type: scrollView
+      viewTag: mainView
       style:
-        width: "1"
-        height: "0.94"
-        overflow: scroll
-        fontFamily: "Arial"
+        ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
         - type: view
           style:
@@ -99,7 +186,7 @@ InitEvalReportShared:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordBreak: "break-word"
                 - type: label
@@ -110,7 +197,7 @@ InitEvalReportShared:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordBreak: "break-word"
         - type: view
@@ -224,10 +311,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: To Whom It May Concern
@@ -252,10 +339,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Reason For Evaluation
@@ -280,10 +367,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: History of Present Illness
@@ -308,10 +395,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Past Medical History
@@ -336,10 +423,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Past Surgical History
@@ -364,10 +451,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Allergies
@@ -392,10 +479,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Family History
@@ -420,10 +507,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Social History
@@ -448,10 +535,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Medications
@@ -476,10 +563,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Objective Findings
@@ -625,7 +712,7 @@ InitEvalReportShared:
             marginTop: "0.01724"
             marginLeft: "0.04"
             width: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: label
@@ -666,10 +753,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
         - type: label
           text: Imaging Studies
@@ -694,10 +781,10 @@ InitEvalReportShared:
             border:
               style: 1
             borderRadius: "4"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
-            wordBreak: "break-all"
+            wordBreak: break-word
             backgroundColor: "0xf4f4f4"
 
           # Diagnoses
@@ -738,7 +825,7 @@ InitEvalReportShared:
             - type: list
               viewTag: listData
               contentType: listObject
-              listObject: ..formData.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+              listObject: .Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
               iteratorVar: itemObject
               style:
                 display: ..formDataTemp.listFlag
@@ -788,7 +875,7 @@ InitEvalReportShared:
                                 width: "0.17"
                                 textAlign:
                                   x: left
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
                                 fontWeight: "550"
@@ -806,13 +893,13 @@ InitEvalReportShared:
                               dataKey: itemObject.description
                               style:
                                 verticalAlign: top
-                                marginLeft: "0.02"
+                                marginLeft: "0.015"
                                 display: "inline-block"
                                 height: "auto"
                                 width: "0.614"
                                 textAlign:
                                   x: left
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
                                 color: "0x333333"
@@ -824,7 +911,7 @@ InitEvalReportShared:
                         width: "0.83"
                         height: "auto"
                         color: "0x666666"
-                        fontFamily: "Arial"
+
                         wordWrap: break-word
                         fontSize: .Nfont.h14
             - type: view
@@ -834,13 +921,21 @@ InitEvalReportShared:
         - type: label
           text: Plan And Recommendations
           style:
+            marginTop: "0.01"
             marginLeft: "0.04"
-            marginTop: "0.0185"
-            fontWeight: "600"
             width: "0.92"
             height: "auto"
             color: "0x333333"
             fontSize: .Nfont.h14
+            fontWeight: "600"
+            lineHeight: "2.58vh"
+        - type: label
+          text: "&#8226 Note"
+          style:
+            marginLeft: "0.04"
+            width: "0.92"
+            fontSize: .Nfont.h14
+            lineHeight: "2.58vh"
         - type: label
           text: No content
           dataKey: formData.name.data.planAndRecommendations
@@ -854,12 +949,28 @@ InitEvalReportShared:
               style: 1
             borderRadius: "4"
             borderWidth: "1.5"
-            fontFamily: "Arial"
+
             color: "0x333333"
             padding: "6px 12px"
             backgroundColor: "0xf4f4f4"
             fontSize: .Nfont.h14
             wordBreak: break-word
+
+        # - type: view
+        #   viewTag: defaultTag
+        #   style:
+        #     ..style.blockBox:
+        #   children:
+        #     - type: image
+        #       path:
+        #         ..event.checkBoxPath:
+        #       style:
+        #         ..style.img:
+        #     - type: label
+        #       text: Superbill
+        #       style:
+        #         ..style.setLabel:
+
         - .DocPublicLine:
         - type: view
           style:
@@ -894,18 +1005,18 @@ InitEvalReportShared:
                   color: "0xa9a9a9"
                 borderWidth: "2"
               children:
-                - type: label
-                  text: X
-                  style:
-                    .SignLabelStyle:
-                - type: canvas
-                  dataKey:
-                  viewTag: signatureTag
-                  style:
-                    left: "0"
-                    width: "0.88"
-                    height: "0.128"
-                    overflow: scroll
+                # - type: label
+                #   text: X
+                #   style:
+                #     .SignLabelStyle:
+                # - type: canvas
+                #   dataKey:
+                #   viewTag: signatureTag
+                #   style:
+                #     left: "0"
+                #     width: "0.88"
+                #     height: "0.128"
+                #     overflow: scroll
                 # 显示暂存的签名
                 - type: image
                   viewTag: signatureShowTag
@@ -919,6 +1030,7 @@ InitEvalReportShared:
                     height: "0.128"
                     overflow: scroll
                     zIndex: "1000"
+                    display: ..formData.displaySign
         - type: view
           style:
             marginLeft: "0.04"
@@ -926,6 +1038,7 @@ InitEvalReportShared:
             width: "0.92"
             height: "auto"
             overflow: hidden
+            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -1067,9 +1180,78 @@ InitEvalReportShared:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpDownload:
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
+    # - .HeaderPopUpDownload:
+    - .HeaderPopUpMenu:
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..formData.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
+    btnClick:
+      - actionType: evalObject
+        object:
+          # 更新文档状态
+          - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.name@: "Released"
+          - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
 
+      - actionType: evalObject
+        object:
+          # 修改tage
+          - ..apiRequest.initialEvaluationReport.docReq.tage@: -1
+          - =..apiRequest.initialEvaluationReport.docAPI.store:
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: evalObject
+        object:
+          - goto: MoreOptions
   style:
+    scrollBox:
+      width: "1"
+      height: "0.84729"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
     signBox:
       width: "auto"
       height: "auto"
@@ -1078,7 +1260,7 @@ InitEvalReportShared:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       vertical-align: middle
@@ -1087,7 +1269,7 @@ InitEvalReportShared:
       height: "auto"
       marginLeft: "0.04"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
     inputBox:
@@ -1099,7 +1281,7 @@ InitEvalReportShared:
     vitalInput:
       width: "0.44"
       height: "auto"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       border:
         style: "1"
@@ -1114,7 +1296,7 @@ InitEvalReportShared:
       width: "0.92"
       height: "auto"
       marginTop: "0.014778"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       color: "0x333333"
@@ -1124,3 +1306,23 @@ InitEvalReportShared:
       boxSizing: "border-box"
       padding: "6px 12px"
       wordBreak: break-word
+    blockBox:
+      marginTop: "0.024630"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

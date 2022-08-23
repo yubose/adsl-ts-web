@@ -1,7 +1,27 @@
 FinancialFormReviewPage1:
-  title: Financial Responsibility form
+  title: Financial Responsibility Form
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    # 多页PDF下载配置
+    - actionType: evalObject
+      object:
+        - .Global.formData.downloadPDF.PdfPageList@:
+            - pageName: FinancialFormReviewPage1
+              viewTag: mainView
+            - pageName: FinancialFormReviewPage2
+              viewTag: mainView
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Financial Responsibility Form"
+        - .Global.formData.downloadPDF.pageIntervalList@:
+            - 400
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
   formData:
     showInsuranceImageId: ""
   formDataTemp:
@@ -22,8 +42,26 @@ FinancialFormReviewPage1:
         - .BasePublicHeader:
           children:
             - .BasePublicHeaderLeft:
+              leftClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.view
+                          recordTypeCode: 174081
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
             - .BasePublicHeaderTitle:
+            - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -93,7 +131,6 @@ FinancialFormReviewPage1:
                           style:
                             ..style.inlineBlock:
                             marginLeft: "0.024"
-                            marginRight: "0.024"
                           children:
                             - type: label
                               text: Middle Name
@@ -107,6 +144,7 @@ FinancialFormReviewPage1:
                         - type: view
                           style:
                             ..style.inlineBlock:
+                            marginLeft: "0.024"
                           children:
                             - type: label
                               text: Last Name
@@ -178,7 +216,7 @@ FinancialFormReviewPage1:
                       dataKey:
                       style:
                         ..style.blockBoxTitle:
-                        width: "0.24"
+                        width: "0.32"
                     - type: view
                       style:
                         ..style.genterlistBox:
@@ -223,13 +261,13 @@ FinancialFormReviewPage1:
                       text: "&nbsp;"
                       dataKey: Global.Note.name.data.patientInfo.address.line
                       style:
-                        ..style.blockInput:
+                        ..style.blockInputLong:
                         marginTop: "0.01"
                     - type: label
                       text: "&nbsp;"
                       dataKey: Global.Note.name.data.patientInfo.address.secondLine
                       style:
-                        ..style.blockInput:
+                        ..style.blockInputLong:
                         marginTop: "0.01"
                     - type: view
                       style:
@@ -275,6 +313,8 @@ FinancialFormReviewPage1:
                 ..style.btn:
               onClick:
                 - ..event.btnClick
+
+    - .HeaderPopUpMultiplePDF:
     - type: popUp
       viewTag: imgBlockBigTag
       style:
@@ -305,7 +345,7 @@ FinancialFormReviewPage1:
           - if:
               - =.builtIn.string.equal:
                   dataIn:
-                    string1: =..Global.Note.name.data.patientInfo.gender
+                    string1: =.Global.Note.name.data.patientInfo.gender
                     string2: $var.value
               - radioOn.svg
               - radioGray.svg
@@ -330,7 +370,7 @@ FinancialFormReviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
     bodyBox:
@@ -350,7 +390,7 @@ FinancialFormReviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -387,13 +427,13 @@ FinancialFormReviewPage1:
       width: "0.92"
       height: "0.77832"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     btnBox:
       height: "0.0972"
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:
@@ -436,7 +476,7 @@ FinancialFormReviewPage1:
       width: "4.18vh"
     contentBox:
       marginTop: "0.027093"
-      width: "auto"
+      width: "0.92"
       height: "auto"
     tipsTitle:
       fontSize: .Nfont.h14
@@ -466,7 +506,7 @@ FinancialFormReviewPage1:
       color: "#333333"
       lineHeight: "2.58vh"
     blockBox:
-      width: "auto"
+      width: "0.92"
       height: "auto"
       overflow: hidden
     inlineBlock:
@@ -485,7 +525,7 @@ FinancialFormReviewPage1:
     input:
       marginTop: "0.006157"
       width: "0.29066"
-      height: "auto"
+      height: "0.03448"
       boxSizing: border-box
       borderRadius: "3"
       fontSize: .Nfont.h14
@@ -504,7 +544,7 @@ FinancialFormReviewPage1:
     blockBoxInput:
       display: "inline-block"
       width: "0.6053333"
-      height: "auto"
+      height: "0.03448"
       boxSizing: border-box
       borderRadius: "3"
       color: "#333333"
@@ -520,13 +560,13 @@ FinancialFormReviewPage1:
       backgroundColor: "#f4f4f4"
       boxSizing: border-box
       verticalAlign: middle
-      padding: "6px 12px"
     dateInput:
       display: "inline-block"
       boxSizing: border-box
       color: "#333333"
       fontSize: .Nfont.h14
-      height: "auto"
+      height: "0.03448"
+      padding: "6px 12px"
       verticalAlign: middle
       width: "0.53333"
       backgroundColor: "#f4f4f4"
@@ -537,9 +577,8 @@ FinancialFormReviewPage1:
       verticalAlign: middle
       height: "0.02"
     genderListItem:
-      marginLeft: "0.066666"
       display: "inline-block"
-      width: "auto"
+      width: "0.19"
       height: "auto"
       boxSizing: border-box
     itemImg:
@@ -560,17 +599,28 @@ FinancialFormReviewPage1:
       height: "auto"
     genterlist:
       height: "auto"
-      width: "auto"
+      width: "0.6"
       axis: horizontal
     blockInput:
       height: "auto"
       width: "0.92"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       color: "0x333333"
       # verticalAlign: "middle"
       display: "inline-block"
+      padding: "6px 12px"
+      backgroundColor: "#f4f4f4"
+      wordBreak: break-word
+      borderRadius: "3"
+    blockInputLong:
+      height: "0.03448"
+      width: "0.92"
+      boxSizing: border-box
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
       padding: "6px 12px"
       backgroundColor: "#f4f4f4"
       wordBreak: break-word

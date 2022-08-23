@@ -1,0 +1,733 @@
+NewFacilities:
+  title: "My Organization"
+  init:
+    - .SignInCheck
+    - actionType: updateObject
+      dataKey: Global.formData.connectionFromFacility
+      dataObject: ""
+    - actionType: updateObject
+      dataKey: Global.currentFacility
+      dataObject: ""
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..invite.edgeAPI.get
+    - ..connections.docAPI.get
+    - ..apiRequest.insurance.docAPI.get
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.getListLength:
+            dataIn:
+              object: =..newConnection.newConnectionList.edge
+            dataOut: NewFacilities.formData.newConnectionLength
+    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id #change patient jwt
+    # - actionType: evalObject
+    #   object: .Global.updateJwt
+    - =.Global.createjwt.edgeAPI.store: ""
+  dataObject: ""
+  invite:
+    inviteList:
+      edge: ""
+    edgeReq:
+      type: .EdgeType.InviteInfo
+      xfname: evid
+      id: .Global.currentUser.vertex.id
+      maxcount: "10000"
+      _nonce: =.Global._nonce
+      obfname: ctime
+      sCondition: subtype in (131088,131072)
+    edgeAPI:
+      get:
+        api: re
+        dataIn: NewFacilities.invite.edgeReq
+        dataOut: NewFacilities.invite.inviteList
+      delete:
+        api: dx
+        dataIn: NewFacilities.dataObject
+  apiRequest:
+    insurance:
+      docQueryResp: ""
+      docQueryReq:
+        _nonce: =.Global._nonce
+        type: .DocType.InsuranceCard
+        xfname: eid,reid
+        ids:
+          - .Global.rootNotebookID
+          - .Global.Profile.id
+      docAPI:
+        get:
+          api: rd
+          dataIn: NewFacilities.apiRequest.insurance.docQueryReq
+          dataOut: NewFacilities.apiRequest.insurance.docQueryResp
+  formData:
+    shareProfile: ""
+    connectionList: []
+    subtypeFlage: ""
+    newConnectionLength: "0"
+    allConnectionLength: "0"
+    # 点击浏览的Facility
+    currentFacility: ""
+  # get all facility profile
+  connections:
+    connectionList:
+      edge: ""
+    docAPI:
+      get:
+        api: rd
+        type: 271361
+        xfname: E.bvid|E.evid
+        id: .Global.currentUser.vertex.id
+        ObjType: 12
+        _nonce: =.Global._nonce
+        dataKey: connections.connectionList
+        sCondition: E.type=10002 AND E.tage=1 #AND V.type=1
+  connection:
+    edge:
+      id: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: connection.edge
+        dataOut: connection.edge
+      store:
+        api: ce
+        dataIn: connection.edge.edge.0
+  connection1:
+    connectionList:
+      edge: ""
+    edgeAPI:
+      get:
+        api: re
+        type: .EdgeType.Accept
+        xfname: bvid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        dataKey: connection1.connectionList
+        sCondition: name LIKE '%"inviterCategory":"Facility"%'
+        _nonce: =.Global._nonce
+        obfname: ctime
+  sendNotification:
+    document:
+      .Document: ""
+      eid: "=.NewFacilities.accept.response.edge.id"
+      subtype:
+        isOnServer: 1
+        isZipped: 0
+        isBinary: 0
+        isEncrypted: 0
+        isExtraKeyNeeded: 0
+        isEditable: 0
+        applicationDataType: 0
+        # 7 th bit
+        notification: 1
+        ringToneNotify: 0
+        sendtoSelf: 0
+        # 10 bit
+        textMessage: 0
+        mediaType: 8
+      type: .DocType.Notification
+      name:
+        data: ""
+        notification:
+          title: AiTmed Facility Connection Request
+          context: Connection request pending to approve
+          body: Connection request pending to approve
+          onClickLandingPage: PatientDashboard
+          targetApp: =.FirebaseToken.response.edge.evid
+    docAPI:
+      store:
+        api: cd
+        dataIn: sendNotification.document
+  connection2:
+    connectionList:
+      edge: ""
+    edgeAPI:
+      get:
+        api: re
+        type: .EdgeType.Accept
+        xfname: evid
+        id: .Global.currentUser.vertex.id
+        maxcount: "10000"
+        dataKey: connection2.connectionList
+        sCondition: name LIKE '%"inviterCategory":"Facility"%'
+        _nonce: =.Global._nonce
+        obfname: ctime
+  accept:
+    edge:
+      .Edge: ""
+      type: .EdgeType.Accept
+      bvid: .Global.currentUser.vertex.id
+      name: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: accept.edge
+  refuse:
+    edge:
+      .Edge: ""
+      type: .EdgeType.Refuse
+      bvid: .Global.currentUser.vertex.id
+      name: ""
+    response: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: refuse.edge
+        dataOut: refuse.response
+  patientProfile:
+    docOut: ""
+    docIn:
+      id: ""
+      xfname: eid
+      type: .DocType.PatientProfile #  type: "257"
+      obfname: "mtime"
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        api: rd
+        dataIn: patientProfile.docIn
+        dataOut: NewFacilities.patientProfile.docOut
+  temporary:
+    edge: ""
+    edgeReq:
+      id: ""
+      xfname: id
+      type: 1051
+    edgeAPI:
+      get:
+        api: re
+        dataIn: NewFacilities.temporary.edgeReq
+        dataOut: NewFacilities.temporary.edge
+  acceptReponse:
+    edge: ""
+    edgeReq:
+      id: ""
+      xfname: id
+      type: 10002
+    edgeAPI:
+      get:
+        api: re
+        dataIn: NewFacilities.acceptReponse.edgeReq
+        dataOut: NewFacilities.acceptReponse.edge
+  isContact: # 判断是否为好友
+    response: ""
+    edge:
+      id: []
+      xfname: bvid,evid
+      type: 10002
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: NewFacilities.isContact.edge
+        dataOut: NewFacilities.isContact.response
+  isDocument:
+    docOut: ""
+    docIn:
+      type: .DocType.PatientProfile
+      id: ""
+      xfname: eid
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        api: rd
+        dataIn: NewFacilities.isDocument.docIn
+        dataOut: NewFacilities.isDocument.docOut
+
+  currentObject: ""
+  components:
+    - .BaseCheckView:
+      viewTag: isShareView2
+      message: "Do you want to share your profile?"
+      colorChange: "0xd81e06"
+      imgPath: select.svg
+      children:
+        - type: view
+          style:
+            width: "0.8"
+            height: "0.3"
+            top: "0.3"
+            left: "0.1"
+            zIndex: "100"
+            backgroundColor: "0xffffff"
+            borderRadius: "7"
+            border:
+              style: "3"
+            borderColor: "#f4f8fa"
+            borderWidth: "3"
+          children:
+            - .BaseCheckViewImg:
+            - .BaseCheckViewLabel:
+            - .BaseCheckViewButton:
+              text: "cancel"
+              style:
+                width: "0.3"
+                left: "0.05"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag
+            - .BaseCheckViewButton:
+              text: "share"
+              style:
+                width: "0.3"
+                left: "0.45"
+                color: "#2fb355"
+                border:
+                  style: 3
+                  width: "2"
+
+                  color: "#2fb355"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.ecos.shareDoc:
+                        dataIn:
+                          sourceDoc: =.Global.Profile
+                          targetEdgeID: =..isContact.response.edge.0.id
+                - actionType: popUpDismiss
+                  popUpView: ____.viewTag
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    # Accept 确认弹框
+    - type: popUp
+      viewTag: AcceptView
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000033"
+        zIndex: "1000"
+      children:
+        - type: view
+          style:
+            left: "0.05"
+            top: "0.3"
+            width: "0.9"
+            height: "0.25"
+            backgroundColor: "0xffffff"
+            borderRadius: "2"
+          children:
+            - type: label
+              text: Once you accept the request, your personal information will be shared with the provider/ admin
+              style:
+                left: "0.05"
+                top: "0.02"
+                width: "0.81"
+                height: "auto"
+                fontSize: "14"
+                color: "0x4b4b4b"
+
+                textAlign:
+                  x: center
+                  y: center
+            - type: label
+              style:
+                top: "0.1"
+                left: "0.05"
+                width: "0.81"
+                height: "auto"
+                fontSize: .Nfont.h1
+                color: "0x4b4b4b"
+
+                textAlign:
+                  x: left
+              textBoard:
+                - text: "include:"
+                - br:
+                - text: name, date of birth, username, phone number, email, gender and emergency contact
+            - type: view
+              style:
+                top: "0.19"
+                width: "0.9"
+                height: "0.003"
+                backgroundColor: "0xc3c3c3"
+            - type: button
+              text: "Cancel"
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: AcceptView
+              style:
+                left: "0"
+                top: "0.195"
+                width: "0.44"
+                height: "0.055"
+                borderWidth: "0"
+                fontSize: "17"
+                fontWeight: "500"
+                color: "0x4b4b4b"
+                backgroundColor: "0xffffff"
+                textAlign:
+                  x: center
+                  y: center
+            - type: view
+              style:
+                left: "0.45"
+                top: "0.192"
+                width: "0.006"
+                height: "0.061"
+                backgroundColor: "0xc3c3c3"
+            - type: button
+              text: "Ok"
+              onClick:
+                #  清除 AcceptView弹框
+                - actionType: popUpDismiss
+                  popUpView: AcceptView
+                  #  显示AcceptSuccess弹框
+                - actionType: popUp
+                  popUpView: AcceptSuccess
+                - emit:
+                    actions:
+                      - if:
+                          - =.builtIn.array.isExist:
+                              dataIn:
+                                array: =.Global.formData.connectionList
+                                phoneNumber: =..dataObject.name.inviterPhoneNumber
+                          - =..invite.edgeAPI.delete: ""
+                          - continue
+                      - ..accept.edge.evid@: =..dataObject.bvid
+                      - ..accept.edge.name@: =..dataObject.name
+                      - ..accept.edge.name.inviteeAvatar@: =.Global.formData.avatar.doc.id
+                      - ..accept.edge.refid@: =..dataObject.id
+                      - =..accept.edgeAPI.store: ""
+                      - ..temporary.edgeReq.id@: =..accept.edge.refid
+                      - =..temporary.edgeAPI.get: ""
+                      - ..acceptReponse.edgeReq.id@: =..temporary.edge.edge.0.refid
+                      - =..acceptReponse.edgeAPI.get: ""
+                      - =.builtIn.ecos.shareDoc:
+                          dataIn:
+                            sourceDoc: =.Global.Profile
+                            targetEdgeID: =.NewFacilities.acceptReponse.edgeReq.id
+                          dataOut: NewFacilities.formData.shareProfile
+                      - =.builtIn.ecos.updateDocListReid:
+                          dataIn:
+                            sourceDocList: =..apiRequest.insurance.docQueryResp.doc
+                            reid: =..formData.shareProfile.doc.id
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - =..invite.edgeAPI.get: ""
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+              style:
+                left: "0.46"
+                top: "0.195"
+                width: "0.44"
+                height: "0.055"
+                borderWidth: "0"
+                fontSize: "17"
+                fontWeight: "500"
+                color: "0x3a96f9"
+                backgroundColor: "0xffffff"
+                textAlign:
+                  x: center
+                  y: center
+        #  AcceptSuccess 弹框
+        - type: popUp
+          viewTag: AcceptSuccess
+          onClick:
+            - actionType: popUpDismiss
+              popUpView: AcceptSuccess
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "1000"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                top: "0.33"
+                left: "0.3"
+                width: "0.4"
+                height: "0.16"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderRadius: "8px"
+                borderColor: "0x7070704f"
+                zIndex: "100000"
+              children:
+                - type: image
+                  path: popUpSuccess.svg
+                  style:
+                    width: "0.12"
+                    height: "0.1"
+                    left: "0.14"
+                    top: "0.025"
+                - type: label
+                  text: "Successful"
+                  style:
+                    left: "0.1"
+                    top: "0.11"
+                    width: "0.2"
+                    height: "0.05"
+                    color: "0x000000"
+                    fontSize: "1.8vh"
+                    textAlign:
+                      x: center
+                      y: center
+    #
+    - type: view
+      viewTag: inviteTag
+      style:
+        left: "0"
+        top: "0.1"
+        width: "1"
+        height: auto
+        backgroundColor: "#ffffff"
+      children:
+        - .BaseList:
+          listObject: ..invite.inviteList.edge
+          style:
+            left: "0"
+            marginTop: "0"
+            width: "1"
+            height: auto
+            zIndex: "100"
+            margin: "0"
+          children:
+            - .BaseListItem:
+              style:
+                height: "0.09"
+                width: "1"
+                backgroundColor: "0xFFFFFF"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0xf0f0f0"
+              children:
+                - type: image
+                  path: ava.png
+                  style:
+                    top: "0.02"
+                    left: "0.04"
+                    height: "0.05"
+                    width: "0.108"
+                    borderRadius: "8"
+                    backgroundColor: "0xf4f4f4"
+                - type: label
+                  dataKey: itemObject.name.inviterName
+                  style:
+                    top: "0.015"
+                    left: "0.18"
+                    width: "0.4"
+                    height: "0.03"
+                    fontSize: .Nfont.h3
+                    color: "#6e6e6e"
+                    textAlign:
+                      x: left
+                #  Facility Info入口
+                - type: label
+                  text: Facility Info
+                  style:
+                    left: "0.18"
+                    top: "0.044"
+                    width: "0.3"
+                    height: "0.03"
+                    fontSize: .Nfont.h2
+                    color: "0x2988e6"
+                    textAlign:
+                      x: left
+                    border:
+                      style: "1"
+                    textDecoration: "underline"
+                  onClick:
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - .Global.currentFacility@: $var
+                    - goto: "OrganizationInfoAbout"
+
+                - type: button
+                  text: "Accept"
+                  onClick:
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: NewFacilities.dataObject
+                      dataObject: itemObject
+
+                    - actionType: evalObject
+                      object:
+                        - actionType: popUp
+                          popUpView: AcceptView
+                          wait: true
+                  style:
+                    top: "0.033"
+                    left: "0.6"
+                    width: "0.18"
+                    height: "0.03"
+                    fontSize: .Nfont.h2
+                    color: "#ffffff"
+                    backgroundColor: "#1dc160"
+                    borderRadius: "5"
+                    textAlign:
+                      x: center
+                - type: button
+                  text: "Deny"
+                  onClick:
+                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                      dataKey: NewFacilities.dataObject
+                      dataObject: itemObject
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - if:
+                              - =.builtIn.array.isExist:
+                                  dataIn:
+                                    array: =.Global.formData.connectionList
+                                    phoneNumber: $var.name.inviterPhoneNumber
+                              - =..invite.edgeAPI.delete: ""
+                              - continue
+                          - ..refuse.edge.evid@: $var.bvid
+                          - ..refuse.edge.name@: $var.name
+                          - ..refuse.edge.refid@: $var.id
+                          - if:
+                              - =.builtIn.array.isExist:
+                                  dataIn:
+                                    array: =.Global.formData.connectionList
+                                    phoneNumber: $var.name.inviterPhoneNumber
+                              - continue
+                              - =..refuse.edgeAPI.store: ""
+                          - ..sendNotification.document.fid@: =.Global.prodAPPID
+                          - ..sendNotification.document.eid@: =..refuse.response.edge.id
+                          - =..sendNotification.docAPI.store: ""
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+                    - actionType: evalObject
+                      object:
+                        - =..invite.edgeAPI.get: ""
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: inviteTag
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.goto:
+                            dataIn:
+                              destination: "NewFacilities"
+                              pageReload: true
+                        - if:
+                            - =..invite.inviteList.edge.0
+                            - continue
+                            - =.builtIn.checkField:
+                                dataIn:
+                                  contentType: messageHidden
+                                  wait: 100
+                  style:
+                    top: "0.033"
+                    left: "0.8"
+                    width: "0.18"
+                    height: "0.03"
+                    fontSize: .Nfont.h2
+                    color: "#ffffff"
+                    backgroundColor: "#DC143C"
+                    borderRadius: "5"
+                    textAlign:
+                      x: center
+        - type: list
+          contentType: listObject
+          listObject: ..connections.connectionList.doc
+          iteratorVar: itemObject
+          style:
+            marginTop: "0"
+            left: "0"
+            width: "1"
+            height: "0.7"
+            margin: "0"
+            overflow: scroll
+          children:
+            - type: listItem
+              itemObject: ""
+              onClick:
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - .Global.formData.temporaryFacilityId@: $var
+                      - .Global.currentFacility@: $var
+                - actionType: evalObject
+                  object:
+                    - ..isContact.edge.id@: []
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..isContact.edge.id
+                          value: =.Global.currentFacility.bsig
+                    - =.builtIn.array.add:
+                        dataIn:
+                          object: =..isContact.edge.id
+                          value: =.Global.currentUser.vertex.id
+                - actionType: evalObject
+                  object:
+                    - =..isContact.edgeAPI.get: ""
+                    - if:
+                        - =..isContact.response.edge.0.id
+                        - actionType: evalObject
+                          object:
+                            - ..isDocument.docIn.id@: =..isContact.response.edge.0.id
+                            - =..isDocument.docAPI.get: ""
+                            - if:
+                                - =..isDocument.docOut.doc.0.id
+                                - continue
+                                - actionType: popUp
+                                  popUpView: isShareView2
+                                  wait: true
+                        - continue
+                    - goto: OrganizationInfo
+
+                # - goto: OrganizationInfo
+              style:
+                left: "0"
+                width: "1"
+                height: "0.09"
+                border:
+                  style: "2"
+                borderWidth: "1"
+                borderColor: "0x00000011"
+              children:
+                - type: image
+                  path: ava.png
+                  path=func: .builtIn.utils.prepareDocToPath
+                  dataKey: itemObject.name.data.basicInfo.businessLogo
+                  style:
+                    left: "0.1"
+                    top: "0.022"
+                    height: "0.045"
+                    width: "0.1"
+                    lineHeight: "40px"
+
+                    fontSize: "15"
+                    textAlign:
+                      x: center
+                    zIndex: 100
+                - type: label
+                  dataKey: itemObject.name.data.basicInfo.medicalFacilityName
+                  onClick:
+                  style:
+                    left: "0.27"
+                    top: "0.03"
+                    width: "0.4"
+                    height: "0.025"
+
+                    fontWidth: "100"
+                    fontSize: "15"
+                    color: "#4b4b4b"
+                    zIndex: 100

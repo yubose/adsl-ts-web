@@ -1,0 +1,138 @@
+FamilyMemberList:
+  title: "My Family Members"
+  init:
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: "" 
+    - .SignInCheck
+    - .Global.createjwt.edge.bvid@: =.Global.loginUser.vertex.id
+    - =.Global.createjwt.edgeAPI.store: ""  
+    - =.builtIn.utils.setTimer:
+        dataIn:
+          timeUnix: 1000  
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.memberProfile.docAPI.get: ""
+            - =..listData.get: ""
+    - ..formData.memberList@: =..apiRequest.memberProfile.docResp.doc
+  apiRequest:
+    memberProfile:
+      docResp: ""
+      docReq:
+        ObjType: 28
+        id: .Global.loginUser.vertex.id
+        xfname: bvid
+        sfname: '{"result":"D.*", "join": "INNER JOIN Vertex V on V.id = D.ovid INNER JOIN Edge E on E.evid=V.id"}'
+        type: .DocType.PatientProfile
+        _nonce: =.Global._nonce
+        sCondition: "E.type = 1100 AND V.type=10"
+        obfname: mtime
+        asc: false
+      docAPI:
+        get:
+          api: rd
+          dataIn: FamilyMemberList.apiRequest.memberProfile.docReq
+          dataOut: FamilyMemberList.apiRequest.memberProfile.docResp
+  formData:
+    memberList: []
+  listData:
+    family:
+      vertex: ""
+    vertex: 
+      ObjType: "4"
+      id: =.Global.loginUser.vertex.id
+      xfname: "E.bvid"
+      sCondition: "E.type in (1100,1200) AND V.type=10"
+      maxcount : "100"
+      obfname : "ctime"
+      _nonce: =.Global._nonce
+    get:
+      api: rv
+      dataOut: listData.family
+      dataIn: listData.vertex    
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id
+                - =.Global.createjwt.edgeAPI.store: ""                                                                                                                           
+            - actionType: builtIn
+              funcName: goBack
+              reload: true  
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: addContacts.svg
+          style:
+            height: "0.025"
+          onClick:
+            - actionType: evalObject
+              object:      
+                - .Global.familyNotebookID@: =.Global.loginUser.vertex.deat.rnb64ID        
+            - goto: AddFamilyMember 
+    - type: list
+      contentType: listObject
+      listObject: ..formData.memberList #..formData.connectionList
+      iteratorVar: itemObject
+      style:
+        width: '1'
+        margin: '0'
+        height: auto
+      children:
+        - type: listItem
+          itemObject: 
+          onClick:
+            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+              dataKey: Global.profile
+              dataObject: itemObject
+            - actionType: evalObject
+              object:
+                - .Global.familyNotebookID@: =.Global.profile.deat.rnb64ID                                                         
+            - goto: FamilyMemberInfo 
+          style:
+            width: '1'
+            height: 'auto'
+            marginTop: '0.01'
+            border:
+              style: 2
+            borderWidth: "1"
+            borderColor: "#ededed"
+            paddingBottom: "0.01"
+          children:
+          - type: view
+            style:
+              width: '1'
+              height: 'auto'
+            children:
+              - type: image
+                path: ava.png
+                path=func: =.builtIn.utils.prepareDocToPath
+                dataKey: itemObject.name.data.basicInfo.avatar
+                style:
+                  marginLeft: "0.04"
+                  height: "0.059"
+                  width: "0.118"
+                  display: "inline-block"
+                  verticalAlign: middle 
+              - type: label
+                dataKey: itemObject.name.data.basicInfo.fullName
+                style:
+                  marginLeft: "0.032"
+                  display: "inline-block"
+                  width: "0.6"
+                  height: "0.022"
+                  verticalAlign: middle 
+              - type: image
+                path: blueRight.png
+                style:
+                  marginLeft: "0.12"
+                  height: "0.025"
+                  width: "0.05"
+                  display: "inline-block"
+                  verticalAlign: middle 

@@ -1,0 +1,364 @@
+PfizerVaccineFirDoseReviewPage2:
+  title: "Pfizer-BioNTech Vaccine - First Dose"
+  init:
+    - .SignInCheck
+
+  components:
+    - type: view
+      style:
+        ..style.formatting:
+      children:
+        - .BasePublicHeader:
+          children:
+            - .BasePublicHeaderLeft:
+            - .BasePublicHeaderTitle:
+              style:
+                fontSize: .Nfont.h14
+        - type: view
+          viewTag: mainView 
+          style:
+            ..style.bodyBox:
+          children:
+            - type: view
+              style:
+                ..style.viewBox:
+              children:
+                - type: view
+                  style:
+                    ..style.titleBox:
+                  children:
+                    - type: label
+                      text: Patient Consent Form - HIPPA
+                      dataKey:
+                      style:
+                        ..style.titlelabel:
+                    - type: label
+                      text: "2&nbsp;/&nbsp;4"
+                      dataKey:
+                      style:
+                        ..style.pageNum:
+            - type: scrollView
+              style:
+                ..style.scrollBox:
+              children:
+                - type: label
+                  text: "Please Carefully Read The Following Informed Consent:"
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                - type: label
+                  text: The Department of Health and Human Services has established a "Privacy Rule" to help insure that personal health care information is protected for privacy. The Privacy Rule was also created in order to provide a standard for certain health care providers to obtain their patients' consent for uses and disclosures of health information about the patient to carry out treatment, payment or health care operations.
+                  style:
+                    ..style.text:
+                - type: label
+                  text: As our patient we want you to know that we respect the privacy of your personal medical records and will do all we can to secure and protect that privacy. We strive to always take reasonable precautions to protect your privacy. When it is appropriate and necessary, we provide the minimum necessary information to only those we feel are in need of your healthcare information and information about treatment, payment or health care operations, in order to provide health care that is in your best interest.
+                  style:
+                    ..style.text:
+                    marginTop: "0.0258"
+                - type: label
+                  text: We also want you to know that we support your full access to your personal medical records. We may have indirect treatments relationships with you (such as laboratories that only interact with physicians and not patients), and may have to disclose personal health information for purposes of treatment, payment, or health operations, These entities are most often not required to obtain patient consent.
+                  style:
+                    ..style.text:
+                    marginTop: "0.0258"
+                - type: label
+                  text: You may refuse to consent to the use or disclosure of your personal health information but this must be in writing. Under this law, we have the right to refuse to treat you should you choose to refuse to disclose your Personal Health Information (PIH). If you choose to give consent in this document, at some future time you may request to refuse all or part of your PHI. You may not revoke actions that have already been taken which relied on this or a previously signed consent.
+                  style:
+                    ..style.text:
+                    marginTop: "0.0258"
+                - type: label
+                  text: If your have objections to this form, please ask to speak with out HIPPA Compliance Officer.
+                  style:
+                    ..style.text:
+                    marginTop: "0.0258"
+                - type: label
+                  text: You have the right to review our privacy notice to request restrictions and revoke consent in writing after you have reviewed our privacy notice.
+                  style:
+                    ..style.text:
+                    marginTop: "0.0258"
+                - type: label
+                  text: "HIPPA Notice Of Privacy Practices"
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                    marginTop: "0.0197"
+                    fontSize: .Nfont.h16
+                - type: label
+                  text: "Signature below is only acknowledgement that you have received this Notice of our Privacy Practices:"
+                  style:
+                    ..style.text:
+                    marginTop: "0.0098"
+                - type: label
+                  text: "Name Of Recipient/Healthcare Proxy"
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+                    marginTop: "0.0197"
+                - type: label
+                  text: "No content"
+                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.signatureHippa.recipientName
+                  style:
+                    ..style.blockInput:
+
+                - type: label
+                  text: "Signature"
+                  dataKey:
+                  style:
+                    ..style.secondLabel:
+
+                - type: view
+                  style:
+                    ..style.blockBox:
+                  children:
+                    - type: label
+                      text: Click on the signature box below to finger sign
+                      dataKey:
+                      style:
+                        ..style.signTips:
+
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    height: "0.128"
+                    width: "0.9"
+                    border:
+                      style: "4"
+                      color: "0xa9a9a9"
+                    borderWidth: "2"
+                  children:
+                    - type: label
+                      text: X
+                      style:
+                        .SignLabelStyle:
+                    - type: image
+                      viewTag: signatureShowTag
+                      path=func: .builtIn.utils.prepareDocToPath
+                      dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.signatureHippa.signaturePfizerVaccine
+                      style:
+                        left: "0"
+                        width: "0.88"
+                        top: "0"
+                        height: "0.128"
+                        overflow: scroll
+                        zIndex: "1000"
+
+                - type: view
+                  style:
+                    width: "0.92"
+                    height: "auto"
+                    overflow: hidden
+                  children:
+                    - type: view
+                      viewTag: signatureTimeTag
+                      style:
+                        marginTop: "0.01"
+                        height: "auto"
+                        width: "0.92"
+                      children:
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtime_en
+                          dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.signatureHippa.signatureTime
+                          style:
+                            display: "inline-block"
+                            width: "auto"
+                            height: "auto"
+                            fontSize: .Nfont.h12
+                            color: "0x757575"
+                            verticalAlign: middle
+                        - type: label
+                          text: "Digitally Signed"
+                          dataKey:
+                          style:
+                            marginLeft: "0.02"
+                            display: "inline-block"
+                            width: "auto"
+                            height: "auto"
+                            fontSize: .Nfont.h12
+                            color: "0x757575"
+                            verticalAlign: middle
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                        marginTop: "0.02216"
+                      children:
+                        - type: label
+                          text: Patient Name
+                          style:
+                            ..style.blockBoxLeft:
+                        - type: label
+                          dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.fullName
+                          style:
+                            ..style.blockBoxRight:
+                    - type: view
+                      style:
+                        ..style.blockBox:
+                      children:
+                        - type: label
+                          text: Date
+                          style:
+                            ..style.blockBoxLeft:
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtimeL_en
+                          dataKey: Global.formData.pifzerVaccineFirDoseForm.ctime
+                          style:
+                            ..style.blockBoxRight:
+                - type: view
+                  style:
+                    marginTop: "0.03"
+
+        - type: view
+          style:
+            ..style.btnBox:
+          children:
+            - type: button
+              text: Next
+              dataKey:
+              style:
+                ..style.btn:
+              onClick:
+                - goto: PfizerVaccineFirDoseReviewPage3
+
+  style: #Input style fragment here
+    formatting:
+      margin: "0"
+      padding: "0"
+      height: "1"
+      width: "1"
+      overflow: hidden
+      boxSizing: border-box
+
+      color: "0x333333"
+      fontSize: .Nfont.h16
+    bodyBox:
+      width: "auto"
+      height: "0.84852"
+    backLeft:
+      marginLeft: "0.04"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.055"
+      boxSizing: border-box
+    backLeftImg:
+      marginTop: "0.012"
+      height: "0.0295"
+    viewBox:
+      marginLeft: "0.04"
+      height: "auto"
+      width: "0.92"
+      overflow: hidden
+
+    titleBox:
+      marginTop: "0.0270"
+      paddingBottom: "1.23vh"
+      width: "0.92"
+      height: "auto"
+      border:
+        style: 2
+      borderWidth: "1"
+      borderColor: "#dedede"
+    titlelabel:
+      display: "inline-block"
+      fontSize: .Nfont.h16
+      color: "0x333333"
+      width: "0.753125"
+      height: "auto"
+      fontWeight: "700"
+      verticalAlign: top
+      lineHeight: "2.95vh"
+    pageNum:
+      marginLeft: "0.064"
+      display: "inline-block"
+      height: "0.0221"
+      width: "0.1013"
+      backgroundColor: "0x2988e6"
+      color: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      borderRadius: "3"
+      verticalAlign: top
+      textAlign:
+        x: center
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.7832"
+      boxSizing: border-box
+      paddingBottom: "0.03"
+    secondLabel:
+      width: "0.92"
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      color: "0x333333"
+      marginTop: "0.0246"
+      lineHeight: "2.58vh"
+    text:
+      marginTop: "0.0172"
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+      wordWrap: break-word
+      color: "#333333"
+    blockInput:
+      marginTop: "0.01"
+      height: "auto"
+      padding: "6px 12px"
+      width: "0.92"
+      boxSizing: border-box
+
+      fontSize: .Nfont.h14
+      color: "0x333333"
+      borderRadius: "3"
+      backgroundColor: "#f4f4f4"
+      wordWrap: break-word
+
+    blockBox:
+      marginTop: "0.01"
+      height: "auto"
+      width: "0.92"
+    blockBoxLeft:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x666666"
+      fontSize: .Nfont.h12
+      verticalAlign: middle
+    blockBoxRight:
+      marginLeft: "0.0373"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x333333"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      verticalAlign: middle
+    signTips:
+      display: "inline-block"
+      color: "#666666"
+      fontSize: .Nfont.h12
+      verticalAlign: middle
+      width: "0.8266"
+      height: "auto"
+    btnBox:
+      height: "0.0972"
+      width: "1"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+
+      boxShadow: "1px 1px 4px 1px #dededf"
+      overflow: hidden
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

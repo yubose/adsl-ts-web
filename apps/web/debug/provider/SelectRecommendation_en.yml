@@ -1,0 +1,973 @@
+SelectRecommendation:
+  title: Medical Recommendation
+  pageNumber:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =.builtIn.utils.getPageNames:
+        dataIn:
+        dataOut: SelectRecommendation.formData.routeList
+    # 判断本地会议是否有recommendationDoc存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.recommendationDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.recommendation.docReq@: =.Global.formData.providerDoc.recommendationDoc
+            - .Global.formData.productionSelectionList@: =..apiRequest.recommendation.docReq.name.data.goodsList
+            - .Global.formData.goodNameList@: =..apiRequest.recommendation.docReq.name.data.goodNameList
+            # 如果直接从unfinished document入口进入，可能没有E2,需要重新查询并赋值
+            - =..apiRequest.appointment.edgeAPI.get: ""
+            - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+            - .Global.currentRoomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+        - actionType: evalObject
+          object:
+            # 初始创建doc type最后一位置为0
+            - =.builtIn.number.inhx:
+                dataIn:
+                  intHex: =..apiRequest.recommendation.docReq.type
+                  index: 1
+                  hex: 0
+                dataOut: SelectRecommendation.apiRequest.recommendation.docReq.type
+            # 拼接user
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =.Global.MyProfile.name.data.fullName
+                  - " - "
+                  - =.Global.MyProfile.name.data.title
+                dataOut: SelectRecommendation.apiRequest.recommendation.docReq.name.user
+            - ..apiRequest.recommendation.docReq.name.data.goodsList@: =.Global.formData.productionSelectionList
+            - =.SelectRecommendation.apiRequest.recommendation.docAPI.store: ""
+            - ..apiRequest.recommendation.docReq@: =.SelectRecommendation.apiRequest.recommendation.docResp.doc
+            - .Global.formData.providerDoc.recommendationDoc@: =.SelectRecommendation.apiRequest.recommendation.docResp.doc
+    # 将production的id数组除重
+    - =.builtIn.array.elementUnique:
+        dataIn:
+          arr: =.Global.formData.productionSelectionList
+        dataOut: Global.formData.productionSelectionList
+    - =.builtIn.array.elementUnique:
+        dataIn:
+          arr: =.Global.formData.goodNameList
+        dataOut: Global.formData.goodNameList
+    - ..apiRequest.productionList.docQueryReq.ids@: =.Global.formData.productionSelectionList
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =..apiRequest.productionList.docAPI.get: ""
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.Global.formData.isFirstRecommendation
+            - actionType: evalObject
+              object:
+                - ..formDataTemp.addShow@: "inline"
+                - ..formDataTemp.saveShow@: "none"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.number.typeIsValid:
+                        dataIn:
+                          docType: =.Global.formData.providerDoc.recommendationDoc.type
+                          localArr: [1]
+                          binaryArr: [1]
+                    - actionType: evalObject
+                      object:
+                        - ..formDataTemp.addShow@: "none"
+                        - ..formDataTemp.saveShow@: "inline"
+                    - actionType: evalObject
+                      object:
+                        - ..formDataTemp.addShow@: "inline"
+                        - ..formDataTemp.saveShow@: "none"
+        - if:
+            - =.builtIn.array.judgeListLength:
+                dataIn:
+                  array: =..apiRequest.productionList.docQueryResp.doc
+                  len: 0
+            - actionType: evalObject
+              object:
+                - ..formDataTemp.tipShow@: "block"
+                - ..formDataTemp.listShow@: "none"
+            - actionType: evalObject
+              object:
+                - ..formDataTemp.tipShow@: "none"
+                - ..formDataTemp.listShow@: "inline"
+
+  formData:
+    # patient的vid
+    patientId: ""
+    routeList: []
+  formDataTemp:
+    tipShow: "block"
+    listShow: "none"
+    addShow: "inline"
+    saveShow: "none"
+  apiRequest:
+    # 获取最新的会议
+    appointment:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: .Global.formData.providerDoc.recommendationDoc.esig
+        _nonce: .Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: SelectRecommendation.apiRequest.appointment.edgeQueryReq
+          dataOut: SelectRecommendation.apiRequest.appointment.edgeQueryResp
+    # provider和patient之间的10002
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+        xfname: (bvid,evid)|(evid,bvid)
+        type: .EdgeType.Email
+        obfname: "mtime"
+        maxcount: 1
+      edgeAPI:
+        get:
+          api: re
+          dataIn: SelectRecommendation.apiRequest.relation.edgeQueryReq
+          dataOut: SelectRecommendation.apiRequest.relation.edgeQueryResp
+    email:
+      docCreateResp: ""
+      docCreateReq:
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(10002)
+        eid: ""
+        tage: 1
+        name:
+          data:
+            providerName: .Global.MyProfile.name.data.fullName
+            # 会议id
+            appointmentId: .Global.currentRoomInfo.edge.id
+            #邮件内容
+            content: ""
+            #收件人姓名
+            receiverName: .Global.currentRoomInfo.edge.name.patientName
+            #发送人姓名
+            senderName: automatic-reply@aitmed.com
+            #发件人头像的id,这里不给，默认是aitmed logo。
+            senderAvatarId: ""
+          #邮件标题
+          title: "Recommendation Notification"
+          #收件人头像的id
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: SelectRecommendation.apiRequest.email.docCreateReq
+          dataOut: SelectRecommendation.apiRequest.email.docCreateResp
+    productionList:
+      docQueryResp: ""
+      docQueryReq:
+        ids: []
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: SelectRecommendation.apiRequest.productionList.docQueryReq
+          dataOut: SelectRecommendation.apiRequest.productionList.docQueryResp
+    recommendation:
+      deleteInfo:
+        id:
+          - =..apiRequest.recommendation.docResp.doc.id
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: ""
+        type: .DocType.MedicalRecommend
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            classTag:
+              name: Provider
+              fontColor: "0x30b354"
+              backgroundColor: "0xe4f5e9"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"
+              backgroundColor: "0xececee"
+              display: block
+            goodsList: []
+            patientName: ""
+            goodNameList: []
+          title: "Medical Recommendation"
+          user: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: SelectRecommendation.apiRequest.recommendation.docReq
+          dataOut: SelectRecommendation.apiRequest.recommendation.docResp
+        delet:
+          api: dx
+          dataIn: SelectRecommendation.apiRequest.recommendation.deleteInfo
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+          - .BasePublicHeaderTitle:
+    - type: view
+      style:
+        ..style.splitBox:
+      children:
+        - type: label
+          text: Recommendations
+          style:
+            ..style.titleLable:
+        - type: label
+          text: View Diagnoses
+          onClick:
+            - goto: DiagnosesView
+          style:
+            ..style.jumpLabel:
+    - type: view
+      style:
+        ..style.moreProduct:
+      children:
+        - type: view
+          style:
+            width: auto
+            height: auto
+          children:
+            - type: button
+              text: + More Products
+              style:
+                ..style.moreBtn:
+              onClick:
+                - ..event.searchClcik
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          viewTag: tipTag
+          style:
+            display: =..formDataTemp.tipShow
+            marginTop: "0.16133"
+            width: "1"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: noProduct.svg
+              style:
+                width: "0.586666"
+                height: "0.25862"
+
+        - type: list
+          viewTag: productionSelectionList
+          contentType: listObject
+          listObject: ..apiRequest.productionList.docQueryResp.doc
+          iteratorVar: itemObject
+          style:
+            ..style.list:
+            display: ..formDataTemp.listShow
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.item:
+              children:
+                - type: view
+                  style:
+                    ..style.itemInlineBox:
+                  onClick:
+                    - ..event.itemClick
+                  children:
+                    - type: view
+                      style:
+                        ..style.inlineBox:
+                      children:
+                        - type: image
+                          path: good.svg
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: itemObject.name.data.coverImgId
+                          style:
+                            ..style.goodImg:
+                        - type: label
+                          dataKey: itemObject.name.data.basicInfo.type
+                          style:
+                            ..style.goodValue:
+                            textAlign:
+                              x: center
+                            color: itemObject.name.data.basicInfo.typeColor
+                    - type: view
+                      style:
+                        ..style.goodContent:
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.data.basicInfo.title
+                          style:
+                            ..style.goodTitle:
+                        - type: label
+                          dataKey: itemObject.name.data.basicInfo.introduction
+                          style:
+                            ..style.goodDescribe:
+                        - type: label
+                          textBoard:
+                            - text: $
+                            - text: "&nbsp;"
+                            - text: "0"
+                              dataKey: itemObject.name.data.pricing.price
+                          dataKey:
+                          style:
+                            ..style.goodPrice:
+
+                - type: image
+                  path: deleImg.svg
+                  onClick:
+                    - ..event.deleteItem
+                  style:
+                    ..style.addImg:
+        - type: view
+          style:
+            marginTop: "0.03"
+
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            ..style.auto:
+          children:
+            - type: button
+              text: Add Recommendations
+              style:
+                ..style.btn:
+                display: =..formDataTemp.addShow
+              onClick:
+                - ..event.addClcik
+            - type: button
+              text: Save
+              style:
+                ..style.btn:
+                display: =..formDataTemp.saveShow
+              onClick:
+                - ..event.saveClcik
+    # 弹窗
+    - .BaseWarningView:
+      message: "Please select a product."
+      viewTag: warnTag
+    - type: popUp
+      viewTag: selectTag
+      choice2Text: "Release"
+      choice3Text: "Private and Editable"
+      lastChoiceText: "Cancel"
+      choice2Button:
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: evalObject
+          object:
+            # 获取patient id，为下一步获取10002做准备
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.currentRoomInfo.edge.bvid
+                      string2: =.Global.currentRoomInfo.edge.name.facilityId
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.currentRoomInfo.edge.evid
+                              string2: =.Global.currentRoomInfo.edge.name.providerId
+                        - continue
+                        - ..formData.patientId@: =.Global.currentRoomInfo.edge.evid
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.currentRoomInfo.edge.bvid
+                              string2: =.Global.currentRoomInfo.edge.name.providerId
+                        - ..formData.patientId@: =.Global.currentRoomInfo.edge.evid
+                        - ..formData.patientId@: =.Global.currentRoomInfo.edge.bvid
+            - =.builtIn.array.pushAny:
+                dataIn:
+                  newMessage: =..formData.patientId
+                  messages: =..apiRequest.relation.edgeQueryReq.id
+                dataOut: SelectRecommendation.apiRequest.relation.edgeQueryReq.id
+            - =..apiRequest.relation.edgeAPI.get: ""
+            - =.builtIn.string.concat:
+                dataIn:
+                  - "Hello,There is the recommendation by "
+                  - =.Global.MyProfile.name.data.fullName
+                  - ".Please check the appointment details and the recommendations follow."
+                dataOut: SelectRecommendation.apiRequest.email.docCreateReq.name.data.content
+            - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+            - =..apiRequest.email.docAPI.store: ""
+        - actionType: popUpDismiss
+          popUpView: selectTag
+        - actionType: evalObject
+          object:
+            - ..apiRequest.recommendation.docReq.name.data.goodsList@: =.Global.formData.productionSelectionList
+            - ..apiRequest.recommendation.docReq.name.data.goodNameList@: =.Global.formData.goodNameList
+            - ..apiRequest.recommendation.docReq.name.data.patientName@: =.Global.roomInfo.edge.name.patientName
+        # 判断是否是admin的文档
+        #  指定 eid 和 reid
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.recommendation.docReq.name.data.classTag.name
+                      string2: "Admin"
+                - continue
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.recommendation.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.recommendation.docReq.reid@: =.Global.roomInfo.edge.id
+
+        #  修改type
+        - actionType: evalObject
+          object:
+            - =.builtIn.number.inhx:
+                dataIn:
+                  intHex: =..apiRequest.recommendation.docReq.type
+                  index: 1
+                  hex: 1
+                dataOut: SelectRecommendation.apiRequest.recommendation.docReq.type
+
+        - actionType: evalObject
+          object:
+            # 更新文档状态
+            - ..apiRequest.recommendation.docReq.name.data.statusTag.name@: "Released"
+            - ..apiRequest.recommendation.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.recommendation.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+            - =..apiRequest.recommendation.docAPI.store: ""
+            - .Global.formData.isFirstRecommendation@: false
+            - .Global.formData.providerDoc.recommendationDoc@: =.SelectRecommendation.apiRequest.recommendation.docResp.doc
+            - =.builtIn.utils.createAuditLog:
+                dataIn:
+                  actionTypeCode: .ActionTypeCode.create
+                  recordTypeCode: .DocType.MedicalRecommend
+                  eid: =.Global.formData.currentFacility.relationEdge.id
+
+                  user: =.Global.MyProfile.name.data.fullName
+                  userId: =.Global.currentUser.vertex.id
+                  targetUserId: =.Global.formData.auditLog.patientId
+                  accessPort: provider
+                dataOut: Global.formData.auditLog.result
+        - actionType: evalObject
+          object:
+            - goto: .Global.formData.lastPage
+      choice3Button:
+        - actionType: popUpDismiss
+          popUpView: selectTag
+        - actionType: evalObject
+          object:
+            - ..apiRequest.recommendation.docReq.name.data.goodsList@: =.Global.formData.productionSelectionList
+            - ..apiRequest.recommendation.docReq.name.data.goodNameList@: =.Global.formData.goodNameList
+            - ..apiRequest.recommendation.docReq.name.data.patientName@: .Global.roomInfo.edge.name.patientName
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.recommendation.docReq.name.data.classTag.name
+                      string2: "Admin"
+                - continue
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.recommendation.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.recommendation.docReq.reid@: =.Global.roomInfo.edge.id
+        #  修改type
+        - actionType: evalObject
+          object:
+            - =.builtIn.number.inhx:
+                dataIn:
+                  intHex: =..apiRequest.recommendation.docReq.type
+                  index: 1
+                  hex: 0
+                dataOut: SelectRecommendation.apiRequest.recommendation.docReq.type
+
+        - actionType: evalObject
+          object:
+            - =..apiRequest.recommendation.docAPI.store: ""
+            - .Global.formData.isFirstRecommendation@: false
+            - .Global.formData.providerDoc.recommendationDoc@: =.SelectRecommendation.apiRequest.recommendation.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: evalObject
+          object:
+            - =.builtIn.utils.createAuditLog:
+                dataIn:
+                  actionTypeCode: .ActionTypeCode.create
+                  recordTypeCode: .DocType.MedicalRecommend
+                  eid: =.Global.formData.currentFacility.relationEdge.id
+
+                  user: =.Global.MyProfile.name.data.fullName
+                  userId: =.Global.currentUser.vertex.id
+                  targetUserId: =.Global.formData.auditLog.patientId
+                  accessPort: provider
+                dataOut: Global.formData.auditLog.result
+        - actionType: evalObject
+          object:
+            - goto: .Global.formData.lastPage
+      lastChoiceButton:
+        - actionType: popUpDismiss
+          popUpView: selectTag
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+      children:
+        - type: view
+          style:
+            marginTop: "0.72"
+            width: "0.9"
+            height: "auto"
+            marginLeft: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "0xdbdbdb"
+          children:
+            - type: button
+              text: Select to add recommendation note
+              style:
+                marginTop: "0.001"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h14
+                fontWeight: "400"
+                color: "#666666"
+                borderRadius: "10"
+                backgroundColor: "0xdbdbdb"
+                textAlign:
+                  x: center
+                border:
+                  style: "1"
+            - type: view
+              style:
+                width: "0.9"
+                # marginTop: "0.0004"
+                height: "0.001"
+                zIndex: "100"
+                backgroundColor: "#bbbbbb"
+            - type: button
+              text: ___.choice2Text
+              style:
+                marginTop: "0.001"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h16
+                fontWeight: "600"
+                color: "0x1d88fc"
+                borderRadius: "10"
+                backgroundColor: "0xdbdbdb"
+                textAlign:
+                  x: center
+                border:
+                  style: "1"
+              onClick: ___.choice2Button
+            - type: view
+              style:
+                # marginTop: "0.0004"
+                width: "0.9"
+                height: "0.001"
+                backgroundColor: "#bbbbbb"
+                zIndex: "100"
+            - type: button
+              text: ___.choice3Text
+              style:
+                marginTop: "0.001"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h16
+                fontWeight: "600"
+                color: "0x1d88fc"
+                borderRadius: "10"
+                backgroundColor: "0xdbdbdb"
+                textAlign:
+                  x: center
+                border:
+                  style: "1"
+              onClick: ___.choice3Button
+        - type: view
+          style:
+            marginTop: "0.01"
+            width: "0.9"
+            height: "auto"
+            marginLeft: "0.05"
+            border:
+              style: "1"
+            borderRadius: "10"
+            backgroundColor: "#ffffff"
+          children:
+            - type: button
+              text: ___.lastChoiceText
+              style:
+                marginTop: "0.001"
+                width: "0.9"
+                height: "0.06"
+                fontSize: .Nfont.h16
+                fontWeight: "600"
+                color: "0x1d88fc"
+                borderRadius: "10"
+                backgroundColor: "#ffffff"
+                textAlign:
+                  x: center
+                border:
+                  style: "1"
+              onClick: ___.lastChoiceButton
+  event:
+    deleteItem:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            # 从产品id数组删除对应id
+            - =.builtIn.array.removeByValue:
+                dataIn:
+                  object: =.Global.formData.productionSelectionList
+                  value: $var.id
+            - =.builtIn.array.removeByValue:
+                dataIn:
+                  object: =.Global.formData.goodNameList
+                  value: $var.id
+            - =.builtIn.array.removeById:
+                dataIn:
+                  object: =..apiRequest.productionList.docQueryResp.doc
+                  id: $var.id
+            - =.builtIn.array.removeByValue:
+                dataIn:
+                  object: =.Global.formData.providerDoc.recommendationDoc.name.data.goodsList
+                  value: $var.id
+            # 删除title
+            - =.builtIn.array.removeByValue:
+                dataIn:
+                  object: =.Global.formData.goodNameList
+                  value: $var.name.data.basicInfo.title
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.productionList.docQueryResp.doc
+                    len: 0
+              - actionType: evalObject
+                object:
+                  - ..formDataTemp.tipShow@: "block"
+                  - ..formDataTemp.listShow@: "none"
+              - actionType: evalObject
+                object:
+                  - ..formDataTemp.tipShow@: "none"
+                  - ..formDataTemp.listShow@: "block"
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: productionSelectionList
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: tipTag
+    itemClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - .Global.formData.production@: $var
+      - actionType: evalObject
+        object:
+          - goto: ProductDetails
+    searchClcik:
+      - actionType: evalObject
+        object:
+          - goto: MedicalRecommendation
+    addClcik:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.productionList.docQueryResp.doc
+                    len: 0
+              - actionType: popUp
+                popUpView: warnTag
+                wait: true
+                popUpDismiss: 2000
+              - continue
+      - actionType: popUp
+        popUpView: selectTag
+    saveClcik:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.productionList.docQueryResp.doc
+                    len: 0
+              - actionType: popUp
+                popUpView: warnTag
+                wait: true
+                popUpDismiss: 2000
+              - continue
+      - actionType: popUpDismiss
+        popUpView: selectTag
+      - actionType: evalObject
+        object:
+          - ..apiRequest.recommendation.docReq.name.data.goodsList@: =.Global.formData.productionSelectionList
+          - ..apiRequest.recommendation.docReq.name.data.goodNameList@: =.Global.formData.goodNameList
+          - ..apiRequest.recommendation.docReq.name.data.patientName@: .Global.roomInfo.edge.name.patientName
+          - .Global.Note.name.data.goodsList@: []
+          - .Global.Note.name.data.goodsList@: =.Global.formData.productionSelectionList
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.recommendation.docReq.name.data.classTag.name
+                    string2: "Admin"
+              - continue
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.recommendation.docReq.eid@: =.Global.currentRoom.edge.id
+                  - ..apiRequest.recommendation.docReq.reid@: =.Global.roomInfo.edge.id
+      #  修改type
+      - actionType: evalObject
+        object:
+          - =.builtIn.number.inhx:
+              dataIn:
+                intHex: =..apiRequest.recommendation.docReq.type
+                index: 1
+                hex: 1
+              dataOut: SelectRecommendation.apiRequest.recommendation.docReq.type
+
+      - actionType: evalObject
+        object:
+          # 更新文档状态
+          - ..apiRequest.recommendation.docReq.name.data.statusTag.name@: "Released"
+          - ..apiRequest.recommendation.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.recommendation.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+          - =..apiRequest.recommendation.docAPI.store: ""
+          - .Global.formData.isFirstRecommendation@: false
+          - .Global.formData.providerDoc.recommendationDoc@: =.SelectRecommendation.apiRequest.recommendation.docResp.doc
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.formData.unPageName
+                    string2: ""
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.array.has:
+                          dataIn:
+                            object: =.SelectRecommendation.formData.routeList
+                            value: "MoreOptions"
+                      - goto: MoreOptions
+                      - goto: =.Global.formData.lastPage
+
+              - goto: =.Global.formData.unPageName
+
+      # - actionType: evalObject
+      #   object:
+      #     - goto: .Global.formData.lastPage
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.743842"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    splitBox:
+      height: "0.0394088"
+      width: "1"
+      backgroundColor: "#f0f0f0"
+      overflow: hidden
+    titleLable:
+      marginLeft: "0.04"
+      color: "#333333"
+      width: "0.6933333"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      lineHeight: 3.94088vh
+    jumpLabel:
+      color: "#2988e6"
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      lineHeight: 3.94088vh
+      fontWeight: "600"
+      textDecoration: underline
+    searchBox:
+      marginLeft: "0.04"
+      marginTop: "0.01"
+      width: "0.92"
+      height: "0.04187192"
+      overflow: hidden
+      border:
+        style: 3
+      borderColor: "#2988e6"
+      borderWidth: "1.5"
+      borderRadius: "2.09vh"
+      boxSizing: "border-box"
+    searchImg:
+      marginLeft: "0.032"
+      display: "inline-block"
+      height: "0.022167"
+      verticalAlign: middle
+    searchInput:
+      display: "inline-block"
+      marginLeft: "0.032"
+      border: "none"
+      height: "0.0369458"
+      width: "0.613333"
+      boxSizing: "border-box"
+      verticalAlign: middle
+    searchLabel:
+      display: "inline-block"
+      marginLeft: "0.032"
+      boxSizing: "border-box"
+      verticalAlign: middle
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "#2988e6"
+    list:
+      width: "1"
+      margin: "0"
+      height: "auto"
+    item:
+      width: "0.92"
+      height: "auto"
+      marginLeft: "0.04"
+      marginTop: "0.0123"
+      borderRadius: "12"
+      overflow: hidden
+      backgroundColor: "0xffffff"
+      boxShadow: "0px 3px 10px #dededf"
+      paddingLeft: "0.025"
+      paddingTop: "0.014778"
+      paddingBottom: "0.014778"
+      boxSizing: "border-box"
+    itemInlineBox:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+      verticalAlign: middle
+    inlineBox:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      overflow: hidden
+      textAlign:
+        x: center
+    goodImg:
+      height: "0.086206"
+    goodValue:
+      marginTop: "0.0025"
+      fontSize: .Nfont.h12
+      color: itemObject.type.color
+      fontWeight: "600"
+      width: "0.1866666"
+      overflow: hidden
+      textAlign:
+        x: center
+    goodContent:
+      marginLeft: "0.02133333"
+      display: "inline-block"
+      width: "0.605333"
+      boxSizing: "border-box"
+      height: "auto"
+      overflow: hidden
+    goodTitle:
+      width: "0.605333"
+      height: "auto"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      fontWeight: "600"
+      boxSizing: "border-box"
+      lineHeight: "2.58vh"
+      -webkit-line-clamp: 2
+      display: -webkit-box
+      -webkit-box-orient: vertical
+      overflow: hidden
+      text-overflow: ellipsis
+    goodDescribe:
+      width: "0.605333"
+      height: "auto"
+      color: "#666666"
+      fontSize: .Nfont.h12
+      boxSizing: "border-box"
+      -webkit-line-clamp: 2
+      display: -webkit-box
+      -webkit-box-orient: vertical
+      overflow: hidden
+      text-overflow: ellipsis
+    goodPrice:
+      marginTop: "0.01"
+      color: "#fb5051"
+      fontSize: .Nfont.h16
+      fontWeight: "700"
+    addImg:
+      marginLeft: "0.005333"
+      display: "inline-block"
+      verticalAlign: middle
+      height: "0.0221674"
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center
+    moreProduct:
+      height: "0.064039"
+      width: "1"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+        y: center
+    moreBtn:
+      height: "0.044334"
+      width: "0.84"
+      border: "1px solid #2988e6"
+      borderRadius: "4"
+      backgroundColor: "0xffffff"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "#2988e6"
+      textAlign:
+        x: center
+        y: center
+    auto:
+      width: auto
+      height: auto

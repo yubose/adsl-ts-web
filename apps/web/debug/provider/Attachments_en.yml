@@ -118,7 +118,7 @@ Attachments:
                     fontSize: "13"
                     textAlign:
                       x: left
-                    fontFamily: PMingLiU
+
     # - type: view
     #   style:
     #     top: "0.1"

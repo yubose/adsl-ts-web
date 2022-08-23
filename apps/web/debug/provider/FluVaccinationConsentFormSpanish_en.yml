@@ -179,7 +179,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.65"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h4
-                        fontFamily: "Arial"
+
                     - type: label
                       # text: 1000 S Anaheim Blvd Ste 200 Anaheim, CA 92805
                       dataKey: apiRequest.FluVaccinationConsentFormSpanish.docReq.name.data.facilityInfo.location
@@ -189,7 +189,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.63"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                     - type: label
                       text: www.website.com
                       dataKey:
@@ -199,7 +199,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.65"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                 - type: view
                   style:
                     top: "0"
@@ -235,7 +235,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.72"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Email
@@ -245,7 +245,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.12"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -262,7 +262,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.6"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: AiTmed ID
@@ -272,7 +272,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.2"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -288,7 +288,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.65"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Phone
@@ -298,7 +298,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.15"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -314,7 +314,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.7"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Fax
@@ -324,7 +324,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.1"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
             - type: view
               style:
@@ -362,7 +362,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.6"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Exam Date
@@ -372,7 +372,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.22"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -389,7 +389,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.55"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Patient Name
@@ -399,7 +399,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.27"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -416,7 +416,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.65"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: DOB
@@ -426,7 +426,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.15"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -442,7 +442,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.59"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: AiTmed ID
@@ -452,7 +452,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.25"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -468,7 +468,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.75"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Phone
@@ -478,7 +478,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.15"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -494,7 +494,7 @@ FluVaccinationConsentFormSpanish:
                         width: "0.71"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Email
@@ -504,7 +504,7 @@ FluVaccinationConsentFormSpanish:
                         height: "auto"
                         width: "0.13"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
             - type: view
               style:
@@ -529,7 +529,7 @@ FluVaccinationConsentFormSpanish:
                 color: "0x0f0f0f"
                 fontSize: .Nfont.h1
                 fontStyle: bold
-                fontFamily: "Arial"
+
             - type: view
               style:
                 marginTop: "0.02"
@@ -545,7 +545,7 @@ FluVaccinationConsentFormSpanish:
                     width: "0.885"
                     height: "0.03"
                     fontSize: .Nfont.h1
-                    fontFamily: "Arial"
+
                     color: "0x0f0f0f"
                     borderRadius: "3"
         - type: view
@@ -569,7 +569,7 @@ FluVaccinationConsentFormSpanish:
                 left: "0.05"
                 height: "auto"
                 fontSize: .Nfont.h15
-                fontFamily: "Arial"
+
                 fontStyle: bold
                 color: "0x0f0f0f"
                 textAlign:
@@ -590,7 +590,7 @@ FluVaccinationConsentFormSpanish:
                       text: "HAS TENDO ALGUNO DE LO SIGUIENTE?"
                       style:
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         fontWeight: "550"
                         color: "0x0f0f0f"
                 - type: view
@@ -603,7 +603,7 @@ FluVaccinationConsentFormSpanish:
                       text: "1) REACCION ALERGICA A HUEVOS DE GALLINA?"
                       style:
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: list
                       contentType: listObject
@@ -639,8 +639,8 @@ FluVaccinationConsentFormSpanish:
                                             dataIn:
                                               string1: =..formData.selectStatusOne.Vaccination.isRequired
                                               string2: $var.value
-                                        - selectOnBlack.svg
-                                        - selectOffBlack.svg
+                                        - selectOnBlue.svg
+                                        - selectOffBlue.svg
                               onClick:
                                 - emit:
                                     dataKey:
@@ -669,7 +669,7 @@ FluVaccinationConsentFormSpanish:
                               style:
                                 top: "0"
                                 left: "0.07"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h1
                                 height: "0.06"
                                 width: "0.1"
@@ -686,7 +686,7 @@ FluVaccinationConsentFormSpanish:
                       text: "2) REACCION ALERGICA A LA VACUNA DE LAGRIPA O CUALQUIER OTRO TIPO DE INMUNIZACION?"
                       style:
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: list
                       contentType: listObject
@@ -723,8 +723,8 @@ FluVaccinationConsentFormSpanish:
                                             dataIn:
                                               string1: =..formData.selectStatusTwo.Vaccination.isRequired
                                               string2: $var.value
-                                        - selectOnBlack.svg
-                                        - selectOffBlack.svg
+                                        - selectOnBlue.svg
+                                        - selectOffBlue.svg
                               onClick:
                                 - emit:
                                     dataKey:
@@ -753,7 +753,7 @@ FluVaccinationConsentFormSpanish:
                               style:
                                 top: "0"
                                 left: "0.07"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h1
                                 height: "0.06"
                                 width: "0.1"
@@ -770,7 +770,7 @@ FluVaccinationConsentFormSpanish:
                       text: "3) REACCION ALERGICA A CUALQUER MEDICAMIENTOO DROGA?"
                       style:
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         wordWrap: break-word
                         # width: "0.9"
                         color: "0x0f0f0f"
@@ -809,8 +809,8 @@ FluVaccinationConsentFormSpanish:
                                             dataIn:
                                               string1: =..formData.selectStatusThree.Vaccination.isRequired
                                               string2: $var.value
-                                        - selectOnBlack.svg
-                                        - selectOffBlack.svg
+                                        - selectOnBlue.svg
+                                        - selectOffBlue.svg
                               onClick:
                                 - emit:
                                     dataKey:
@@ -839,7 +839,7 @@ FluVaccinationConsentFormSpanish:
                               style:
                                 top: "0"
                                 left: "0.07"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h1
                                 height: "0.06"
                                 width: "0.1"
@@ -856,7 +856,7 @@ FluVaccinationConsentFormSpanish:
                       text: "4) ESTAS O PUEDES ESTAR EMBARAZADA?"
                       style:
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         wordWrap: break-word
                         # width: "0.9"
                         color: "0x0f0f0f"
@@ -895,8 +895,8 @@ FluVaccinationConsentFormSpanish:
                                             dataIn:
                                               string1: =..formData.selectStatusFour.Vaccination.isRequired
                                               string2: $var.value
-                                        - selectOnBlack.svg
-                                        - selectOffBlack.svg
+                                        - selectOnBlue.svg
+                                        - selectOffBlue.svg
                               onClick:
                                 - emit:
                                     dataKey:
@@ -925,7 +925,7 @@ FluVaccinationConsentFormSpanish:
                               style:
                                 top: "0"
                                 left: "0.07"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h1
                                 height: "0.06"
                                 width: "0.1"
@@ -952,8 +952,8 @@ FluVaccinationConsentFormSpanish:
                                 dataIn:
                                   string1: =..formDataTemp.isClaimsAd
                                   string2: true
-                            - selectOnBlack.svg
-                            - selectOffBlack.svg
+                            - selectOnBlue.svg
+                            - selectOffBlue.svg
                   onClick:
                     - actionType: evalObject
                       object:
@@ -985,7 +985,7 @@ FluVaccinationConsentFormSpanish:
                   style:
                     width: "0.8"
                     height: "auto"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h12
                     left: "0.07"
 
@@ -1003,7 +1003,7 @@ FluVaccinationConsentFormSpanish:
                     width: "0.4"
                     fontSize: .Nfont.h1
                     fontStyle: "bold"
-                    fontFamily: "Arial"
+
                     display: "inline-block"
                 # 清除签名
                 - type: label
@@ -1012,7 +1012,7 @@ FluVaccinationConsentFormSpanish:
                     # top: "0"
                     # left: "0"
                     float: "right"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.h1
                     height: auto
                     width: "0.1"
@@ -1059,7 +1059,7 @@ FluVaccinationConsentFormSpanish:
                         display: inline-block
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h15
-                        fontFamily: "Arial"
+
                     - type: label
                       dataKey: apiRequest.FluVaccinationConsentFormSpanish.docReq.name.data.providerInfo.providerFullName
                       style:
@@ -1067,7 +1067,7 @@ FluVaccinationConsentFormSpanish:
                         display: inline-block
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h15
-                        fontFamily: "Arial"
+
                 - type: view
                   style:
                     width: "0.9"
@@ -1075,7 +1075,7 @@ FluVaccinationConsentFormSpanish:
                     marginTop: "0.01"
                     color: "0x0f0f0f"
                     fontSize: .Nfont.h15
-                    fontFamily: "Arial"
+
                   children:
                     - type: label
                       text: "Date: "
@@ -1110,7 +1110,6 @@ FluVaccinationConsentFormSpanish:
                     color: "0x0f0f0f"
                     fontSize: .Nfont.h1
                     # fontStyle: bold
-                    fontFamily: "Arial"
 
                 - type: view
                   style:
@@ -1136,7 +1135,7 @@ FluVaccinationConsentFormSpanish:
                             color: "0x9e9e9e"
                             fontSize: .Nfont.h1
                             # fontStyle: bold
-                            fontFamily: "Arial"
+
                         - type: view
                           style:
                             marginTop: "0.01"
@@ -1152,7 +1151,7 @@ FluVaccinationConsentFormSpanish:
                                 width: "0.25"
                                 height: "0.03"
                                 fontSize: .Nfont.h1
-                                fontFamily: "Arial"
+
                                 color: "0x0f0f0f"
                                 borderRadius: "3"
                     - type: view
@@ -1170,7 +1169,7 @@ FluVaccinationConsentFormSpanish:
                             width: "0.3"
                             color: "0x9e9e9e"
                             fontSize: .Nfont.h1
-                            fontFamily: "Arial"
+
                         - type: view
                           style:
                             marginTop: "0.01"
@@ -1186,7 +1185,7 @@ FluVaccinationConsentFormSpanish:
                                 width: "0.25"
                                 height: "0.03"
                                 fontSize: .Nfont.h1
-                                fontFamily: "Arial"
+
                                 color: "0x0f0f0f"
                                 borderRadius: "3"
                     - type: view
@@ -1204,7 +1203,7 @@ FluVaccinationConsentFormSpanish:
                             width: "0.3"
                             color: "0x9e9e9e"
                             fontSize: .Nfont.h1
-                            fontFamily: "Arial"
+
                         - type: view
                           style:
                             marginTop: "0.01"
@@ -1220,7 +1219,7 @@ FluVaccinationConsentFormSpanish:
                                 width: "0.25"
                                 height: "0.03"
                                 fontSize: .Nfont.h1
-                                fontFamily: "Arial"
+
                                 color: "0x0f0f0f"
                                 borderRadius: "3"
                 - type: view
@@ -1234,7 +1233,7 @@ FluVaccinationConsentFormSpanish:
                       style:
                         color: "0x9e9e9e"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                     - type: view
                       viewTag: isRequiredTagFive
                       style:
@@ -1264,15 +1263,15 @@ FluVaccinationConsentFormSpanish:
                                             dataIn:
                                               string1: =..formData.selectStatusInjection.isRequired
                                               string2: true
-                                        - selectOnBlack.svg
-                                        - selectOffBlack.svg
+                                        - selectOnBlue.svg
+                                        - selectOffBlue.svg
 
                             - type: label
                               text: "Right Deltoid"
                               style:
                                 top: "0.021"
                                 left: "0.07"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h1
                                 height: "0.06"
                                 width: "0.3"
@@ -1299,15 +1298,15 @@ FluVaccinationConsentFormSpanish:
                                             dataIn:
                                               string1: =..formData.selectStatusInjection.isRequired
                                               string2: false
-                                        - selectOnBlack.svg
-                                        - selectOffBlack.svg
+                                        - selectOnBlue.svg
+                                        - selectOffBlue.svg
 
                             - type: label
                               text: "left Deltoid"
                               style:
                                 top: "0.021"
                                 left: "0.07"
-                                fontFamily: "Arial"
+
                                 fontSize: .Nfont.h1
                                 height: "0.06"
                                 width: "0.3"

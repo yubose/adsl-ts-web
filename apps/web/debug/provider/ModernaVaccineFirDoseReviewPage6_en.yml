@@ -45,7 +45,7 @@ ModernaVaccineFirDoseReviewPage6:
                     height: "0.05"
                     width: "0.9"
                     fontSize: .Nfont.h16
-                    fontFamily: "Arial"
+
                     textAlign:
                       x: left
                       y: center
@@ -106,8 +106,8 @@ ModernaVaccineFirDoseReviewPage6:
                                         dataIn:
                                           string1: "No"
                                           string2: $var.value
-                                    - selectOnBlack.svg
-                                    - selectOffBlack.svg
+                                    - selectOnBlue.svg
+                                    - selectOffBlue.svg
                           style:
                             width: "0.05"
                             top: "0"

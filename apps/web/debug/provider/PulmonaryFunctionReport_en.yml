@@ -217,7 +217,7 @@ PulmonaryFunctionReport:
             height: "auto"
             width: "0.9"
             left: "0.05"
-            fontFamily: "Arial"
+
           children:
             - type: view
               style:
@@ -241,7 +241,7 @@ PulmonaryFunctionReport:
                         width: "0.65"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h4
-                        fontFamily: "Arial"
+
                     - type: label
                       text: 1000 S Anaheim Blvd Ste 200 Anaheim, CA 92805
                       dataKey: apiRequest.fluVaccinationConsentFormEnglish.docReq.name.data.facilityInfo.location
@@ -251,7 +251,7 @@ PulmonaryFunctionReport:
                         width: "0.63"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                     - type: label
                       text: www.website.com
                       dataKey:
@@ -261,7 +261,7 @@ PulmonaryFunctionReport:
                         width: "0.65"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                 - type: view
                   style:
                     top: "0"
@@ -297,7 +297,7 @@ PulmonaryFunctionReport:
                         width: "0.72"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Email
@@ -307,7 +307,7 @@ PulmonaryFunctionReport:
                         height: "auto"
                         width: "0.12"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -324,7 +324,7 @@ PulmonaryFunctionReport:
                         width: "0.6"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: AiTmed ID
@@ -334,7 +334,7 @@ PulmonaryFunctionReport:
                         height: "auto"
                         width: "0.2"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -351,7 +351,7 @@ PulmonaryFunctionReport:
                         width: "0.65"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Phone
@@ -361,7 +361,7 @@ PulmonaryFunctionReport:
                         height: "auto"
                         width: "0.15"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
                 - type: view
                   style:
@@ -378,7 +378,7 @@ PulmonaryFunctionReport:
                         width: "0.7"
                         fontSize: .Nfont.h1
                         wordWrap: break-word
-                        fontFamily: "Arial"
+
                         color: "0x0f0f0f"
                     - type: label
                       text: Fax
@@ -388,7 +388,7 @@ PulmonaryFunctionReport:
                         height: "auto"
                         width: "0.1"
                         fontSize: .Nfont.h1
-                        fontFamily: "Arial"
+
                         color: "0x757575"
             - type: view
               style:
@@ -727,7 +727,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n2
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: list
                   contentType: listObject
                   listObject: ..formDataTemp.respirator
@@ -823,7 +823,7 @@ PulmonaryFunctionReport:
                         width: "0.9"
                         fontSize: .Nfont.n2
                         fontWeight: "600"
-                        fontFamily: "Arial"
+
                     - type: list
                       contentType: listObject
                       listObject: ..formDataTemp.expected
@@ -891,7 +891,7 @@ PulmonaryFunctionReport:
                         width: "0.9"
                         fontSize: .Nfont.n2
                         fontWeight: "600"
-                        fontFamily: "Arial"
+
                     - type: list
                       contentType: listObject
                       listObject: ..formDataTemp.unyFollowing
@@ -1056,7 +1056,7 @@ PulmonaryFunctionReport:
                     margin: "0"
                     lineHeight: "5vh"
                     color: "0x000000"
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
                     textAlign:
                       x: center
@@ -1073,7 +1073,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: list
                   contentType: listObject
                   listObject: ..formDataTemp.cough
@@ -1140,7 +1140,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: list
                   contentType: listObject
                   listObject: ..formDataTemp.coughTimes
@@ -1207,7 +1207,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: list
                   contentType: listObject
                   listObject: ..formDataTemp.phlegm
@@ -1274,7 +1274,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: list
                   contentType: listObject
                   listObject: ..formDataTemp.expenence
@@ -1392,7 +1392,7 @@ PulmonaryFunctionReport:
                             width: "0.9"
                             fontSize: .Nfont.n3
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                         - type: list
                           contentType: listObject
                           listObject: itemObject.change
@@ -1467,7 +1467,7 @@ PulmonaryFunctionReport:
                     margin: "0"
                     lineHeight: "5vh"
                     color: "0x000000"
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
                     textAlign:
                       x: center
@@ -1504,7 +1504,7 @@ PulmonaryFunctionReport:
                             width: "0.9"
                             fontSize: .Nfont.n3
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                         - type: list
                           contentType: listObject
                           listObject: itemObject.change
@@ -1592,7 +1592,7 @@ PulmonaryFunctionReport:
                             width: "0.9"
                             fontSize: .Nfont.n3
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                         - type: list
                           contentType: listObject
                           listObject: itemObject.change
@@ -1647,7 +1647,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: view
                   style:
                     marginLeft: "0.05"
@@ -1703,7 +1703,7 @@ PulmonaryFunctionReport:
                             fontSize: .Nfont.n3
                             marginTop: "0.01"
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                         - type: textField
                           style:
                             width: "0.9"
@@ -1737,7 +1737,7 @@ PulmonaryFunctionReport:
                     margin: "0"
                     lineHeight: "3vh"
                     color: "0x000000"
-                    fontFamily: "Arial"
+
                     fontWeight: "600"
                     textAlign:
                       x: center
@@ -1749,7 +1749,7 @@ PulmonaryFunctionReport:
                     margin: "0"
                     lineHeight: "3vh"
                     color: "0x717171"
-                    fontFamily: "Arial"
+
                     fontSize: .Nfont.n2
                     fontWeight: "600"
                     textAlign:
@@ -1767,7 +1767,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: textField
                   style:
                     width: "0.9"
@@ -1952,7 +1952,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: list
                   contentType: listObject
                   listObject: ..formDataTemp.fittingInterfere
@@ -2203,7 +2203,7 @@ PulmonaryFunctionReport:
                     width: "0.9"
                     fontSize: .Nfont.n3
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                 - type: list
                   contentType: listObject
                   listObject: ..formDataTemp.examinationInfo
@@ -2356,7 +2356,7 @@ PulmonaryFunctionReport:
                             width: "0.9"
                             fontSize: .Nfont.n3
                             fontWeight: "600"
-                            fontFamily: "Arial"
+
                         - type: list
                           contentType: listObject
                           listObject: itemObject.change
@@ -2450,7 +2450,7 @@ PulmonaryFunctionReport:
                         width: "0.4"
                         fontSize: .Nfont.h1
                         fontStyle: "bold"
-                        fontFamily: "Arial"
+
                         display: "inline-block"
                     # 清除签名
                     - type: label
@@ -2458,7 +2458,7 @@ PulmonaryFunctionReport:
                       style:
                         top: "0"
                         left: "0.8"
-                        fontFamily: "Arial"
+
                         fontSize: .Nfont.h1
                         height: auto
                         width: "0.1"
@@ -2507,7 +2507,6 @@ PulmonaryFunctionReport:
                             display: inline-block
                             color: "0x0f0f0f"
                             fontSize: .Nfont.n1
-                            fontFamily: "Arial"
 
                     - type: view
                       style:
@@ -2516,7 +2515,7 @@ PulmonaryFunctionReport:
                         marginTop: "0.01"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h15
-                        fontFamily: "Arial"
+
                       children:
                         - type: label
                           text: "09/30/2021"
@@ -2532,12 +2531,11 @@ PulmonaryFunctionReport:
                         marginTop: "0.01"
                         color: "0x0f0f0f"
                         fontSize: .Nfont.h15
-                        fontFamily: "Arial"
+
                       children:
                         - type: label
                           text: "LIC# "
                           style:
-                            fontFamily: "Arial"
                             fontWeight: "600"
                             fontSize: .Nfont.h15
                             display: inline-block

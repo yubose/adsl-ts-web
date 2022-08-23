@@ -1,0 +1,1130 @@
+LocationInformation:
+  title: "Location Information"
+
+  pageNumber: ""
+
+  init:
+    - .SignInCheck
+
+    # - =..apiRequest.facilityInfo.docAPI.get: ""
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..formData.dataObject@: =.Global.locationInformation
+    - ..apiRequest.provderList.docAPI.get
+    - ..apiRequest.locationsProfile.docAPI.get
+    - ..apiRequest.roomsProfile.doc.id@: =..formData.dataObject.bsig
+    - ..apiRequest.roomsProfile.docAPI.get
+    - ..apiRequest.photoDEAProfile.docReq.id@: =.Global.locationInformation.eid
+    - ..apiRequest.photoDEAProfile.docAPI.get
+    - ..apiRequest.photoLicenceProfile.docReq.id@: =.Global.locationInformation.eid
+    - ..apiRequest.photoLicenceProfile.docAPI.get
+    # 获取facilityInfo
+    #使用formData.roomList存储当前location的room信息,便于后面对数据的展示与重置
+    - .LocationInformation.formData.roomList@: =..apiRequest.roomsProfile.docResp.doc
+  apiRequest:
+    # get the profile of selected location for the next page: MobileContacts2
+    locationProfile:
+      docQueryReq:
+        ObjType: 12
+        type: .DocType.FacilityProfile
+        id: ""
+        xfname: E.bvid
+        maxcount: "1"
+        obfname: ctime
+      docAPI:
+        get:
+          api: rd
+          dataIn: LocationInformation.apiRequest.locationProfile.docQueryReq
+          dataOut: LocationInformation.apiRequest.locationProfile.docQueryResp
+    photoLicenceProfile:
+      docResp: ""
+      docReq:
+        id: ""
+        type: 28901
+        xfname: eid
+        maxcount: "1"
+        obfname: ctime
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: LocationInformation.apiRequest.photoLicenceProfile.docReq
+          dataOut: LocationInformation.apiRequest.photoLicenceProfile.docResp
+    photoDEAProfile:
+      docResp: ""
+      docReq:
+        id: ""
+        type: 258561
+        xfname: eid
+        maxcount: "1"
+        obfname: ctime
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: LocationInformation.apiRequest.photoDEAProfile.docReq
+          dataOut: LocationInformation.apiRequest.photoDEAProfile.docResp
+    # get all room profile
+    roomsProfile:
+      docResp:
+        doc: []
+      doc:
+        ObjType: 12
+        type: "273921"
+        id: ""
+        xfname: "E.bvid"
+        sCondition: "E.type=1100 AND E.tage>=0"
+        maxcount: "1000"
+        obfname: "ctime"
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: LocationInformation.apiRequest.roomsProfile.doc
+          dataOut: LocationInformation.apiRequest.roomsProfile.docResp
+          subtype:
+            mediaType: ""
+    # provider信息
+    provderList:
+      list: ""
+      docAPI:
+        get:
+          api: rd
+          type: .DocType.DoctorProfile
+          xfname: E.bvid | E.evid
+          id: .Global.currentFacility.bsig
+          ObjType: 12
+          dataKey: apiRequest.provderList.list
+          _nonce: =.Global._nonce
+          sCondition: E.type=10002 AND E.tage=1
+    profile:
+      docResponse: ""
+      edge:
+        id: ""
+        xfname: ovid
+        type: .DocType.DoctorPublicProfile
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          # .DocAPI.get: ""
+          api: rd
+          dataIn: apiRequest.profile.edge
+          dataOut: apiRequest.profile.docResponse
+  formData:
+    roomList: ""
+    location: ""
+    language: ""
+    dataObject: ""
+    locationID: ""
+    bsig: ""
+    locations: ""
+  formDataTemp:
+    titleData:
+      - title: About
+        fontColor: "0x2988e6"
+        fontWeight: "500"
+        displayStyle: "block"
+      - title: Providers
+        fontColor: "0x333333"
+        fontWeight: "400"
+        displayStyle: "none"
+      - title: Services
+        fontColor: "0x333333"
+        fontWeight: "400"
+        displayStyle: "none"
+    blockAboutInfo: "block"
+    blockCredentialsInfo: "none"
+    blockFacilityInfo: "none"
+    # leftStyle: "11.5vw"
+    idImageStyle: "none"
+    providerProfileVar: "About"
+    # blockImageStyle: "none"
+    blockMarginTop: "10vh"
+    blockHeight: "84vh"
+
+    gender:
+      - key: gender
+        value: Male
+      - key: gender
+        value: Female
+      - key: gender
+        value: Other
+
+  components:
+    - .BaseHeader:
+    - .HeaderLeftButton:
+    #  body
+    - type: view
+      viewTag: blockImageTag
+      style:
+        width: "1"
+        marginTop: "0.11"
+        height: "0.17"
+        overflow: hidden
+      children:
+        - type: view
+          style:
+            marginTop: "0"
+            width: "0.85"
+            height: "0.17"
+            marginLeft: "0.075"
+          children:
+            - type: view
+              style:
+                height: "0.09"
+                width: "0.85"
+                marginTop: "0"
+                textAlign:
+                  x: center
+              children:
+                - type: image
+                  path: office-building.svg
+                  dataKey: formData.dataObject.name.data.basicInfo.businessLogo
+                  path=func: =.builtIn.utils.prepareDocToPath
+                  viewTag: avatar
+                  style:
+                    width: "0.15"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0xeeeeee"
+                    borderRadius: "5"
+
+            - type: view
+              style:
+                # display: "inline-block"
+                width: "0.85"
+                height: "auto"
+                # backgroundColor: "pink"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    marginLeft: "0"
+                    height: "0.04"
+                    width: "0.85"
+                  children:
+                    - type: label
+                      dataKey: formData.dataObject.name.data.basicInfo.medicalFacilityName
+                      style:
+                        fontSize: .Nfont.n1
+                        width: "0.85"
+                        textAlign:
+                          x: center
+                        # display: "inline-block"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    marginLeft: "0"
+                    height: "0.03"
+                    width: "0.85"
+                  children:
+                    - type: label
+                      dataKey: formData.dataObject.name.data.basicInfo.businessType
+                      style:
+                        fontSize: .Nfont.n2
+                        color: "0x333333"
+                        width: "0.85"
+                        height: "auto"
+                        textAlign:
+                          x: center
+                        # fontWeight: "400"
+    - type: view
+      viewTag: blockMarginTag
+      style:
+        marginTop: "0"
+        width: "1"
+        height: "0.05"
+        # zIndex: "100"
+        border:
+          style: 2
+          color: "0xDEDEDF"
+        borderWidth: "2px"
+      children:
+        - type: list
+          scrollable: false
+          viewTag: profileInfoTag
+          contentType: listObject
+          listObject: ..formDataTemp.titleData
+          iteratorVar: itemObject
+          style:
+            width: "1"
+            margin: "0"
+            axis: horizontal
+            height: auto
+            border:
+              style: "2"
+            borderColor: "0xdededf"
+            borderWidth: "2px"
+            zIndex: 100
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                width: "0.33"
+                height: "0.05"
+                marginTop: "0"
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - =.builtIn.object.setProperty:
+                          dataIn:
+                            obj: =..formDataTemp.titleData
+                            label: "title"
+                            text: $var.title
+                            arr: ["fontColor", "fontWeight", "displayStyle"]
+                            valueArr: ["0x2988e6", "500", "block"]
+                            errorArr: ["0x333333", "400", "none"]
+                      - ..formDataTemp.leftStyle@: $var.leftStyle
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockAboutInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockCredentialsInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "About"
+                          - ..formDataTemp.blockFacilityInfo@: "none"
+                          - continue
+                      # - if:
+                      #   - =.builtIn.string.equal:
+                      #       dataIn:
+                      #         string1: $var.title
+                      #         string2: "About"
+                      #   - ..formDataTemp.providerProfileVar@: "About"
+                      #   - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Providers"
+                          - ..formDataTemp.blockAboutInfo@: "none"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Providers"
+                          - ..formDataTemp.blockCredentialsInfo@: "block"
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Providers"
+                          - ..formDataTemp.blockFacilityInfo@: "none"
+                          - continue
+                      # - if:
+                      #   - =.builtIn.string.equal:
+                      #       dataIn:
+                      #         string1: $var.title
+                      #         string2: "Providers"
+                      #   - ..formDataTemp.providerProfileVar@: "Providers"
+                      #   - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Services"
+                          - ..formDataTemp.blockFacilityInfo@: "block"
+
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Services"
+                          - ..formDataTemp.blockAboutInfo@: "none"
+
+                          - continue
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: $var.title
+                                string2: "Services"
+                          - ..formDataTemp.blockCredentialsInfo@: "none"
+                          - continue
+                      # - if:
+                      #   - =.builtIn.string.equal:
+                      #       dataIn:
+                      #         string1: $var.title
+                      #         string2: "Services"
+                      #   - ..formDataTemp.providerProfileVar@: "Services"
+                      #   - continue
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: profileInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: AboutInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: CredentialsInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: FacilityInfoTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockMarginTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: blockHeightTag
+
+              children:
+                - type: label
+                  dataKey: itemObject.title
+                  style:
+                    color: itemObject.fontColor
+                    lineHeight: "6vh"
+                    height: "0.045"
+                    width: "0.33"
+                    fontWeight: itemObject.fontWeight
+                    display: "inline-block"
+                    textAlign:
+                      x: center
+                    fontSize: .Nfont.n2
+                - type: view
+                  viewTag: leftBlockTag
+                  style:
+                    display: itemObject.displayStyle
+                    marginLeft: "0.125"
+                    width: "0.08"
+                    height: "0.005"
+                    backgroundColor: "0x2988e6"
+                    borderRadius: "20"
+    - type: scrollView
+      viewTag: blockHeightTag
+      style:
+        margin: "0"
+        height: "0.65"
+        width: "1"
+        backgroundColor: "0xffffff"
+        overflow: scroll
+      children:
+        - type: view
+          viewTag: AboutInfoTag
+          style:
+            width: "1"
+            display: ..formDataTemp.blockAboutInfo
+            height: "auto"
+            fontSize: .Nfont.n2
+          children:
+            - type: view
+              style:
+                width: "1"
+                height: "auto"
+                margin: "0"
+                backgroundColor: "0xf0f0f0"
+              children:
+                - type: label
+                  text: Basic Info
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.9"
+                    marginLeft: "0.05"
+                    textAlign:
+                      y: center
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.045"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "Business Category:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.35"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.businessType
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.55"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                    textAlign:
+                      x: right
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Facility ID:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.25"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.locationID
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.65"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    textAlign:
+                      x: right
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Main #: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.21"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.phoneNumber
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.69"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    textAlign:
+                      x: right
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Email: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.24"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                  # children:
+                  #   - type: label
+                  #     text: "*"
+                  #     style:
+                  #       color: "0xff0000"
+                  #       marginLeft: "0.02"
+                  #       display: "inline-block"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.email
+                  # options: .SelectINformationDM.title
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.66"
+                    lineHeight: "4.5vh"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Website: "
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.24"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.facilityLink
+                  # options: .SelectINformationDM.title
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.66"
+                    lineHeight: "4.5vh"
+                    textAlign:
+                      x: right
+                    display: "inline-block"
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Address:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.9"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.fullInfo
+                  style:
+                    width: "0.9"
+                    # lineHeight: "4.5vh"
+                    height: "auto"
+                    color: "0x808080"
+                    wordWrap: break-word
+                    marginLeft: "0"
+            - type: view
+              style:
+                width: "1"
+                height: "0.01"
+                marginLeft: "0"
+                marginTop: "0.01"
+                border:
+                  style: "2"
+                borderWidth: "2"
+                borderColor: "0xdededf"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "NPI #:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.12"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  # text: First Name
+                  # placeholder: Enter here
+                  dataKey: formData.dataObject.name.data.basicInfo.NPI
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.78"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    textAlign:
+                      x: right
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "DEA #"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.11"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  # placeholder: Enter here
+                  dataKey: formData.dataObject.name.data.basicInfo.DEANumber
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.79"
+                    textAlign:
+                      x: right
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Fax #"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.11"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  # placeholder: Enter here
+                  dataKey: formData.dataObject.name.data.basicInfo.fax
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.79"
+                    textAlign:
+                      x: right
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Business Hours :"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "auto"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.businessHours
+                  style:
+                    display: "inline-block"
+                    width: "auto"
+                    # lineHeight: "4.5vh"
+                    height: "auto"
+                    wordWrap: break-word
+                    # marginLeft: "0.02"
+                    color: "0x808080"
+            - type: view
+              style:
+                width: "1"
+                height: "0.01"
+                marginLeft: "0"
+                marginTop: "0"
+                border:
+                  style: "2"
+                borderWidth: "2"
+                borderColor: "0xdededf"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Business License #:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.35"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.businessLicense
+                  style:
+                    display: "inline-block"
+                    width: "0.53"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                    textAlign:
+                      x: right
+                    wordWrap: break-word
+                    marginLeft: "0.02"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "City:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.12"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  # text: First Name
+                  # placeholder: Enter here
+                  dataKey: formData.dataObject.name.data.basicInfo.city
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.78"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    textAlign:
+                      x: right
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0.01"
+              children:
+                - type: label
+                  text: "State:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.12"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  # text: First Name
+                  # placeholder: Enter here
+                  dataKey: formData.dataObject.name.data.basicInfo.state
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.78"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    textAlign:
+                      x: right
+                    height: "0.045"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "License Expiration Date:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.4"
+                    lineHeight: "4.5vh"
+                    display: "inline-block"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.licenseExpirationDate
+                  style:
+                    display: "inline-block"
+                    width: "0.48"
+                    lineHeight: "4.5vh"
+                    height: "auto"
+                    wordWrap: break-word
+                    marginLeft: "0.02"
+                    textAlign:
+                      x: right
+            - type: view
+              style:
+                width: "1"
+                height: "0.01"
+                marginLeft: "0"
+                marginTop: "0"
+                border:
+                  style: "2"
+                borderWidth: "2"
+                borderColor: "0xdededf"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Introduction:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.9"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                - type: label
+                  dataKey: formData.dataObject.name.data.basicInfo.introduction
+                  style:
+                    color: "0x333333"
+                    height: "0.15"
+                    width: "0.9"
+            - type: view
+              style:
+                width: "0.9"
+                height: "auto"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Upload:"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.9"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                - type: view
+                  style:
+                    width: "0.9"
+                    height: "auto"
+                    marginTop: "0.015"
+                  children:
+                    - type: image
+                      dataKey: apiRequest.photoDEAProfile.docResp.doc.0.id
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      path: null.png
+                      style:
+                        color: "0x333333"
+                        height: "0.15"
+                        display: "inline-block"
+                        width: "0.45"
+                    - type: image
+                      dataKey: apiRequest.photoLicenceProfile.docResp.doc.0.id
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      path: null.png
+                      style:
+                        color: "0x333333"
+                        height: "0.15"
+                        display: "inline-block"
+                        width: "0.45"
+            - type: view
+              style:
+                width: "0.9"
+                height: "0.15"
+                marginLeft: "0.05"
+                marginTop: "0"
+              children:
+                - type: label
+                  text: "Accepted Insurance"
+                  style:
+                    color: "0x333333"
+                    fontWeight: "400"
+                    width: "0.78"
+                    display: "inline-block"
+                    lineHeight: "4.5vh"
+                    height: "0.045"
+                - type: label
+                  text: View
+                  style:
+                    color: "0x2988e6"
+                    display: "inline-block"
+                    textDecoration: underline
+                    textDecorationColor: "0x2988e6"
+                    height: "0.045"
+                    width: "0.12"
+                    textAlign:
+                      x: right
+                  onClick:
+                    - goto: AcceptedInsuranceFacility
+        - type: view
+          viewTag: CredentialsInfoTag
+          style:
+            width: "1"
+            height: "auto"
+            fontSize: .Nfont.n2
+            display: ..formDataTemp.blockCredentialsInfo
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..apiRequest.provderList.list.doc
+              iteratorVar: itemObject
+              style:
+                width: "0.9"
+                margin: "0"
+                marginTop: "0"
+                overflow: scroll
+                marginLeft: "0.05"
+                height: auto
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "0.9"
+                    height: "0.12"
+                    margin: "0"
+                    border:
+                      style: 2
+                      color: "0xeeeeee"
+                  # onClick:
+                  #   - emit:
+                  #       dataKey:
+                  #         var: itemObject
+                  #       actions:
+                  #         - ..apiRequest.profile.edge.id@: $var.bsig
+                  #         - =..apiRequest.profile.docAPI.get: ""
+                  #         - .Global.patientProviderInfo@: =..apiRequest.profile.docResponse.doc.0
+                  #   - goto: FacilityPatientInfo
+                  children:
+                    - type: view
+                      style:
+                        height: "0.12"
+                        marginLeft: "0"
+                        width: "0.9"
+                        marginTop: "0"
+                        border:
+                          style: "1"
+                        borderWidth: "1"
+                        borderColor: "0x333333"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.16"
+                            height: "0.12"
+                            verticalAlign: middle
+                            display: "inline-block"
+                            textAlign:
+                              x: center
+                          children:
+                            - type: image
+                              path=func: =.builtIn.utils.prepareDocToPath
+                              path: providerImage.svg
+                              dataKey: itemObject.name.data.avatar
+                              style:
+                                width: "0.16"
+                                marginTop: "0.02"
+                                height: "0.08"
+                                border:
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xf3f3f3"
+                                borderRadius: "5"
+
+                        - type: view
+                          style:
+                            width: "0.7"
+                            display: "inline-block"
+                            verticalAlign: middle
+                            marginLeft: "0.03"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.fullName
+                              style:
+                                width: "0.7"
+                                marginTop: "0.01"
+                                fontSize: .Nfont.n2
+                                textDecoration: underline
+                                color: "0x333333"
+                                fontWeight: "400"
+                            - type: label
+                              dataKey: itemObject.name.data.specialty.0.specialty
+                              style:
+                                fontSize: .Nfont.n2
+                                width: "0.7"
+                                marginTop: "0.02"
+                                zIndex: "1000"
+                                color: "0x808080"
+                                fontWeight: "400"
+
+        - type: view
+          viewTag: FacilityInfoTag
+          style:
+            width: "1"
+            display: ..formDataTemp.blockFacilityInfo
+            height: "auto"
+            fontSize: .Nfont.n2
+          children:
+            - type: list
+              viewTag: roomlist
+              contentType: listObject
+              listObject: ..formData.roomList
+              iteratorVar: itemObject
+              style:
+                width: "1"
+                margin: "0"
+                height: "0.65"
+              children:
+                - type: listItem
+                  itemObject: ""
+                  style:
+                    width: "1"
+                    height: "0.12"
+                    margin: "0"
+                    border:
+                      style: 2
+                      color: "0xeeeeee"
+                  # onClick:
+                  #   - actionType: evalObject
+                  #     object:
+                  #       - ..apiRequest.locationProfile.docQueryReq.id@: =..apiRequest.roomsProfile.doc.id
+                  #       - =..apiRequest.locationProfile.docAPI.get: ""
+                  #       - .Global.ActiveLocation@: =..apiRequest.locationProfile.docQueryResp.doc.0
+                  #   - emit:
+                  #       dataKey:
+                  #         var: itemObject
+                  #       actions:
+                  #         - .Global.formData.activeRoom@: $var
+                  #   - goto: MobileContacts2
+                  children:
+                    - type: view
+                      style:
+                        height: "0.12"
+                        marginLeft: "0.05"
+                        width: "0.9"
+                        marginTop: "0"
+                        border:
+                          style: "1"
+                        borderWidth: "1"
+                        borderColor: "0x333333"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.58"
+                            display: "inline-block"
+                            height: "0.08"
+                            marginLeft: "0.03"
+                            marginTop: "0.02"
+                          children:
+                            - type: label
+                              dataKey: itemObject.name.data.service
+                              style:
+                                width: "0.58"
+                                marginTop: "0.01"
+                                height: "0.04"
+                                fontSize: .Nfont.n2
+                                color: "0x333333"
+                                fontWeight: "400"
+                            - type: label
+                              dataKey: itemObject.name.data.roomName
+                              style:
+                                fontSize: .Nfont.n2
+                                width: "0.58"
+                                marginTop: "0"
+                                height: "0.02"
+                                zIndex: "1000"
+                                color: "0x000000"
+                                fontWeight: "400"

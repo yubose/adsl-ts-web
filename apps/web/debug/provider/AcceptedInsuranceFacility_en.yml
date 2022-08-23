@@ -1,7 +1,6 @@
 AcceptedInsuranceFacility:
-
   title: "Accepted Insurance"
-  
+
   pageNumber: ""
 
   init:
@@ -21,14 +20,27 @@ AcceptedInsuranceFacility:
           key: "imgPath"
           value: "dropDownBlack.svg"
     - if:
-      - =.builtIn.array.judgeListLength:
-          dataIn:
-            array: =..apiRequest.AcceptedInsurance.documentResp.doc
-            len: 0
-      - ..formDataTemp.imageStyle@: "none"
-      - continue
-      
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =..apiRequest.AcceptedInsurance.documentResp.doc
+              len: 0
+        - ..formDataTemp.imageStyle@: "none"
+        - continue
+
+    - =.builtIn.array.getListLength:
+        dataIn:
+          object: =..apiRequest.AcceptedInsurance.documentResp.doc.0.name.data.insurance
+        dataOut: AcceptedInsuranceFacility.formData.currentLength
+
+    - =.builtIn.string.concat:
+        dataIn:
+          - "("
+          - =.AcceptedInsuranceFacility.formData.currentLength
+          - ")"
+        dataOut: AcceptedInsuranceFacility.formData.currentLengthString
   formData:
+    currentLength: ""
+    currentLengthString: ""
 
   formDataTemp:
     imageStyle: "block"
@@ -49,170 +61,245 @@ AcceptedInsuranceFacility:
           dataOut: AcceptedInsuranceFacility.apiRequest.facilityInfo.facrootNotebookResp
     # 保险信息
     AcceptedInsurance:
-        documentResp: ""
-        documentReq:
-          type: .DocType.AcceptedInsurance
-          id: ""
-          xfname: eid
-          obfname: ctime
-          maxcount: "1"
-          _nonce: =.Global._nonce
-        docAPI:
-          get:
-            api: rd
-            dataIn: AcceptedInsuranceFacility.apiRequest.AcceptedInsurance.documentReq
-            dataOut: AcceptedInsuranceFacility.apiRequest.AcceptedInsurance.documentResp
-  style:
+      documentResp: ""
+      documentReq:
+        type: .DocType.AcceptedInsurance
+        id: ""
+        xfname: eid
+        obfname: ctime
+        maxcount: "1"
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: AcceptedInsuranceFacility.apiRequest.AcceptedInsurance.documentReq
+          dataOut: AcceptedInsuranceFacility.apiRequest.AcceptedInsurance.documentResp
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: evalObject
-          object:
-            - .Global.ProfileType@: =.DocType.DoctorProfile
-            
-        - actionType: builtIn
-          funcName: goBack
-          reload: true    
-    - type: view
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: evalObject
+                object:
+                  - .Global.ProfileType@: =.DocType.DoctorProfile
+              - actionType: builtIn
+                funcName: goBack
+                reload: true
+          - .BasePublicHeaderTitle:
+    - type: scrollView
       style:
-        display: ..formDataTemp.imageStyle
-        marginTop: "0.1"
+        ..style.scrollBox:
       children:
-        - type: scrollView
-          viewTag: viewDataTag
+        - type: view
           style:
-            marginTop: "0"
-            height: "0.88"
+            ..style.partitionBox:
           children:
-            - type: list
-              contentType: listObject
-              viewTag: viewDataTag
-              listObject: ..apiRequest.AcceptedInsurance.documentResp.doc.0.name.data
-              iteratorVar: itemObject
+            - type: label
+              textBoard:
+                - text: Accepted Insurance
+                - text: "&nbsp;"
+                - text: ""
+                  dataKey: formData.currentLengthString
               style:
-                width: '1'
-                margin: '0'
-                height: "auto"
+                ..style.partitionLabel:
+        - type: list
+          contentType: listObject
+          listObject: ..apiRequest.AcceptedInsurance.documentResp.doc.0.name.data.insurance
+          iteratorVar: itemObject
+          style:
+            ..style.dataList:
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                ..style.listItem:
               children:
-                - type: listItem
-                  itemObject: 
+                - type: label
+                  dataKey: itemObject
                   style:
-                    width: '1'
-                    height: 'auto'
-                    marginTop: '0'
-                    fontSize: .Nfont.n2
-                  children:
-                    - type: view
-                      style:
-                        width: "1"
-                        height: "0.05"
-                        border: 
-                          style: "2"
-                        borderWidth: "2"
-                        borderColor: "0xeeeeef"
-                      onClick:
-                        - emit:
-                            dataKey:
-                              var: itemObject
-                            actions:                        
-                              - if:
-                                - =.builtIn.string.equal:
-                                    dataIn:
-                                      string1: "block"
-                                      string2: $var.displayStyle
-                                - =.builtIn.object.set:
-                                    dataIn:
-                                      object: $var
-                                      key: "displayStyle"
-                                      value:  "none"
-                                - =.builtIn.object.set:
-                                    dataIn:
-                                      object: $var
-                                      key: "displayStyle"
-                                      value:  "block"
-                              - if:
-                                - =.builtIn.string.equal:
-                                    dataIn:
-                                      string1: "dropDownBlack.svg"
-                                      string2: $var.imgPath
-                                - =.builtIn.object.set:
-                                    dataIn:
-                                      object: $var
-                                      key: "imgPath"
-                                      value:  "detail.svg"
-                                - =.builtIn.object.set:
-                                    dataIn:
-                                      object: $var
-                                      key: "imgPath"
-                                      value:  "dropDownBlack.svg"
-                        - actionType: builtIn
-                          funcName: redraw
-                          viewTag: insuranceDataTag
-                        - actionType: builtIn
-                          funcName: redraw
-                          viewTag: viewDataTag
-                        - actionType: builtIn
-                          funcName: redraw
-                          viewTag: imagePathTag
-                      children:
-                        - type: label
-                          dataKey: itemObject.carrier
-                          style:
-                            color: "0x333333"
-                            lineHeight: "5vh"
-                            marginLeft: "0.05"
-                            height: "0.05"
-                            fontWeight: "400"
-                            display: "inline-block"
-                        - type: label
-                          dataKey: itemObject.planLength
-                          style:
-                            height: "0.05"
-                            lineHeight: "5vh"
-                            color: "0x333333"
-                            margin: "0"
-                            display: "inline-block"
-                        - type: image
-                          viewTag: imagePathTag
-                          path: itemObject.imgPath
-                          style:
-                            top: "0.02"
-                            left: "0.9"
-                            width: "0.05"
-                    - type: view
-                      viewTag: insuranceDataTag
-                      style:
-                        display: itemObject.displayStyle
-                        width: "0.9"
-                        height: "auto"
-                      children:
-                        - type: list
-                          contentType: listObject
-                          listObject: itemObject.plans
-                          iteratorVar: itemObject
-                          style:
-                            width: '0.9'
-                            height: "auto"
-                            fontSize: .Nfont.n3
-                          children:
-                            - type: listItem
-                              itemObject: 
-                              style:
-                                width: '0.9'
-                                height: 'auto'
-                                marginTop: '0'
-                                marginLeft: "0.05"
-                              children:
-                                - type: label
-                                  dataKey: itemObject
-                                  style:
-                                    width: '0.9'
-                                    height: "0.05"
-                                    lineHeight: "5vh"
-                                    color: "0x707070"
-                                    border: 
-                                      style: "2"
-                                    borderWidth: "2"
-                                    borderColor: "0xeeeeef"
+                    ..style.itemValue:
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.94"
+      boxSizing: "border-box"
+      overflow: "scroll"
+    partitionBox:
+      width: "1"
+      height: "0.04187"
+      backgroundColor: "#f4f4f4"
+    partitionLabel:
+      marginLeft: "0.04"
+      height: "auto"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      lineHeight: "4.187vh"
+    dataList:
+      width: "1"
+      margin: "0"
+      height: "0.89"
+      overflow: scroll
+    listItem:
+      marginTop: "0.0184729"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+    itemValue:
+      color: "0x333333"
+      fontWeight: "400"
+      fontSize: .Nfont.h14
+      width: "0.92"
+      height: "auto"
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - .Global.ProfileType@: =.DocType.DoctorProfile
+
+    #     - actionType: builtIn
+    #       funcName: goBack
+    #       reload: true
+    # - type: view
+    #   style:
+    #     display: ..formDataTemp.imageStyle
+    #     marginTop: "0.1"
+    #   children:
+    #     - type: scrollView
+    #       viewTag: viewDataTag
+    #       style:
+    #         marginTop: "0"
+    #         height: "0.88"
+    #       children:
+    #         - type: list
+    #           contentType: listObject
+    #           viewTag: viewDataTag
+    #           listObject: ..apiRequest.AcceptedInsurance.documentResp.doc.0.name.data
+    #           iteratorVar: itemObject
+    #           style:
+    #             width: '1'
+    #             margin: '0'
+    #             height: "auto"
+    #           children:
+    #             - type: listItem
+    #               itemObject:
+    #               style:
+    #                 width: '1'
+    #                 height: 'auto'
+    #                 marginTop: '0'
+    #                 fontSize: .Nfont.n2
+    #               children:
+    #                 - type: view
+    #                   style:
+    #                     width: "1"
+    #                     height: "0.05"
+    #                     border:
+    #                       style: "2"
+    #                     borderWidth: "2"
+    #                     borderColor: "0xeeeeef"
+    #                   onClick:
+    #                     - emit:
+    #                         dataKey:
+    #                           var: itemObject
+    #                         actions:
+    #                           - if:
+    #                             - =.builtIn.string.equal:
+    #                                 dataIn:
+    #                                   string1: "block"
+    #                                   string2: $var.displayStyle
+    #                             - =.builtIn.object.set:
+    #                                 dataIn:
+    #                                   object: $var
+    #                                   key: "displayStyle"
+    #                                   value:  "none"
+    #                             - =.builtIn.object.set:
+    #                                 dataIn:
+    #                                   object: $var
+    #                                   key: "displayStyle"
+    #                                   value:  "block"
+    #                           - if:
+    #                             - =.builtIn.string.equal:
+    #                                 dataIn:
+    #                                   string1: "dropDownBlack.svg"
+    #                                   string2: $var.imgPath
+    #                             - =.builtIn.object.set:
+    #                                 dataIn:
+    #                                   object: $var
+    #                                   key: "imgPath"
+    #                                   value:  "detail.svg"
+    #                             - =.builtIn.object.set:
+    #                                 dataIn:
+    #                                   object: $var
+    #                                   key: "imgPath"
+    #                                   value:  "dropDownBlack.svg"
+    #                     - actionType: builtIn
+    #                       funcName: redraw
+    #                       viewTag: insuranceDataTag
+    #                     - actionType: builtIn
+    #                       funcName: redraw
+    #                       viewTag: viewDataTag
+    #                     - actionType: builtIn
+    #                       funcName: redraw
+    #                       viewTag: imagePathTag
+    #                   children:
+    #                     - type: label
+    #                       dataKey: itemObject.carrier
+    #                       style:
+    #                         color: "0x333333"
+    #                         lineHeight: "5vh"
+    #                         marginLeft: "0.05"
+    #                         height: "0.05"
+    #                         fontWeight: "400"
+    #                         display: "inline-block"
+    #                     - type: label
+    #                       dataKey: itemObject.planLength
+    #                       style:
+    #                         height: "0.05"
+    #                         lineHeight: "5vh"
+    #                         color: "0x333333"
+    #                         margin: "0"
+    #                         display: "inline-block"
+    #                     - type: image
+    #                       viewTag: imagePathTag
+    #                       path: itemObject.imgPath
+    #                       style:
+    #                         top: "0.02"
+    #                         left: "0.9"
+    #                         width: "0.05"
+    #                 - type: view
+    #                   viewTag: insuranceDataTag
+    #                   style:
+    #                     display: itemObject.displayStyle
+    #                     width: "0.9"
+    #                     height: "auto"
+    #                   children:
+    #                     - type: list
+    #                       contentType: listObject
+    #                       listObject: itemObject.plans
+    #                       iteratorVar: itemObject
+    #                       style:
+    #                         width: '0.9'
+    #                         height: "auto"
+    #                         fontSize: .Nfont.n3
+    #                       children:
+    #                         - type: listItem
+    #                           itemObject:
+    #                           style:
+    #                             width: '0.9'
+    #                             height: 'auto'
+    #                             marginTop: '0'
+    #                             marginLeft: "0.05"
+    #                           children:
+    #                             - type: label
+    #                               dataKey: itemObject
+    #                               style:
+    #                                 width: '0.9'
+    #                                 height: "0.05"
+    #                                 lineHeight: "5vh"
+    #                                 color: "0x707070"
+    #                                 border:
+    #                                   style: "2"
+    #                                 borderWidth: "2"
+    #                                 borderColor: "0xeeeeef"

@@ -53,7 +53,7 @@ DocumentForReasonPreview:
                     left: "0.085"
                     width: "0.81"
                     height: "0.04"
-                    fontFamily: "Raleway"
+
                     textDecoration: underline
                     fontSize: .Nfont.h16
                     textAlign:

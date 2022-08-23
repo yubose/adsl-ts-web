@@ -3,6 +3,7 @@ ModernaVaccineFirDoseReviewPage2:
   init:
     - .SignInCheck
 
+
   components:
     - type: view
       style:
@@ -15,6 +16,7 @@ ModernaVaccineFirDoseReviewPage2:
               style:
                 fontSize: .Nfont.h14
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -32,7 +34,7 @@ ModernaVaccineFirDoseReviewPage2:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "2&nbsp;/&nbsp;5"
+                      text: "2&nbsp;/&nbsp;4"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -215,7 +217,7 @@ ModernaVaccineFirDoseReviewPage2:
                 ..style.btn:
               onClick:
                 - goto: ModernaVaccineFirDoseReviewPage3
-
+    - .HeaderPopUpMenu:
   style: #Input style fragment here
     formatting:
       margin: "0"
@@ -224,7 +226,7 @@ ModernaVaccineFirDoseReviewPage2:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -245,7 +247,7 @@ ModernaVaccineFirDoseReviewPage2:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -282,7 +284,7 @@ ModernaVaccineFirDoseReviewPage2:
       width: "0.92"
       height: "0.7832"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -304,7 +306,7 @@ ModernaVaccineFirDoseReviewPage2:
       padding: "6px 12px"
       width: "0.92"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       color: "0x333333"
       borderRadius: "3"
@@ -337,13 +339,13 @@ ModernaVaccineFirDoseReviewPage2:
       fontSize: .Nfont.h12
       verticalAlign: middle
       width: "0.8266"
-      heigth: "auto"
+      height: "auto"
     btnBox:
       height: "0.0972"
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

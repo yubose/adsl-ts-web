@@ -11,14 +11,20 @@ LocationInformation:
         .Global._nonce@:
           =.builtIn.math.random: ""
     - ..formData.dataObject@: =.Global.locationInformation
-    - ..apiRequest.provderList.docAPI.get
-    - ..apiRequest.locationsProfile.docAPI.get
     - ..apiRequest.roomsProfile.doc.id@: =..formData.dataObject.bsig
-    - ..apiRequest.roomsProfile.docAPI.get
     - ..apiRequest.photoDEAProfile.docReq.id@: =.Global.locationInformation.eid
-    - ..apiRequest.photoDEAProfile.docAPI.get
     - ..apiRequest.photoLicenceProfile.docReq.id@: =.Global.locationInformation.eid
-    - ..apiRequest.photoLicenceProfile.docAPI.get
+
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.provderList.docAPI.get: ""
+            - =..apiRequest.locationsProfile.docAPI.get: ""
+            - =..apiRequest.roomsProfile.docAPI.get: ""
+            - =..apiRequest.photoDEAProfile.docAPI.get: ""
+            - =..apiRequest.photoLicenceProfile.docAPI.get: ""
     # 获取facilityInfo
     #使用formData.roomList存储当前location的room信息,便于后面对数据的展示与重置
     - .LocationInformation.formData.roomList@: =..apiRequest.roomsProfile.docResp.doc
@@ -74,7 +80,7 @@ LocationInformation:
         type: "273921"
         id: ""
         xfname: "E.bvid"
-        sCondition: "E.type=1100"
+        sCondition: "E.type=1100 AND E.tage>=0"
         maxcount: "1000"
         obfname: "ctime"
         _nonce: =.Global._nonce

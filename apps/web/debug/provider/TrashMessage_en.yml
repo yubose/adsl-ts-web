@@ -215,7 +215,7 @@ TrashMessage:
                 top: "0.01"
                 width: "0.9"
                 left: "0.05"
-                fontFamily: "Verdana"
+
                 fontSize: .Nfont.h14
                 height: "0.4"
                 backgroundColor: "0xffffff"
@@ -283,7 +283,7 @@ TrashMessage:
                             width: "0.45"
                             left: "0.13"
                             overflow: hidden
-                            textOverflow: ellipsis
+                            text-overflow: ellipsis
                             whiteSpace: nowrap
                             fontSize: .Nfont.h2
                         - type: label

@@ -64,7 +64,7 @@ AssignToPage:
             height: "auto"
             width: "0.9"
             left: "0"
-            fontFamily: "Arial"
+
           children:
             - type: list
               contentType: listObject
@@ -171,7 +171,7 @@ AssignToPage:
                           dataKey: itemObject.title
                           style:
                             fontSize: .Nfont.n2
-                            fontFamily: "Arial"
+
                             fontWeight: "400"
                             height: "0.1"
                             lineHeight: "10vh"
@@ -185,7 +185,7 @@ AssignToPage:
                             backgroundColor: itemObject.backgroundColor
                             color: itemObject.color
                             fontSize: .Nfont.n6
-                            fontFamily: "Arial"
+
                             fontWeight: "400"
                             height: "0.025"
                             marginTop: "0.0375"
@@ -248,7 +248,7 @@ AssignToPage:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.h2
-                fontFamily: "sans-serif"
+
                 textAlign:
                   x: center
             - type: view

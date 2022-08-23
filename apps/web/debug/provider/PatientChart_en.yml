@@ -3,6 +3,21 @@ PatientChart:
   title: "Patient Chart"
   init:
     - .SignInCheck
+    - =.builtIn.utils.createAuditLog:
+        dataIn:
+          actionTypeCode: .ActionTypeCode.view
+          recordTypeCode: 25601
+          eid: =.Global.formData.currentFacility.relationEdge.id
+          user: =.Global.MyProfile.name.data.fullName
+          userId: =.Global.currentUser.vertex.id
+          targetUserId: =.Global.formData.auditLog.patientId
+          accessPort: provider
+        dataOut: Global.formData.auditLog.result
+    # 判断是否为 related app
+    - if:
+        - =.Global.formData.isisRelatedApp
+        - ..formData.roomInfo@: =.Global.currentRleatedRoomInfo
+        - ..formData.roomInfo@: =.Global.roomInfo
     - ..chart1.docAPI.get
     - actionType: evalObject
       object:
@@ -224,6 +239,9 @@ PatientChart:
     hospitalizationsLength: ""
     surgicalHistoryLength: ""
     familyHistoryLength: ""
+    roomInfo:
+      edge:
+        id: ""
   formDataTemp:
     pregnantTemp:
       - key: isPregnant
@@ -347,7 +365,7 @@ PatientChart:
   birthControlType: ""
   chart1:
     docQueryReq:
-      id: .Global.roomInfo.edge.id
+      id: =..formData.roomInfo.edge.id
       xfname: eid
       type: .DocType.PatientChart
       _nonce: .Global._nonce
@@ -2363,7 +2381,7 @@ PatientChart:
       height: "0.92"
       width: "0.92"
       overflow: scroll
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h16
       color: "#333333"
     generalBox:
@@ -2499,7 +2517,7 @@ PatientChart:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

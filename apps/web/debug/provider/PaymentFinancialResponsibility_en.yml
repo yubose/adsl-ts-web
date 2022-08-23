@@ -31,12 +31,12 @@ PaymentFinancialResponsibility:
             backgroundColor: "0xf0f0f0"
           children:
             - type: label
-              text: "Appointment fee"
+              text: "Appointment Fee"
               style:
                 height: "0.04"
                 fontWeight: "550"
                 color: "0x666666"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h15
                 marginLeft: "0.05"
                 textAlign:
@@ -98,7 +98,7 @@ PaymentFinancialResponsibility:
                 marginTop: "0.01"
               children:
                 - type: label
-                  text: "Reason for payment"
+                  text: "Reason for Payment"
                   style:
                     width: "0.4"
                     display: "inline-block"

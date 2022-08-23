@@ -3,6 +3,7 @@ Cov19TestNewPatReviewPage3:
   init: # Page initialization
     - .SignInCheck
 
+
   formData: # Input data here
     symptomProfile:
       experience: []
@@ -74,7 +75,9 @@ Cov19TestNewPatReviewPage3:
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14
+            # - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -92,7 +95,7 @@ Cov19TestNewPatReviewPage3:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "3&nbsp;/&nbsp;6"
+                      text: "3&nbsp;/&nbsp;5"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -124,17 +127,20 @@ Cov19TestNewPatReviewPage3:
                       style:
                         ..style.listItem:
                       children:
-                        - type: image
-                          path:
-                            ..event.checkBox:
+                        - type: view
                           style:
-                            ..style.itemImg:
-
-                        - type: label
-                          text:
-                          dataKey: itemObject.value
-                          style:
-                            ..style.itemValue:
+                            ..style.itemView:
+                          children:
+                            - type: image
+                              path:
+                                ..event.checkBox:
+                              style:
+                                ..style.itemImg:
+                            - type: label
+                              text:
+                              dataKey: itemObject.value
+                              style:
+                                ..style.itemValue:
                 - type: label
                   viewTag: remarkTag
                   text: "No content"
@@ -354,7 +360,7 @@ Cov19TestNewPatReviewPage3:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -375,7 +381,7 @@ Cov19TestNewPatReviewPage3:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -412,7 +418,7 @@ Cov19TestNewPatReviewPage3:
       width: "0.92"
       height: "0.7832"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -435,10 +441,12 @@ Cov19TestNewPatReviewPage3:
       overflow: hidden
     listItem:
       display: "inline-block"
-      width: "0.425"
+      width: "0.45"
+      height: "0.05"
+      boxSizing: border-box
+    itemView:
       height: "auto"
       marginTop: "0.01724"
-      boxSizing: border-box
     itemImg:
       display: "inline-block"
       width: "0.0442"
@@ -492,7 +500,7 @@ Cov19TestNewPatReviewPage3:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

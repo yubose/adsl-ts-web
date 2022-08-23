@@ -213,7 +213,7 @@ AddMedicalRecordsToMeeting:
                     fontSize: "13"
                     textAlign:
                       x: left
-                    fontFamily: PMingLiU
+
                 - type: button
                   text: delete
                   style:
@@ -267,7 +267,7 @@ AddMedicalRecordsToMeeting:
             color: "0xffffff"
             backgroundColor: "0x2988e6"
             fontSize: .Nfont.h14
-            fontFamily: "sans-serif"
+
             border:
               style: "3"
             borderColor: "0x2988e6"

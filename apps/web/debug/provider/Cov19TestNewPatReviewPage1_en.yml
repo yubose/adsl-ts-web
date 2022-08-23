@@ -2,13 +2,48 @@ Cov19TestNewPatReviewPage1:
   title: "COVID-19 Testing Consent - New Patient"
   init:
     - .SignInCheck
-
+    - =.builtIn.utils.createAuditLog:
+        dataIn:
+          actionTypeCode: .ActionTypeCode.view
+          recordTypeCode: 107521
+          eid: =.Global.formData.currentFacility.relationEdge.id
+          user: =.Global.MyProfile.name.data.fullName
+          userId: =.Global.currentUser.vertex.id
+          targetUserId: =.Global.formData.auditLog.patientId
+          accessPort: provider
+        dataOut: Global.formData.auditLog.result
     - if:
         - =.Global.roomInfo.edge.id
         - ..apiRequest.cov19TestNewPatForm.docAPI.get
         - continue
 
     - .Global.formData.cov19TestNewPatForm@: =..apiRequest.cov19TestNewPatForm.docRes.doc.0
+    # 多页PDF下载配置
+    - actionType: evalObject
+      object:
+        - .Global.formData.downloadPDF.PdfPageList@:
+            - pageName: Cov19TestNewPatReviewPage1
+              viewTag: mainView
+            - pageName: Cov19TestNewPatReviewPage2
+              viewTag: mainView
+            - pageName: Cov19TestNewPatReviewPage3
+              viewTag: mainView
+            - pageName: Cov19TestNewPatReviewPage4
+              viewTag: mainView
+            - pageName: Cov19TestNewPatReviewPage5
+              viewTag: mainView
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "COVID-19 Testing Consent - New Patient"
+        - .Global.formData.downloadPDF.pageIntervalList@:
+            - 100
+            - 900
+            - 200
+            - 900
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
   apiRequest:
     cov19TestNewPatForm:
       docRes: ""
@@ -38,7 +73,9 @@ Cov19TestNewPatReviewPage1:
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14
+            - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
@@ -56,7 +93,7 @@ Cov19TestNewPatReviewPage1:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "1&nbsp;/&nbsp;6"
+                      text: "1&nbsp;/&nbsp;5"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -282,9 +319,8 @@ Cov19TestNewPatReviewPage1:
                 - type: view
                   style:
                     ..style.listBox:
-                    marginTop: "0.0320"
-                    width: "0.92"
                     display: block
+                    marginTop: "0.0320"
                   children:
                     - type: list
                       viewTag: checkedView
@@ -293,7 +329,6 @@ Cov19TestNewPatReviewPage1:
                       iteratorVar: itemObject
                       style:
                         ..style.list:
-                        width: "0.92"
                       children:
                         - type: listItem
                           itemObject:
@@ -327,6 +362,7 @@ Cov19TestNewPatReviewPage1:
                 ..style.btn:
               onClick:
                 - goto: Cov19TestNewPatReviewPage2
+    - .HeaderPopUpMultiplePDF:
   event:
     checkBox:
       emit:
@@ -349,10 +385,9 @@ Cov19TestNewPatReviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
-
     bodyBox:
       width: "auto"
       height: "0.84852"
@@ -370,7 +405,7 @@ Cov19TestNewPatReviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -404,10 +439,10 @@ Cov19TestNewPatReviewPage1:
         x: center
     scrollBox:
       marginLeft: "0.04"
-      width: "0.92"
+      width: "0.96"
       height: "0.7832"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -497,7 +532,7 @@ Cov19TestNewPatReviewPage1:
       width: "0.92"
       boxSizing: border-box
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
       color: "0x333333"
@@ -509,7 +544,6 @@ Cov19TestNewPatReviewPage1:
     checkItem:
       margin: "0"
       marginTop: "0.01724"
-      width: "0.92"
       height: "auto"
       boxSizing: border-box
     btnBox:
@@ -517,7 +551,7 @@ Cov19TestNewPatReviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

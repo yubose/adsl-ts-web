@@ -2,12 +2,39 @@ PfizerVaccineFirDoseReviewPage1:
   title: "Pfizer-BioNTech Vaccine - First Dose"
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - if:
         - =.Global.roomInfo.edge.id
         - ..apiRequest.pifzerVaccineFirDoseForm.docAPI.get
         - continue
 
     - .Global.formData.pifzerVaccineFirDoseForm@: =..apiRequest.pifzerVaccineFirDoseForm.docRes.doc.0
+
+    # 多页PDF下载配置
+    - actionType: evalObject
+      object:
+        - .Global.formData.downloadPDF.PdfPageList@:
+            - pageName: PfizerVaccineFirDoseReviewPage1
+              viewTag: mainView
+            - pageName: PfizerVaccineFirDoseReviewPage2
+              viewTag: mainView
+            - pageName: PfizerVaccineFirDoseReviewPage3
+              viewTag: mainView
+            - pageName: PfizerVaccineFirDoseReviewPage4
+              viewTag: mainView
+        # 下载pdf的样式控制
+        - .Global.formData.downloadPDF.titleName@: "Pfizer-BioNTech Vaccine - First Dose"
+        - .Global.formData.downloadPDF.pageIntervalList@:
+            - 100
+            - 900
+            - 0
+        - .Global.formData.downloadPDF.scaleX@: 1
+        - .Global.formData.downloadPDF.scaleY@: 1
+        - .Global.formData.downloadPDF.originX@: 0
+        - .Global.formData.downloadPDF.originY@: 0
+
   apiRequest:
     pifzerVaccineFirDoseForm:
       docRes: ""
@@ -34,14 +61,33 @@ PfizerVaccineFirDoseReviewPage1:
         - .BasePublicHeader:
           children:
             - .BasePublicHeaderLeft:
+              leftClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.view
+                          recordTypeCode: 112641
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14
+            - .BasePublicHeaderMenu:
         - type: view
+          viewTag: mainView
           style:
             ..style.bodyBox:
           children:
             - type: view
+
               style:
                 ..style.viewBox:
               children:
@@ -55,7 +101,7 @@ PfizerVaccineFirDoseReviewPage1:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "1&nbsp;/&nbsp;5"
+                      text: "1&nbsp;/&nbsp;4"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -281,9 +327,8 @@ PfizerVaccineFirDoseReviewPage1:
                 - type: view
                   style:
                     ..style.listBox:
-                    marginTop: "0.0320"
-                    width: "0.92"
                     display: block
+                    marginTop: "0.0320"
                   children:
                     - type: list
                       viewTag: checkedView
@@ -292,7 +337,6 @@ PfizerVaccineFirDoseReviewPage1:
                       iteratorVar: itemObject
                       style:
                         ..style.list:
-                        width: "0.92"
                       children:
                         - type: listItem
                           itemObject:
@@ -326,6 +370,7 @@ PfizerVaccineFirDoseReviewPage1:
                 ..style.btn:
               onClick:
                 - goto: PfizerVaccineFirDoseReviewPage2
+    - .HeaderPopUpMultiplePDF:
   event:
     checkBox:
       emit:
@@ -348,10 +393,9 @@ PfizerVaccineFirDoseReviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
-
     bodyBox:
       width: "auto"
       height: "0.84852"
@@ -369,7 +413,7 @@ PfizerVaccineFirDoseReviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -403,10 +447,10 @@ PfizerVaccineFirDoseReviewPage1:
         x: center
     scrollBox:
       marginLeft: "0.04"
-      width: "0.92"
+      width: "0.96"
       height: "0.7832"
       boxSizing: border-box
-      overflow: scroll
+      paddingBottom: "0.03"
     secondLabel:
       width: "0.92"
       fontSize: .Nfont.h14
@@ -496,7 +540,7 @@ PfizerVaccineFirDoseReviewPage1:
       width: "0.92"
       boxSizing: border-box
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       fontWeight: "600"
       color: "0x333333"
@@ -508,7 +552,6 @@ PfizerVaccineFirDoseReviewPage1:
     checkItem:
       margin: "0"
       marginTop: "0.01724"
-      width: "0.92"
       height: "auto"
       boxSizing: border-box
     btnBox:
@@ -516,7 +559,7 @@ PfizerVaccineFirDoseReviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

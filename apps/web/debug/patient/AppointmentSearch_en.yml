@@ -1,0 +1,1739 @@
+AppointmentSearch:
+  title: Search
+  pageNumber:
+  init: #Page initialization
+    - .SignInCheck
+    - .Global.suggest@: []
+    - .Global.from@: "0"
+    - ..formDataTemp.titleHandleData@: =..formDataTemp.titleData
+    - actionType: evalObject #android use calendar init
+      object:
+        - .BaseComponents.calendarDate.year@: ""
+        - .BaseComponents.calendarDate.month@: ""
+        - .BaseComponents.calendarDate.day@: ""
+        - .BaseComponents.calendarDate.monthName@: ""
+        - .BaseComponents.calendarDate.todayDate@: ""
+        - .BaseComponents.calendarDate.flag@: ""
+        - .BaseComponents.calendarDate.todayStamp@: []
+        - .BaseComponents.calendarDate.dayLable@: []
+        - .BaseComponents.calendarDate.nowTimeStamp@: ""
+        - .BaseComponents.year@: []
+        - .BaseComponents.flag: ""
+        #生成年份
+        - =.builtIn.date.generateYear:
+            dataIn:
+              last: 121
+              next: 10
+            dataOut: BaseComponents.year
+        - =.builtIn.date.getTime:
+            dataIn:
+            dataOut: BaseComponents.calendarDate.nowTimeStamp
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getDate
+    - actionType: evalObject #android use calendar init
+      object: .BaseComponents.getShow
+    - actionType: evalObject #IOS use calendar init
+      object:
+        - =.builtIn.date.getMonth:
+            dataIn:
+            dataOut: AppointmentSearch.calendarDate.month
+        - =.builtIn.date.getYear:
+            dataIn:
+            dataOut: AppointmentSearch.calendarDate.year
+        - =.builtIn.date.getDate:
+            dataIn:
+            dataOut: AppointmentSearch.calendarDate.day
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.calendarArray:
+            dataIn:
+              year: =.AppointmentSearch.calendarDate.year
+              month: =.AppointmentSearch.calendarDate.month
+              today: =.AppointmentSearch.calendarDate.day
+            dataOut: AppointmentSearch.calendarDate.dayLable
+        - =.builtIn.date.transformMonth:
+            dataIn:
+              month: =.AppointmentSearch.calendarDate.month
+            dataOut: AppointmentSearch.calendarDate.monthName
+        - =.builtIn.date.ShowDateByNumber:
+            dataIn:
+              year: =.AppointmentSearch.calendarDate.year
+              month: =.AppointmentSearch.calendarDate.month
+              day: =.AppointmentSearch.calendarDate.day
+              formatType: "M/D/Y"
+            dataOut: AppointmentSearch.calendarDate.todayDate
+    - actionType: evalObject
+      object:
+        - =.builtIn.date.getTimeStampOfDate:
+            dataIn:
+              date: =.AppointmentSearch.calendarDate.todayDate
+            dataOut: AppointmentSearch.formData.todayTimeStamp
+    - ..formData.condition.stime@: =..formData.todayTimeStamp.start
+    - ..formData.condition.etime@: =..formData.todayTimeStamp.end
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.cond
+                  string2: ""
+            - continue
+            - ..formData.condition.cond@: =.Global.cond
+    - ..formData.condition.pos@: =.Global.pos
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.cond
+              string2: ""
+        - continue
+        - ..formData.condition.cond@: =.Global.cond
+    - ..formData.condition.ins@: =.Global.ins
+    - =.builtIn.date.getTimeStampOfDate:
+        dataIn:
+          date: =.BaseComponents.calendarDate.todayDate
+        dataOut: BaseComponents.calendarDate.todayStamp
+    - .Global.todayStamp@: =.BaseComponents.calendarDate.todayStamp
+    # 当患者search symptom的时候search symptom对应的specialty
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.symptomCond
+              string2: ""
+        - continue
+        - ..formData.symptomCond@: =.Global.symptomCond
+    # tab栏状态
+    - =.builtIn.array.getOrReplaceAnArrayItem:
+        dataIn:
+          strArr: =.Global.formData.currentTabStatusList
+          tag: false
+        dataOut: AppointmentSearch.formData.currentTab
+    - if:
+        - =.builtIn.array.has:
+            dataIn:
+              object: =..formDataTemp.tabList
+              value: =..formData.currentTab
+        - actionType: evalObject
+          object:
+            - =.builtIn.object.setProperty:
+                dataIn:
+                  obj: =..formDataTemp.titleData
+                  label: "title"
+                  text: =..formData.currentTab
+                  arr: ["fontColor", "fontWeight", "isHidden", "block"]
+                  valueArr: ["0x2988e6", "700", "visible", "block"]
+                  errorArr: ["0x666666", "400", "hidden", "none"]
+                dataOut: AppointmentSearch.formDataTemp.titleHandleData
+        - continue
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.currentTab
+                  string2: "Telemedicine"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.Global.cond
+                          string2: ""
+                    - ..formData.condition.cond@: "Family Medicine"
+                    - ..formData.condition.cond@: =.Global.cond
+                # - ..formDataTemp.titleHandleData.0.itemBackgroundColor@: "0xf7f7f7"
+                # - ..formDataTemp.titleHandleData.0.boxBackgroundColor@: "0xffffff"
+                # - ..formDataTemp.titleHandleData.0.boxBorderRadius@: "0 0 15px 0"
+                - ..formDataTemp.titleHandleData.0.itemBackgroundColor@: "0xf7f7f7"
+                - ..formDataTemp.titleHandleData.0.boxBackgroundColor@: "0xf7f7f7"
+                - ..formDataTemp.titleHandleData.0.boxBorderRadius@: "0"
+                - ..formDataTemp.titleHandleData.1.itemBackgroundColor@: "0xf7f7f7"
+                - ..formDataTemp.titleHandleData.1.boxBackgroundColor@: "0xffffff"
+                - ..formDataTemp.titleHandleData.1.boxBorderRadius@: "0 0 0 15px"
+                - ..formDataTemp.titleHandleData.2.boxBorderRadius@: "0"
+            - continue
+
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.currentTab
+                  string2: "Office Visit"
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.Global.cond
+                          string2: ""
+                    - ..formData.condition.cond@: "COVID 19-Testing"
+                    - ..formData.condition.cond@: =.Global.cond
+                # - ..formDataTemp.titleHandleData.0.itemBackgroundColor@: "0xffffff"
+                # - ..formDataTemp.titleHandleData.0.boxBackgroundColor@: "0xffffff"
+                # - ..formDataTemp.titleHandleData.0.boxBorderRadius@: "0"
+                - ..formDataTemp.titleHandleData.0.itemBackgroundColor@: "0xf7f7f7"
+                - ..formDataTemp.titleHandleData.0.boxBackgroundColor@: "0xffffff"
+                - ..formDataTemp.titleHandleData.0.boxBorderRadius@: "0 0 15px 0"
+                - ..formDataTemp.titleHandleData.1.itemBackgroundColor@: "0xf7f7f7"
+                - ..formDataTemp.titleHandleData.1.boxBackgroundColor@: "0xf7f7f7"
+                - ..formDataTemp.titleHandleData.1.boxBorderRadius@: "0 0 15px 0"
+                - ..formDataTemp.titleHandleData.2.boxBorderRadius@: "0 0 0 15px"
+            - continue
+    # - ..formData.blockTag.blockType@: =..formDataTemp.titleHandleData.0.block
+    - ..formData.blockTag.blockTelemedicine@: =..formDataTemp.titleHandleData.0.block
+    - ..formData.blockTag.blockOffice@: =..formDataTemp.titleHandleData.1.block
+    # 判断cond
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =.Global.cond
+                  string2: ""
+            - actionType: evalObject
+              object:
+                - ..formData.condWidth@: "74.9vw"
+                - ..formData.condColor@: "0x2988e6"
+            - actionType: evalObject
+              object:
+                - ..formData.condColor@: "0x333333"
+    # 判断pos
+    - actionType: evalObject
+      object:
+        - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.condition.pos
+                  string2: ""
+            - continue
+            - ..formData.posColor@: "0x333333"
+    - .Global.calendarDate@: =.BaseComponents.calendarDate
+    #判断是否存在地址
+    # - actionType: evalObject
+    #   object:
+    #     - if:
+    #         - =.builtIn.string.equal:
+    #             dataIn:
+    #               string1: =..formData.condition.pos
+    #               string2: ""
+    #         - ..formData.locationBlock@: block
+    #         - ..formData.locationBlock@: none
+  compare:
+    todayDate: ""
+    todayStamp: []
+  formData: #Input data here
+    #用于判断是否是past time
+    year: ""
+    month: ""
+    day: ""
+    date: ""
+    stamp: ""
+    currentTab: []
+    locationAddress: "false"
+    searchValue: 0
+    condWidth: "50.5vw"
+    condColor: "0x2988e6"
+    posColor: "0xbababa"
+    symptomCond: ""
+    suggest: []
+    todayTimeStamp: ""
+    tempData: ""
+    todayTime: ""
+    blockTag:
+      # blockType: block
+      blockTelemedicine: block
+      blockOffice: none
+    condition:
+      stime: ""
+      etime: ""
+      pos: ""
+      cond: "Family Medicine"
+      ins: ""
+    # allType:
+    #   searchContent: ""
+    telemedicine:
+      searchContent: ""
+    officeVisit:
+      searchContent: ""
+  #日历相关参数
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    monthName: ""
+    todayDate: ""
+    dayLable: []
+  formDataTemp:
+    tabList: ["Telemedicine", "Office Visit"]
+    # allTypeWarnShow: "none"
+    telemedicineWarnShow: "none"
+    officeVisitWarnShow: "none"
+    titleData:
+      # - title: All Type
+      #   fontColor: "0x2988e6"
+      #   fontWeight: "700"
+      #   isHidden: "visible"
+      #   block: "block"
+      #   itemBackgroundColor: "0xf7f7f7"
+      #   boxBackgroundColor: "0xf7f7f7"
+      #   boxBorderRadius: "0"
+      #   contentBoxRadius: "0 15px 15px 15px"
+      - title: Telemedicine
+        fontColor: "0x2988e6"
+        fontWeight: "700"
+        isHidden: "visible"
+        block: "block"
+        itemBackgroundColor: "0xf7f7f7"
+        boxBackgroundColor: "0xf7f7f7"
+        boxBorderRadius: "0"
+        contentBoxRadius: "0 15px 15px 15px"
+      - title: Office Visit
+        fontColor: "0x666666"
+        fontWeight: "400"
+        isHidden: "hidden"
+        block: "none"
+        itemBackgroundColor: "0xf7f7f7"
+        boxBackgroundColor: "0xffffff"
+        boxBorderRadius: "0 0 0 15px"
+        contentBoxRadius: "15px"
+      - title: ""
+        # fontColor: "0x2988e6"
+        # fontWeight: "700"
+        isHidden: "hidden"
+        block: "block"
+        itemBackgroundColor: "0xf7f7f7"
+        boxBackgroundColor: "0xffffff"
+        boxBorderRadius: "0"
+        # contentBoxRadius: "0 0 0 15px"
+    titleHandleData: []
+  apiRequest: #Input data request here
+  style: #Input style fragment here
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - if:
+                    - =.builtIn.array.judgeListLength:
+                        dataIn:
+                          array: =.Global.formData.currentTabStatusList
+                          len: 0
+                    - =.builtIn.array.getOrReplaceAnArrayItem:
+                        dataIn:
+                          strArr: =.Global.formData.currentTabStatusList
+                          tag: true
+                          index: 0
+                        dataOut: Global.formData.currentTabStatusList
+                    - =.builtIn.array.getOrReplaceAnArrayItem:
+                        dataIn:
+                          strArr: =.Global.formData.currentTabStatusList
+                          tag: true
+                          index: 1
+                        dataOut: Global.formData.currentTabStatusList
+
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+        - .BasePublicHeaderTitle:
+    - type: view
+      style:
+        marginLeft: "0.04"
+        marginTop: "0.0246"
+        width: "0.92"
+        height: "auto"
+        boxSizing: border-box
+      children:
+        - type: list
+          viewTag: tabThreeTag
+          contentType: listObject
+          listObject: ..formDataTemp.titleHandleData
+          iteratorVar: itemObject
+          style:
+            width: "0.92"
+            margin: "0"
+            axis: horizontal
+            height: "0.038"
+            backgroundColor: "0xffffff"
+            boxSizing: border-box
+            overflow: hidden
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                height: "0.038"
+                width: "0.3065"
+                backgroundColor: itemObject.itemBackgroundColor
+                borderRadius: "15px 15px 0 0"
+                overflow: hidden
+              children:
+                - type: view
+                  style:
+                    backgroundColor: itemObject.boxBackgroundColor
+                    width: "0.306"
+                    height: "0.0371"
+                    overflow: hidden
+                    borderRadius: itemObject.boxBorderRadius
+                    boxSizing: border-box
+                  children:
+                    - type: label
+                      dataKey: itemObject.title
+                      style:
+                        marginTop: "0.003"
+                        color: itemObject.fontColor
+                        height: "auto"
+                        width: "0.306"
+                        fontWeight: itemObject.fontWeight
+                        textAlign:
+                          x: center
+                        fontSize: .Nfont.h14
+                        boxSizing: border-box
+                    - type: view
+                      style:
+                        visibility: itemObject.isHidden
+                        marginLeft: "0.1133"
+                        marginTop: "0.01"
+                        height: "0.00369"
+                        width: "0.08"
+                        backgroundColor: "0x2988e6"
+                        boxSizing: border-box
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - ..formData.tempData@: $var.title
+                      - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.tempData
+                                string2: ""
+                          - continue
+                          - =.builtIn.object.setProperty:
+                              dataIn:
+                                obj: =..formDataTemp.titleData
+                                label: "title"
+                                text: $var.title
+                                arr:
+                                  [
+                                    "fontColor",
+                                    "fontWeight",
+                                    "isHidden",
+                                    "block",
+                                  ]
+                                valueArr:
+                                  ["0x2988e6", "700", "visible", "block"]
+                                errorArr: ["0x666666", "400", "hidden", "none"]
+                      - if:
+                          - =.builtIn.array.judgeListLength:
+                              dataIn:
+                                array: =.Global.formData.currentTabStatusList
+                                len: 0
+                          - =.builtIn.array.getOrReplaceAnArrayItem:
+                              dataIn:
+                                strArr: =.Global.formData.currentTabStatusList
+                                tag: true
+                                index: 0
+                                value: $var.title
+                              dataOut: Global.formData.currentTabStatusList
+                          - =.builtIn.array.getOrReplaceAnArrayItem:
+                              dataIn:
+                                strArr: =.Global.formData.currentTabStatusList
+                                tag: true
+                                index: 1
+                                value: $var.title
+                              dataOut: Global.formData.currentTabStatusList
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.tempData
+                              string2: "Telemedicine"
+                        - actionType: evalObject
+                          object:
+                            # - ..formDataTemp.titleData.0.itemBackgroundColor@: "0xf7f7f7"
+                            # - ..formDataTemp.titleData.0.boxBackgroundColor@: "0xffffff"
+                            # - ..formDataTemp.titleData.0.boxBorderRadius@: "0 0 15px 0"
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =.Global.cond
+                                      string2: ""
+                                - ..formData.condition.cond@: "Family Medicine"
+                                - ..formData.condition.cond@: =.Global.cond
+                            - ..formDataTemp.titleData.0.itemBackgroundColor@: "0xf7f7f7"
+                            - ..formDataTemp.titleData.0.boxBackgroundColor@: "0xf7f7f7"
+                            - ..formDataTemp.titleData.0.boxBorderRadius@: "0"
+
+                            - ..formDataTemp.titleData.1.itemBackgroundColor@: "0xf7f7f7"
+                            - ..formDataTemp.titleData.1.boxBackgroundColor@: "0xffffff"
+                            - ..formDataTemp.titleData.1.boxBorderRadius@: "0 0 0 15px"
+
+                            - ..formDataTemp.titleData.2.boxBorderRadius@: "0"
+                            - ..formDataTemp.titleHandleData@: =..formDataTemp.titleData
+                            # - ..formData.blockTag.blockType@: =..formDataTemp.titleHandleData.0.block
+                            - ..formData.blockTag.blockTelemedicine@: =..formDataTemp.titleHandleData.0.block
+                            - ..formData.blockTag.blockOffice@: =..formDataTemp.titleHandleData.1.block
+                        - continue
+                    # - if:
+                    #     - =.builtIn.string.equal:
+                    #         dataIn:
+                    #           string1: =..formData.tempData
+                    #           string2: "All Type"
+                    #     - actionType: evalObject
+                    #       object:
+                    #         - ..formDataTemp.titleData.0.itemBackgroundColor@: "0xf7f7f7"
+                    #         - ..formDataTemp.titleData.0.boxBackgroundColor@: "0xf7f7f7"
+                    #         - ..formDataTemp.titleData.0.boxBorderRadius@: "0"
+
+                    #         - ..formDataTemp.titleData.0.itemBackgroundColor@: "0xf7f7f7"
+                    #         - ..formDataTemp.titleData.0.boxBackgroundColor@: "0xffffff"
+                    #         - ..formDataTemp.titleData.0.boxBorderRadius@: "0 0 0 15px"
+
+                    #         - ..formDataTemp.titleData.1.itemBackgroundColor@: "0xffffff"
+                    #         - ..formDataTemp.titleData.1.boxBackgroundColor@: "0xffffff"
+                    #         - ..formDataTemp.titleData.1.boxBorderRadius@: "0"
+
+                    #         - ..formDataTemp.titleHandleData@: =..formDataTemp.titleData
+                    #         - ..formData.blockTag.blockType@: =..formDataTemp.titleHandleData.0.block
+                    #         - ..formData.blockTag.blockTelemedicine@: =..formDataTemp.titleHandleData.0.block
+                    #         - ..formData.blockTag.blockOffice@: =..formDataTemp.titleHandleData.1.block
+                    #     - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.tempData
+                              string2: "Office Visit"
+                        - actionType: evalObject
+                          object:
+                            # - ..formDataTemp.titleData.0.itemBackgroundColor@: "0xffffff"
+                            # - ..formDataTemp.titleData.0.boxBackgroundColor@: "0xffffff"
+                            # - ..formDataTemp.titleData.0.boxBorderRadius@: "0"
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =.Global.cond
+                                      string2: ""
+                                - ..formData.condition.cond@: "COVID 19-Testing"
+                                - ..formData.condition.cond@: =.Global.cond
+                            - ..formDataTemp.titleData.0.itemBackgroundColor@: "0xf7f7f7"
+                            - ..formDataTemp.titleData.0.boxBackgroundColor@: "0xffffff"
+                            - ..formDataTemp.titleData.0.boxBorderRadius@: "0 0 15px 0"
+
+                            - ..formDataTemp.titleData.1.itemBackgroundColor@: "0xf7f7f7"
+                            - ..formDataTemp.titleData.1.boxBackgroundColor@: "0xf7f7f7"
+                            - ..formDataTemp.titleData.1.boxBorderRadius@: "0 0 15px 0"
+
+                            - ..formDataTemp.titleData.2.boxBorderRadius@: "0 0 0 15px"
+                            - ..formDataTemp.titleHandleData@: =..formDataTemp.titleData
+                            # - ..formData.blockTag.blockType@: =..formDataTemp.titleHandleData.0.block
+                            - ..formData.blockTag.blockTelemedicine@: =..formDataTemp.titleHandleData.0.block
+                            - ..formData.blockTag.blockOffice@: =..formDataTemp.titleHandleData.1.block
+                        - continue
+                # 重置状态
+                - actionType: evalObject
+                  object:
+                    # - ..formDataTemp.allTypeWarnShow@: "none"
+                    - ..formDataTemp.telemedicineWarnShow@: "none"
+                    - ..formDataTemp.officeVisitWarnShow@: "none"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: tabThreeTag
+                # - actionType: builtIn
+                #   funcName: redraw
+                #   viewTag: allTypeTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: telemedicineTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: officeVisitTag
+        # all Type
+        # - type: view
+        #   viewTag: allTypeTag
+        #   style:
+        #     display: ..formData.blockTag.blockType
+        #     width: "auto"
+        #     height: "auto"
+        #     borderRadius: ..formDataTemp.titleHandleData.0.contentBoxRadius
+        #     overflow: hidden
+        #     boxSizing: border-box
+        #     backgroundColor: "0xf7f7f7"
+        #   children:
+        #     - type: view
+        #       viewTag: allTypeSearchTag
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "0.03"
+        #         boxSizing: border-box
+        #       onClick:
+        #         - goto: SearchSpecialty
+        #       children:
+        #         - type: image
+        #           path:
+        #             emit:
+        #               actions:
+        #                 - if:
+        #                     - =.builtIn.string.equal:
+        #                         dataIn:
+        #                           string1: =..formData.condition.cond
+        #                           string2: "Condition, procedure, doctor…"
+        #                     - appointmentSearchRed.svg
+        #                     - appointmentSearch.svg
+        #           style:
+        #             display: "inline-block"
+        #             height: "0.0295"
+        #             verticalAlign: middle
+        #         - type: label
+        #           text: "Condition, procedure, doctor…"
+        #           dataKey: formData.condition.cond
+        #           style:
+        #             marginLeft: "0.0213"
+        #             display: "inline-block"
+        #             width: ..formData.condWidth
+        #             height: "auto"
+        #             color: ..formData.condColor
+        #             fontSize: .Nfont.h14
+        #             verticalAlign: middle
+        #             overflow: hidden
+        #             text-overflow: ellipsis
+        #             whiteSpace: nowrap
+        #         - type: image
+        #           path: appointmentWarn.svg
+        #           style:
+        #             marginLeft: "0.185"
+        #             display: ..formDataTemp.allTypeWarnShow
+        #             height: "0.0295"
+        #             verticalAlign: middle
+        #     - type: view
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "0.001"
+        #         backgroundColor: "0xffffff"
+        #     - type: view
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "auto"
+        #         boxSizing: border-box
+        #       onClick:
+        #         - goto: SearchPosition
+        #       children:
+        #         - type: image
+        #           path: appointmentLocation.svg
+        #           style:
+        #             display: "inline-block"
+        #             height: "0.0295"
+        #             verticalAlign: middle
+        #         - type: label
+        #           text: "City, state, or zip code"
+        #           dataKey: formData.condition.pos
+        #           style:
+        #             marginLeft: "0.0213"
+        #             display: "inline-block"
+        #             width: "0.749"
+        #             height: "auto"
+        #             color: ..formData.posColor
+        #             fontSize: .Nfont.h14
+        #             verticalAlign: middle
+        #             overflow: hidden
+        #             text-overflow: ellipsis
+        #             whiteSpace: nowrap
+        #     - type: view
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "0.001"
+        #         backgroundColor: "0xffffff"
+        #     - type: view
+        #       viewTag: timeTag
+        #       onClick:
+        #         #弹出日历
+        #         - actionType: popUp
+        #           popUpView: birthDay
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "auto"
+        #         boxSizing: border-box
+        #       children:
+        #         - type: image
+        #           path: appointmentDate.svg
+        #           style:
+        #             display: "inline-block"
+        #             height: "0.0295"
+        #             verticalAlign: middle
+        #         - type: label
+        #           text: Today
+        #           dataKey: formData.todayTime
+        #           style:
+        #             marginLeft: "0.0213"
+        #             display: "inline-block"
+        #             width: "0.749"
+        #             height: "auto"
+        #             color: "0x2988e6"
+        #             fontSize: .Nfont.h14
+        #             verticalAlign: middle
+        #             overflow: hidden
+        #             text-overflow: ellipsis
+        #             whiteSpace: nowrap
+        #     - type: view
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "0.001"
+        #         backgroundColor: "0xffffff"
+        #     - type: view
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "auto"
+        #         boxSizing: border-box
+        #       onClick:
+        #         - goto: SearchCarriers
+        #       children:
+        #         - type: image
+        #           path: appointmentPay.svg
+        #           style:
+        #             display: "inline-block"
+        #             height: "0.0295"
+        #             verticalAlign: middle
+        #         - type: label
+        #           dataKey: formData.condition.ins
+        #           style:
+        #             marginLeft: "0.0213"
+        #             display: "inline-block"
+        #             width: "0.749"
+        #             height: "auto"
+        #             color: "0x2988e6"
+        #             fontSize: .Nfont.h14
+        #             verticalAlign: middle
+        #             overflow: hidden
+        #             text-overflow: ellipsis
+        #             whiteSpace: nowrap
+        #     - type: view
+        #       style:
+        #         marginTop: "0.0147"
+        #         marginLeft: "0.04"
+        #         width: "0.84"
+        #         height: "0.001"
+        #         backgroundColor: "0xffffff"
+        #     - type: button
+        #       text: Find Provider / Service Room
+        #       style:
+        #         marginLeft: "0.04"
+        #         marginTop: "0.0197"
+        #         width: "0.84"
+        #         height: "0.0443"
+        #         color: "0xffffff"
+        #         fontSize: .Nfont.h14
+        #         border:
+        #           style: 1
+        #         backgroundColor: "0x2988e6"
+        #         borderRadius: "5px"
+        #         textAlign:
+        #           x: center
+        #           y: center
+        #       onClick:
+        #         - actionType: evalObject
+        #           object:
+        #             - .Global.currentType@: "All Type"
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..formData.condition.cond
+        #                       string2: ""
+        #                 - actionType: evalObject
+        #                   object:
+        #                     - ..formData.condition.cond@: "Condition, procedure, doctor…"
+        #                     - ..formDataTemp.allTypeWarnShow@: "inline-block"
+        #                     - ..formData.flag@: false
+        #                 - actionType: evalObject
+        #                   object:
+        #                     - if:
+        #                         - =.builtIn.string.equal:
+        #                             dataIn:
+        #                               string1: =..formData.condition.cond
+        #                               string2: "Condition, procedure, doctor…"
+        #                         - ..formData.flag@: false
+        #                         - ..formData.flag@: true
+        #         - actionType: builtIn
+        #           funcName: redraw
+        #           viewTag: allTypeSearchTag
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =..formData.flag
+        #                 - continue
+        #                 - actionType: popUp
+        #                   popUpView: SearchEmptyTag
+        #                   wait: true
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #               - =.builtIn.string.equal:
+        #                   dataIn:
+        #                     string1: =..formData.condition.pos
+        #                     string2: ""
+        #               - ..formData.condition.pos@: "92805"
+        #               - continue
+        #             - if:
+        #               - =.builtIn.string.equal:
+        #                   dataIn:
+        #                     string1: =..formData.symptomCond
+        #                     string2: ""
+        #               - =.builtIn.search.queryAllPat:
+        #                   dataIn:
+        #                     cond: =..formData.condition.cond
+        #                     distance: 25
+        #                     pos: =..formData.condition.pos
+        #                     stime: =..formData.condition.stime
+        #                     etime: =..formData.condition.etime
+        #                     isSplitCurrent: true
+        #                     from: =..formData.searchValue
+        #                   dataOut: AppointmentSearch.formData.suggest
+        #               - =.builtIn.search.queryAllPat:
+        #                   dataIn:
+        #                     cond: =..formData.symptomCond
+        #                     distance: 25
+        #                     pos: =..formData.condition.pos
+        #                     stime: =..formData.condition.stime
+        #                     etime: =..formData.condition.etime
+        #                     from: =..formData.searchValue
+        #                     isSplitCurrent: true
+        #                   dataOut: AppointmentSearch.formData.suggest
+        #             - .Global.suggest@: =..formData.suggest
+        #         - goto: AppointmentSearchList
+        #     - type: view
+        #       style:
+        #         marginTop: "0.0246"
+        #         width: "0.92"
+
+        # telemedicine
+        - type: view
+          viewTag: telemedicineTag
+          style:
+            display: ..formData.blockTag.blockTelemedicine
+            width: "0.92"
+            height: "auto"
+            borderRadius: ..formDataTemp.titleHandleData.0.contentBoxRadius
+            boxSizing: border-box
+            overflow: hidden
+            backgroundColor: "0xf7f7f7"
+          children:
+            - type: view
+              viewTag: telemedicineSearchTag
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.03"
+                boxSizing: border-box
+              onClick:
+                - goto: SearchSpecialty
+              children:
+                - type: image
+                  path:
+                    emit:
+                      actions:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.condition.cond
+                                  string2: "Condition, procedure, doctor…"
+                            - appointmentSearchRed.svg
+                            - appointmentSearch.svg
+                  style:
+                    display: "inline-block"
+                    height: "0.0295"
+                    verticalAlign: middle
+                - type: label
+                  dataKey: formData.condition.cond
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    width: ..formData.condWidth
+                    height: "auto"
+                    color: ..formData.condColor
+                    fontSize: .Nfont.h14
+                    verticalAlign: middle
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    whiteSpace: nowrap
+                - type: image
+                  path: appointmentWarn.svg
+                  style:
+                    marginLeft: "0.185"
+                    display: ..formDataTemp.telemedicineWarnShow
+                    height: "0.0295"
+                    verticalAlign: middle
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.001"
+                backgroundColor: "0xffffff"
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "auto"
+                boxSizing: border-box
+              children:
+                - type: image
+                  path: appointmentLocation.svg
+                  style:
+                    display: "inline-block"
+                    height: "0.0295"
+                    verticalAlign: middle
+                - type: label
+                  text: "City, state, or zip code"
+                  dataKey: formData.condition.pos
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    width: "0.65"
+                    height: "auto"
+                    color: ..formData.posColor
+                    fontSize: .Nfont.h14
+                    verticalAlign: middle
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    whiteSpace: nowrap
+                  onClick:
+                    - goto: SearchPosition
+                - type: view
+                  style:
+                    marginLeft: "0.01"
+                    height: "0.03"
+                    width: "0.005"
+                    backgroundColor: "0xe6e6e6"
+                    display: "inline-block"
+                - type: image
+                  path: mapPositioning.svg
+                  style:
+                    marginLeft: "0.02"
+                    display: "inline-block"
+                    height: "0.025"
+                    verticalAlign: middle
+                  onClick:
+                    - actionType: getLocationAddress
+                      dataKey: formData.locationAddress
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.locationAddress
+                                  string2: "false"
+                            - actionType: evalObject
+                              object:
+                                - ..formData.posColor@: "0xfb5051"
+                                - ..formData.condition.pos@: "Fail to get location, please try again"
+                                - .Global.currentPosition@: ""
+                                - .Global.pos@: ""
+                            - actionType: evalObject
+                              object:
+                                - ..formData.condition.pos@: =..formData.locationAddress
+                                - .Global.currentPosition@: =..formData.condition.pos
+                                - .Global.pos@: =..formData.condition.pos
+                                - ..formData.posColor@: "0x000000"
+
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: telemedicineTag
+
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.001"
+                backgroundColor: "0xffffff"
+            - type: view
+              viewTag: timeTag
+              onClick:
+                #弹出日历
+                - actionType: popUp
+                  popUpView: birthDay
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "auto"
+                boxSizing: border-box
+              children:
+                - type: image
+                  path: appointmentDate.svg
+                  style:
+                    display: "inline-block"
+                    height: "0.0295"
+                    verticalAlign: middle
+                - type: label
+                  text: Today
+                  dataKey: formData.todayTime
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    width: "0.505"
+                    height: "auto"
+                    color: "0x2988e6"
+                    fontSize: .Nfont.h14
+                    verticalAlign: middle
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    whiteSpace: nowrap
+            # - type: view
+            #   style:
+            #     marginTop: "0.0147"
+            #     marginLeft: "0.04"
+            #     width: "0.84"
+            #     height: "0.001"
+            #     backgroundColor: "0xffffff"
+            # - type: view
+            #   style:
+            #     marginTop: "0.0147"
+            #     marginLeft: "0.04"
+            #     width: "0.84"
+            #     height: "auto"
+            #     boxSizing: border-box
+            #   onClick:
+            #     - goto: SearchCarriers
+            #   children:
+            #     - type: image
+            #       path: appointmentPay.svg
+            #       style:
+            #         display: "inline-block"
+            #         height: "0.0295"
+            #         verticalAlign: middle
+            #     - type: label
+            #       text: "I'm paying for myself"
+            #       dataKey: formData.condition.ins
+            #       style:
+            #         marginLeft: "0.0213"
+            #         display: "inline-block"
+            #         width: "0.749"
+            #         height: "auto"
+            #         color: "0x2988e6"
+            #         fontSize: .Nfont.h14
+            #         verticalAlign: middle
+            #         overflow: hidden
+            #         text-overflow: ellipsis
+            #         whiteSpace: nowrap
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.001"
+                backgroundColor: "0xffffff"
+            - type: button
+              text: Find
+              style:
+                marginLeft: "0.04"
+                marginTop: "0.0197"
+                width: "0.84"
+                height: "0.0443"
+                color: "0xffffff"
+                fontSize: .Nfont.h14
+                border:
+                  style: 1
+                backgroundColor: "0x2988e6"
+                borderRadius: "5px"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.currentMilse@: "25Miles"
+                    - .Global.currentType@: "Telemedicine"
+                    - .Global.cond@: =..formData.condition.cond
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.condition.cond
+                              string2: ""
+                        - actionType: evalObject
+                          object:
+                            - ..formData.condition.cond@: "Condition, procedure, doctor…"
+                            - ..formDataTemp.telemedicineWarnShow@: "inline-block"
+                            - ..formData.flag@: false
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.condition.cond
+                                      string2: "Condition, procedure, doctor…"
+                                - ..formData.flag@: false
+                                - ..formData.flag@: true
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.condition.pos
+                              string2: ""
+                        - actionType: popUp
+                          popUpView: PositionTag
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.condition.pos
+                              string2: "Fail to get location, please try again"
+                        - actionType: popUp
+                          popUpView: PositionTag
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: telemedicineSearchTag
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.flag
+                        - continue
+                        - actionType: popUp
+                          popUpView: SearchEmptyTag
+                          wait: true
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.symptomCond
+                              string2: ""
+                        - =.builtIn.search.queryDataByType:
+                            dataIn:
+                              cond: =..formData.condition.cond
+                              stime: =..formData.condition.stime
+                              etime: =..formData.condition.etime
+                              type: 196609
+                              isSplitCurrent: true
+                              pos: =..formData.condition.pos
+                              from: =..formData.searchValue
+                            dataOut: AppointmentSearch.formData.suggest
+                        - =.builtIn.search.queryDataByType:
+                            dataIn:
+                              cond: =..formData.symptomCond
+                              stime: =..formData.condition.stime
+                              etime: =..formData.condition.etime
+                              type: 196609
+                              isSplitCurrent: true
+                              pos: =..formData.condition.pos
+                              from: =..formData.searchValue
+                            dataOut: AppointmentSearch.formData.suggest
+                    - .Global.suggest@: =..formData.suggest
+                - goto: AppointmentSearchList
+            - type: view
+              style:
+                marginTop: "0.0246"
+                width: "0.92"
+        # Office Visit
+        - type: view
+          viewTag: officeVisitTag
+          style:
+            display: ..formData.blockTag.blockOffice
+            width: "0.92"
+            height: "auto"
+            boxSizing: border-box
+            borderRadius: ..formDataTemp.titleHandleData.1.contentBoxRadius
+            overflow: hidden
+            backgroundColor: "0xf7f7f7"
+          children:
+            - type: view
+              viewTag: officeVisitSearchTag
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.03"
+                boxSizing: border-box
+              onClick:
+                - goto: SearchSpecialty
+              children:
+                - type: image
+                  path:
+                    emit:
+                      actions:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.condition.cond
+                                  string2: "Condition, procedure, doctor…"
+                            - appointmentSearchRed.svg
+                            - appointmentSearch.svg
+                  style:
+                    display: "inline-block"
+                    height: "0.0295"
+                    verticalAlign: middle
+                - type: label
+                  dataKey: formData.condition.cond
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    width: ..formData.condWidth
+                    height: "auto"
+                    color: ..formData.condColor
+                    fontSize: .Nfont.h14
+                    verticalAlign: middle
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    whiteSpace: nowrap
+                - type: image
+                  path: appointmentWarn.svg
+                  style:
+                    marginLeft: "0.185"
+                    display: ..formDataTemp.officeVisitWarnShow
+                    height: "0.0295"
+                    verticalAlign: middle
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.001"
+                backgroundColor: "0xffffff"
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "auto"
+                boxSizing: border-box
+              children:
+                - type: image
+                  path: appointmentLocation.svg
+                  style:
+                    display: "inline-block"
+                    height: "0.0295"
+                    verticalAlign: middle
+                - type: label
+                  text: "City, state, or zip code"
+                  dataKey: formData.condition.pos
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    width: "0.65"
+                    height: "auto"
+                    color: ..formData.posColor
+                    fontSize: .Nfont.h14
+                    verticalAlign: middle
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    whiteSpace: nowrap
+                  onClick:
+                    - goto: SearchPosition
+                - type: view
+                  style:
+                    marginLeft: "0.01"
+                    height: "0.03"
+                    width: "0.005"
+                    backgroundColor: "0xe6e6e6"
+                    display: "inline-block"
+                - type: image
+                  path: mapPositioning.svg
+                  style:
+                    marginLeft: "0.02"
+                    display: "inline-block"
+                    height: "0.025"
+                    verticalAlign: middle
+                  onClick:
+                    - actionType: getLocationAddress
+                      dataKey: formData.locationAddress
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.locationAddress
+                                  string2: "false"
+                            - actionType: evalObject
+                              object:
+                                - ..formData.posColor@: "0xfb5051"
+                                - ..formData.condition.pos@: "Fail to get location, please try again"
+                                - .Global.currentPosition@: ""
+                                - .Global.pos@: ""
+                            - actionType: evalObject
+                              object:
+                                - .Global.currentPosition@: =..formData.condition.pos
+                                - .Global.pos@: =..formData.condition.pos
+                                - ..formData.posColor@: "0x000000"
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: officeVisitTag
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.001"
+                backgroundColor: "0xffffff"
+            - type: view
+              viewTag: timeTag
+              onClick:
+                #弹出日历
+                - actionType: popUp
+                  popUpView: birthDay
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "auto"
+                boxSizing: border-box
+              children:
+                - type: image
+                  path: appointmentDate.svg
+                  style:
+                    display: "inline-block"
+                    height: "0.0295"
+                    verticalAlign: middle
+                - type: label
+                  text: Today
+                  dataKey: formData.todayTime
+                  style:
+                    marginLeft: "0.0213"
+                    display: "inline-block"
+                    width: "0.505"
+                    height: "auto"
+                    color: "0x2988e6"
+                    fontSize: .Nfont.h14
+                    verticalAlign: middle
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    whiteSpace: nowrap
+            - type: view
+              style:
+                marginTop: "0.0147"
+                marginLeft: "0.04"
+                width: "0.84"
+                height: "0.001"
+                backgroundColor: "0xffffff"
+            # - type: view
+            #   style:
+            #     marginTop: "0.0147"
+            #     marginLeft: "0.04"
+            #     width: "0.84"
+            #     height: "auto"
+            #     boxSizing: border-box
+            #   onClick:
+            #     - goto: SearchCarriers
+            #   children:
+            #     - type: image
+            #       path: appointmentPay.svg
+            #       style:
+            #         display: "inline-block"
+            #         height: "0.0295"
+            #         verticalAlign: middle
+            #     - type: label
+            #       text: "I'm paying for myself"
+            #       dataKey: formData.condition.ins
+            #       style:
+            #         marginLeft: "0.0213"
+            #         display: "inline-block"
+            #         width: "0.749"
+            #         height: "auto"
+            #         color: "0x2988e6"
+            #         fontSize: .Nfont.h14
+            #         verticalAlign: middle
+            #         overflow: hidden
+            #         text-overflow: ellipsis
+            #         whiteSpace: nowrap
+            # - type: view
+            #   style:
+            #     marginTop: "0.0147"
+            #     marginLeft: "0.04"
+            #     width: "0.84"
+            #     height: "0.001"
+            #     backgroundColor: "0xffffff"
+            - type: button
+              text: Find
+              style:
+                marginLeft: "0.04"
+                marginTop: "0.0197"
+                width: "0.84"
+                height: "0.0443"
+                color: "0xffffff"
+                fontSize: .Nfont.h14
+                border:
+                  style: 1
+                backgroundColor: "0x2988e6"
+                borderRadius: "5px"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.currentType@: "Office Visit"
+                    - .Global.cond@: =..formData.condition.cond
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.condition.cond
+                              string2: ""
+                        - actionType: evalObject
+                          object:
+                            - ..formData.condition.cond@: "Condition, procedure, doctor…"
+                            - ..formDataTemp.officeVisitWarnShow@: "inline-block"
+                            - ..formData.flag@: false
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.condition.cond
+                                      string2: "Condition, procedure, doctor…"
+                                - ..formData.flag@: false
+                                - ..formData.flag@: true
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.condition.pos
+                              string2: ""
+                        - actionType: popUp
+                          popUpView: PositionTag
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.condition.pos
+                              string2: "Fail to get location, please try again"
+                        - actionType: popUp
+                          popUpView: PositionTag
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: officeVisitSearchTag
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.flag
+                        - continue
+                        - actionType: popUp
+                          popUpView: SearchEmptyTag
+                          wait: true
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.symptomCond
+                              string2: ""
+                        - =.builtIn.search.queryDataByType:
+                            dataIn:
+                              cond: =..formData.condition.cond
+                              distance: 25
+                              pos: =..formData.condition.pos
+                              stime: =..formData.condition.stime
+                              etime: =..formData.condition.etime
+                              type: 131073
+                              isSplitCurrent: true
+                              from: =..formData.searchValue
+                            dataOut: AppointmentSearch.formData.suggest
+                        - =.builtIn.search.queryDataByType:
+                            dataIn:
+                              cond: =..formData.symptomCond
+                              distance: 25
+                              pos: =..formData.condition.pos
+                              stime: =..formData.condition.stime
+                              etime: =..formData.condition.etime
+                              type: 131073
+                              isSplitCurrent: true
+                              from: =..formData.searchValue
+                            dataOut: AppointmentSearch.formData.suggest
+                    - .Global.suggest@: =..formData.suggest
+                - goto: AppointmentSearchList
+            - type: view
+              style:
+                marginTop: "0.0246"
+                width: "0.92"
+    - type: view
+      style:
+        width: "0.92"
+        left: "0.04"
+        height: auto
+      children:
+        - type: image
+          path: fourPersons.svg
+          style:
+            width: "0.92"
+            marginTop: "0.0924"
+    # - type: view
+    #   style:
+    #     marginLeft: "0.04"
+    #     marginTop: "0.0246"
+    #     width: "0.92"
+    #     height: "auto"
+    #     overflow: hidden
+    #     boxSizing: border-box
+    #     border:
+    #       style: 1
+    #     borderRadius: "15px"
+    #     backgroundColor: "0xf7f7f7"
+    #   children:
+    #     - type: view
+    #       style:
+    #         marginTop: "0.0221"
+    #         marginLeft: "0.04"
+    #         width: "auto"
+    #         boxSizing: border-box
+    #       children:
+    #         - type: image
+    #           path: covid.svg
+    #           style:
+    #             display: "inline-block"
+    #             height: "0.0788"
+    #             verticalAlign: middle
+    #             boxSizing: border-box
+    #         - type: view
+    #           style:
+    #             marginLeft: "0.035"
+    #             display: "inline-block"
+    #             height: "auto"
+    #             width: "0.64"
+    #             boxSizing: border-box
+    #             verticalAlign: middle
+    #           children:
+    #             - type: label
+    #               text: Find a COVID-19 vaccine appointment
+    #               style:
+    #                 fontSize: .Nfont.h14
+    #                 color: "0x2988e6"
+    #                 height: "auto"
+    #                 width: "0.64"
+    #                 fontWeight: "600"
+    #                 boxSizing: border-box
+    #                 whiteSpace: nowrap
+    #             - type: label
+    #               text: We can help you find available vaccine appointments near you or notify you when availability opens up.
+    #               style:
+    #                 marginTop: "0.0049"
+    #                 fontSize: .Nfont.h12
+    #                 color: "0x333333"
+    #                 wordWrap: break-word
+    #                 lineHeight: "2.21vh"
+    #                 width: "0.64"
+    #                 boxSizing: border-box
+    #     - type: button
+    #       text: Find covid 19 testing sites
+    #       style:
+    #         marginLeft: "0.04"
+    #         marginTop: "0.0184"
+    #         width: "0.84"
+    #         height: "0.0443"
+    #         color: "0x2988e6"
+    #         fontWeight: "400"
+    #         fontSize: .Nfont.h14
+    #         border:
+    #           style: 3
+    #         borderColor: "0x2988e6"
+    #         backgroundColor: "0xf7f7f7"
+    #         boxSizing: border-box
+    #         borderRadius: "5px"
+    #         textAlign:
+    #           x: center
+    #           y: center
+    #       onClick:
+    #         - goto: LocationsForCov19
+    #     - type: view
+    #       style:
+    #         marginTop: "0.0246"
+
+    # 弹窗区域
+    - .SoftTips:
+      message: "Please fill in the search bar"
+      viewTag: SearchEmptyTag
+    - .SoftTips:
+      message: "Position cannot be empty"
+      viewTag: PositionTag
+    - type: popUp
+      viewTag: birthDay
+      style:
+        left: "0"
+        top: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "1000"
+      children:
+        - .BaseComponents.calendar:
+          children:
+            - .BaseComponents.calendarHeader:
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.024"
+                    left: "0"
+                    height: "0.035"
+                    width: "0.86"
+                  children:
+                    - .BaseComponents.newMonthView:
+                    - .BaseComponents.newYearView:
+                - .BaseComponents.newdevider:
+                - .BaseComponents.weekView:
+            - type: view
+              style:
+                left: "0.03"
+                width: "0.841"
+                marginTop: "0.01"
+                height: "79vw"
+              children:
+                - type: list
+                  androidGrid: true
+                  contentType: listObject
+                  listObject: =.BaseComponents.calendarDate.dayLable
+                  iteratorVar: itemObject
+                  style:
+                    left: "0"
+                    width: "0.841"
+                    margin: "0"
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - .BaseComponents.flag@: $var.key
+                              - if:
+                                  - =.BaseComponents.flag
+                                  - .BaseComponents.calendarDate.day@: $var.key
+                                  - continue
+                              - =.builtIn.date.ShowDateByNumber:
+                                  dataIn:
+                                    year: =.BaseComponents.calendarDate.year
+                                    month: =.BaseComponents.calendarDate.month
+                                    day: =.BaseComponents.calendarDate.day
+                                    formatType: "M/D/Y" #elaine change order of date to us
+                                  dataOut: AppointmentSearch.compare.todayDate
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.date.getTimeStampOfDate:
+                                dataIn:
+                                  date: =.AppointmentSearch.compare.todayDate
+                                dataOut: AppointmentSearch.compare.todayStamp
+                            - if:
+                                - =.builtIn.math.greater:
+                                    dataIn:
+                                      num1: =.AppointmentSearch.compare.todayStamp.end
+                                      num2: =.BaseComponents.calendarDate.nowTimeStamp
+                                - continue
+                                - actionType: popUp
+                                  popUpView: dateCheck
+                                  wait: true
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - .BaseComponents.flag@: $var.key
+                              - if:
+                                  - =.BaseComponents.flag
+                                  - .BaseComponents.calendarDate.day@: $var.key
+                                  - continue
+                              - =.builtIn.date.calendarArray:
+                                  dataIn:
+                                    year: =.BaseComponents.calendarDate.year
+                                    month: =.BaseComponents.calendarDate.month
+                                    today: =.BaseComponents.calendarDate.day
+                                  dataOut: BaseComponents.calendarDate.dayLable
+                              - =.builtIn.date.ShowDateByNumber:
+                                  dataIn:
+                                    year: =.BaseComponents.calendarDate.year
+                                    month: =.BaseComponents.calendarDate.month
+                                    day: =.BaseComponents.calendarDate.day
+                                    formatType: "M/D/Y" #elaine change order of date to us
+                                  dataOut: BaseComponents.calendarDate.todayDate
+
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: calendarTag
+                      style:
+                        width: "12vw"
+                        height: "12vw"
+                        # boxSizing: "border-box"
+                        # border: "none"
+                        padding: "0"
+                        margin: "0"
+                        display: "inline-block"
+                        # flex: "auto"
+                      children:
+                        - type: label
+                          dataKey: itemObject.key
+                          style:
+                            top: "0"
+                            left: "0"
+                            width: "12vw"
+                            height: "12vw"
+                            color: itemObject.color
+                            backgroundColor: itemObject.backgroundColor
+                            borderRadius: "50"
+                            fontSize: "18"
+                            textAlign:
+                              x: center
+                              y: center
+            - .BaseComponents.addButton:
+              text: "Select"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.date.getTimeStampOfDate:
+                        dataIn:
+                          date: =.BaseComponents.calendarDate.todayDate
+                        dataOut: BaseComponents.calendarDate.todayStamp
+                    - if:
+                        - =.builtIn.math.greater:
+                            dataIn:
+                              num1: =.BaseComponents.calendarDate.todayStamp.end
+                              num2: =.BaseComponents.calendarDate.nowTimeStamp
+                        - continue
+                        - actionType: popUp
+                          popUpView: dateCheck
+                          wait: true
+                - actionType: evalObject
+                  object:
+                    - ..formData.todayTime@: =.BaseComponents.calendarDate.todayDate
+                    - =.builtIn.date.getTimeStampOfDate:
+                        dataIn:
+                          date: =.BaseComponents.calendarDate.todayDate
+                        dataOut: BaseComponents.calendarDate.todayStamp
+                    - ..formData.condition.stime@: =.BaseComponents.calendarDate.todayStamp.start
+                    - ..formData.condition.etime@: =.BaseComponents.calendarDate.todayStamp.end
+                    - .Global.todayStamp@: =.BaseComponents.calendarDate.todayStamp
+                    - .Global.calendarDate@: =.BaseComponents.calendarDate
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: birthTag
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: timeTag
+                - actionType: popUpDismiss
+                  popUpView: birthDay
+    - .TipsMultiLine:
+      viewTag: dateCheck
+      message: "Please don't choose the past time"
+      style:
+        zIndex: 1001
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: __.viewTag

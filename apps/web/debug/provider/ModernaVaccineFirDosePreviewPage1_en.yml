@@ -44,7 +44,7 @@ ModernaVaccineFirDosePreviewPage1:
                       style:
                         ..style.titlelabel:
                     - type: label
-                      text: "1&nbsp;/&nbsp;5"
+                      text: "1&nbsp;/&nbsp;4"
                       dataKey:
                       style:
                         ..style.pageNum:
@@ -375,7 +375,7 @@ ModernaVaccineFirDosePreviewPage1:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -396,7 +396,7 @@ ModernaVaccineFirDosePreviewPage1:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -531,7 +531,7 @@ ModernaVaccineFirDosePreviewPage1:
       borderRadius: "3"
       borderWidth: "1.5"
       borderColor: "0xdedede"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       color: "0x333333"
       textIndent: "12px"
@@ -550,7 +550,7 @@ ModernaVaccineFirDosePreviewPage1:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:

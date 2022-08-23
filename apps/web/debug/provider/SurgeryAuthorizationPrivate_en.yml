@@ -2,6 +2,20 @@ SurgeryAuthorizationPrivate:
   title: Surgery Authorization
   init: #Page initialization
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    # 判断本地会议是否有diagnoses存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.diagnosesDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.diagnosesDoc.docReq@: =.Global.formData.providerDoc.diagnosesDoc
+        - actionType: evalObject
+          object:
+            - =.SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+            - ..apiRequest.diagnosesDoc.docReq@: =.SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docResp.doc
+            - .Global.formData.providerDoc.diagnosesDoc@: =.SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docResp.doc
     - if:
         - =.Global.Note.id
         - actionType: evalObject
@@ -85,6 +99,15 @@ SurgeryAuthorizationPrivate:
             - ..formData.temporarySignature@: =.SurgeryAuthorizationPrivate.apiRequest.surgeryForm.docReq.name.data.signatureId
             - ..formData.flag@: "block"
 
+    # 判断cpt长度
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =.. apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList
+              len: 0
+        - ..formData.listDataFlagPro@: "none"
+        - ..formData.listDataFlagPro@: "block"
+
   calendarDate:
     year: ""
     month: ""
@@ -93,6 +116,7 @@ SurgeryAuthorizationPrivate:
     todayDate: ""
     monthName: ""
   formData: #Input data here
+    searchCPTShow: "none"
     searchShow: "none"
     diagnosis:
       descriptiveList:
@@ -242,7 +266,24 @@ SurgeryAuthorizationPrivate:
           api: cd
           dataIn: apiRequest.newSign.docReq
           dataOut: SurgeryAuthorizationPrivate.apiRequest.newSign.docRes
-
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.Diagnoses
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            diagnosis:
+              descriptiveList: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docReq
+          dataOut: SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docResp
   style: #Input style fragment here
 
   components:
@@ -252,6 +293,10 @@ SurgeryAuthorizationPrivate:
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
+            # 处理Diagnosis
+            - actionType: evalObject
+              object:
+                - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
             # 签名处理
             - actionType: saveSignature
               dataObject: BLOB
@@ -302,7 +347,7 @@ SurgeryAuthorizationPrivate:
         width: "1"
         height: "0.846"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -336,7 +381,7 @@ SurgeryAuthorizationPrivate:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
@@ -347,7 +392,7 @@ SurgeryAuthorizationPrivate:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordWrap: break-word
         - type: view
@@ -466,7 +511,7 @@ SurgeryAuthorizationPrivate:
             borderWidth: "1.5"
             borderColor: "0xdedede"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             paddingTop: "6px"
         - type: label
@@ -504,7 +549,7 @@ SurgeryAuthorizationPrivate:
                 width: "0.504"
                 height: "0.037"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 display: "inline-block"
                 boxSizing: "border-box"
                 border:
@@ -525,7 +570,6 @@ SurgeryAuthorizationPrivate:
           style:
             width: "1"
             height: "auto"
-            overflow: "auto"
             marginTop: "0.0246"
           children:
             - type: label
@@ -586,9 +630,9 @@ SurgeryAuthorizationPrivate:
                             boxSizing: border-box
                             border:
                               style: 1
-                            fontSize: .Nfont.h12
+                            fontSize: .Nfont.h14
                             verticalAlign: middle
-                            fontFamily: "Arial"
+
                             color: "0x333333"
                           onInput:
                             - actionType: evalObject
@@ -657,7 +701,7 @@ SurgeryAuthorizationPrivate:
                         borderRadius: "4"
                         borderWidth: "1.5"
                         borderColor: "0xcdcdcd"
-                        fontFamily: "Arial"
+                        fontSize: .Nfont.h14
                         color: "0x333333"
                 - type: textView
                   viewTag: CommentsTag
@@ -674,12 +718,11 @@ SurgeryAuthorizationPrivate:
                     borderRadius: "4"
                     borderWidth: "1.5"
                     borderColor: "0xcdcdcd"
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     padding: "6px 0"
                     fontSize: .Nfont.h14
 
-                
             - type: label
               text: + add more
               style:
@@ -703,11 +746,26 @@ SurgeryAuthorizationPrivate:
                           popUpView: SearchWarning
                           wait: true
                           popUpDismiss: 2000
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.array.containingValue:
+                            dataIn:
+                              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+                              key: code
+                              value: =..formData.diagnosis.descriptiveList.code
+                        - actionType: popUp
+                          popUpView: repeatWarning
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+
                 - emit:
                     actions:
                       - =.builtIn.array.add:
                           dataIn:
-                            object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.diagnosis.descriptiveList
+                            object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                             value: =..formData.diagnosis.descriptiveList
                 - actionType: evalObject
                   object:
@@ -753,7 +811,7 @@ SurgeryAuthorizationPrivate:
                     - type: list
                       viewTag: listData
                       contentType: listObject
-                      listObject: ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.diagnosis.descriptiveList # to dataObject to enumerate the list
+                      listObject: ..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
                       iteratorVar: itemObject
                       style:
                         width: "0.92"
@@ -796,7 +854,7 @@ SurgeryAuthorizationPrivate:
                                     width: "0.17"
                                     textAlign:
                                       x: left
-                                    fontFamily: "Arial"
+
                                     backgroundColor: "0xffffff"
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
@@ -815,14 +873,14 @@ SurgeryAuthorizationPrivate:
                                   dataKey: itemObject.description
                                   style:
                                     verticalAlign: top
-                                    marginLeft: "0.02"
+                                    marginLeft: "0.015"
                                     display: "inline-block"
                                     height: "auto"
                                     width: "0.64"
                                     textAlign:
                                       x: left
                                     backgroundColor: "0xffffff"
-                                    fontFamily: "Arial"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
                                     color: "0x333333"
@@ -834,7 +892,7 @@ SurgeryAuthorizationPrivate:
                                 width: "0.845"
                                 height: "auto"
                                 color: "0x666666"
-                                fontFamily: "Arial"
+
                                 wordWrap: break-word
                                 fontSize: .Nfont.h14
 
@@ -856,7 +914,7 @@ SurgeryAuthorizationPrivate:
                 marginLeft: "0.04"
                 height: "auto"
                 width: "0.92"
-                overflow: hidden
+                # overflow: hidden
               children:
                 - type: view
                   style:
@@ -898,41 +956,55 @@ SurgeryAuthorizationPrivate:
                             boxSizing: border-box
                             border:
                               style: 1
-                            fontSize: .Nfont.h12
+                            fontSize: .Nfont.h14
                             verticalAlign: middle
-                            fontFamily: "Arial"
+
                             color: "0x333333"
-                          # 暂时注释
-                          # onInput:
-                          #   - actionType: evalObject
-                          #     object:
-                          #       - ..formDataTemp.allCPTListInfo@: []
-                          #       - ..formDataTemp.allCPTListString@: []
-                          #   - actionType: evalObject
-                          #     object:
-                          #       - =.builtIn.apiRequest.queryCPT:
-                          #           dataIn:
-                          #             query: =..formData.proRequest.descriptiveList.code
-                          #           dataOut: SurgeryAuthorizationPrivate.formDataTemp.allCPTListInfo
-                          #       - ..formDataTemp.allCPTListString@: =..formDataTemp.allCPTListInfo
-                          #   - actionType: builtIn
-                          #     funcName: redraw
-                          #     viewTag: CPTCodeTag
-                          #   - actionType: builtIn
-                          #     funcName: redraw
-                          #     viewTag: CPTCodeTags
-                          #   - actionType: builtIn
-                          #     funcName: show
-                          #     viewTag: CPTCodeTag
-                          #   - actionType: builtIn
-                          #     funcName: hide
-                          #     viewTag: CPTlistData
-                          #   - actionType: builtIn
-                          #     funcName: show
-                          #     viewTag: ShowTag
-                          #   - actionType: popUp
-                          #     popUpView: CPTCodeTag
-                          #     dismissOnTouchOutside: true
+                          onInput:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.proRequest.descriptiveList.code
+                                          string2: ""
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.searchCPTShow@: "none"
+                                        - ..formData.listDataFlagPro@: "block"
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.searchCPTShow@: "block"
+                                        - ..formData.listDataFlagPro@: "none"
+                            - actionType: evalObject
+                              object:
+                                - ..formDataTemp.allCPTListInfo@: []
+                                - ..formDataTemp.allCPTListString@: []
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.apiRequest.queryCPT:
+                                    dataIn:
+                                      query: =..formData.proRequest.descriptiveList.code
+                                    dataOut: SurgeryAuthorizationPrivate.formDataTemp.allCPTListInfo
+                                - ..formDataTemp.allCPTListString@: =..formDataTemp.allCPTListInfo
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: CPTCodeTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: CPTCodeTags
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: CPTCodeTag
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: ShowTag
+                            - actionType: popUp
+                              popUpView: CPTCodeTag
+                              dismissOnTouchOutside: true
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: searchCPTTag
                     - type: textField
                       viewTag: CPTdescriptionTag
                       placeholder: Description
@@ -949,7 +1021,7 @@ SurgeryAuthorizationPrivate:
                         borderRadius: "4"
                         borderWidth: "1.5"
                         borderColor: "0xcdcdcd"
-                        fontFamily: "Arial"
+                        fontSize: .Nfont.h14
                         color: "0x333333"
                 - type: textView
                   viewTag: CommentsTagPro
@@ -966,241 +1038,290 @@ SurgeryAuthorizationPrivate:
                     borderRadius: "4"
                     borderWidth: "1.5"
                     borderColor: "0xcdcdcd"
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     padding: "6px 0"
                     fontSize: .Nfont.h14
-            - type: label
-              text: + add more
-              style:
-                marginLeft: "0.76"
-                marginTop: "0.0073"
-                fontSize: .Nfont.h14
-                color: "0x1492e6"
-                height: "auto"
-                width: "auto"
-                fontWeight: "600"
-              onClick:
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.array.allComplete:
-                            dataIn:
-                              - =..formData.proRequest.descriptiveList.code
-                              - =..formData.proRequest.descriptiveList.description
-                        - continue
-                        - actionType: popUp
-                          popUpView: SearchWarning
-                          wait: true
-                          popUpDismiss: 2000
-                - actionType: evalObject
-                  object:
-                    - =.builtIn.array.add:
-                        dataIn:
-                          object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList
-                          value: =..formData.proRequest.descriptiveList
-                - actionType: evalObject
-                  object:
-                    - ..formData.proRequest.descriptiveList.code@: ""
-                    - ..formData.proRequest.descriptiveList.description@: ""
-                    - ..formData.proRequest.descriptiveList.qTY@: ""
-                - actionType: builtIn
-                  funcName: redraw
-                  viewTag: CPTlistData
-                - actionType: builtIn
-                  funcName: redraw
-                  viewTag: CPTCodeListTag
-                - actionType: builtIn
-                  funcName: redraw
-                  viewTag: CPTdescriptionTag
-                - actionType: builtIn
-                  funcName: hide
-                  viewTag: CPTCodeTag
-                - actionType: builtIn
-                  funcName: show
-                  viewTag: CPTlistData
-                - actionType: builtIn
-                  funcName: redraw
-                  viewTag: CommentsTagPro
-            - type: view
-              style:
-                marginTop: "0.01"
-                height: "auto"
-                width: "0.92"
-              children:
-                - type: view
-                  viewTag: CPTCodeTag
+
+                - type: label
+                  text: + add more
                   style:
-                    marginLeft: "0.035"
-                    display: "none"
-                    width: "0.92"
+                    marginLeft: "0.71"
+                    marginTop: "0.0073"
+                    fontSize: .Nfont.h14
+                    color: "0x1492e6"
                     height: "auto"
-                    fontFamily: "Arial"
-                    border:
-                      style: 3
-                      color: "0xeeeeee"
-                    borderWidth: "1"
-                    zIndex: 10
+                    width: "auto"
+                    fontWeight: "600"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.array.allComplete:
+                                dataIn:
+                                  - =..formData.proRequest.descriptiveList.code
+                                  - =..formData.proRequest.descriptiveList.description
+                            - continue
+                            - actionType: popUp
+                              popUpView: SearchWarning
+                              wait: true
+                              popUpDismiss: 2000
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList
+                              value: =..formData.proRequest.descriptiveList
+                    - actionType: evalObject
+                      object:
+                        - ..formData.proRequest.descriptiveList.code@: ""
+                        - ..formData.proRequest.descriptiveList.description@: ""
+                        - ..formData.proRequest.descriptiveList.qTY@: ""
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: CPTlistData
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: CPTCodeListTag
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: CPTdescriptionTag
+                    - actionType: builtIn
+                      funcName: hide
+                      viewTag: CPTCodeTag
+                    - actionType: builtIn
+                      funcName: show
+                      viewTag: CPTlistData
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: CommentsTagPro
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    height: "auto"
+                    width: "0.92"
                   children:
-                    - type: scrollView
-                      viewTag: ShowTag
+                    - type: view
+                      viewTag: CPTlistData
                       style:
-                        width: "0.9"
-                        height: "0.3"
-                        marginLeft: "0.02"
-                        overflow: scroll
+                        marginLeft: "0.04"
+                        width: "0.92"
+                        height: "auto"
+                        marginTop: "0.01477"
+                        display: ..formData.listDataFlagPro
                       children:
                         - type: list
+                          viewTag: CPTlistData
                           contentType: listObject
-                          listObject: ..formDataTemp.allCPTListString
+                          listObject: ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList
                           iteratorVar: itemObject
-                          viewTag: CPTCodeTags
                           style:
-                            width: "0.9"
+                            width: "0.92"
                             height: "auto"
                             margin: "0"
-                            marginTop: "0"
                           children:
                             - type: listItem
                               itemObject: ""
                               style:
-                                width: "0.9"
-                                marginTop: "0.002"
-                                height: "auto"
-                                overflow: hidden
-                              children:
-                                - type: label
-                                  dataKey: itemObject
-                                  style:
-                                    width: "0.88"
-                                    textIndent: 20px
-                                    marginTop: "0.005"
-                                    textAlign:
-                                      x: left
-                                      y: center
-                                    height: "auto"
-                                    fontSize: .Nfont.h14
-                                    color: "0x143459"
-                                    wordWrap: break-word
-                                  onClick:
-                                    - emit:
-                                        dataKey:
-                                          var: itemObject
-                                        actions:
-                                          - ..formData.proRequest.descriptiveList.code@: $var.0
-                                          - ..formData.proRequest.descriptiveList.description@: $var.1
-                                    - actionType: builtIn
-                                      funcName: redraw
-                                      viewTag: CPTCodeListTag
-                                    - actionType: builtIn
-                                      funcName: redraw
-                                      viewTag: CPTdescriptionTag
-                                    - actionType: builtIn
-                                      funcName: hide
-                                      viewTag: CPTCodeTag
-                                    - actionType: builtIn
-                                      funcName: show
-                                      viewTag: CPTlistData
-                - type: view
-                  viewTag: CPTlistData
-                  style:
-                    marginLeft: "0.04"
-                    width: "0.92"
-                    height: "auto"
-                    marginTop: "0.01477"
-                    # display: ..formData.listDataFlagPro
-                  children:
-                    - type: list
-                      viewTag: CPTlistData
-                      contentType: listObject
-                      listObject: ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proRequest.descriptiveList
-                      iteratorVar: itemObject
-                      style:
-                        width: "0.92"
-                        height: "auto"
-                        margin: "0"
-                      children:
-                        - type: listItem
-                          itemObject: ""
-                          style:
-                            marginTop: "0.01"
-                            width: "0.92"
-                            height: "auto"
-                            left: "0"
-                            overflow: hidden
-                          children:
-                            - type: view
-                              style:
+                                marginTop: "0.01"
                                 width: "0.92"
                                 height: "auto"
+                                left: "0"
+                                overflow: hidden
                               children:
-                                - type: image
-                                  path: x.svg
+                                - type: view
                                   style:
-                                    display: "inline-block"
-                                    height: "0.025"
-                                    zIndex: 10
-                                    verticalAlign: top
-                                  onClick:
-                                    - actionType: popUp
-                                      popUpView: BaseCPTDelWarningView
-                                    - actionType: updateObject
-                                      dataKey: SurgeryAuthorizationPrivate.formData.selectedProRequest
-                                      dataObject: itemObject
-                                - type: label
-                                  dataKey: itemObject.code
-                                  style:
-                                    display: "inline-block"
-                                    marginLeft: "0.02"
+                                    width: "0.92"
                                     height: "auto"
-                                    width: "0.17"
-                                    textAlign:
-                                      x: left
-                                    fontFamily: "Arial"
-                                    backgroundColor: "0xffffff"
+                                  children:
+                                    - type: image
+                                      path: x.svg
+                                      style:
+                                        display: "inline-block"
+                                        height: "0.025"
+                                        zIndex: 10
+                                        verticalAlign: top
+                                      onClick:
+                                        - actionType: popUp
+                                          popUpView: BaseCPTDelWarningView
+                                        - actionType: updateObject
+                                          dataKey: SurgeryAuthorizationPrivate.formData.selectedProRequest
+                                          dataObject: itemObject
+                                    - type: label
+                                      dataKey: itemObject.code
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.02"
+                                        height: "auto"
+                                        width: "0.17"
+                                        textAlign:
+                                          x: left
+
+                                        backgroundColor: "0xffffff"
+                                        wordWrap: break-word
+                                        fontSize: .Nfont.h14
+                                        fontWeight: "550"
+                                        verticalAlign: top
+                                        color: "0x333333"
+                                    - type: label
+                                      text: "-"
+                                      style:
+                                        verticalAlign: middle
+                                        display: "inline-block"
+                                        width: "auto"
+                                        height: "auto"
+                                        fontSize: .Nfont.h2
+                                    - type: label
+                                      dataKey: itemObject.description
+                                      style:
+                                        verticalAlign: top
+                                        marginLeft: "0.015"
+                                        display: "inline-block"
+                                        height: "auto"
+                                        width: "0.64"
+                                        textAlign:
+                                          x: left
+                                        backgroundColor: "0xffffff"
+
+                                        wordWrap: break-word
+                                        fontSize: .Nfont.h14
+                                        color: "0x333333"
+                                - type: label
+                                  dataKey: itemObject.qTY
+                                  style:
+                                    marginTop: "0.002"
+                                    marginLeft: "0.07"
+                                    width: "0.845"
+                                    height: "auto"
+                                    color: "0x666666"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
-                                    fontWeight: "550"
-                                    verticalAlign: top
-                                    color: "0x333333"
-                                - type: label
-                                  text: "-"
-                                  style:
-                                    verticalAlign: middle
-                                    display: "inline-block"
-                                    width: "auto"
-                                    height: "auto"
-                                    fontSize: .Nfont.h2
-                                - type: label
-                                  dataKey: itemObject.description
-                                  style:
-                                    verticalAlign: top
-                                    marginLeft: "0.02"
-                                    display: "inline-block"
-                                    height: "auto"
-                                    width: "0.64"
-                                    textAlign:
-                                      x: left
-                                    backgroundColor: "0xffffff"
-                                    fontFamily: "Arial"
-                                    wordWrap: break-word
-                                    fontSize: .Nfont.h14
-                                    color: "0x333333"
-                            - type: label
-                              dataKey: itemObject.qTY
+
+                - type: label
+                  text: "Procedure Description"
+                  dataKey:
+                  style:
+                    marginLeft: "0"
+                    marginTop: "0.0246"
+                    fontWeight: "600"
+                    width: "0.92"
+                    height: "auto"
+                    color: "0x333333"
+                    fontSize: .Nfont.h14
+                - type: textView
+                  placeholder: Enter here
+                  dataKey: apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proDescription
+                  style:
+                    marginLeft: "0"
+                    marginTop: "0.01"
+                    textIndent: "12px"
+                    height: "0.0874"
+                    width: "0.92"
+                    boxSizing: border-box
+                    border:
+                      style: 3
+                    borderRadius: "4"
+                    borderWidth: "1.5"
+                    borderColor: "0xdedede"
+                    fontSize: .Nfont.h14
+
+                    color: "0x333333"
+                    paddingTop: "6px"
+                - type: view
+                  viewTag: searchCPTTag
+                  style:
+                    top: "0.0431034"
+                    display: ..formData.searchCPTShow
+                    backgroundColor: "0xffffff"
+                    borderRadius: "4"
+                    boxSizing: "border-box"
+                    boxShadow: "1px 1px 4px 1px #dededf"
+                    zIndex: "20"
+                  children:
+                    - type: view
+                      viewTag: CPTCodeTag
+                      style:
+                        display: "none"
+                        width: "0.92"
+                        height: "auto"
+                        borderRadius: "4"
+                        boxSizing: "border-box"
+                        backgroundColor: "0xffffff"
+                        boxShadow: "1px 1px 4px 1px #dededf"
+                        zIndex: 10
+                      children:
+                        - type: view
+                          viewTag: ShowTag
+                          style:
+                            width: "0.9"
+                            height: "0.3"
+                            marginLeft: "0.02"
+                            overflow: scroll
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.allCPTListString
+                              iteratorVar: itemObject
+                              viewTag: CPTCodeTags
                               style:
-                                marginTop: "0.002"
-                                marginLeft: "0.07"
-                                width: "0.845"
+                                width: "0.9"
                                 height: "auto"
-                                color: "0x666666"
-                                fontFamily: "Arial"
-                                wordWrap: break-word
-                                fontSize: .Nfont.h14
+                                margin: "0"
+                                marginTop: "0"
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    width: "0.9"
+                                    marginTop: "0.002"
+                                    height: "auto"
+                                    overflow: hidden
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject
+                                      style:
+                                        width: "0.88"
+                                        textIndent: 20px
+                                        marginTop: "0.005"
+                                        textAlign:
+                                          x: left
+                                          y: center
+                                        height: "auto"
+                                        fontSize: .Nfont.h14
+                                        color: "0x143459"
+                                        wordWrap: break-word
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - ..formData.proRequest.descriptiveList.code@: $var.0
+                                              - ..formData.proRequest.descriptiveList.description@: $var.1
+                                              - ..formData.searchCPTShow@: "none"
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: CPTlistData
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: CPTCodeListTag
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: CPTdescriptionTag
+                                        - actionType: builtIn
+                                          funcName: hide
+                                          viewTag: CPTCodeTag
+                                        - actionType: builtIn
+                                          funcName: show
+                                          viewTag: CPTlistData
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: searchCPTTag
+
             - type: view
               viewTag: searchShowTag
               style:
-                top: "0.07"
+                top: "0.076"
                 left: "0.04"
                 display: ..formData.searchShow
                 width: "auto"
@@ -1217,9 +1338,10 @@ SurgeryAuthorizationPrivate:
                     display: "none"
                     width: "0.92"
                     height: "auto"
-                    fontFamily: "Arial"
+
                     borderRadius: "4"
                     boxSizing: "border-box"
+                    backgroundColor: "0xffffff"
                     boxShadow: "1px 1px 4px 1px #dededf"
                     zIndex: 10
                   children:
@@ -1280,42 +1402,15 @@ SurgeryAuthorizationPrivate:
                                       funcName: hide
                                       viewTag: ShowTag
                                     - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: listData
+                                    - actionType: builtIn
                                       funcName: show
                                       viewTag: listData
                                     - actionType: builtIn
                                       funcName: hide
                                       viewTag: CodeTag
-        
-        - type: label
-          text: "Procedure Description"
-          dataKey:
-          style:
-            marginLeft: "0.04"
-            marginTop: "0.0246"
-            fontWeight: "600"
-            width: "0.92"
-            height: "auto"
-            color: "0x333333"
-            fontSize: .Nfont.h14
-        - type: textView
-          placeholder: Enter here
-          dataKey: apiRequest.surgeryForm.docReq.name.data.surgeryInfo.proDescription
-          style:
-            marginLeft: "0.04"
-            marginTop: "0.01"
-            textIndent: "12px"
-            height: "0.0874"
-            width: "0.92"
-            boxSizing: border-box
-            border:
-              style: 3
-            borderRadius: "4"
-            borderWidth: "1.5"
-            borderColor: "0xdedede"
-            fontSize: .Nfont.h14
-            fontFamily: "Arial"
-            color: "0x333333"
-            paddingTop: "6px"
+
         - type: label
           text: "Physician Assistant Required"
           dataKey:
@@ -1414,7 +1509,7 @@ SurgeryAuthorizationPrivate:
                         display: "inline-block"
                         marginLeft: "0.021"
                         fontSize: .Nfont.h14
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         verticalAlign: "middle"
         - .DocPublicStyleFiveBox:
@@ -1511,7 +1606,7 @@ SurgeryAuthorizationPrivate:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
 
@@ -1588,7 +1683,7 @@ SurgeryAuthorizationPrivate:
                     display: "inline-block"
                     marginLeft: "0.021"
                     fontSize: .Nfont.h14
-                    fontFamily: "Arial"
+
                     color: "0x333333"
                     verticalAlign: "middle"
         - .DocPublicStyleFiveBox:
@@ -1628,7 +1723,7 @@ SurgeryAuthorizationPrivate:
             borderWidth: "1.5"
             borderColor: "0xdedede"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             color: "0x333333"
             paddingTop: "6px"
         - type: label
@@ -1652,7 +1747,6 @@ SurgeryAuthorizationPrivate:
             margin: "0"
             left: "0.04"
             marginTop: "0.006"
-            height: "0.138"
             width: "0.92"
           children:
             - type: listItem
@@ -1714,7 +1808,7 @@ SurgeryAuthorizationPrivate:
                         display: "inline-block"
                         marginLeft: "0.021"
                         fontSize: .Nfont.h14
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         verticalAlign: "middle"
 
@@ -1800,7 +1894,7 @@ SurgeryAuthorizationPrivate:
                         display: "inline-block"
                         marginLeft: "0.021"
                         fontSize: .Nfont.h14
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         verticalAlign: "middle"
         - type: label
@@ -2075,6 +2169,13 @@ SurgeryAuthorizationPrivate:
           children:
             - .DocButtonPrivate:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -2161,6 +2262,20 @@ SurgeryAuthorizationPrivate:
 
                 - actionType: evalObject
                   object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.surgeryForm
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+
+                - actionType: evalObject
+                  object:
                     - if:
                         - =.builtIn.string.equal:
                             dataIn:
@@ -2171,6 +2286,13 @@ SurgeryAuthorizationPrivate:
 
             - .DocButtonRelease:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.SurgeryAuthorizationPrivate.apiRequest.diagnosesDoc.docResp.doc
                 # Physician Assistant Required no
                 - actionType: evalObject
                   object:
@@ -2265,14 +2387,6 @@ SurgeryAuthorizationPrivate:
 
                 - actionType: evalObject
                   object:
-                    # 更新文档状态
-                    - ..apiRequest.surgeryForm.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.surgeryForm.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.surgeryForm.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
-                # 保存
-                - actionType: evalObject
-                  object:
                     # physician
                     - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.physician@: =..formData.selectStatus.physician
                     # Postoperative  Therapy
@@ -2282,27 +2396,24 @@ SurgeryAuthorizationPrivate:
                     # H&P / Medical clearance
                     - ..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.medicalStatus.clearSelect@: =..formData.selectStatus.clearance
 
-                    - =..apiRequest.surgeryForm.docAPI.store: ""
-
-                    - =.builtIn.array.add:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
                         dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.surgeryForm.docResp.doc
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.surgeryForm
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
 
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
+                # 对话弹窗
+                - actionType: popUp
+                  popUpView: dialogueTag
 
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.unPageName
-                              string2: ""
-                        - goto: ProviderNotes
-                        - goto: =.Global.formData.unPageName
     # 弹窗区域
     - .BaseWarningView:
       message: "Please complete required fields: Search&Description"
@@ -2363,7 +2474,7 @@ SurgeryAuthorizationPrivate:
           object:
             - =.builtIn.array.removeByName:
                 dataIn:
-                  object: =..apiRequest.surgeryForm.docReq.name.data.surgeryInfo.diagnosis.descriptiveList
+                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                   key: code
                   name: =..formData.selectedDiagnosis.code
             - ..formData.listDataflag@: "block"
@@ -2392,3 +2503,83 @@ SurgeryAuthorizationPrivate:
               viewTag: CPTlistData
         - actionType: popUpDismiss
           popUpView: BaseCPTDelWarningView
+
+    # 成功提示
+    - .SuccessfulOneLine:
+      message: "Successfully"
+      viewTag: successTag
+
+    # 对话弹窗组件
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        # 保存newNote
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.surgeryForm.docReq.tage@: 1
+            - =..apiRequest.surgeryForm.docAPI.store: ""
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag
+
+        # 返回路径
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.unPageName
+                      string2: ""
+                - goto: ProviderNotes
+                - goto: =.Global.formData.unPageName
+      rightButton:
+        # 更新文档状态
+        - actionType: evalObject
+          object:
+            - ..apiRequest.surgeryForm.docReq.name.data.statusTag.name@: Released
+            - ..apiRequest.surgeryForm.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.surgeryForm.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        # 保存newNote
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.surgeryForm.docReq.tage@: -1
+            - =..apiRequest.surgeryForm.docAPI.store: ""
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+        - actionType: popUp
+          popUpView: successTag
+
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.formData.unPageName
+                      string2: ""
+                - goto: ProviderNotes
+                - goto: =.Global.formData.unPageName
+
+    - .BaseWarningView:
+      message: "Do not add repeatedly"
+      viewTag: repeatWarning

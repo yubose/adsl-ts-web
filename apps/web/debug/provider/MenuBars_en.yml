@@ -1,40 +1,14 @@
 MenuBars:
+  # api
+  # 1. email 已清除
+  # 2. 1090 feedback 没用到 已删除
+  # 3. profile 没用 已删除
   pageNumber: "290" # xd page 9
   title: "Me"
   init:
     - .SignInCheck
-    - ..feedback.edgeAPI.get
-    # - ..avatar1.docAPI.get
-    - ..profile.docAPI.get
-    - if:
-        - =..profile.docResponse.doc.0.id
-        - actionType: evalObject
-          object:
-            - =.builtIn.string.concat:
-                dataIn:
-                  - =..profile.docResponse.doc.0.name.data.firstName
-                  - " "
-                  - =..profile.docResponse.doc.0.name.data.lastName
-                dataOut: MenuBars.name
-        - actionType: evalObject
-          object:
-            - .MenuBars.name@: ""
-    # - actionType: evalObject
-    #   object:
-    #     - ..avatar1.showdocument@: =..avatar1.docResponse.doc.0
-    # - actionType: evalObject
-    #   object:
-    #     - =.builtIn.utils.prepareDoc:
-    #         dataIn:
-    #           doc: =..avatar1.showdocument
-    #         dataOut: MenuBars.avatar1.showdocument
-    - actionType: evalObject
-      object:
-        - ..avatar1.url@: =..avatar1.showdocument.name.data
-        - .Global.avatarUrl@: =..avatar1.showdocument.name.data
-    - actionType: evalObject
-      object:
-        - .MenuBars.feedback.edge@: =..feedback.response.edge.0
+    - .Global.formData.entrancePageName@: "MenuBars"
+    - .Global.formData.blockPastTime@: "false"
     - if:
         - =.builtIn.string.equal:
             dataIn:
@@ -46,7 +20,6 @@ MenuBars:
         dataIn:
           - "Work For:"
           - "  "
-          # - =.Global.currentFacility.name.basicInfo.medicalFacilityName
           - =.Global.dashboardName
         dataOut: MenuBars.facility
     - actionType: evalObject
@@ -69,15 +42,10 @@ MenuBars:
     #获取未读邮件数量
     - actionType: evalObject
       object:
-        - =..apiRequest.unReadEmail.docAPI.get: ""
-        - =.builtIn.array.getListLength:
-            dataIn:
-              object: =..apiRequest.unReadEmail.docQueryResp.doc
-            dataOut: MenuBars.formData.unReadEmailNum
         - if:
             - =.builtIn.string.equal:
                 dataIn:
-                  string1: =..formData.unReadEmailNum
+                  string1: =.Global.formData.emailNumber
                   string2: "0"
             - ..formData.inboxHidden@: "true"
             - ..formData.inboxHidden@: "false"
@@ -98,86 +66,157 @@ MenuBars:
               object:
                 - ..formData.faciltyInfo@: "block"
                 - ..formData.faciltyEmpty@: "none"
+    - if:
+        - .builtIn.isIOS
+        - ..formDataTemp.optionsList.optionsThree@: =..iosoptionsThree
+        - continue
+            # - ImgPath: invite.svg
+            #   Title: "Invite to join AiTmed"
+            #   pageJump: "AddConnect"
+            #   color: "0x000000"
+            # - title: Superbill
+            #   path: superbillIcon.svg
+            #   border: "1px solid #f0f0f0"
+            #   pageJump: "SelectSuperbill"
+            # - title: CTP Search
+            #   path: CTPSearchIcon.svg
+            #   border: "none"
+            #   pageJump: "CPTsearch"
+        # - ..formDataTemp.optionsList.optionsThree@:
+        #     - title: Superbill
+        #       path: superbillIcon.svg
+        #       border: "1px solid #f0f0f0"
+        #       pageJump: "SelectSuperbill"
   formData:
     gotoSchedule: false
     providerTitle: ""
-    unReadEmailNum: "0"
     inboxHidden: "true"
     faciltyInfo: "none"
+    time: ""
     faciltyEmpty: "block"
+    currentItem: ""
+    password: ""
+    pass: ""
+    sk: ""
+    errorTip: "none"
+    errorTipColor: "#DEDEDE"
+    options:
+      - 20min
+      - 40min
+      - 1h
+      - 2h
   generalInfo:
     value: true
     flag: true
   listData:
     organizations: ""
   facility: ""
+  option: LogOut
   requestListHidden: "true"
   name: "username"
-  #获取未读邮件
+  iosoptionsThree:
+    - title: Superbill
+      path: superbillIcon.svg
+      border: "1px solid #f0f0f0"
+      pageJump: "SelectSuperbill"
+    - title: CTP Search
+      path: CTPSearchIcon.svg
+      border: "none"
+      pageJump: "CPTsearch"
+  formDataTemp:
+    logoutList:
+      - title: Log Out Of Application
+        value: LogOut
+        content: The current access credentials will be cleared. When sign in, verification code and password are required.
+      - title: Lock Access
+        value: Lock
+        content: The access credential is protectively saved and sign in requires password only.
+    optionsList:
+      optionsOne:
+        - title: Schedule Profile
+          path: scheduleProfileIcon.svg
+          border: "none"
+          pageJump: "ScheduleProfile"
+      optionsTwo:
+        - title: Recommendations
+          path: recommendationsIcon.svg
+          border: "none"
+          pageJump: "RecommendationsRecord"
+      optionsThree:
+        - title: Superbill
+          path: superbillIcon.svg
+          border: "1px solid #f0f0f0"
+          pageJump: "SelectSuperbill"
+        # - title: CTP Search
+        #   path: CTPSearchIcon.svg
+        #   border: "none"
+        #   pageJump: "CPTsearch"
+      optionsFour:
+        - title: FAQ
+          path: faqIcon.svg
+          border: "1px solid #f0f0f0"
+          pageJump: "FAQs"
+        - title: About
+          path: aboutIcon.svg
+          border: "1px solid #f0f0f0"
+          pageJump: "AboutAitmed"
+        - title: Customer Support
+          path: customerSupportIcon.svg
+          border: "none"
+          pageJump: "ConactSupport"
+      optionsFive:
+        - title: Delete Account
+          path: deleteAccount.svg
+          border: "1px solid #f0f0f0"
+        - title: Log Out/Lock
+          path: logOutIcon.svg
+          border: "1px solid #f0f0f0"
+          pageJump: "LogOut"
   apiRequest:
-    unReadEmail:
-      docQueryResp: ""
-      docQueryReq:
-        id: .Global.currentUser.vertex.id
-        ObjType: 544
-        type: 1281
-        sCondition: E.type=10002 AND (D2.Type&0xFF02=0xE00 OR D2.reid IS NULL OR D2.Type = 66561)
-        xfname: (E.bvid|E.evid)&!D.ovid
-        obfname: ctime
-        maxcount: "100"
+    logOutDoc:
+      documentResp: ""
+      document: 
+        type: .DocType.autoLogOut
+        eid: .Global.rootNotebookID
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            autolock: false
+            time: 20
+      docReq:
+        id: .Global.rootNotebookID
+        type: .DocType.autoLogOut
+        xfname: eid
         _nonce: =.Global._nonce
+      docResp: ""
       docAPI:
+        store:
+          api: cd
+          dataIn: MenuBars.apiRequest.logOutDoc.document
+          dataOut: MenuBars.apiRequest.logOutDoc.documentResp
         get:
           api: rd
-          dataIn: MenuBars.apiRequest.unReadEmail.docQueryReq
-          dataOut: MenuBars.apiRequest.unReadEmail.docQueryResp
-  avatar1:
-    url: providerImage.svg
-    showdocument:
-      .Document: ""
-      subtype:
-        isEncrypted: "1"
-        isOnServer: "0"
-      type: .DocType.UserAvatar
-      name:
-        title: ""
-        type: ..avatar1.docAPI.store.subtype.mediaType
-        data: binFile
-      deat:
-        sig: ""
-        url: ""
-      eid: .Global.rootNotebookID
-    document:
-      .Document: ""
-      subtype:
-        isEncrypted: "1"
-        isOnServer: "0"
-      type: .DocType.UserAvatar
-      name:
-        title: ""
-        type: ..avatar1.docAPI.store.subtype.mediaType
-        data: binFile
-      deat:
-        sig: ""
-        url: ""
-      eid: .Global.rootNotebookID
-    docResponse:
-      doc:
-        - type: .DocType.UserAvatar
-          eid: .Global.rootNotebookID
-          name: ""
-      error: ""
-      jwt: ""
-    docAPI:
-      get:
-        .DocAPI.get: ""
-        id: .Global.rootNotebookID
-        xfname: eid
-        type: .DocType.UserAvatar
-        dataKey: avatar1.docResponse
+          dataIn: MenuBars.apiRequest.logOutDoc.docReq
+          dataOut: MenuBars.apiRequest.logOutDoc.docResp
+
+    waitroomList:
+      edgeQueryResp:
+        edge: []
+      edgeQueryReq:
+        type: "40000"
+        id: .Global.currentUser.vertex.id
+        xfname: "bvid|evid"
+        sCondition: "subtype&0xff in (6,100) AND tage&0x100=0"
+        maxcount: "20000"
+        obfname: "stime"
         _nonce: .Global._nonce
-        maxcount: "1"
-        obfname: "ctime"
+      edgeAPI:
+        get:
+          api: re
+          dataIn: MenuBars.apiRequest.waitroomList.edgeQueryReq
+          dataOut: MenuBars.apiRequest.waitroomList.edgeQueryResp
+  #获取未读邮件
   emailList:
     email:
       edge: ""
@@ -251,6 +290,10 @@ MenuBars:
       Title: "Schedule Profile"
       pageJump: "ScheduleProfile"
       color: "0x000000"
+    - ImgPath: spuerbill.svg
+      Title: "Superbill"
+      pageJump: "SelectSuperbill"
+      color: "0x000000"
     - ImgPath: fAQ.svg
       Title: "FAQ"
       pageJump: "FAQs"
@@ -268,7 +311,7 @@ MenuBars:
       pageJump: "ConactSupport"
       color: "0x000000"
     - ImgPath: logout2.svg
-      Title: "Log out"
+      Title: "Log Out"
       pageJump: "LogOut"
       color: "0xfd3a3a"
   profile:
@@ -305,6 +348,298 @@ MenuBars:
         dataKey: profile.docResponse
         _nonce: =.Global._nonce
   components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeftEmpty:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: qrCodeWhilte.svg
+          onClick:
+            - ..event.qrCodeClick
+    - type: view
+      style:
+        ..style.viewBox:
+      children:
+        - type: view
+          style:
+            top: "0"
+            left: "0"
+            height: "0.127266"
+            width: "1"
+            backgroundColor: "0x2988e6"
+            borderRadius: "0 0 15px 15px"
+            zIndex: 1
+        - type: view
+          style:
+            ..style.userInfoBox:
+          children:
+            - type: view
+              onClick:
+                - ..event.userInfoClick
+              children:
+                - type: image
+                  path: providerImage.svg
+                  path=func: =.builtIn.utils.prepareDocToPath
+                  dataKey: Global.MyProfile.name.data.avatar
+                  contentType: file
+                  style:
+                    ..style.userImg:
+                - type: view
+                  style:
+                    ..style.userBox:
+                  children:
+                    - type: label
+                      dataKey: formData.providerTitle
+                      style:
+                        ..style.fullNameBox:
+                    - type: label
+                      textBoard:
+                        - text: "Username:&nbsp;"
+                        - text: ""
+                          dataKey: Global.currentUser.vertex.name.userName
+                      style:
+                        ..style.userNameBox:
+                - type: image
+                  path: menuBlueRight.svg
+                  style:
+                    ..style.userRight:
+            - type: view
+              viewTag: faciltyTag
+              style:
+                ..style.facilityBox:
+              children:
+                - type: view
+                  style:
+                    display: ..formData.faciltyInfo
+                    width: "0.645333"
+                  children:
+                    - type: label
+                      dataKey: MenuBars.facility
+                      style:
+                        ..style.facilityLabel:
+                - type: view
+                  style:
+                    ..style.faciltyEmptyBox:
+                  children:
+                    - type: image
+                      path: videoWarn.svg
+                      style:
+                        ..style.faciltyEmptyImg:
+                    - type: label
+                      text: "Work For: No Facility"
+                      onClick:
+                        - ..event.emptyFacilityClick
+                      style:
+                        ..style.faciltyEmptyLabel:
+        - type: scrollView
+          style:
+            height: "0.68"
+            overflow: scroll
+            boxSizing: border-box
+          children:
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.optionsList.optionsOne
+              iteratorVar: itemObject
+              scrollable: "false"
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  onClick:
+                    - ..event.itemClick
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemView:
+                      children:
+                        - type: image
+                          path: itemObject.path
+                          style:
+                            ..style.listItemPath:
+                        - type: label
+                          dataKey: itemObject.title
+                          style:
+                            ..style.listItemTitle:
+                        - type: image
+                          path: menuRight.svg
+                          style:
+                            ..style.listItemRight:
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.optionsList.optionsTwo
+              iteratorVar: itemObject
+              scrollable: "false"
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  onClick:
+                    - ..event.itemClick
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemView:
+                      children:
+                        - type: image
+                          path: itemObject.path
+                          style:
+                            ..style.listItemPath:
+                        - type: label
+                          dataKey: itemObject.title
+                          style:
+                            ..style.listItemTitle:
+                        - type: image
+                          path: menuRight.svg
+                          style:
+                            ..style.listItemRight:
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.optionsList.optionsThree
+              iteratorVar: itemObject
+              scrollable: "false"
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  onClick:
+                    - ..event.itemClick
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemView:
+                      children:
+                        - type: image
+                          path: itemObject.path
+                          style:
+                            ..style.listItemPath:
+                        - type: label
+                          dataKey: itemObject.title
+                          style:
+                            ..style.listItemTitle:
+                        - type: image
+                          path: menuRight.svg
+                          style:
+                            ..style.listItemRight:
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.optionsList.optionsFour
+              iteratorVar: itemObject
+              scrollable: "false"
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  onClick:
+                    - ..event.itemClick
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemView:
+                      children:
+                        - type: image
+                          path: itemObject.path
+                          style:
+                            ..style.listItemPath:
+                        - type: label
+                          dataKey: itemObject.title
+                          style:
+                            ..style.listItemTitle:
+                        - type: image
+                          path: menuRight.svg
+                          style:
+                            ..style.listItemRight:
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.optionsList.optionsFive
+              iteratorVar: itemObject
+              scrollable: "false"
+              style:
+                ..style.list:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.listItem:
+                  onClick:
+                    - ..event.itemClick
+                  children:
+                    - type: view
+                      style:
+                        ..style.itemView:
+                      children:
+                        - type: image
+                          path: itemObject.path
+                          style:
+                            ..style.listItemPath:
+                        - type: label
+                          dataKey: itemObject.title
+                          style:
+                            ..style.listItemTitle:
+                        - type: image
+                          path: menuRight.svg
+                          style:
+                            ..style.listItemRight:
+            - type: view
+              style:
+                height: "0.03"
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - .footerMenuBox:
+          onClick:
+            - goto: "Dashboard"
+          children:
+            - .footerMenuImg:
+              path: dashboard0.svg
+            - .footerMenuLabel:
+              text: Dashboard
+        - .footerMenuBox:
+          onClick:
+            - goto: "InboxDashboard"
+          children:
+            - .footerMenuImg:
+              path: inbox0.svg
+            - .footerMenuLabel:
+              text: Inbox
+            - .numberMark:
+              dataKey: Global.formData.emailNumber
+              style:
+                isHidden: ..formData.inboxHidden
+
+        - .footerMenuBox:
+          onClick:
+            - goto: AppointmentSchedule
+          children:
+            - .footerMenuImg:
+              path: schedule0.svg
+            - .footerMenuLabel:
+              text: Schedule
+
+        - .footerMenuBox:
+          onClick:
+            - goto: MenuBars
+          children:
+            - .footerMenuImg:
+              path: meYellow.svg
+            - .footerMenuLabel:
+              text: Me
+              style:
+                color: "0xfece55"
+    # 弹窗区域
     - type: popUp
       viewTag: softTips
       style:
@@ -343,7 +678,7 @@ MenuBars:
                 marginLeft: "0.082"
                 marginTop: "0.027"
                 fontSize: .Nfont.h14
-                fontFamily: "Arial"
+
                 textAlign:
                   x: center
                 color: "0x333333"
@@ -353,416 +688,64 @@ MenuBars:
     - .TipsOneLine:
       message: Please add a facility
       viewTag: noOrganizationView1
-    # - type: popUp
-    #   message: "Please add a facility"
-    #   viewTag: noOrganizationView1
-    #   colorChange: "0x2988e6"
-    #   imgPath: aboutBlue.svg
-    #   otherAction:
-    #   style:
-    #     width: "1"
-    #     height: "1"
-    #     top: "0"
-    #     left: "0"
-    #     backgroundColor: "0xffffff00"
-    #     zIndex: "1000"
-    #     # isHidden: .Global.nonFirstProfile
-    #   children:
-    #     - type: view
-    #       style:
-    #         width: "0.8"
-    #         height: "0.3"
-    #         top: "0.3"
-    #         left: "0.1"
-    #         zIndex: "10000"
-    #         backgroundColor: "0xffffff"
-    #         borderRadius: "7"
-    #         border:
-    #           style: "3"
-    #         borderColor: "#f4f8fa"
-    #         borderWidth: "3"
-    #       children:
-    #         - .BaseCheckViewImg:
-    #         - .BaseCheckViewLabel:
-    #         - .BaseCheckViewButton:
-    #           onClick:
-    #             - actionType: evalObject
-    #               object:
-    #                 - ..formData.gotoSchedule@: false
-    #             - actionType: popUpDismiss
-    #               popUpView: ____.viewTag
-    - .BaseHeader:
-
-    - type: view
+    - type: popUp
+      viewTag: noComplete
       style:
-        top: "0.1"
-        height: "0.8"
+        top: "0"
+        left: "0"
         width: "1"
-        # backgroundColor: "pink"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: noComplete
       children:
-        # avatar
         - type: view
           style:
-            height: "auto"
-            marginTop: "0.03"
+            width: "0.72"
+            marginLeft: "0.14"
+            backgroundColor: "0xf4f3f3"
+            borderRadius: "14px"
           children:
-            - type: view
-              style:
-                width: auto
-                # border:
-                #   style: "2"
-                # borderWidth: "2"
-                borderColor: "0xdddddd"
-                display: inline-block
-                verticalAlign: middle
-              children:
-                - type: view
-                  style:
-                    marginLeft: "0.08"
-                    width: "0.22"
-                    overflow: hidden
-                    textAlign:
-                      x: center
-                      y: center
-                  children:
-                    - type: image
-                      style:
-                        height: "0.1"
-                      path: providerImage.svg
-                      path=func: =.builtIn.utils.prepareDocToPath
-                      dataKey: Global.MyProfile.name.data.avatar
-            - type: view
-              style:
-                height: auto
-                width: "0.42"
-                marginLeft: "0.05"
-                display: inline-block
-                verticalAlign: middle
-              children:
-                - type: label
-                  dataKey: formData.providerTitle
-                  style:
-                    color: "0x333333"
-                    fontWeight: 700
-                    fontFamily: Airal
-                    fontSize: .Nfont.h18
-                    wordWrap: break-word
-                    width: "0.42"
-                - type: view
-                  style:
-                    height: auto
-                    marginTop: "0.005"
-                    width: auto
-                  children:
-                    - type: label
-                      text: "User Name:"
-                      style:
-                        color: "#666666"
-                        fontFamily: Airal
-                        fontSize: .Nfont.h14
-                        display: inline-block
-                    - type: label
-                      dataKey: Global.currentUser.vertex.name.userName
-                      style:
-                        fontFamily: Airal
-                        color: "#666666"
-                        marginLeft: "0.01"
-                        fontSize: .Nfont.h14
-                        display: inline-block
-
-            - type: view
-              style:
-                height: auto
-                width: auto
-                marginLeft: "0.026"
-                display: inline-block
-                verticalAlign: middle
-              children:
-                - type: image
-                  onClick:
-                    - goto: MyQRCode
-                  path: qrCode1.svg
-                  style:
-                    width: "0.06"
-                    display: inline-block
-                    verticalAlign: middle
-                - type: image
-                  path: blueRight.svg
-                  style:
-                    width: "0.035"
-                    marginLeft: "0.06"
-                    display: inline-block
-                    verticalAlign: middle
-                  # children:
-
-                  #     style:
-                  #       height: "0.025"
-                  onClick:
-                    - actionType: evalObject
-                      object:
-                        - if:
-                            - =.builtIn.string.equal:
-                                dataIn:
-                                  string1: =.Global.providerProfileVar
-                                  string2: "About"
-                            - continue
-                            - .Global.providerProfileVar@: "About"
-                    - goto: MyProfile
-        - type: label
-          dataKey: MenuBars.facility
-          viewTag: faciltyTag
-          style:
-            display: ..formData.faciltyInfo
-            marginLeft: "0.3493"
-            width: "0.6"
-            height: "auto"
-            color: "#2988e6"
-            textAlign:
-              x: left
-            fontSize: ".Nfont.h12"
-            fontWeight: "400"
-            overflow: hidden
-            textOverflow: ellipsis
-            whiteSpace: nowrap
-        - type: view
-          style:
-            display: ..formData.faciltyEmpty
-            marginLeft: "0.3493"
-            width: "0.6"
-            height: "auto"
-          children:
-            - type: image
-              path: videoWarn.svg
-              style:
-                display: "inline-block"
-                height: "0.0172"
-                verticalAlign: middle
             - type: label
-              text: "Work For: No Facility"
-              dataKey:
-              onClick:
-                - actionType: popUp
-                  popUpView: "softTips"
+              text: You have to complete the appoinment(s) to delete the account
               style:
-                marginLeft: "0.02"
-                display: "inline-block"
-                height: "auto"
-                width: "auto"
-                fontSize: ".Nfont.h12"
-                fontWeight: "600"
-                verticalAlign: middle
-                color: "0xfb5051"
-
-        - type: view
-          style:
-            width: "1"
-            height: "0.02"
-            borderColor: "0xDEDEDF"
-            border:
-              style: "2"
-            borderWidth: "2"
-        - type: view
-          style:
-            width: "1"
-            height: "0.5"
-            left: "0"
-          children:
-            - type: list
-              contentType: listObject
-              listObject: ..menuBarList
-              iteratorVar: itemObject
-              viewTag: calendarColor
+                marginLeft: "0.069"
+                width: "0.582"
+                color: "#333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                marginTop: "0.0185"
+                textAlign:
+                  x: center
+            - type: view
               style:
-                width: "1"
-                left: "0"
-                margin: "0"
-                marginTop: "0"
-                height: "0.5"
-
+                height: "0.0185"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+                width: "0.72"
+            - type: view
+              style:
+                width: "0.72"
               children:
-                - type: listItem
-                  itemObject: ""
+                - type: button
+                  text: "OK"
                   style:
-                    width: "1"
-                    left: "0"
-                    marginTop: "0"
-                    height: "0.06"
-                    backgroundColor: "0xffffff"
+                    color: "0x007AFF"
+                    backgroundColor: "0xf4f3f3"
+                    display: inline-block
+                    width: "0.72"
+                    borderRadius: "0 0 14px 14px"
+                    fontSize: .Nfont.h14
+                    height: "0.054"
                     border:
-                      style: "2"
-                    borderWidth: "2"
-                    borderColor: "0xdddddd"
-                  onClick:
-                    - emit:
-                        dataKey:
-                          var: itemObject
-                        actions:
-                          - if:
-                              - =.builtIn.string.equal:
-                                  dataIn:
-                                    string1: $var.Title
-                                    string2: Schedule Profile
-                              - ..formData.gotoSchedule@: true
-                              - continue
-                    - actionType: evalObject
-                      object:
-                        - if:
-                            - =..formData.gotoSchedule
-                            - actionType: evalObject
-                              object:
-                                - if:
-                                    - =.Global.hasOrganization
-                                    - continue
-                                    - actionType: popUp
-                                      popUpView: noOrganizationView1
-                                      wait: true
-                            - continue
-                    - emit:
-                        dataKey:
-                          var: itemObject
-                        actions:
-                          - if:
-                              - true
-                              - goto: $var.pageJump
-                              - goto: $var.pageJump
-                  children:
-                    - type: image
-                      path:
-                        emit:
-                          dataKey:
-                            var: itemObject
-                          actions:
-                            - if:
-                                - =$var.ImgPath
-                                - $var.ImgPath
-                                - $var.ImgPath
-                      style:
-                        height: "0.03"
-                        top: "0.015"
-                        left: "0.1"
-                    - type: label
-                      dataKey: itemObject.Title
-                      style:
-                        top: "0"
-                        width: "0.5"
-                        left: "0.23"
-                        fontSize: .Nfont.h2
-                        height: "0.06"
-                        textAlign:
-                          y: center
-                        color: itemObject.color
-            # - type: view
-            #   onClick:
-            #     - actionType: popUp
-            #       popUpView: selectOrganizationView
-            #   style:
-            #     width: "1"
-            #     left: "0"
-            #     height: "0.06"
-            #     backgroundColor: "0xffffff"
-            #     border:
-            #       style: "2"
-            #     borderWidth: "2"
-            #     borderColor: "0xdddddd"
-            #   children:
-            #     - type: image
-            #       path: switch.svg
-            #       style:
-            #         height: "0.03"
-            #         top: "0.015"
-            #         left: "0.1"
-            #     - type: label
-            #       text: Switch Organizations
-            #       style:
-            #         top: "0"
-            #         width: "0.5"
-            #         left: "0.23"
-            #         fontFamily: sans-serif
-            #         fontWeight: "500"
-            #         height: "0.06"
-            #         fontSize: .Nfont.h2
-            #         textAlign:
-            #           y: center
-            #         color: "0x000000"
-            # - type: view
-            #   onClick:
-            #     - goto: LogOut
-            #   style:
-            #     width: "1"
-            #     marginTop: "0"
-            #     height: "0.06"
-            #     left: "0"
-            #     backgroundColor: "0xffffff"
-            #     border:
-            #       style: "2"
-            #     borderWidth: "2"
-            #     borderColor: "0xdddddd"
-            #   children:
-            #     - type: image
-            #       path: logout2.svg
-            #       style:
-            #         height: "0.03"
-            #         top: "0.015"
-            #         left: "0.1"
-            #     - type: label
-            #       text: Log out
-            #       style:
-            #         top: "0"
-            #         width: "0.5"
-            #         fontFamily: sans-serif
-            #         fontWeight: "500"
-            #         left: "0.23"
-            #         height: "0.06"
-            #         fontSize: .Nfont.h2
-            #         textAlign:
-            #           y: center
-            #         color: "0xfd3a3a"
-    - .footerBox:
-      style:
-        top: "0.9"
-      children:
-        - .footerMenuBox:
-          onClick:
-            - goto: "Dashboard"
-          children:
-            - .footerMenuImg:
-              path: dashboard0.svg
-            - .footerMenuLabel:
-              text: Dashboard
-
-        - .footerMenuBox:
-          onClick:
-            - goto: "InboxDashboard"
-          children:
-            - .footerMenuImg:
-              path: inbox0.svg
-            - .footerMenuLabel:
-              text: Inbox
-            - .numberMark:
-              dataKey: formData.unReadEmailNum
-              style:
-                isHidden: ..formData.inboxHidden
-
-        - .footerMenuBox:
-          onClick:
-            - goto: AppointmentSchedule
-          children:
-            - .footerMenuImg:
-              path: schedule0.svg
-            - .footerMenuLabel:
-              text: Schedule
-
-        - .footerMenuBox:
-          onClick:
-            - goto: MenuBars
-          children:
-            - .footerMenuImg:
-              path: meYellow.svg
-            - .footerMenuLabel:
-              text: Me
-              style:
-                color: "0xfece55"
-
+                      style: "1"
+                  onClick: ____.leftButton
     - type: popUp
       viewTag: selectOrganizationView
       style:
@@ -856,93 +839,1276 @@ MenuBars:
             color: "#2988e6"
             textAlign:
               x: center
-              y:
-                center
-                # - .DashboardListImg:
-                #   path:
-                #     emit:
-                #       dataKey:
-                #         var: itemObject
-                #       actions:
-                #         - if:
-                #             - =.builtIn.string.equal:
-                #                 dataIn:
-                #                   string1: =..generalInfo.value
-                #                   string2: $var.isSelected
-                #             - selectOn.svg
-                #             - selectOff.svg
-                #   onClick:
-                #     - actionType: evalObject
-                #       object:
-                #         - if:
-                #           - =.builtIn.string.equal:
-                #               dataIn:
-                #                 string1: true
-                #                 string2: itemObject.isSelected
-                #           - actionType: evalObject
-                #             object:
-                #               - =.builtIn.array.toggleStatus:
-                #                   dataIn:
-                #                     object: =..listData.organizations
-                #                     key: isSelected
-                #                     flag: false
-                #               - =.builtIn.object.set:
-                #                   dataIn:
-                #                     object: =..generalInfo
-                #                     key: flag
-                #                     value: true
-                #           - actionType: evalObject
-                #             object:
-                #               - actionType: updateObject
-                #                 dataKey: Global.currentFacility
-                #                 dataObject: itemObject
-                #               - =.builtIn.array.toggleStatus:
-                #                   dataIn:
-                #                     object: =..listData.organizations
-                #                     key: isSelected
-                #                     flag: false
-                #               - =.builtIn.object.set:
-                #                   dataIn:
-                #                     object: =..generalInfo
-                #                     key: flag
-                #                     value: false
-                #     - emit:
-                #         dataKey:
-                #           var: itemObject
-                #         actions:
-                #           - if:
-                #               - =.builtIn.string.equal:
-                #                   dataIn:
-                #                     string1: =..generalInfo.value
-                #                     string2: =..generalInfo.flag
-                #               - =.builtIn.array.toggleStatus:
-                #                   dataIn:
-                #                     object: =..listData.organizations
-                #                     key: isSelected
-                #                     flag: false
-                #               - =.builtIn.object.set:
-                #                   dataIn:
-                #                     object: $var
-                #                     key: isSelected
-                #                     value: true
-                #     - actionType: evalObject
-                #       object:
-                #         - .Global.organizations@: =..listData.organizations
-                #     - actionType: evalObject
-                #       object:
-                #         - =.builtIn.string.concat:
-                #             dataIn:
-                #               - "Work For:"
-                #               - "  "
-                #               - =.Global.currentFacility.name.basicInfo.medicalFacilityName
-                #             dataOut: MenuBars.facility
-                #         - .Global.dashboardName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName
-                #     - actionType: builtIn
-                #       funcName: redraw
-                #       viewTag: faciltyTag
-                #     - actionType: popUpDismiss
-                #       popUpView: selectOrganizationView
-                # - .DashboardListText1:
-                #   dataKey: itemObject.name.basicInfo.medicalFacilityName
-                #   style:
-                #     left: "0.1"
+              y: center
+    - type: popUp
+      viewTag: logoutLock
+      style:
+        left: "0"
+        width: "1"
+        top: "0"
+        height: "1"
+        zIndex: 11
+        backgroundColor: "0x00000033"
+      children:
+        - type: view
+          style:
+            ..style.logoutLockBox:
+          children:
+            - type: label
+              text: Log Out/Lock
+              style:
+                ..style.logoutLockTitle:
+            - type: view
+              style:
+                ..style.logoutLockBody:
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..formDataTemp.logoutList
+                  iteratorVar: itemObject
+                  style:
+                    width: '1'
+                    margin: '0'
+                    height: auto
+                  children:
+                    - type: listItem
+                      viewTag: optionsView
+                      itemObject: 
+                      style:
+                        width: '0.76'
+                        height: 'auto'
+                        marginLeft: '0.053333'
+                        marginTop: '0.022167'
+                      children:
+                        - type: view
+                          style:
+                            width: auto
+                            height: auto
+                          children:
+                            - type: image
+                              path: 
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: $var.value
+                                              string2: =..option
+                                        - radioOn.png
+                                        - radioOff.png
+                              style:
+                                ..style.logoutLockImage:
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..option@: $var.value
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: optionsView
+                            - type: label
+                              dataKey: itemObject.title 
+                              style:
+                                ..style.logoutLockListTitle:
+                        - type: label
+                          dataKey: itemObject.content
+                          style:
+                            ..style.logoutLockListContent:
+            - type: view
+              viewTag: errorTipTag
+              style:
+                ..style.logoutLockPasswordBox:
+              children:
+                - type: textField
+                  contentType: password
+                  placeholder: "Enter password"
+                  dataKey: formData.password
+                  required: "true"
+                  style:
+                    ..style.logoutLockPasswordField:
+            - type: view
+              style:
+                marginLeft: '0.053333'
+                marginTop: "0.00739"
+              children:
+                - type: view
+                  style:
+                    width: "0.38"
+                    display: inline-block
+                    textAlign: 
+                      x: left
+                  children:
+                    - type: view
+                      style:
+                        width: auto
+                      children:
+                        - type: label
+                          viewTag: "errorTipTag"
+                          text: Incorrect password
+                          style:
+                            fontSize: .Nfont.h12
+                            color: "#FB5051"
+                            display: ..formData.errorTip
+                - type: view
+                  style: 
+                    width: "0.38"
+                    display: inline-block
+                    textAlign: 
+                      x: right
+                  children:
+                    - type: view
+                      style:
+                        width: auto
+                      children:
+                        - type: label
+                          text: Forgot password?
+                          style:
+                            fontSize: .Nfont.h12
+                            color: "#333333"
+            - type: view
+              style:
+                ..style.logoutLockAutomatic:
+              children:
+                - type: image
+                  viewTag: "automaticTag"
+                  path:
+                    emit:
+                      actions:
+                          - if: 
+                            - =..apiRequest.logOutDoc.document.name.data.autolock
+                            - selectOnBlue.png
+                            - selectOffBlue.png
+
+                  style:
+                    ..style.logoutLockImage: 
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =..apiRequest.logOutDoc.document.name.data.autolock
+                          - ..apiRequest.logOutDoc.document.name.data.autolock@: false
+                          - ..apiRequest.logOutDoc.document.name.data.autolock@: true
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: automaticTag
+                - type: label
+                  text: Automatic lock the access after
+                  style:
+                    ..style.logoutLockAutomaticContent:
+                - type: select
+                  dataKey: formData.time # formData.countryCode : inputValue
+                  options: 
+                      .MenuBars.formData.options
+                  style:
+                    ..style.logoutLockAutomaticSelect:
+                  onChange:
+                    - actionType: evalObject
+                      object:
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.time
+                                string2: "40min"
+                          - ..apiRequest.logOutDoc.document.name.data.time@: 40
+                          - continue
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.time
+                                string2: "20min"
+                          - ..apiRequest.logOutDoc.document.name.data.time@: 20
+                          - continue
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.time
+                                string2: "1h"
+                          - ..apiRequest.logOutDoc.document.name.data.time@: 60
+                          - continue
+                        - if:
+                          - =.builtIn.string.equal:
+                              dataIn:
+                                string1: =..formData.time
+                                string2: "2h"
+                          - ..apiRequest.logOutDoc.document.name.data.time@: 120
+                          - continue
+            - type: view
+              style:
+                ..style.logoutLockButton:       
+              children:
+                - type: button
+                  text: Cancel
+                  style:
+                    height: "0.05418"
+                    width: "0.432"
+                    fontSize: .Nfont.h14
+                    display: inline-block
+                    boxSizing: border-box
+                    border: none
+                    backgroundColor: "0xffffff"
+                    color: "#2988E6"
+                    fontWeight: "300"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: logoutLock
+                - type: view
+                  style:
+                    width: "0.002"
+                    display: inline-block
+                    height: "0.05418"
+                    backgroundColor: "#707070"
+                    zIndex: "12"
+                - type: button
+                  text: Confirm
+                  style:         
+                    height: "0.05418"
+                    width: "0.432"
+                    fontSize: .Nfont.h14
+                    display: inline-block
+                    boxSizing: border-box
+                    border: none
+                    backgroundColor: "0xffffff"
+                    color: "#2988E6"
+                    fontWeight: "600"
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.eccNaCl.decryptAES:
+                            dataIn:
+                              key: =..formData.password
+                              message: =.Global.currentUser.vertex.esk
+                            dataOut: MenuBars.formData.sk
+                        - =.builtIn.eccNaCl.skCheck:
+                            dataIn:
+                              pk: =.Global.currentUser.vertex.pk
+                              sk: =..formData.sk
+                            dataOut: MenuBars.formData.pass
+                        - if:
+                            - =..formData.pass
+                            - actionType: evalObject
+                              object:
+                                - ..formData.errorTipColor@: "#DEDEDE"
+                                - ..formData.errorTip@: none
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: errorTipTag
+                            - actionType: evalObject
+                              object:
+                                - ..formData.errorTipColor@: "#FB5051"
+                                - ..formData.errorTip@: block
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: errorTipTag
+                    - actionType: evalObject
+                      object:
+                        
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: Lock
+                                  string2: =..option
+                            - if:
+                                - =..formData.pass
+                                - actionType: evalObject
+                                  object:
+                                    - .Global.currentUser.vertex.sk@: ""
+                                    - if:
+                                      - =.builtIn.string.equal:
+                                          dataIn:
+                                            string1: =..apiRequest.logOutDoc.document.name.data.autolock
+                                            string2: =..apiRequest.logOutDoc.docResp.doc.0.name.data.autolock
+                                      - if:
+                                        - =.builtIn.string.equal:
+                                            dataIn:
+                                              string1: =..apiRequest.logOutDoc.document.name.data.time
+                                              string2: =..apiRequest.logOutDoc.docResp.doc.0.name.data.time
+                                        - continue
+                                        - actionType: evalObject
+                                          object:
+                                            - =..apiRequest.logOutDoc.docAPI.store: ""
+                                            - =.builtIn.utils.setLockScreen:
+                                                dataIn:
+                                                  names: ["lockTime","lockSelect","lockPageName"]
+                                                  values:
+                                                    - =..apiRequest.logOutDoc.documentResp.doc.name.data.time
+                                                    - =..apiRequest.logOutDoc.documentResp.doc.name.data.autolock
+                                                    - "LockPage"
+                                      - actionType: evalObject
+                                        object:
+                                          - =..apiRequest.logOutDoc.docAPI.store: ""
+                                          - =.builtIn.utils.setLockScreen:
+                                              dataIn:
+                                                names: ["lockTime","lockSelect","lockPageName"]
+                                                values:
+                                                  - =..apiRequest.logOutDoc.documentResp.doc.name.data.time
+                                                  - =..apiRequest.logOutDoc.documentResp.doc.name.data.autolock
+                                                  - "LockPage"
+                                    - =.builtIn.utils.getPageNames:
+                                        dataIn:
+                                        dataOut: Global.formData.pageNames
+
+                                    - goto: LockPage
+                                - continue
+                            - if:
+                                - =..formData.pass
+                                - actionType: evalObject
+                                  object:
+                                    - .Global.currentUser.vertex.esk@: ""
+                                    - .Global.currentUser.vertex.sk@: ""
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                          - =.builtIn.string.equal:
+                                              dataIn:
+                                                string1: =..apiRequest.logOutDoc.document.name.data.autolock
+                                                string2: =..apiRequest.logOutDoc.docResp.doc.0.name.data.autolock
+                                          - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..apiRequest.logOutDoc.document.name.data.time
+                                                  string2: =..apiRequest.logOutDoc.docResp.doc.0.name.data.time
+                                            - continue
+                                            - actionType: evalObject
+                                              object:
+                                                - =..apiRequest.logOutDoc.docAPI.store: ""
+                                                
+                                          - actionType: evalObject
+                                            object:
+                                              - =..apiRequest.logOutDoc.docAPI.store: ""
+
+                                        - =.builtIn.utils.setLockScreen:
+                                            dataIn:
+                                              names: ["lockTime","lockSelect","lockPageName"]
+                                              values:
+                                                - "" #=..apiRequest.logOutDoc.documentResp.doc.name.data.time
+                                                - false
+                                                - "LockPage"
+                                    - =.builtIn.cleanLocalStorage:
+                                        dataIn: ""
+                                    - goto: SignIn
+                                - continue
+  event:
+    qrCodeClick:
+      - goto: MyQRCode
+    emptyFacilityClick:
+      - actionType: popUp
+        popUpView: softTips
+    userInfoClick:
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.providerProfileVar
+                    string2: "About"
+              - continue
+              - .Global.providerProfileVar@: "About"
+      - goto: MyProfile
+    itemClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - ..formData.currentItem@: $var
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.currentItem.title
+                    string2: "Schedule Profile"
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.Global.hasOrganization
+                      - continue
+                      - actionType: popUp
+                        popUpView: noOrganizationView1
+                        wait: true
+              - continue
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.currentItem.title
+                    string2: "Superbill"
+              - actionType: evalObject
+                object:
+                  - .Global.formData.unPageName@: "MenuBars"
+              - continue
+          - if:
+            - .builtIn.isBrowser
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..formData.currentItem.title
+                      string2: "Log Out/Lock"
+                - actionType: evalObject
+                  object:
+                    - =..apiRequest.logOutDoc.docAPI.get: ""
+                    - if:
+                      - =.builtIn.array.judgeListLength:
+                          dataIn:
+                            array: =..apiRequest.logOutDoc.docResp.doc
+                            len: 0
+                      - continue
+                      - ..apiRequest.logOutDoc.document@: =..apiRequest.logOutDoc.docResp.doc.0
+                    - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.logOutDoc.document.name.data.time
+                            string2: "40"
+                      - ..formData.time@: 40min
+                      - continue
+                    - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.logOutDoc.document.name.data.time
+                            string2: "20"
+                      - ..formData.time@: 20min
+                      - continue
+                    - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.logOutDoc.document.name.data.time
+                            string2: "60"
+                      - ..formData.time@: 1h
+                      - continue
+                    - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.logOutDoc.document.name.data.time
+                            string2: "120"
+                      - ..formData.time@: 2h
+                      - continue
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: logoutLock
+
+                - continue
+            - continue
+          - if:
+            - .builtIn.isBrowser
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..formData.currentItem.title
+                      string2: "Log Out/Lock"
+                - actionType: popUp
+                  popUpView: logoutLock
+                  wait: true
+                - continue
+            - continue
+
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..formData.currentItem.title
+                    string2: "Delete Account"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.waitroomList.edgeQueryResp.edge@: []
+                  #获取会议列表
+                  - =..apiRequest.waitroomList.edgeAPI.get: ""
+                  - if:
+                      - =.builtIn.array.judgeListLength:
+                          dataIn:
+                            array: =..apiRequest.waitroomList.edgeQueryResp.edge
+                            len: 0
+                      - goto: DeleteAccount
+                      - actionType: popUp
+                        popUpView: noComplete
+                        wait: true
+              - goto: =..formData.currentItem.pageJump
+  style:
+    viewBox:
+      width: "1"
+      # height: "0.848"
+      height: "0.845541"
+      boxSizing: "border-box"
+      overflow: "hidden"
+      color: "#333333"
+      fontSize: .Nfont.h14
+      backgroundColor: "#f4f4f4"
+    btnBox:
+      width: "1"
+      height: "auto"
+      boxSizing: "border-box"
+      overflow: "hidden"
+      backgroundColor: "0x2988e6"
+      textAlign:
+        x: center
+    userInfoBox:
+      marginLeft: "0.04"
+      marginTop: "0.0344827"
+      width: "0.92"
+      height: "auto"
+      backgroundColor: "0xffffff"
+      boxSizing: border-box
+      paddingTop: "0.0172413"
+      paddingBottom: "0.0172413"
+      paddingLeft: "0.04"
+      paddingRight: "0.032"
+      overflow: hidden
+      zIndex: 10
+      borderRadius: "6"
+      boxShadow: "0 3px 4px #dededf"
+    userImg:
+      display: "inline-block"
+      width: "0.16"
+      height: "0.073891"
+      verticalAlign: middle
+      borderRadius: "6"
+      overflow: hidden
+    userBox:
+      marginLeft: "0.0426666"
+      display: "inline-block"
+      height: "auto"
+      width: "0.5493333"
+      verticalAlign: middle
+    fullNameBox:
+      width: "0.5493333"
+      fontWeight: "600"
+      overflow: hidden
+      text-overflow: ellipsis
+      whiteSpace: nowrap
+    userNameBox:
+      marginTop: "0.00862"
+      width: "0.5493333"
+      color: "#666666"
+      overflow: hidden
+      text-overflow: ellipsis
+      whiteSpace: nowrap
+    userRight:
+      marginLeft: "0.0426666"
+      display: "inline-block"
+      width: "0.053333"
+      height: "0.024630"
+      verticalAlign: middle
+    list:
+      width: "0.92"
+      margin: "0"
+      marginLeft: "0.04"
+      marginTop: "0.01"
+      height: auto
+      backgroundColor: "0xffffff"
+      borderRadius: "8"
+      overflow: hidden
+      boxShadow: "0 3px 4px #dededf"
+    listItem:
+      width: "0.92"
+      height: "auto"
+      boxSizing: border-box
+      borderBottom: itemObject.border
+    itemView:
+      marginLeft: "0.04"
+      paddingTop: "0.0184729"
+      paddingBottom: "0.0184729"
+      paddingRight: "0.032"
+    listItemPath:
+      display: "inline-block"
+      width: "0.08"
+      height: "0.036945"
+      verticalAlign: middle
+    listItemTitle:
+      marginLeft: "0.032"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      verticalAlign: middle
+      width: "0.6506666"
+    listItemRight:
+      display: "inline-block"
+      marginLeft: "0.032"
+      verticalAlign: middle
+      width: "0.0533333"
+      height: "0.02463"
+    facilityBox:
+      marginLeft: "0.20266666"
+      width: "0.645333"
+      height: "auto"
+      overflow: hidden
+    facilityLabel:
+      # display: ..formData.faciltyInfo
+      width: "0.645333"
+      color: "#2988e6"
+      fontSize: .Nfont.h12
+      fontWeight: "600"
+      overflow: hidden
+      text-overflow: ellipsis
+      whiteSpace: nowrap
+    faciltyEmptyBox:
+      display: ..formData.faciltyEmpty
+      width: "0.645333"
+      height: "auto"
+    faciltyEmptyImg:
+      display: "inline-block"
+      height: "0.0172"
+      verticalAlign: middle
+    faciltyEmptyLabel:
+      marginLeft: "0.02"
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      fontWeight: "600"
+      verticalAlign: middle
+      color: "0xfb5051"
+    logoutLockBox:
+      marginTop: "0.234"
+      borderRadius: "15"
+      width: "0.86666"
+      marginLeft: "0.06666"
+      overflow: hidden
+      backgroundColor: "0xffffff"
+    logoutLockTitle:
+      fontSize: .Nfont.h16
+      width: "0.86666"
+      marginTop: "0.0271"
+      textAlign: 
+        x: center
+      fontWeight: "700"
+    logoutLockBody:
+      marginTop: "0.002463"
+    logoutLockImage:
+      width: "0.048"
+      display: inline-block
+      verticalAlign: middle
+    logoutLockListTitle:
+      display: inline-block
+      verticalAlign: middle
+      color: "#333333"
+      fontWeight: "500"
+      marginLeft: "0.021333"
+      fontSize: .Nfont.h14
+    logoutLockListContent:
+      marginLeft: "0.069333"
+      fontSize: .Nfont.h12
+      color: "#999999"
+      marginTop: "0.00739"
+    logoutLockPasswordBox:
+      width: "0.76"    
+      borderColor: ..formData.errorTipColor
+      # borderColor: ..changeColor.password.borderColor
+      borderWidth: "1"
+      marginLeft: '0.053333'
+      borderRadius: "5"
+      marginTop: "0.03571"
+      border:
+        style: "3"
+    logoutLockPasswordField:
+      textAlign:
+        x: left
+      fontSize: .Nfont.h14
+      borderRadius: "5"
+      width: "0.76"
+      height: "0.04433"
+      textIndent: "1em"
+      borderWidth: "1"
+      border:
+        style: "1"
+    logoutLockAutomatic:
+      # width: "0.76"
+      marginLeft: '0.053333'
+      marginTop: "0.03694"
+
+    logoutLockAutomaticContent:
+      fontSize: .Nfont.h14
+      display: inline-block
+      verticalAlign: middle
+      color: "#333333"
+      marginLeft: "0.021333"
+    logoutLockAutomaticSelect:
+      width: "0.165333"
+      height: "0.04433"
+      display: inline-block
+      fontSize: .Nfont.h12
+      color: "#333333"
+      boxSizing: border-box
+      verticalAlign: middle
+      marginLeft: "0.012"
+      borderWidth: "1"
+      border:
+        style: 3
+        color: "#DEDEDE"
+      borderRadius: "5"
+    logoutLockButton: 
+      width: "0.86666"
+      marginTop: "0.03694"
+      borderTop: "1px solid #707070"
+      height: "0.05418"
+    # 稳定后删除 2022/5/31
+    # - type: view
+    #   style:
+    #     width: "1"
+    #     height: "auto"
+    #     overflow: hidden
+    #   children:
+    #     - type: view
+    #       style:
+    #         paddingTop: "0.0246"
+    #         paddingBottom: "0.0246"
+    #         width: "1"
+    #         height: "auto"
+    #         # border:
+    #         #   style: 2
+    #         #   color: "0xDEDEDF"
+    #         # borderWidth: "2"
+    #       children:
+    #         - type: image
+    #           path: providerImage.svg
+    #           path=func: =.builtIn.utils.prepareDocToPath
+    #           dataKey: Global.MyProfile.name.data.avatar
+    #           contentType: file
+    #           style:
+    #             marginLeft: "0.064"
+    #             verticalAlign: middle
+    #             display: "inline-block"
+    #             height: "0.0788177"
+    #             width: "0.1706666"
+    #             border:
+    #               style: 3
+    #             borderWidth: "1"
+    #             borderColor: "#dedede"
+    #             boxSizing: border-box
+    #             borderRadius: "4"
+    #         - type: view
+    #           style:
+    #             display: "inline-block"
+    #             width: "auto"
+    #             height: "auto"
+    #             overflow: hidden
+    #             verticalAlign: middle
+    #           children:
+    #             - type: view
+    #               style:
+    #                 width: "0.73"
+    #                 height: "auto"
+    #                 overflow: hidden
+    #               children:
+    #                 - type: view
+    #                   style:
+    #                     verticalAlign: middle
+    #                     marginLeft: "0.032"
+    #                     display: "inline-block"
+    #                     height: "auto"
+    #                     width: "0.5"
+    #                     overflow: hidden
+    #                   children:
+    #                     - type: view
+    #                       style:
+    #                         height: "auto"
+    #                         width: "0.5"
+    #                         overflow: hidden
+    #                       children:
+    #                         - type: label
+    #                           dataKey: formData.providerTitle
+    #                           style:
+    #                             display: "inline-block"
+    #                             fontSize: .Nfont.h16
+    #                             color: "0x333333"
+    #                             fontWeight: "600"
+    #                             width: "0.5"
+    #                             overflow: hidden
+    #                             text-overflow: ellipsis
+    #                             whiteSpace: nowrap
+    #                     - type: view
+    #                       style:
+    #                         marginTop: "0.01"
+    #                         height: "auto"
+    #                         width: "0.5"
+    #                       children:
+    #                         - type: label
+    #                           text: "User Name:"
+    #                           style:
+    #                             display: "inline-block"
+    #                             fontSize: .Nfont.h14
+    #                             color: "0x666666"
+    #                         - type: label
+    #                           dataKey: Global.currentUser.vertex.name.userName
+    #                           style:
+    #                             marginLeft: "0.032"
+    #                             display: "inline-block"
+    #                             fontSize: .Nfont.h14
+    #                             color: "0x666666"
+    #                             fontWeight: "400"
+    #                             width: "0.26"
+    #                             overflow: hidden
+    #                             text-overflow: ellipsis
+    #                             whiteSpace: nowrap
+    #                 - type: image
+    #                   path: qrCode1.svg
+    #                   style:
+    #                     verticalAlign: middle
+    #                     marginLeft: "0.042"
+    #                     display: "inline-block"
+    #                     height: "0.01970443"
+    #                     width: "0.0426666"
+    #                   onClick:
+    #                     - goto: MyQRCode
+    #                 - type: image
+    #                   path: blueRight.svg
+    #                   style:
+    #                     verticalAlign: middle
+    #                     marginLeft: "0.064"
+    #                     display: "inline-block"
+    #                     height: "0.029556"
+    #                     width: "0.0373333"
+    #                   onClick:
+    #                     - actionType: evalObject
+    #                       object:
+    #                         - if:
+    #                             - =.builtIn.string.equal:
+    #                                 dataIn:
+    #                                   string1: =.Global.providerProfileVar
+    #                                   string2: "About"
+    #                             - continue
+    #                             - .Global.providerProfileVar@: "About"
+    #                     - goto: MyProfile
+
+    #             - type: view
+    #               style:
+    #                 marginTop: "0.01"
+    #                 marginLeft: "0.032"
+    #                 width: "0.7"
+    #                 height: "auto"
+    #                 overflow: hidden
+    #               children:
+    #                 - type: label
+    #                   dataKey: MenuBars.facility
+    #                   viewTag: faciltyTag
+    #                   style:
+    #                     display: ..formData.faciltyInfo
+    #                     width: "0.7"
+    #                     height: "auto"
+    #                     color: "#2988e6"
+    #                     fontSize: .Nfont.h12
+    #                     fontWeight: "400"
+    #                     overflow: hidden
+    #                     text-overflow: ellipsis
+    #                     whiteSpace: nowrap
+    #                 - type: view
+    #                   style:
+    #                     display: ..formData.faciltyEmpty
+    #                     width: "0.6"
+    #                     height: "auto"
+    #                   children:
+    #                     - type: image
+    #                       path: videoWarn.svg
+    #                       style:
+    #                         display: "inline-block"
+    #                         height: "0.0172"
+    #                         verticalAlign: middle
+    #                     - type: label
+    #                       text: "Work For: No Facility"
+    #                       onClick:
+    #                         - actionType: popUp
+    #                           popUpView: "softTips"
+    #                       style:
+    #                         marginLeft: "0.02"
+    #                         display: "inline-block"
+    #                         height: "auto"
+    #                         width: "auto"
+    #                         fontSize: .Nfont.h12
+    #                         fontWeight: "600"
+    #                         verticalAlign: middle
+    #                         color: "0xfb5051"
+    #     # - type: view
+    #     #   style:
+    #     #     height: "0.8"
+    #     #     width: "1"
+    #     #   children:
+    #     #     # avatar
+    #     #     - type: view
+    #     #       style:
+    #     #         height: "auto"
+    #     #         marginTop: "0.03"
+    #     #       children:
+    #     #         - type: view
+    #     #           style:
+    #     #             width: auto
+    #     #             # border:
+    #     #             #   style: "2"
+    #     #             # borderWidth: "2"
+    #     #             borderColor: "0xdddddd"
+    #     #             display: inline-block
+    #     #             verticalAlign: middle
+    #     #           children:
+    #     #             - type: view
+    #     #               style:
+    #     #                 marginLeft: "0.08"
+    #     #                 width: "0.22"
+    #     #                 overflow: hidden
+    #     #                 textAlign:
+    #     #                   x: center
+    #     #                   y: center
+    #     #               children:
+    #     #                 - type: image
+    #     #                   style:
+    #     #                     height: "0.1"
+    #     #                   path: providerImage.svg
+    #     #                   path=func: =.builtIn.utils.prepareDocToPath
+    #     #                   dataKey: Global.MyProfile.name.data.avatar
+    #     #         - type: view
+    #     #           style:
+    #     #             height: auto
+    #     #             width: "0.42"
+    #     #             marginLeft: "0.05"
+    #     #             display: inline-block
+    #     #             verticalAlign: middle
+    #     #           children:
+    #     #             - type: label
+    #     #               dataKey: formData.providerTitle
+    #     #               style:
+    #     #                 color: "0x333333"
+    #     #                 fontWeight: 700
+    #     #                 fontFamily: Airal
+    #     #                 fontSize: .Nfont.h18
+    #     #                 wordWrap: break-word
+    #     #                 width: "0.42"
+    #     #             - type: view
+    #     #               style:
+    #     #                 height: auto
+    #     #                 marginTop: "0.005"
+    #     #                 width: auto
+    #     #               children:
+    #     #                 - type: label
+    #     #                   text: "User Name:"
+    #     #                   style:
+    #     #                     color: "#666666"
+    #     #                     fontFamily: Airal
+    #     #                     fontSize: .Nfont.h14
+    #     #                     display: inline-block
+    #     #                 - type: label
+    #     #                   dataKey: Global.currentUser.vertex.name.userName
+    #     #                   style:
+    #     #                     fontFamily: Airal
+    #     #                     color: "#666666"
+    #     #                     marginLeft: "0.01"
+    #     #                     fontSize: .Nfont.h14
+    #     #                     display: inline-block
+
+    #     #         - type: view
+    #     #           style:
+    #     #             height: auto
+    #     #             width: auto
+    #     #             marginLeft: "0.026"
+    #     #             display: inline-block
+    #     #             verticalAlign: middle
+    #     #           children:
+    #     #             - type: image
+    #     #               onClick:
+    #     #                 - goto: MyQRCode
+    #     #               path: qrCode1.svg
+    #     #               style:
+    #     #                 width: "0.06"
+    #     #                 display: inline-block
+    #     #                 verticalAlign: middle
+    #     #             - type: image
+    #     #               path: blueRight.svg
+    #     #               style:
+    #     #                 width: "0.035"
+    #     #                 marginLeft: "0.06"
+    #     #                 display: inline-block
+    #     #                 verticalAlign: middle
+    #     #               # children:
+
+    #     #               #     style:
+    #     #               #       height: "0.025"
+    #     #               onClick:
+    #     #                 - actionType: evalObject
+    #     #                   object:
+    #     #                     - if:
+    #     #                         - =.builtIn.string.equal:
+    #     #                             dataIn:
+    #     #                               string1: =.Global.providerProfileVar
+    #     #                               string2: "About"
+    #     #                         - continue
+    #     #                         - .Global.providerProfileVar@: "About"
+    #     #                 - goto: MyProfile
+    #     #     - type: label
+    #     #       dataKey: MenuBars.facility
+    #     #       viewTag: faciltyTag
+    #     #       style:
+    #     #         display: ..formData.faciltyInfo
+    #     #         marginLeft: "0.3493"
+    #     #         width: "0.6"
+    #     #         height: "auto"
+    #     #         color: "#2988e6"
+    #     #         textAlign:
+    #     #           x: left
+    #     #         fontSize: ".Nfont.h12"
+    #     #         fontWeight: "400"
+    #     #         overflow: hidden
+    #     #         text-overflow: ellipsis
+    #     #         whiteSpace: nowrap
+    #     #     - type: view
+    #     #       style:
+    #     #         display: ..formData.faciltyEmpty
+    #     #         marginLeft: "0.3493"
+    #     #         width: "0.6"
+    #     #         height: "auto"
+    #     #       children:
+    #     #         - type: image
+    #     #           path: videoWarn.svg
+    #     #           style:
+    #     #             display: "inline-block"
+    #     #             height: "0.0172"
+    #     #             verticalAlign: middle
+    #     #         - type: label
+    #     #           text: "Work For: No Facility"
+    #     #           dataKey:
+    #     #           onClick:
+    #     #             - actionType: popUp
+    #     #               popUpView: "softTips"
+    #     #           style:
+    #     #             marginLeft: "0.02"
+    #     #             display: "inline-block"
+    #     #             height: "auto"
+    #     #             width: "auto"
+    #     #             fontSize: ".Nfont.h12"
+    #     #             fontWeight: "600"
+    #     #             verticalAlign: middle
+    #     #             color: "0xfb5051"
+
+    #     - type: view
+    #       style:
+    #         width: "1"
+    #         height: "0.02"
+    #         borderColor: "0xDEDEDF"
+    #         border:
+    #           style: "2"
+    #         borderWidth: "2"
+    #     - type: view
+    #       style:
+    #         width: "1"
+    #         height: "auto"
+    #       children:
+    #         - type: list
+    #           contentType: listObject
+    #           listObject: ..menuBarList
+    #           iteratorVar: itemObject
+    #           viewTag: calendarColor
+    #           style:
+    #             width: "1"
+    #             margin: "0"
+    #             height: "auto"
+    #           children:
+    #             - type: listItem
+    #               itemObject: ""
+    #               style:
+    #                 width: "1"
+    #                 left: "0"
+    #                 height: "0.06"
+    #                 border:
+    #                   style: "2"
+    #                 borderWidth: "1"
+    #                 borderColor: "0xdddddd"
+    #               onClick:
+    #                 - emit:
+    #                     dataKey:
+    #                       var: itemObject
+    #                     actions:
+    #                       - if:
+    #                           - =.builtIn.string.equal:
+    #                               dataIn:
+    #                                 string1: $var.Title
+    #                                 string2: Schedule Profile
+    #                           - ..formData.gotoSchedule@: true
+    #                           - continue
+    #                 - actionType: evalObject
+    #                   object:
+    #                     - if:
+    #                         - =..formData.gotoSchedule
+    #                         - actionType: evalObject
+    #                           object:
+    #                             - if:
+    #                                 - =.Global.hasOrganization
+    #                                 - continue
+    #                                 - actionType: popUp
+    #                                   popUpView: noOrganizationView1
+    #                                   wait: true
+    #                         - continue
+    #                 - emit:
+    #                     dataKey:
+    #                       var: itemObject
+    #                     actions:
+    #                       - .Global.formData.unPageName@: MenuBars
+    #                       - if:
+    #                           - true
+    #                           - goto: $var.pageJump
+    #                           - goto: $var.pageJump
+    #               children:
+    #                 - type: view
+    #                   style:
+    #                     width: auto
+    #                     height: auto
+    #                   children:
+    #                     - type: image
+    #                       path:
+    #                         emit:
+    #                           dataKey:
+    #                             var: itemObject
+    #                           actions:
+    #                             - if:
+    #                                 - =$var.ImgPath
+    #                                 - $var.ImgPath
+    #                                 - $var.ImgPath
+    #                       style:
+    #                         marginLeft: "0.06"
+    #                         display: "inline-block"
+    #                         height: "0.025"
+    #                         width: "0.05"
+    #                         verticalAlign: middle
+    #                     - type: label
+    #                       dataKey: itemObject.Title
+    #                       style:
+    #                         marginLeft: "0.032"
+    #                         display: "inline-block"
+    #                         width: "0.5"
+    #                         fontSize: .Nfont.h16
+    #                         height: "0.06"
+    #                         lineHeight: 6vh
+    #                         fontWeight: "400"
+    #                         verticalAlign: middle
+    #                         color: itemObject.color
+    # - .footerBox:
+    #   style:
+    #     top: "0.9"
+    #   children:
+    #     - .footerMenuBox:
+    #       onClick:
+    #         - goto: "Dashboard"
+    #       children:
+    #         - .footerMenuImg:
+    #           path: dashboard0.svg
+    #         - .footerMenuLabel:
+    #           text: Dashboard
+
+    #     - .footerMenuBox:
+    #       onClick:
+    #         - goto: "InboxDashboard"
+    #       children:
+    #         - .footerMenuImg:
+    #           path: inbox0.svg
+    #         - .footerMenuLabel:
+    #           text: Inbox
+    #         - .numberMark:
+    #           dataKey: Global.formData.emailNumber
+    #           style:
+    #             isHidden: ..formData.inboxHidden
+
+    #     - .footerMenuBox:
+    #       onClick:
+    #         - goto: AppointmentSchedule
+    #       children:
+    #         - .footerMenuImg:
+    #           path: schedule0.svg
+    #         - .footerMenuLabel:
+    #           text: Schedule
+
+    #     - .footerMenuBox:
+    #       onClick:
+    #         - goto: MenuBars
+    #       children:
+    #         - .footerMenuImg:
+    #           path: meYellow.svg
+    #         - .footerMenuLabel:
+    #           text: Me
+    #           style:
+    #             color: "0xfece55"
+
+    # - type: popUp
+    #   viewTag: selectOrganizationView
+    #   style:
+    #     left: "0"
+    #     width: "1"
+    #     top: "0"
+    #     height: "1"
+    #     backgroundColor: "0x00000033"
+    #   children:
+    #     - type: scrollView
+    #       style:
+    #         left: "0.05"
+    #         width: "0.9"
+    #         top: "0.6"
+    #         height: "0.27"
+    #         backgroundColor: "0xFFFFFF"
+    #         borderRadius: "10"
+    #       children:
+    #         - type: label
+    #           text: switch to another organization
+    #           style:
+    #             top: "0.02"
+    #             width: "0.9"
+    #             textAlign:
+    #               x: center
+    #         - .BaseList:
+    #           listObject: ..listData.organizations
+    #           style:
+    #             width: "0.9"
+    #             height: "auto"
+    #             left: "0"
+    #             top: "0.05"
+    #             backgroundColor: "0xffffff"
+    #             border:
+    #               style: "3"
+    #             borderWidth: "1"
+    #             borderColor: "0xf0f0f0"
+    #             borderRadius: "5"
+    #           children:
+    #             - .BaseListItem:
+    #               onClick:
+    #                 - actionType: evalObject
+    #                   object:
+    #                     - .Global.organizations@: =..listData.organizations
+    #                 - actionType: evalObject
+    #                   object:
+    #                     - =.builtIn.string.concat:
+    #                         dataIn:
+    #                           - "Work For:"
+    #                           - "  "
+    #                           - =.Global.currentFacility.name.basicInfo.medicalFacilityName
+    #                         dataOut: MenuBars.facility
+    #                     - .Global.dashboardName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName
+    #                 - actionType: builtIn
+    #                   funcName: redraw
+    #                   viewTag: faciltyTag
+    #                 - actionType: popUpDismiss
+    #                   popUpView: selectOrganizationView
+    #               style:
+    #                 width: "0.9"
+    #                 height: "0.07"
+    #                 border:
+    #                   style: "2"
+    #                 borderWidth: "1"
+    #                 borderColor: "0xf0f0f0"
+    #               children:
+    #                 - type: label
+    #                   dataKey: itemObject.name.basicInfo.medicalFacilityName
+    #                   style:
+    #                     left: "0"
+    #                     width: "0.9"
+    #                     height: "0.07"
+    #                     fontSize: .Nfont.h3
+    #                     textAlign:
+    #                       x: center
+    #                       y: center
+    #     - type: label
+    #       text: Cancel
+    #       onClick:
+    #         - actionType: popUpDismiss
+    #           popUpView: selectOrganizationView
+    #       style:
+    #         top: "0.88"
+    #         width: "0.9"
+    #         height: "0.07"
+    #         left: "0.05"
+    #         fontSize: .Nfont.h3
+    #         backgroundColor: "0xFFFFFF"
+    #         fontStyle: bold
+    #         borderRadius: "10"
+    #         color: "#2988e6"
+    #         textAlign:
+    #           x: center
+    #           y: center
+    

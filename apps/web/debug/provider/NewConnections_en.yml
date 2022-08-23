@@ -6,13 +6,16 @@ NewConnections:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - ..invite.edgeAPI.get
-    - ..facilityInvite.edgeAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..invite.edgeAPI.get: ""
+            - =..facilityInvite.edgeAPI.get: ""
     - actionType: evalObject
       object:
         - ..organizations@: =.Global.organizations
-    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id #change provider jwt
-    - =.Global.createjwt.edgeAPI.store: ""
     - if:
         - =.builtIn.array.judgeListLength:
             dataIn:
@@ -55,8 +58,8 @@ NewConnections:
           object: =..facilityInvite.inviteList.edge
         dataOut: NewConnections.formDataTemp.newFacilitiesLength
     - .Global.newProviderLength@: =..formDataTemp.allConnectionLength
-    - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id #change provider jwt
-    - =.Global.createjwt.edgeAPI.store: ""
+    # - .Global.createjwt.edge.bvid@: =.Global.currentUser.vertex.id #change provider jwt
+    # - =.Global.createjwt.edgeAPI.store: ""
   getVertex:
     response: ""
     vertex:
@@ -165,11 +168,14 @@ NewConnections:
     - .ProgressCheckView: ""
       message: "Accepting ..."
       viewTag: accepting
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    # - .BaseHeader:
+    # - .HeaderLeftButton:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+          - .BasePublicHeaderTitle:
     - type: view
       style:
-        marginTop: "0.1"
         marginLeft: "0"
         width: "1"
         height: "auto"
@@ -195,6 +201,7 @@ NewConnections:
                 marginTop: "0.03"
                 marginLeft: "0.05"
                 height: "0.05"
+                color: "#666666"
                 textAlign:
                   x: center
                   y: center
@@ -227,163 +234,343 @@ NewConnections:
                     - type: label
                       text: New Providers
                       style:
-                        left: "0.06"
-                        top: "0"
+                        marginLeft: "0.04"
+                        fontSize: .Nfont.h14
                         height: "0.05"
-                        width: "0.5"
+                        width: "0.9"
+                        color: "#666666"
+                        fontWeight: "600"
                         textAlign:
                           y: center
-                - .BaseList:
+                - type: list
                   viewTag: InviteTag2
+                  contentType: listObject
                   listObject: ..invite.inviteList.edge
+                  iteratorVar: itemObject
                   style:
-                    left: "0"
-                    marginTop: "auto"
                     width: "1"
-                    height: "auto"
-                    zIndex: "100"
-                    backgroundColor: "#EAEAEA"
+                    margin: "0"
+                    height: auto
                   children:
-                    - .BaseListItem:
+                    - type: listItem
+                      itemObject:
                       style:
-                        height: "0.08"
-                        backgroundColor: "0xFFFFFF"
-                        border:
-                          style: "2"
-                        borderWidth: "1"
-                        borderColor: "0xdededf"
+                        width: "1"
+                        height: "auto"
+                        overflow: hidden
                       children:
-                        - type: image
-                          path=func: =.builtIn.utils.prepareDocToPath
-                          dataKey: itemObject.name.inviterAvatar
-                          path: providerImage.svg
+                        - type: view
                           style:
-                            marginLeft: "0.05"
-                            marginTop: "0.015"
-                            height: "0.06"
-                            width: "6vh"
-                            color: "0xffffff"
-                            lineHeight: "40px"
-                            display: "inline-block"
-                            fontSize: .Nfont.h3
-                            textAlign:
-                              x: center
-                              y: center
+                            marginTop: "0.0198"
+                            marginLeft: "0.04"
+                            height: "auto"
+                            width: "auto"
+                          children:
+                            - type: view
+                              style:
+                                verticalAlign: middle
+                                display: "inline-block"
+                                height: "12vw"
+                                width: "12vw"
+                                overflow: hidden
+                              children:
+                                - type: image
+                                  path: providerImage.svg
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: itemObject.name.inviterAvatar
+                                  style:
+                                    height: "12vw"
+                                    width: "12vw"
+                            - type: view
+                              style:
+                                verticalAlign: middle
+                                marginLeft: "0.01"
+                                display: "inline-block"
+                                height: "auto"
+                                width: "0.5"
+                                overflow: hidden
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - ..apiRequest.profile.edge.id@: $var.bvid
+                                      - =..apiRequest.profile.docAPI.get: ""
+                                      - .Global.formData.pageName@: "NewConnections"
+                                      - .Global.formData.facilityProviderInfo@: =..apiRequest.profile.docResponse.doc.0
+                                      # - .Global.formData.facilityProviderInfo@: $var
+                                - goto: FacilityProviderInfo
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name.inviterName
+                                  style:
+                                    height: "auto"
+                                    width: "0.5"
+                                    fontSize: .Nfont.h16
+                                    wordWrap: break-word
+                                    fontWeight: "600"
 
-                        # - type: image
+                                    textDecoration: underline
+                                - type: label
+                                  dataKey: itemObject.name.specialty
+                                  style:
+                                    marginTop: "0.005"
+                                    width: "0.5"
+                                    height: "auto"
+                                    fontSize: .Nfont.h14
+                                    color: "#333333"
 
-                        #   path: providerImage.svg
-                        #   style:
-                        #     top: "0.008"
-                        #     left: "0.06"
-                        #     width: "0.13"
-                        - type: label
-                          dataKey: itemObject.name.inviterName
-                          style:
-                            top: "0.016"
-                            left: "0.22"
-                            width: "0.55"
-                            height: "0.03"
-                            fontSize: .Nfont.h14
-                            color: "#6e6e6e"
-                            textAlign:
-                              x: left
-                          onClick:
-                            - emit:
-                                dataKey:
-                                  var: itemObject
-                                actions:
-                                  - ..apiRequest.profile.edge.id@: $var.bvid
-                                  - =..apiRequest.profile.docAPI.get: ""
-                                  - .Global.formData.pageName@: "NewConnections"
-                                  - .Global.formData.facilityProviderInfo@: =..apiRequest.profile.docResponse.doc.0
-                                  # - .Global.formData.facilityProviderInfo@: $var
-                            - goto: FacilityProviderInfo
-                        - type: label
-                          dataKey: itemObject.name.specialty
-                          style:
-                            top: "0.045"
-                            left: "0.22"
-                            width: "0.55"
-                            height: "0.03"
-                            fontSize: .Nfont.h14
-                            color: "#6e6e6e"
-                            textAlign:
-                              x: left
-                        - type: button
-                          text: "Accept"
-                          onClick:
-                            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-                              dataKey: NewConnections.dataObject
-                              dataObject: itemObject
-                            - emit:
-                                dataKey:
-                                  var: itemObject
-                                actions:
-                                  - if:
-                                      - =.builtIn.array.isExist:
-                                          dataIn:
-                                            array: =.Global.formData.connectionList
-                                            phoneNumber: =..dataObject.name.inviterPhoneNumber
-                                      - =..invite.edgeAPI.delete: ""
-                                      - continue
-                                  - ..accept.edge.evid@: =..dataObject.bvid
-                                  - ..accept.edge.name@: =..dataObject.name
-                                  - ..accept.edge.refid@: =..dataObject.id
-                                  - if:
-                                      - =.builtIn.array.isExist:
-                                          dataIn:
-                                            array: =.Global.formData.connectionList
-                                            phoneNumber: =..dataObject.name.inviterPhoneNumber
-                                      - continue
-                                      - =..accept.edgeAPI.store: ""
-                            - actionType: evalObject
-                              object:
-                                .Global._nonce@:
-                                  =.builtIn.math.random: ""
-                            - actionType: evalObject
-                              object:
-                                - ..invite.inviteList.edge@: []
-                            - actionType: evalObject
-                              object:
-                                - =..invite.edgeAPI.get: ""
-                            - actionType: builtIn
-                              funcName: redraw
-                              viewTag: InviteTag2
-                            - actionType: popUp
-                              popUpView: acceptSuccessfullyPopUpView
-                            - goto: MyConnection
-                          style:
-                            top: "0.02"
-                            left: "0.6"
-                            width: "0.18"
-                            height: "0.04"
-                            fontSize: "15"
-                            color: "#ffffff"
-                            backgroundColor: "#1dc160"
-                            borderRadius: "5"
-                            textAlign:
-                              x: center
-                        - type: button
-                          text: "Deny"
-                          onClick:
-                            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-                              dataKey: NewConnections.dataObject
-                              dataObject: itemObject
-                            - actionType: popUp
-                              popUpView: denyPopUpView
+                                    verticalAlign: middle
+                                    overflow: hidden
+                                    text-overflow: ellipsis
+                                    whiteSpace: nowrap
+                            - type: view
+                              style:
+                                verticalAlign: middle
+                                marginLeft: "0.01"
+                                display: "inline-block"
+                                height: "auto"
+                                width: "auto"
+                                overflow: hidden
+                                boxSizing: border-box
+                              children:
+                                - type: button
+                                  text: Accept
+                                  onClick:
+                                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                                      dataKey: NewConnections.dataObject
+                                      dataObject: itemObject
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - if:
+                                              - =.builtIn.array.isExist:
+                                                  dataIn:
+                                                    array: =.Global.formData.connectionList
+                                                    phoneNumber: =..dataObject.name.inviterPhoneNumber
+                                              - =..invite.edgeAPI.delete: ""
+                                              - continue
+                                          - ..accept.edge.evid@: =..dataObject.bvid
+                                          - ..accept.edge.name@: =..dataObject.name
+                                          - ..accept.edge.refid@: =..dataObject.id
+                                          - if:
+                                              - =.builtIn.array.isExist:
+                                                  dataIn:
+                                                    array: =.Global.formData.connectionList
+                                                    phoneNumber: =..dataObject.name.inviterPhoneNumber
+                                              - continue
+                                              - =..accept.edgeAPI.store: ""
+                                    - actionType: evalObject
+                                      object:
+                                        .Global._nonce@:
+                                          =.builtIn.math.random: ""
+                                    - actionType: evalObject
+                                      object:
+                                        - ..invite.inviteList.edge@: []
+                                    - actionType: evalObject
+                                      object:
+                                        - =..invite.edgeAPI.get: ""
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: InviteTag2
+                                    - actionType: popUp
+                                      popUpView: acceptSuccessfullyPopUpView
+                                    - goto: MyConnection
+                                  style:
+                                    border:
+                                      style: 1
+                                    color: "#ffffff"
+                                    borderRadius: "4"
+                                    fontSize: .Nfont.h12
+                                    backgroundColor: "#2fc160"
+                                    display: inline-block
+                                    verticalAlign: middle
+                                    width: "0.15"
+                                    height: "0.032"
+                                    boxSizing: border-box
+                                - type: button
+                                  text: Deny
+                                  onClick:
+                                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                                      dataKey: NewConnections.dataObject
+                                      dataObject: itemObject
+                                    - actionType: popUp
+                                      popUpView: denyPopUpView
 
+                                  style:
+                                    marginLeft: "0.01"
+                                    border:
+                                      style: 1
+                                    color: "#ffffff"
+                                    fontSize: .Nfont.h12
+                                    display: inline-block
+                                    borderRadius: "4"
+                                    backgroundColor: "#dc153c"
+                                    verticalAlign: middle
+                                    width: "0.15"
+                                    height: "0.032"
+                                    boxSizing: border-box
+                        - type: view
                           style:
-                            top: "0.02"
-                            left: "0.8"
-                            width: "0.18"
-                            height: "0.04"
-                            fontSize: "15"
-                            color: "#ffffff"
-                            backgroundColor: "#DC143C"
-                            borderRadius: "5"
-                            textAlign:
-                              x: center
+                            marginTop: "0.0147"
+                            width: "1"
+                            height: "auto"
+                            border:
+                              style: 2
+                            borderWidth: "1"
+                            borderColor: "#efefef"
+                # - .BaseList:
+                #   viewTag: InviteTag2
+                #   listObject: ..invite.inviteList.edge
+                #   style:
+                #     left: "0"
+                #     marginTop: "auto"
+                #     width: "1"
+                #     height: "auto"
+                #     zIndex: "100"
+                #     backgroundColor: "#EAEAEA"
+                #   children:
+                #     - .BaseListItem:
+                #       style:
+                #         height: "0.08"
+                #         backgroundColor: "0xFFFFFF"
+                #         border:
+                #           style: "2"
+                #         borderWidth: "1"
+                #         borderColor: "0xdededf"
+                #       children:
+                #         - type: image
+                #           path=func: =.builtIn.utils.prepareDocToPath
+                #           dataKey: itemObject.name.inviterAvatar
+                #           path: providerImage.svg
+                #           style:
+                #             marginLeft: "0.05"
+                #             marginTop: "0.015"
+                #             height: "0.06"
+                #             width: "6vh"
+                #             color: "0xffffff"
+                #             lineHeight: "40px"
+                #             display: "inline-block"
+                #             fontSize: .Nfont.h3
+                #             textAlign:
+                #               x: center
+                #               y: center
+
+                #         # - type: image
+
+                #         #   path: providerImage.svg
+                #         #   style:
+                #         #     top: "0.008"
+                #         #     left: "0.06"
+                #         #     width: "0.13"
+                #         - type: label
+                #           dataKey: itemObject.name.inviterName
+                #           style:
+                #             top: "0.016"
+                #             left: "0.22"
+                #             width: "0.55"
+                #             height: "0.03"
+                #             fontSize: .Nfont.h14
+                #             color: "#6e6e6e"
+                #             textAlign:
+                #               x: left
+                #           onClick:
+                #             - emit:
+                #                 dataKey:
+                #                   var: itemObject
+                #                 actions:
+                #                   - ..apiRequest.profile.edge.id@: $var.bvid
+                #                   - =..apiRequest.profile.docAPI.get: ""
+                #                   - .Global.formData.pageName@: "NewConnections"
+                #                   - .Global.formData.facilityProviderInfo@: =..apiRequest.profile.docResponse.doc.0
+                #                   # - .Global.formData.facilityProviderInfo@: $var
+                #             - goto: FacilityProviderInfo
+                #         - type: label
+                #           dataKey: itemObject.name.specialty
+                #           style:
+                #             top: "0.045"
+                #             left: "0.22"
+                #             width: "0.55"
+                #             height: "0.03"
+                #             fontSize: .Nfont.h14
+                #             color: "#6e6e6e"
+                #             textAlign:
+                #               x: left
+                #         - type: button
+                #           text: "Accept"
+                #           onClick:
+                #             - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                #               dataKey: NewConnections.dataObject
+                #               dataObject: itemObject
+                #             - emit:
+                #                 dataKey:
+                #                   var: itemObject
+                #                 actions:
+                #                   - if:
+                #                       - =.builtIn.array.isExist:
+                #                           dataIn:
+                #                             array: =.Global.formData.connectionList
+                #                             phoneNumber: =..dataObject.name.inviterPhoneNumber
+                #                       - =..invite.edgeAPI.delete: ""
+                #                       - continue
+                #                   - ..accept.edge.evid@: =..dataObject.bvid
+                #                   - ..accept.edge.name@: =..dataObject.name
+                #                   - ..accept.edge.refid@: =..dataObject.id
+                #                   - if:
+                #                       - =.builtIn.array.isExist:
+                #                           dataIn:
+                #                             array: =.Global.formData.connectionList
+                #                             phoneNumber: =..dataObject.name.inviterPhoneNumber
+                #                       - continue
+                #                       - =..accept.edgeAPI.store: ""
+                #             - actionType: evalObject
+                #               object:
+                #                 .Global._nonce@:
+                #                   =.builtIn.math.random: ""
+                #             - actionType: evalObject
+                #               object:
+                #                 - ..invite.inviteList.edge@: []
+                #             - actionType: evalObject
+                #               object:
+                #                 - =..invite.edgeAPI.get: ""
+                #             - actionType: builtIn
+                #               funcName: redraw
+                #               viewTag: InviteTag2
+                #             - actionType: popUp
+                #               popUpView: acceptSuccessfullyPopUpView
+                #             - goto: MyConnection
+                #           style:
+                #             top: "0.02"
+                #             left: "0.6"
+                #             width: "0.18"
+                #             height: "0.04"
+                #             fontSize: "15"
+                #             color: "#ffffff"
+                #             backgroundColor: "#1dc160"
+                #             borderRadius: "5"
+                #             textAlign:
+                #               x: center
+                #         - type: button
+                #           text: "Deny"
+                #           onClick:
+                #             - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                #               dataKey: NewConnections.dataObject
+                #               dataObject: itemObject
+                #             - actionType: popUp
+                #               popUpView: denyPopUpView
+
+                #           style:
+                #             top: "0.02"
+                #             left: "0.8"
+                #             width: "0.18"
+                #             height: "0.04"
+                #             fontSize: "15"
+                #             color: "#ffffff"
+                #             backgroundColor: "#DC143C"
+                #             borderRadius: "5"
+                #             textAlign:
+                #               x: center
             - type: view
               style:
                 marginTop: "0"
@@ -398,256 +585,529 @@ NewConnections:
                     left: "0"
                     width: "1"
                     height: "0.05"
-                    backgroundColor: "0xf3f3f3ff"
+                    backgroundColor: "#f0f0f0"
                   children:
                     - type: label
                       text: New Organizations
                       style:
-                        left: "0.06"
+                        marginLeft: "0.04"
+                        fontSize: .Nfont.h14
                         height: "0.05"
-                        width: "0.5"
+                        width: "0.9"
+                        color: "#666666"
+                        fontWeight: "600"
                         textAlign:
                           y: center
                 - type: list
                   contentType: listObject
                   listObject: ..facilityInvite.inviteList.edge
                   iteratorVar: itemObject
-                  viewTag: InviteTag
                   style:
-                    left: "0"
-                    marginTop: "auto"
                     width: "1"
-                    height: "auto"
+                    margin: "0"
+                    height: auto
                   children:
                     - type: listItem
-                      itemObject: ""
+                      itemObject:
                       style:
-                        height: "0.1"
-                        backgroundColor: "0xFFFFFF"
                         width: "1"
-                        border:
-                          style: "2"
-                        borderWidth: "1"
-                        borderColor: "0xdededf"
+                        height: "auto"
+                        overflow: hidden
                       children:
                         - type: view
                           style:
-                            left: "0.06"
-                            height: "0.1"
-                            overflow: hidden
-                            width: "0.13"
-                            textAlign:
-                              x: center
-                              y: center
+                            marginTop: "0.0198"
+                            marginLeft: "0.04"
+                            height: "auto"
+                            width: "auto"
                           children:
-                            - type: image
-                              path: office-building.svg
-                              path=func: =.builtIn.utils.prepareDocToPath
-                              dataKey: itemObject.name.facilityAvatarID
+                            - type: view
                               style:
-                                width: "0.13"
-                        - type: label
-                          dataKey: itemObject.name.inviterName
-                          style:
-                            top: "0.02"
-                            left: "0.23"
-                            width: "0.5"
-                            height: "0.03"
-                            fontSize: "18"
-                            color: "#6e6e6e"
-                            textAlign:
-                              y: center
-                              x: left
-                          onClick:
-                            - emit:
-                                dataKey:
-                                  var: itemObject
-                                actions:
-                                  - .Global.formData.pageName@: "NewConnections"
-                                  - ..apiRequest.facilityProfile.docQueryReq.id@: $var.bvid
-                                  - =..apiRequest.facilityProfile.docAPI.get: ""
-                                  - .Global.formData.temporaryFacilityId@: =..apiRequest.facilityProfile.docQueryResp.doc.0
-                            - goto: ProviderFacilityInfo
-                        - type: label
-                          dataKey: itemObject.name.businessType
-                          style:
-                            top: "0.05"
-                            left: "0.1"
-                            width: "0.5"
-                            height: "0.05"
-                            fontSize: .Nfont.h14
-                            color: "#6e6e6e"
-                            textAlign:
-                              x: center
-                              y: center
-                        - type: button
-                          text: "Accept"
-                          onClick:
-                            - actionType: evalObject
-                              object:
-                                - if:
-                                    - =.Global.organizations.0.id
-                                    - ..flag@: true
-                                    - ..flag@: false
-                            - actionType: updateObject
-                              dataKey: Global.organizations
-                              dataObject: .EmptyObj
-                            - actionType: popUp
-                              popUpView: accepting
-                            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-                              dataKey: NewConnections.dataObject
-                              dataObject: itemObject
-                            - emit:
-                                dataKey:
-                                  var: itemObject
-                                actions:
-                                  - ..accept.edge.evid@: $var.bvid
-                                  - ..accept.edge.name@: $var.name
-                                  - ..accept.edge.refid@: $var.id
-                                  - ..getVertex.vertex.id@: $var.bvid
-                                  - =..getVertex.get: ""
-                                  - if:
-                                      - =.builtIn.array.isExist:
-                                          dataIn:
-                                            array: =.Global.formData.connectionList
-                                            phoneNumber: $var.name.inviterPhoneNumber
-                                      - =..invite.edgeAPI.delete: ""
-                                      - continue
-                                  - if:
-                                      - =.builtIn.array.isExist:
-                                          dataIn:
-                                            array: =.Global.formData.connectionList
-                                            phoneNumber: $var.name.inviterPhoneNumber
-                                      - continue
-                                      - =..accept.edgeAPI.store: ""
-                                  - if:
-                                      - =.builtIn.array.isExist:
-                                          dataIn:
-                                            array: =.Global.formData.connectionList
-                                            phoneNumber: $var.name.inviterPhoneNumber
-                                      - continue
-                                      - =.builtIn.array.append:
-                                          dataIn:
-                                            newMessage: =..getVertex.response.vertex.0
-                                            messages: =..organizations
-                            - actionType: evalObject
-                              object:
-                                - .Global.organizations@: =.NewConnections.organizations
-                                - .Global.hasOrganization@: true
-                            - actionType: evalObject
-                              object:
-                                - if:
-                                    - =..flag
-                                    - continue
+                                verticalAlign: middle
+                                display: "inline-block"
+                                height: "12vw"
+                                width: "12vw"
+                                overflow: hidden
+                              children:
+                                - type: image
+                                  path: office-building.svg
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: itemObject.name.facilityAvatarID
+                                  style:
+                                    height: "12vw"
+                                    width: "12vw"
+                            - type: view
+                              style:
+                                verticalAlign: middle
+                                marginLeft: "0.01"
+                                display: "inline-block"
+                                height: "auto"
+                                width: "0.5"
+                                overflow: hidden
+                              onClick:
+                                - emit:
+                                    dataKey:
+                                      var: itemObject
+                                    actions:
+                                      - .Global.formData.pageName@: "NewConnections"
+                                      - ..apiRequest.facilityProfile.docQueryReq.id@: $var.bvid
+                                      - =..apiRequest.facilityProfile.docAPI.get: ""
+                                      - .Global.formData.temporaryFacilityId@: =..apiRequest.facilityProfile.docQueryResp.doc.0
+                                - goto: ProviderFacilityInfo
+                              children:
+                                - type: label
+                                  dataKey: itemObject.name.inviterName
+                                  style:
+                                    height: "auto"
+                                    width: "0.5"
+                                    fontSize: .Nfont.h16
+                                    wordWrap: break-word
+                                    fontWeight: "600"
+
+                                    textDecoration: underline
+                                - type: label
+                                  dataKey: itemObject.name.businessType
+                                  style:
+                                    marginTop: "0.005"
+                                    width: "0.5"
+                                    height: "auto"
+                                    fontSize: .Nfont.h14
+                                    color: "#333333"
+
+                                    verticalAlign: middle
+                                    overflow: hidden
+                                    text-overflow: ellipsis
+                                    whiteSpace: nowrap
+                            - type: view
+                              style:
+                                verticalAlign: middle
+                                marginLeft: "0.01"
+                                display: "inline-block"
+                                height: "auto"
+                                width: "auto"
+                                overflow: hidden
+                                boxSizing: border-box
+                              children:
+                                - type: button
+                                  text: Accept
+                                  onClick:
                                     - actionType: evalObject
                                       object:
-                                        - .Global.currentFacility@: =.Global.organizations.0
-                                        - .Global.organizations.0.isSelected@: true
-                                        - .Global.dashboardName@: =.Global.organizations.0.name.basicInfo.medicalFacilityName
-                            - actionType: evalObject
-                              object:
-                                .Global._nonce@:
-                                  =.builtIn.math.random: ""
-                            - actionType: evalObject
-                              object:
-                                - =..invite.edgeAPI.get: ""
-                                - =.builtIn.search.updateEsData:
-                                    dataIn:
-                                      id: =.Global.currentUser.vertex.id
-                                      type: "35841"
-                                    dataOut: NewConnections.formData.res
-                            # - actionType: evalObject
-                            #   object:
-                            #     - if:
-                            #       - =.builtIn.object.isEmpty:
-                            #           dataIn:
-                            #             object: =.NewConnections.formData.res
-                            #       - actionType: popUp
-                            #         popUpView: tipsOneLine
-                            #         # wait: true # comment wait true , avoid sync fail cant do other thing issues.
-                            #       - continue
-                            - actionType: builtIn
-                              funcName: redraw
-                              viewTag: inviteTag
-                            - goto: MyConnection
+                                        - if:
+                                            - =.Global.organizations.0.id
+                                            - ..flag@: true
+                                            - ..flag@: false
+                                    - actionType: updateObject
+                                      dataKey: Global.organizations
+                                      dataObject: .EmptyObj
+                                    - actionType: popUp
+                                      popUpView: accepting
+                                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                                      dataKey: NewConnections.dataObject
+                                      dataObject: itemObject
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - ..accept.edge.evid@: $var.bvid
+                                          - ..accept.edge.name@: $var.name
+                                          - ..accept.edge.refid@: $var.id
+                                          - ..getVertex.vertex.id@: $var.bvid
+                                          - =..getVertex.get: ""
+                                          - if:
+                                              - =.builtIn.array.isExist:
+                                                  dataIn:
+                                                    array: =.Global.formData.connectionList
+                                                    phoneNumber: $var.name.inviterPhoneNumber
+                                              - =..invite.edgeAPI.delete: ""
+                                              - continue
+                                          - if:
+                                              - =.builtIn.array.isExist:
+                                                  dataIn:
+                                                    array: =.Global.formData.connectionList
+                                                    phoneNumber: $var.name.inviterPhoneNumber
+                                              - continue
+                                              - =..accept.edgeAPI.store: ""
+                                          - if:
+                                              - =.builtIn.array.isExist:
+                                                  dataIn:
+                                                    array: =.Global.formData.connectionList
+                                                    phoneNumber: $var.name.inviterPhoneNumber
+                                              - continue
+                                              - =.builtIn.array.append:
+                                                  dataIn:
+                                                    newMessage: =..getVertex.response.vertex.0
+                                                    messages: =..organizations
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.organizations@: =.NewConnections.organizations
+                                        - .Global.hasOrganization@: true
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =..flag
+                                            - continue
+                                            - actionType: evalObject
+                                              object:
+                                                - .Global.currentFacility@: =.Global.organizations.0
+                                                - .Global.organizations.0.isSelected@: true
+                                                - .Global.dashboardName@: =.Global.organizations.0.name.basicInfo.medicalFacilityName
+                                    - actionType: evalObject
+                                      object:
+                                        .Global._nonce@:
+                                          =.builtIn.math.random: ""
+                                    - actionType: evalObject
+                                      object:
+                                        - =..invite.edgeAPI.get: ""
+                                        - =.builtIn.search.updateEsData:
+                                            dataIn:
+                                              id: =.Global.currentUser.vertex.id
+                                              type: "35841"
+                                            dataOut: NewConnections.formData.res
+                                    # - actionType: evalObject
+                                    #   object:
+                                    #     - if:
+                                    #       - =.builtIn.object.isEmpty:
+                                    #           dataIn:
+                                    #             object: =.NewConnections.formData.res
+                                    #       - actionType: popUp
+                                    #         popUpView: tipsOneLine
+                                    #         # wait: true # comment wait true , avoid sync fail cant do other thing issues.
+                                    #       - continue
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: inviteTag
+                                    - goto: MyConnection
+                                  style:
+                                    border:
+                                      style: 1
+                                    color: "#ffffff"
+                                    borderRadius: "4"
+                                    fontSize: .Nfont.h12
+                                    backgroundColor: "#2fc160"
+                                    display: inline-block
+                                    verticalAlign: middle
+                                    width: "0.15"
+                                    height: "0.032"
+                                    boxSizing: border-box
+                                - type: button
+                                  text: Deny
+                                  onClick:
+                                    - actionType: updateObject
+                                      dataKey: Global.organizations
+                                      dataObject: .EmptyObj
+                                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                                      dataKey: NewConnections.dataObject
+                                      dataObject: itemObject
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - ..refuse.edge.evid@: $var.bvid
+                                          - ..refuse.edge.name@: $var.name
+                                          - ..refuse.edge.refid@: $var.id
+                                          - ..getVertex.vertex.id@: $var.bvid
+                                          - =..getVertex.get: ""
+                                          - if:
+                                              - =.builtIn.array.isExist:
+                                                  dataIn:
+                                                    array: =.Global.formData.connectionList
+                                                    phoneNumber: $var.name.inviterPhoneNumber
+                                              - =..invite.edgeAPI.delete: ""
+                                              - continue
+                                          - if:
+                                              - =.builtIn.array.isExist:
+                                                  dataIn:
+                                                    array: =.Global.formData.connectionList
+                                                    phoneNumber: $var.name.inviterPhoneNumber
+                                              - continue
+                                              - =..refuse.edgeAPI.store: ""
+                                          # - if:
+                                          #   - =.builtIn.array.isExist:
+                                          #       dataIn:
+                                          #         array: =.Global.formData.connectionList
+                                          #         phoneNumber: $var.name.inviterPhoneNumber
+                                          #   - continue
+                                          #   - =.builtIn.array.append:
+                                          #       dataIn:
+                                          #         newMessage: =..getVertex.response.vertex.0
+                                          #         messages: =..organizations
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.organizations@: =.NewConnections.organizations
+                                    - actionType: evalObject
+                                      object:
+                                        .Global._nonce@:
+                                          =.builtIn.math.random: ""
+                                    - actionType: evalObject
+                                      object:
+                                        - =..invite.edgeAPI.get: ""
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: inviteTag
+                                    - goto: MyConnection
+                                  style:
+                                    marginLeft: "0.01"
+                                    border:
+                                      style: 1
+                                    color: "#ffffff"
+                                    fontSize: .Nfont.h12
+                                    display: inline-block
+                                    borderRadius: "4"
+                                    backgroundColor: "#dc153c"
+                                    verticalAlign: middle
+                                    width: "0.15"
+                                    height: "0.032"
+                                    boxSizing: border-box
+                        - type: view
                           style:
-                            top: "0.02"
-                            left: "0.6"
-                            width: "0.18"
-                            height: "0.04"
-                            fontSize: "15"
-                            color: "#ffffff"
-                            backgroundColor: "#1dc160"
-                            borderRadius: "5"
-                            textAlign:
-                              x: center
-                        - type: button
-                          text: "Deny"
-                          onClick:
-                            - actionType: updateObject
-                              dataKey: Global.organizations
-                              dataObject: .EmptyObj
-                            - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-                              dataKey: NewConnections.dataObject
-                              dataObject: itemObject
-                            - emit:
-                                dataKey:
-                                  var: itemObject
-                                actions:
-                                  - ..refuse.edge.evid@: $var.bvid
-                                  - ..refuse.edge.name@: $var.name
-                                  - ..refuse.edge.refid@: $var.id
-                                  - ..getVertex.vertex.id@: $var.bvid
-                                  - =..getVertex.get: ""
-                                  - if:
-                                      - =.builtIn.array.isExist:
-                                          dataIn:
-                                            array: =.Global.formData.connectionList
-                                            phoneNumber: $var.name.inviterPhoneNumber
-                                      - =..invite.edgeAPI.delete: ""
-                                      - continue
-                                  - if:
-                                      - =.builtIn.array.isExist:
-                                          dataIn:
-                                            array: =.Global.formData.connectionList
-                                            phoneNumber: $var.name.inviterPhoneNumber
-                                      - continue
-                                      - =..refuse.edgeAPI.store: ""
-                                  # - if:
-                                  #   - =.builtIn.array.isExist:
-                                  #       dataIn:
-                                  #         array: =.Global.formData.connectionList
-                                  #         phoneNumber: $var.name.inviterPhoneNumber
-                                  #   - continue
-                                  #   - =.builtIn.array.append:
-                                  #       dataIn:
-                                  #         newMessage: =..getVertex.response.vertex.0
-                                  #         messages: =..organizations
-                            - actionType: evalObject
-                              object:
-                                - .Global.organizations@: =.NewConnections.organizations
-                            - actionType: evalObject
-                              object:
-                                .Global._nonce@:
-                                  =.builtIn.math.random: ""
-                            - actionType: evalObject
-                              object:
-                                - =..invite.edgeAPI.get: ""
-                            - actionType: builtIn
-                              funcName: redraw
-                              viewTag: inviteTag
-                            - goto: MyConnection
-                          style:
-                            top: "0.02"
-                            left: "0.8"
-                            width: "0.18"
-                            height: "0.04"
-                            fontSize: "15"
-                            color: "#ffffff"
-                            backgroundColor: "#DC143C"
-                            borderRadius: "5"
-                            textAlign:
-                              x: center
+                            marginTop: "0.0147"
+                            width: "1"
+                            height: "auto"
+                            border:
+                              style: 2
+                            borderWidth: "1"
+                            borderColor: "#efefef"
+                # - type: list
+                #   contentType: listObject
+                #   listObject: ..facilityInvite.inviteList.edge
+                #   iteratorVar: itemObject
+                #   viewTag: InviteTag
+                #   style:
+                #     left: "0"
+                #     marginTop: "auto"
+                #     width: "1"
+                #     height: "auto"
+                #   children:
+                #     - type: listItem
+                #       itemObject: ""
+                #       style:
+                #         height: "0.1"
+                #         backgroundColor: "0xFFFFFF"
+                #         width: "1"
+                #         border:
+                #           style: "2"
+                #         borderWidth: "1"
+                #         borderColor: "0xdededf"
+                #       children:
+                #         - type: view
+                #           style:
+                #             left: "0.06"
+                #             height: "0.1"
+                #             overflow: hidden
+                #             width: "0.13"
+                #             textAlign:
+                #               x: center
+                #               y: center
+                #           children:
+                #             - type: image
+                #               path: office-building.svg
+                #               path=func: =.builtIn.utils.prepareDocToPath
+                #               dataKey: itemObject.name.facilityAvatarID
+                #               style:
+                #                 width: "0.13"
+                #         - type: label
+                #           dataKey: itemObject.name.inviterName
+                #           style:
+                #             top: "0.02"
+                #             left: "0.23"
+                #             width: "0.5"
+                #             height: "0.03"
+                #             fontSize: "18"
+                #             color: "#6e6e6e"
+                #             textAlign:
+                #               y: center
+                #               x: left
+                #           onClick:
+                #             - emit:
+                #                 dataKey:
+                #                   var: itemObject
+                #                 actions:
+                #                   - .Global.formData.pageName@: "NewConnections"
+                #                   - ..apiRequest.facilityProfile.docQueryReq.id@: $var.bvid
+                #                   - =..apiRequest.facilityProfile.docAPI.get: ""
+                #                   - .Global.formData.temporaryFacilityId@: =..apiRequest.facilityProfile.docQueryResp.doc.0
+                #             - goto: ProviderFacilityInfo
+                #         - type: label
+                #           dataKey: itemObject.name.businessType
+                #           style:
+                #             top: "0.05"
+                #             left: "0.1"
+                #             width: "0.5"
+                #             height: "0.05"
+                #             fontSize: .Nfont.h14
+                #             color: "#6e6e6e"
+                #             textAlign:
+                #               x: center
+                #               y: center
+                #         - type: button
+                #           text: "Accept"
+                #           onClick:
+                #             - actionType: evalObject
+                #               object:
+                #                 - if:
+                #                     - =.Global.organizations.0.id
+                #                     - ..flag@: true
+                #                     - ..flag@: false
+                #             - actionType: updateObject
+                #               dataKey: Global.organizations
+                #               dataObject: .EmptyObj
+                #             - actionType: popUp
+                #               popUpView: accepting
+                #             - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                #               dataKey: NewConnections.dataObject
+                #               dataObject: itemObject
+                #             - emit:
+                #                 dataKey:
+                #                   var: itemObject
+                #                 actions:
+                #                   - ..accept.edge.evid@: $var.bvid
+                #                   - ..accept.edge.name@: $var.name
+                #                   - ..accept.edge.refid@: $var.id
+                #                   - ..getVertex.vertex.id@: $var.bvid
+                #                   - =..getVertex.get: ""
+                #                   - if:
+                #                       - =.builtIn.array.isExist:
+                #                           dataIn:
+                #                             array: =.Global.formData.connectionList
+                #                             phoneNumber: $var.name.inviterPhoneNumber
+                #                       - =..invite.edgeAPI.delete: ""
+                #                       - continue
+                #                   - if:
+                #                       - =.builtIn.array.isExist:
+                #                           dataIn:
+                #                             array: =.Global.formData.connectionList
+                #                             phoneNumber: $var.name.inviterPhoneNumber
+                #                       - continue
+                #                       - =..accept.edgeAPI.store: ""
+                #                   - if:
+                #                       - =.builtIn.array.isExist:
+                #                           dataIn:
+                #                             array: =.Global.formData.connectionList
+                #                             phoneNumber: $var.name.inviterPhoneNumber
+                #                       - continue
+                #                       - =.builtIn.array.append:
+                #                           dataIn:
+                #                             newMessage: =..getVertex.response.vertex.0
+                #                             messages: =..organizations
+                #             - actionType: evalObject
+                #               object:
+                #                 - .Global.organizations@: =.NewConnections.organizations
+                #                 - .Global.hasOrganization@: true
+                #             - actionType: evalObject
+                #               object:
+                #                 - if:
+                #                     - =..flag
+                #                     - continue
+                #                     - actionType: evalObject
+                #                       object:
+                #                         - .Global.currentFacility@: =.Global.organizations.0
+                #                         - .Global.organizations.0.isSelected@: true
+                #                         - .Global.dashboardName@: =.Global.organizations.0.name.basicInfo.medicalFacilityName
+                #             - actionType: evalObject
+                #               object:
+                #                 .Global._nonce@:
+                #                   =.builtIn.math.random: ""
+                #             - actionType: evalObject
+                #               object:
+                #                 - =..invite.edgeAPI.get: ""
+                #                 - =.builtIn.search.updateEsData:
+                #                     dataIn:
+                #                       id: =.Global.currentUser.vertex.id
+                #                       type: "35841"
+                #                     dataOut: NewConnections.formData.res
+                #             # - actionType: evalObject
+                #             #   object:
+                #             #     - if:
+                #             #       - =.builtIn.object.isEmpty:
+                #             #           dataIn:
+                #             #             object: =.NewConnections.formData.res
+                #             #       - actionType: popUp
+                #             #         popUpView: tipsOneLine
+                #             #         # wait: true # comment wait true , avoid sync fail cant do other thing issues.
+                #             #       - continue
+                #             - actionType: builtIn
+                #               funcName: redraw
+                #               viewTag: inviteTag
+                #             - goto: MyConnection
+                #           style:
+                #             top: "0.02"
+                #             left: "0.6"
+                #             width: "0.18"
+                #             height: "0.04"
+                #             fontSize: "15"
+                #             color: "#ffffff"
+                #             backgroundColor: "#1dc160"
+                #             borderRadius: "5"
+                #             textAlign:
+                #               x: center
+                #         - type: button
+                #           text: "Deny"
+                #           onClick:
+                #             - actionType: updateObject
+                #               dataKey: Global.organizations
+                #               dataObject: .EmptyObj
+                #             - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                #               dataKey: NewConnections.dataObject
+                #               dataObject: itemObject
+                #             - emit:
+                #                 dataKey:
+                #                   var: itemObject
+                #                 actions:
+                #                   - ..refuse.edge.evid@: $var.bvid
+                #                   - ..refuse.edge.name@: $var.name
+                #                   - ..refuse.edge.refid@: $var.id
+                #                   - ..getVertex.vertex.id@: $var.bvid
+                #                   - =..getVertex.get: ""
+                #                   - if:
+                #                       - =.builtIn.array.isExist:
+                #                           dataIn:
+                #                             array: =.Global.formData.connectionList
+                #                             phoneNumber: $var.name.inviterPhoneNumber
+                #                       - =..invite.edgeAPI.delete: ""
+                #                       - continue
+                #                   - if:
+                #                       - =.builtIn.array.isExist:
+                #                           dataIn:
+                #                             array: =.Global.formData.connectionList
+                #                             phoneNumber: $var.name.inviterPhoneNumber
+                #                       - continue
+                #                       - =..refuse.edgeAPI.store: ""
+                #                   # - if:
+                #                   #   - =.builtIn.array.isExist:
+                #                   #       dataIn:
+                #                   #         array: =.Global.formData.connectionList
+                #                   #         phoneNumber: $var.name.inviterPhoneNumber
+                #                   #   - continue
+                #                   #   - =.builtIn.array.append:
+                #                   #       dataIn:
+                #                   #         newMessage: =..getVertex.response.vertex.0
+                #                   #         messages: =..organizations
+                #             - actionType: evalObject
+                #               object:
+                #                 - .Global.organizations@: =.NewConnections.organizations
+                #             - actionType: evalObject
+                #               object:
+                #                 .Global._nonce@:
+                #                   =.builtIn.math.random: ""
+                #             - actionType: evalObject
+                #               object:
+                #                 - =..invite.edgeAPI.get: ""
+                #             - actionType: builtIn
+                #               funcName: redraw
+                #               viewTag: inviteTag
+                #             - goto: MyConnection
+                #           style:
+                #             top: "0.02"
+                #             left: "0.8"
+                #             width: "0.18"
+                #             height: "0.04"
+                #             fontSize: "15"
+                #             color: "#ffffff"
+                #             backgroundColor: "#DC143C"
+                #             borderRadius: "5"
+                #             textAlign:
+                #               x: center
 
     - .simplePopup:
       viewTag: acceptPopUpView
@@ -658,7 +1118,7 @@ NewConnections:
             overflow: hidden
           children:
             - type: label
-              text: "your personal information will be shared."
+              text: "Your personal information will be shared."
               dataKey:
               style:
                 marginTop: "0.04"
@@ -667,13 +1127,13 @@ NewConnections:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.n2
-                fontFamily: "sans-serif"
+
                 # backgroundColor: "pink"
                 textAlign:
                   x: center
                   y: center
             - type: label
-              text: "include: name, date of birth, username, phone
+              text: "Include: name, date of birth, username, phone
                 number, email, gender and emergency contact"
               dataKey:
               style:
@@ -683,7 +1143,7 @@ NewConnections:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.n3
-                fontFamily: "sans-serif"
+
                 # backgroundColor: "pink"
                 textAlign:
                   x: center
@@ -763,7 +1223,7 @@ NewConnections:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.n2
-                fontFamily: "sans-serif"
+
                 textAlign:
                   x: center
                   y: center

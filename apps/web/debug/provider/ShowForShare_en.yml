@@ -10,7 +10,13 @@ ShowForShare:
     - =.builtIn.utils.setTimer:
         dataIn:
           timeUnix: =.Global.timeDelay
-    - ..apiRequest.publicProfile.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.publicProfile.docAPI.get: ""
+            - =..apiRequest.connections.docAPI.get: ""
     - ..apiRequest.publicProfile.document@: =..apiRequest.publicProfile.docResponse.doc.0
     - ..apiRequest.profile.document.name.data@: =..apiRequest.publicProfile.document.name.data
     - =.builtIn.object.getObjKey:
@@ -82,7 +88,7 @@ ShowForShare:
                   value: "education"
             - ..educationHidden@: ""
             - ..educationHidden@: none
-    - =..apiRequest.connections.docAPI.get: ""
+    
     - ..formData.FacilityData@: =..apiRequest.connections.connectionList.doc
     - if:
         - =..apiRequest.profile.document.name.data.selectedSpecialty
@@ -141,7 +147,7 @@ ShowForShare:
     titleData:
       - title: About
         fontColor: "0x2988e6"
-        fontWeight: "500"
+        fontWeight: "600"
         # width: "31vw"
         # leftStyle: "11.5vw"
         block: "block"
@@ -212,19 +218,16 @@ ShowForShare:
           _nonce: =.Global._nonce
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: view
       viewTag: blockImageTag
       style:
         width: "1"
-        marginTop: "0.1"
         height: "auto"
         overflow: hidden
-        fontSize: .Nfont.n2
       children:
         - type: view
           style:
@@ -257,7 +260,7 @@ ShowForShare:
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.fullName
                   style:
-                    fontSize: .Nfont.h4
+                    fontSize: .Nfont.h20
                     marginTop: "0.01"
                     width: "0.8"
                     textAlign:
@@ -265,17 +268,18 @@ ShowForShare:
                 - type: label
                   dataKey: selectedSpecialtyShow
                   style:
-                    fontSize: .Nfont.h2
+                    fontSize: .Nfont.h16
                     marginTop: "0.01"
                     height: "0.035"
                     backgroundColor: "#ffffff"
+                    color: "#666666"
                     border:
                       style: 1
                     width: "0.8"
                     textAlign:
                       x: center
                     overflow: hidden
-                    textOverflow: ellipsis
+                    text-overflow: ellipsis
                     whiteSpace: nowrap
     - type: view
       viewTag: blockMarginTag
@@ -295,7 +299,7 @@ ShowForShare:
             width: "1"
             margin: "0"
             axis: horizontal
-            height: "0.052"
+            height: "0.05"
             border:
               style: "2"
               color: "0xdededf"
@@ -320,7 +324,7 @@ ShowForShare:
                             label: "title"
                             text: $var.title
                             arr: ["fontColor", "fontWeight", "block"]
-                            valueArr: ["0x2988e6", "500", "block"]
+                            valueArr: ["0x2988e6", "600", "block"]
                             errorArr: ["0x333333", "400", "none"]
                       # - ..formDataTemp.leftStyle@: $var.leftStyle
                       - if:
@@ -488,12 +492,12 @@ ShowForShare:
                     display: "inline-block"
                     textAlign:
                       x: center
-                    fontSize: .Nfont.n2
+                    fontSize: .Nfont.h14
                 - type: view
                   viewTag: leftBlockTag
                   style:
                     display: itemObject.block
-                    top: "0.045"
+                    top: "0.0455"
                     left: "0.12"
                     width: "0.08"
                     height: "0.005"
@@ -503,7 +507,7 @@ ShowForShare:
       viewTag: blockHeightTag
       style:
         marginTop: "0"
-        height: "0.51"
+        height: "0.5665024"
         width: "1"
         backgroundColor: "0xffffff"
         # overflow: scroll
@@ -514,7 +518,7 @@ ShowForShare:
             width: "1"
             display: ..formDataTemp.blockAboutInfo
             height: "auto"
-            fontSize: .Nfont.n2
+            fontSize: .Nfont.h14
           children:
             - type: view
               style:
@@ -526,12 +530,13 @@ ShowForShare:
                 - type: label
                   text: Basic Info
                   style:
-                    color: "0x333333"
-                    fontWeight: "400"
-                    width: "0.9"
-                    marginLeft: "0.05"
-                    lineHeight: "4.5vh"
-                    height: "0.045"
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
             - type: view
               style:
                 width: "0.9"
@@ -542,16 +547,18 @@ ShowForShare:
                   text: First Name
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.21"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
+
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.firstName
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
                     width: "0.69"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                     textAlign:
                       x: right
 
@@ -566,15 +573,16 @@ ShowForShare:
                   text: Middle Name
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.25"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
                   placeholder: Enter here
                   dataKey: apiRequest.profile.document.name.data.middleName
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontSize: .Nfont.h14
                     width: "0.65"
                     textAlign:
                       x: right
@@ -590,14 +598,15 @@ ShowForShare:
                   text: "Last Name"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.21"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.lastName
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontSize: .Nfont.h14
                     width: "0.69"
                     display: "inline-block"
                     textAlign:
@@ -613,14 +622,15 @@ ShowForShare:
                   text: Title/Training
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.24"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.title
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontSize: .Nfont.h14
                     width: "0.66"
                     display: "inline-block"
                     textAlign:
@@ -637,8 +647,9 @@ ShowForShare:
                   text: "Languages Spoken"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.6"
+                    fontSize: .Nfont.h14
                     # display: "inline-block"
                 - type: label
                   dataKey: ShowForShare.apiRequest.profile.document.name.data.languages
@@ -647,7 +658,7 @@ ShowForShare:
                     height: "auto"
                     marginLeft: "0.05"
                     marginTop: "0.02"
-                    fontSize: .Nfont.n2
+                    fontSize: .Nfont.h14
                     wordWrap: break-word
                     color: "0x333333"
             - type: view
@@ -662,15 +673,16 @@ ShowForShare:
                   text: Gender
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.15"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
                   text: Gender
                   dataKey: apiRequest.profile.document.name.data.gender
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontSize: .Nfont.h14
                     width: "0.75"
                     display: "inline-block"
                     textAlign:
@@ -686,12 +698,13 @@ ShowForShare:
                 - type: label
                   text: Contact
                   style:
-                    color: "0x333333"
-                    fontWeight: "400"
-                    width: "0.9"
-                    marginLeft: "0.05"
-                    lineHeight: "4.5vh"
-                    height: "0.045"
+                    marginLeft: "0.04"
+                    color: "0x666666"
+                    height: "auto"
+                    width: "auto"
+                    lineHeight: 5vh
+                    fontSize: .Nfont.h14
+                    fontWeight: "700"
             - type: view
               style:
                 width: "0.9"
@@ -704,18 +717,17 @@ ShowForShare:
                   text: Email
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.12"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
-                  text: First Name
-                  # placeholder: Enter here
                   dataKey: apiRequest.profile.document.name.data.email
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
                     width: "0.78"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                     textAlign:
                       x: right
             - type: view
@@ -729,26 +741,27 @@ ShowForShare:
                   text: "Fax #"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.11"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
                   # placeholder: Enter here
                   dataKey: apiRequest.profile.document.name.data.fax
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
                     width: "0.79"
                     textAlign:
                       x: right
                     display: "inline-block"
+                    fontSize: .Nfont.h14
 
         - type: view
           viewTag: CredentialsInfoTag
           style:
             width: "1"
             height: "0.75"
-            fontSize: .Nfont.n2
+            fontSize: .Nfont.h14
             display: ..formDataTemp.blockCredentialsInfo
           children:
             - type: view
@@ -759,10 +772,10 @@ ShowForShare:
                 marginTop: "0.02"
               children:
                 - type: label
-                  text: "Specialty and board certified: "
+                  text: "Specialty & Board Certified: "
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.8"
                     display: "inline-block"
             - type: list
@@ -789,17 +802,15 @@ ShowForShare:
                       dataKey: itemObject.specialty
                       style:
                         width: "0.8"
-                        fontWeight: "600"
                         display: "inline-block"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                     - type: label
                       dataKey: itemObject.boardCertified
                       style:
                         width: "0.1"
-                        fontWeight: "600"
                         marginLeft: "0"
                         display: "inline-block"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                         textAlign:
                           x: right
             - type: view
@@ -813,7 +824,7 @@ ShowForShare:
                   text: "Medical License,State and Expiration:"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.8"
                     display: "inline-block"
             - type: list
@@ -840,23 +851,20 @@ ShowForShare:
                       dataKey: itemObject.medicalLicense
                       style:
                         width: "0.4"
-                        fontWeight: "600"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                         display: "inline-block"
                     - type: label
                       dataKey: itemObject.state
                       style:
                         width: "0.15"
-                        fontWeight: "600"
                         display: "inline-block"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                     - type: label
                       dataKey: itemObject.expiration
                       style:
                         width: "0.35"
-                        fontWeight: "600"
                         display: "inline-block"
-                        fontSize: .Nfont.h1
+                        fontSize: .Nfont.h14
                         textAlign:
                           x: right
             - type: view
@@ -871,18 +879,19 @@ ShowForShare:
                   text: "NPI #"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.11"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.NPI
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
                     width: "0.79"
                     textAlign:
                       x: right
                     display: "inline-block"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -895,18 +904,19 @@ ShowForShare:
                   text: "DEA #"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.12"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.DEA
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
                     textAlign:
                       x: right
                     width: "0.78"
                     display: "inline-block"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -919,8 +929,9 @@ ShowForShare:
                   text: "Description"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.9"
+                    fontSize: .Nfont.h14
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.description
                   style:
@@ -928,6 +939,7 @@ ShowForShare:
                     marginTop: "0.01"
                     height: "auto"
                     width: "0.9"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -937,11 +949,12 @@ ShowForShare:
                 display: ..educationHidden
               children:
                 - type: label
-                  text: "Education and training"
+                  text: "Education & Training"
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.9"
+                    fontSize: .Nfont.h14
                 - type: label
                   dataKey: apiRequest.profile.document.name.data.education
                   style:
@@ -949,6 +962,7 @@ ShowForShare:
                     height: "0.15"
                     marginTop: "0.01"
                     width: "0.9"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 width: "0.9"
@@ -960,7 +974,7 @@ ShowForShare:
                   text: CV
                   style:
                     color: "0x333333"
-                    fontWeight: "400"
+                    fontWeight: "600"
                     width: "0.7"
             - type: view
               viewTag: cvBox
@@ -994,7 +1008,7 @@ ShowForShare:
           style:
             width: "1"
             height: "0.6"
-            fontSize: .Nfont.n2
+            fontSize: .Nfont.h14
             display: ..formDataTemp.blockFacilityInfo
           children:
             - type: view
@@ -1018,6 +1032,7 @@ ShowForShare:
                     width: "1"
                     height: "auto"
                     fontSize: .Nfont.h14
+                    color: "#666666"
                     textAlign:
                       x: center
 
@@ -1038,105 +1053,202 @@ ShowForShare:
                     height: "0.12"
                     margin: "0"
                     boxShadow: "0px 3px 0px 0px #eeeeee"
-                  onClick:
-                    - actionType: updateObject
-                      dataKey: Global.formData.temporaryFacilityId
-                      dataObject: itemObject
-                    - goto: OrganizationInfo
                   children:
                     - type: view
                       style:
-                        height: "16vw"
-                        marginLeft: "0.05"
-                        top: "0.01"
-                        width: "0.9"
-                        marginTop: "0.02"
-                        border:
-                          style: "1"
-                        borderWidth: "1"
-                        borderColor: "0x333333"
+                        marginLeft: "0.04"
+                        width: "0.92"
+                        height: "auto"
+                        backgroudnColor: "pink"
+                        paddingTop: "0.01970"
+                        paddingBottom: "0.01970"
                       children:
                         - type: image
                           path=func: =.builtIn.utils.prepareDocToPath
-                          path: ava_Provder.svg
+                          path: office-building.svg
                           dataKey: itemObject.name.data.basicInfo.businessLogo
                           style:
-                            height: "16vw"
-                            textAlign:
-                              x: center
-                        - type: label
-                          # text: A&C Urgentcare
-                          dataKey: itemObject.name.data.basicInfo.medicalFacilityName
-                          style:
-                            top: "0.005"
-                            left: "0.2"
-                            width: "0.6"
-                            fontSize: .Nfont.n2
-                            color: "0x333333"
-                            fontWeight: "400"
-                        - type: label
-                          text: Accepted Insurance
-                          # dataKey: itemObject.name.basicInfo.medicalFacilityName
-                          style:
-                            top: "0.04"
-                            fontSize: .Nfont.n2
-                            width: "0.6"
-                            left: "0.2"
-                            height: "0.04"
-                            zIndex: "1000"
-                            color: "0x2988e6"
-                            fontWeight: "400"
-                            textDecoration: underline
-                            textDecorationColor: "0x2988e6"
-                          onClick:
-                            - actionType: updateObject
-                              dataKey: Global.formData.facilityProfileInfo
-                              dataObject: itemObject
-                            - goto: AcceptedInsurance
+                            display: "inline-block"
+                            height: "0.07389"
+                            width: "0.16"
+                            border:
+                              style: 3
+                            borderColor: "#dededf"
+                            borderWidth: "1"
+                            borderRadius: "4"
+                            verticalAlign: middle
                         - type: view
                           style:
-                            top: "0"
-                            # height: "0.12"
-                            width: "0.05"
+                            marginLeft: "0.032"
+                            display: "inline-block"
+                            verticalAlign: middle
+                            height: "auto"
+                            width: "0.65"
+                            overflow: hidden
                           children:
-                            - type: image
-                              path: blackRight.svg
+                            - type: label
+                              dataKey: itemObject.name.data.basicInfo.medicalFacilityName
                               style:
-                                height: "0.025"
-                                marginTop: "0.025"
-                                left: "0.8"
+                                width: "0.65"
+                                height: "auto"
+                                wordBreak: break-word
+                                fontSize: .Nfont.h14
+                                color: "#333333"
+                            - type: label
+                              text: Accepted Insurance
+                              dataKey:
+                              style:
+                                marginTop: "0.0123"
+                                width: "0.65"
+                                height: "auto"
+                                wordBreak: break-word
+                                color: "0x2988e6"
+                                textDecoration: underline
+                                textDecorationColor: "0x2988e6"
+                              onClick:
+                                - actionType: updateObject
+                                  dataKey: Global.formData.facilityProfileInfo
+                                  dataObject: itemObject
+                                - goto: AcceptedInsurance
+                        - type: image
+                          path: blackRight.svg
+                          style:
+                            marginLeft: "0.038"
+                            display: "inline-block"
+                            height: "0.014778"
+                            width: "0.032"
+                            verticalAlign: middle
+                          onClick:
+                            - actionType: updateObject
+                              dataKey: Global.formData.temporaryFacilityId
+                              dataObject: itemObject
+                            # - goto: OrganizationInfo
+                            - goto: FacilityInfomation
+                    # - type: view
+                    #   style:
+                    #     height: "16vw"
+                    #     marginLeft: "0.05"
+                    #     top: "0.01"
+                    #     width: "0.9"
+                    #     marginTop: "0.02"
+                    #     border:
+                    #       style: "1"
+                    #     borderWidth: "1"
+                    #     borderColor: "0x333333"
+                    #   children:
+                    #     - type: image
+                    #       path=func: =.builtIn.utils.prepareDocToPath
+                    #       path: ava_Provder.svg
+                    #       dataKey: itemObject.name.data.basicInfo.businessLogo
+                    #       style:
+                    #         height: "16vw"
+                    #         textAlign:
+                    #           x: center
+                    #     - type: label
+                    #       # text: A&C Urgentcare
+                    #       dataKey: itemObject.name.data.basicInfo.medicalFacilityName
+                    #       style:
+                    #         top: "0.005"
+                    #         left: "0.2"
+                    #         width: "0.6"
+                    #         fontSize: .Nfont.h14
+                    #         color: "0x333333"
+                    #         fontWeight: "600"
+                    #     - type: label
+                    #       text: Accepted Insurance
+                    #       # dataKey: itemObject.name.basicInfo.medicalFacilityName
+                    #       style:
+                    #         top: "0.04"
+                    #         fontSize: .Nfont.h14
+                    #         width: "0.6"
+                    #         left: "0.2"
+                    #         height: "0.04"
+                    #         zIndex: "1000"
+                    #         color: "0x2988e6"
+                    #         fontWeight: "600"
+                    #         textDecoration: underline
+                    #         textDecorationColor: "0x2988e6"
+                    #       onClick:
+                    #         - actionType: updateObject
+                    #           dataKey: Global.formData.facilityProfileInfo
+                    #           dataObject: itemObject
+                    #         - goto: AcceptedInsurance
+                    #     - type: view
+                    #       style:
+                    #         top: "0"
+                    #         # height: "0.12"
+                    #         width: "0.05"
+                    #       children:
+                    #         - type: image
+                    #           path: blackRight.svg
+                    #           style:
+                    #             height: "0.025"
+                    #             marginTop: "0.025"
+                    #             left: "0.8"
 
     - type: view
       style:
+        height: "0.0972"
         width: "1"
         backgroundColor: "0xffffff"
-        height: "0.1"
-        top: "0.899"
-        left: "0"
-        borderTop: "1px solid #EEEEEF"
-        borderWidth: "1"
-        borderColor: "0xEEEEEF"
-    - type: button
-      text: Back To My Profile
-      style:
-        width: "0.9"
-        left: "0.05"
-        height: "0.05"
-        color: "0xffffff"
-        position: "fixed"
-        top: "0.92"
-        backgroundColor: "#2988E6"
-        border:
-          style: "1"
-        borderWidth: "1"
-        borderRadius: "5"
+        boxSizing: border-box
+
+        boxShadow: "1px 1px 4px 1px #dededf"
+        overflow: hidden
         textAlign:
           x: center
-          y: center
-      onClick:
-        - goto: MyProfile
-        # - actionType: builtIn
-        #   funcName: goBack
+      children:
+        - type: button
+          text: Back To My Profile
+          onClick:
+            - goto: MyProfile
+          style:
+            marginTop: "0.0123"
+            height: "0.0443"
+            width: "0.84"
+            border:
+              style: 1
+            borderRadius: "5"
+            backgroundColor: "#2988e6"
+            color: "#ffffff"
+            fontSize: .Nfont.h14
+            boxSizing: border-box
+            fontWeight: "600"
+            textAlign:
+              x: center
+
+    # - type: view
+    #   style:
+    #     width: "1"
+    #     backgroundColor: "0xffffff"
+    #     height: "0.1"
+    #     top: "0.899"
+    #     left: "0"
+    #     borderTop: "1px solid #EEEEEF"
+    #     borderWidth: "1"
+    #     borderColor: "0xEEEEEF"
+    # - type: button
+    #   text: Back To My Profile
+    #   style:
+    #     width: "0.9"
+    #     left: "0.05"
+    #     height: "0.05"
+    #     color: "0xffffff"
+    #     position: "fixed"
+    #     top: "0.92"
+    #     backgroundColor: "#2988E6"
+    #     fontWeight: "600"
+    #     border:
+    #       style: "1"
+    #     borderWidth: "1"
+    #     borderRadius: "5"
+    #     textAlign:
+    #       x: center
+    #       y: center
+    #   onClick:
+    #     - goto: MyProfile
+    #     # - actionType: builtIn
+    #     #   funcName: goBack
     #  头像上传
     - type: popUp
       viewTag: selectView
@@ -1590,7 +1702,7 @@ ShowForShare:
                 height: "auto"
                 color: "0x4b4b4b"
                 fontSize: .Nfont.h2
-                fontFamily: "sans-serif"
+
                 # backgroundColor: "pink"
                 textAlign:
                   x: center

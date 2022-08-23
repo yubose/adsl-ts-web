@@ -6,7 +6,12 @@ SwitchFacility:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - ..formData.facilities@: =.Global.organizations 
+
+    - =.builtIn.utils.getPageNames:
+        dataIn:
+        dataOut: SwitchFacility.formData.routeList
+
+    - ..formData.facilities@: =.Global.organizations
     - =.builtIn.object.setProperty:
         dataIn:
           obj: =..formData.facilities
@@ -14,7 +19,8 @@ SwitchFacility:
           text: =.Global.currentFacilityDoc.bsig
           arr: ["borderColor"]
           valueArr: ["0x2887e5"]
-          errorArr: ["0xeeeeee"] 
+          errorArr: ["0xeeeeee"]
+
     # 是否存在facility
     - actionType: evalObject
       object:
@@ -22,22 +28,37 @@ SwitchFacility:
             dataIn:
               object: =..formData.facilities
             dataOut: SwitchFacility.formData.facilityLength
-      
+
     - actionType: evalObject
       object:
         - if:
-          - =.builtIn.string.equal:
-              dataIn:
-                string1: =..formData.facilityLength
-                string2: "0"
-          - actionType: evalObject
-            object:
-              - ..formData.facilityInfo@: "none"
-              - ..formData.emptyfacility@: "block"
-          - actionType: evalObject
-            object:
-              - ..formData.facilityInfo@: "block"
-              - ..formData.emptyfacility@: "none"   
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.facilityLength
+                  string2: "0"
+            - actionType: evalObject
+              object:
+                - ..formData.facilityInfo@: "none"
+                - ..formData.emptyfacility@: "block"
+            - actionType: evalObject
+              object:
+                - ..formData.facilityInfo@: "block"
+                - ..formData.emptyfacility@: "none"
+    - actionType: evalObject
+      object:
+          - if:
+              - =.builtIn.array.has:
+                  dataIn:
+                    object: =..formData.routeList
+                    value: "Dashboard"
+              - actionType: evalObject
+                object:
+                  - ..formData.backHidden@: "none"
+                  - ..formData.backShow@: "block"
+              - actionType: evalObject
+                object:
+                  - ..formData.backHidden@: "block"
+                  - ..formData.backShow@: "none"    
   localFacility:
   apiRequest:
     currentFacilityDoc:
@@ -59,16 +80,29 @@ SwitchFacility:
     emptyfacility: "block"
     # facilityInfo: "none"
     facilityLength: ""
+    backHidden: "none"
+    backShow: "block"
+    routeList: []
   components:
-    - .BaseHeader:
-    - .HeaderLeftBack:
+    - .BasePublicHeader:
+      style: 
+        display: ..formData.backHidden
+      children:
+        - .BasePublicHeaderLeftEmpty:
+        - .BasePublicHeaderTitle:
+    - .BasePublicHeader:
+      style: 
+        display: ..formData.backShow
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: view
       viewTag: facilityTag
       style:
-        marginTop: "0.1"
+        # marginTop: "0.1"
         marginLeft: "0.04"
-        width: "0.92"
-        height: "0.615"
+        # width: "0.92"
+        # height: "0.615"
         boxSizing: border-box
       children:
         - type: view
@@ -77,7 +111,7 @@ SwitchFacility:
             width: "0.92"
             height: "auto"
             overflow: hidden
-            textAlign: 
+            textAlign:
               x: center
           children:
             - type: image
@@ -92,97 +126,109 @@ SwitchFacility:
                 width: "0.92"
                 height: "auto"
                 fontSize: .Nfont.h14
+                color: "#666666"
                 textAlign:
                   x: center
-        - type: list
-          contentType: listObject
-          listObject: ..formData.facilities
-          iteratorVar: itemObject
+        - type: scrollView
           style:
-            display: ..formData.facilityInfo
             height: "0.615"
             width: "0.92"
-            borderRadius: "7"
-            boxSizing: border-box
-            overflow: scroll
+            boxSizing: "border-box"
+            paddingBottom: "0.03"
           children:
-            - type: listItem
-              viewTag: switchTag
-              itemObject:
+            - type: list
+              contentType: listObject
+              listObject: ..formData.facilities
+              iteratorVar: itemObject
               style:
-                marginTop: "0.0198"
-                width: "0.92"
-                height: "auto"
-                border:
-                  style: 3
-                borderWidth: "1.5"
-                borderColor: itemObject.borderColor
-                boxShadow: "1px 1px 4px 1px #eeeeee"
+                display: ..formData.facilityInfo
                 borderRadius: "7"
-                overflow: hidden
                 boxSizing: border-box
-                fontFamily: Arial
               children:
-                - type: view
+                - type: listItem
+                  viewTag: switchTag
+                  itemObject:
                   style:
-                    marginTop: "0.0198" #16.08px
-                    height: "auto"
+                    marginTop: "0.0198"
                     width: "0.92"
+                    height: "auto"
+                    border:
+                      style: 3
+                    borderWidth: "1.5"
+                    borderColor: itemObject.borderColor
+                    boxShadow: "0px 0px 5px #eeeeee"
+                    backgroundColor: "0xffffff"
+                    borderRadius: "7"
+                    overflow: hidden
+                    boxSizing: border-box
+
                   children:
-                    - type: image
-                      dataKey: itemObject.name.basicInfo.businessLogo
-                      path=func: =.builtIn.utils.prepareDocToPath
-                      path: office-building.svg
+                    - type: view
                       style:
-                        marginLeft: "0.0533"
-                        verticalAlign: middle
-                        display: "inline-block"
-                        height: "0.059"
-                        width: "0.128"
-                        borderRadius: "5"
-                    - type: label
-                      dataKey: itemObject.name.basicInfo.medicalFacilityName
-                      style:
-                        verticalAlign: middle
-                        marginLeft: "0.0426"
-                        display: "inline-block"
+                        marginTop: "0.0198" #16.08px
                         height: "auto"
-                        width: "0.6"
-                        overflow: hidden
-                    - type: image
-                      path: blueRightThin.svg
+                        width: "0.92"
+                      children:
+                        - type: image
+                          dataKey: itemObject.name.basicInfo.businessLogo
+                          path=func: =.builtIn.utils.prepareDocToPath
+                          path: office-building.svg
+                          style:
+                            marginLeft: "0.0533"
+                            verticalAlign: middle
+                            display: "inline-block"
+                            height: "0.059"
+                            width: "0.128"
+                            borderRadius: "5"
+                        - type: label
+                          dataKey: itemObject.name.basicInfo.medicalFacilityName
+                          style:
+                            verticalAlign: middle
+                            marginLeft: "0.0426"
+                            display: "inline-block"
+                            height: "auto"
+                            width: "0.6"
+                            overflow: hidden
+                        - type: image
+                          path: blueRightThin.svg
+                          style:
+                            display: "inline-block"
+                            verticalAlign: middle
+                            width: "0.064"
+                            height: "0.0295"
+                    - type: view
                       style:
-                        display: "inline-block"
-                        verticalAlign: middle
-                        width: "0.064"
-                        height: "0.0295"
-                - type: view
-                  style:
-                    height: "0.0198" #16.08px                        
-              onClick:
-                - actionType: evalObject
-                  object:
-                    - .Global.currentFacility@: []
-                    - actionType: updateObject
-                      dataKey: Global.currentFacility
-                      dataObject: itemObject
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.currentFacilityDoc.docAPI.get: ""
-                    - .Global.currentFacilityDoc@:  =..apiRequest.currentFacilityDoc.docResp.doc.0
-                - emit:
-                    dataKey:
-                      var: itemObject
-                    actions:
-                      - .Global.formData.location@: $var
-                      - .Global.dashboardName@: $var.name.basicInfo.medicalFacilityName
-                - goto: Dashboard          
+                        height: "0.0198" #16.08px
+                  onClick:
+                    # 切换facility的时候需要把一些东西置空
+                    - actionType: evalObject
+                      object:
+                        - .Global.currentFacility@: []
+                        - .Global.formData.currentFacility.alllocationId@: []
+                        - actionType: updateObject
+                          dataKey: Global.formData.currentFacility.relationEdge
+                          dataObject: .EmptyObj
+                        - actionType: updateObject
+                          dataKey: Global.currentFacility
+                          dataObject: itemObject
+                    - actionType: evalObject
+                      object:
+                        - =..apiRequest.currentFacilityDoc.docAPI.get: ""
+                        - .Global.currentFacilityDoc@: ""
+                        - .Global.currentFacilityDoc@: =..apiRequest.currentFacilityDoc.docResp.doc.0
+                    - emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - .Global.formData.location@: $var
+                          - .Global.dashboardName@: $var.name.basicInfo.medicalFacilityName
+                    - goto: Dashboard
     - type: view
       style:
         marginTop: "0.0198"
         width: "1"
         height: "auto"
-        fontFamily: Arial
+
         textAlign:
           x: center
       children:
@@ -191,7 +237,7 @@ SwitchFacility:
           style:
             height: "0.0948"
         - type: label
-          text: You can switch at any time by tapping the switch account button in the menu bar at the top right hand corner of the dashboard. 
+          text: You can switch at any time by tapping the switch account button in the menu bar at the top right hand corner of the dashboard.
           style:
             marginLeft: "0.04"
             marginTop: "0.0198"
@@ -202,5 +248,3 @@ SwitchFacility:
             fontSize: .Nfont.h12
             textAlign:
               x: center
-
-                

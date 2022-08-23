@@ -7,6 +7,7 @@ import { toast } from './utils/dom'
 import { isChrome } from './utils/common'
 import App from './App'
 import { getWindowDebugUtils } from './utils/windowDebugUtils'
+import { __NOODL_SEARCH_CLIENT__ } from './constants'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
 import 'vercel-toast/css'
@@ -195,15 +196,6 @@ window.addEventListener('load', async (e) => {
     })
 
     window.addEventListener('popstate', createOnPopState(app))
-
-    // Experimenting with noodl-app's wrapper
-    if ('publishViewport' in window) {
-      // @ts-expect-error
-      window.publishViewport?.({
-        width: app.viewport.width,
-        height: app.viewport.height,
-      })
-    }
   } catch (error) {
     console.error(error)
   } finally {
@@ -228,8 +220,19 @@ window.addEventListener('load', async (e) => {
       })
     }
   }
-})
 
+  if (__NOODL_SEARCH_CLIENT__ in window) {
+    console.log(
+      `Custom SearchClient available in window.__NOODL_SEARCH_CLIENT__`,
+    )
+    const searchClient = window.__NOODL_SEARCH_CLIENT__({
+      timestamp: new Date().toISOString(),
+    })
+    searchClient.search({
+      body: ``,
+    })
+  }
+})
 
 window.addEventListener('beforeunload', (evt) => {
   const html = document.getElementById('root')?.innerHTML || ''

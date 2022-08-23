@@ -13,6 +13,7 @@ BackgroundColorGray:
 
 BasePublicHeader:
   type: view
+  viewTag: header
   style:
     height: "0.055" # 44.66px
     width: "1"
@@ -20,25 +21,38 @@ BasePublicHeader:
     padding: "0"
     backgroundColor: "0x2988e6"
 
-BasePublicHeaderLeft:
+BasePublicHeaderLeftEmpty:
   type: view
-  path: arrowLeftgrey.svg
   style:
     marginLeft: "0.04"
     display: "inline-block"
     verticalAlign: middle
     height: "0.055"
+    width: "0.066666"
     boxSizing: border-box
+    zIndex: 10
+
+BasePublicHeaderLeft:
+  type: view
+  path: arrowLeftgrey.svg
+  style:
+    paddingLeft: "0.04"
+    display: "inline-block"
+    verticalAlign: middle
+    height: "0.055"
+    boxSizing: border-box
+  leftClick:
+    - actionType: builtIn
+      funcName: goBack
+      reload: true
   children:
     - type: image
       path: __.path
       style:
         marginTop: "0.012"
         height: "0.0295"
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
+        width: "2.95vh"
+      onClick: __.leftClick
 
 BasePublicHeaderTitle:
   type: label
@@ -51,10 +65,29 @@ BasePublicHeaderTitle:
     height: "auto"
     width: "0.626"
     wordWrap: break-word
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h16
     fontWeight: "400"
     color: "0xffffff"
+    zIndex: 2
+    textAlign:
+      x: center
+
+BasePublicHeaderCenter:
+  type: label
+  text: =..title
+  dataKey:
+  style:
+    verticalAlign: middle
+    height: "auto"
+    width: "1"
+    wordWrap: break-word
+
+    fontSize: .Nfont.h16
+    fontWeight: "400"
+    lineHeight: 5.5vh
+    color: "0xffffff"
+    zIndex: 10
     textAlign:
       x: center
 
@@ -62,14 +95,18 @@ BasePublicHeaderRightText:
   type: label
   text: Macro
   style:
+    display: inline-block
     marginLeft: "0.02"
-    display: "inline-block"
     verticalAlign: middle
     fontSize: .Nfont.h14
     fontWeight: "600"
-    width: "auto"
-    height: "auto"
+    width: "0.12533"
+    height: "0.055"
+    boxSizing: border-box
+    lineHeight: 5.5vh
     color: "0xffffff"
+    textAlign:
+      x: right
 
 BasePublicHeaderRightIcon:
   type: image
@@ -79,6 +116,7 @@ BasePublicHeaderRightIcon:
     display: "inline-block"
     verticalAlign: middle
     height: "0.0197"
+    zIndex: 10
 
 BasePublicHeaderDownload:
   type: image
@@ -87,10 +125,22 @@ BasePublicHeaderDownload:
     marginLeft: "0.0973"
     display: "inline-block"
     verticalAlign: middle
-    height: "0.0197"
+    height: "0.029556"
   onClick:
     - actionType: popUp
       popUpView: selectBoxTag
+
+BasePublicHeaderMenu:
+  type: image
+  path: sideNav.svg
+  style:
+    marginLeft: "0.0973"
+    display: "inline-block"
+    verticalAlign: middle
+    height: "0.029556"
+  onClick:
+    - actionType: popUp
+      popUpView: MenuBoxTag
 
 BasePublicFooter:
   type: view
@@ -99,7 +149,7 @@ BasePublicFooter:
     width: "1"
     backgroundColor: "0xffffff"
     boxSizing: border-box
-    fontFamily: "Arial"
+
     boxShadow: "1px 1px 4px 1px #dededf"
     overflow: hidden
     textAlign:
@@ -230,7 +280,7 @@ DocPublicStyleThreeValue:
       style: 1
     borderRadius: "4"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "0x333333"
     padding: "6px 12px"
     backgroundColor: "0xf4f4f4"
@@ -323,6 +373,7 @@ DocPublicInlineStyleTwoInput:
       style: 3
     borderColor: "0xdedede"
     borderRadius: "4"
+    fontSize: .Nfont.h14
 
 DocPublicInlineStyleValue:
   type: textField
@@ -338,7 +389,7 @@ DocPublicInlineStyleValue:
       style: 1
     borderRadius: "4"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "0x333333"
     padding: "6px 12px"
     backgroundColor: "0xf4f4f4"
@@ -357,7 +408,7 @@ DocPublicInlineStyleLabel:
       style: 1
     borderRadius: "4"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "0x333333"
     padding: "6px 12px"
     backgroundColor: "0xf4f4f4"
@@ -376,7 +427,7 @@ DocPublicInlineStyleInput:
       style: 3
     borderRadius: "4"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "0x333333"
     textIndent: "12px"
     borderColor: "0xdedede"
@@ -395,7 +446,7 @@ DocPublicInlineStyleSelect:
       style: 3
     borderRadius: "4"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "0x333333"
     textIndent: "12px"
     borderColor: "0xdedede"
@@ -509,9 +560,9 @@ PresLabelLeft:
   type: label
   style:
     display: "inline-block"
-    heigth: "auto"
+    height: "auto"
     width: "0.4"
-    fontFamily: "Arial"
+
     color: "0x333333"
     fontWeight: "600"
     fontSize: .Nfont.h14
@@ -520,9 +571,9 @@ PresLabelRight:
   dataKey:
   style:
     display: "inline-block"
-    heigth: "auto"
+    height: "auto"
     width: "0.5"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h14
     color: "0x666666"
     wordWrap: break-word
@@ -604,7 +655,7 @@ EvalNoteTextAreaTitle:
     color: "0x6b6b6b"
     fontWeight: "600"
     fontSize: .Nfont.h15
-    fontFamily: "Arial"
+
 EvalNoteTextArea:
   type: textView
   dataKey:
@@ -619,7 +670,7 @@ EvalNoteTextArea:
     borderColor: "0x6b6b6b"
     color: "0x000000"
     fontSize: .Nfont.h1
-    fontFamily: "Arial"
+
 formData:
   FirstName: ""
 FormView:
@@ -712,7 +763,7 @@ prOneListLabel:
   style:
     height: "auto"
     width: "0.9"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h1
 
 prOneListField:
@@ -746,7 +797,7 @@ prOneLabelLeft:
     display: "inline-block"
     height: "auto"
     width: "0.3"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h1
     # backgroundColor: "pink"
     textAlign:
@@ -760,7 +811,7 @@ prOneLabelRight:
     display: "inline-block"
     height: "auto"
     width: "0.6"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h1
     # backgroundColor: "red"
     wordWrap: break-word
@@ -1176,6 +1227,239 @@ HeaderSaveButton:
           x: left
           y: center
 
+HeaderPopUpMultiplePDF:
+  type: popUp
+  viewTag: MenuBoxTag
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    marginTop: "0"
+    overflow: hidden
+  children:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: MenuBoxTag
+    - type: view
+      bubble: true
+      style:
+        top: "0.0431034"
+        left: "0.52266666"
+        width: "0.4453333"
+        boxSizing: "border-box"
+        borderRadius: "5"
+        border: "1px solid #dedede"
+        backgroundColor: "#ffffff"
+        overflow: hidden
+        zIndex: 10
+      children:
+        - type: image
+          path: PDFIcon.svg
+          style:
+            marginLeft: "0.053"
+            display: "inline-block"
+            verticalAlign: middle
+            height: "0.024"
+            width: "0.05333"
+        - type: label
+          text: Download PDF
+          onClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.exportMultiplePagesPdf:
+                    dataIn:
+                      pages: =.Global.formData.downloadPDF.PdfPageList
+                      holeOption: =.Global.formData.downloadPDF.pageIntervalList
+                      fileName: =.Global.formData.downloadPDF.titleName
+                      scaleX: =.Global.formData.downloadPDF.scaleX
+                      scaleY: =.Global.formData.downloadPDF.scaleY
+                      originX: =.Global.formData.downloadPDF.originX
+                      originY: =.Global.formData.downloadPDF.originY
+                      timeDeno: 1000
+                      timeOut: 1000
+                - actionType: popUpDismiss
+                  popUpView: MenuBoxTag
+          style:
+            marginLeft: "0.0213"
+            display: "inline-block"
+            wordWrap: break-word
+            verticalAlign: middle
+            fontSize: .Nfont.h14
+            lineHeight: 5.75492vh
+            fontWeight: "400"
+            color: "0x333333"
+
+# HeaderPopUpMenu:
+#   type: popUp
+#   viewTag: MenuBoxTag
+#   style:
+#     top: "0"
+#     left: "0"
+#     width: "1"
+#     height: "1"
+#     marginTop: "0"
+#     overflow: hidden
+#   children:
+#     - type: view
+#       style:
+#         width: "1"
+#         height: "1"
+#       onClick:
+#         - actionType: popUpDismiss
+#           popUpView: MenuBoxTag
+#     - type: view
+#       bubble: true
+#       style:
+#         top: "0.0431034"
+#         left: "0.52266666"
+#         width: "0.4453333"
+#         boxSizing: "border-box"
+#         borderRadius: "5"
+#         border: "1px solid #dedede"
+#         backgroundColor: "#ffffff"
+#         overflow: hidden
+#         zIndex: 10
+#       children:
+#         - type: view
+#           onClick:
+#             - actionType: evalObject
+#               object:
+#                 - =.builtIn.utils.exportMultiplePagesPdf:
+#                     dataIn:
+#                       pages: [
+#                         {
+#                           pageName: Cov19TestNewPatReviewPage1,
+#                           viewTag: mainView
+#                         },
+#                         {
+#                           pageName: Cov19TestNewPatReviewPage2,
+#                           viewTag: mainView
+#                         },
+#                         {
+#                           pageName: Cov19TestNewPatReviewPage3,
+#                           viewTag: mainView
+#                         },
+#                         {
+#                           pageName: Cov19TestNewPatReviewPage4,
+#                           viewTag: mainView
+#                         },
+#                         {
+#                           pageName: Cov19TestNewPatReviewPage5,
+#                           viewTag: mainView
+#                         },
+#                         # {
+#                         #   pageName: Cov19TestNewPatReviewPage6,
+#                         #   viewTag: mainView
+#                         # }
+#                       ]
+#                       holeOption: [100,980,300,1000]
+#                       fileName: "fileTest"
+#                       scaleX: =.Global.formData.downloadPDF.scaleX
+#                       scaleY: =.Global.formData.downloadPDF.scaleY
+#                       originX: =.Global.formData.downloadPDF.originX
+#                       originY: =.Global.formData.downloadPDF.originY
+#                 - actionType: popUpDismiss
+#                   popUpView: MenuBoxTag
+#           children:
+#             - type: image
+#               path: PDFIcon.svg
+#               style:
+#                 marginLeft: "0.053"
+#                 display: "inline-block"
+#                 verticalAlign: middle
+#                 height: "0.024"
+#                 width: "0.05333"
+#             - type: label
+#               text: Download PDF
+#               style:
+#                 marginLeft: "0.0213"
+#                 display: "inline-block"
+#                 wordWrap: break-word
+#                 verticalAlign: middle
+#                 fontSize: .Nfont.h14
+#                 lineHeight: 5.75492vh
+#                 fontWeight: "400"
+#                 color: "0x333333"
+HeaderPopUpMenu:
+  type: popUp
+  viewTag: MenuBoxTag
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    marginTop: "0"
+    overflow: hidden
+  children:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: MenuBoxTag
+    - type: view
+      bubble: true
+      style:
+        top: "0.0431034"
+        left: "0.52266666"
+        width: "0.4453333"
+        boxSizing: "border-box"
+        borderRadius: "5"
+        border: "1px solid #dedede"
+        backgroundColor: "#ffffff"
+        overflow: hidden
+        zIndex: 10
+      children:
+        - type: image
+          path: PDFIcon.svg
+          style:
+            marginLeft: "0.053"
+            display: "inline-block"
+            verticalAlign: middle
+            height: "0.024"
+            width: "0.05333"
+        - type: label
+          text: Download PDF
+          onClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.downloadPDF:
+                    dataIn:
+                      viewTag: mainView
+                      titleName: =.Global.formData.downloadPDF.titleName
+                      scaleX: =.Global.formData.downloadPDF.scaleX
+                      scaleY: =.Global.formData.downloadPDF.scaleY
+                      originX: =.Global.formData.downloadPDF.originX
+                      originY: =.Global.formData.downloadPDF.originY
+
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: =.Global.formData.auditLog.actionTypeCode
+                      recordTypeCode: =.Global.formData.auditLog.recordTypeCode
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+                - actionType: popUpDismiss
+                  popUpView: MenuBoxTag
+          style:
+            marginLeft: "0.0213"
+            display: "inline-block"
+            wordWrap: break-word
+            verticalAlign: middle
+            fontSize: .Nfont.h14
+            lineHeight: 5.75492vh
+            fontWeight: "400"
+            color: "0x333333"
+
 HeaderPopUpDownload:
   type: popUp
   viewTag: selectBoxTag
@@ -1208,10 +1492,14 @@ HeaderPopUpDownload:
                   onClick:
                     - actionType: evalObject
                       object:
-                        - =.builtIn.EcosObj.exportPDF:
+                        - =.builtIn.utils.downloadPDF:
                             dataIn:
-                              ecosObj: =.Global.Note
                               viewTag: mainView
+                              titleName: =.Global.formData.downloadPDF.titleName
+                              scaleX: =.Global.formData.downloadPDF.scaleX
+                              scaleY: =.Global.formData.downloadPDF.scaleY
+                              originX: =.Global.formData.downloadPDF.originX
+                              originY: =.Global.formData.downloadPDF.originY
                         - actionType: popUpDismiss
                           popUpView: selectBoxTag
                   children:
@@ -1487,7 +1775,7 @@ BaseCheckViewLabel:
       fontWeight: "350"
       display: inline
       # fontStyle: "bold"
-      fontFamily: "sans-serif"
+
       textAlign:
         x: center
         y: center
@@ -1545,7 +1833,7 @@ ProgressCheckView:
   children:
     - type: view
       viewTag: progressCheckView
-      message: "loading"
+      message: "Loading"
       colorChange: "0x2988e6"
       imgPath: zhuanquan.gif
       style:
@@ -1583,7 +1871,7 @@ ProgressCheckView:
               fontWeight: "350"
               display: inline
               # fontStyle: "bold"
-              fontFamily: "sans-serif"
+
               textAlign:
                 x: center
                 y: center
@@ -1601,7 +1889,7 @@ GetEmailAccount:
       =.builtIn.array.getListLength:
         dataIn:
           object: =.Global.emailList.email.edge
-        dataOut: Global.emailNumber
+        dataOut: Global.formData.emailNumber
 # 具体子菜单
 SubMenuButton:
   type: button
@@ -1695,7 +1983,8 @@ footerMenuImg:
   path:
   style:
     marginTop: "0.015"
-    height: "0.04"
+    width: "0.08"
+    height: "0.036945"
     textAlign:
       x: center
 
@@ -1705,8 +1994,8 @@ footerMenuLabel:
   style:
     width: "0.25"
     height: "auto"
-    fontFamily: "Arial"
-    fontSize: .Nfont.h1
+    #
+    fontSize: .Nfont.h12
     color: "0xffffff"
     textAlign:
       x: center
@@ -1722,7 +2011,7 @@ numberMark:
     height: "5vw"
     color: "0xffffff"
     fontSize: 1vh
-    fontFamily: "Arial"
+
     backgroundColor: "0xff0000"
     borderRadius: "2.5vw"
     textAlign:
@@ -2035,7 +2324,7 @@ PatientChartShowTitle:
     display: "inline-block"
     verticalAlign: "middle"
     wordWrap: break-word
-    # fontFamily: Airal
+    #
     fontSize: .Nfont.h16
     textAlign:
       x: left
@@ -2048,7 +2337,7 @@ PatientChartShowData:
     height: auto
     display: inline-block
     verticalAlign: middle
-    # fontFamily: Airal
+    #
     fontSize: .Nfont.h16
     wordWrap: break-word
     textAlign:
@@ -2100,7 +2389,7 @@ PatientChartHistoryLabel:
     color: "0x000000"
     fontWeight: 400
     height: "0.025"
-    fontFamily: sans-serif
+
     zIndex: "1000"
 
 #FAQs
@@ -2110,10 +2399,10 @@ FAQsTitle:
   style:
     left: "0.07"
     width: "0.86"
-    lineHeight: "30px"
-    fontSize: "19"
-    fontFamily: "sans-serif"
-    fontWeight: "400"
+    fontSize: .Nfont.h16
+
+    fontWeight: "600"
+    lineHeight: "2.58vh"
     textAlign:
       x: left
       y: center
@@ -2124,12 +2413,12 @@ FAQsText:
   style:
     left: "0.07"
     width: "0.86"
-    lineHeight: "25px"
+    lineHeight: "2.58vh"
     fontSize: .Nfont.h14
-    fontFamily: "sans-serif"
+
     letterSpacing: "0.5px"
     fontWeight: "400"
-    color: "#9f9f9f"
+    color: "#666666"
 calendarView:
   type: view
   style:
@@ -2545,7 +2834,7 @@ DashboardFooter0:
         - .DashboardFooterTxt:
           text: "Inbox"
         - type: label
-          dataKey: Global.emailNumber
+          dataKey: Global.formData.emailNumber
           style:
             left: "0.145"
             top: "0.01"
@@ -2783,12 +3072,12 @@ CA1label:
     color: "0xffffff"
     left: "0.1"
     fontSize: "17"
-    fontFamily: "Arial"
+
 CA1textfield:
   type: textField
   style:
     left: "0.15"
-    fontFamily: "Arial"
+
     width: "0.7"
     textIndent: "10px"
     height: "0.04"
@@ -3006,7 +3295,7 @@ MyProfileTitle:
     color: "#4B4B4B"
     textAlign:
       y: center
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h12
     fontWeight: "600"
     backgroundColor: "#F0F0F0"
@@ -3016,7 +3305,7 @@ MyProfileContentLeft:
   type: label
   style:
     height: "0.04"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h14
     left: "0.06"
     color: "#4B4B4B"
@@ -3028,7 +3317,7 @@ MyProfileContentLeft2:
   type: label
   style:
     height: "0.04"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h12
     color: "#4B4B4B"
     left: "0.06"
@@ -3039,11 +3328,22 @@ MyProfileContentLeft2:
 SelectProfileContentLeft2:
   type: label
   style:
-    fontSize: .Nfont.h1
+    fontSize: .Nfont.h14
     marginLeft: "0.12"
-    width: "0.25"
+    lineHeight: "2.58vh"
+    width: "0.4"
+    height: "auto"
     display: "inline-block"
-    fontFamily: "Arial"
+
+MyProfileContentRight3:
+  type: label
+  style:
+    display: "inline-block"
+    width: "0.4213333"
+    color: "0x808080"
+    fontSize: .Nfont.h14
+    textAlign:
+      x: right
 MyProfileTextView:
   type: textView
   placeholder: "Enter here"
@@ -3054,7 +3354,7 @@ MyProfileTextView:
     fontWeight: "600"
     top: "0.16"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "#4B4B4B"
     padding: "0px"
     # border: "none"
@@ -3070,7 +3370,7 @@ MyProfileContentLeft3:
   type: label
   style:
     height: "0.04"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h12
     color: "#4B4B4B"
     left: "0.06"
@@ -3082,7 +3382,7 @@ SelectProfileContentLeft3:
   type: label
   style:
     height: "0.04"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h12
     color: "#4B4B4B"
     left: "0.12"
@@ -3105,7 +3405,7 @@ MyProfileTextFile:
     width: "0.5"
     left: "0.45"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "#4B4B4B"
     height: "0.04"
     padding: "0px"
@@ -3126,7 +3426,7 @@ MyProfileSelect:
     width: "0.5"
     height: "0.04"
     fontSize: .Nfont.h14
-    fontFamily: "Arial"
+
     color: "#4B4B4B"
     textIndent: "1em"
     left: "0.45"
@@ -3141,7 +3441,6 @@ MyProfileSelect:
 MyProfileContentRight:
   type: label
   style:
-    fontFamily: "Arial"
     color: "#4B4B4B"
     width: "0.6"
     height: "0.063"
@@ -3155,7 +3454,7 @@ MyProfileContentRight2:
   type: label
   style:
     # top: "0.02"
-    fontFamily: "Arial"
+
     color: "#4B4B4B"
     display: "inline-block"
     width: "0.47"
@@ -3164,18 +3463,7 @@ MyProfileContentRight2:
     textAlign:
       x: right
       y: center
-MyProfileContentRight3:
-  type: label
-  style:
-    # top: "0.02"
-    fontFamily: "Arial"
-    display: "inline-block"
-    width: "0.56"
-    color: "0x808080"
-    fontSize: .Nfont.h1
-    textAlign:
-      x: right
-      y: center
+
 CreateNewAccountTab:
   type: image
   path: tab.png
@@ -3188,18 +3476,19 @@ CreateNewAccountTab:
 AboutTitle:
   type: label
   style:
-    color: "0x000000"
-    fontSize: "13"
-    text-align: justify
+    fontSize: .Nfont.h16
     marginTop: "0.02"
+    lineHeight: "2.58vh"
+    color: "#333333"
+    fontWeight: "600"
     width: "0.86"
 
 AboutText:
   type: label
   style:
-    color: "0x9f9f9f"
-    fontSize: "13"
-    text-align: justify
+    color: "#666666"
+    fontSize: .Nfont.h14
+    lineHeight: "2.58vh"
     marginTop: "0.02"
     width: "0.86"
 
@@ -3375,7 +3664,7 @@ InfoTitle:
     top: "0.1"
     left: "0"
     color: "#4B4B4B"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h12
     fontWeight: "600"
     backgroundColor: "#F0F0F0"
@@ -3387,7 +3676,7 @@ InfoContentLeft:
   type: label
   style:
     height: "0.04"
-    fontFamily: "Arial"
+
     fontSize: "13"
     color: "#4B4B4B"
     # display: inline
@@ -3398,7 +3687,7 @@ InfoContentLeft:
 #   type: label
 #   style:
 #     height: "0.04"
-#     fontFamily: "Arial"
+#
 #     fontSize: "13"
 #     color: "#4B4B4B"
 #     width: "0.6"
@@ -3406,7 +3695,6 @@ InfoContentLeft:
 
 InfoContentRight:
   style:
-    fontFamily: "Arial"
     color: "#4B4B4B"
     width: "0.6"
     left: "0.34"
@@ -3433,7 +3721,6 @@ VisitQuestionnaireText:
     marginTop: "0"
     height: "0.03"
     fontSize: "15"
-    fontFamily: "sans-serif"
 
 VisitQuestionnaireTextField:
   type: label
@@ -3449,7 +3736,7 @@ VisitQuestionnaireTextField:
     borderRadius: "3"
     borderWidth: "1"
     fontSize: .Nfont.h14
-    fontFamily: sans-serif
+
     textAlign:
       y: center
 
@@ -3468,7 +3755,7 @@ VisitQuestionnaireTextFieldShow:
     borderRadius: "3"
     borderWidth: "1"
     fontSize: .Nfont.h14
-    fontFamily: sans-serif
+
     textAlign:
       y: center
 
@@ -3528,7 +3815,6 @@ VaccineTextDot:
     fontSize: .Nfont.h14
     textAlign:
       x: left
-    fontFamily: "Raleway"
 
 VaccineText:
   type: label
@@ -3539,7 +3825,7 @@ VaccineText:
     fontSize: .Nfont.h14
     textAlign:
       x: left
-    fontFamily: "Raleway"
+
     height: "auto"
 
 OrganizationText:
@@ -3640,7 +3926,7 @@ BaseoverSize:
               x: center
         - type: view
           style:
-            marign: "0"
+            margin: "0"
             height: "auto"
             width: "0.6"
           children:
@@ -3654,7 +3940,7 @@ BaseoverSize:
                 textAlign:
                   x: center
                 fontSize: .Nfont.n2
-                fontFamily: Arial
+
             - type: label
               dataKey: Global.formData.fileSize
               style:
@@ -3665,7 +3951,7 @@ BaseoverSize:
                 textAlign:
                   x: center
                 fontSize: .Nfont.n2
-                fontFamily: Arial
+
         - type: view
           style:
             marginTop: "0.02"
@@ -3673,7 +3959,6 @@ BaseoverSize:
 patientInfo1_Label:
   type: label
   style:
-    fontFamily: "Arial"
     fontSize: "13"
     left: "0"
     height: "0.025"
@@ -3699,7 +3984,7 @@ patientInfo3_label:
     width: "0.05"
     height: "0.03"
     top: "0"
-    fontFamily: "Arial"
+
     fontSize: .Nfont.h14
     fontStyle: bold
 patientInfo3_paragraph:
@@ -3709,7 +3994,7 @@ patientInfo3_paragraph:
     width: "0.8"
     height: "auto"
     top: "0"
-    fontFamily: "Arial"
+
     fontSize: "13"
 noOrganizationMessage:
   type: popUp
@@ -3830,7 +4115,7 @@ simplePopupLable:
       fontSize: .Nfont.h2
       display: inline
       # fontStyle: "bold"
-      fontFamily: "sans-serif"
+
       textAlign:
         x: center
         y: center
@@ -3964,7 +4249,7 @@ MedicalViewLabel:
 
 FinishLaterButton:
   type: button
-  text: Make it private
+  text: Make it Private
   style:
     top: "0.0275"
     left: "0.05"
@@ -4066,7 +4351,7 @@ BaseWarningView:
             marginLeft: "0.037"
             marginTop: "0.01"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             lineHeight: 2.58vh
             textAlign:
               x: center
@@ -4129,7 +4414,7 @@ ConfirmWarningPopupHeader:
         left: "0.31"
         # width: "0.1"
         height: "0.045"
-        fontFamily: "Arial"
+
         top: "0.005"
         fontSize: .Nfont.n3
         color: "0xffffff"
@@ -4414,7 +4699,7 @@ questionTitle:
   type: label
   style:
     fontSize: .Nfont.h1
-    fontFamily: "Arial"
+
     color: "#333333"
 questionTextField:
   type: textField

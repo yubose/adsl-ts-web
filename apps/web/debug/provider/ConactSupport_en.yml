@@ -19,10 +19,12 @@ ConactSupport:
           api: ce
           dataKey: contactSupport.edge
     components: 
-      - .BaseHeader:
-      - .HeaderLeftButton:
-        onClick:
-          - goto: MenuBars
+      - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - goto: MenuBars
+          - .BasePublicHeaderTitle:
       - type: view
         style:
           left: "0"
@@ -35,9 +37,9 @@ ConactSupport:
             textBoard:
               - text: "Please call our Customer Service"
               - br:
-              - text: "number with any questions and"
+              - text: "number for questions or concerns"
               - br:
-              - text: "concerns you may have!"
+              - text: "with our application!"
             style:
               color: "0x000000"
               left: "0.1"
@@ -50,7 +52,7 @@ ConactSupport:
                 x: center
                 # y: center
           - type: button
-            text: "Call  (714) 600-2529"
+            text: "Call  (657) 220-5555"
             onClick: 
               - actionType: popUp
                 popUpView: callView

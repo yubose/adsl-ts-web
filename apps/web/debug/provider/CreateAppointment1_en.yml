@@ -373,7 +373,7 @@ CreateAppointment1:
               color: "0xff0000"
             borderColor: "0xff0000"
             fontSize: "18"
-            fontFamily: "Arial"
+
             textAlign:
               x: center
     - .HeaderLeftTextButton:
@@ -422,7 +422,7 @@ CreateAppointment1:
             borderWidth: "1"
             borderRadius: "10"
             fontSize: .Nfont.h14
-            fontFamily: "Arial"
+
             textAlign:
               x: center
         - .CA1label:
@@ -533,7 +533,7 @@ CreateAppointment1:
             color: "0xffffff"
             backgroundColor: "0x2988e6"
             borderRadius: "3"
-            fontFamily: "Arial"
+
             textAlign:
               x: center
     - .BaseCheckView:

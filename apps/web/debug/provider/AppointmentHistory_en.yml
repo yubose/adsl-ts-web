@@ -3,105 +3,84 @@ AppointmentHistory:
   pageNumber: "260"
   init:
     - .SignInCheck
-
-    - =..apiRequest.listRoomData.get
-    - =..apiRequest.meetingList.get
-
     - actionType: evalObject
       object:
-        - =.builtIn.array.concatArray:
-            dataIn:
-              array1: =..apiRequest.listRoomData.docResp.edge
-              array2: =..apiRequest.meetingList.docResp.edge
-              sortby: "stime"
-              orders: "desc"
-            dataOut: AppointmentHistory.formData.docList
-
-    - actionType: evalObject
-      object:
-        - .BaseComponents.calendarDate.year@: ""
-        - .BaseComponents.calendarDate.month@: ""
-        - .BaseComponents.calendarDate.day@: ""
-        - .BaseComponents.calendarDate.monthName@: ""
-        - .BaseComponents.calendarDate.todayDate@: ""
-        - .BaseComponents.calendarDate.flag@: ""
-        - .BaseComponents.calendarDate.dayLable@: []
-        - .BaseComponents.year@: []
-        - .BaseComponents.flag: ""
-        #生成年份
-        - =.builtIn.date.generateYear:
-            dataIn:
-              last: 121
-              next: 10
-            dataOut: BaseComponents.year
-        - =.builtIn.date.getYear:
-            dataIn:
-            dataOut: AppointmentHistory.calendarDate.year
-
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.waitingRoom_me.edgeAPI.get: ""
+            - =..apiRequest.waitingRoom_participants.edgeAPI.get: ""
+    - =.builtIn.array.concatArray:
+        dataIn:
+          array1: =..apiRequest.waitingRoom_me.edgeQueryResp.edge
+          array2: =..apiRequest.waitingRoom_participants.edgeQueryResp.edge
+          sortby: "stime"
+          orders: "desc"
+        dataOut: AppointmentHistory.formData.docList
+    - .BaseComponents.calendarDate.year@: ""
+    - .BaseComponents.calendarDate.month@: ""
+    - .BaseComponents.calendarDate.day@: ""
+    - .BaseComponents.calendarDate.monthName@: ""
+    - .BaseComponents.calendarDate.todayDate@: ""
+    - .BaseComponents.calendarDate.flag@: ""
+    - .BaseComponents.calendarDate.dayLable@: []
+    - .BaseComponents.year@: []
+    - .BaseComponents.flag: ""
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 121
+          next: 10
+        dataOut: BaseComponents.year
+    - =.builtIn.date.getYear:
+        dataIn:
+        dataOut: AppointmentHistory.calendarDate.year
     #获取当前时间
-    - actionType: evalObject
-      object:
-        - =.builtIn.date.getNowLocalUnixTime:
-            dataIn: ""
-            dataOut: AppointmentHistory.formData.currentLocalTime
-        - =.builtIn.date.getMonth:
-            dataIn: ""
-            dataOut: AppointmentHistory.calendarDate.month
-        - =.builtIn.date.getYear:
-            dataIn: ""
-            dataOut: AppointmentHistory.calendarDate.year
-        - =.builtIn.date.getDate:
-            dataIn: ""
-            dataOut: AppointmentHistory.calendarDate.day
-
-    - actionType: evalObject
-      object:
-        - =.builtIn.date.transformMonth:
-            dataIn:
-              month: =..calendarDate.month
-            dataOut: AppointmentHistory.calendarDate.monthName
-
-    - actionType: evalObject
-      object:
-        - =.builtIn.string.concat:
-            dataIn:
-              - =..calendarDate.year
-              - "-"
-              - =..calendarDate.month
-              - "-"
-              - =..calendarDate.day
-            dataOut: AppointmentHistory.calendarDate.todayDate
-
-    - actionType: evalObject
-      object:
-        - =.builtIn.date.getTimeStampOfDate:
-            dataIn:
-              date: =..calendarDate.todayDate
-            dataOut: AppointmentHistory.calendarDate.todayStamp
-
-    - actionType: evalObject
-      object:
-        - =.builtIn.date.ShowDateByNumber:
-            dataIn:
-              year: =..calendarDate.year
-              month: =..calendarDate.month
-              day: =..calendarDate.day
-            dataOut: AppointmentHistory.formData.selectDate
-
-    - actionType: evalObject
-      object:
-        - =.builtIn.date.miniWeeklyCalendarArray:
-            dataIn:
-              year: =..calendarDate.year
-              month: =..calendarDate.month
-              today: =..calendarDate.day
-              markDay: =..calendarDate.day
-              color: "0x4b4b4b"
-              backgroundColor: "0xffffff00"
-              todayColor: "0xffffff"
-              todayBackgroundColor: "0x2988e6"
-            dataOut: AppointmentHistory.calendarDate.dayLable
-
+    - =.builtIn.date.getNowLocalUnixTime:
+        dataIn: ""
+        dataOut: AppointmentHistory.formData.currentLocalTime
+    - =.builtIn.date.getMonth:
+        dataIn: ""
+        dataOut: AppointmentHistory.calendarDate.month
+    - =.builtIn.date.getYear:
+        dataIn: ""
+        dataOut: AppointmentHistory.calendarDate.year
+    - =.builtIn.date.getDate:
+        dataIn: ""
+        dataOut: AppointmentHistory.calendarDate.day
+    - =.builtIn.date.transformMonth:
+        dataIn:
+          month: =..calendarDate.month
+        dataOut: AppointmentHistory.calendarDate.monthName
+    - =.builtIn.string.concat:
+        dataIn:
+          - =..calendarDate.year
+          - "-"
+          - =..calendarDate.month
+          - "-"
+          - =..calendarDate.day
+        dataOut: AppointmentHistory.calendarDate.todayDate
+    - =.builtIn.date.getTimeStampOfDate:
+        dataIn:
+          date: =..calendarDate.todayDate
+        dataOut: AppointmentHistory.calendarDate.todayStamp
+    - =.builtIn.date.ShowDateByNumber:
+        dataIn:
+          year: =..calendarDate.year
+          month: =..calendarDate.month
+          day: =..calendarDate.day
+        dataOut: AppointmentHistory.formData.selectDate
+    - =.builtIn.date.miniWeeklyCalendarArray:
+        dataIn:
+          year: =..calendarDate.year
+          month: =..calendarDate.month
+          today: =..calendarDate.day
+          markDay: =..calendarDate.day
+          color: "0x4b4b4b"
+          backgroundColor: "0xffffff00"
+          todayColor: "0xffffff"
+          todayBackgroundColor: "0x2988e6"
+        dataOut: AppointmentHistory.calendarDate.dayLable
   calendarDate:
     month: ""
     year: ""
@@ -119,56 +98,40 @@ AppointmentHistory:
     monthName: ""
     tempDate: ""
     todayStamp: ""
-
   apiRequest:
-    listRoomData:
-      docResp: ""
-      docReq:
-        ObjType: "4"
-        id:
-          - =.Global.currentUser.vertex.id
-          - =.Global.currentFacility.id
-        xfname: "E.evid,E.bvid"
-        sCondition: "E.type=40000 AND E.subtype in (10) AND E2.subtype in (0x60006,0x60064,0xa0006,0xa0064,0xc0006,0xc0064) AND E2.tage&0x100 in (256) "
-        maxcount: "100"
-        obfname: "stime"
-        asc: false
-        _nonce: =.Global._nonce
-      get:
-        api: re
-        dataIn: apiRequest.listRoomData.docReq
-        dataOut: apiRequest.listRoomData.docResp
-
-    meetingList:
-      docResp: ""
-      docReq:
-        type: "40000"
-        id: =.Global.ids
-        xfname: "E2.evid,E2.Bvid"
-        sCondition: "E2.type=40000 AND E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.type=40000 AND E.tage&0x100 in (256)"
+    # 已经结束的自己主持的会议
+    waitingRoom_me:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        ObjType: 20
+        id: .Global.ids
+        xfname: E2.evid,E2.Bvid
+        type: .EdgeType.WaitingRoom
+        sCondition: E2.type=40000 AND E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.type=40000 AND E.tage&0x100 in (0x100)
         maxcount: "20000"
         obfname: "stime"
-        ObjType: "20"
-        asc: false
         _nonce: .Global._nonce
-      get:
-        api: re
-        dataIn: apiRequest.meetingList.docReq
-        dataOut: apiRequest.meetingList.docResp
-
-    # listData:
-    #   WaitingInRoom:
-    #     edge: ""
-    #   get:
-    #     api: re
-    #     ObjType: 4
-    #     dataKey: listData.WaitingInRoom
-    #     id: .Global.currentUser.vertex.id
-    #     sCondition: "E2.type=40000 AND E.subtype in (0x20006,0x30006,0x20064,0x30064) AND E.type=40000 AND E.tage&0x100 in (0)"
-    #     xfname: "E.evid | E.bvid"
-    #     obfname: "mtime"
-    #     maxcount: "100"
-    #     _nonce: .Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: AppointmentHistory.apiRequest.waitingRoom_me.edgeQueryReq
+          dataOut: AppointmentHistory.apiRequest.waitingRoom_me.edgeQueryResp
+    # 已经结束的自己参与的会议
+    waitingRoom_participants:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        ObjType: 4
+        id: .Global.currentUser.vertex.id
+        xfname: E.evid
+        maxcount: "20000"
+        obfname: stime
+        sCondition: E.type = 1053 AND E.subtype in (110,120,130,140) AND E2.type=40000 AND E2.tage&0x100 in (0x100) AND E2.subtype&0xff in (6,100)
+        _nonce: .Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: AppointmentHistory.apiRequest.waitingRoom_participants.edgeQueryReq
+          dataOut: AppointmentHistory.apiRequest.waitingRoom_participants.edgeQueryResp
   formData:
     flag: "none"
     listHeight: "0.75"
@@ -207,12 +170,12 @@ AppointmentHistory:
       - title: In Progress
         fontColor: "0x4c5264"
         backgroundColor: "0xf0f3f5"
-
   style:
-
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
         # 暂时注释不要删除
         # - .HeaderRightImg:
         #   path: appSchedule.svg
@@ -243,7 +206,7 @@ AppointmentHistory:
         #     top: "0.1"
         #     left: "0"
         #     height: "auto"
-        #     fontFamily: "Arial"
+        #
         #   children:
         #     - type: view
         #       viewTag: setSchedule
@@ -273,7 +236,7 @@ AppointmentHistory:
         #                 border:
         #                   style: 1
         #                 color: "0x474747"
-        #                 fontSize: .Nfont.h1
+        #                 fontSize: .Nfont.h12
         #                 backgroundColor: "0xe9f2fc"
         #               onChange:
         #                 - actionType: evalObject
@@ -319,7 +282,7 @@ AppointmentHistory:
         #                 border:
         #                   style: 1
         #                 color: "0x474747"
-        #                 fontSize: .Nfont.h1
+        #                 fontSize: .Nfont.h12
         #                 backgroundColor: "0xe9f2fc"
         #               onChange:
         #                 - actionType: evalObject
@@ -357,11 +320,11 @@ AppointmentHistory:
         #               style:
         #                 verticalAlign: "middle"
         #                 display: "inline-block"
-        #                 fontFamily: "Arial"
+        #
         #                 height: "auto"
         #                 width: "0.57"
         #                 color: "0x474747"
-        #                 fontSize: .Nfont.h1
+        #                 fontSize: .Nfont.h12
         #                 textAlign:
         #                   x: right
 
@@ -453,7 +416,7 @@ AppointmentHistory:
         #                             marginTop: "0.01"
         #                             width: "0.1"
         #                             color: itemObject.color
-        #                             fontSize: .Nfont.h1
+        #                             fontSize: .Nfont.h12
         #                             textAlign:
         #                               x: center
         #                         - type: label
@@ -594,7 +557,7 @@ AppointmentHistory:
         #                     width: "0.333"
         #                     fontWeight: itemObject.fontWeight
         #                     fontSize: .Nfont.h15
-        #                     fontFamily: "Arial"
+        #
         #                     textAlign:
         #                       x: center
         #                 - type: view
@@ -683,7 +646,7 @@ AppointmentHistory:
         #                     height: "auto"
         #                     width: "auto"
         #                     fontSize: 1vh
-        #                     fontFamily: "Arial"
+        #
         #                     boxSizing: "border-box"
         #                     textAlign:
         #                       x: center
@@ -704,204 +667,210 @@ AppointmentHistory:
         #                 - actionType: builtIn
         #                   funcName: redraw
         #                   viewTag: statusTag
-    - type: view
+    # - type: view
+    #   style:
+    #     # top: "0.1"
+    #     # left: "0"
+    #     height: "0.942"
+    #
+    #     backgroundColor: "cyan"
+    #   children:
+    - type: scrollView
+      viewTag: docListTag
       style:
-        top: "0.1"
-        left: "0"
-        height: "0.88"
-        fontFamily: "Arial"
+        width: "1"
+        # height: =..formData.listHeight
+        height: "0.942"
+        overflow: scroll
       children:
-        - type: scrollView
-          viewTag: docListTag
+        - type: list
+          contentType: listObject
+          listObject: ..formData.docList
+          iteratorVar: itemObject
           style:
-            marginTop: "0.005"
             width: "1"
-            # height: =..formData.listHeight
-            height: "0.87"
-            overflow: scroll
+            margin: "0"
+            height: "auto"
           children:
-            - type: list
-              contentType: listObject
-              listObject: ..formData.docList
-              iteratorVar: itemObject
+            - type: listItem
+              itemObject:
               style:
-                width: "1"
-                margin: "0"
+                marginTop: "0.015"
+                width: "0.9"
                 height: "auto"
+                left: "0.05"
+                boxShadow: "0px 0px 5px #80808044"
+                backgroundColor: "0xffffff"
+                border:
+                  style: 3
+                borderColor: "#00000000"
+                borderWidth: "1.5"
+                borderRadius: "5"
               children:
-                - type: listItem
-                  itemObject:
+                - type: view
                   style:
-                    marginTop: "0.015"
-                    width: "0.9"
-                    height: "auto"
-                    left: "0.05"
-                    border:
-                      style: 3
-                    borderColor: "0xefefef"
-                    borderWidth: "1"
-                    borderRadius: "5"
-                    boxShadow: "1px 1px 4px 1px #efefef"
+                    width: "0.85"
+                    height: "0.04"
+                    left: "0.025"
                   children:
                     - type: view
                       style:
-                        width: "0.85"
+                        display: "inline-block"
                         height: "0.04"
-                        left: "0.025"
-                      children:
-                        - type: view
-                          style:
-                            display: "inline-block"
-                            height: "0.04"
-                            width: "0.85"
-                          children:
-                            - type: image
-                              path: waitTime.svg
-                              style:
-                                height: "0.017"
-                                display: "inline-block"
-                                verticalAlign: middle
-                            - type: label
-                              text=func: .builtIn.date.ShowTimeSpan
-                              dataKey: itemObject
-                              style:
-                                marginLeft: "0.025"
-                                display: "inline-block"
-                                fontSize: .Nfont.h1
-                                color: "0x4b4b4b"
-                                width: "0.36"
-                                height: "0.04"
-                                lineHeight: "4vh"
-                                verticalAlign: middle
-                                fontFamily: "Arial"
-                                textAlign:
-                                  x: left
-                            - type: label
-                              text=func: .builtIn.string.formatUnixtimeL_en
-                              dataKey: itemObject.stime
-                              style:
-                                marginLeft: "0.01"
-                                display: "inline-block"
-                                fontSize: .Nfont.h1
-                                color: "0x999999"
-                                width: "0.2"
-                                lineHeight: "4vh"
-                                verticalAlign: middle
-                                textAlign:
-                                  x: left
-                            - type: label
-                              text: "completed"
-                              dataKey:
-                              style:
-                                marginLeft: "0.05"
-                                display: "inline-block"
-                                height: "auto"
-                                width: "auto"
-                                # color: "0x2988e6"
-                                color: "0x999999"
-                                lineHeight: "4vh"
-                                verticalAlign: middle
-                                fontSize: .Nfont.h1
-
-                    - type: view
-                      style:
                         width: "0.85"
-                        height: "0.001"
-                        left: "0.025"
-                        backgroundColor: "0xf0f0f0"
-                    - type: view
-                      style:
-                        width: "0.85"
-                        height: "0.001"
-                        left: "0.025"
-                        backgroundColor: "0xf0f0f0"
-                    - type: view
-                      style:
-                        marginTop: "0.01"
-                        width: "0.9"
-                        height: "auto"
                       children:
                         - type: image
-                          path: appLeft.svg
+                          path: waitTime.svg
                           style:
-                            top: "0"
-                            left: "0.78"
-                            height: "0.06"
+                            height: "0.017"
+                            display: "inline-block"
+                            verticalAlign: middle
+                        - type: label
+                          text=func: .builtIn.date.ShowTimeSpan
+                          dataKey: itemObject
+                          style:
+                            marginLeft: "0.025"
+                            display: "inline-block"
+                            fontSize: .Nfont.h12
+                            color: "0x4b4b4b"
+                            width: "0.36"
+                            height: "0.04"
+                            lineHeight: "4vh"
+                            verticalAlign: middle
 
-                        - type: view
+                            textAlign:
+                              x: left
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtimeL_en
+                          dataKey: itemObject.stime
                           style:
-                            width: "0.7"
-                            height: "auto"
-                            left: "0.025"
-                          children:
-                            - type: label
-                              dataKey: itemObject.name.patientName
-                              style:
-                                display: "inline-block"
-                                fontSize: .Nfont.h2
-                                color: "0x4b4b4b"
-                                height: "auto"
-                                width: "auto"
-                                verticalAlign: middle
-                            # - type: label
-                            #   dataKey: itemObject.name.roomName
-                            #   style:
-                            #     display: "inline-block"
-                            #     fontSize: .Nfont.h2
-                            #     color: "0x4b4b4b"
-                            #     height: "auto"
-                            #     width: "auto"
-                            #     verticalAlign: middle
-                            - type: image
-                              style:
-                                display: "inline-block"
-                                marginLeft: "0.07"
-                                height: "0.016"
-                                verticalAlign: middle
-                              path:
-                                emit:
-                                  dataKey:
-                                    var: itemObject
-                                  actions:
-                                    - if:
-                                        - =.builtIn.string.equal:
-                                            dataIn:
-                                              string1: $var.name.visitType
-                                              string2: Telemedicine
-                                        - video.svg
-                                        - videoTele.svg
-                        - type: view
+                            marginLeft: "0.01"
+                            display: "inline-block"
+                            fontSize: .Nfont.h12
+                            color: "0x999999"
+                            width: "0.2"
+                            lineHeight: "4vh"
+                            verticalAlign: middle
+                            textAlign:
+                              x: left
+                        - type: label
+                          text: "completed"
+                          dataKey:
                           style:
-                            marginTop: "0.01"
+                            display: "inline-block"
+                            width: "0.216"
+                            color: "0x999999"
+                            lineHeight: "4vh"
+                            verticalAlign: middle
+                            fontSize: .Nfont.h12
+                            textAlign:
+                              x: right
+
+                - type: view
+                  style:
+                    width: "0.85"
+                    height: "0.001"
+                    left: "0.025"
+                    backgroundColor: "0xf0f0f0"
+                - type: view
+                  style:
+                    width: "0.85"
+                    height: "0.001"
+                    left: "0.025"
+                    backgroundColor: "0xf0f0f0"
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "auto"
+                  children:
+                    - type: image
+                      path: appLeft.svg
+                      style:
+                        top: "0"
+                        left: "0.78"
+                        height: "0.06"
+
+                    - type: view
+                      style:
+                        width: "0.7"
+                        height: "auto"
+                        left: "0.025"
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.patientName
+                          style:
+                            display: "inline-block"
+                            fontSize: .Nfont.h14
+                            color: "0x4b4b4b"
                             height: "auto"
                             width: "auto"
-                            left: "0.025"
-                            wordWrap: break-word
-                          children:
-                            - type: label
-                              dataKey: itemObject.name.Reason
-                              style:
-                                fontSize: 1vh
-                                color: "0x4b4b4b"
-                                height: "auto"
-                                width: "auto"
-                            # - type: label
-                            #   text: "Cancel  Reason"
-                            #   dataKey:
-                            #   style:
-                            #     marginTop: "0.01"
-                            #     fontSize: 1vh
-                            #     color: "0x2988e6"
-                            #     height: "auto"
-                            #     width: "auto"
-                            #     textDecoration: underline
+                            verticalAlign: middle
+                        # - type: label
+                        #   dataKey: itemObject.name.roomName
+                        #   style:
+                        #     display: "inline-block"
+                        #     fontSize: .Nfont.h2
+                        #     color: "0x4b4b4b"
+                        #     height: "auto"
+                        #     width: "auto"
+                        #     verticalAlign: middle
+                        - type: image
+                          style:
+                            display: "inline-block"
+                            marginLeft: "0.07"
+                            height: "0.016"
+                            verticalAlign: middle
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: $var.name.visitType
+                                          string2: Telemedicine
+                                    - video.svg
+                                    - videoTele.svg
                     - type: view
                       style:
                         marginTop: "0.01"
-                        width: "0.9"
                         height: "auto"
-                  onClick:
-                    - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
-                      dataKey: Global.roomInfo.edge
-                      dataObject: itemObject
-                    - goto: VisitDetial
+                        width: "auto"
+                        left: "0.025"
+                        wordWrap: break-word
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.Reason
+                          style:
+                            fontSize: .Nfont.h12
+                            color: "0x4b4b4b"
+                            height: "auto"
+                            width: "auto"
+                        # - type: label
+                        #   text: "Cancel  Reason"
+                        #   dataKey:
+                        #   style:
+                        #     marginTop: "0.01"
+                        #     fontSize: 1vh
+                        #     color: "0x2988e6"
+                        #     height: "auto"
+                        #     width: "auto"
+                        #     textDecoration: underline
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "auto"
+              onClick:
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.roomInfo.edge
+                  dataObject: itemObject
+                - actionType: evalObject
+                  object:
+                    - .Global.formData.showBackButton.visitDetail@: "true"
+                - goto: VisitDetial
+        - type: view
+          style:
+            marginTop: "0.03"

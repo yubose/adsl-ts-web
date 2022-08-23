@@ -1,13 +1,14 @@
 AddPatient:
+  # api
+  # 1. 获取profile 没用 已删除
+  # 2. Get 1053 没用 已删除
+  # 3.获取好友邀请 没用已删除
   init:
     - .SignInCheck
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - ..patient.docAPI.get
-    - ..invite.edgeAPI.get
-    - ..newConnection.edgeAPI.get
     - =.builtIn.string.concat:
         dataIn:
           - =.Global.MyProfile.name.data.fullName
@@ -111,28 +112,6 @@ AddPatient:
         api: ce
         dataIn: AddPatient.invite.edge
         dataOut: AddPatient.invite.response
-      get:
-        api: re
-        id: .Global.currentUser.vertex.id
-        xfname: bvid
-        type: 1053
-        _nonce: =.Global._nonce
-        # sCondition: subtype =65563
-        dataKey: data
-  patient:
-    patientList:
-      edge: ""
-    docAPI:
-      get:
-        api: rd
-        type: .DocType.PatientProfile
-        xfname: E.bvid|E.evid
-        id: .Global.currentUser.vertex.id
-        ObjType: 8
-        # dataIn: patient.patientList
-        dataOut: patient.patientList
-        sCondition: E.type=10002 AND E.tage>0
-        _nonce: =.Global._nonce
   apiRequest:
     checkConnection:
       getResp:
@@ -150,485 +129,203 @@ AddPatient:
           api: re
           dataIn: apiRequest.checkConnection.connectEdge
           dataOut: AddPatient.apiRequest.checkConnection.getResp
-  ### 获取已经发送邀请的病人信息
-  newConnection:
-    edgeResp: "" #返回邀请数据
-    edge:
-      type: .EdgeType.InviteInfo
-      xfname: bvid
-      id: .Global.currentUser.vertex.id
-      maxcount: "10000"
-      sCondition: subtype = 65536
-      _nonce: =.Global._nonce
-    edgeAPI:
-      get:
-        api: re
-        dataIn: AddPatient.newConnection.edge
-        dataOut: AddPatient.newConnection.edgeResp
+
   components:
-    - .BaseHeader:
-    - .HeaderLeftButton:
-    - type: view
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+    - type: scrollView
       style:
-        left: "0"
-        top: "0.1"
-        width: "1"
-        height: "0.9"
+        ..style.scrollBox:
       children:
         - type: view
           style:
-            left: "0"
-            top: "0"
-            width: "1"
-            height: "0.05"
-            backgroundColor: "0xf0f0f0"
+            ..style.segmentationBox:
           children:
             - type: label
               text: Quickly Invite
               style:
-                style:
-                left: "0.08"
-                top: "0"
-                width: "0.9"
-                height: "0.05"
-                fontSize: .Nfont.h14
-                fontWeight: "500"
-                textAlign:
-                  x: left
-                  y: center
+                ..style.titleLabel:
         - type: view
           viewTag: phoneNumber
           style:
-            left: "0"
-            top: "0.05"
-            width: "1"
-            height: "0.28"
+            ..style.blockBox:
           children:
-            - type: label
-              text: Country
+            - type: view
               style:
-                left: "0.08"
-                top: "0.031"
-                width: "0.3"
-                height: "0.028"
-                fontSize: .Nfont.h12
-                fontWeight: "450"
-                textAlign:
-                  x: left
-            - type: select
-              dataKey: countryCode
-              options: .SelectINformationDM.CountryCode
+                ..style.inlineBox:
+                marginLeft: "0.04"
+              children:
+                - type: label
+                  text: Country
+                  style:
+                    ..style.inlineTitle:
+                - type: select
+                  dataKey: countryCode
+                  options: .SelectINformationDM.CountryCode
+                  style:
+                    ..style.inputBox:
+            - type: view
               style:
-                left: "0.08"
-                top: "0.06"
-                width: "0.2"
-                height: "0.04"
-                border:
-                  style: "3"
-                borderColor: "0xefefef"
-                borderWidth: "1"
-                fontSize: "15"
-                zIndex: "10"
-            - type: label
-              text: Phone Number
-              style:
-                left: "0.35"
-                top: "0.031"
-                width: "0.24"
-                height: "0.028"
-                fontSize: .Nfont.h12
-                fontWeight: "450"
-                textAlign:
-                  x: left
-            - type: label
-              text: "*"
-              style:
-                left: "0.59"
-                top: "0.031"
-                width: "0.1"
-                height: "0.02"
-                color: "0xff0000"
-            - type: textField
-              placeholder: "000-000-0000"
-              # dataKey: invite.edge.name.phoneNumber
-              dataKey: phoneNumber
-              style:
-                left: "0.35"
-                top: "0.06"
-                width: "0.56"
-                height: "0.04"
-                border:
-                  style: "3"
-                borderColor: "0xdededf"
-                borderWidth: "1"
-                textIndent: "10px"
-                fontSize: "15"
-            - type: button
-              text: Invite
-              style:
-                left: "0.08"
-                top: "0.13"
-                width: "0.84"
-                height: "0.05"
-                fontSize: "15"
-                fontWeight: "600"
-                color: "0x5ea6ec"
-                backgroundColor: "0xffffff"
-                border:
-                  style: "3"
-                borderColor: "0x2988e6"
-                borderWidth: "1"
-                borderRadius: "5"
-                textAlign:
-                  x: center
-              onClick:
-                - actionType: evalObject
-                  object:
-                    - actionType: evalObject
-                      object:
-                        .Global._nonce@:
-                          =.builtIn.math.random: ""
-                    # put checkConnection.getResp to empty so that even the get value is empty , the old data is not exist.
-                    - ..apiRequest.checkConnection.getResp.edge@: []
-                    # - ..apiRequest.checkConnection.getResp@: "" #1/28: not successfully make getResp to be empty, if first invite an invited user, still remain edge in getResp
-                    - =.builtIn.string.concat:
-                        dataIn:
-                          - =..countryCode
-                          - " "
-                          - =..phoneNumber
-                        dataOut: AddPatient.invite.edge.name.phoneNumber
-                    - =.builtIn.string.concat:
-                        dataIn:
-                          - =..countryCode
-                          - " "
-                          - =..phoneNumber
-                        dataOut: AddPatient.invite.edge.name.data.phone
-                    - =.builtIn.string.concat:
-                        dataIn:
-                          - "V.uid like '%"
-                          - =..phoneNumber
-                          - "' AND E.tage>=0" #
-                        dataOut: AddPatient.formData.query10002Scondition
-                    - =.builtIn.string.concat:
-                        dataIn:
-                          - (
-                          - =..invite.edge.name.phoneNumber
-                          - )
-                        dataOut: AddPatient.inviteMessage
-                # 检测手机是否符合规范
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.phoneVerification: #手机号是否符合格式
-                            dataIn:
-                              phoneNumber: =..phoneNumber
-                              countryCode: =..countryCode
-                        - continue
-                        - actionType: popUp
-                          popUpView: phoneNumberCheck
-                          wait: true
-                #检查是否添加的是否为自己
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =..invite.edge.name.phoneNumber
-                              string2: =.Global.currentUser.vertex.uid
-                        - actionType: popUp
-                          popUpView: selfCheck
-                          wait: true
-                        - continue
-                # 检测是否已经成为好友
-                - actionType: evalObject
-                  object:
-                    - .AddPatient.apiRequest.checkConnection.getResp.edge@: [] #1/28: before check, clear edge, otherwise may keep popup 'already invited user'
-                    - =..apiRequest.checkConnection.edgeApi.get: ""
-                    - if:
-                        - =.builtIn.array.judgeListLength:
-                            dataIn:
-                              array: =..apiRequest.checkConnection.getResp.edge
-                              len: 0
-                        # 如果是空 说明不存在好友关系
-                        - continue
-                        - actionType: popUp
-                          popUpView: phoneInvited
-                          wait: true
+                ..style.inlineBox:
+                marginLeft: "0.032"
+              children:
+                - type: label
+                  textBoard:
+                    - text: Phone Number
+                    - text: "&nbsp;*"
+                      color: "0xff0000"
+                  style:
+                    ..style.inlineTitle:
+                - type: textField
+                  viewTag: phoneNumber
+                  placeholder: "000-000-0000"
+                  dataKey: phoneNumber
+                  style:
+                    ..style.inputBox:
+                    width: "0.6933333"
 
-                - actionType: builtIn
-                  funcName: redraw
-                  viewTag: inviteLabel
-                - actionType: popUp
-                  popUpView: inviteView
-                  wait: true
-                # - actionType: evalObject
-                #   object:
-                #     - if:
-                #         - =.builtIn.array.isExist: #检测手机号是否已经是好友，是好友的不能添加
-                #             dataIn:
-                #               array: =..patient.patientList.doc
-                #               phoneNumber: =..invite.edge.name.data.phone
-                #         - actionType: popUp
-                #           popUpView: phoneRepeat
-                #           wait: true
-                #         - actionType: builtIn
-                #           funcName: redraw
-                #           viewTag: inviteLabel
-                # - actionType: evalObject
-                #   object:
-                #     - if:
-                #         - =.builtIn.array.isExist:
-                #             dataIn:
-                #               array: =..patient.patientList.doc
-                #               phoneNumber: =..invite.edge.name.phoneNumber
-                #         - continue
-                #         - actionType: builtIn
-                #           funcName: redraw
-                #           viewTag: phoneNumber
-                # - actionType: evalObject
-                #   object:
-                #     - if:
-                #         - =.builtIn.array.isExist: #检测手机号是否已经被邀请过 已经邀请过的直接显示同意
-                #             dataIn:
-                #               array: =..newConnection.edgeResp.edge
-                #               phoneNumber: =..invite.edge.name.phoneNumber
-                #         - actionType: popUp
-                #           popUpView: phoneInvited
-                #           wait: true
-                #         - continue
-                # - actionType: evalObject
-                #   object:
-                #     - if:
-                #         - =.builtIn.array.isExist:
-                #             dataIn:
-                #               array: =..newConnection.edgeResp.edge
-                #               phoneNumber: =..invite.edge.name.phoneNumber
-                #         - ..flagExist@: false
-                #         - ..flagExist@: true
-                # - actionType: evalObject
-                #   object:
-                #     - if:
-                #         - =.builtIn.string.equal:
-                #             dataIn:
-                #               string1: =..flag
-                #               string2: =..flagExist
-                #         - actionType: popUp
-                #           popUpView: inviteView
-                #           wait: true
-                #         - continue
-                # - actionType: evalObject
-                #   object:
-
-        # - type: view
-        #   style:
-        #     left: "0"
-        #     top: "0.268"
-        #     width: "1"
-        #     height: "0.05"
-        #     backgroundColor: "0xf0f0f0"
-        #   children:
-        #     - type: label
-        #       text: More Ways to Invite
-        #       style:
-        #         style:
-        #         left: "0.08"
-        #         top: "0"
-        #         width: "0.9"
-        #         height: "0.05"
-        #         fontSize: .Nfont.h16
-        #         fontWeight: "500"
-        #         textAlign:
-        #           x: left
-        #           y: center
-        # - type: view
-        #   style:
-        #     left: "0"
-        #     top: "0.318"
-        #     width: "1"
-        #     height: "0.429"
-        #   children:
-        #     - type: list
-        #       contentType: listObject
-        #       listObject: ..board
-        #       iteratorVar: itemObject
-        #       style:
-        #         top: "0"
-        #         left: "0"
-        #         width: "0.994"
-        #         height: "0.18"
-        #         margin: "0"
-        #       children:
-        #         - type: listItem
-        #           itemObject: ""
-        #           style:
-        #             left: "0"
-        #             width: "0.994"
-        #             height: "0.07"
-        #             border:
-        #               style: "2"
-        #             borderColor: "0xdbdbdb"
-        #             borderWidth: "1"
-        #           children:
-        #             - type: image
-        #               path: itemObject.key
-        #               style:
-        #                 left: "0.08"
-        #                 top: "0.015"
-        #                 width: "0.06"
-        #                 height: "0.04"
-        #             - type: label
-        #               dataKey: itemObject.value1
-        #               style:
-        #                 left: "0.18"
-        #                 top: "0.01"
-        #                 width: "0.6"
-        #                 height: "0.03"
-        #                 fontSize: "15"
-        #                 fontWeight: "500"
-        #                 textAlign:
-        #                   x: left
-        #             - type: label
-        #               dataKey: itemObject.value2
-        #               style:
-        #                 left: "0.18"
-        #                 top: "0.038"
-        #                 width: "0.6"
-        #                 fontSize: .Nfont.h12
-        #                 fontWeight: "400"
-        #                 textAlign:
-        #                   x: left
+        - type: button
+          text: Invite
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.inviteClick
     - type: popUp
       viewTag: inviteView
+      message: "Send Invite Link To"
       style:
-        left: "0"
         top: "0"
+        left: "0"
         width: "1"
         height: "1"
-        backgroundColor: "0x00000033"
-        zIndex: "1000"
+        backgroundColor: "0x00000066"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: inviteView
+      rightButton:
+        - actionType: evalObject
+          object:
+            - =..invited.edgeAPI.get: ""
+        - actionType: evalObject
+          object:
+            # notification change jwt logic
+            - ..invite.edge.facilityName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName
+            - =.AddPatient.invite.edgeAPI.store: ""
+            - ..sendNotification.document.fid@: =.Global.patdAPPID
+            - ..sendNotification.document.eid@: =.AddPatient.invite.response.edge.refid
+            - =..sendNotification.docAPI.store: ""
+            # add patient log
+            - =.builtIn.utils.createAuditLog:
+                dataIn:
+                  actionTypeCode: =.ActionTypeCode.add
+                  recordTypeCode: =.EInboxSubtype.PatientProvider
+                  eid: =.Global.formData.currentFacility.relationEdge.id
+                  user: =.Global.MyProfile.name.data.fullName
+                  userId: =.Global.currentUser.vertex.id
+                  targetUserId: =..invite.response.edge.evid
+                  accessPort: provider
+        - actionType: popUpDismiss
+          popUpView: inviteView
+        - actionType: popUp
+          popUpView: success
+          wait: 2000
+        # - actionType: builtIn
+        #   funcName: goBack
+        #   reload: true
       children:
         - type: view
           style:
-            left: "0.15"
-            top: "0.3"
-            width: "0.7"
-            height: "0.25"
-            backgroundColor: "0xefefef"
-            borderRadius: "10"
+            width: "0.75"
+            marginLeft: "0.125"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
           children:
             - type: label
-              text: Send Invite Link
+              text: ___.message
               style:
-                left: "0"
-                top: "0.05"
-                width: "0.7"
-                height: "0.05"
-                fontSize: .Nfont.h16
-                fontWeight: "500"
-                textAlign:
-                  x: center
-            - type: label
-              text: Send invite link to
-              style:
-                left: "0"
-                top: "0.1"
-                width: "0.7"
-                height: "0.05"
-                fontSize: "13"
-                fontWeight: "500"
-                textAlign:
-                  x: center
-            - type: label
-              viewTag: inviteLabel
-              dataKey: inviteMessage
-              style:
-                left: "0"
-                top: "0.15"
-                width: "0.7"
-                height: "0.03"
-                fontSize: "13"
-                fontWeight: "500"
+                width: "0.616"
+                marginLeft: "0.052"
+                marginTop: "0.029"
+                fontWeight: "600"
+                fontSize: .Nfont.h14
+
+                color: "0x4B4B4B"
                 textAlign:
                   x: center
             - type: view
               style:
-                left: "0"
-                top: "0.178"
-                width: "0.7"
-                height: "0.002"
-                backgroundColor: "0xbebebf"
+                marginTop: "0.02"
+                width: "0.75"
+                textAlign:
+                  x: center
+              children:
+                - type: view
+                  children:
+                    - type: label
+                      text: Send Invite Link To
+                      style:
+                        fontSize: .Nfont.h14
+                        display: inline-block
+                    - type: label
+                      dataKey: invite.edge.name.phoneNumber
+                      style:
+                        marginLeft: "0.032"
+                        color: "0x0D7AFF"
+                        fontSize: .Nfont.h14
+                        display: inline-block
+
             - type: view
               style:
-                left: "0.348"
-                top: "0.18"
-                width: "0.004"
-                height: "0.07"
-                backgroundColor: "0xbebebf"
-            - type: button
-              text: Cancel
-              onClick:
-                - actionType: popUpDismiss
-                  popUpView: inviteView
+                height: "0.02"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+                width: "0.75"
+            - type: view
               style:
-                left: "0"
-                top: "0.19"
-                width: "0.348"
-                height: "0.06"
-                borderRadius: "10"
-                borderWidth: "0"
-                fontSize: "17"
-                fontWeight: "500"
-                color: "0x3a96f9"
-                textAlign:
-                  x: center
-            - type: button
-              text: Confirm
-              onClick:
-                - actionType: evalObject
-                  object:
-                    - =..invited.edgeAPI.get: ""
-                - actionType: evalObject
-                  object:
-                    # notification change jwt logic
-                    - ..invite.edge.facilityName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName
-                    - =.AddPatient.invite.edgeAPI.store: ""
-                    #                    - =.builtIn.FCM.getAPPID:
-                    #                        dataIn:
-                    #                          appName: =.TargetApp.patient
-                    #                        dataOut: FirebaseToken.edge.evid
-                    #                    - actionType: evalObject
-                    #                      object: .Global.updateJwt
-                    #                    - =.Global.jwt.edgeAPI.store: ""
-                    - ..sendNotification.document.fid@: =.Global.patdAPPID
-                    - ..sendNotification.document.eid@: =.AddPatient.invite.response.edge.refid
-                    - =..sendNotification.docAPI.store: ""
-                #                    - =.builtIn.FCM.getAPPID:
-                #                        dataIn:
-                #                          appName: =.AppName
-                #                        dataOut: FirebaseToken.edge.evid
-                #                    - actionType: evalObject
-                #                      object: .Global.updateJwt
-                #                    - =.Global.jwt.edgeAPI.store: ""
-                - actionType: popUpDismiss
-                  popUpView: inviteView
-                - actionType: popUp
-                  popUpView: success
-                  wait: 2000
-                - actionType: builtIn
-                  funcName: goBack
-                  reload: true
-              style:
-                left: "0.352"
-                top: "0.19"
-                width: "0.348"
-                height: "0.06"
-                borderRadius: "10"
-                borderWidth: "0"
-                fontSize: "17"
-                fontWeight: "500"
-                color: "0x3a96f9"
-                textAlign:
-                  x: center
+                width: "0.75"
+              children:
+                - type: button
+                  text: "Cancel"
+                  style:
+                    color: "0x007AFF"
+                    backgroundColor: "0xE6E6E6"
+                    display: inline-block
+                    width: "0.374"
+                    borderRadius: "0 0 0 14px"
+                    fontSize: .Nfont.h14
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick: ____.leftButton
+                - type: view
+                  style:
+                    width: "0.002"
+                    backgroundColor: "0x919192"
+                    display: inline-block
+                    height: "0.054"
+                    zIndex: "50"
+                - type: button
+                  text: "Confirm"
+                  style:
+                    color: "0x007AFF"
+                    fontWeight: "800"
+                    backgroundColor: "0xE6E6E6"
+                    display: inline-block
+                    width: "0.374"
+                    fontSize: .Nfont.h14
+                    borderRadius: "0 0 14px 0"
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick: ____.rightButton
+
     - .BaseCheckView:
       viewTag: phoneRepeat
       message: "The phone number is already added"
@@ -658,9 +355,11 @@ AddPatient:
                   dataObject: []
                 - actionType: popUpDismiss
                   popUpView: ____.viewTag
-    - .BaseMessageWarnPopup:
+
+    - .BaseWarningView:
       message: "You cannot add yourself"
       viewTag: selfCheck
+
     - .BaseCheckView:
       viewTag: phoneInvited
       message: "The phone number is already invited"
@@ -687,32 +386,10 @@ AddPatient:
               onClick:
                 - actionType: popUpDismiss
                   popUpView: ____.viewTag
-    - .BaseCheckView:
-      viewTag: phoneNumberCheck
+
+    - .BaseWarningView:
       message: "The phone number is wrong"
-      colorChange: "0xd81e06"
-      imgPath: delete.svg
-      children:
-        - type: view
-          style:
-            width: "0.8"
-            height: "0.3"
-            top: "0.3"
-            left: "0.1"
-            zIndex: "100"
-            backgroundColor: "0xffffff"
-            borderRadius: "7"
-            border:
-              style: "3"
-            borderColor: "#f4f8fa"
-            borderWidth: "3"
-          children:
-            - .BaseCheckViewImg:
-            - .BaseCheckViewLabel:
-            - .BaseCheckViewButton:
-              onClick:
-                - actionType: popUpDismiss
-                  popUpView: ____.viewTag
+      viewTag: phoneNumberCheck
 
     - .BackgroundColorGray:
       viewTag: success
@@ -741,7 +418,7 @@ AddPatient:
               style:
                 color: "0x555555"
                 fontSize: .Nfont.h12
-                fontFamily: "Arial"
+
                 word-break: break-word
                 width: "0.35"
                 marginLeft: "0.025"
@@ -805,3 +482,157 @@ AddPatient:
               onClick:
                 - actionType: popUpDismiss
                   popUpView: ____.viewTag
+  event:
+    inviteClick:
+      - actionType: evalObject
+        object:
+          - actionType: evalObject
+            object:
+              .Global._nonce@:
+                =.builtIn.math.random: ""
+          # put checkConnection.getResp to empty so that even the get value is empty , the old data is not exist.
+          - ..apiRequest.checkConnection.getResp.edge@: []
+          # - ..apiRequest.checkConnection.getResp@: "" #1/28: not successfully make getResp to be empty, if first invite an invited user, still remain edge in getResp
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..countryCode
+                - " "
+                - =..phoneNumber
+              dataOut: AddPatient.invite.edge.name.phoneNumber
+          - =.builtIn.string.concat:
+              dataIn:
+                - =..countryCode
+                - " "
+                - =..phoneNumber
+              dataOut: AddPatient.invite.edge.name.data.phone
+          - =.builtIn.string.concat:
+              dataIn:
+                - "V.uid like '%"
+                - =..phoneNumber
+                - "' AND E.tage>=0" #
+              dataOut: AddPatient.formData.query10002Scondition
+          - =.builtIn.string.concat:
+              dataIn:
+                - (
+                - =..invite.edge.name.phoneNumber
+                - )
+              dataOut: AddPatient.inviteMessage
+      # 检测手机是否符合规范
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..countryCode
+                    string2: "+965" # Kuwait
+              - continue
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.phoneVerification: #手机号是否符合格式
+                          dataIn:
+                            phoneNumber: =..phoneNumber
+                            countryCode: =..countryCode
+                      - continue
+                      - actionType: popUp
+                        popUpView: phoneNumberCheck
+                        wait: true
+
+      #检查是否添加的是否为自己
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..invite.edge.name.phoneNumber
+                    string2: =.Global.currentUser.vertex.uid
+              - actionType: popUp
+                popUpView: selfCheck
+                wait: true
+              - continue
+      # 检测是否已经成为好友
+      - actionType: evalObject
+        object:
+          - .AddPatient.apiRequest.checkConnection.getResp.edge@: [] #1/28: before check, clear edge, otherwise may keep popup 'already invited user'
+          - =..apiRequest.checkConnection.edgeApi.get: ""
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.checkConnection.getResp.edge
+                    len: 0
+              # 如果是空 说明不存在好友关系
+              - continue
+              - actionType: popUp
+                popUpView: phoneInvited
+                wait: true
+
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: inviteView
+      - actionType: popUp
+        popUpView: inviteView
+        wait: true
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.94"
+      overflow: scroll
+    segmentationBox:
+      width: "1"
+      height: "auto"
+      backgroundColor: "0xf0f0f0"
+    titleLabel:
+      marginLeft: "0.04"
+      color: "0x666666"
+      height: "0.05"
+      width: "auto"
+      lineHeight: 5vh
+
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+    blockBox:
+      marginTop: "0.0246"
+      width: "auto"
+      height: "auto"
+      oveflow: hidden
+    inlineBox:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      oveflow: hidden
+      verticalAlign: middle
+    inlineTitle:
+      color: "#333333"
+      fontSize: .Nfont.h14
+      height: "auto"
+      width: "auto"
+    inputBox:
+      marginTop: "0.009852"
+      height: "0.0443"
+      width: "0.2"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+      textIndent: "8px"
+
+    btn:
+      marginTop: "0.0492"
+      left: "0.08"
+      width: "0.84"
+      height: "0.05"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      color: "0x5ea6ec"
+      backgroundColor: "0xffffff"
+      border:
+        style: "3"
+      borderColor: "0x2988e6"
+      borderWidth: "1"
+      borderRadius: "5"
+      textAlign:
+        x: center

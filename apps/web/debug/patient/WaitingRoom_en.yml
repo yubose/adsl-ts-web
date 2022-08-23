@@ -1,0 +1,379 @@
+WaitingRoom:
+  title: "Appointment Check In"
+  pageNumber: "90"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - .Global.formData.lastPage@: ""
+    # 进入新会议前置空所有文档
+    # - .ClearDocBeforeCreateMeeting
+
+    # 置空可选文档
+    - .Global.optionalForms@: []
+    # 置空financial form
+    - .Global.formData.patientDoc.financialForm@: ""
+    # 置空patient chart
+    - .Global.formData.patientChart@: ""
+    # 置空 cov19Test
+    - .Global.formData.cov19Test@: ""
+    #  清空newPatientForm
+    - .Global.formData.newPatientForm@: ""
+    #  清空cov19TestNewPatForm
+    - .Global.formData.cov19TestNewPatForm@: ""
+    #  清空cov19TestForm
+    - .Global.formData.cov19TestForm@: ""
+    # 清空modernaVaccineFirDoseForm
+    - .Global.formData.modernaVaccineFirDoseForm@: ""
+    # 清空modernaVaccineSecDoseForm
+    - .Global.formData.modernaVaccineSecDoseForm@: ""
+    #  清空pifzerVaccineFirDoseForm
+    - .Global.formData.pifzerVaccineFirDoseForm@: ""
+    #  清空pifzerVaccineSecDoseForm
+    - .Global.formData.pifzerVaccineSecDoseForm@: ""
+    - .Global.formData.fluVaccinationConsentForm@: ""
+    - .Global.formData.patientConsentForm@: ""
+    - .Global.formData.back_InsuranceCard@: ""
+    - .Global.formData.front_IDCard@: ""
+    - .Global.formData.front_InsuranceCard@: ""
+    - actionType: updateObject
+      dataKey: Global.formData.visitQuestionnaireDoc
+      dataObject: .EmptyObj
+    - .Global.formData.pifzerBioNTech@: ""
+    - .Global.formData.moderna@: ""
+    - .Global.formData.signature_moderna@: ""
+    # 置空已经填完的doc名称数组
+    - .Global.vaccine@: []
+    # 置空已经填完的doc数组
+    - .Global.vaccineDoc@: []
+
+    # 进入新会议前置空所有状态
+    # - .ClearStatusBeforeCreateMeeting
+    - actionType: updateObject
+      dataKey: Global.Note
+      dataObject: ""
+    # 将FinancialForm已经填完的状态置空
+    - .Global.formData.patientDoc.status.shareFinancialForm@: false
+    # 将patient chart已经填完的状态置空
+    - .Global.formData.patientDoc.status.sharePatientChart@: false
+    # 将visit Questionnaire已经填完的状态置空
+    - .Global.visitQuestionnaireDoc@: ""
+    - .Global.formData.firstToCov19Test@: true
+    - .Global.formData.firstToCov19TestForm@: true
+    - .Global.formData.firstToCov19TestNewPatForm@: true
+    # 重置firstToNewPatientForm状态
+    - .Global.formData.firstToNewPatientForm@: true
+    # 重置firstToNewPatientForm状态
+    - .Global.formData.firstToPfizerVaccineFirDoseForm@: true
+    - .Global.formData.firstToPfizerVaccineSecDose@: true
+    # 重置firstToModernaVaccineSecDoseForm状态
+    - .Global.formData.firstToModernaVaccineFirDoseForm@: true
+    - .Global.formData.firstToModernaVaccineSecDoseForm@: true
+    - .Global.formData.firstFluVaccinationConsentForm@: true
+    - .Global.formData.firstPatientConsentForm@: true
+    # 清空会议视频信息
+    - .Global.roomInfoDoc.document@: ""
+    - =.builtIn.date.getMonth:
+        dataIn: ""
+        dataOut: WaitingRoom.calendarDate.month
+    - =.builtIn.date.getYear:
+        dataIn: ""
+        dataOut: WaitingRoom.calendarDate.year
+    - =.builtIn.date.getDate:
+        dataIn: ""
+        dataOut: WaitingRoom.calendarDate.day
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.WaitingRoom.calendarDate.year
+          - "-"
+          - =.WaitingRoom.calendarDate.month
+          - "-"
+          - =.WaitingRoom.calendarDate.day
+        dataOut: WaitingRoom.calendarDate.todayDate
+    - =.builtIn.date.getTimeStampOfDate:
+        dataIn:
+          date: =.WaitingRoom.calendarDate.todayDate
+        dataOut: WaitingRoom.calendarDate.todayStamp
+    - =.builtIn.string.concat:
+        dataIn:
+          - " subtype&0xff in (6,100) AND tage&0x100=0"
+        dataOut: Global.queryScondition
+    - ..inviteList.get
+    - =.builtIn.array.initMeetingStyle:
+        dataIn:
+          sourceEdgeList: =..inviteList.inviteInfo.edge
+        dataOut: WaitingRoom.formData.waitingRoom
+  formData:
+    waitingRoom: []
+  selfNumber: "0"
+  inviteList:
+    inviteInfo:
+      edge: ""
+    edge:
+      type: "40000"
+      id: .Global.currentUser.vertex.id
+      xfname: "bvid|evid"
+      sCondition: =.Global.queryScondition
+      maxcount: "20000"
+      obfname: "stime"
+      _nonce: .Global._nonce
+    get:
+      api: re
+      dataIn: inviteList.edge
+      dataOut: inviteList.inviteInfo
+  selfRoomInfo:
+    response: ""
+    edge:
+      id:
+        - .Global.currentUser.vertex.id
+        - =.Global.roomInfo.edge.id
+      xfname: bvid,refid
+      type: 40000
+      sCondition: "subtype=0"
+      _nonce: =.Global._nonce
+    get:
+      api: re
+      dataIn: selfRoomInfo.edge
+      dataOut: WaitingRoom.selfRoomInfo.response
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    todayDate: ""
+    todayStamp: ""
+  components:
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightText:
+          text: History
+          style:
+            width: "0.141"
+          onClick:
+            - goto: AppointmentHistory
+    - type: scrollView
+      style:
+        height: "0.94"
+        overflow: scroll
+        paddingBottom: "0.03"
+        boxSizing: border-box
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..formData.waitingRoom
+          iteratorVar: itemObject
+          style:
+            width: "1"
+            height: "auto"
+            boxSizing: border-box
+          children:
+            - type: listItem
+              itemObject:
+              style:
+                marginTop: "0.015"
+                width: "0.9"
+                height: "auto"
+                left: "0.05"
+                border:
+                  style: 3
+                borderColor: itemObject.name.statusStyle.borderColor
+                borderWidth: "1"
+                borderRadius: "5"
+              children:
+                - type: view
+                  style:
+                    width: "0.85"
+                    height: "0.04"
+                    left: "0.025"
+                  children:
+                    - type: view
+                      style:
+                        display: "inline-block"
+                        height: "0.04"
+                        width: "0.85"
+                      children:
+                        - type: image
+                          path: waitTime.svg
+                          style:
+                            height: "0.017"
+                            display: "inline-block"
+                            verticalAlign: middle
+                        - type: label
+                          text=func: .builtIn.date.ShowTimeSpan
+                          dataKey: itemObject
+                          style:
+                            marginLeft: "0.025"
+                            display: "inline-block"
+                            fontSize: .Nfont.h1
+                            color: "0x4b4b4b"
+                            width: "0.35"
+                            height: "0.04"
+                            lineHeight: "4vh"
+                            verticalAlign: middle
+                            textAlign:
+                              x: left
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtimeL_en
+                          dataKey: itemObject.stime
+                          style:
+                            display: "inline-block"
+                            fontSize: .Nfont.h1
+                            color: "0x4b4b4b"
+                            width: "0.24"
+                            lineHeight: "4vh"
+                            verticalAlign: middle
+                            textAlign:
+                              x: center
+                        - type: image
+                          style:
+                            marginLeft: "0.02"
+                            display: "inline-block"
+                            height: "0.02"
+                            verticalAlign: middle
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: $var.name.statusStyle.borderColor
+                                          string2: "#dededf"
+                                    - null.png
+                                    - videoWarn.svg
+                        - type: image
+                          style:
+                            marginLeft: "0.07"
+                            display: "inline-block"
+                            height: "0.016"
+                            verticalAlign: middle
+                          path:
+                            emit:
+                              dataKey:
+                                var: itemObject
+                              actions:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: $var.name.visitType
+                                          string2: Telemedicine
+                                    - video.svg
+                                    - videoTele.svg
+                - type: view
+                  style:
+                    width: "0.85"
+                    height: "0.001"
+                    left: "0.025"
+                    backgroundColor: "0xf0f0f0"
+                - type: view
+                  style:
+                    width: "0.85"
+                    height: "0.001"
+                    left: "0.025"
+                    backgroundColor: "0xf0f0f0"
+                - type: view
+                  style:
+                    marginTop: "0.01"
+                    width: "0.9"
+                    height: "auto"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.8"
+                        height: "auto"
+                        left: "0.025"
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.Reason
+                          style:
+                            fontSize: .Nfont.h2
+                            color: "0x4b4b4b"
+                            height: "auto"
+                            width: "auto"
+                        - type: label
+                          dataKey: itemObject.name.providerFullInfo
+                          style:
+                            marginTop: "0.01"
+                            fontSize: .Nfont.h15
+                            color: "0x4b4b4b"
+                            height: "auto"
+                            width: "0.8"
+                            overflow: hidden
+                            whiteSpace: nowrap
+                            text-overflow: ellipsis
+                    - type: image
+                      path: appLeft.svg
+                      style:
+                        top: "0"
+                        left: "0.8"
+                        height: "0.06"
+                - type: view
+                  style:
+                    marginTop: "0"
+                    width: "0.9"
+                    height: "auto"
+                  children:
+                    - type: label
+                      text:
+                      style:
+                        width: "0.9"
+                        height: "0.015"
+              onClick:
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      # 将选中的会议信息放入Global.roomInfo.edge
+                      - =.builtIn.array.getObjectByArray:
+                          dataIn:
+                            array: =..inviteList.inviteInfo.edge
+                            key: id
+                            value: $var.id
+                          dataOut: Global.roomInfo.edge
+                - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+                  dataKey: Global.roomInfo.edge
+                  dataObject: itemObject
+                - actionType: evalObject
+                  object:
+                    - ..selfRoomInfo.response@: []
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+                - actionType: evalObject
+                  object:
+                    - =..selfRoomInfo.get: ""
+                    - ..selfRoomInfo.response@: =..selfRoomInfo.response.0
+                    - =.builtIn.array.getListLength:
+                        dataIn:
+                          object: =..selfRoomInfo.response.edge
+                        dataOut: WaitingRoom.selfNumber
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.WaitingRoom.selfNumber
+                              string2: "0"
+                        - .Global.rootRoomInfo.edge.refid@: ""
+                        - .Global.rootRoomInfo.edge@: =..selfRoomInfo.response.edge.0
+                - actionType: updateObject
+                  dataKey: Global.currentMeetingDoc
+                  dataObject: []
+                - emit:
+                    dataKey:
+                      var: itemObject
+                    actions:
+                      - .Global.formData.meetingStatus.cancelUpdateInMeeting@: false
+                      - if:
+                          - =.builtIn.number.typeIsValid:
+                              dataIn:
+                                docType: $var.subtype
+                                localArr: [17]
+                                binaryArr: [1]
+                          - goto: AppointmentLobby
+                          - goto: AppointmentLobbyOfficeVisit

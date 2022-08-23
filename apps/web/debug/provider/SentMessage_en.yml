@@ -12,6 +12,29 @@ SentMessage:
     #获取附件
     - ..apiRequest.attachment.docAPI.get
     - ..apiRequest.email.docAPI.get
+    # 根据email的tage的指定位的值来判断是何种类型的邮件
+    - if:
+      # 判断是否是recommendation邮件
+      - =.builtIn.number.typeIsValid:
+          dataIn:
+            docType: =.Global.inbox.sentEmail.tage
+            localArr: [1]
+            binaryArr: [1]
+      - actionType: evalObject
+        object:
+          - ..formData.display.normalType@: none
+          - ..formData.display.recommendationNotification@: block
+      - actionType: evalObject
+        object:
+          - ..formData.display.normalType@: block
+          - ..formData.display.recommendationNotification@: none
+  formData:
+    # 控制哪种邮件内容展示
+    display: 
+      # 普通邮件
+      normalType: none
+      # recommendation邮件
+      recommendationNotification: none
   requestListHidden: "true"
   subject: ""
   inboxFolder: ""
@@ -79,6 +102,7 @@ SentMessage:
         top: "0.1"
         left: "0"
         display: "block"
+        
       viewTag: funbar
       children:
         - type: view
@@ -159,6 +183,7 @@ SentMessage:
                   x: left
         - type: view
           style:
+            display: ..formData.display.normalType
             top: "0.16"
             left: "0"
             width: "1"
@@ -171,7 +196,6 @@ SentMessage:
                 top: "0.01"
                 width: "0.9"
                 left: "0.05"
-                fontFamily: "Verdana"
                 fontSize: .Nfont.h14
                 height: "0.4"
                 backgroundColor: "0xffffff"
@@ -183,6 +207,208 @@ SentMessage:
                   width: "1"
         - type: scrollView
           style:
+            display: ..formData.display.recommendationNotification
+            marginLeft: "0.04"
+            width: "0.92"
+            height: "0.640394"
+            boxSizing: border-box
+            overflow: scroll
+            paddingBottom: "0.0123"
+          children:
+            # email content
+            - type: view
+              style:
+                ..style.emailContentBox:
+              children:
+                - type: label
+                  text: Hello,
+                  dataKey:
+                  style:
+                - type: view
+                  style:
+                    marginTop: "0.0246"
+                  children:
+                    - type: label
+                      textBoard:
+                        - text: "There is the recommendation by&nbsp;"
+                        - text: "{ provide name }"
+                          dataKey: Global.inbox..sentEmail.name.data.providerName
+                          ..style.provideName:
+                        - text: "."
+                      dataKey:
+                      style:
+                - type: label
+                  text: Please check the appointment details and the recommendations follow.
+                  dataKey:
+                  style:
+            # Dividing lines
+            - type: view
+              style:
+                ..style.dividingLine:
+              children:
+                - type: label
+                  text: "………………"
+                  dataKey:
+                  style:
+                    ..style.line:
+                - type: label
+                  text: "&nbsp;&nbsp;Original Appointment&nbsp;&nbsp;"
+                  dataKey:
+                  style:
+                    ..style.lineTips:
+                - type: label
+                  text: "………………"
+                  dataKey:
+                  style:
+                    ..style.line:
+            # medical recommendation
+            - type: view
+              style:
+                ..style.recommendationBox:
+              children:
+                - type: label
+                  text: Medical Recommendation
+                  dataKey:
+                  style:
+                    ..style.recommendationStyle:
+                - type: view
+                  style:
+                    ..style.enterBtnBox:
+                  onClick:
+                    - ..event.enterRecommendationClick
+                  children:
+                    - type: label
+                      text: Enter
+                      dataKey:
+                      style:
+                        ..style.enterBtn:
+                    - type: image
+                      path: rightEnter.svg
+                      style:
+                        ..style.arrowRightImg:
+                # Appointment info
+            - type: view
+              style:
+                ..style.recommendationBox:
+                borderRadius: "4px 4px 0 0"
+                borderBottom: "2px solid #dededf"
+              children:
+                - type: view
+                  style:
+                  children:
+                    - type: label
+                      text: Appointment info
+                      dataKey:
+                      style:
+                        ..style.recommendationStyle:
+                    - type: view
+                      style:
+                        ..style.enterBtnBox:
+                      onClick:
+                        - ..event.enterAppointmentClick
+                      children:
+                        - type: label
+                          text: Enter
+                          dataKey:
+                          style:
+                            ..style.enterBtn:
+                        - type: image
+                          path: rightEnter.svg
+                          style:
+                            ..style.arrowRightImg:
+            # Appointment info label
+            - type: view
+              style:
+                ..style.appointmentInfoLabelBox:
+              children:
+                # date
+                - type: view
+                  style:
+                  children:
+                    - type: label
+                      text: Date
+                      dataKey:
+                      style:
+                        ..style.appointmentInfoLabelTitle:
+                    - type: label
+                      text=func: .builtIn.string.formatUnixtimeL_en
+                      dataKey: Global.roomInfo.edge.stime
+                      style:
+                        ..style.appointmentInfoLabelContent:
+                # time
+                - type: view
+                  style:
+                    marginTop: "0.0073"
+                  children:
+                    - type: label
+                      text: Time
+                      dataKey:
+                      style:
+                        ..style.appointmentInfoLabelTitle:
+                    - type: label
+                      text=func: .builtIn.date.ShowTimeSpan
+                      dataKey: Global.roomInfo.edge
+                      style:
+                        ..style.appointmentInfoLabelContent:
+                #  reason for visit
+                - type: view
+                  style:
+                    marginTop: "0.0073"
+                  children:
+                    - type: label
+                      text: Reason For Vistit
+                      dataKey:
+                      style:
+                        ..style.appointmentInfoLabelTitle:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.Reason
+                      style:
+                        ..style.appointmentInfoLabelContent:
+                # appointment type
+                - type: view
+                  style:
+                    marginTop: "0.0073"
+                  children:
+                    - type: label
+                      text: Appointment Type
+                      dataKey:
+                      style:
+                        ..style.appointmentInfoLabelTitle:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.visitType
+                      style:
+                        ..style.appointmentInfoLabelContent:
+                # patient
+                - type: view
+                  style:
+                    marginTop: "0.0073"
+                  children:
+                    - type: label
+                      text: Patient
+                      dataKey:
+                      style:
+                        ..style.appointmentInfoLabelTitle:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.patientName
+                      style:
+                        ..style.appointmentInfoLabelContent:
+                # facility
+                - type: view
+                  style:
+                    marginTop: "0.0073"
+                  children:
+                    - type: label
+                      text: Facility
+                      dataKey:
+                      style:
+                        ..style.appointmentInfoLabelTitle:
+                    - type: label
+                      dataKey: Global.roomInfo.edge.name.locationName
+                      style:
+                        ..style.appointmentInfoLabelContent:
+        # 附件
+        - type: scrollView
+          style: 
             top: "0.57"
             width: "1"
             height: "0.22"
@@ -237,7 +463,7 @@ SentMessage:
                             width: "0.45"
                             left: "0.13"
                             overflow: hidden
-                            textOverflow: ellipsis
+                            text-overflow: ellipsis
                             whiteSpace: nowrap
                             fontSize: .Nfont.h2
                         - type: label
@@ -257,7 +483,8 @@ SentMessage:
         top: "0.9"
         width: "1"
         height: "0.1"
-        boxShadow: "0 -2px 3px -1px #7070702a"
+        boxShadow: "1px 1px 4px 1px #dededf"
+        backgroundColor: "#ffffff"
       children:
         - type: image
           path: trash.svg
@@ -311,3 +538,101 @@ SentMessage:
       viewTag: deleteTruePopUp
       message: Delete Successful!
       imagePath: deleteTrue.svg
+  event:
+    enterRecommendationClick:
+      - actionType: evalObject
+        object:
+          # 控制是否显示MedicalRecommendation下detail入口
+          - .Global.formData.medicalStatus@: false
+          - ..apiRequest.medicalRecommendation.docQueryReq.id@: =..apiRequest.appointment.edgeQueryResp.edge.0.id
+          - =..apiRequest.medicalRecommendation.docAPI.get: ""
+          - .Global.Note@: =..apiRequest.medicalRecommendation.docQueryResp.doc.0
+          - goto: MedicalRecommendation
+    enterAppointmentClick:
+      - actionType: evalObject
+        object:
+          - if:
+            - =.builtIn.number.typeIsValid:
+                dataIn:
+                  docType: =.Global.roomInfo.edge.subtype
+                  localArr: [17]
+                  binaryArr: [1]
+            - goto: AppointmentLobby
+            - goto: AppointmentLobbyOfficeVisit
+  style:
+    emailContentBox:
+      marginTop: "0.014778"
+      color: "#333333"
+      lineHeight: "2.58vh"
+    provideName:
+      display: "inline-block"
+      marginLeft: "0.01"
+      color: "#2988e6"
+    dividingLine:
+      display: "inline-block"
+      width: "0.92"
+      marginTop: "0.0874"
+      textAlign:
+        x: center
+    lineTips:
+      display: "inline-block"
+      fontSize: .Nfont.h12
+      color: "#666666"
+    line:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      lineHeight: "1.10837vh"
+      color: "#666666"
+    recommendationBox:
+      fontWeight: 600
+      backgroundColor: "#f4f4f4"
+      borderRadius: "4"
+      paddingTop: "0.0123"
+      paddingBottom: "0.0123"
+      paddingLeft: "0.04"
+      paddingRight: "0.026666"
+      marginTop: "0.024630"
+      boxSizing: "border-box"
+    recommendationStyle:
+      display: "inline-block"
+      width: "0.70"
+      color: "#333333"
+      whiteSpace: "nowrap"
+      overflow: hidden
+      text-overflow: "ellipsis"
+    enterBtnBox:
+      display: "inline-block"
+      width: "0.152"
+      textAlign:
+        x: right
+    enterBtn:
+      color: "#2988e6"
+      display: "inline-block"
+      textDecoration: underline
+    arrowRightImg:
+      width: "0.0426"
+      height: "0.0197"
+      verticalAlign: middle
+    appointmentInfoLabelBox:
+      backgroundColor: "#f4f4f4"
+      borderRadius: "0 0 4px 4px"
+      paddingTop: "0.0172"
+      paddingBottom: "0.0246"
+      paddingLeft: "0.04"
+      paddingRight: "0.04"
+      boxSizing: "border-box"
+    appointmentInfoLabelTitle:
+      display: "inline-block"
+      width: "0.338666"
+      color: "#333333"
+      fontWeight: 600
+      whiteSpace: "nowrap"
+      overflow: hidden
+      text-overflow: "ellipsis"
+    appointmentInfoLabelContent:
+      display: "inline-block"
+      width: "0.5"
+      color: "#333333"
+      wordBreak: break-word
+      textAlign:
+        x: right

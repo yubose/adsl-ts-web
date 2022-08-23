@@ -8,8 +8,13 @@ PatientContacts:
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - ..profile.docAPI.get
-    - ..admin.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..profile.docAPI.get: ""
+            - =..admin.docAPI.get: ""
   profile:
     docReq:
       ObjType: 8

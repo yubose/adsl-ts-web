@@ -1,0 +1,1573 @@
+# BaseecosObj: # This is page name
+AppName: com.aitmed.icare
+AWSKeyIDEncrypted: "rvjQxuRo0QZ0WXTzwJx/VakMW1WAZ8r79qkxt5A0uZks34M00hOWCNYmYNQbL3vH7bY2iXTKO4Qr4y6s"
+AWSKeyEncrypted: "cQbRQNh/S4DsFw9ZNqUrXFbzds535CR6uedpKEB4SW2iEkvTnZm8hQMW4EocWyN0CBIaMLo9bwOf0wZPyDI4c6uvDKt2bXF8V6clhEvFGTU="
+# notification target app name
+TargetApp:
+  provider: com.aitmed.iprovider
+  admind: Admin
+# root level object start with a upper case letter
+VoidObj: vVoOiIdD # {}
+EmptyObj: "" # {""} FALSE
+EmptyArr: [] # [] FALSE
+EcosObj:
+  id: "" # base64 id
+  name: "" # JSON string
+  type: "0" # data type
+  ctime: "0" # Unix_TimeStamp when data created.
+Vertex:
+  .EcosObj: "" # inherit an object value only, not the key
+  uid: ""
+  pk: ""
+  esk: ""
+  deat: ""
+# line 8,9 is equivelent to line 11 to 15
+#  id : "" # base64 id
+#  name : "" # JSON string
+#  type : "0" # data type
+#  ctime : "0" # Unix_TimeStamp when data created.
+#  uid : ""
+VertexAPI:
+  get:
+    api: rv
+  store:
+    api: cv
+Edge:
+  .EcosObj: ""
+  subtype: ""
+  bvid: ""
+  evid: ""
+  ctime: ""
+  tage: ""
+EdgeAPI:
+  get:
+    api: re
+    xfname: bvid
+    maxcount: "1"
+  store: # create or update
+    api: ce
+Document:
+  .EcosObj: ""
+  eid: "" #EDGE ID
+  fid: "" #
+  subtype:
+    isOnServer: "1" # 0 server    1  S3
+    isZipped: auto # 0 not gziped  1  gziped
+    isBinary: "0" # 0 Base64       1  binary
+    isEncryped: "0" #0 no         1  encryped
+    isExtraKeyNeeded: "0" #0 no   1  yes
+    isEditable: "0" #0  no        1  yes
+    isCached: "1"
+    applicationDataType: "0" #0 data
+    mediaType: "0" # 0 others
+    size: auto
+DocAPI:
+  get:
+    api: rd
+    ids: "" #
+    xfname: "" # default is "id", optional "eid", "fid"
+    type: "0" # 0 data application data type 0 - 1023
+    maxcount: "1" # default is 20, max 1000
+  store:
+    api: cd
+Message:
+  avatar: "https://public.aitmed.com/avatar/JohnDoe.jpg"
+  to: ""
+  from: =.Global.currentUser.name.firstName # evaluate when access
+  createDate: ""
+  createTime: ""
+  subject: "A Subject"
+  content: "The message"
+  applicationLink: ""
+Const:
+  profile: "1"
+  w9: "101"
+  workComp: "102"
+  share: "103"
+  contact: "104"
+ErrorMessage: ""
+DataCache:
+  loadingDateTime: "0"
+  expireTime: "24hr" # need reload
+NotificationMap:
+  clickedNotiEid: ""
+  notificationGoto: ""
+  data:
+    roomInfoId: ""
+Global: # name of an object
+  # 是否需要share patient chart，从me进入patient chart不需要展示share按钮
+  isShare: false
+  currentRoomrelatedAppointment: ""
+  # 用于保存当前房间信息，是relation appointment还是普通room
+  currentRoomInfo: ""
+  MiddlePage:
+    visitDetialbackPage: "AppointmentHistory"
+    updatePatientProfilePage: ""
+  selfAPPID: ""
+  prodAPPID: ""
+  patdAPPID: ""
+  currentType: ""
+  currentMilse: "25Miles"
+  from: "0"
+  suggest: []
+  # which is used in the function: builtIn.utils.setTimer
+  timeDelay: 1000
+  # patient schedule type, as providerDirectly or thoughFacility
+  scheduleType: ""
+  # 判断用户是否第一次创建profile，true表示不是，false表示
+  nonFirstProfile: true
+  ecosDocObj: ""
+  selfMedicalLicense: []
+  ecosEdgeObj: ""
+  currentMeetingDoc: []
+  patientProfileVar: "About"
+  providerProfileVar: "Providers"
+  ProviderInfo: {}
+  locationInformation: ""
+  patientProviderInfo: ""
+  todayStamp:
+    start: ""
+    end: ""
+  # for tempatory store search condition
+  pos: ""
+  ins: I'm paying for myself
+  # for tempatory store search position
+  cond: ""
+  symptomCond: ""
+  # prepate date for the jwt update
+  updateJwt:
+    - =.builtIn.date.currentDateTime:
+        dataOut: Global.currentDateTime
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.Global.currentUser.vertex.id
+          - " "
+          - =.Global.currentDateTime
+        dataOut: Global.jwtMessage
+    - =.builtIn.eccNaCl.signature:
+        dataIn:
+          message: =.Global.jwtMessage
+          sk: =.Global.currentUser.vertex.sk
+          eskSign: =.Global.sigVertexResp.name.eskSign
+        dataOut: Global.jwt.edge.name.sig
+    - .Global.jwt.edge.name.ctime@: =.Global.currentDateTime
+    - =.Global.jwt.edgeAPI.store: ""
+  # Store the Vertex contains Sig, and use this data Model for the signature generation
+  sigVertexResp: ""
+  # create the message for the concat function, and we will put this into 1031 name
+  jwtMessage: ""
+  jwtSig: ""
+  jwt:
+    edge:
+      .Edge: ""
+      type: 1031
+      # _handledCode: 3001, 10317     #cannot execute two codes at the same time , '_handledCode: all' not implemented
+      id: ""
+      name:
+        ctime: ""
+        sig: ""
+      xfname: "bvid"
+      bvid: =.Global.currentUser.vertex.id
+      evid: =.FirebaseToken.edge.evid
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: Global.jwt.edge
+  createjwt:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 1030
+      id: ""
+      name:
+        ctime: ""
+        sig: ""
+      xfname: "bvid"
+      bvid: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: Global.createjwt.edge
+        dataOut: Global.createjwt.response
+  E2Subtype: 0
+  globalRegister:
+    # we will handle the normal notification click action here
+    - type: register
+      onEvent: onNotificationClicked
+      emit:
+        dataKey:
+          var: notificationID
+        actions:
+          # =.NotificationMap.-1231412413.name.notification.onClickLandingPage
+          - =.builtIn.string.concat:
+              dataIn:
+                - "="
+                - "."
+                - "NotificationMap."
+                - $var
+                - ".name"
+                - ".notification"
+                - ".onClickLandingPage"
+              dataOut: NotificationMap.notificationGoto
+          - =.builtIn.string.concat:
+              dataIn:
+                - "="
+                - "."
+                - "NotificationMap."
+                - $var
+                - ".eid"
+              dataOut: NotificationMap.clickedNotiEid
+          - =.builtIn.ecos.getEdge:
+              dataIn:
+                edgeId: =.NotificationMap.clickedNotiEid
+              dataOut: Global.ecosEdgeObj
+          - if:
+              - builtIn.string.equal:
+                  - string1: =.Global.ecosEdgeObj.type
+                  - string2: 40000
+              - .Global.roomInfo.edge@: =.Global.ecosEdgeObj
+              - continue
+          - actionType: evalObject
+            object:
+              - goto: =.NotificationMap.notificationGoto
+                #=.NotificationMap.-1231412413.name.notification.onClickLandingPage
+    # When the app obtain the current token (either from login or Firebase auto update)
+    # send the access token to server via 1090 edge
+    # iOS will have two tokens, one for regular notification, the other is for VoIP,
+    # aka ringtone notification. we use the same field for regular notification and FirebaseToken
+    # we use FirebaseToken.name.VoIPToken for iOS VoIP token
+    - type: register
+      onEvent: FCMOnTokenReceive
+      emit:
+        dataKey:
+          var: onEvent
+        actions:
+          # the token you just got back from Firebase
+          - =.builtIn.FCM.getFCMToken:
+              dataIn:
+                token: $var
+              dataOut: FirebaseToken.edge.name.accessToken
+          - =.builtIn.FCM.getAPNsToken:
+              dataIn:
+                token: ""
+              dataOut: FirebaseToken.edge.name.apns2Token
+          - =.builtIn.FCM.getVoIPToken:
+              dataIn:
+                token: ""
+              dataOut: FirebaseToken.edge.name.VoIPToken
+          - =.builtIn.FCM.getAPPID:
+              dataIn:
+                appName: =.AppName
+              dataOut: FirebaseToken.edge.evid
+          - =.builtIn.FCM.getAPPID:
+              dataIn:
+                appName: =.AppName
+              dataOut: Global.patdAPPID
+          - =.builtIn.FCM.getAPPID:
+              dataIn:
+                appName: =.TargetApp.provider
+              dataOut: Global.prodAPPID
+          - =.builtIn.FCM.getFCMTokenSHA256Half:
+              dataIn:
+                token: $var
+              dataOut: FirebaseToken.edge.refid
+          - actionType: evalObject
+            object:
+              - .FirebaseToken.edge.name.apnsTopic@: =.AppName
+          - if:
+              - =.FirebaseToken.response.edge.id
+              - =.FirebaseToken.edgeAPI.delete: ""
+              - continue
+          - =.FirebaseToken.edgeAPI.store: ""
+    - type: register
+      onEvent: FCMOnLogout
+      emit:
+        dataKey:
+          var: onEvent
+        actions:
+          - if:
+              - =.FirebaseToken.response.edge.id
+              - =.FirebaseToken.edgeAPI.delete: ""
+              - continue
+    - type: register
+      onEvent: onNewEcosDoc # will be automatically invoked when receive a message
+      emit:
+        dataKey:
+          var: did
+        actions:
+          - =.builtIn.ecos.getDoc:
+              dataIn:
+                docId: $var
+              dataOut: Global.ecosDocObj
+            #          - if:
+            #              - =.builtIn.utils.isOnPage:
+            #                  dataIn: MeetingChat
+            #              - =.MeetingChat.onNewMessageToDisplay
+            #              - continue
+            #          - - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+            #              dataKey: MessageObjStore.currentChatEdge
+            #              dataObject: itemObject
+            #需要一些if 判断 对应不同的notificaiton机制
+          #以 accessToken 判断会议是否开始,若开始了,则不接电话
+          - if:
+              - =.Global.roomInfoDoc.document.deat.accessToken
+              - continue
+              # - if:
+              #     # if in the target meeting room
+              #     - =.builtIn.string.equal:
+              #         dataIn:
+              #           string1: =.Global.roomInfo.edge.id
+              #           string2: =.Global.ecosDocObj.doc.0.eid
+              #     - continue
+              #     - actionType: evalObject
+              #       object:
+              #         - =.builtIn.notification.isNotification:
+              #             dataIn:
+              #               doc: =.Global.ecosDocObj.doc.0
+              #             dataOut: NotificationMap
+              #         - if:
+              #             - =.Global.ecosDocObj.doc.0.name.notification.landingPage
+              #             - actionType: evalObject
+              #               object:
+              #                 - goto: =.Global.ecosDocObj.doc.0.name.notification.landingPage
+              #             - continue
+              #here will handle the fcm notification doc, and process the subtype actions like ringtone
+              - actionType: evalObject
+                object:
+                  - =.builtIn.notification.isNotification:
+                      dataIn:
+                        doc: =.Global.ecosDocObj.doc.0
+                      dataOut: NotificationMap
+                  - if:
+                      - =.Global.ecosDocObj.doc.0.name.notification.landingPage
+                      - actionType: evalObject
+                        object:
+                          - goto: =.Global.ecosDocObj.doc.0.name.notification.landingPage
+                      - continue
+                  #准备页面的数据，然后跳转或者 其他行为
+
+                #- goto: =.Global.ecosDocObj.doc.0.name.notification.landingPage
+          #- continue
+  vaccine: []
+  vaccineDoc: []
+  queryScondition: ""
+  currentRleatedRoomInfo:
+    edge: ""
+  currentPosition: ""
+  VisitType:
+    - Telemedicine
+    - Office Visit
+    - VACCINE
+  ActiveProvider:
+    name:
+      data:
+        fullName: ""
+  ActiveFacility: ""
+  NewAttachment: ""
+  flag:
+    isMeetingPatientchart: ""
+  appoinment:
+    request: ""
+  currentFacility: "" # 用来在预约的时候查看的表格，该provider属于哪个facility
+  formData:
+    # 直接从MyProfile进入，修改insurance
+    editInsuranceFromMyProfile: ""
+    patientChartStatus: false
+    payment:
+      squareCheckoutUrl: ""
+    # 是否在购物车中显示appt链接
+    showApptInShoppingCart: none
+    backPageName: ""
+    # 购物车中已选择的productions id
+    productionIdsSelectedInShoppingCart: []
+    whetherShoppingCart: false
+    whetherShopItem: false
+    currentShopItem: ""
+    # 购物车
+    shoppingCart: ""
+    commerceOrder:
+      # 用来暂存用户在OrderConfirmation页面输入的信息
+      paymentInfo:
+        # 从OrderConfirmation的Select点击进去后置为true，在其他入口出去时置为false
+        isUpdated: false
+        deliveryMethod: ""
+        shippingTime: ""
+      # 是否进入过square，如果进入过，则回来时会弹框
+      havePay: ""
+      # 3001
+      commerceCheckOrder: ""
+    inventory: ""
+    defaultAddressId: ""
+    # 订单信息
+    orderDetail: ""
+    selectAddress: ""
+    currentAddressStatus: true
+    currentOrder: []
+    # 用来存储用户选择的单个产品
+    production: ""
+    addrStatus: true
+    parentPage: ""
+    lastPage: ""
+    medicalStatus: true
+    # 下载pdf的样式控制
+    downloadPDF:
+      scaleX: 0.7
+      scaleY: 0.6
+      originX: 0.6
+      originY: 0
+      PdfPageList: ""
+      pageIntervalList: []
+    # 用来存放当前patient 10000上的hashTag
+    hashTag: ""
+    visitType: ""
+    providerDoc:
+      diagnosesDoc: ""
+      recommendationDoc: ""
+    relatedApp:
+      activeRelatedlink: ""
+    isRelatedApp: false
+    tabBarShow: ""
+    module_insurance:
+      display_editFromUpdateProfile: inline-block
+      insuranceList: []
+    hashTagFromtargetProfile: ""
+    meetingStatus:
+      cancelUpdateInMeeting: false
+      notRemind: false
+    sourceProfile: ""
+    targetProfile: ""
+    patientChartInfo: ""
+    # to store 2001 doc
+    payProfile: ""
+    # use for SearchOutProviderInfo, if patient from AppointmentSearchList page, do not need choose facility
+    comeFromSearch: false
+    searchValue: ""
+    patientChartMeeting: ""
+    editProfile: false
+    patientChart: ""
+    role: ""
+    facilityProfileInfo: ""
+    currentProviderQRCode: ""
+    facilityProviderInfo: ""
+    currentTabStatusList: []
+    providerId: ""
+    facilityId: ""
+    # 直接选择provider预约后，发现有多个所属facility，这里用来存储那多个facility
+    facilityProfileList: []
+    pageName: ""
+    editProfileImageId: ""
+    insurance: ""
+    patientDoc:
+      status:
+        shareFinancialForm: false
+        sharePatientChart: false
+      # fluVaccinationConsentFormEnglish: ""
+      financialForm: ""
+      fluVaccinationConsentFormEnglish: ""
+    # 创建预约时，之前所选择的各项属性放在appointment里面
+    appointment:
+      # the visit type value which user choose from the AppointmentSearch
+      visitType_AppointmentSearch: "Telemedicine"
+      visitType: ""
+      selectDate: ""
+      duration: ""
+      reason: ""
+      docu: []
+    replyEmail: ""
+    attachments: []
+    blankNoteTitle: Provider Note
+    connectionFromFacility: ""
+    currentFacility: ""
+    # 用来存储新用户第一次登陆时候的信息
+    profile: ""
+    connectionList:
+    request: ""
+    temporaryFacilityId: ""
+    organization: ""
+    avatar: ""
+    cov19Test: ""
+    front_IDCard: ""
+    front_InsuranceCard: ""
+    back_InsuranceCard: ""
+    selectCategory: ""
+    # 存放room的profile信息
+    activeRoom: ""
+    fileSize: ""
+    firstToCov19Test: true
+    firstToNewPatientForm: true
+    firstToCov19TestForm: true
+    firstToCov19TestNewPatForm: true
+    firstToPfizerVaccineFirDoseForm: true
+    firstToPfizerVaccineSecDose: true
+    firstToModernaVaccineFirDoseForm: true
+    firstToModernaVaccineSecDoseForm: true
+    firstFluVaccinationConsentForm: true
+    firstPatientConsentForm: true
+    # 存放已填的visit questionnaire
+    visitQuestionnaireDoc:
+      doc: ""
+    pifzerBioNTech: ""
+    moderna: ""
+    attachment: ""
+    signature_moderna: ""
+    signature_pifzerBioNTech: ""
+    dateOfBirth: ""
+    newPatientForm: ""
+    cov19TestNewPatForm:
+      name:
+        data:
+          patientInfo:
+            gender: ""
+            state: ""
+            dateOfBirth: ""
+    cov19TestForm: ""
+    pifzerVaccineFirDoseForm: ""
+    pifzerVaccineSecDoseForm: ""
+    modernaVaccineFirDoseForm: ""
+    modernaVaccineSecDoseForm: ""
+    fluVaccinationConsentForm: ""
+    patientConsentForm: ""
+    cov19TestNewPat:
+      hippa: ""
+      coronavirus: ""
+    fee: ""
+  connectionId: ""
+  ActiveLocation: ""
+  # 是否已经填完visitQuestionnaire
+  visitQuestionnaireDoc: ""
+  micOn: "true"
+  cameraOn: "true"
+  inboxMessage: ""
+  inboxMessage1: ""
+  Note: ""
+  # the number of how many people invite this user to be friend
+  newProviderLength: ""
+  allProviderLength: ""
+  sCondition: ""
+  showAttachment: ""
+  inboxFolder: ""
+  scheduleScondition2: ""
+  inboxHidden: "true"
+  generalInfo: ""
+  patientInfo:
+    generalInfo:
+      isKnown: false
+    addMedications:
+      isKnown: false
+    AddHospitalization:
+      isKnown: false
+    AddSurgery:
+      isKnown: false
+  inboxContact: ""
+  emailNumber: "0"
+  temporaryId: ""
+  middleInformation:
+    PatientVisitInfo: ""
+    visitType: ""
+  email: ""
+  inbox:
+    sentEmail: ""
+    trashEmail: ""
+  _nonce: 0
+  selectedDoc: ""
+  newAccountFlag: "1"
+  currentDateTime: =.builtIn.currentDateTime # long integer of Unix_TimeStamp in millsecond
+  PasswordExpireTime: ""
+  currentUser:
+    dataCache:
+      .DataCache: ""
+      expireTime: "2hr"
+    vertex:
+      .Vertex: ""
+      name:
+        userName: "username"
+        avatar: ""
+    JWT: ""
+  #      .edge.get :       #override {"get":{"api":"re","type":"10002", "xfname":"bvid", "scondition":"subtype=1", "maxcount":"1000"}}
+  rootNotebookID: "" # Get Root Notebook Base64 formated ID
+  familyNotebookID: ""
+  loginUser: # representing business identity
+    dataCache:
+      .DataCache: ""
+      expireTime: "2hr"
+    vertex:
+      .Vertex: ""
+      name:
+        userName: "username"
+        avatar: ""
+    JWT: ""
+  acceptInfo: ""
+  roomInfo:
+    edge: ""
+  currentRoom:
+    edge: {}
+  roomInfoDoc:
+    document: ""
+  rootRoomInfo:
+    response: ""
+    edge:
+      .Edge: ""
+      type: 40000
+      bvid: .Global.currentUser.vertex.id
+      refid: ""
+      name:
+        roomName: "Test Room 1"
+        videoProvider: "twilio"
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataKey: Global.rootRoomInfo.edge
+  familyProfile: ""
+  paymentCheck:
+    id: ""
+  paymentOrder:
+    document: ""
+  profile:
+    document: ""
+  Profile: ""
+  ProfileType: "35841"
+  contact:
+    document:
+      name:
+        data:
+          firstName: ""
+          lastName: ""
+          phoneNumber: ""
+  num: "0"
+  phoneNumber: ""
+  scheduleScondition: ""
+  zindex: "11"
+  timer: 0
+  VideoChatObjStore:
+    reference:
+      edge: ""
+  DocReference:
+    document: {}
+    Note: ""
+  DocProfile:
+    document: ""
+
+  popUpMessage: ""
+
+  waitingRoom:
+    edge:
+      .Edge: ""
+  PatientChart:
+    PastMedicalHistory:
+    AddAllergies:
+    Obstetrical:
+  vitalSigns:
+    document:
+      .Document: ""
+      name:
+  medicalRecord:
+    edge:
+      .Edge: ""
+      name:
+        recordName: "Xray Report"
+        date: "July 4.2020"
+        time: "10.30am"
+  vitalsInAppointment: "false"
+  vitalsInfo: []
+  connectedDevices: []
+  optionalForms: []
+  isDeviceConnected:
+    bp: "false"
+    resp: "false"
+    spo2: "false"
+    temp: "false"
+    height: "false"
+    weight: "false"
+    bmi: "false"
+    hrm: "false"
+  vitalsData:
+    - time: ""
+      id: "bp"
+      measurements: []
+      label1: "Blood Pressure"
+      label2: "Heart Rate"
+      unit1: "mmHg"
+      unit2: "bpm"
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeart.svg
+      btText: "connect"
+      bgcolor: "0xC1C1C1"
+      imgPath2: vitalsRate.svg
+    - time: ""
+      id: "resp"
+      measurements: []
+      label1: "Respiratory Rate"
+      unit1: "breaths/min"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsGeneric.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
+      id: "spo2"
+      measurements: []
+      label1: "Pulse Oximetry"
+      label2: "Heart Rate"
+      unit1: "O₂ %"
+      unit2: "bpm"
+      data1: ""
+      data2: ""
+      imgPath: vitalsOximetry.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: vitalsRate.svg
+    - time: ""
+      id: "temp"
+      measurements: []
+      label1: "Temperature"
+      unit1: "°F/°C"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsTemperature.svg
+      bgcolor: "0xC1C1C1" #"0x2988e6" #
+      btText: "connect"
+      imgPath2: null.png
+    - time: " "
+      id: "glucose"
+      measurements: []
+      label1: "Blood Glucose Levels"
+      unit1: "mmol/L"
+      data1: " "
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsGeneric.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
+      id: "height"
+      measurements: []
+      label1: "Height"
+      unit1: "ft."
+      unit2: "in."
+      data1: ""
+      data2: ""
+      imgPath: vitalsHeight.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: " "
+      id: "weight"
+      measurements: []
+      label1: "Weight"
+      unit1: "lbs"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsWeight.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+    - time: ""
+      id: "bmi"
+      measurements: []
+      label1: "Body Mass Index (BMI)"
+      unit1: "kg/m²"
+      data1: ""
+      data2: VITALS_DATA_HIDE_TEXTFIELD
+      imgPath: vitalsBMI.svg
+      bgcolor: "0xC1C1C1"
+      btText: "connect"
+      imgPath2: null.png
+
+CountryCode:
+  - "+1" #US Canada
+  - "+52" #Mexico
+  - "+86" #China
+  - "+965" # 5/26/2022 Kuwait land-line is working by enable setting in Twilio
+##
+DocTypeBitName:
+  bit0: shared #  0--> not shared (RootNotebook key encrypt) ,1--> shared (eid )
+  bit1: favorite # not used
+  bit2: read # not used
+  # bit3: share  #  0--> share
+DocType:
+  PubProfile: "256" # 0x100
+  Profile: "257" #  0x101 shared, 1
+  UploadProfile: "258"
+  Contact: "513" # 0x201, 2
+  ContactFav: "515" # 0x203 3
+  GetAllContact: "type in (513,515)"
+  GetAllDocument: "type in(1025,1537)"
+  GetFavContact: "type=515"
+  VideoChat: "770" #  11 0000 0010
+  UploadFile: 1025 # 4<<8+1 4
+  InboxMessage: "1281" #5<<8+1
+  PasswordRecovery: "1282" # 5<<8 +2
+  PasswordHelper: "1283" # 5<<8 + 3
+  MeetingNote: "1537" # 6<<8+1 6
+  EvaluationNote: "1793" # 7<<8+1 7
+  CheckOrder: "2001"
+  CommerceCheckOrder: "3001"
+  Refund: "2002"
+  Prescription: "2049" # 8<<8+1 8
+  AbsentNote: "2305" # 9<<8+1 9
+  PatientMeetingNote: "2561" #10<<8+1
+  AcceptedInsurance: "97280" #380
+  #  MeetingNote: 1537 # 6<<8+1 6
+  #  EvaluationNote: 1793 # 7<<8+1 7
+  #  Prescription: 2049 # 8<<8+1 8
+  #  AbsentNote: 2305 # 9<<8+1 9
+  #  PatientMeetingNote: "2561" #10<<8+1
+
+  BtDeviceInfo: "2816" #11<<8 0xB00
+  BtDeviceObj: "3072" #12<<8 0xC00
+  MailFolder: "3328" #13<<8 0xD00   # get folder id:
+  ReadMailTag: "3588" #14<<8 0xE00  read: subtype: 第七个bit-->1
+  # sCondition: D.type&0xffffff00=3584   query mail and favMail
+  MailTag: "3584" # 0xE02
+  ReadFavMailtag: "3590"
+  MailFolderTag: "3840" #0xf00 0xf00
+  MailTypeTag: "3600"
+  TrashMailTag: "4096" #0x1000
+  Notification: "4352" #0x1100 17<<8
+  Macro: "9216" #36<<8+0
+  GroupBitAndTage: "10240" # 40<<8  tag of meeting room , can change tage of meeting room , AND calculate with tage
+  GroupBitOrTage: "10496" # 41<<8
+  PatientChart: "25601" # 0x6401 100<<8+1
+  VitalSigns: "28161" # 0x6e01 110<<8+1
+  VisitQuestionnaire: "30721" # 0x7801 120<<8+1
+  MedicalRecord: "33281" # 0x8201  130<<8+1
+  DoctorPublicProfile: "35840"
+  DoctorProfile: "35841" #0x8c01 140<<8+1 # 140<<8+0
+  LocationOfFacility: "38401" #0x9601 150<<8+1
+  FacilityProfile: 271361
+  covid19Questionnair: "40961" # 0xa001 160<<8+1
+  UserAvatar: "40960" #0xA000 160<<8
+  UserNationalProviderNumber: "43521" #0xAA01  170<<8+1
+  UserLicenseNumber: "46081" #0xB401  180<<8+1
+  UserDEA: "48641" #0xBE01  190<<8+1
+  # medical document From 200<<8
+  UserSignature: "51201" #0xC801  200<<8+1
+  License: "56321" #0xDC01 220<<8+1
+  Signature1: "53761" #210<<8+1
+  F_IDCard: "58881" #230<<8+1
+  Covid19Questionnaire: "61441" # 0xf001 240<<8+1
+  daySchedule: ""
+  Folder: "66560" # 260<<8       10001
+  Attachment: "66561" #260<<8+1
+  F_InsuranceCard: "71681" #280<<8+1
+  B_InsuranceCard: "74241" #290<<8+1
+  Intake4Signature: "76801" #300<<8+1
+  VisitReason: "79360" #310<<8+1
+  Moderna: "84480" #330<<8
+  PifzerBioNTech: "87040" #340<<8
+  DocumentSignature: "89601" #350<<8+1
+  Cov19Chart: "92161" #360<<8+1
+  PatientForm: "94721" #370<<8+1                      New Patient Forms
+  PatientPublicProfile: "102400" #400<<8
+  PatientProfile: "102401" #  0x400  private, 8+1
+  PatientGeneralInfo: "104961" #  0x410 public, 8+1
+  RoomProfile: "273921" #1070<<8+1
+  Cov19TestNewPatForm: "107521" # 0x420  8+1         COVID-19 Testing Consent - New Patient
+  Cov19TestForm: "110081" # 0x430 8+1                  COVID-19 Testing Consent Form
+  PfizerVaccineFirDoseForm: "112641" # 0x440  8+1     Pfizer-BioNTech Vaccine - First Dose
+  PfizerVaccineSecDoseForm: "115201" # 0x450  8+1     Pifzer-BioNTech Vaccine - Second Dose
+  ModernaVaccineFirDoseForm: "117761" # 0x460  8+1    Moderna Vaccine Form - First Dose
+  ModernaVaccineSecDoseForm: "120321" # 0x470  8+1    Moderna Vaccine Form - Second Dose
+  workStatusForm: "122881" # 0x480 8+1  WorkStatusForm
+  pROne: "125441" #0x490 8+1  PR-1
+  pRTwo: "128001" #0x500 8+1  PR-2
+  dWCFormRFA: "130561" #0x510 8+1   DWCFormRFA
+  surgeryForm: "133121" #0x520  8+1  Surgery Authorization
+  InitEvalReport: 135681 #0x530<<8+1
+  covResultAndFluResult: "138241" # 0x540 8+1
+  ProgressReport: 140801 #0x550<<8+1
+  # FluVaccinationConsentFormEnglish: 143361 #560<<8+1
+  # FluVaccinationConsentFormSpanish: 145921 #570<<8+1
+  ConfidentialMorbidityReport: 168961 # 660<<8+1
+  InsuranceCard: 148481 #580<<8+1
+  MedicalUpload: 151041 # 590<<8+ 1
+  PatMedicalUpload: 153601 # 600<< 8+ 1
+  PatientConsentForm: 156161 # 610<< 8+1
+  CheckPicture: "158721" # 620<< 8+ 1
+  PaymentSettings: "161281" # 630<< 8+ 1 Payment's personal information
+  AdminMedicalUpload: 163841 # 640<<8+ 1
+  CancelMeeting: 166401 #650<<8+1
+  FinancialInfo: "171521" # 670<<8+1     # modify amount in meeting
+  FinancialForm: "174081" #680<<8+1
+  FluVaccinationConsent: "176641" # 690<<8+1
+  Superbill: "184321" # 720<<8+1
+  Diagnoses: "186881" # 730<<8+1
+  Inventory: "199681" # 780<<8+1
+  Address: "202241" # 790<<8+1
+  MedicalRecommend: "204801" # 800<<8+1
+  ProductCoverImage: "207361" # 810<<8+1
+  ProductVideo: 209921 # 820<<8+1
+  ProductVideoImage: 212481 # 830<<8+1
+  ProductDetailImage: 215041 # 840<<+1
+  OrderHistory: 217601 # 850<<8+1
+  Order: 220161 # 860<<8+1
+  SuperAdminAvatar: 235521 # 920 << 8+1
+  CovIDPCRTestResult: 238081 #930 << 8+1
+  autoLogOut: 243201 # 950 << 8+1
+  DEAPicture: "258561" # 1010<<8+1
+  MedicalLicensePicture: "28901"
+  ## From 1050 videochat status
+  CheckInTag: "268800" #1050<<8+0
+  CloseMeeting: "" #1060<<8+0
+  SuperAdminProfile: "276481" # 1080<<8+1
+  # tag start from 1100-1190
+  HashTag: "281600" # 1100<<8+0
+  RelatedAppTag: "284160" #1110<<8+0   related appoinment tag
+  Role: "286720" # 1120<<8+0  admin role
+  #billing start with 1200-1300
+  NdcCode: "307200" # 1200<<8 + 0
+  CptCode: "309760" # 1210<<8 +0
+  HcpcsCode: "312320" #1220<<8 + 0
+  ProcedureCategory: "320000" #1250<<8 + 0
+  DeleteFeedback: "33280" #1300<<8+0
+EdgeType:
+  ContactSupport: "2020" # 0x7E4
+  pa:Feedback: "20100"
+  Feedback: "1090"
+  WaitingRoom: "40000" # 0xC350
+  InviteInfo: "1053" # 0x41D
+  doctorAndPatientEdge: "10140"
+  InviteInbox: "1050"
+  Invite: "1050"
+  Accept: "1060"
+  Refuse: "1052"
+  Email: "10002" # 250<<8+1     10002
+  RootNotebook: "10000"
+  Relation: "1100"
+  SquareCheckout: "1113"
+  Order: "2113"
+DocumentQuery:
+  ProviderAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,171521,284160,186881,184321,189441,166401) AND type & 0xff = 1
+  PatientAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,171521,284160,186881,184321,189441) AND type & 0xff = 1 AND tage = 0
+  PatientAllMeetingDocumentsFor1344: E.type = 40000; D.type NOT IN (102401,0x2800,0x2900,770,25601,28161,220161,171521,284160,166401,148481,151040,186881,179201,189441,192001,184321,1025,89601) AND D.type & 0xff = 1 AND tage = 0
+  AdminAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,284160)
+VertexType:
+  User: "1" # 0x1
+  Location: "21"
+EdgeSubtype:
+  schedule:
+    subtype:
+      OfficeVisit: 0x20000 # B00010
+      Telemedicine: 0x30000 # B00011
+      Covid19Vaccine: 0x60000 # 0x60000        6-> 0110
+      Covid19Testing: 0xa0000 # 0xa0003        a-> 1010
+      FluShot: 0xc0000 # 0xc0003        c-> 1100
+    createAppointment:
+      Telemedicine: "196610" # 0x30002
+      OfficeVisit: "131074" # 0x20002
+      Covid19Vaccine: "393218" # 0x60002
+      Covid19Testing: "655362" # 0xa0002
+      FluShot: "786434" # 0xc0002
+EInboxSubtype:
+  PatientProvider: 65536 #1<<16 0x10000
+  PatientFacility: 131072 #2<<16 0x20000
+
+DocumentList:
+  # provider type默认为share状态
+  Provider:
+    - title: "Medical Recommendation"
+      type: 204801
+      privateJump: ""
+      releaseJump: MedicalRecommendation
+    - title: "Superbill"
+      type: 184321
+      privateJump: ""
+      releaseJump: SuperbillReview
+    - title: "Documents"
+      type: 1025
+      privateJump: ""
+      releaseJump: DocumentDetail
+    - title: ""
+      type: 151041
+      privateJump: ""
+      releaseJump: DocumentProvider
+    - title: "Evaluation Note"
+      type: 1793
+      privateJump: ""
+      releaseJump: EvaluationNote
+    - title: "Prescription"
+      type: 2049
+      privateJump: ""
+      releaseJump: Prescription
+    - title: "Absence Note"
+      type: 2305
+      privateJump: ""
+      releaseJump: AbsentNote
+    - title: "Provider Note"
+      type: 1537
+      privateJump: ""
+      releaseJump: BlankNote
+    - title: "Work Status Form"
+      type: 122881
+      privateJump: ""
+      releaseJump: WorkStatusForm
+    - title: "PR-1"
+      type: 125441
+      privateJump: ""
+      releaseJump: PROne
+    - title: "PR-2"
+      type: 128001
+      privateJump: ""
+      releaseJump: PRTwo
+    - title: "DWC Form RFA"
+      type: 130561
+      privateJump: ""
+      releaseJump: DWCFormRFA
+    - title: "Progress Report"
+      type: 140801
+      privateJump: ""
+      releaseJump: ProgressReport
+    - title: "Initial Evaluation Report"
+      type: 135681
+      privateJump: ""
+      releaseJump: InitEvalReport
+    - title: "Surgery Authorization"
+      type: 133121
+      privateJump: ""
+      releaseJump: SurgeryAuthorization
+    - title: "Patient Consent Form - HIPPA"
+      type: 156161
+      privateJump: ""
+      releaseJump: PatientConsentForm
+    - title: "Superbill"
+      type: 184321
+      privateJump: ""
+      releaseJump: SuperbillReview
+
+  # patient type默认为Share状态
+  Patient:
+    - title: "Patient Documents"
+      type: 153601
+      privateJump: ""
+      releaseJump: DocumentPatient
+    - title: "Visit Questionnaire"
+      type: 30721
+      privateJump: ""
+      releaseJump: VisitQuestionnaireShow
+    - title: "Financial Responsibility Form"
+      type: 174081
+      privateJump: ""
+      releaseJump: FinancialFormReviewPage1
+    - title: "New Patient Forms"
+      type: 94721
+      privateJump: ""
+      releaseJump: NewPatFormReviewPage1
+    - title: "COVID-19 Testing Consent - New Patient"
+      type: 107521
+      privateJump: ""
+      releaseJump: Cov19TestNewPatReviewPage1
+    - title: "COVID-19 Testing Consent Form"
+      type: 110081
+      privateJump: ""
+      releaseJump: Cov19TestFormReviewPage1
+    - title: "COVID-19 Testing Consent Form"
+      type: 110081
+      privateJump: ""
+      releaseJump: Cov19TestFormReviewPage1
+    - title: "Pfizer-BioNTech Vaccine - First Dose"
+      type: 112641
+      privateJump: ""
+      releaseJump: PfizerVaccineFirDoseReviewPage1
+    - title: "Pfizer-BioNTech Vaccine - Second Dose"
+      type: 115201
+      privateJump: ""
+      releaseJump: PfizerVaccineSecDoseReviewPage1
+    - title: "Moderna Vaccine Form - First Dose"
+      type: 117761
+      privateJump: ""
+      releaseJump: ModernaVaccineFirDoseReviewPage1
+    - title: "Moderna Vaccine Form - Second Dose"
+      type: 120321
+      privateJump: ""
+      releaseJump: ModernaVaccineSecDoseReviewPage1
+    - title: "Flu Vaccination Consent Form"
+      type: 176641
+      privateJump: ""
+      releaseJump: FluVaccinationConsentFormReviewPage1
+    - title: "Patient Consent Form - HIPPA"
+      type: 156161
+      privateJump: ""
+      releaseJump: PatientConsentFormReviewPage1
+  # Admin type默认为Share状态
+  Admin:
+    - title: "COVID-19 PCR Test Results"
+      type: 238081
+      privateJump: ""
+      releaseJump: Cov19PCRTestResults
+    - title: "Medical Recommendation"
+      type: 204801
+      privateJump: ""
+      releaseJump: MedicalRecommendation
+    - title: "Superbill"
+      type: 184321
+      privateJump: ""
+      releaseJump: SuperbillReview
+    - title: "Confidential Morbidity Report"
+      type: 168961
+      privateJump: ""
+      releaseJump: ConfidentialMorbidityReport
+    - title: "COVID-19 Results & Flu A&B Results"
+      type: 138241
+      privateJump: ""
+      releaseJump: Cov19ResultsAndFluResults
+    - title: "Patient Documents"
+      type: 153601
+      privateJump: ""
+      releaseJump: DocumentAdmin
+    # - title: ""
+    #   type: 143361
+    #   privateJump: ""
+    #   releaseJump: FluVaccinationConsentFormEnglishShared
+    - title: "Evaluation Note"
+      type: 1793
+      privateJump: ""
+      releaseJump: EvaluationNote
+    - title: "Prescription"
+      type: 2049
+      privateJump: ""
+      releaseJump: Prescription
+    - title: "Absence Note"
+      type: 2305
+      privateJump: ""
+      releaseJump: AbsentNote
+    - title: "Provider Note"
+      type: 1537
+      privateJump: ""
+      releaseJump: BlankNote
+    - title: "Work Status Form"
+      type: 122881
+      privateJump: ""
+      releaseJump: WorkStatusForm
+    - title: "PR-1"
+      type: 125441
+      privateJump: ""
+      releaseJump: PROne
+    - title: "PR-2"
+      type: 128001
+      privateJump: ""
+      releaseJump: PRTwo
+    - title: "DWC Form RFA"
+      type: 130561
+      privateJump: ""
+      releaseJump: DWCFormRFA
+    - title: "Progress Report"
+      type: 140801
+      privateJump: ""
+      releaseJump: ProgressReport
+    - title: "Initial Evaluation Report"
+      type: 135681
+      privateJump: ""
+      releaseJump: InitEvalReport
+    - title: "Surgery Authorization"
+      type: 133121
+      privateJump: ""
+      releaseJump: SurgeryAuthorization
+    - title: "Patient Consent Form - HIPPA"
+      type: 156161
+      privateJump: ""
+      releaseJump: PatientConsentForm
+    - title: "DocumentAdmin"
+      type: 163841
+      privateJump: ""
+      releaseJump: DocumentAdmin
+AppointmentType:
+  - type: 196608 #0x30000
+    text: Telemedicine
+    belong: Provider
+  - type: 131072 #0x20000
+    text: Office Visit
+    belong: Provider
+  - type: 393216 #0x60000
+    text: COVID-19 Vaccine
+    belong: Room
+  - type: 655360 #0xa0000
+    text: COVID-19 Testing
+    belong: Room
+  - type: 786432 #0xc0000
+    text: Flu Shot
+    belong: Room
+  - type: 917504 #0xe0000
+    text: TB Testing
+    belong: Room
+  - type: 1048576 #0x10 0000
+    text: Drug Screening
+    belong: Room
+  - type: 1179648 #0x12 0000
+    text: Chest XR
+    belong: Room
+  - type: 1310720 #0x14 0000
+    text: Lab Work (Lead and CPP)
+    belong: Room
+
+# 进入新会议前置空所有文档
+ClearDocBeforeCreateMeeting:
+  # 置空可选文档
+  - .Global.optionalForms@: []
+  # 置空financial form
+  - .Global.formData.patientDoc.financialForm@: ""
+  # 置空patient chart
+  - .Global.formData.patientChart@: ""
+  # 置空 cov19Test
+  - .Global.formData.cov19Test@: ""
+  #  清空newPatientForm
+  - .Global.formData.newPatientForm@: ""
+  #  清空cov19TestNewPatForm
+  - .Global.formData.cov19TestNewPatForm@: ""
+  #  清空cov19TestForm
+  - .Global.formData.cov19TestForm@: ""
+  # 清空modernaVaccineFirDoseForm
+  - .Global.formData.modernaVaccineFirDoseForm@: ""
+  # 清空modernaVaccineSecDoseForm
+  - .Global.formData.modernaVaccineSecDoseForm@: ""
+  #  清空pifzerVaccineFirDoseForm
+  - .Global.formData.pifzerVaccineFirDoseForm@: ""
+  #  清空pifzerVaccineSecDoseForm
+  - .Global.formData.pifzerVaccineSecDoseForm@: ""
+  - .Global.formData.fluVaccinationConsentForm@: ""
+  - .Global.formData.patientConsentForm@: ""
+  - .Global.formData.back_InsuranceCard@: ""
+  - .Global.formData.front_IDCard@: ""
+  - .Global.formData.front_InsuranceCard@: ""
+  - .Global.formData.visitQuestionnaireDoc@: ""
+  - .Global.formData.pifzerBioNTech@: ""
+  - .Global.formData.moderna@: ""
+  - .Global.formData.signature_moderna@: ""
+  # 置空已经填完的doc名称数组
+  - .Global.vaccine@: []
+  # 置空已经填完的doc数组
+  - .Global.vaccineDoc@: []
+
+# 进入新会议前置空所有状态
+ClearStatusBeforeCreateMeeting:
+  # 将FinancialForm已经填完的状态置空
+  - .Global.formData.patientDoc.status.shareFinancialForm@: false
+  # 将patient chart已经填完的状态置空
+  - .Global.formData.patientDoc.status.sharePatientChart@: false
+  # 将visit Questionnaire已经填完的状态置空
+  - .Global.visitQuestionnaireDoc@: ""
+  - .Global.formData.firstToCov19Test@: true
+  - .Global.formData.firstToCov19TestForm@: true
+  - .Global.formData.firstToCov19TestNewPatForm@: true
+  # 重置firstToNewPatientForm状态
+  - .Global.formData.firstToNewPatientForm@: true
+  # 重置firstToNewPatientForm状态
+  - .Global.formData.firstToPfizerVaccineFirDoseForm@: true
+  - .Global.formData.firstToPfizerVaccineSecDose@: true
+  # 重置firstToModernaVaccineSecDoseForm状态
+  - .Global.formData.firstToModernaVaccineFirDoseForm@: true
+  - .Global.formData.firstToModernaVaccineSecDoseForm@: true
+  - .Global.formData.firstFluVaccinationConsentForm@: true
+  - .Global.formData.firstPatientConsentForm@: true
+  # 清空会议视频信息
+  - .Global.roomInfoDoc.document@: ""
+
+# 进入新会议前初始化各文档的DM
+PatientFormDM:
+  newPatientForm: # New Patient Forms 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      signatureNewPatForm: ""
+      recipientName: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      IDType: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+  cov19TestNewPatForm: # COVID-19 Testing Consent - New Patient 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      recipientName: ""
+      id: ""
+      whetherHippaSignature: "true"
+      signatureTime: ""
+    symptomProfile:
+      experience: []
+      remark: ""
+      flag: "none"
+    signatureCoronavirus:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherCoronavirusSignature: "true"
+      signatureTime: ""
+    signatureIsolation:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherIsolationSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+  #
+  cov19TestForm:
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+    symptomProfile:
+      experience: []
+      remark: ""
+      problem1: ""
+      problem2: ""
+      problem3: ""
+      problem4: ""
+    signatureCoronavirus:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherCoronavirusSignature: "true"
+      signatureTime: ""
+    signatureIsolation:
+      recipientName: ""
+      facilityName: ""
+      id: ""
+      whetherIsolationSignature: "true"
+      signatureTime: ""
+  pifzerVaccineFirDoseForm: # Pfizer-BioNTech Vaccine - First Dose 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      recipientName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+  pifzerVaccineSecDoseForm:
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+  modernaVaccineFirDoseForm:
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+      fullAddress: ""
+      firstName: ""
+      middleName: ""
+      lastName: ""
+      dateOfBirth: ""
+      gender: ""
+      address: ""
+      line: ""
+      secondLine: ""
+      city: ""
+      county: ""
+      state: ""
+      zipCode: ""
+      residence: ""
+      mainContact: ""
+      alternativePhone: ""
+      email: ""
+      employer: ""
+      occupation: ""
+      name: ""
+      relation: ""
+      phoneNumber: ""
+      agreement: []
+    signatureHippa:
+      recipientName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+    billingInfo:
+      medicalInsurance: ""
+      indentification:
+        companyName: ""
+        insuredName: ""
+        insurancePlan: ""
+        insuranceId: ""
+        security: ""
+  modernaVaccineSecDoseForm: # Moderna Vaccine Form - Second Dose 的数据存储
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    patientInfo:
+      fullName: ""
+    screeningEligibility:
+      recevingDose: ""
+      ingredient: ""
+    signatureConsent:
+      isAgree: ""
+      recipientName: ""
+      facilityName: ""
+      signaturePfizerVaccine: ""
+      whetherSignature: "true"
+      signatureTime: ""
+
+InitDocDM:
+  #  重置newPatientFormDM
+  - .VaccineFormDM.newPatientFormDM@: =..PatientFormDM.newPatientForm
+  #  重置cov19TestNewPatFormDM
+  - .VaccineFormDM.cov19TestNewPatFormDM@: =..PatientFormDM.cov19TestNewPatForm
+  #  重置cov19TestFormDM
+  - .VaccineFormDM.cov19TestFormDM@: =..PatientFormDM.cov19TestForm
+  #  重置pifzerVaccineFirDoseFormDM
+  - .VaccineFormDM.pifzerVaccineFirDoseFormDM@: =..PatientFormDM.pifzerVaccineFirDoseForm
+  #  重置modernaVaccineFirDoseFormDM
+  - .VaccineFormDM.modernaVaccineFirDoseFormDM@: =..PatientFormDM.modernaVaccineFirDoseForm
+  #  重置modernaVaccineSecDoseFormDM
+  - .VaccineFormDM.modernaVaccineSecDoseFormDM@: =..PatientFormDM.modernaVaccineSecDoseForm

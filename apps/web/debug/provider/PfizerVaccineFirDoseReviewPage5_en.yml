@@ -243,14 +243,14 @@ PfizerVaccineFirDoseReviewPage5:
                         - type: view
                           style:
                             display: "inline-block"
-                            width: "auto"
+                            width: "0.38"
                             height: "auto"
                             textAlign:
                               x: center
                           children:
                             - type: view
                               style:
-                                width: "auto"
+                                width: "0.38"
                                 height: "auto"
                               children:
                                 - type: image
@@ -273,7 +273,7 @@ PfizerVaccineFirDoseReviewPage5:
                         - type: view
                           style:
                             display: "inline-block"
-                            width: "auto"
+                            width: "0.38"
                             height: "auto"
                             textAlign:
                               x: center
@@ -281,7 +281,7 @@ PfizerVaccineFirDoseReviewPage5:
                           children:
                             - type: view
                               style:
-                                width: "auto"
+                                width: "0.38"
                                 height: "auto"
                               children:
                                 - type: image
@@ -453,7 +453,7 @@ PfizerVaccineFirDoseReviewPage5:
       width: "1"
       overflow: hidden
       boxSizing: border-box
-      fontFamily: "Arial"
+
       color: "0x333333"
       fontSize: .Nfont.h16
 
@@ -474,7 +474,7 @@ PfizerVaccineFirDoseReviewPage5:
       height: "auto"
       width: "0.92"
       overflow: hidden
-      fontFamily: "Arial"
+
     titleBox:
       marginTop: "0.0270"
       paddingBottom: "1.23vh"
@@ -569,7 +569,7 @@ PfizerVaccineFirDoseReviewPage5:
       width: "1"
       backgroundColor: "0xffffff"
       boxSizing: border-box
-      fontFamily: "Arial"
+
       boxShadow: "1px 1px 4px 1px #dededf"
       overflow: hidden
       textAlign:
@@ -600,7 +600,7 @@ PfizerVaccineFirDoseReviewPage5:
     card:
       marginTop: "0.0123"
       height: "0.12315"
-      width: 19.827vh
+      width: "0.38"
     cardText:
       marginTop: "0.01"
       fontSize: .Nfont.h12

@@ -3,8 +3,23 @@ InitEvalReportPrivate:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
+    - .Global.formData.lastPage@: ProviderNotes
+    # 判断本地会议是否有diagnoses存在,存在update,否则create
+    - if:
+        - =.Global.formData.providerDoc.diagnosesDoc.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.diagnosesDoc.docReq@: =.Global.formData.providerDoc.diagnosesDoc
+        - actionType: evalObject
+          object:
+            - =.InitEvalReportPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+            - ..apiRequest.diagnosesDoc.docReq@: =.InitEvalReportPrivate.apiRequest.diagnosesDoc.docResp.doc
+            - .Global.formData.providerDoc.diagnosesDoc@: =.InitEvalReportPrivate.apiRequest.diagnosesDoc.docResp.doc
     - ..apiRequest.initialEvaluationReport.docReq@: =.Global.Note
-
+    - ..apiRequest.initialEvaluationReport.docReq.name.data.superbill@: =.Global.formData.superbillComplete
     - if:
         - =..apiRequest.initialEvaluationReport.docReq.name.data.whetherSign
         - continue
@@ -163,7 +178,24 @@ InitEvalReportPrivate:
           api: cd
           dataIn: apiRequest.newSign.docReq
           dataOut: InitEvalReportPrivate.apiRequest.newSign.docResp
-
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoom.edge.id
+        reid: .Global.roomInfo.edge.id
+        type: .DocType.Diagnoses
+        subtype:
+          mediaType: "application/json"
+        name:
+          data:
+            diagnosis:
+              descriptiveList: []
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: InitEvalReportPrivate.apiRequest.diagnosesDoc.docReq
+          dataOut: InitEvalReportPrivate.apiRequest.diagnosesDoc.docResp
   components:
     - .BaseWarningView:
       message: "Please complete required fields: Search&Description"
@@ -174,6 +206,10 @@ InitEvalReportPrivate:
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
+            # 处理Diagnosis
+            - actionType: evalObject
+              object:
+                - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
             # 签名处理
             - actionType: saveSignature
               dataObject: BLOB
@@ -216,7 +252,7 @@ InitEvalReportPrivate:
         width: "1"
         height: "0.84"
         overflow: scroll
-        fontFamily: "Arial"
+
       children:
         - type: view
           style:
@@ -250,7 +286,7 @@ InitEvalReportPrivate:
                     height: "auto"
                     fontSize: .Nfont.h20
                     fontWeight: "600"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordBreak: "break-word"
                 - type: label
@@ -261,7 +297,7 @@ InitEvalReportPrivate:
                     height: "auto"
                     fontSize: .Nfont.h14
                     color: "0x666666"
-                    fontFamily: "Arial"
+
                     verticalAlign: middle
                     wordBreak: "break-word"
         - type: view
@@ -376,7 +412,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -406,7 +442,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             textIndent: "12px"
@@ -435,7 +471,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -464,7 +500,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -493,7 +529,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -522,7 +558,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -551,7 +587,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -581,7 +617,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -610,7 +646,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -639,7 +675,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -664,7 +700,7 @@ InitEvalReportPrivate:
               dataKey:
               style:
                 width: "0.45"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 fontWeight: "600"
                 textAlign:
@@ -698,7 +734,7 @@ InitEvalReportPrivate:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -716,7 +752,6 @@ InitEvalReportPrivate:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -756,7 +791,7 @@ InitEvalReportPrivate:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -774,7 +809,6 @@ InitEvalReportPrivate:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -814,7 +848,7 @@ InitEvalReportPrivate:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -832,7 +866,6 @@ InitEvalReportPrivate:
                 height: "0.037"
                 marginLeft: "0.04"
 
-                fontFamily: "Arial"
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -872,7 +905,7 @@ InitEvalReportPrivate:
               style:
                 width: "0.44"
                 height: "0.037"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -889,7 +922,7 @@ InitEvalReportPrivate:
                 width: "0.44"
                 height: "0.037"
                 marginLeft: "0.04"
-                fontFamily: "Arial"
+
                 fontSize: .Nfont.h14
                 textIndent: "12px"
                 border:
@@ -906,7 +939,7 @@ InitEvalReportPrivate:
             marginTop: "0.01724"
             marginLeft: "0.04"
             width: "auto"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             fontWeight: "600"
         - type: textView
@@ -950,7 +983,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
         - type: label
@@ -978,7 +1011,7 @@ InitEvalReportPrivate:
             borderRadius: "4"
             borderWidth: "1.5"
             borderColor: "0xdedede"
-            fontFamily: "Arial"
+
             fontSize: .Nfont.h14
             color: "0x333333"
             padding: "6px 12px"
@@ -1052,9 +1085,9 @@ InitEvalReportPrivate:
                                 boxSizing: border-box
                                 border:
                                   style: 1
-                                fontSize: .Nfont.h12
+                                fontSize: .Nfont.h14
                                 verticalAlign: middle
-                                fontFamily: "Arial"
+
                                 color: "0x333333"
                               onInput:
                                 - actionType: evalObject
@@ -1107,7 +1140,7 @@ InitEvalReportPrivate:
                                 - actionType: builtIn
                                   funcName: redraw
                                   viewTag: searchShowTag
-                        
+
                         - type: textField
                           viewTag: descriptionTag
                           placeholder: Description
@@ -1124,7 +1157,7 @@ InitEvalReportPrivate:
                             borderRadius: "4"
                             borderWidth: "1.5"
                             borderColor: "0xcdcdcd"
-                            fontFamily: "Arial"
+                            fontSize: .Nfont.h14
                             color: "0x333333"
                     - type: textView
                       viewTag: CommentsTag
@@ -1135,17 +1168,16 @@ InitEvalReportPrivate:
                         width: "0.92"
                         height: "0.0874"
                         boxSizing: border-box
-
+                        fontSize: .Nfont.h14
                         border:
                           style: 3
                         borderRadius: "4"
                         borderWidth: "1.5"
                         borderColor: "0xcdcdcd"
-                        fontFamily: "Arial"
+
                         color: "0x333333"
                         padding: "6px 12px"
 
-                    
                 - type: label
                   text: + add more
                   style:
@@ -1168,11 +1200,26 @@ InitEvalReportPrivate:
                             - actionType: popUp
                               popUpView: SearchWarning
                               wait: true
+
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.array.containingValue:
+                                dataIn:
+                                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+                                  key: code
+                                  value: =..formData.diagnosis.descriptiveList.code
+                            - actionType: popUp
+                              popUpView: repeatWarning
+                              wait: true
+                              popUpDismiss: 2000
+                            - continue
+
                     - emit:
                         actions:
                           - =.builtIn.array.add:
                               dataIn:
-                                object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+                                object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                                 value: =..formData.diagnosis.descriptiveList
                     - actionType: evalObject
                       object:
@@ -1215,7 +1262,7 @@ InitEvalReportPrivate:
                         - type: list
                           viewTag: listData
                           contentType: listObject
-                          listObject: ..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                          listObject: ..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
                           iteratorVar: itemObject
                           style:
                             width: "0.92"
@@ -1259,7 +1306,7 @@ InitEvalReportPrivate:
                                         width: "0.17"
                                         textAlign:
                                           x: left
-                                        fontFamily: "Arial"
+
                                         backgroundColor: "0xffffff"
                                         wordWrap: break-word
                                         fontSize: .Nfont.h14
@@ -1278,14 +1325,14 @@ InitEvalReportPrivate:
                                       dataKey: itemObject.description
                                       style:
                                         verticalAlign: top
-                                        marginLeft: "0.02"
+                                        marginLeft: "0.015"
                                         display: "inline-block"
                                         height: "auto"
                                         width: "0.64"
                                         textAlign:
                                           x: left
                                         backgroundColor: "0xffffff"
-                                        fontFamily: "Arial"
+
                                         wordWrap: break-word
                                         fontSize: .Nfont.h14
                                         color: "0x333333"
@@ -1297,7 +1344,7 @@ InitEvalReportPrivate:
                                     width: "0.845"
                                     height: "auto"
                                     color: "0x666666"
-                                    fontFamily: "Arial"
+
                                     wordWrap: break-word
                                     fontSize: .Nfont.h14
             - type: label
@@ -1310,6 +1357,22 @@ InitEvalReportPrivate:
                 height: "auto"
                 color: "0x333333"
                 fontSize: .Nfont.h14
+            - type: label
+              text: You can add recommendations after finishing this note
+              style:
+                marginLeft: "0.04"
+                width: "0.92"
+                height: "auto"
+                color: "0x333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+            - type: label
+              text: "&#8226 Note"
+              style:
+                marginLeft: "0.04"
+                width: "0.92"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
             - type: textView
               placeholder: Enter here
               dataKey: apiRequest.initialEvaluationReport.docReq.name.data.planAndRecommendations
@@ -1325,9 +1388,71 @@ InitEvalReportPrivate:
                 borderRadius: "4"
                 borderWidth: "1.5"
                 borderColor: "0xdedede"
-                fontFamily: "Arial"
+
                 color: "0x333333"
                 padding: "6px 12px"
+            # - type: view
+            #   viewTag: defaultTag
+            #   style:
+            #     ..style.blockBox:
+            #   children:
+            #     - type: image
+            #       path:
+            #         ..event.checkBoxPath:
+            #       style:
+            #         ..style.img:
+            #     - type: label
+            #       text: Superbill
+            #       onClick:
+            #         # 签名处理
+            #         - actionType: saveSignature
+            #           dataObject: BLOB
+            #           dataKey: InitEvalReportPrivate.apiRequest.newSign.docReq.name.data
+            #           isEmpty: InitEvalReportPrivate.formData.whetherSign
+            #         # 保存签名
+            #         - actionType: evalObject
+            #           object:
+            #             - ..apiRequest.newSign.docReq.reid@: =.InitEvalReportPrivate.apiRequest.initialEvaluationReport.docReq.id
+
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..formData.whetherSign
+            #                 - continue
+            #                 - =..apiRequest.newSign.docAPI.store: ""
+
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..formData.temporarySignature
+            #                 - actionType: evalObject
+            #                   object:
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureTime@: =..formData.signatureTime
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureId@: =..formData.temporarySignature
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.whetherSign@: false
+            #                     - ..formData.whetherSign@: false
+            #                 - actionType: evalObject
+            #                   object:
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureTime@: =..apiRequest.newSign.docResp.doc.ctime
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.signatureId@: =..apiRequest.newSign.docResp.doc.id
+            #                     - ..apiRequest.initialEvaluationReport.docReq.name.data.whetherSign@: =..formData.whetherSign
+            #         - actionType: evalObject
+            #           object:
+            #             - =.InitEvalReportPrivate.apiRequest.initialEvaluationReport.docAPI.store: ""
+            #             - .Global.Note@: =..apiRequest.initialEvaluationReport.docResp.doc
+            #         - actionType: evalObject
+            #           object:
+            #             # 更新本地
+            #             - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
+            #             - .Global.formData.parentPage@: InitEvalReportPrivate
+            #         - actionType: evalObject
+            #           object:
+            #             - if:
+            #                 - =..apiRequest.initialEvaluationReport.docReq.name.data.superbill
+            #                 - goto: SuperbillReview
+            #                 - goto: SelectSuperbill
+            #       style:
+            #         ..style.setLabel:
             - type: view
               viewTag: searchShowTag
               style:
@@ -1338,6 +1463,7 @@ InitEvalReportPrivate:
                 height: "auto"
                 borderRadius: "4"
                 boxSizing: "border-box"
+                backgroundColor: "0xffffff"
                 boxShadow: "1px 1px 4px 1px #dededf"
                 zIndex: "20"
               children:
@@ -1347,7 +1473,7 @@ InitEvalReportPrivate:
                     display: "none"
                     width: "0.92"
                     height: "auto"
-                    fontFamily: "Arial"
+
                     zIndex: 10
                     backgroundColor: "0xffffff"
                     borderRadius: "4"
@@ -1410,6 +1536,9 @@ InitEvalReportPrivate:
                                     - actionType: builtIn
                                       funcName: hide
                                       viewTag: ShowTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: listData
                                     - actionType: builtIn
                                       funcName: show
                                       viewTag: listData
@@ -1670,6 +1799,13 @@ InitEvalReportPrivate:
           children:
             - .DocButtonPrivate:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.EvaluationNote.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.EvaluationNote.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -1741,19 +1877,32 @@ InitEvalReportPrivate:
                   object:
                     .Global._nonce@:
                       =.builtIn.math.random: ""
-
                 - actionType: evalObject
                   object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.unPageName
-                              string2: ""
-                        - goto: ProviderNotes
-                        - goto: =.Global.formData.unPageName
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.InitEvalReport
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: evalObject
+                  object:
+                    - goto: MoreOptions
 
             - .DocButtonRelease:
               onClick:
+                # 处理Diagnosis
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.EvaluationNote.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.EvaluationNote.apiRequest.diagnosesDoc.docResp.doc
                 # 签名处理
                 - actionType: saveSignature
                   dataObject: BLOB
@@ -1823,35 +1972,21 @@ InitEvalReportPrivate:
                           index: 1
                           hex: 1
                         dataOut: InitEvalReportPrivate.apiRequest.initialEvaluationReport.docReq.type
-
                 - actionType: evalObject
                   object:
-                    # 更新文档状态
-                    - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.name@: "Released"
-                    - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-                    - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.initialEvaluationReport.docAPI.store: ""
-                    - =.builtIn.array.add:
+                    - =.builtIn.utils.createAuditLog:
                         dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.initialEvaluationReport.docResp.doc
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
-
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.unPageName
-                              string2: ""
-                        - goto: ProviderNotes
-                        - goto: =.Global.formData.unPageName
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.InitEvalReport
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: popUp
+                  popUpView: dialogueTag
 
     - .BaseWarningView:
       message: "You haven't signed the form"
@@ -1904,7 +2039,7 @@ InitEvalReportPrivate:
           object:
             - =.builtIn.array.removeByName:
                 dataIn:
-                  object: =..apiRequest.initialEvaluationReport.docReq.name.data.diagnosis.descriptiveList
+                  object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
                   key: code
                   name: =..formData.selectedDiagnosis.code
             - ..formData.listDataflag@: "block"
@@ -1913,6 +2048,73 @@ InitEvalReportPrivate:
               viewTag: listData
         - actionType: popUpDismiss
           popUpView: BaseDelWarningView
+
+    - .Normal:
+      message: "Do you want the patient to see it?"
+      viewTag: dialogueTag
+      leftText: "No"
+      rightText: "Yes"
+      leftButton:
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.initialEvaluationReport.docReq.tage@: 1
+            - =..apiRequest.initialEvaluationReport.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.initialEvaluationReport.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+      rightButton:
+        - actionType: evalObject
+          object:
+            # 更新文档状态
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.name@: "Released"
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+            - ..apiRequest.initialEvaluationReport.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+        - actionType: evalObject
+          object:
+            # 修改tage
+            - ..apiRequest.initialEvaluationReport.docReq.tage@: -1
+            - =..apiRequest.initialEvaluationReport.docAPI.store: ""
+            - =.builtIn.array.add:
+                dataIn:
+                  object: =.Global.currentMeetingDoc
+                  value: =..apiRequest.initialEvaluationReport.docResp.doc
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - actionType: evalObject
+          object:
+            - goto: MoreOptions
+
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
+    - .BaseWarningView:
+      message: "Do not add repeatedly"
+      viewTag: repeatWarning
+
+  event:
+    checkBoxPath:
+      emit:
+        actions:
+          - if:
+              - =..apiRequest.initialEvaluationReport.docReq.name.data.superbill
+              - selectOnBlue.svg
+              - selectOffBlue.svg
   style: #Input style fragment here
     signBox:
       width: "auto"
@@ -1922,7 +2124,7 @@ InitEvalReportPrivate:
     signTitle:
       height: "auto"
       width: "0.48"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h12
       display: "inline-block"
       verticalAlign: top
@@ -1936,7 +2138,7 @@ InitEvalReportPrivate:
       marginLeft: "0.04"
       width: "0.92"
       height: "0.087"
-      fontFamily: "Arial"
+
       fontSize: .Nfont.h14
       borderRadius: "4"
       borderColor: "#dedede"
@@ -1945,3 +2147,23 @@ InitEvalReportPrivate:
       borderWidth: "1"
       boxSizing: "border-box"
       padding: "6px 12px"
+    blockBox:
+      marginTop: "0.024630"
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    img:
+      display: "inline-block"
+      height: "0.01970"
+      verticalAlign: middle
+    setLabel:
+      display: "inline-block"
+      marginLeft: "0.026666"
+      height: "auto"
+      width: "auto"
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "700"
+      verticalAlign: middle
+      textDecoration: underline

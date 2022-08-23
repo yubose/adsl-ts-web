@@ -1,5 +1,5 @@
 FacilityProviderInfo:
-  title: Provider information
+  title: Provider Information
   pageNumber:
   init:
     - .SignInCheck
@@ -224,27 +224,46 @@ FacilityProviderInfo:
           dataIn: apiRequest.sendNotification.document
 
   components:
-    - .BaseHeader:
-    - .HeaderLeftBack:
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-        - actionType: updateObject
-          dataKey: Global.formData.facilityProviderInfo
-          dataObject: {}
-    - .HeaderRightAdd:
-      imgPath: qrCodeWhilte.svg
-      onClick:
-        - actionType: evalObject
-          object:
-            - .Global.formData.currentProviderQRCode@: =.Global.formData.facilityProviderInfo
-            - goto: ProviderQRCode
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+            - actionType: updateObject
+              dataKey: Global.formData.facilityProviderInfo
+              dataObject: {}
+        - .BasePublicHeaderTitle:
+        - .BasePublicHeaderRightIcon:
+          path: qrCodeWhilte.svg
+          style:
+            height: "0.028"
+          onClick:
+            - actionType: evalObject
+              object:
+                - .Global.formData.currentProviderQRCode@: =.Global.formData.facilityProviderInfo
+                - goto: ProviderQRCode
+    # - .BaseHeader:
+    # - .HeaderLeftBack:
+    #   onClick:
+    #     - actionType: builtIn
+    #       funcName: goBack
+    #       reload: true
+    #     - actionType: updateObject
+    #       dataKey: Global.formData.facilityProviderInfo
+    #       dataObject: {}
+    # - .HeaderRightAdd:
+    #   imgPath: qrCodeWhilte.svg
+    #   onClick:
+    #     - actionType: evalObject
+    #       object:
+    #         - .Global.formData.currentProviderQRCode@: =.Global.formData.facilityProviderInfo
+    #         - goto: ProviderQRCode
     #  body
     - type: view
       style:
         width: "1"
-        marginTop: "0.1"
         left: "0"
         height: "auto"
         backgroundColor: "0xffffff"
@@ -275,7 +294,7 @@ FacilityProviderInfo:
                 textAlign:
                   x: center
                 fontSize: .Nfont.h18
-                fontFamily: "Arial"
+
                 fontWeight: "600"
                 color: "0x4B4B4B"
         - type: label
@@ -293,7 +312,7 @@ FacilityProviderInfo:
               y: center
               x: center
             overflow: hidden
-            textOverflow: ellipsis
+            text-overflow: ellipsis
             whiteSpace: nowrap
         - type: view
           style:
@@ -316,8 +335,8 @@ FacilityProviderInfo:
                   style:
                     height: "0.06"
                     # marginLeft: "0.05"
-                    display: "inline-block"
-                    verticalAlign: middle
+                    # display: "inline-block"
+                    # verticalAlign: middle
                   onClick:
                     - actionType: evalObject
                       object:
@@ -519,9 +538,9 @@ FacilityProviderInfo:
       viewTag: blockHeightTag
       style:
         margin: "0.01"
-        height: "0.56"
+        height: "0.62"
         width: "1"
-        backgroundColor: "0xffffff"
+        # backgroundColor: "0xffffff"
       children:
         - type: view
           viewTag: AboutInfoTag
@@ -797,7 +816,7 @@ FacilityProviderInfo:
                 marginTop: "0.01"
               children:
                 - type: label
-                  text: "Specialty and board certified:"
+                  text: "Specialty & Board Certified:"
                   style:
                     color: "0x333333"
                     fontWeight: "400"
@@ -888,26 +907,26 @@ FacilityProviderInfo:
                         width: "0.3"
                         fontWeight: "600"
                         height: "0.03"
-                        top: "0"
+                        display: inline-block
                         fontSize: .Nfont.h1
-                        left: "0.06"
+                        marginLeft: "0.06"
                     - type: label
                       dataKey: itemObject.state
                       style:
                         width: "0.2"
                         fontWeight: "600"
                         height: "0.03"
-                        top: "0"
-                        left: "0.3"
+                        display: inline-block
+                        textAlign:
+                          x: center
                         fontSize: .Nfont.h1
                     - type: label
                       dataKey: itemObject.expiration
                       style:
-                        width: "0.869"
+                        width: "0.38"
                         fontWeight: "600"
                         height: "0.03"
-                        top: "0"
-                        # left: "0.7"
+                        display: inline-block
                         fontSize: .Nfont.h1
                         textAlign:
                           x: right
@@ -997,7 +1016,7 @@ FacilityProviderInfo:
                 marginTop: "0"
               children:
                 - type: label
-                  text: "Education and training:"
+                  text: "Education & Training:"
                   style:
                     color: "0x333333"
                     fontWeight: "400"
@@ -1078,7 +1097,7 @@ FacilityProviderInfo:
     #                 marginTop: "0.02"
     #                 textAlign:
     #                   x: "center"
-    #                 fontFamily: "Arial"
+    #
     #                 color: "#4B4B4B"
     #                 fontWeight: "500"
     #                 fontSize: "2vh"
@@ -1109,14 +1128,14 @@ FacilityProviderInfo:
     #                     - type: label
     #                       dataKey: formData.providerInfo.fullName
     #                       style:
-    #                         fontFamily: "Arial"
+    #
     #                         color: "#4B4B4B"
     #                         fontWeight: "500"
     #                         fontSize: "1.5vh"
     #                     - type: label
     #                       dataKey: formData.providerInfo.specialty.0.specialty
     #                       style:
-    #                         fontFamily: "Arial"
+    #
     #                         color: "#4B4B4B"
     #                         fontWeight: "500"
     #                         fontSize: "1.5vh"
@@ -1134,7 +1153,7 @@ FacilityProviderInfo:
     #               style:
     #                 color: "#007aff"
     #                 fontSize: "1.7vh"
-    #                 fontFamily: "Arial"
+    #
     #                 width: "0.36"
     #                 height: "0.05"
     #                 borderRight: "1px solid #3f3f3f"
@@ -1150,7 +1169,7 @@ FacilityProviderInfo:
     #               style:
     #                 color: "#007aff"
     #                 fontSize: "1.7vh"
-    #                 fontFamily: "Arial"
+    #
     #                 width: "0.36"
     #                 height: "0.05"
     #                 fontWeight: 500
@@ -1199,7 +1218,7 @@ FacilityProviderInfo:
               text: "Successfully!"
               style:
                 color: "#171725"
-                fontFamily: "Arial"
+
                 fontSize: "1.8vh"
                 marginTop: "0.02"
 
@@ -1253,7 +1272,7 @@ FacilityProviderInfo:
                 marginTop: "0.029"
                 fontWeight: "600"
                 fontSize: .Nfont.h16
-                fontFamily: "Arial"
+
                 color: "0x4B4B4B"
                 textAlign:
                   x: center
@@ -1272,7 +1291,7 @@ FacilityProviderInfo:
                       dataKey: formData.providerInfo.avatar
                       style:
                         height: "0.06"
-                        width: "6vh"
+                        # width: "6vh"
                         backgroundColor: "0xFFFFFF"
                         verticalAlign: middle
                         display: "inline-block"
@@ -1284,6 +1303,7 @@ FacilityProviderInfo:
                         display: "inline-block"
                         verticalAlign: middle
                         marginLeft: "0.037"
+                        width: "0.388"
                         textAlign:
                           x: left
                       children:
@@ -1293,6 +1313,10 @@ FacilityProviderInfo:
                             fontSize: .Nfont.h14
                             color: "0x333333"
                             fontWeight: "600"
+                            width: "0.388"
+                            overflow: hidden
+                            text-overflow: ellipsis
+                            whiteSpace: nowrap
                         - type: label
                           dataKey: formData.providerInfo.selectedSpecialty.0
                           style:
@@ -1302,6 +1326,10 @@ FacilityProviderInfo:
                             zIndex: "1000"
                             color: "0x666666"
                             fontWeight: "500"
+                            width: "0.388"
+                            overflow: hidden
+                            text-overflow: ellipsis
+                            whiteSpace: nowrap
             - type: view
               style:
                 height: "0.02"
@@ -1361,23 +1389,23 @@ FacilityProviderInfo:
                         #     dataIn:
                         #       sourceDoc: =..formData.patientProfile
                         #       targetEdgeID: =.FacilityProviderInfo.apiRequest.invite.edgeRes.edge.refid
-#                        - =.builtIn.FCM.getAPPID:
-#                            dataIn:
-#                              appName: =.TargetApp.provider
-#                            dataOut: FirebaseToken.edge.evid
-#                        - actionType: evalObject
-#                          object: .Global.updateJwt
-#                        - =.Global.jwt.edgeAPI.store: ""
+                        #                        - =.builtIn.FCM.getAPPID:
+                        #                            dataIn:
+                        #                              appName: =.TargetApp.provider
+                        #                            dataOut: FirebaseToken.edge.evid
+                        #                        - actionType: evalObject
+                        #                          object: .Global.updateJwt
+                        #                        - =.Global.jwt.edgeAPI.store: ""
                         - ..apiRequest.sendNotification.document.fid@: =.FirebaseToken.edge.evid
                         - ..apiRequest.sendNotification.document.eid@: =..apiRequest.invite.edgeRes.edge.id
                         - =..apiRequest.sendNotification.docAPI.store: ""
-#                        - =.builtIn.FCM.getAPPID:
-#                            dataIn:
-#                              appName: =.AppName
-#                            dataOut: FirebaseToken.edge.evid
-#                        - actionType: evalObject
-#                          object: .Global.updateJwt
-#                        - =.Global.jwt.edgeAPI.store: ""
+                    #                        - =.builtIn.FCM.getAPPID:
+                    #                            dataIn:
+                    #                              appName: =.AppName
+                    #                            dataOut: FirebaseToken.edge.evid
+                    #                        - actionType: evalObject
+                    #                          object: .Global.updateJwt
+                    #                        - =.Global.jwt.edgeAPI.store: ""
                     - actionType: popUpDismiss
                       popUpView: uploading
                     - actionType: popUp
