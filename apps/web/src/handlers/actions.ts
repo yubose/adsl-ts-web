@@ -497,23 +497,27 @@ const createActions = function createActions(app: App) {
             cursor: pointer;
             outline: none;
             border: none;
-            height: 30px;
-            width: 60px;
+            padding: 10px 5px;
+            height: 40px;
+            width: 100px;
             border-radius: 5px;
+            font-size: 0.8vw;
+            font-weight: 600;
             color: #fff;
-            background-color: #a139ff;
+            background-color: #0c5793;
             margin-top: 10px;
-            margin-right: 30px;
         `
       btnCancel.style.cssText = `
             cursor: pointer;
             outline: none;
             height: 30px;
-            width: 60px;
             border: none;
             border-radius: 5px;
-            color: #fff;
-            background-color: red;
+            color: #0c5793;
+            margin-right: 60px;
+            font-size: 1vw;
+            text-decoration: underline;
+            background: none;
             margin-top: 10px;
         `
       divBtn.style.cssText = `
@@ -527,8 +531,9 @@ const createActions = function createActions(app: App) {
     `
       divDom.appendChild(img)
       divImgDom.appendChild(divDom)
-      divBtn.appendChild(btnResult)
       divBtn.appendChild(btnCancel)
+      divBtn.appendChild(btnResult)
+
       divImgDom.appendChild(divBtn)
       divRootDom.appendChild(divImgDom)
       rootDom.appendChild(divRootDom)
