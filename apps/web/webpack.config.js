@@ -12,7 +12,6 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./InjectScriptsPlugin')
-const TerserPlugin = require("terser-webpack-plugin");
 const serializeErr = (err) => ({
   name: err.name,
   message: err.message,
@@ -341,16 +340,6 @@ function getWebpackConfig(env) {
     optimization:
       mode === 'production'
         ? {
-            minimizer:[
-              new TerserPlugin({
-                terserOptions:{
-                  compress:{
-                    drop_console: true,
-                    drop_debugger: true
-                  }
-                }
-              })
-            ],
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
