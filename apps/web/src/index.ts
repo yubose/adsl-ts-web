@@ -13,9 +13,13 @@ import 'tippy.js/themes/light.css'
 import 'vercel-toast/css'
 import './spinner/three-dots.css'
 import './styles.css'
+import lf from './utils/lf'
 let app: App
 let log = Logger.create('App.ts')
-
+let localForage = lf
+Object.defineProperties(window,{
+  localForage:{  configurable: true, get: () => lf }
+})
 async function initializeApp(
   args: {
     noodl?: CADL
@@ -206,14 +210,14 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gestureend', (e) => e.preventDefault())
   document.addEventListener('gesturechange', (e) => e.preventDefault())
 
-  const notifiedForChromeDesktop = window.localStorage.getItem(
+  const notifiedForChromeDesktop = await localForage.getItem(
     'notified-chrome-desktop',
   )
 
   if (!isChrome() && notifiedForChromeDesktop != 'notified') {
     const width = window.outerWidth
     if (width > 1000) {
-      window.localStorage.setItem('notified-chrome-desktop', 'notified')
+      await localForage.setItem('notified-chrome-desktop', 'notified')
       toast(`For best performance, please use the Chrome browser`, {
         timeout: 10000,
         type: 'dark',
@@ -234,10 +238,10 @@ window.addEventListener('load', async (e) => {
   }
 })
 
-window.addEventListener('beforeunload', (evt) => {
+window.addEventListener('beforeunload', async(evt) => {
   const html = document.getElementById('root')?.innerHTML || ''
   if (html) {
-    localStorage.setItem(
+    await localForage.setItem(
       `__last__`,
       JSON.stringify({
         origin: location.origin,
@@ -249,7 +253,7 @@ window.addEventListener('beforeunload', (evt) => {
       }),
     )
   } else {
-    localStorage.removeItem(`__last__`)
+    await localForage.removeItem(`__last__`)
   }
 })
 

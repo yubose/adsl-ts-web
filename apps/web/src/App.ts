@@ -457,7 +457,7 @@ class App {
       const storedCode = isUnitTestEnv() ? 0 : (await this.getStatus())?.code
       // Initialize the user's state before proceeding to decide on how to direct them
       if (storedCode === 0) {
-        this.noodl.setFromLocalStorage('user')
+        await this.noodl.setFromLocalStorage('user')
         this.#state.authStatus = 'logged.in'
       } else if (storedCode === 1) {
         this.#state.authStatus = 'logged.out'
@@ -495,6 +495,7 @@ class App {
       this.root.actions = actions
       this.root.getConsumerOptions = this.nui.getConsumerOptions
       this.root.extendedBuiltIn = builtIns
+      this.root.localForage = lf
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
       // u.forEach(
       //   (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
