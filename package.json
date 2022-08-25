@@ -184,6 +184,6 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "noodl-ui": "^0.1.162"
+    "noodl-ui": "^0.1.163"
   }
 }
