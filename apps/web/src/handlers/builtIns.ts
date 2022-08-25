@@ -100,7 +100,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     const node: any = findByViewTag(viewTag)
-    !node && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    if(!node){
+      log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    }
+    // !node &&
     try {
       if (node) {
         const range = document.createRange()
@@ -343,8 +346,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   }
 
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
-    log.func('hide')
-    log.grey('', action?.snapshot?.())
+    // log.func('hide')
+    // log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     let wait = _pick(action, 'wait')
     const onElem = (node: HTMLElement) => {
@@ -357,7 +360,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     const onHide = () => {
       let elemCount
       elemCount = hide(findByViewTag(viewTag), onElem)
-      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+      if(!elemCount){
+        log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+
+      }
     }
     !u.isUnd(wait) ? setTimeout(onHide, wait === true ? 0 : wait) : onHide()
   }
@@ -379,7 +385,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
     const showNode = (vTag: string) => {
       let elemCount = show(findByViewTag(vTag), onElem)
-      !elemCount && log.red(`Cannot find a DOM node for viewTag "${vTag}"`)
+      if(!elemCount){
+        log.red(`Cannot find a DOM node for viewTag "${vTag}"`)
+      }
     }
     if (!u.isUnd(wait)) {
       setTimeout(() => showNode(viewTag), wait === true ? 0 : wait)
@@ -1239,7 +1247,10 @@ export const extendedSdkBuiltIns = {
       } else {
         log.grey(`Connecting to room id: ${action?.roomId}`)
         newRoom = (await this.meeting.join(action?.accessToken)) as Room
-        newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom)
+        if(newRoom){
+          log.green(`Connected to room: ${newRoom.name}`, newRoom)
+        }
+        // newRoom &&
       }
       if (newRoom) {
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values

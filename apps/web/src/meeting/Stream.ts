@@ -32,7 +32,7 @@ class MeetingStream {
   constructor(type: StreamType, { node }: { node?: HTMLElement } = {}) {
     if (node) this.#node = node
     this.type = type
-    if (!type) console.log({ this: this, node })
+    if (!type){ console.log({ this: this, node })}
   }
 
   get tracks() {
@@ -70,7 +70,7 @@ class MeetingStream {
   }
 
   #log = (name: string, s?: string, o?: Record<string, any>) => {
-    s ? log.func(name) : (s = name)
+    s ? ({}) : (s = name)
     console.log(s, this.snapshot(o))
   }
 

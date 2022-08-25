@@ -161,9 +161,7 @@ const createActions = function createActions(app: App) {
 
             if (u.isObj(result)) {
               if (u.isBrowser()) {
-                getActionObjectErrors(result).forEach((errMsg: string) =>
-                  log.red(errMsg, result),
-                )
+                getActionObjectErrors(result).forEach((errMsg: string) =>{log.red(errMsg, result)})
               }
 
               if (result.abort) {
@@ -720,7 +718,7 @@ const createActions = function createActions(app: App) {
           await options?.ref?.abort?.('File input window was closed')
           break
         case 'error':
-          return void log.red(`An error occurred for action "${name}"`, {
+          return log.red(`An error occurred for action "${name}"`, {
             action: action?.snapshot?.(),
             ...result,
           })

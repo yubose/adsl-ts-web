@@ -106,14 +106,14 @@ class createRegisters{
       //     app.meeting.showWaitingOthersMessage()
       //   }
       // },
-  
+
       async twilioOnPeopleShowRoom(obj: Register.Object, arg) {
         log.func('twilioOnPeopleShowRoom')
         log.hotpink('', { obj, arg })
         // debugger
       },
     }
-    
+
     const handleRegister = async(componentObject: GlobalRegisterComponent)=>{
       let actions = componentObject.props.actions
       try{
@@ -127,9 +127,9 @@ class createRegisters{
               action: action,
               trigger: 'register',
             })
-            const type = action?.actionType 
+            const type = action?.actionType
             const actionFn = this.app.root.actions[type]
-            u.isFnc(actionFn) && 
+            u.isFnc(actionFn) &&
               (await actionFn?.(
                 newAction,
                 this.app.nui?.getConsumerOptions({
@@ -144,7 +144,7 @@ class createRegisters{
             // })
             const functName = action.funcName
             const builtInFn = app.root.builtIn[functName] || app.root.extendedBuiltIn[functName]
-            u.isFnc(builtInFn) && 
+            u.isFnc(builtInFn) &&
             (await builtInFn?.(
               action,
               this.app.nui?.getConsumerOptions({
@@ -154,11 +154,11 @@ class createRegisters{
             ))
           }else{
             const emitAction = createAction({
-              action: { 
+              action: {
                 emit: {
                   actions: [action]
-                }, 
-                actionType: 'register' 
+                },
+                actionType: 'register'
               },
               trigger: 'register',
             }) as EmitAction
@@ -175,24 +175,24 @@ class createRegisters{
         }
       }catch(error){
         console.error(error)
-      } 
+      }
     }
 
     this.registrees = {
       async FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
         log.func('FCMOnTokenReceive')
-  
+
         componentObject.eventId = 'FCMOnTokenReceive'
-  
+
         const action = createAction({
           action: { emit: componentObject.emit, actionType: 'register' },
           trigger: 'register',
         }) as EmitAction
-  
+
         const component = (await app.nui?.resolveComponents(
           componentObject,
         )) as NuiComponent.Instance
-  
+
         componentObject.onEvent = async function FCMOnTokenReceive(
           token: string,
         ) {
@@ -214,7 +214,7 @@ class createRegisters{
             console.error(error)
           }
         }
-  
+
         app.notification
           ?.getToken({
             serviceWorkerRegistration:
@@ -227,22 +227,22 @@ class createRegisters{
             })
             await componentObject.onEvent?.(token)
           })
-          .catch((err) => log.red(`[Error]: ${err.message}`))
+          .catch((err) => {log.red(`[Error]: ${err.message}`)})
       },
       async onNewEcosDoc(componentObject: GlobalRegisterComponent) {
         log.func('onNewEcosDoc')
-  
+
         componentObject.eventId = 'onNewEcosDoc'
-  
+
         const action = createAction({
           action: { emit: componentObject.emit, actionType: 'register' },
           trigger: 'register',
         }) as EmitAction
-  
+
         const component = (await app.nui?.resolveComponents(
           componentObject,
         )) as NuiComponent.Instance
-  
+
         componentObject.onEvent = async function onNewEcosDoc(did: string) {
           log.func('onNewEcosDoc onEvent')
           log.gold(``, did)
@@ -284,25 +284,25 @@ class createRegisters{
         log.func('showExtendView')
         componentObject.eventId = 'showExtendView'
         await handleRegister(componentObject)
-        
+
       },
       async onProviderDisconnect(componentObject: GlobalRegisterComponent){
         log.func('onProviderDisconnect')
         componentObject.eventId = 'onProviderDisconnect'
         await handleRegister(componentObject)
-        
+
       },
       async showExitWarningView(componentObject: GlobalRegisterComponent){
         log.func('showExitWarningView')
         componentObject.eventId = 'showExitWarningView'
         await handleRegister(componentObject)
-        
+
       },
       async twilioOnPeopleJoin(componentObject: GlobalRegisterComponent){
         log.func('twilioOnPeopleJoin')
         componentObject.eventId = 'twilioOnPeopleJoin'
         await handleRegister(componentObject)
-      } 
+      }
     }
 
   }
@@ -387,7 +387,7 @@ class createRegisters{
       if (componentObject) {
         const onEvent = componentObject.props.onEvent as any
         ;(this.registrees as any)[onEvent](componentObject)
-      } 
+      }
     }
   }
 
