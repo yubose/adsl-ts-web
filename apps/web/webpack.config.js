@@ -142,6 +142,19 @@ function getWebpackConfig(env) {
   /**
    * @type { import('webpack').Configuration } webpackOptions
    */
+  let obj = {
+    test: /\.ts$/,
+    use: [
+      {
+        loader: path.resolve(__dirname, "./dropConsole.js"),
+        options: {
+          name: "web"
+        }
+      },
+    ],
+  }
+  let arrObject = [];
+  (mode==="production")&&arrObject.push(obj);
   const webpackOptions = {
     entry: {
       main: [
@@ -210,6 +223,7 @@ function getWebpackConfig(env) {
             },
           ],
         },
+        ...arrObject
       ],
     },
     resolve: {
