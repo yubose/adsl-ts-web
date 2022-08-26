@@ -221,10 +221,7 @@ const createActions = function createActions(app: App) {
                       }
                     }
                   }
-
-                  log.grey(
-                    `An evalObject action is injecting a new object to the chain`,
-                    {
+                  let action = {
                       actionChain,
                       instance: actionChain?.inject.call(
                         actionChain,
@@ -232,7 +229,10 @@ const createActions = function createActions(app: App) {
                       ),
                       object: result,
                       queue: actionChain?.queue.slice(),
-                    },
+                  }
+                  log.grey(
+                    `An evalObject action is injecting a new object to the chain`,
+                    action
                   )
                 }
               }
