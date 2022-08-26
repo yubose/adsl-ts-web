@@ -393,7 +393,7 @@ class MeetingStream {
       img.style.position = 'absolute'
       img.style.top = '25%'
       img.style.left = "25%"
-      let srcPath = resolveAssetUrl('default.png', window.app.nui.getAssetsUrl())
+      let srcPath = resolveAssetUrl('default.svg', window.app.nui.getAssetsUrl())
       img.setAttribute('src',srcPath)
       backdrop.appendChild(img)
       this.#node?.appendChild?.(backdrop)
