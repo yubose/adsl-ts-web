@@ -14,6 +14,7 @@ import {
   RoomParticipantTrackPublication,
   StreamType,
 } from '../app/types'
+import { resolveAssetUrl } from 'noodl-ui'
 
 const log = Logger.create('Streams.ts')
 
@@ -392,7 +393,8 @@ class MeetingStream {
       img.style.position = 'absolute'
       img.style.top = '25%'
       img.style.left = "25%"
-      img.setAttribute('src','default.png')
+      let srcPath = resolveAssetUrl('default.svg', window.app.nui.getAssetsUrl())
+      img.setAttribute('src',srcPath)
       backdrop.appendChild(img)
       this.#node?.appendChild?.(backdrop)
     }
