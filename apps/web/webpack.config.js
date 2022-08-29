@@ -10,6 +10,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
+const CompressionWebpackPlugin = require('compression-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./InjectScriptsPlugin')
 const serializeErr = (err) => ({
@@ -345,6 +346,13 @@ function getWebpackConfig(env) {
       }),
       new webpack.ProgressPlugin({
         // handler: webpackProgress,
+      }),
+      new CompressionWebpackPlugin({
+        // filename: '[path].gz[query]', // 生成的文件名
+        algorithm: 'gzip', // 类型
+        test: new RegExp('\\.(js|css|yaml)$'), // 匹配规则
+        threshold: 10240, // 字节数 只处理比这个大的资源
+        minRatio: 0.8 // 压缩率 只有比这个小的才会处理
       }),
       ...((settings.injectScripts && [
         new InjectScriptsPlugin({ path: settings.injectScripts }),
