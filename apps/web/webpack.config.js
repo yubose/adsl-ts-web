@@ -178,7 +178,7 @@ function getWebpackConfig(env) {
         'aitmed.com',
         'aitmed.io',
       ],
-      compress: false,
+      compress: true,
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
@@ -187,6 +187,7 @@ function getWebpackConfig(env) {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers':
           'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+        'Cache-Control': 'max-age=86400'
       },
       port: 3000,
       ...u.omit(devServerOptions, ['onAfterSetupMiddleware']),
