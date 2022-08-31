@@ -274,7 +274,6 @@ const createActions = function createActions(app: App) {
         }
       }
     } catch (error) {
-      console.error(error)
       toast(error.message, { type: 'error' })
     } finally {
       if (!app.noodl.getState().queue?.length) {
@@ -993,7 +992,6 @@ const createActions = function createActions(app: App) {
         )
       }
     } catch (error) {
-      console.error(error)
       toast((error as Error).message, { type: 'error' })
       ref?.abort?.()
     }
@@ -1195,7 +1193,6 @@ const createActions = function createActions(app: App) {
         await app.noodl.updateObject(params)
       }
     } catch (error) {
-      console.error(error)
       toast(error.message, { type: 'error' })
     }
   }

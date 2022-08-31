@@ -399,7 +399,6 @@ class App {
         window.pcomponents = components as any
       }
     } catch (error) {
-      console.error(error)
       throw new Error(error as any)
     }
   }

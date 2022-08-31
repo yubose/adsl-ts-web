@@ -33,7 +33,6 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
           return acc
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
-          console.error(err)
           toast(err)
         }
       },

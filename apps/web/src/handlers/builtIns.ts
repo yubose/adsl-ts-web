@@ -166,7 +166,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           listOfData.push(data)
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
-          console.error(err)
           listOfData.push(options)
         }
       }
