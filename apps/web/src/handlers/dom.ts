@@ -195,12 +195,12 @@ const createExtendedDOMResolvers = function (app: App) {
           if (dataValue.chartType) {
             let chartType = dataValue.chartType.toString()
             switch (chartType) {
-              case 'graph': {
-                let myChart = echarts.init(node)
-                let option = dataValue
-                option && myChart.setOption(option)
-                break
-              }
+              // case 'graph': {
+              //   let myChart = echarts.init(node)
+              //   let option = dataValue
+              //   option && myChart.setOption(option)
+              //   break
+              // }
               case 'table': {
                 let option = dataValue
                 let tableData: any = {
@@ -519,9 +519,11 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           } else {
             // default echart
-            let myChart = echarts.init(node)
-            let option = dataValue
-            option && myChart.setOption(option)
+            console.log(`not define`);
+            
+            // let myChart = echarts.init(node)
+            // let option = dataValue
+            // option && myChart.setOption(option)
           }
         }
       },

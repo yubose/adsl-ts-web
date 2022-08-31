@@ -87,8 +87,7 @@
       "prettier"
     ],
     "globals": {
-      "Twilio": "readonly",
-      "echarts": "readonly"
+      "Twilio": "readonly"
     },
     "ignorePatterns": [
       "**/*.js",
