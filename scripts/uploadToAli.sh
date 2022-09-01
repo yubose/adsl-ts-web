@@ -1,0 +1,1 @@
+../../../ossutilmac64 cp -r  ../output/apps/web oss://nappv1/
