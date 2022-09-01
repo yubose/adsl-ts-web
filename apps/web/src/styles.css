@@ -175,7 +175,11 @@ textarea {
   /* max-height: 80%; */
   box-sizing: border-box;
 }
-
+#reader>video{
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
 @keyframes spinner-line-fade-more {
   0%,
   100% {

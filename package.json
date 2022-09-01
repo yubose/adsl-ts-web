@@ -183,6 +183,7 @@
     "trailingComma": "all"
   },
   "dependencies": {
+    "html5-qrcode": "^2.2.1",
     "noodl-ui": "^0.1.167"
   }
 }
