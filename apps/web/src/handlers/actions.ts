@@ -53,6 +53,7 @@ import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
 import Cropper from 'cropperjs'
 import '../../node_modules/cropperjs/dist/cropper.min.css'
+import { Html5Qrcode } from 'html5-qrcode'
 
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
@@ -996,6 +997,84 @@ const createActions = function createActions(app: App) {
       ref?.abort?.()
     }
   }
+  const scanCamera: Store.ActionObject['fn'] = async function onscanCamera(
+    action,
+    options,
+  ) {
+    log.func('onscanCamera');
+    const ac = options?.ref;
+    const dataKey = _pick(action, 'dataKey');
+    let contanierDivFragment:DocumentFragment|null = document.createDocumentFragment()
+    let contanierDiv:HTMLElement|null = document.createElement("div");
+    let contanierDivImg:HTMLElement|null = document.createElement("div");
+    contanierDiv.style.cssText = `
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      z-index: 100000;
+      background-color: #fff;
+      position: relative;
+      align-items: center;
+      justify-content: center;
+    `;
+    contanierDivImg.style.cssText = `
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+    contanierDivImg.setAttribute("id","reader")
+    contanierDiv.append(contanierDivImg);
+    contanierDivFragment.append(contanierDiv);
+    document.body.append(contanierDivFragment);
+    let cameraId;
+    Html5Qrcode.getCameras()
+        .then((devices) => {
+          if (devices && devices.length) {
+            // 如果有2个摄像头，1为前置的
+            if (devices.length > 1) {
+              cameraId = devices[0].id;
+            } else {
+              cameraId = devices[1].id;
+            }
+            const html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                cameraId, // retreived in the previous step.
+                {
+                  fps: 60, // sets the framerate to 10 frame per second
+                  qrbox: {width: document.body.clientWidth-60,height: document.body.clientWidth-55}
+                },
+                (decodedText, decodedResult) => {
+                  console.log(decodedText);
+                  console.log(decodedResult);
+                  try{
+                    ac!.data.set(dataKey, new Function("return "+decodedText)());
+                  }catch{
+                    ac!.data.set(dataKey, decodedText);
+                  }
+                  app.updateRoot(dataKey, ac!.data.get(dataKey));
+                  (contanierDivImg as HTMLElement).remove();
+                  (contanierDiv as HTMLElement).remove();
+                  contanierDivImg = null;
+                  contanierDiv = null;
+                  contanierDivFragment = null;
+                  html5QrCode.stop();
+                },
+                (e) => {
+                }
+              ).then(()=>{
+                let res = document.getElementById("qr-shaded-region") as HTMLElement;
+                let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
+                res.style.borderTopWidth = whValue;
+                res.style.borderBottomWidth = whValue;
+              })
+          }
+        }).catch((err) => {
+          // handle err
+          console.log(err);    // 获取设备信息失败
+        });
+    };
 
   const removeSignature: Store.ActionObject['fn'] =
     async function onRemoveSignature(action, options) {
@@ -1249,6 +1328,7 @@ const createActions = function createActions(app: App) {
     saveObject,
     saveSignature,
     toast: toastAction,
+    scanCamera,
     updateObject,
     getLocationAddress,
   }
