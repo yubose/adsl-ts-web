@@ -155,6 +155,14 @@ function getWebpackConfig(env) {
   }
   let arrObject = [];
   (mode==="production")&&arrObject.push(obj);
+
+  let headers = {
+    'Access-Control-Allow-Credentials': true,
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers':
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  };
+  (mode==="production")&&(headers['Cache-Control']='max-age=86400');
   const webpackOptions = {
     entry: {
       main: [
@@ -182,13 +190,7 @@ function getWebpackConfig(env) {
       devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
-      headers: {
-        'Access-Control-Allow-Credentials': true,
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers':
-          'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-        'Cache-Control': 'max-age=86400'
-      },
+      headers: headers,
       port: 3000,
       ...u.omit(devServerOptions, ['onAfterSetupMiddleware']),
       /**
@@ -384,7 +386,6 @@ function getWebpackConfig(env) {
           }
         : undefined,
   }
-
   const getEcosEnv = () =>
     ecosEnv ? ecosEnv.toUpperCase() : '<Variable not set>'
 
