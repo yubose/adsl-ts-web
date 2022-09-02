@@ -23,7 +23,7 @@
     "noodl-action-chain": "^0.0.113",
     "noodl-common": "^0.0.58",
     "noodl-types": "^1.0.222",
-    "noodl-ui": "^0.1.167",
+    "noodl-ui": "^0.1.168",
     "noodl-utils": "^0.0.95",
     "noodl-yaml": "^0.0.12",
     "qrcode": "^1.4.4",
