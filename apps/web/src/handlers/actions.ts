@@ -1029,51 +1029,74 @@ const createActions = function createActions(app: App) {
     contanierDivFragment.append(contanierDiv);
     document.body.append(contanierDivFragment);
     let cameraId;
-    Html5Qrcode.getCameras()
-        .then((devices) => {
-          if (devices && devices.length) {
-            // 如果有2个摄像头，1为前置的
-            if (devices.length > 1) {
-              cameraId = devices[0].id;
-            } else {
-              cameraId = devices[1].id;
-            }
-            const html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                cameraId, // retreived in the previous step.
-                {
-                  fps: 60, // sets the framerate to 10 frame per second
-                  qrbox: {width: document.body.clientWidth-60,height: document.body.clientWidth-55}
-                },
-                (decodedText, decodedResult) => {
-                  console.log(decodedText);
-                  console.log(decodedResult);
-                  try{
-                    ac!.data.set(dataKey, new Function("return "+decodedText)());
-                  }catch{
-                    ac!.data.set(dataKey, decodedText);
-                  }
-                  app.updateRoot(dataKey, ac!.data.get(dataKey));
-                  (contanierDivImg as HTMLElement).remove();
-                  (contanierDiv as HTMLElement).remove();
-                  contanierDivImg = null;
-                  contanierDiv = null;
-                  contanierDivFragment = null;
-                  html5QrCode.stop();
-                },
-                (e) => {
-                }
-              ).then(()=>{
-                let res = document.getElementById("qr-shaded-region") as HTMLElement;
-                let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
-                res.style.borderTopWidth = whValue;
-                res.style.borderBottomWidth = whValue;
-              })
+    return new Promise((resolve,rej)=>{
+      Html5Qrcode.getCameras()
+      .then((devices) => {
+        if (devices && devices.length) {
+          // 如果有2个摄像头，1为前置的
+          if (devices.length > 1) {
+            cameraId = devices[0].id;
+          } else {
+            cameraId = devices[1].id;
           }
-        }).catch((err) => {
-          // handle err
-          console.log(err);    // 获取设备信息失败
-        });
+          const html5QrCode = new Html5Qrcode("reader");
+          html5QrCode.start(
+              cameraId, // retreived in the previous step.
+              {
+                fps: 60, // sets the framerate to 10 frame per second
+                qrbox: {width: document.body.clientWidth-60,height: document.body.clientWidth-55}
+              },
+              (decodedText, decodedResult) => {
+                console.log(decodedText);
+                console.log(decodedResult);
+                try{
+                  ac!.data.set(dataKey, new Function("return "+decodedText)());
+                }catch{
+                  ac!.data.set(dataKey, decodedText);
+                }
+                app.updateRoot(dataKey, ac!.data.get(dataKey));
+                (contanierDivImg as HTMLElement).remove();
+                (contanierDiv as HTMLElement).remove();
+                contanierDivImg = null;
+                contanierDiv = null;
+                contanierDivFragment = null;
+                html5QrCode.stop();
+                resolve()
+              },
+              (e) => {
+              }
+            ).then(()=>{
+              let butCancel:HTMLElement|null = document.createElement("img");
+              (butCancel as HTMLImageElement).src = "mark.png";
+              butCancel.style.cssText = `
+              position: absolute;
+              width: 8vw;
+              top: 5vh;
+              left: 30px;
+              `;
+              contanierDivImg?.append(butCancel);
+              let res = document.getElementById("qr-shaded-region") as HTMLElement;
+              let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
+              res.style.borderTopWidth = whValue;
+              res.style.borderBottomWidth = whValue;
+              butCancel.addEventListener("click",()=>{
+                (contanierDivImg as HTMLElement).remove();
+                (contanierDiv as HTMLElement).remove();
+                contanierDivImg = null;
+                contanierDiv = null;
+                contanierDivFragment = null;
+                (butCancel as HTMLElement).remove();
+                butCancel = null;
+                html5QrCode.stop();
+                resolve()
+              })
+            })
+        }
+      }).catch((err) => {
+        // handle err
+        console.log(err);    // 获取设备信息失败
+      });
+    })
     };
 
   const removeSignature: Store.ActionObject['fn'] =
