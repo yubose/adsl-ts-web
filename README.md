@@ -254,3 +254,5 @@ NUI.emit({
 - improved redirect speed when clicking "Find My Care"
 - fixed other images not displaying images (our logo on the bottom left of homepage)
 - fixed rendering `&nbsp;`
+
+# Other
