@@ -1019,10 +1019,6 @@ const createActions = function createActions(app: App) {
     `;
     contanierDivImg.style.cssText = `
       width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     `;
     contanierDivImg.setAttribute("id","reader")
     contanierDiv.append(contanierDivImg);
@@ -1035,16 +1031,18 @@ const createActions = function createActions(app: App) {
         if (devices && devices.length) {
           // 如果有2个摄像头，1为前置的
           if (devices.length > 1) {
-            cameraId = devices[0].id;
-          } else {
             cameraId = devices[1].id;
+          } else {
+            cameraId = devices[0].id;
           }
           const html5QrCode = new Html5Qrcode("reader");
           html5QrCode.start(
               cameraId, // retreived in the previous step.
               {
                 fps: 60, // sets the framerate to 10 frame per second
-                qrbox: {width: document.body.clientWidth-60,height: document.body.clientWidth-55}
+                // qrbox: 250
+
+                qrbox: 250
               },
               (decodedText, decodedResult) => {
                 console.log(decodedText);
@@ -1067,7 +1065,9 @@ const createActions = function createActions(app: App) {
               }
             ).then(()=>{
               let butCancel:HTMLElement|null = document.createElement("img");
-              (butCancel as HTMLImageElement).src = "mark.png";
+              const assetsUrl = app.nui.getAssetsUrl() || '';
+              const cancelScan = assetsUrl + 'markCancel.png'
+              butCancel.setAttribute('src', cancelScan)
               butCancel.style.cssText = `
               position: absolute;
               width: 8vw;
@@ -1075,10 +1075,10 @@ const createActions = function createActions(app: App) {
               left: 30px;
               `;
               contanierDivImg?.append(butCancel);
-              let res = document.getElementById("qr-shaded-region") as HTMLElement;
-              let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
-              res.style.borderTopWidth = whValue;
-              res.style.borderBottomWidth = whValue;
+              // let res = document.getElementById("qr-shaded-region") as HTMLElement;
+              // let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
+              // res.style.borderTopWidth = whValue;
+              // res.style.borderBottomWidth = whValue;
               butCancel.addEventListener("click",()=>{
                 (contanierDivImg as HTMLElement).remove();
                 (contanierDiv as HTMLElement).remove();
