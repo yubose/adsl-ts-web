@@ -437,7 +437,7 @@ const createActions = function createActions(app: App) {
         if (ndomPage.page && ndomPage.page !== destination) {
           // delete app.noodl.root[ndomPage.page]
         }
-        await app.navigate(ndomPage, destination, { isGoto: true })
+        await app.navigate(ndomPage, destination, { isGoto: true },action.original.blank)
         if (!destination) {
           log.func('goto')
           log.red(

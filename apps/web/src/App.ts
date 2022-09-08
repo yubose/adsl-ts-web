@@ -289,12 +289,14 @@ class App {
     page: NDOMPage,
     pageRequesting?: string,
     opts?: { isGoto?: boolean },
+    play?: boolean
   ): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
   async navigate(
     page?: NDOMPage | string,
     pageRequesting?: string,
     { isGoto }: { isGoto?: boolean } = {},
+    play?: boolean
   ) {
     function getParams(pageName: string) {
       const nameParts = pageName.split('&')
@@ -350,7 +352,7 @@ class App {
       }
       if (nu.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
-        return void (window.location.href = _pageRequesting)
+        return !play?(void (window.location.href = pageUrl as string)):window.open(pageUrl,"_blank")
       }
 
       if (_page.page && _page.requesting && _page.page !== _page.requesting) {
