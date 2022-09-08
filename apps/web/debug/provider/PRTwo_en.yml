@@ -193,6 +193,7 @@ PRTwo:
         type: .DocType.pRTwo
         subtype:
           mediaType: "application/json"
+          isEncrypted: "1"
         name:
           title: "PR-2"
           user: .Global.formData.providerTitle
@@ -207,6 +208,9 @@ PRTwo:
               fontColor: "0x4c5264"
               backgroundColor: "0xececee"
               display: block
+            userInfo:
+              patientName: .Global.formData.patientName
+              participateName: .Global.formData.providerTitle
             signatureId: ""
             signatureCtime: "" # 签名创建时间
             whetherSign: true
@@ -2338,7 +2342,7 @@ PRTwo:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: apiRequest.pRTwo.docReq.ctime
+                  dataKey: apiRequest.pRTwo.docReq.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -2531,6 +2535,7 @@ PRTwo:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
                 - actionType: evalObject
@@ -2742,6 +2747,7 @@ PRTwo:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
                 - actionType: popUp

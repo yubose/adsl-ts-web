@@ -65,7 +65,6 @@ SurgeryAuthorization:
         - .Global.formData.downloadPDF.originX@: 0
         - .Global.formData.downloadPDF.originY@: 0
 
-
   formData:
     name:
       data:
@@ -1152,7 +1151,7 @@ SurgeryAuthorization:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: formData.ctime
+                  dataKey: formData.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -1247,4 +1246,4 @@ SurgeryAuthorization:
           style:
             marginTop: "0.03"
     # - .HeaderPopUpDownload:
-    - .HeaderPopUpMenu:
+    - .HeaderAmendmentMenu:

@@ -734,18 +734,64 @@ CreateTransferAppointment:
                     dataOut: CreateTransferAppointment.apiRequest.appointment.edgeCreateReq.name.providerFullInfo
                 # 如果provider为自己创建关联会议，则将E2 tage的第6位置为1，以便于在waiting room的NonScheduled类型会议中剔除
                 - if:
-                  - =.builtIn.string.equal:
-                      dataIn:
-                        string1: =.Global.currentUser.vertex.id
-                        string2: =.Global.formData.relatedApp.activeProvider.bsig
-                  - =.builtIn.number.inhx:
-                      dataIn:
-                        intHex: =..apiRequest.appointment.edgeCreateReq.tage
-                        index: 6
-                        hex: 1
-                      dataOut: CreateTransferAppointment.apiRequest.appointment.edgeCreateReq.tage
-                  - continue
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =.Global.currentUser.vertex.id
+                          string2: =.Global.formData.relatedApp.activeProvider.bsig
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.appointment.edgeCreateReq.tage
+                          index: 6
+                          hex: 1
+                        dataOut: CreateTransferAppointment.apiRequest.appointment.edgeCreateReq.tage
+                    - continue
                 - =..apiRequest.appointment.edgeAPI.store: ""
+                # 创建audit log
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..apiRequest.appointment.edgeCreateReq.subtype
+                          string2: "196610"
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: =.ActionTypeCode.create
+                          recordTypeCode: =.EdgeType.scheduleSubtype.Telemedicine
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                          targetUser: =..apiRequest.getPatientProfile.docOut.doc.0.name.data.basicInfo.fullName
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..apiRequest.appointment.edgeCreateReq.subtype
+                                  string2: "131074"
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.create
+                                  recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  targetUser: =..apiRequest.getPatientProfile.docOut.doc.0.name.data.basicInfo.fullName
+                                  accessPort: provider
+                                dataOut: Global.formData.auditLog.result
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.create
+                                  recordTypeCode: =.EdgeType.scheduleSubtype.RoomType
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  targetUser: =..apiRequest.getPatientProfile.docOut.doc.0.name.data.basicInfo.fullName
+                                  accessPort: provider
+                                dataOut: Global.formData.auditLog.result
                 # 将patient profile share到新的关联预约上
                 - =.builtIn.ecos.shareDoc:
                     dataIn:

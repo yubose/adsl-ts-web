@@ -8,6 +8,20 @@ AbsentNotePrivate:
     - =.builtIn.date.currentDateTime:
         dataIn:
         dataOut: Global.formData.auditLog.startTime
+    # 判断是否从PatientAmendmentRequest进入
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.unPageName
+              string2: "PatientAmendmentRequest"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "none"
+            - ..formDataTemp.updateBtnShow@: "block"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "block"
+            - ..formDataTemp.updateBtnShow@: "none"
     - if:
         - =.Global.Note.id
         - actionType: evalObject
@@ -145,13 +159,63 @@ AbsentNotePrivate:
           api: cd
           dataIn: apiRequest.newSign.docReq
           dataOut: AbsentNotePrivate.apiRequest.newSign.docRes
-
+    # provider同意修改的email
+    email:
+      docCreateResp: ""
+      docCreateReq:
+        reid: .Global.email.esig
+        tage: 8
+        eid: ""
+        type: .DocType.InboxMessage
+        name:
+          data:
+            # 邮件内容
+            content: ""
+            # 收件人姓名,provider或admin的fullName
+            receiverName: .Global.email.name.data.patientName
+            # 固定，为aitmed系统回复
+            senderName: automatic-reply@aitmed.com
+            # 空，这样可以显示为aitmed-logo
+            senderAvatarId: ""
+            # 被质疑的记录的名字
+            recordName: .Global.email.name.data.recordName
+            # 执行这个操作的人员的fullName，可能是admin，也可能是provider
+            executorName: .Global.MyProfile.name.data.fullName
+            #邮件标题
+          title: Patient Amendment Reply Notification
+          #收件人头像的id
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: AbsentNotePrivate.apiRequest.email.docCreateReq
+          dataOut: AbsentNotePrivate.apiRequest.email.docCreateResp
+    # provider和patient之间的10002
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.email.bsig
+        xfname: (bvid,evid)|(evid,bvid)
+        obfname: mtime
+        type: .EdgeType.Email
+        maxcount: 1
+      edgeAPI:
+        get:
+          api: re
+          dataIn: AbsentNotePrivate.apiRequest.relation.edgeQueryReq
+          dataOut: AbsentNotePrivate.apiRequest.relation.edgeQueryResp
   formData:
     flag: "none"
     temporarySignature: ""
     whetherSign: ""
 
   formDataTemp:
+    # 控制原逻辑按钮显示
+    originalBtnShow: "block"
+    # 控制更新按钮逻辑显示
+    updateBtnShow: "none"
     place:
       - key: place
         value: school
@@ -171,6 +235,31 @@ AbsentNotePrivate:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: .ActionTypeCode.edit
+                      recordTypeCode: .DocType.AbsentNote
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      date: =.Global.formData.auditLog.startTime
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formDataTemp.updateBtnShow
+                          string2: "block"
+                    - actionType: popUp
+                      popUpView: judgmentOperation
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
@@ -844,7 +933,7 @@ AbsentNotePrivate:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: apiRequest.absentNote.docReq.ctime
+                  dataKey: apiRequest.absentNote.docReq.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -861,8 +950,135 @@ AbsentNotePrivate:
       children:
         - type: view
           style:
-            height: auto
-            width: "auto"
+            display: =..formDataTemp.updateBtnShow
+          children:
+            - .DocButtonPrivate:
+              text: Cancel
+              onClick:
+                - actionType: popUp
+                  popUpView: judgmentOperation
+
+            - .DocButtonRelease:
+              text: Update & Send
+              onClick:
+                # 签名处理
+                - actionType: saveSignature
+                  dataObject: BLOB
+                  dataKey: AbsentNotePrivate.apiRequest.newSign.docReq.name.data
+                  isEmpty: AbsentNotePrivate.formData.whetherSign
+
+                # 保存签名
+                - actionType: evalObject
+                  object:
+                    # 签名reid指向 doc 的id
+                    - ..apiRequest.newSign.docReq.reid@: =.AbsentNotePrivate.apiRequest.absentNote.docReq.id
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.whetherSign
+                        - continue
+                        - =..apiRequest.newSign.docAPI.store: ""
+
+                #  指定 eid 和 reid
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.formData.unPageName
+                              string2: ""
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.absentNote.docReq.eid@: =.Global.currentRoom.edge.id
+                            - ..apiRequest.absentNote.docReq.reid@: =.Global.roomInfo.edge.id
+                        - continue
+
+                # 签名处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.temporarySignature
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.absentNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+                            - ..apiRequest.absentNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+                            - ..apiRequest.absentNote.docReq.name.data.whetherSign@: false
+                            - ..formData.whetherSign@: false
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.absentNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                            - ..apiRequest.absentNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                            - ..apiRequest.absentNote.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.AbsentNotePrivate.formData.whetherSign
+                        - actionType: popUp
+                          popUpView: BaseWarningView
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+
+                #  修改type
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.absentNote.docReq.type
+                          index: 1
+                          hex: 1
+                        dataOut: AbsentNotePrivate.apiRequest.absentNote.docReq.type
+
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.AbsentNote
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
+                          accessPort: provider
+                          amendment: Amendment
+                          amendmentId: =.Global.email.esig
+                        dataOut: Global.formData.auditLog.result
+                - actionType: evalObject
+                  object:
+                    - actionType: evalObject
+                      async: true
+                      object:
+                        - =..apiRequest.absentNote.docAPI.store: ""
+                        # 向patient发送accept的邮件
+                        # 获取10002edge
+                        - =..apiRequest.relation.edgeAPI.get: ""
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "Hello,"
+                          - =.Global.MyProfile.name.data.fullName
+                          - " has updated the "
+                          - =.Global.email.name.data.recordName
+                          - "."
+                        dataOut: AbsentNotePrivate.apiRequest.email.docCreateReq.name.data.content
+                    - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+                    - =..apiRequest.email.docAPI.store: ""
+                - actionType: popUp
+                  popUpView: successTag
+                  wait: 2000
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - goto: MessageShow
+        - type: view
+          style:
+            display: =..formDataTemp.originalBtnShow
           children:
             - .DocButtonPrivate:
               onClick:
@@ -949,6 +1165,7 @@ AbsentNotePrivate:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
 
@@ -1045,6 +1262,7 @@ AbsentNotePrivate:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
 
@@ -1052,6 +1270,131 @@ AbsentNotePrivate:
                   popUpView: dialogueTag
 
     # 弹窗区域
+    - .SuccessfulOneLine:
+      message: "Update Successfully!"
+      viewTag: successTag
+    # 对话弹窗
+    - .Normal:
+      message: "Cancel the changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+      rightButton:
+        # # 签名处理
+        # - actionType: saveSignature
+        #   dataObject: BLOB
+        #   dataKey: AbsentNotePrivate.apiRequest.newSign.docReq.name.data
+        #   isEmpty: AbsentNotePrivate.formData.whetherSign
+
+        # # 保存签名
+        # - actionType: evalObject
+        #   object:
+        #     # 签名reid指向 doc 的id
+        #     - ..apiRequest.newSign.docReq.reid@: =.AbsentNotePrivate.apiRequest.absentNote.docReq.id
+
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.whetherSign
+        #         - continue
+        #         - =..apiRequest.newSign.docAPI.store: ""
+
+        # #  指定 eid 和 reid
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =.Global.formData.unPageName
+        #               string2: ""
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.absentNote.docReq.eid@: =.Global.currentRoom.edge.id
+        #             - ..apiRequest.absentNote.docReq.reid@: =.Global.roomInfo.edge.id
+        #         - continue
+
+        # # 签名处理
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.temporarySignature
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.absentNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+        #             - ..apiRequest.absentNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+        #             - ..apiRequest.absentNote.docReq.name.data.whetherSign@: false
+        #             - ..formData.whetherSign@: false
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.absentNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+        #             - ..apiRequest.absentNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+        #             - ..apiRequest.absentNote.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.AbsentNotePrivate.formData.whetherSign
+        #         - actionType: popUp
+        #           popUpView: BaseWarningView
+        #           wait: true
+        #           popUpDismiss: 2000
+        #         - continue
+
+        # #  修改type
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.number.inhx:
+        #         dataIn:
+        #           intHex: =..apiRequest.absentNote.docReq.type
+        #           index: 1
+        #           hex: 1
+        #         dataOut: AbsentNotePrivate.apiRequest.absentNote.docReq.type
+
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.utils.createAuditLog:
+        #         dataIn:
+        #           actionTypeCode: .ActionTypeCode.edit
+        #           recordTypeCode: .DocType.AbsentNote
+        #           eid: =.Global.formData.currentFacility.relationEdge.id
+        #           date: =.Global.formData.auditLog.startTime
+        #           user: =.Global.MyProfile.name.data.fullName
+        #           userId: =.Global.currentUser.vertex.id
+        #           targetUserId: =.Global.formData.auditLog.patientId
+        # targetUser: =.Global.formData.auditLog.patientName
+        #           accessPort: provider
+        #         dataOut: Global.formData.auditLog.result
+        # - actionType: evalObject
+        #   object:
+        #     - actionType: evalObject
+        #       async: true
+        #       object:
+        #         - =..apiRequest.absentNote.docAPI.store: ""
+        #         # 向patient发送accept的邮件
+        #         # 获取10002edge
+        #         - =..apiRequest.relation.edgeAPI.get: ""
+        #     - =.builtIn.string.concat:
+        #         dataIn:
+        #           - "Hello,"
+        #           - =.Global.MyProfile.name.data.fullName
+        #           - " has updated the "
+        #           - =.Global.email.name.data.recordName
+        #           - "."
+        #         dataOut: AbsentNotePrivate.apiRequest.email.docCreateReq.name.data.content
+        #     - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+        #     - =..apiRequest.email.docAPI.store: ""
+        # - actionType: popUp
+        #   popUpView: successTag
+        #   wait: 2000
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - goto: MessageShow
+
     - .BaseWarningView:
       message: "You haven't signed the form"
 

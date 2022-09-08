@@ -4,6 +4,16 @@ PatientChartDM:
   #PatientChart总表
   patientChart:
     version: "2.0"
+    classTag:
+      name: Patient
+      fontColor: "0xf8ae29"
+      backgroundColor: "0xfff4e0"
+      display: block
+    statusTag:
+      display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     generalInfo:
       firstName: "" #Mellisa
       middleNameAndInitial: ""

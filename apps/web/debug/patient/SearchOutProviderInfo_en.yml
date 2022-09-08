@@ -410,7 +410,7 @@ SearchOutProviderInfo:
                                 dataIn:
                                   - "V.uid like '%"
                                   - =..apiRequest.invite.edge.name.phoneNumber
-                                  - "' AND E.tage>=0" #
+                                  - "' AND E.tage>0" #
                                 dataOut: SearchOutProviderInfo.formData.query10002Scondition
                             - =.builtIn.string.concat: #信息
                                 dataIn:

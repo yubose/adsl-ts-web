@@ -147,6 +147,10 @@ DeleteAccount:
             # 删除账号
             - =..apiRequest.deleteAccount.vertexApi.delete: ""
             - if:
+                - =.FirebaseToken.response.edge.id
+                - =.FirebaseToken.edgeAPI.delete: ""
+                - continue
+            - if:
                 - true
                 - =.builtIn.cleanLocalStorage
                 - continue

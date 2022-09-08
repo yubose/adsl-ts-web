@@ -86,6 +86,30 @@ MessageShow:
             - ..formData.display.order@: block
             - ..formData.display.normalType@: none
         - continue
+    # 是否是amendment accept邮件
+    - if:
+        - =.builtIn.number.typeIsValid:
+            dataIn:
+              docType: =.Global.email.tage
+              localArr: [4]
+              binaryArr: [1]
+        - actionType: evalObject
+          object:
+            - ..formData.display.acceptAmendment@: block
+            - ..formData.display.normalType@: none
+        - continue
+    # 是否是amendment deny邮件
+    - if:
+        - =.builtIn.number.typeIsValid:
+            dataIn:
+              docType: =.Global.email.tage
+              localArr: [5]
+              binaryArr: [1]
+        - actionType: evalObject
+          object:
+            - ..formData.display.denyAmendment@: block
+            - ..formData.display.normalType@: none
+        - continue
     - if:
         - =.builtIn.array.judgeListLength:
             dataIn:
@@ -134,10 +158,13 @@ MessageShow:
       dataIn: userData.request
       dataOut: userData.userVertex
   formData:
+    docJumpList: ""
     appointmentTypeJudge: 0
     password: ""
     split: ""
     display:
+      denyAmendment: none
+      acceptAmendment: none
       normalType: none
       updatePatientProfile: none
       recommendationNotification: none
@@ -156,6 +183,76 @@ MessageShow:
   inboxFolder: ""
   isStar: 1
   apiRequest:
+    roomInfo:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: ""
+        _nonce: .Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: MessageShow.apiRequest.roomInfo.edgeQueryReq
+          dataOut: MessageShow.apiRequest.roomInfo.edgeQueryResp
+    currentRoom:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id: ""
+        _nonce: .Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: MessageShow.apiRequest.currentRoom.edgeQueryReq
+          dataOut: MessageShow.apiRequest.currentRoom.edgeQueryResp
+    diagnosesDoc:
+      docResp: ""
+      docReq:
+        id: []
+        xfname: "eid,reid"
+        type: .DocType.Diagnoses
+        obfname: "mtime"
+        maxcount: "1"
+        _nonce: .Global._nonce
+      docAPI:
+        .DocAPI: ""
+        get:
+          api: rd
+          dataIn: MessageShow.apiRequest.diagnosesDoc.docReq
+          dataOut: MessageShow.apiRequest.diagnosesDoc.docResp
+    getIsCancel:
+      cancelEdge: 
+        edge: []
+      edgeReq:
+        type: 40000
+        id: =..apiRequest.appointment.edgeQueryResp.edge.0.id
+        xfname: refid
+        maxcount: "1"
+        sCondition: "subtype=7"
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: MessageShow.apiRequest.getIsCancel.edgeReq
+          dataOut: MessageShow.apiRequest.getIsCancel.cancelEdge
+    amendent:
+      docQueryResp: ""
+      docQueryReq:
+        id: ""
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: MessageShow.apiRequest.amendent.docQueryReq
+          dataOut: MessageShow.apiRequest.amendent.docQueryResp
+    providerNote:
+      docQueryResp: ""
+      docQueryReq:
+        id: ""
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: MessageShow.apiRequest.providerNote.docQueryReq
+          dataOut: MessageShow.apiRequest.providerNote.docQueryResp
     commerceCheckOrder:
       docQueryResp: ""
       docQueryReq:
@@ -179,7 +276,7 @@ MessageShow:
         _nonce: .Global._nonce
         obfname: mtime
       docAPI:
-        get: 
+        get:
           api: rd
           dataIn: MessageShow.apiRequest.order.docQueryReq
           dataOut: MessageShow.apiRequest.order.docQueryResp
@@ -360,12 +457,12 @@ MessageShow:
                 textAlign:
                   y: center
                 left: "0.05"
-                fontSize: "12"
+                fontSize: .Nfont.h12
                 color: "0xBCC5D3"
             - type: label
               dataKey: Global.email.name.title
               style:
-                fontSize: "16"
+                fontSize: .Nfont.h16
                 # fontWeight: "500"
 
                 left: "0.05"
@@ -377,14 +474,14 @@ MessageShow:
                 left: "0.05"
                 top: "0.085"
                 height: "0.035"
-                fontSize: "15"
+                fontSize: .Nfont.h14
                 textAlign:
                   x: left
             - type: label
               text: Blair Zhang
               dataKey: Global.email.name.data.senderName
               style:
-                fontSize: "15"
+                fontSize: .Nfont.h14
                 fontWeight: "450"
                 height: "0.035"
                 width: "0.6"
@@ -399,14 +496,14 @@ MessageShow:
                 left: "0.05"
                 top: "0.115"
                 height: "0.035"
-                fontSize: "15"
+                fontSize: .Nfont.h14
                 textAlign:
                   x: left
             - type: label
               text:
               dataKey: Global.email.name.data.receiverName
               style:
-                fontSize: "15"
+                fontSize: .Nfont.h14
                 fontWeight: "450"
                 height: "0.035"
                 width: "0.6"
@@ -597,7 +694,7 @@ MessageShow:
                 ..style.dividingLine:
               children:
                 - type: view
-                  children:                  
+                  children:
                     - type: label
                       text: "………………"
                       dataKey:
@@ -620,6 +717,7 @@ MessageShow:
                 backgroundColor: "#f4f4f4"
                 borderRadius: "4"
                 marginLeft: "0.04"
+                fontSize: .Nfont.h14
               children:
                 - type: label
                   text: Medical Recommendation
@@ -646,13 +744,14 @@ MessageShow:
                       style:
                         ..style.arrowRightImg:
             - type: view
-              style: 
+              style:
                 ..style.auto:
                 backgroundColor: "#f4f4f4"
                 borderRadius: "4"
                 marginLeft: "0.04"
                 marginTop: "0.024630"
                 width: "0.9"
+                fontSize: .Nfont.h14
               children:
                 # Appointment info
                 - type: view
@@ -707,7 +806,7 @@ MessageShow:
                             ..style.appointmentInfoLabelTitle:
                         - type: label
                           text=func: .builtIn.string.formatUnixtimeL_en
-                          dataKey: Global.roomInfo.edge.stime
+                          dataKey: apiRequest.appointment.edgeQueryResp.edge.0.stime
                           style:
                             ..style.appointmentInfoLabelContent:
                     # time
@@ -722,7 +821,7 @@ MessageShow:
                             ..style.appointmentInfoLabelTitle:
                         - type: label
                           text=func: .builtIn.date.ShowTimeSpan
-                          dataKey: Global.roomInfo.edge
+                          dataKey: apiRequest.appointment.edgeQueryResp.edge.0
                           style:
                             ..style.appointmentInfoLabelContent:
                     #  reason for visit
@@ -736,7 +835,7 @@ MessageShow:
                           style:
                             ..style.appointmentInfoLabelTitle:
                         - type: label
-                          dataKey: Global.roomInfo.edge.name.Reason
+                          dataKey: apiRequest.appointment.edgeQueryResp.edge.0.name.Reason
                           style:
                             ..style.appointmentInfoLabelContent:
                     # appointment type
@@ -750,7 +849,7 @@ MessageShow:
                           style:
                             ..style.appointmentInfoLabelTitle:
                         - type: label
-                          dataKey: Global.roomInfo.edge.name.visitType
+                          dataKey: apiRequest.appointment.edgeQueryResp.edge.0.name.visitType
                           style:
                             ..style.appointmentInfoLabelContent:
                     # patient
@@ -764,7 +863,7 @@ MessageShow:
                           style:
                             ..style.appointmentInfoLabelTitle:
                         - type: label
-                          dataKey: Global.roomInfo.edge.name.patientName
+                          dataKey: apiRequest.appointment.edgeQueryResp.edge.0.name.patientName
                           style:
                             ..style.appointmentInfoLabelContent:
                     # facility
@@ -778,7 +877,7 @@ MessageShow:
                           style:
                             ..style.appointmentInfoLabelTitle:
                         - type: label
-                          dataKey: Global.roomInfo.edge.name.locationName
+                          dataKey: apiRequest.appointment.edgeQueryResp.edge.0.name.locationName
                           style:
                             ..style.appointmentInfoLabelContent:
         - type: view
@@ -788,6 +887,7 @@ MessageShow:
             width: "0.98"
             top: "0.16"
             overflow: hidden
+            fontSize: .Nfont.h14
           children:
             # email content
             - type: view
@@ -877,6 +977,59 @@ MessageShow:
                       path: rightEnter.svg
                       style:
                         ..style.arrowRightImg:
+        - type: view
+          style:
+            ..style.acceptAmendmentView:
+          children:
+            - type: label
+              textBoard:
+                - text: "Hello,"
+                - br:
+                - br:
+                - text: ""
+                  dataKey: Global.email.name.data.executorName
+                - text: " has updated the "
+                - text: ""
+                  dataKey: Global.email.name.data.recordName
+                - text: "."
+              style:
+                fontSize: .Nfont.h14
+            - type: view
+              style:
+                ..style.viewBox:
+              children:
+                - type: view
+                  onClick:
+                    - ..event.toProviderNote
+                  children:
+                    - type: label
+                      text: View Details
+                      style:
+                        ..style.viewLabel:
+                    - type: image
+                      path: rightCircleImg.svg
+                      style:
+                        ..style.viewImg:
+        - type: view
+          style:
+            display: ..formData.display.denyAmendment
+            ..style.acceptAmendmentView:
+          children:
+            - type: label
+              textBoard:
+                - text: "Hello,"
+                - br:
+                - br:
+                - text: ""
+                  dataKey: Global.email.name.data.executorName
+                - text: " has denied Patient Amendment Request."
+                - br:
+                - br: 
+                - text: "Reason:"
+                - text: ""
+                  dataKey: Global.email.name.data.denyReason
+              style:
+                fontSize: .Nfont.h14   
         - type: scrollView
           style:
             top: "0.57"
@@ -1050,7 +1203,10 @@ MessageShow:
                     color: "0xffffff"
                     textAlign:
                       x: center
-
+    - .TipsTitleMultiLine:
+      viewTag: notExist
+      tipstitle: Appointment Not Exist
+      message: The appointment has been canceled
     - type: popUp
       viewTag: folderPopUpView
       style:
@@ -1321,6 +1477,14 @@ MessageShow:
       viewTag: tag_notUpdatePatientProfile
       message: "You have updated it. Please view it in your profile."
   style:
+    acceptAmendmentView:
+      display: ..formData.display.acceptAmendment
+      marginTop: "0.01477"
+      marginLeft: "0.04"
+      height: "auto"
+      top: "0.16"
+      width: "0.92"
+      overflow: hidden
     appointmentInfoLabelContent:
       display: "inline-block"
       width: "0.48"
@@ -1438,6 +1602,56 @@ MessageShow:
       width: auto
       height: auto
   event:
+    toProviderNote:
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+      - actionType: evalObject
+        object:
+          # 查回accept邮件对应的provider note
+          - ..apiRequest.amendent.docQueryReq.id@: =.Global.email.esig
+          - =..apiRequest.amendent.docAPI.get: ""
+          - ..apiRequest.providerNote.docQueryReq.id@: =..apiRequest.amendent.docQueryResp.doc.0.fid
+          - =..apiRequest.providerNote.docAPI.get: ""
+          # 获取应该跳转到的页面
+          - =.builtIn.array.setFormJumpPage:
+              dataIn:
+                objArry: =..apiRequest.providerNote.docQueryResp.doc
+                docFormObj: =.DocumentList
+              dataOut: MessageShow.formData.docJumpList
+          # 获取进入页面需要的信息
+          # 获取会议的edge
+          - ..apiRequest.roomInfo.edgeQueryReq.id@: =..formData.docJumpList.0.esig
+          # 获取这个文档所在的eid，可能是40000，也可能是1053
+          - ..apiRequest.currentRoom.edgeQueryReq.id@: =..formData.docJumpList.0.eid
+          # 取回源文档会议下diagnoses信息
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..apiRequest.diagnosesDoc.docReq.id
+                value: =..formData.docJumpList.0.eid
+          - =.builtIn.array.add:
+              dataIn:
+                object: =..apiRequest.diagnosesDoc.docReq.id
+                value: =..formData.docJumpList.0.esig
+          # 查询
+          - actionType: evalObject
+            async: true
+            object:
+              - =..apiRequest.diagnosesDoc.docAPI.get: ""
+              - =..apiRequest.roomInfo.edgeAPI.get: ""
+              - =..apiRequest.currentRoom.edgeAPI.get: ""  
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.diagnosesDoc.docResp.doc
+                    len: 0
+              - .Global.formData.providerDoc.diagnosesDoc@: ""
+              - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docResp.doc.0
+          - .Global.roomInfo.edge@: =..apiRequest.roomInfo.edgeQueryResp.edge.0
+          - .Global.currentRoom.edge@: =..apiRequest.currentRoom.edgeQueryResp.edge.0  
+          - .Global.Note@: =..formData.docJumpList.0
+          - goto: =..formData.docJumpList.0.pageName
     # 进入订单完成界面
     enterOrderDetail:
       - actionType: evalObject
@@ -1467,14 +1681,28 @@ MessageShow:
     enterAppointmentClick:
       - actionType: evalObject
         object:
+          - =..apiRequest.getIsCancel.edgeAPI.get: ""
+      - actionType: evalObject
+        object:
+
           - if:
-            - =.builtIn.number.typeIsValid:
-                dataIn:
-                  docType: =.Global.roomInfo.edge.subtype
-                  localArr: [17]
-                  binaryArr: [1]
-            - goto: AppointmentLobby
-            - goto: AppointmentLobbyOfficeVisit
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.getIsCancel.cancelEdge.edge
+                    len: 0
+              - continue
+              - actionType: popUp
+                popUpView: notExist
+                wait: true
+                popUpDismiss: 2000
+          - if:
+              - =.builtIn.number.typeIsValid:
+                  dataIn:
+                    docType: =.Global.roomInfo.edge.subtype
+                    localArr: [17]
+                    binaryArr: [1]
+              - goto: AppointmentLobby
+              - goto: AppointmentLobbyOfficeVisit
     btn_gotoComparisonProfile:
       - actionType: evalObject
         object:

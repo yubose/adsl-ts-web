@@ -165,6 +165,24 @@ DocumentPrivate:
     - .BasePublicHeader:
         children:
           - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: evalObject
+                object:
+                  - =.builtIn.utils.createAuditLog:
+                      dataIn:
+                        actionTypeCode: .ActionTypeCode.edit
+                        recordTypeCode: 163841
+                        eid: =.Global.formData.currentFacility.relationEdge.id
+                        date: =.Global.formData.auditLog.startTime
+                        user: =.Global.MyProfile.name.data.fullName
+                        userId: =.Global.currentUser.vertex.id
+                        targetUserId: =.Global.formData.auditLog.patientId
+                        targetUser: =.Global.formData.auditLog.patientName
+                        accessPort: provider
+                      dataOut: Global.formData.auditLog.result
+              - actionType: builtIn
+                funcName: goBack
+                reload: true
           - .BasePublicHeaderTitle:
     - type: scrollView
       style:
@@ -900,6 +918,7 @@ DocumentPrivate:
                     user: =.Global.MyProfile.name.data.fullName
                     userId: =.Global.currentUser.vertex.id
                     targetUserId: =.Global.formData.auditLog.patientId
+                    targetUser: =.Global.formData.auditLog.patientName
                     accessPort: provider
                   dataOut: Global.formData.auditLog.result
               - continue
@@ -912,6 +931,7 @@ DocumentPrivate:
                 user: =.Global.MyProfile.name.data.fullName
                 userId: =.Global.currentUser.vertex.id
                 targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
                 accessPort: provider
               dataOut: Global.formData.auditLog.result
 
@@ -967,6 +987,7 @@ DocumentPrivate:
                 user: =.Global.MyProfile.name.data.fullName
                 userId: =.Global.currentUser.vertex.id
                 targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
                 accessPort: provider
               dataOut: Global.formData.auditLog.result
           - =.builtIn.utils.createAuditLog:
@@ -978,6 +999,7 @@ DocumentPrivate:
                 user: =.Global.MyProfile.name.data.fullName
                 userId: =.Global.currentUser.vertex.id
                 targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
                 accessPort: provider
               dataOut: Global.formData.auditLog.result
 

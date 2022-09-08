@@ -1,3 +1,4 @@
+import type { LiteralUnion } from 'type-fest'
 import Logger from 'logsnap'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
 import { Account, subscribeToRefs } from '@aitmed/cadl'
@@ -46,6 +47,7 @@ import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
+import type { Options as BetterSQLite3Options } from 'better-sqlite3'
 import * as c from './constants'
 import * as t from './app/types'
 
@@ -75,7 +77,7 @@ class App {
       page: '',
     },
   }
-
+  #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
@@ -140,6 +142,10 @@ class App {
 
     noodl && this.use(noodl)
     this.#parser = new nu.Parser()
+
+    this.#electron = u.isFnc(window.__NOODL_SEARCH__)
+      ? window.__NOODL_SEARCH__()
+      : null
   }
 
   get aspectRatio() {
@@ -168,6 +174,10 @@ class App {
 
   get cache() {
     return this.nui.cache
+  }
+
+  get electron() {
+    return this.#electron
   }
 
   get instances() {
@@ -368,7 +378,11 @@ class App {
               if (parts.includes(_page.requesting)) {
                 let pageToDestroy = parts.pop()
 
-                while (pageToDestroy && pageToDestroy !== _page.requesting && pageToDestroy!=='VideoChat') {
+                while (
+                  pageToDestroy &&
+                  pageToDestroy !== _page.requesting &&
+                  pageToDestroy !== 'VideoChat'
+                ) {
                   if (pageToDestroy in this.noodl.root) {
                     delete this.noodl.root[pageToDestroy]
                     console.log(
@@ -610,7 +624,6 @@ class App {
   }
 
   async getPageObject(page: NDOMPage): Promise<{ aborted: true } | void> {
-
     if (!this.getState().spinner.active) {
       this.enableSpinner({ target: page?.node || this.mainPage?.node })
     }
@@ -655,9 +668,9 @@ class App {
             log.func('onBeforeInit')
             // console.log(localStorage.getItem("keepingLockState"))
             log.grey('', { init, page: pageRequesting })
-          //   if(localStorage.getItem("lockPreUrl")){
-          //     history.go(-(history.length-countJumpPage-1))
-          // }
+            //   if(localStorage.getItem("lockPreUrl")){
+            //     history.go(-(history.length-countJumpPage-1))
+            // }
           },
           onInit: async (current, index, init) => {
             log.func('onInit')
@@ -724,7 +737,6 @@ class App {
                 }
               }
             }
-
           },
           onAfterInit: (err, init) => {
             if (err) throw err
@@ -739,9 +751,12 @@ class App {
                 this.loadingPages[pageRequesting].shift()
               }
             }
-            if(localStorage.getItem("lockSelect")==="true"&&localStorage.getItem("sk")){
-              const setTimeBoard = (time:number) => {
-                let userTime = time * 60;
+            if (
+              localStorage.getItem('lockSelect') === 'true' &&
+              localStorage.getItem('sk')
+            ) {
+              const setTimeBoard = (time: number) => {
+                let userTime = time * 60
                 let body = document.querySelector('body')
                 let objTime = {
                   init: 0,
@@ -762,28 +777,44 @@ class App {
                   //   window?.removeEventListener('resize', objTime.eventLeaveFun)
                   // },
                   time: function () {
-                    if(!localStorage.getItem("sk")){
+                    if (!localStorage.getItem('sk')) {
                       clearInterval(testUser as NodeJS.Timer)
                     }
                     objTime.init += 1
                     if (objTime.init == userTime) {
-                        let lockPageName = localStorage.getItem("lockPageName") as string;
-                        if(!(window.location.href.slice(-(lockPageName?.length))===lockPageName)){
-                          clearInterval(testUser as NodeJS.Timer)
-                          localStorage.setItem("lockPreUrl",JSON.stringify(window.location.href.split("?")[1].split("-")));
-                          window.location.href =
-                          window.location.href.indexOf(lockPageName)>0?
-                          window.location.href.slice(0,window.location.href.indexOf(lockPageName))+lockPageName:window.location.href+`-${lockPageName}`;
-                        }else{
-                          clearInterval(testUser as NodeJS.Timer)
-                          return;
-                        }
+                      let lockPageName = localStorage.getItem(
+                        'lockPageName',
+                      ) as string
+                      if (
+                        !(
+                          window.location.href.slice(-lockPageName?.length) ===
+                          lockPageName
+                        )
+                      ) {
+                        clearInterval(testUser as NodeJS.Timer)
+                        localStorage.setItem(
+                          'lockPreUrl',
+                          JSON.stringify(
+                            window.location.href.split('?')[1].split('-'),
+                          ),
+                        )
+                        window.location.href =
+                          window.location.href.indexOf(lockPageName) > 0
+                            ? window.location.href.slice(
+                                0,
+                                window.location.href.indexOf(lockPageName),
+                              ) + lockPageName
+                            : window.location.href + `-${lockPageName}`
+                      } else {
+                        clearInterval(testUser as NodeJS.Timer)
+                        return
+                      }
                     }
                   },
                   eventEnterFun: function () {
-                    clearInterval(testUser as NodeJS.Timer);
-                    objTime.init = 0;
-                    testUser = setInterval(objTime.time, 1000);
+                    clearInterval(testUser as NodeJS.Timer)
+                    objTime.init = 0
+                    testUser = setInterval(objTime.time, 1000)
                   },
                   // eventLeaveFun: function () {
                   //   testUser&&clearInterval(testUser as NodeJS.Timer);
@@ -791,14 +822,15 @@ class App {
                   //   testUser = setInterval(objTime.time, 1000);
                   // },
                 }
-                let testUser:NodeJS.Timer|null = setInterval(objTime.time, 1000)
-                objTime.addEvents();
+                let testUser: NodeJS.Timer | null = setInterval(
+                  objTime.time,
+                  1000,
+                )
+                objTime.addEvents()
               }
               // setTimeBoard(0.2)
-              setTimeBoard(+(localStorage.getItem("lockTime") as string))
+              setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
-
-
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -808,7 +840,6 @@ class App {
               is.reference(value)
             )
           },
-
         })
       )?.aborted
 
@@ -1070,10 +1101,10 @@ class App {
               let result: any
 
               if (/(dataValue|path|placeholder|style)/.test(trigger)) {
-                if(trigger === 'path' && component.type === 'image'){
+                if (trigger === 'path' && component.type === 'image') {
                   result = actionChain?.execute?.()
                   // result = results.find((val) => !!val?.result)?.result
-                }else{
+                } else {
                   results = await actionChain?.execute?.()
                   result = results.find((val) => !!val?.result)?.result
                 }
@@ -1083,27 +1114,27 @@ class App {
                 if (trigger === 'path') {
                   datasetKey = 'src'
                   if (!is.component.page(component)) {
-                    if (!result?.then){
+                    if (!result?.then) {
                       result = result
                         ? resolveAssetUrl(result, this.nui.getAssetsUrl())
                         : ''
                     }
-                    component.edit({ 'src': result })
+                    component.edit({ src: result })
                     component.edit({ 'data-src': result })
                     component.emit('path', result)
                   }
                 } else if (trigger === 'dataValue') {
                   datasetKey = 'value'
-                }else if(trigger === 'style') {
-                  let style:any = cloneDeep(component.blueprint.style || {})
+                } else if (trigger === 'style') {
+                  let style: any = cloneDeep(component.blueprint.style || {})
                   if (result) {
                     for (const k of Object.keys(result)) {
                       style[k] = result[k]
                     }
                   }
                   component.blueprint.style = style
-                  component.edit('style',style)
-                }else {
+                  component.edit('style', style)
+                } else {
                   datasetKey = trigger.toLowerCase()
                 }
                 component.edit({ [`data-${datasetKey}`]: result })

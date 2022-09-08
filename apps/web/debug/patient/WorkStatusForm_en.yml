@@ -38,7 +38,8 @@ WorkStatusForm:
         - .Global.formData.downloadPDF.scaleX@: 1
         - .Global.formData.downloadPDF.scaleY@: 1
         - .Global.formData.downloadPDF.originX@: 0
-        - .Global.formData.downloadPDF.originY@: 0                
+        - .Global.formData.downloadPDF.originY@: 0
+
   formDataTemp:
     listDatalength: ""
     flag: "block"
@@ -64,7 +65,7 @@ WorkStatusForm:
       children:
         - .BasePublicHeaderLeft:
         - .BasePublicHeaderTitle:
-        - .BasePublicHeaderMenu: 
+        - .BasePublicHeaderMenu:
     - type: scrollView
       viewTag: mainView
       style:
@@ -1140,7 +1141,7 @@ WorkStatusForm:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: formData.ctime
+                  dataKey: formData.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -1234,4 +1235,4 @@ WorkStatusForm:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpMenu:
+    - .HeaderAmendmentMenu:

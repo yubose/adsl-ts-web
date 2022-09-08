@@ -7,6 +7,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       fullName: ""
       fullAddress: ""
@@ -53,6 +56,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       fullName: ""
       fullAddress: ""
@@ -119,6 +125,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       fullName: ""
     symptomProfile:
@@ -148,6 +157,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       fullName: ""
       fullAddress: ""
@@ -205,6 +217,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       fullName: ""
     screeningEligibility:
@@ -226,6 +241,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       fullName: ""
       fullAddress: ""
@@ -283,6 +301,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       fullName: ""
     screeningEligibility:
@@ -304,6 +325,9 @@ VaccineFormDM: # 所有与表格有关的数据都存储在这里
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientName: ""
     signatureHippa:
       recipientName: ""

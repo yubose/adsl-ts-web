@@ -230,6 +230,7 @@ DocumentProvider:
       lineHeight: "2.58vh"
       width: "0.92"
       wordBreak: break-word
+      fontSize: .Nfont.h14
     uploadIcon:
       display: "inline-block"
       verticalAlign: middle

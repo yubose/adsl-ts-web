@@ -93,6 +93,9 @@ PfizerVaccineFirDoseEditPage1:
         - actionType: evalObject
           object:
             - ..apiRequest.pifzerVaccineFirDoseForm.docReq.name.data@: =.VaccineFormDM.pifzerVaccineFirDoseFormDM
+            - ..apiRequest.pifzerVaccineFirDoseForm.docReq.name.data.userInfo@: 
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
             - ..patientInfo@: =.VaccineFormDM.pifzerVaccineFirDoseFormDM.patientInfo
 
             - =..apiRequest.pifzerVaccineFirDoseForm.docAPI.store: ""
@@ -215,6 +218,9 @@ PfizerVaccineFirDoseEditPage1:
           title: "Pfizer-BioNTech Vaccine - First Dose"
           user: .Global.Profile.name.data.basicInfo.fullName
           type: "application/json"
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
       docAPI:
         store:
           api: cd

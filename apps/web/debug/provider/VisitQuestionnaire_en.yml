@@ -5,22 +5,13 @@ VisitQuestionnaire:
     - .SignInCheck
     - ..formData@: =.Global.Note
 
-    - =.builtIn.utils.createAuditLog:
-        dataIn:
-          actionTypeCode: .ActionTypeCode.view
-          recordTypeCode: 30721
-          eid: =.Global.formData.currentFacility.relationEdge.id
-          user: =.Global.MyProfile.name.data.fullName
-          userId: =.Global.currentUser.vertex.id
-          targetUserId: =.Global.formData.auditLog.patientId
-          accessPort: provider
-        dataOut: Global.formData.auditLog.result
-
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - actionType: evalObject
       object:
         # 下载pdf的样式控制
@@ -29,6 +20,10 @@ VisitQuestionnaire:
         - .Global.formData.downloadPDF.scaleY@: 0.98
         - .Global.formData.downloadPDF.originX@: 0
         - .Global.formData.downloadPDF.originY@: 0
+
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: 30721
 
   formData:
     name:
@@ -77,6 +72,24 @@ VisitQuestionnaire:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      date: =.Global.formData.auditLog.startTime
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: 30721
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderMenu:
     - type: scrollView

@@ -46,19 +46,19 @@ SwitchFacility:
                 - ..formData.emptyfacility@: "none"
     - actionType: evalObject
       object:
-          - if:
-              - =.builtIn.array.has:
-                  dataIn:
-                    object: =..formData.routeList
-                    value: "Dashboard"
-              - actionType: evalObject
-                object:
-                  - ..formData.backHidden@: "none"
-                  - ..formData.backShow@: "block"
-              - actionType: evalObject
-                object:
-                  - ..formData.backHidden@: "block"
-                  - ..formData.backShow@: "none"    
+        - if:
+            - =.builtIn.array.has:
+                dataIn:
+                  object: =..formData.routeList
+                  value: "Dashboard"
+            - actionType: evalObject
+              object:
+                - ..formData.backHidden@: "none"
+                - ..formData.backShow@: "block"
+            - actionType: evalObject
+              object:
+                - ..formData.backHidden@: "block"
+                - ..formData.backShow@: "none"
   localFacility:
   apiRequest:
     currentFacilityDoc:
@@ -85,13 +85,13 @@ SwitchFacility:
     routeList: []
   components:
     - .BasePublicHeader:
-      style: 
+      style:
         display: ..formData.backHidden
       children:
         - .BasePublicHeaderLeftEmpty:
         - .BasePublicHeaderTitle:
     - .BasePublicHeader:
-      style: 
+      style:
         display: ..formData.backShow
       children:
         - .BasePublicHeaderLeft:
@@ -189,6 +189,7 @@ SwitchFacility:
                             height: "auto"
                             width: "0.6"
                             overflow: hidden
+                            fontSize: .Nfont.h14
                         - type: image
                           path: blueRightThin.svg
                           style:

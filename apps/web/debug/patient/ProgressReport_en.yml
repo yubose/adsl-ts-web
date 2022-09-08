@@ -12,22 +12,22 @@ ProgressReport:
               object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
             dataOut: ProgressReport.formDataTemp.listlength
 
-    - actionType: evalObject
-      object:
-        - =.builtIn.array.getListLength:
-            dataIn:
-              object: =..formData.name.data.reportInfo.socialHistory
-            dataOut: ProgressReport.formDataTemp.socialHistoryLength
+    # - actionType: evalObject
+    #   object:
+    #     - =.builtIn.array.getListLength:
+    #         dataIn:
+    #           object: =..formData.name.data.reportInfo.socialHistory
+    #         dataOut: ProgressReport.formDataTemp.socialHistoryLength
 
-    - actionType: evalObject
-      object:
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formDataTemp.socialHistoryLength
-                  string2: "0"
-            - ..formData.name.data.reportInfo.socialHistory@: ""
-            - continue
+    # - actionType: evalObject
+    #   object:
+    #     - if:
+    #         - =.builtIn.string.equal:
+    #             dataIn:
+    #               string1: =..formDataTemp.socialHistoryLength
+    #               string2: "0"
+    #         - ..formData.name.data.reportInfo.socialHistory@: ""
+    #         - continue
 
     - actionType: evalObject
       object:
@@ -60,6 +60,13 @@ ProgressReport:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - .Global.formData.patientAmendmentForm@: ""
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderMenu:
     - type: scrollView
@@ -884,7 +891,7 @@ ProgressReport:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: formData.ctime
+                  dataKey: formData.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -982,7 +989,7 @@ ProgressReport:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpMenu:
+    - .HeaderAmendmentMenu:
   event:
     checkBoxPath:
       emit:

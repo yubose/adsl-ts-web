@@ -107,7 +107,7 @@ PatientChartGeneralInfo:
         type: .DocType.PatientChart
         name:
           data: ""
-          title: ""
+          title: "Patient Chart"
           user: .Global.Profile.name.data.basicInfo.fullName
           type: "application/json"
       docAPI:

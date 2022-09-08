@@ -5,7 +5,6 @@ FinancialFormEditPage2:
     - ..apiRequest.financialForm.docCreateReq@: =.Global.formData.patientDoc.financialForm
     - .FinancialFormEditPage2.formData.type@: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.visitType
     - .FinancialFormEditPage2.formData.pay@: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.pay
-
     # 判断是否签名
     - if:
         - =.Global.formData.patientDoc.financialForm.name.data.whetherSignature
@@ -1840,15 +1839,18 @@ FinancialFormEditPage2:
                                     boxSizing: border-box
                                     color: "#333333"
                                     fontSize: .Nfont.h14
-                                    height: "0.022167"
-                                    verticalAlign: middle
+                                    height: "0.033"
+                                    # verticalAlign: middle
                                     textIndent: "12px"
                                     width: "0.53333"
                                     backgroundColor: "#ffffff"
                                 - type: image
                                   path: dateImg.svg
                                   style:
-                                    ..style.dateImg:
+                                    marginTop: "0.006"
+                                    display: "inline-block"
+                                    # verticalAlign: middle
+                                    height: "0.02"
                               onClick:
                                 - actionType: popUp
                                   popUpView: datePop
@@ -2581,7 +2583,11 @@ FinancialFormEditPage2:
                   dataIn:
                     string1: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.medicalInsurance
                     string2: "No"
-              - continue
+              # - continue
+              - actionType: evalObject
+                object:
+                  - .Global.formData.patientDoc.financialForm.name.data.signatureId@: ""
+                  - .Global.formData.patientDoc.financialForm.name.data.whetherSignature@: true
               # 判断是否签名
               - actionType: evalObject
                 object:
@@ -2821,6 +2827,85 @@ FinancialFormEditPage2:
           - ..apiRequest.financialForm.docCreateReq.name.data.authorizeRelease@: =.Global.formData.patientDoc.financialForm.name.data.authorizeRelease
           - ..apiRequest.financialForm.docCreateReq.name.data.whetherSignature@: =.Global.formData.patientDoc.financialForm.name.data.whetherSignature
           - ..apiRequest.financialForm.docCreateReq.name.data.date@: =.Global.formData.patientDoc.financialForm.name.data.date
+          # 根据产品要求，删除除选择栏目以外的数据
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.type
+                  string2: "Medical Insurance"
+            - actionType: evalObject
+              object:
+                - =.builtIn.object.clearValue:
+                    dataIn:
+                      obj: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.employment
+                    dataOut: FinancialFormEditPage2.apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.employment
+                - =.builtIn.object.clearValue:
+                    dataIn:
+                      obj: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.address
+                    dataOut: FinancialFormEditPage2.apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.address
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.dateOfInjury@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.fax@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.name@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.personalInjuryType@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.phone@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.state@: ""
+            - continue   
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.type
+                  string2: "Workers Comp"
+            - actionType: evalObject
+              object:
+                # 清除medical insurance下的所有信息
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.companyName@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insurancePlan@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insuredName@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insuranceId@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insuranceGroup@: ""
+                - =.builtIn.object.clearValue:
+                    dataIn:
+                      obj: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.relationShip
+                    dataOut: FinancialFormEditPage2.apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.relationShip
+                - =.builtIn.object.clearValue:
+                    dataIn:
+                      obj: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.address
+                    dataOut: FinancialFormEditPage2.apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.address
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.dateOfInjury@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.fax@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.name@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.personalInjuryType@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.phone@: ""
+                - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.state@: ""
+            - continue     
+          - if:
+            - =.builtIn.string.equal:
+                dataIn:
+                  string1: =..formData.type
+                  string2: "Personal Injury"
+            - actionType: evalObject
+              object:
+                # 清除medical insurance下的所有信息
+                - if:
+                  - =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.injury.isUseDefaultInsurance
+                  - continue
+                  # 如果勾选主保险卡，则不清除主保险卡信息
+                  - actionType: evalObject
+                    object:
+                      - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.companyName@: ""
+                      - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insurancePlan@: ""
+                      - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insuredName@: ""
+                      - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insuranceId@: ""
+                      - ..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.insuranceGroup@: ""
+                      - =.builtIn.object.clearValue:
+                          dataIn:
+                            obj: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.relationShip
+                          dataOut: FinancialFormEditPage2.apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.relationShip
+                - =.builtIn.object.clearValue:
+                    dataIn:
+                      obj: =..apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.employment
+                    dataOut: FinancialFormEditPage2.apiRequest.financialForm.docCreateReq.name.data.billingInfo.indentification.employment
+            - continue  
           - =..apiRequest.financialForm.docAPI.store: ""
           - .Global.formData.patientDoc.financialForm@: ""
           - .Global.formData.patientDoc.financialForm@: =..apiRequest.financialForm.docCreateResp.doc

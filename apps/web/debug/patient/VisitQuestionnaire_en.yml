@@ -53,6 +53,7 @@ VisitQuestionnaire:
         type: .DocType.VisitQuestionnaire
         eid: .Global.rootNotebookID
         subtype:
+          isEncrypted: "1"
           mediaType: "application/json"
         name:
           data:
@@ -63,6 +64,9 @@ VisitQuestionnaire:
               display: block
             statusTag:
               display: none
+            userInfo:
+              patientName: .Global.Profile.name.data.basicInfo.fullName
+              participateName: .Global.formData.participateName
             purpose: ""
             descriptionOfIllness: ""
             isPrescribed: ""

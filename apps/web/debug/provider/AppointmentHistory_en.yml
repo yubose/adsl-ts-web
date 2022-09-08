@@ -690,7 +690,7 @@ AppointmentHistory:
           style:
             width: "1"
             margin: "0"
-            height: "auto"
+            height: "0.942"
           children:
             - type: listItem
               itemObject:

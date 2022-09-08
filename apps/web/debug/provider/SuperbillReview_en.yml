@@ -3,17 +3,9 @@ SuperbillReview:
   pageNumber:
   init:
     - .SignInCheck
-    - =.builtIn.utils.createAuditLog:
+    - =.builtIn.date.currentDateTime:
         dataIn:
-          actionTypeCode: .ActionTypeCode.view
-          recordTypeCode: .DocType.Superbill
-          eid: =.Global.formData.currentFacility.relationEdge.id
-
-          user: =.Global.MyProfile.name.data.fullName
-          userId: =.Global.currentUser.vertex.id
-          targetUserId: =.Global.formData.auditLog.patientId
-          accessPort: provider
-        dataOut: Global.formData.auditLog.result
+        dataOut: Global.formData.auditLog.startTime
     - ..formData@: =.Global.formData.providerDoc.superbillDoc
     - actionType: evalObject
       object:
@@ -61,8 +53,31 @@ SuperbillReview:
                                 - ..formData.useCurrentShow@: "none"
                                 - ..formData.selectFacilityShow@: "none"
                                 - ..formData.enterManuallyShow@: "block"
+
+    # 获取数组最后一项
+    - actionType: evalObject
+      object:
+        - =.builtIn.array.GetSomeData:
+            dataIn:
+              dataArray: =..formData.name.data.procedureCodeList
+            dataOut: SuperbillReview.formData.lastItem
+    - actionType: evalObject
+      object:
+        - =.builtIn.object.setProperty:
+            dataIn:
+              obj: =..formData.name.data.procedureCodeList
+              label: "hashCode"
+              text: =..formData.lastItem.hashCode
+              arr: ["borderShow"]
+              valueArr: ["none"]
+              errorArr: ["2px solid red"]
+            dataOut: SuperbillReview.formData.name.data.procedureCodeList
   formData:
+    lastItem: ""
     currentCode: ""
+    useCurrentShow: "none"
+    selectFacilityShow: "none"
+    enterManuallyShow: "none"
     selectedCode: ""
     currentListLength: ""
     ICDList: []
@@ -79,6 +94,24 @@ SuperbillReview:
     - .BasePublicHeader:
         children:
           - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: evalObject
+                object:
+                  - =.builtIn.utils.createAuditLog:
+                      dataIn:
+                        actionTypeCode: .ActionTypeCode.view
+                        recordTypeCode: .DocType.Superbill
+                        eid: =.Global.formData.currentFacility.relationEdge.id
+                        date: =.Global.formData.auditLog.startTime
+                        user: =.Global.MyProfile.name.data.fullName
+                        userId: =.Global.currentUser.vertex.id
+                        targetUserId: =.Global.formData.auditLog.patientId
+                        targetUser: =.Global.formData.auditLog.patientName
+                        accessPort: provider
+                      dataOut: Global.formData.auditLog.result
+              - actionType: builtIn
+                funcName: goBack
+                reload: true
           - .BasePublicHeaderTitle:
           - .BasePublicHeaderRightText:
             text: "Edit"
@@ -90,10 +123,11 @@ SuperbillReview:
                         actionTypeCode: .ActionTypeCode.edit
                         recordTypeCode: .DocType.Superbill
                         eid: =.Global.formData.currentFacility.relationEdge.id
-
+                        date: =.Global.formData.auditLog.startTime
                         user: =.Global.MyProfile.name.data.fullName
                         userId: =.Global.currentUser.vertex.id
                         targetUserId: =.Global.formData.auditLog.patientId
+                        targetUser: =.Global.formData.auditLog.patientName
                         accessPort: provider
                       dataOut: Global.formData.auditLog.result
                   - goto: ChargeEntry
@@ -137,7 +171,7 @@ SuperbillReview:
                     verticalAlign: middle
                     wordWrap: break-word
                 - type: label
-                  dataKey: formData.name.data.facilityInfo.location
+                  dataKey: formData.name.data.facilityInfo.fullAddress
                   style:
                     marginTop: "0.0110"
                     width: "0.71"
@@ -447,9 +481,9 @@ SuperbillReview:
                                 ..style.inputInline:
                         - type: label
                           textBoard:
-                            - text: "-----------------------------"
+                            - text: "------------------------"
                             - text: "&nbsp;Next code&nbsp;"
-                            - text: "-----------------------------"
+                            - text: "------------------------"
                           style:
                             ..style.dividingSecondLine:
                             display: itemObject.borderShow

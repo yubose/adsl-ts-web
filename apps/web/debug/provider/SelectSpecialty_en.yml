@@ -614,16 +614,17 @@ SelectSpecialty:
             - type: listItem
               itemObject: ""
               style:
-                height: "0.04"
-                left: "0"
-                marginTop: "0"
+                height: "auto"
+                marginLeft: "0"
+                marginTop: "0.01"
               children:
                 - type: image
                   path: x.svg
                   style:
-                    left: "0.05"
-                    top: "0.01"
+                    marginLeft: "0.05"
                     height: "0.02"
+                    verticalAlign: middle
+                    display: "inline-block"
                   onClick:
                     - emit:
                         dataKey:
@@ -648,22 +649,18 @@ SelectSpecialty:
                   dataKey: itemObject.specialty
                   style:
                     width: "0.5"
-                    height: "0.04"
-                    left: "0.15"
-                    top: "0"
+                    marginLeft: "0.07"
+                    display: "inline-block"
                     fontSize: .Nfont.h14
-                    textAlign:
-                      y: center
+                    verticalAlign: middle
                 - type: label
                   dataKey: itemObject.boardCertified
                   style:
                     width: "0.3"
-                    height: "0.04"
-                    left: "0.7"
-                    top: "0"
+                    display: "inline-block"
                     fontSize: .Nfont.h14
-                    textAlign:
-                      y: center
+                    verticalAlign: middle
+
     - .BaseMessageWarnPopup:
       onClick:
         - actionType: popUpDismiss

@@ -230,6 +230,7 @@ NewConnections:
       type: .EdgeType.Accept
       bvid: .Global.currentUser.vertex.id
       name: ""
+      atimes: -10
     edgeAPI:
       store:
         api: ce

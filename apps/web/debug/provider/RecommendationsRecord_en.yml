@@ -150,6 +150,17 @@ RecommendationsRecord:
                 - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docResp.doc.0
             # 指定返回页面
             - .Global.formData.backPageName@: "RecommendationsRecord"
+
+            - .Global.formData.auditLog.patientName@: =.Global.roomInfo.edge.name.patientName
+            - .Global.formData.patientName@: =.Global.roomInfo.edge.name.patientName
+            # 处理patientid
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.roomInfo.edge.evid
+                      string2: =.Global.roomInfo.edge.name.providerId
+                - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.bvid
+                - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.evid
             - goto: RecommendationShared
   style:
     scrollBox:

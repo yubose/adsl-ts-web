@@ -32,7 +32,7 @@ MedicalRecords:
       docQueryReq:
         id: .Global.currentUser.vertex.id
         ObjType: 28
-        sCondition: E.type = 40000 AND D.type NOT IN (102401,0x2800,0x2900,770,25601,28161,220161,171521,284160,166401,148481,151040,186881,179201,189441,192001,184321,1025,89601) AND D.type & 0xff = 1 AND D.tage = 0
+        sCondition: E.type = 40000 AND D.type NOT IN (102401,0x2800,0x2900,770,25601,28161,220161,171521,284160,166401,148481,151040,186881,179201,189441,192001,184321,1025,89601,245761) AND D.type & 0xff = 1 AND D.tage = 0
         xfname: bvid|evid
         obfname: D.ctime
         sfname: '{"join":"INNER JOIN Edge E ON E.id=D.reid","result":"D.*"}'
@@ -149,6 +149,7 @@ MedicalRecords:
                     boxSizing: "border-box"
                     # width: "0.65"
                     width: "0.573333"
+                    fontSize: .Nfont.h14
                 - type: image
                   viewTag: searchVT
                   path: searchCancel.svg

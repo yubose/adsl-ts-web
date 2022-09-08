@@ -5,6 +5,20 @@ BlankNotePrivate:
     - =.builtIn.date.currentDateTime:
         dataIn:
         dataOut: Global.formData.auditLog.startTime
+    # 判断是否从PatientAmendmentRequest进入
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.unPageName
+              string2: "PatientAmendmentRequest"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "none"
+            - ..formDataTemp.updateBtnShow@: "block"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "block"
+            - ..formDataTemp.updateBtnShow@: "none"
     - if:
         - =.Global.Note.id
         - actionType: evalObject
@@ -27,6 +41,53 @@ BlankNotePrivate:
     - =.BlankNotePrivate.apiRequest.blankNote.docAPI.store: ""
 
   apiRequest:
+    # provider同意修改的email
+    email:
+      docCreateResp: ""
+      docCreateReq:
+        reid: .Global.email.esig
+        tage: 8
+        eid: ""
+        type: .DocType.InboxMessage
+        name:
+          data:
+            # 邮件内容
+            content: ""
+            # 收件人姓名,provider或admin的fullName
+            receiverName: .Global.email.name.data.patientName
+            # 固定，为aitmed系统回复
+            senderName: automatic-reply@aitmed.com
+            # 空，这样可以显示为aitmed-logo
+            senderAvatarId: ""
+            # 被质疑的记录的名字
+            recordName: .Global.email.name.data.recordName
+            # 执行这个操作的人员的fullName，可能是admin，也可能是provider
+            executorName: .Global.MyProfile.name.data.fullName
+            #邮件标题
+          title: Patient Amendment Reply Notification
+          #收件人头像的id
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: BlankNotePrivate.apiRequest.email.docCreateReq
+          dataOut: BlankNotePrivate.apiRequest.email.docCreateResp
+    # provider和patient之间的10002
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.email.bsig
+        xfname: (bvid,evid)|(evid,bvid)
+        obfname: mtime
+        type: .EdgeType.Email
+        maxcount: 1
+      edgeAPI:
+        get:
+          api: re
+          dataIn: BlankNotePrivate.apiRequest.relation.edgeQueryReq
+          dataOut: BlankNotePrivate.apiRequest.relation.edgeQueryResp
     newSign:
       docRes: ""
       docReq: #DOC
@@ -84,10 +145,39 @@ BlankNotePrivate:
     temporarySignature: ""
     whetherSign: ""
     signatureTime: ""
+  formDataTemp:
+    originalBtnShow: "block"
+    updateBtnShow: "none"
   components:
     - .BasePublicHeader:
         children:
           - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: evalObject
+                object:
+                  - =.builtIn.utils.createAuditLog:
+                      dataIn:
+                        actionTypeCode: .ActionTypeCode.edit
+                        recordTypeCode: .DocType.MeetingNote
+                        eid: =.Global.formData.currentFacility.relationEdge.id
+                        date: =.Global.formData.auditLog.startTime
+                        user: =.Global.MyProfile.name.data.fullName
+                        userId: =.Global.currentUser.vertex.id
+                        targetUserId: =.Global.formData.auditLog.patientId
+                        targetUser: =.Global.formData.auditLog.patientName
+                        accessPort: provider
+                      dataOut: Global.formData.auditLog.result
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..formDataTemp.updateBtnShow
+                            string2: "block"
+                      - actionType: popUp
+                        popUpView: judgmentOperation
+                      - actionType: builtIn
+                        funcName: goBack
+                        reload: true
+
           - .BasePublicHeaderTitle:
           - .BasePublicHeaderRightText:
             onClick:
@@ -480,7 +570,7 @@ BlankNotePrivate:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: apiRequest.blankNote.docReq.ctime
+                  dataKey: apiRequest.blankNote.docReq.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -578,8 +668,149 @@ BlankNotePrivate:
       children:
         - type: view
           style:
-            height: auto
-            width: "auto"
+            display: =..formDataTemp.updateBtnShow
+          children:
+            - .DocButtonPrivate:
+              text: Cancel
+              onClick:
+                - actionType: popUp
+                  popUpView: judgmentOperation
+
+            - .DocButtonRelease:
+              text: Update & Send
+              onClick:
+                # 签名处理
+                - actionType: saveSignature
+                  dataObject: BLOB
+                  dataKey: BlankNotePrivate.apiRequest.newSign.docReq.name.data
+                  isEmpty: BlankNotePrivate.formData.whetherSign
+
+                # 保存签名
+                - actionType: evalObject
+                  object:
+                    # 签名reid指向 doc 的id
+                    - ..apiRequest.newSign.docReq.reid@: =.BlankNotePrivate.apiRequest.blankNote.docReq.id
+                    # - =..apiRequest.newSign.docAPI.store: ""
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.whetherSign
+                        - continue
+                        - =..apiRequest.newSign.docAPI.store: ""
+
+                #  指定 eid 和 reid
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.blankNote.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.blankNote.docReq.reid@: =.Global.roomInfo.edge.id
+
+                # title处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..apiRequest.blankNote.docReq.name.title
+                              string2: ""
+                        - ..apiRequest.blankNote.docReq.name.title@: "Blank Note"
+                        - continue
+
+                # 签名处理
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =..formData.temporarySignature
+                        - actionType: evalObject
+                          object:
+                            # 存放签名的id到newNote
+                            - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+                            - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+                            - ..apiRequest.blankNote.docReq.name.data.whetherSign@: false
+                            - ..formData.whetherSign@: false
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+                            - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                            - ..apiRequest.blankNote.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+                #  签名弹窗
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.BlankNotePrivate.formData.whetherSign
+                        - actionType: popUp
+                          popUpView: BaseWarningView
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+
+                #  修改type
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.blankNote.docReq.type
+                          index: 1
+                          hex: 1
+                        dataOut: BlankNotePrivate.apiRequest.blankNote.docReq.type
+
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.MeetingNote
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
+                          accessPort: provider
+                          amendment: Amendment
+                          amendmentId: =.Global.email.esig
+                        dataOut: Global.formData.auditLog.result
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                # 邮件逻辑
+                - actionType: evalObject
+                  object:
+                    - actionType: evalObject
+                      async: true
+                      object:
+                        - =..apiRequest.blankNote.docAPI.store: ""
+                        # 向patient发送accept的邮件
+                        # 获取10002edge
+                        - =..apiRequest.relation.edgeAPI.get: ""
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "Hello,"
+                          - =.Global.MyProfile.name.data.fullName
+                          - " has updated the "
+                          - =.Global.email.name.data.recordName
+                          - "."
+                        dataOut: BlankNotePrivate.apiRequest.email.docCreateReq.name.data.content
+                    - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+                    - =..apiRequest.email.docAPI.store: ""
+                - actionType: popUp
+                  popUpView: successTag
+                  wait: 2000
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - goto: MessageShow
+
+        - type: view
+          style:
+            display: =..formDataTemp.originalBtnShow
           children:
             - .DocButtonPrivate:
               onClick:
@@ -668,6 +899,7 @@ BlankNotePrivate:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
 
@@ -770,6 +1002,7 @@ BlankNotePrivate:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
 
@@ -782,6 +1015,149 @@ BlankNotePrivate:
     - .SuccessfulOneLine:
       message: "Successfully"
       viewTag: successTag
+
+    - .SuccessfulOneLine:
+      message: "Update Successfully!"
+      viewTag: successTag
+
+    - .Normal:
+      message: "Cancel the changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+
+      rightButton:
+        # # 签名处理
+        # - actionType: saveSignature
+        #   dataObject: BLOB
+        #   dataKey: BlankNotePrivate.apiRequest.newSign.docReq.name.data
+        #   isEmpty: BlankNotePrivate.formData.whetherSign
+
+        # # 保存签名
+        # - actionType: evalObject
+        #   object:
+        #     # 签名reid指向 doc 的id
+        #     - ..apiRequest.newSign.docReq.reid@: =.BlankNotePrivate.apiRequest.blankNote.docReq.id
+        #     # - =..apiRequest.newSign.docAPI.store: ""
+
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.whetherSign
+        #         - continue
+        #         - =..apiRequest.newSign.docAPI.store: ""
+
+        # #  指定 eid 和 reid
+        # - actionType: evalObject
+        #   object:
+        #     - ..apiRequest.blankNote.docReq.eid@: =.Global.currentRoom.edge.id
+        #     - ..apiRequest.blankNote.docReq.reid@: =.Global.roomInfo.edge.id
+
+        # # title处理
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =..apiRequest.blankNote.docReq.name.title
+        #               string2: ""
+        #         - ..apiRequest.blankNote.docReq.name.title@: "Blank Note"
+        #         - continue
+
+        # # 签名处理
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.temporarySignature
+        #         - actionType: evalObject
+        #           object:
+        #             # 存放签名的id到newNote
+        #             - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..formData.signatureTime
+        #             - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..formData.temporarySignature
+        #             - ..apiRequest.blankNote.docReq.name.data.whetherSign@: false
+        #             - ..formData.whetherSign@: false
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.blankNote.docReq.name.data.signatureTime@: =..apiRequest.newSign.docRes.doc.ctime
+        #             - ..apiRequest.blankNote.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+        #             - ..apiRequest.blankNote.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+        # #  签名弹窗
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.BlankNotePrivate.formData.whetherSign
+        #         - actionType: popUp
+        #           popUpView: BaseWarningView
+        #           wait: true
+        #           popUpDismiss: 2000
+        #         - continue
+
+        # #  修改type
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.number.inhx:
+        #         dataIn:
+        #           intHex: =..apiRequest.blankNote.docReq.type
+        #           index: 1
+        #           hex: 1
+        #         dataOut: BlankNotePrivate.apiRequest.blankNote.docReq.type
+
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.utils.createAuditLog:
+        #         dataIn:
+        #           actionTypeCode: .ActionTypeCode.edit
+        #           recordTypeCode: .DocType.MeetingNote
+        #           eid: =.Global.formData.currentFacility.relationEdge.id
+        #           date: =.Global.formData.auditLog.startTime
+        #           user: =.Global.MyProfile.name.data.fullName
+        #           userId: =.Global.currentUser.vertex.id
+        #           targetUserId: =.Global.formData.auditLog.patientId
+        # targetUser: =.Global.formData.auditLog.patientName
+        #           accessPort: provider
+        #         dataOut: Global.formData.auditLog.result
+
+        # - actionType: evalObject
+        #   object:
+        #     .Global._nonce@:
+        #       =.builtIn.math.random: ""
+
+        # # 邮件逻辑
+        # - actionType: evalObject
+        #   object:
+        #     - actionType: evalObject
+        #       async: true
+        #       object:
+        #         - =..apiRequest.blankNote.docAPI.store: ""
+        #         # 向patient发送accept的邮件
+        #         # 获取10002edge
+        #         - =..apiRequest.relation.edgeAPI.get: ""
+        #     - =.builtIn.string.concat:
+        #         dataIn:
+        #           - "Hello,"
+        #           - =.Global.MyProfile.name.data.fullName
+        #           - " has updated the "
+        #           - =.Global.email.name.data.recordName
+        #           - "."
+        #         dataOut: BlankNotePrivate.apiRequest.email.docCreateReq.name.data.content
+        #     - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+        #     - =..apiRequest.email.docAPI.store: ""
+
+        # - actionType: popUpDismiss
+        #   popUpView: judgmentOperation
+
+        # - actionType: popUp
+        #   popUpView: successTag
+        #   wait: 2000
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - goto: MessageShow
 
     - .Normal:
       message: "Do you want the patient to see it?"

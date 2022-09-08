@@ -36,6 +36,10 @@ MessageShow:
   subject: ""
   inboxFolder: ""
   isStar: 1
+  formData:
+    display:
+      default: true
+      amendent: false
   apiRequest:
     #get attachment
     attachment:
@@ -112,20 +116,22 @@ MessageShow:
           dataIn: MessageShow.apiRequest.folderTag.docCreateReq
           dataOut: MessageShow.apiRequest.folderTag.docCreateResp
   components:
-    - .BaseHeader:
-    - .HeaderLeftImg:
-      onClick:
-        - actionType: builtIn
-          funcName: goBack
-          reload: true
-        # - goto: InboxDashboard
-      path: whiteLeft.svg
+    # - .BaseHeader:
+    # - .HeaderLeftImg:
+    #   onClick:
+    #     - actionType: builtIn
+    #       funcName: goBack
+    #       reload: true
+    #     # - goto: InboxDashboard
+    # path: whiteLeft.svg
+    - .BasePublicHeader:
+      children:
+        - .BasePublicHeaderLeft:
+        - .BasePublicHeaderTitle:
     - type: view
       style:
         width: "1"
         height: "0.8"
-        top: "0.1"
-        left: "0"
         display: "block"
       viewTag: funbar
       children:
@@ -147,7 +153,7 @@ MessageShow:
               style:
                 top: "0.02"
                 height: "0.02"
-                width: "0.34"
+                width: "auto"
                 textAlign:
                   y: center
                 left: "0.05"
@@ -157,7 +163,7 @@ MessageShow:
               dataKey: Global.email.name.title
               style:
                 fontSize: .Nfont.h16
-                # fontWeight: "500"
+                fontWeight: "600"
 
                 left: "0.05"
                 top: "0.045"
@@ -260,34 +266,53 @@ MessageShow:
             left: "0.88"
             top: "0.09"
             zIndex: "100"
+        # 默认content
         - type: view
+          viewTag: default
           style:
+            display: ..formData.display.default
+            marginTop: "0.01477"
+            marginLeft: "0.04"
+            height: "auto"
             top: "0.16"
-            left: "0"
-            width: "1"
-            height: "0.42"
-
-            # backgroundColor: "0xcdcdcd"
+            width: "0.92"
+            overflow: hidden
           children:
-            - type: textView
-              isEditable: "false"
-              dataKey: Global.email.name.data.content
+            - type: label
+              textBoard:
+                - text: "Hello,"
+                - br:
+                - br:
+                - text: ""
+                  dataKey: Global.email.name.data.patientName
+                - text: " has requested to amend information in "
+                - text: ""
+                  dataKey: Global.email.name.data.recordName
+                - text: " from "
+                - text: ""
+                  dataKey: Global.email.name.data.appointmentTime
+                  color: "#2988e6"
+                  fontWeight: "600"
+                - text: " appointment"
               style:
-                top: "0.01"
-                width: "0.9"
-                left: "0.05"
+                ..style.message:
+            - type: view
+              style:
+                ..style.viewBox:
 
-                fontSize: .Nfont.h14
-                height: "0.4"
-                backgroundColor: "0xffffff"
-                color: "0x757575"
-                fontWeight: 300
-                # isEditable: "false"
-                border:
-                  style: "2"
-                  color: "0xEFEFEF"
-                  width: "1"
-
+              children:
+                - type: view
+                  onClick:
+                    - ..event.toAmendment
+                  children:
+                    - type: label
+                      text: View Details
+                      style:
+                        ..style.viewLabel:
+                    - type: image
+                      path: rightCircleImg.svg
+                      style:
+                        ..style.viewImg:
         - type: scrollView
           style:
             top: "0.57"
@@ -367,6 +392,7 @@ MessageShow:
         top: "0.9"
         width: "1"
         height: "0.1"
+        backgroundColor: "0xffffff"
         boxShadow: "0 -2px 3px -1px #7070702a"
       children:
         - type: image
@@ -733,17 +759,36 @@ MessageShow:
                         dataOut: MessageShow.apiRequest.emailTag.docCreateReq.type
                     - =..apiRequest.emailTag.docAPI.store: ""
                 - goto: InboxDashboard
-                # - actionType: evalObject
-                #   object:
-                #     - .Global.jwt.edge.bvid@: =.Global.email.bsig
-                #     - =.Global.jwt.edgeAPI.store: ""
-                #     - =.builtIn.number.inhx:
-                #         dataIn:
-                #           intHex: =..email.doc.type
-                #           index: 5
-                #           hex: 1
-                #         dataOut: MessageShow.email.doc.type
-                #     - =..email.docAPI.store: ""
-                #     - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
-                #     - =.Global.jwt.edgeAPI.store: ""
-                # - goto: Trash
+  event:
+    toAmendment:
+      - actionType: evalObject
+        object:
+          - .Global.formData.amendment.id@: =.Global.email.esig
+          - .Global.formData.auditLog.patientId@: =.Global.email.bsig
+          - .Global.formData.auditLog.patientName@: =.Global.email.name.data.patientName
+      - goto: PatientAmendmentRequest
+  style:
+    message:
+      fontSize: .Nfont.h14
+      width: "0.92"
+      height: "auto"
+      color: "#333333"
+      lineHeight: "2.58vh"
+      wordBreak: break-word
+    viewBox:
+      marginTop: "0.0307881"
+      width: "0.92"
+      height: "auto"
+      textAlign:
+        x: right
+    viewLabel:
+      fontSize: .Nfont.h14
+      color: "#2988e6"
+      fontWeight: "600"
+      display: "inline-block"
+      verticalAlign: middle
+    viewImg:
+      marginLeft: "0.02"
+      display: "inline-block"
+      height: "0.019704"
+      verticalAlign: middle

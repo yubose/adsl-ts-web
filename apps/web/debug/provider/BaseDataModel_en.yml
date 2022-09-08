@@ -1,7 +1,7 @@
 # BaseecosObj: # This is page name
 AppName: com.aitmed.iprovider
-AWSKeyIDEncrypted: "a3hpJfI3vODRWIF2m1RM9HYt5CoJy4X+rR+e1vFg08q5Pm+0proQad9Tju9Pwdna8NH+CaMlAQB304kA"
-AWSKeyEncrypted: "pOANd/BRkHtIhj1xa9BbJjFrkiFM1HL67Ty1clQbWKCVvyy+jnz4rLyyYPk+QjaIgVu0rmiPdg/0Ay3ZfA78vub96RyRwgKF0Te4Fq2qfUk="
+AWSKeyIDEncrypted: "12o0l2QRvdYgZ0XrjX3nHQmSKp2SepmS1GEqdZtradoCxJvNEWhYOkje4ejT4heA79mdjsQwyeR4UMTh"
+AWSKeyEncrypted: "T+4g2TqN/9GyR8icCwOf045M7laHRPAU5WiZ1ToNJoACtz9mLhvQqB7+Eh+bCDQkPvZkF5s2U7lV4mCQth29OMOgeWY+ZQ0WMGqcJJnhJRk="
 # notification target app name
 TargetApp:
   patient: com.aitmed.icare
@@ -268,7 +268,12 @@ Global: # name of an object'
               - continue
           - actionType: evalObject
             object:
-              - goto: =.NotificationMap.notificationGoto
+              - if:
+                  - =.NotificationMap.notificationGoto
+                  - actionType: evalObject
+                    object:
+                      - goto: =.NotificationMap.notificationGoto
+                  - continue
     # When the app obtain the current token (either from login or Firebase auto update)
     # send the access token to server via 1090 edge
     # iOS will have two tokens, one for regular notification, the other is for VoIP,
@@ -327,6 +332,32 @@ Global: # name of an object'
               - =.FirebaseToken.response.edge.id
               - =.FirebaseToken.edgeAPI.delete: ""
               - continue
+    # when the user rejects the call from callkit system calling screen
+    - type: register
+      onEvent: onCallRejected
+      emit:
+        dataKey:
+          var: eid
+        actions:
+          - .Global.sendNotification.document.fid@: =.Global.patdAPPID
+          - .Global.sendNotification.document.name.notification.title@: The participant has declined
+          - .Global.sendNotification.document.name.notification.context@: The participant has declined
+          - .Global.sendNotification.document.name.notification.body@: The participant has declined
+          - .Global.sendNotification.document.eid@: $var
+          - =.Global.sendNotification.docAPI.store: ""
+    # when the user didn't answer the call from callkit system calling screen
+    - type: register
+      onEvent: onCallNoAnswer
+      emit:
+        dataKey:
+          var: eid
+        actions:
+          - .Global.sendNotification.document.name.notification.title@: The participant did not answer
+          - .Global.sendNotification.document.name.notification.context@: The participant did not answer
+          - .Global.sendNotification.document.name.notification.body@: The participant did not answer
+          - .Global.sendNotification.document.fid@: =.Global.patdAPPID
+          - .Global.sendNotification.document.eid@: $var
+          - =.Global.sendNotification.docAPI.store: ""
     - type: register
       onEvent: onNewEcosDoc # will be automatically invoked when receive a message
       emit:
@@ -350,10 +381,55 @@ Global: # name of an object'
           #              dataKey: MessageObjStore.currentChatEdge
           #              dataObject: itemObject
           #需要一些if 判断 对应不同的notificaiton机制
+          #处理反复通知问题 和 多个会议向同一个人发送的问题
+          # - if:
+          #   - =.Global.ecosDocObj.doc.0.name.notification.roomId
+          #   - if:
+          #     - =.builtIn.string.equal:
+          #         dataIn:
+          #           string1: =.Global.ecosDocObj.doc.0.name.notification.roomId
+          #           string2: =.Global.roomInfoDoc.document.deat.roomID
+          #     - continue
+          #     - continue
+          #   - continue
+          #以 accessToken 判断会议是否开始,若开始了,则不接电话
           - if:
-              - =.builtIn.utils.isOnPage:
-                  dataIn: "VideoChat"
-              - continue
+              - =.Global.roomInfoDoc.document.deat.accessToken
+              - if:
+                  - =.builtIn.utils.isOnPage:
+                      dataIn: "VideoChat"
+                  - if:
+                      - =.builtIn.number.typeIsValid:
+                          dataIn:
+                            docType: =.Global.ecosDocObj.doc.0.subtype
+                            localArr: [9]
+                            binaryArr: [0]
+                      - if:
+                          - =.builtIn.notification.isNotification:
+                              dataIn:
+                                doc: =.Global.ecosDocObj.doc.0
+                              dataOut: NotificationMap
+                          - actionType: evalObject
+                            object:
+                              - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =.Global.ecosDocObj.doc.0.name.notification.title
+                                        string2: "The participant has declined"
+                                  - actionType: popUp
+                                    popUpView: participantDeclined
+                                  - continue
+                              - if:
+                                  - =.builtIn.string.equal:
+                                      dataIn:
+                                        string1: =.Global.ecosDocObj.doc.0.name.notification.title
+                                        string2: "The participant did not answer"
+                                  - actionType: popUp
+                                    popUpView: participantNotAnswer
+                                  - continue
+                          - continue
+                      - continue
+                  - continue
               # - if:
               #     # if in the target meeting room
               #     - =.builtIn.string.equal:
@@ -398,6 +474,40 @@ Global: # name of an object'
   ReasonForVisitReason: true
   dashboardName: ""
   E2Subtype: 196610
+  sendNotification:
+    document:
+      .Document: ""
+      eid: ""
+      subtype:
+        isOnServer: 1
+        isZipped: 0
+        isBinary: 0
+        isEncrypted: 0
+        isExtraKeyNeeded: 0
+        isEditable: 0
+        applicationDataType: 0
+        # 7 th bit
+        notification: 1
+        ringToneNotify: 0
+        sendtoSelf: 0
+        # 10 bit
+        textMessage: 1
+        mediaType: 8
+      type: .DocType.Notification
+      tage: 2
+      name:
+        data: ""
+        notification:
+          title: The participant has declined
+          context: The participant has declined
+          body: The participant has declined
+          # landingPage: RingTonePage
+          # onClickLandingPage: RingTonePage
+          #targetApp: =.FirebaseToken.response.edge.evid
+    docAPI:
+      store:
+        api: cd
+        dataIn: sendNotification.document
   getDoc:
     patient: ""
     provider: ""
@@ -419,14 +529,20 @@ Global: # name of an object'
   prescriptionArray: []
   ActiveProvider: ""
   formData:
+    patientName: ""
+    amendment:
+      id: ""
     # lockPage前的页面列表
     pageNames: []
     # 用于存放当前会议patient的profile
     currentMeetingPatientProfile: ""
     auditLog:
+      # 用来存储amendment相关的startTime
+      amendmentStartTime: ""
       startTime: ""
       result: ""
       patientId: ""
+      patientName: ""
       actionTypeCode: ""
       recordTypeCode: ""
     entrancePageName: ""
@@ -1062,6 +1178,7 @@ DocType:
   SuperAdminAvatar: 235521 # 920 << 8+1
   CovIDPCRTestResult: 238081 #930 << 8+1
   autoLogOut: 243201 # 950 << 8+1
+  PatientAmendment: 245761 #960 << 8+1
   # Get all provider notes
   # GetAllProviderNotes: "type in ()"
   Macro: 9216

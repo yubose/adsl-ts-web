@@ -10,6 +10,9 @@ ModernaVaccineSecDoseEditPage1:
         - actionType: evalObject
           object:
             - ..apiRequest.modernaVaccineSecDoseForm.docReq.name.data@: =.VaccineFormDM.modernaVaccineSecDoseFormDM
+            - ..apiRequest.modernaVaccineSecDoseForm.docReq.name.data.userInfo@:
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
             - ..apiRequest.modernaVaccineSecDoseForm.docReq.name.data.patientInfo.fullName@: =.Global.Profile.name.data.basicInfo.fullName
             #  第一次则创建modernaVaccineSecDoseForm doc
             - =..apiRequest.modernaVaccineSecDoseForm.docAPI.store: ""
@@ -56,6 +59,9 @@ ModernaVaccineSecDoseEditPage1:
           title: "Moderna Vaccine Form - Second Dose"
           user: .Global.Profile.name.data.basicInfo.fullName
           type: "application/json"
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
       docAPI:
         store:
           api: cd

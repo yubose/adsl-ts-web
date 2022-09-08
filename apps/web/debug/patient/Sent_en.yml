@@ -28,7 +28,7 @@ Sent:
       docQueryReq:
         ObjType: 544
         type: 1281
-        sCondition: E.type=10002 AND (D2.Type&0xFF08!=0xE08 OR D2.reid IS NULL OR D2.Type = 66561)
+        sCondition: E.type=10002 AND (D2.Type&0xFF08!=0xE08 OR D2.reid IS NULL OR D2.Type = 66561) AND D.tage = 0
         xfname: (E.bvid|E.evid)&D.ovid
         obfname: ctime
         maxcount: "100"

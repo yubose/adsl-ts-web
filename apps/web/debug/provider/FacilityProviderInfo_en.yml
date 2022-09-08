@@ -237,8 +237,6 @@ FacilityProviderInfo:
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightIcon:
           path: qrCodeWhilte.svg
-          style:
-            height: "0.028"
           onClick:
             - actionType: evalObject
               object:
@@ -840,28 +838,27 @@ FacilityProviderInfo:
                   itemObject:
                   style:
                     width: "1"
-                    height: "0.03"
                     left: "0"
                     marginTop: "0"
+                    lineHeight: "2.58vh"
                   children:
                     - type: label
                       dataKey: itemObject.specialty
                       style:
+                        display: "inline-block"
                         width: "0.7"
                         fontWeight: "600"
-                        height: "0.03"
-                        top: "0"
                         fontSize: .Nfont.h1
+                        wordBreak: break-word
                         left: "0.06"
                     - type: label
                       dataKey: itemObject.boardCertified
                       style:
+                        display: "inline-block"
                         width: "0.2"
                         fontWeight: "600"
-                        height: "0.03"
-                        top: "0"
-                        left: "0.66"
                         fontSize: .Nfont.h1
+                        wordBreak: break-word
                         textAlign:
                           x: right
             - type: view
@@ -1310,7 +1307,7 @@ FacilityProviderInfo:
                         - type: label
                           dataKey: formData.providerTitle
                           style:
-                            fontSize: .Nfont.h14
+                            fontSize: .Nfont.h1
                             color: "0x333333"
                             fontWeight: "600"
                             width: "0.388"
@@ -1350,7 +1347,7 @@ FacilityProviderInfo:
                     display: inline-block
                     width: "0.359"
                     borderRadius: "0 0 0 14px"
-                    fontSize: .Nfont.h14
+                    fontSize: .Nfont.h1
                     height: "0.054"
                     border:
                       style: "1"
@@ -1372,7 +1369,7 @@ FacilityProviderInfo:
                     backgroundColor: "0xE6E6E6"
                     display: inline-block
                     width: "0.359"
-                    fontSize: .Nfont.h14
+                    fontSize: .Nfont.h1
                     borderRadius: "0 0 14px 0"
                     height: "0.054"
                     border:

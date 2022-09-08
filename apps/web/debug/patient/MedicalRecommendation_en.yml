@@ -45,6 +45,21 @@ MedicalRecommendation:
     scrollHeight: "0.7413793"
   formDataTemp: ""
   apiRequest:
+    getIsCancel:
+      cancelEdge: 
+        edge: []
+      edgeReq:
+        type: 40000
+        id: =.Global.Note.esig
+        xfname: refid
+        maxcount: "1"
+        sCondition: "subtype=7"
+        _nonce: =.Global._nonce
+      edgeAPI:
+        get:
+          api: re
+          dataIn: MedicalRecommendation.apiRequest.getIsCancel.edgeReq
+          dataOut: MedicalRecommendation.apiRequest.getIsCancel.cancelEdge
     productionList:
       docQueryResp: ""
       docQueryReq:
@@ -181,7 +196,10 @@ MedicalRecommendation:
             - type: view
               style:
                 marginTop: "0.03"
-
+    - .TipsTitleMultiLine:
+      viewTag: notExist
+      tipstitle: Appointment Not Exist
+      message: The appointment has been canceled
         # - type: view
         #   style:
         #     ..style.btnBox:
@@ -200,6 +218,17 @@ MedicalRecommendation:
       # AppointmentLobby or AppointmentLobbyOfficeVisit
       - actionType: evalObject
         object:
+          - =..apiRequest.getIsCancel.edgeAPI.get: ""
+          - if:
+              - =.builtIn.array.judgeListLength:
+                  dataIn:
+                    array: =..apiRequest.getIsCancel.cancelEdge.edge
+                    len: 0
+              - continue
+              - actionType: popUp
+                popUpView: notExist
+                wait: true
+                popUpDismiss: 2000
           # 判断会议是否关闭，如果关闭则跳转至VisitDetail
           - if:
               - =.builtIn.number.typeIsValid:

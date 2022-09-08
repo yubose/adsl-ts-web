@@ -720,6 +720,49 @@ SelectForShare:
                   style:
                     marginLeft: "0.12"
                     width: "0.8"
+            - type: list
+              contentType: listObject
+              listObject: ..profile.document.name.data.MedicalLicense
+              iteratorVar: itemObject
+              style:
+                width: "1"
+                margin: "0"
+                left: "0"
+                marginTop: "0.005"
+                height: auto
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    width: "0.94"
+                    height: "auto"
+                    left: "0.06"
+                    marginTop: "0"
+                  children:
+                    - type: label
+                      dataKey: itemObject.medicalLicense
+                      style:
+                        width: "0.28"
+                        marginLeft: "0.06"
+                        color: "0x808080"
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                    - type: label
+                      dataKey: itemObject.state
+                      style:
+                        width: "0.2"
+                        color: "0x808080"
+                        display: "inline-block"
+                        fontSize: .Nfont.h14
+                    - type: label
+                      dataKey: itemObject.expiration
+                      style:
+                        width: "0.33"
+                        color: "0x808080"
+                        fontSize: .Nfont.h14
+                        display: "inline-block"
+                        textAlign:
+                          x: right
             - type: view
               style:
                 marginTop: "0"
@@ -769,55 +812,14 @@ SelectForShare:
                     width: "0.06"
                     display: inline-block
                     marginLeft: "0.03"
+
                 - .SelectProfileContentLeft2:
                   text: NPI#
                   style:
                     marginLeft: "0.03"
                 - .MyProfileContentRight3:
                   dataKey: profile.document.name.data.NPI
-            - type: list
-              contentType: listObject
-              listObject: ..profile.document.name.data.MedicalLicense
-              iteratorVar: itemObject
-              style:
-                width: "1"
-                margin: "0"
-                left: "0"
-                marginTop: "0.005"
-                height: auto
-              children:
-                - type: listItem
-                  itemObject:
-                  style:
-                    width: "0.94"
-                    height: "auto"
-                    left: "0.06"
-                    marginTop: "0"
-                  children:
-                    - type: label
-                      dataKey: itemObject.medicalLicense
-                      style:
-                        width: "0.28"
-                        marginLeft: "0.06"
-                        color: "0x808080"
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                    - type: label
-                      dataKey: itemObject.state
-                      style:
-                        width: "0.2"
-                        color: "0x808080"
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                    - type: label
-                      dataKey: itemObject.expiration
-                      style:
-                        width: "0.33"
-                        color: "0x808080"
-                        fontSize: .Nfont.h14
-                        display: "inline-block"
-                        textAlign:
-                          x: right
+
             - type: view
               style:
                 marginTop: "0.01"

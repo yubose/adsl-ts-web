@@ -61,9 +61,9 @@ FacilityInfomationShow:
     # 对provider列表进行除重
     - =.builtIn.array.keepLatestDoc:
         dataIn:
-          docList: =..apiRequest.provderList.list.doc
+          docList: =..apiRequest.provderList.docQueryResp.doc
           path: bsig
-        dataOut: MyConnection.apiRequest.provderList.list.doc
+        dataOut: FacilityInfomationShow.apiRequest.provderList.list
   apiRequest:
     # get the profile of selected location for the next page: MobileContacts2
     locationProfile:
@@ -166,17 +166,21 @@ FacilityInfomationShow:
             mediaType: ""
     # provider信息
     provderList:
-      list: ""
+      docQueryResp: ""
+      docQueryReq:
+        type: .DocType.DoctorProfile
+        xfname: E.bvid | E.evid
+        id: .Global.currentFacility.bsig
+        ObjType: 12
+        _nonce: =.Global._nonce
+        sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+      list: []
       docAPI:
         get:
           api: rd
-          type: .DocType.DoctorProfile
-          xfname: E.bvid | E.evid
-          id: .Global.currentFacility.bsig
-          ObjType: 12
-          dataKey: apiRequest.provderList.list
-          _nonce: =.Global._nonce
-          sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xf0000=0x30000
+          dataIn: apiRequest.provderList.docQueryReq
+          dataKey: apiRequest.provderList.docQueryResp
+         
     profile:
       docResponse: ""
       edge:
@@ -1054,7 +1058,7 @@ FacilityInfomationShow:
           children:
             - type: list
               contentType: listObject
-              listObject: ..apiRequest.provderList.list.doc
+              listObject: ..apiRequest.provderList.list
               iteratorVar: itemObject
               style:
                 width: "0.9"

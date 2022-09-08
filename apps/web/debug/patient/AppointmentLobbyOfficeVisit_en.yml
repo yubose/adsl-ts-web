@@ -368,11 +368,19 @@ AppointmentLobbyOfficeVisit: #xd page
             - ..formData.providerShow@: "block"
             - ..formData.roomShow@: "none"
             - ..formData.currentTypeName@: "Visit Type"
+            - =.builtIn.string.concat:
+                dataIn:
+                  - =.Global.ActiveProvider.name.data.fullName
+                  - " - "
+                  - =.Global.ActiveProvider.name.data.title
+                dataOut: Global.formData.participateName
         - actionType: evalObject
           object:
             - ..formData.providerShow@: "none"
             - ..formData.roomShow@: "block"
             - ..formData.currentTypeName@: "Service Type"
+            - .Global.formData.participateName@: =..dataObject.name.visitType
+
     # 如果是关联预约，显示原provider名字
     - if:
         - =.Global.currentRoomInfo.edge.name.mainProviderName
@@ -401,6 +409,13 @@ AppointmentLobbyOfficeVisit: #xd page
               len: 0
         - .Global.formData.providerDoc.recommendationDoc@: ""
         - .Global.formData.providerDoc.recommendationDoc@: =..apiRequest.recommendation.docResp.doc.0
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.roomInfo.edge.evid
+              string2: =.Global.roomInfo.edge.name.providerId
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.bvid
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.evid
   emptyId: ""
   roomInfo:
     response: ""

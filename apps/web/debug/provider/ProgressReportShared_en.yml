@@ -51,22 +51,22 @@ ProgressReportShared:
               object: =.Global.formData.providerDoc.diagnosesDoc.name.data.diagnosis.descriptiveList
             dataOut: ProgressReportShared.formDataTemp.listlength
 
-    - actionType: evalObject
-      object:
-        - =.builtIn.array.getListLength:
-            dataIn:
-              object: =..formData.name.data.reportInfo.socialHistory
-            dataOut: ProgressReportShared.formDataTemp.socialHistoryLength
+    # - actionType: evalObject
+    #   object:
+    #     - =.builtIn.array.getListLength:
+    #         dataIn:
+    #           object: =..formData.name.data.reportInfo.socialHistory
+    #         dataOut: ProgressReportShared.formDataTemp.socialHistoryLength
 
-    - actionType: evalObject
-      object:
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formDataTemp.socialHistoryLength
-                  string2: "0"
-            - ..formData.name.data.reportInfo.socialHistory@: ""
-            - continue
+    # - actionType: evalObject
+    #   object:
+    #     - if:
+    #         - =.builtIn.string.equal:
+    #             dataIn:
+    #               string1: =..formDataTemp.socialHistoryLength
+    #               string2: "0"
+    #         - ..formData.name.data.reportInfo.socialHistory@: ""
+    #         - continue
 
     - actionType: evalObject
       object:
@@ -147,6 +147,7 @@ ProgressReportShared:
                       user: =.Global.MyProfile.name.data.fullName
                       userId: =.Global.currentUser.vertex.id
                       targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
                       accessPort: provider
                     dataOut: Global.formData.auditLog.result
             - actionType: builtIn
@@ -979,7 +980,7 @@ ProgressReportShared:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: formData.ctime
+                  dataKey: formData.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -1112,6 +1113,21 @@ ProgressReportShared:
         object:
           - ..apiRequest.progressReport.docCreateReq.tage@: -1
           - =..apiRequest.progressReport.docAPI.store: ""
+
+      - actionType: evalObject
+        object:
+          - =.builtIn.utils.createAuditLog:
+              dataIn:
+                date: =.Global.formData.auditLog.startTime
+                actionTypeCode: .ActionTypeCode.view
+                recordTypeCode: .DocType.ProgressReport
+                eid: =.Global.formData.currentFacility.relationEdge.id
+                user: =.Global.MyProfile.name.data.fullName
+                userId: =.Global.currentUser.vertex.id
+                targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
+                accessPort: provider
+              dataOut: Global.formData.auditLog.result
 
       - actionType: evalObject
         object:

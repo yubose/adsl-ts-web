@@ -511,6 +511,7 @@ SignIn: # xd page number:4
                             - ..formData.password@: ""
                             - ..userNameRv@: ""
                             - ..formData.checkOk@: false
+                            - ..sigInColor@: "0xC1C1C1"
                         - actionType: evalObject
                           object:
                             - ..changeColor.phone.backgroundColor@: =..baseColor.blueBgColor
@@ -519,6 +520,9 @@ SignIn: # xd page number:4
                             - ..changeColor.userName.color@: =..baseColor.otherColor
                             - ..baseUserWeight@: "400"
                             - ..basePhoneWeight@: "600"
+                            - ..changeColor.userName.borderColor@: "0xF4F4F5"
+                            - ..changeColor.phone.borderColor@: "0xF4F4F5"
+                            - ..changeColor.password.borderColor@: "0xF4F4F5"
                         - actionType: builtIn
                           funcName: redraw
                           viewTag: userOrPhone
@@ -528,6 +532,9 @@ SignIn: # xd page number:4
                         - actionType: builtIn
                           funcName: redraw
                           viewTag: passwordVT
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: SignInVT
                 - type: view
                   style:
                     display: inline-block
@@ -559,6 +566,7 @@ SignIn: # xd page number:4
                             - ..formData.phoneNumber@: "8888888888"
                             - ..formData.checkOk@: true
                             - ..formData.password@: ""
+                            - ..sigInColor@: "0xC1C1C1"
                             #- ..rvCondition@: ""
                         - actionType: evalObject
                           object:
@@ -568,6 +576,9 @@ SignIn: # xd page number:4
                             - ..changeColor.userName.color@: =..baseColor.blueColor
                             - ..changeColor.phone.backgroundColor@: =..baseColor.otherBgColor
                             - ..changeColor.phone.color@: =..baseColor.otherColor
+                            - ..changeColor.userName.borderColor@: "0xF4F4F5"
+                            - ..changeColor.phone.borderColor@: "0xF4F4F5"
+                            - ..changeColor.password.borderColor@: "0xF4F4F5"
                         - actionType: builtIn
                           funcName: redraw
                           viewTag: userOrPhone
@@ -576,7 +587,13 @@ SignIn: # xd page number:4
                           viewTag: phoneNumberVT
                         - actionType: builtIn
                           funcName: redraw
+                          viewTag: userNameVT
+                        - actionType: builtIn
+                          funcName: redraw
                           viewTag: passwordVT
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: SignInVT
             - type: view
               style:
                 height: "auto"
@@ -600,7 +617,6 @@ SignIn: # xd page number:4
                       style:
                         color: "0x333333"
                         fontWeight: "500"
-
                         fontSize: ".Nfont.h14"
                     - type: textField
                       viewTag: userNameVT
@@ -1529,6 +1545,15 @@ SignIn: # xd page number:4
     - .TipsMultiLine:
       message: "Incorrect phone number and password"
       viewTag: WrongInformation
+      onClick:
+        - actionType: evalObject
+          object:
+            - ..changeColor.password.borderColor@: "0xFB5051"
+        - actionType: builtIn
+          funcName: redraw
+          viewTag: passwordVT
+        - actionType: popUpDismiss
+          popUpView: __.viewTag
     - .TipsMultiLine:
       viewTag: "NoPhoneNum"
       message: Phone number or UserName and password required

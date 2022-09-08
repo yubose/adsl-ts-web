@@ -12,6 +12,34 @@ DocumentShared:
         .Global._nonce@:
           =.builtIn.math.random: ""
 
+    # 判断是否私有只读
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Note.tage
+              string2: 1
+        - actionType: evalObject
+          object:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.Note.name.data.classTag.name
+                      string2: "Admin"
+                - actionType: evalObject
+                  object:
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.945"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "none"
+                - actionType: evalObject
+                  object:
+                    # 取回当前文档信息
+                    - ..apiRequest.medicalRecord.docReq@: =.Global.Note
+                    # 显示重置滚动条高度按钮
+                    - ..formDataTemp.scrollHeight@: "0.84729"
+                    # 显示分享按钮
+                    - ..formDataTemp.displayBtn@: "block"
+        - continue
     # 判断是否是图片文件
     - if:
         - =.builtIn.array.has:
@@ -38,7 +66,9 @@ DocumentShared:
     # 非图片文件显示
     showFile: "none"
     fileDocument: ""
+
   formDataTemp:
+    displayBtn: "none"
     # 图片上传类型
     imgTypeList: ["jpeg", "jpg", "png", "pdf"]
     # doc
@@ -50,6 +80,16 @@ DocumentShared:
     # htm
     htmTypeList: ["htm", "html"]
   apiRequest:
+    medicalRecord:
+      docResp: ""
+      docReq: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: DocumentShared.apiRequest.medicalRecord.docReq
+          dataOut: DocumentShared.apiRequest.medicalRecord.docResp
+
     uplaodDoc:
       docResp: ""
       docReq:
@@ -75,6 +115,7 @@ DocumentShared:
                       user: =.Global.MyProfile.name.data.fullName
                       userId: =.Global.currentUser.vertex.id
                       targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
                       accessPort: provider
                     dataOut: Global.formData.auditLog.result
             - actionType: builtIn
@@ -84,6 +125,7 @@ DocumentShared:
     - type: scrollView
       style:
         ..style.scrollBox:
+        height: ..formDataTemp.scrollHeight
       children:
         - type: label
           dataKey: formData.name.title
@@ -151,6 +193,17 @@ DocumentShared:
                 ..style.deleteImg:
                 display: ..formData.showFile
 
+    - type: view
+      style:
+        ..style.btnBox:
+        display: ..formDataTemp.displayBtn
+      children:
+        - type: button
+          text: Release
+          style:
+            ..style.btn:
+          onClick:
+            - ..event.btnClick
     # 上传成功提示
     - .SuccessfulOneLine:
       message: "Download Successfully!"
@@ -179,6 +232,7 @@ DocumentShared:
                   user: =.Global.MyProfile.name.data.fullName
                   userId: =.Global.currentUser.vertex.id
                   targetUserId: =.Global.formData.auditLog.patientId
+                  targetUser: =.Global.formData.auditLog.patientName
                   accessPort: provider
                 dataOut: Global.formData.auditLog.result
         - actionType: evalObject
@@ -227,11 +281,52 @@ DocumentShared:
       - actionType: popUp
         popUpView: dialogueTag
 
+    btnClick:
+      # 更新文档状态
+      - actionType: evalObject
+        object:
+          - ..apiRequest.medicalRecord.docReq.name.data.statusTag.name@: "Released"
+          - ..apiRequest.medicalRecord.docReq.name.data.statusTag.fontColor@: "0x2988e6"
+          - ..apiRequest.medicalRecord.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
+
+      # 保存
+      - actionType: evalObject
+        object:
+          - ..apiRequest.medicalRecord.docReq.tage@: -1
+          - =.DocumentShared.apiRequest.medicalRecord.docAPI.store: ""
+
+          - =.builtIn.array.add:
+              dataIn:
+                object: =.Global.currentMeetingDoc
+                value: =..apiRequest.medicalRecord.docResp.doc
+
+      - actionType: evalObject
+        object:
+          .Global._nonce@:
+            =.builtIn.math.random: ""
+
+      - actionType: evalObject
+        object:
+          - =.builtIn.utils.createAuditLog:
+              dataIn:
+                actionTypeCode: .ActionTypeCode.view
+                recordTypeCode: 163841
+                eid: =.Global.formData.currentFacility.relationEdge.id
+                date: =.Global.formData.auditLog.startTime
+                user: =.Global.MyProfile.name.data.fullName
+                userId: =.Global.currentUser.vertex.id
+                targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
+                accessPort: provider
+              dataOut: Global.formData.auditLog.result
+
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
   style:
     scrollBox:
       marginLeft: "0.04"
       width: "0.92"
-      height: "0.945"
       boxSizing: "border-box"
     imgShow:
       width: "0.9"
@@ -273,344 +368,26 @@ DocumentShared:
     fileSize:
       fontSize: .Nfont.h12
       color: "#999999"
-# DocumentShared:
-#   title: My Documents
-#   pageNumber:
-#   init: #Page initialization
-#     - .SignInCheck
-#     - ..formData@: =.Global.Note
-#     - actionType: evalObject
-#       object:
-#         .Global._nonce@:
-#           =.builtIn.math.random: ""
-
-#     # 判断是否私有只读
-#     - if:
-#         - =.builtIn.string.equal:
-#             dataIn:
-#               string1: =.Global.Note.tage
-#               string2: 1
-#         - actionType: evalObject
-#           object:
-#             # 取回当前文档信息
-#             - ..apiRequest.medicalRecord.docReq@: =.Global.Note
-#             # 显示重置滚动条高度按钮
-#             - ..formDataTemp.scrollHeight@: "0.84729"
-#             # 显示分享按钮
-#             - ..formDataTemp.displayBtn@: "block"
-#         - actionType: evalObject
-#           object:
-#             # 显示重置滚动条高度按钮
-#             - ..formDataTemp.scrollHeight@: "0.945"
-#             # 显示分享按钮
-#             - ..formDataTemp.displayBtn@: "none"
-
-#     - actionType: evalObject
-#       object:
-#         - if:
-#             - =.builtIn.string.equal:
-#                 dataIn:
-#                   string1: =.DocumentShared.formData.name.data.fileId
-#                   string2: ""
-#             - continue
-#             - actionType: evalObject
-#               object:
-#                 - ..formData.fileId@: =.DocumentShared.formData.name.data.fileId
-#                 - ..formData.uplodImg@: "none"
-#                 - ..formData.showImg@: "block"
-
-#     - actionType: builtIn
-#       funcName: redraw
-#       viewTag: showFileTag
-#     - actionType: builtIn
-#       funcName: redraw
-#       viewTag: showImgTag
-#     - actionType: builtIn
-#       funcName: redraw
-#       viewTag: uplodImgTag
-
-#     - actionType: evalObject
-#       object:
-#         # 下载pdf的样式控制
-#         - .Global.formData.downloadPDF.titleName@: "My Documents"
-#         - .Global.formData.downloadPDF.scaleX@: 1
-#         - .Global.formData.downloadPDF.scaleY@: 1
-#         - .Global.formData.downloadPDF.originX@: 0
-#         - .Global.formData.downloadPDF.originY@: 0
-
-#   formData:
-#     flag: ""
-#     fileSize: ""
-#     fileId: ""
-#     uplodImg: "block"
-#     showImg: "none"
-#     need: .jpeg, .png, .pdf, .xlsx, .xls, .pptx, .ppt, .docx, .doc, .numbers, .pages, .htm
-
-#     downFlag: "inline-block"
-#     # 控制当前滚动条高度
-#     scrollHeight: "0.84729"
-
-#   formDataTemp: #Input data temp here, datatemp should not mix with formData
-
-#   apiRequest: #Input data request here
-#     medicalRecord:
-#       docResp: ""
-#       docReq: ""
-#       docAPI:
-#         .DocAPI: ""
-#         store:
-#           api: cd
-#           dataIn: apiRequest.medicalRecord.docReq
-#           dataOut: apiRequest.medicalRecord.docResp
-
-#   components:
-#     - .BasePublicHeader:
-#       children:
-#         - .BasePublicHeaderLeft:
-#         - .BasePublicHeaderTitle:
-#         - .BasePublicHeaderMenu:
-#     - type: view
-#       viewTag: mainView
-#       style:
-#         ..style.scrollBox:
-#         height: ..formDataTemp.scrollHeight
-#       children:
-#         - type: view
-#           style:
-#             marginTop: "0.01"
-#             left: "0.05"
-#             width: "0.9"
-#             height: "auto"
-#             overflow: hidden
-#           children:
-#             - type: label
-#               text: Create document name
-#               dataKey:
-#               style:
-#                 display: "inline-block"
-#                 marginTop: "0.02"
-#                 width: "0.6"
-#                 fontSize: .Nfont.h2
-#             - type: label
-#               text: "*"
-#               style:
-#                 marginTop: "0.015"
-#                 display: "inline-block"
-#                 color: "0xfd3a3a"
-
-#                 width: "0.1"
-#         - type: textField
-#           placeholder: "Enter here"
-#           isEditable: "false"
-#           dataKey: formData.name.title
-#           style:
-#             marginTop: "0.01"
-#             marginLeft: "0.05"
-#             width: "0.9"
-#             height: "0.06"
-#             fontSize: .Nfont.h15
-#             color: "0x000000ff"
-#             border:
-#               style: "2"
-#               color: "0x000000ef"
-#             borderWidth: "1"
-#             backgroundColor: "0xffffff"
-#         - type: view
-#           style:
-#             marginTop: "0.02"
-#             left: "0.05"
-#             width: "0.9"
-#             height: "auto"
-#             overflow: hidden
-#           children:
-#             - type: label
-#               text: Upload your document
-#               dataKey:
-#               style:
-#                 display: "inline-block"
-#                 marginTop: "0.02"
-#                 width: "0.6"
-#                 fontSize: .Nfont.h2
-#             - type: label
-#               text: "*"
-#               style:
-#                 marginTop: "0.015"
-#                 display: "inline-block"
-#                 color: "0xfd3a3a"
-
-#                 width: "0.1"
-#         - type: view
-#           viewTag: uplodImgTag
-#           style:
-#             display: ..formData.uplodImg
-#             width: "1"
-#             height: "auto"
-#           children:
-#             - type: view
-#               onClick:
-#                 - actionType: popUp
-#                   popUpView: selectView
-#               style:
-#                 marginTop: "0.03"
-#                 marginLeft: "0.05"
-#                 width: "0.9"
-#                 height: "0.1"
-#                 border:
-#                   style: 4
-#                 borderColor: "0x707070"
-#                 borderWidth: "1.5"
-#               children:
-#                 - type: image
-#                   path: cloud.svg
-#                   style:
-#                     height: "0.06"
-#                     marginLeft: "0.15"
-#                     display: "inline-block"
-#                     verticalAlign: middle
-#                 - type: label
-#                   text: "Click here to upload"
-#                   style:
-#                     width: "auto"
-#                     fontSize: .Nfont.h15
-#                     color: "0xacacac"
-#                     height: "0.1"
-#                     lineHeight: "10vh" #y: center + height= 10vh
-#                     display: "inline-block"
-#                     verticalAlign: middle
-#                     marginLeft: "0.1"
-#             - type: view
-#               style:
-#                 marginTop: "0.04"
-#                 marginLeft: "0.05"
-#                 width: "0.9"
-#                 height: "auto"
-#               children:
-#                 - type: label
-#                   text: "Only the following file types are supported: "
-#                   style:
-#                     color: "0x707070"
-#                     fontSize: .Nfont.h1
-#                     height: "auto"
-#                     lineHeight: "3vh"
-#                     width: "0.8"
-#                     marginLeft: "0.05"
-#                     wordWrap: break-word
-#                 - type: label
-#                   dataKey: formData.need
-#                   style:
-#                     color: "0x707070"
-#                     fontSize: .Nfont.h1
-#                     height: "auto"
-#                     width: "0.82"
-#                     marginLeft: "0.05"
-#                     wordWrap: break-word
-#                 - type: label
-#                   text: File size must be no larger than BLANK
-#                   style:
-#                     marginTop: "0.02"
-
-#                     color: "0x707070"
-#                     fontSize: .Nfont.h1
-#                     height: "auto"
-#                     lineHeight: "3vh"
-#                     width: "0.7"
-#                     marginLeft: "0.05"
-#                     wordWrap: break-word
-#                     textAlign:
-#                       x: center
-
-#         - type: scrollView
-#           viewTag: showImgTag
-#           style:
-#             display: ..formData.showImg
-#             marginTop: "0.03"
-#             marginLeft: "0.05"
-#             width: "0.9"
-#             height: "0.57"
-#             # backgroundColor: "pink"
-#           children:
-#             - type: image
-#               path: null.png
-#               viewTag: showFileTag
-#               path=func: .builtIn.utils.prepareDocToPath
-#               dataKey: DocumentShared.formData.fileId
-#               style:
-#                 width: "0.9"
-#                 height: "auto"
-#                 margin: auto
-
-#     - type: view
-#       style:
-#         ..style.btnBox:
-#         display: ..formDataTemp.displayBtn
-#       children:
-#         - type: button
-#           text: Release
-#           style:
-#             ..style.btn:
-#           onClick:
-#             - ..event.btnClick
-
-#     - .SuccessfulOneLine:
-#       message: "Successfully"
-#       viewTag: successTag
-
-#     - .HeaderPopUpMenu:
-#   event:
-#     btnClick:
-#       # 更新文档状态
-#       - actionType: evalObject
-#         object:
-#           - ..apiRequest.medicalRecord.docReq.name.data.statusTag.name@: Released
-#           - ..apiRequest.medicalRecord.docReq.name.data.statusTag.fontColor@: "0x2988e6"
-#           - ..apiRequest.medicalRecord.docReq.name.data.statusTag.backgroundColor@: "0xdfedfc"
-#       - actionType: evalObject
-#         object:
-#           # 修改tage
-#           - ..apiRequest.medicalRecord.docReq.tage@: -1
-#           - =.DocumentShared.apiRequest.medicalRecord.docAPI.store: ""
-#           - =.builtIn.array.add:
-#               dataIn:
-#                 object: =.Global.currentMeetingDoc
-#                 value: =..apiRequest.medicalRecord.docResp.doc
-#       - actionType: evalObject
-#         object:
-#           .Global._nonce@:
-#             =.builtIn.math.random: ""
-
-#       - actionType: popUp
-#         popUpView: successTag
-
-#       - actionType: builtIn
-#         funcName: goBack
-#         reload: true
-
-#   style:
-#     scrollBox:
-#       width: "1"
-#       height: "0.84729"
-#       boxSizing: "border-box"
-#       overflow: "scroll"
-#     btnBox:
-#       width: "1"
-#       height: "0.0972"
-#       boxSizing: "border-box"
-#       overflow: "scroll"
-#       backgroundColor: "#ffffff"
-#       boxShadow: "1px 1px 4px 1px #dededf"
-#       textAlign:
-#         x: center
-#     btn:
-#       marginTop: "0.0123"
-#       height: "0.0443"
-#       width: "0.84"
-#       border:
-#         style: 1
-#       borderRadius: "5"
-#       backgroundColor: "#2988e6"
-#       color: "#ffffff"
-#       fontSize: .Nfont.h14
-#       boxSizing: border-box
-#       fontWeight: "600"
-#       textAlign:
-#         x: center
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    btn:
+      marginTop: "0.0123"
+      height: "0.0443"
+      width: "0.84"
+      border:
+        style: 1
+      borderRadius: "5"
+      backgroundColor: "#2988e6"
+      color: "#ffffff"
+      fontSize: .Nfont.h14
+      boxSizing: border-box
+      fontWeight: "600"
+      textAlign:
+        x: center

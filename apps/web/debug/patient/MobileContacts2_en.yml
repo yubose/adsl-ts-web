@@ -536,6 +536,7 @@ MobileContacts2:
                     borderRadius: "5"
                     textIndent: "12px"
                     color: "0x000000"
+                    fontSize: .Nfont.h14
             - type: view
               style:
                 marginTop: "0.02"
@@ -1298,37 +1299,42 @@ MobileContacts2:
                 # 查询10002上profile的hashtag
                 - =..apiRequest.hashTagFromRelationProfile.docAPI.get: ""
                 - if:
-                    - =.Global.formData.hashTag.id
-                    - actionType: evalObject
-                      object:
-                        - if:
-                            - =.builtIn.array.judgeListLength:
-                                dataIn:
-                                  array: =..apiRequest.hashTagFromRelationProfile.docQueryResp.doc
-                                  len: 0
-                            - continue
-                            - actionType: evalObject
-                              object:
-                                - if:
-                                    - =.builtIn.math.greater:
-                                        dataIn:
-                                          num1: =.Global.formData.hashTag.name.data.hashTime
-                                          num2: =..apiRequest.hashTagFromRelationProfile.docQueryResp.doc.0.name.data.hashTime
-                                    - continue
-                                    - actionType: popUp
-                                      popUpView: updateView
-                                      wait: true
-                    - actionType: evalObject
-                      object:
-                        - if:
-                            - =.builtIn.array.judgeListLength:
-                                dataIn:
-                                  array: =..apiRequest.hashTagFromRelationProfile.docQueryResp.doc
-                                  len: 0
-                            - continue
-                            - actionType: popUp
-                              popUpView: updateView
-                              wait: true
+                  - .Global.formData.meetingStatus.notRemind
+                  - continue
+                  - actionType: evalObject
+                    object:
+                      - if:
+                        - =.Global.formData.hashTag.id
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.array.judgeListLength:
+                                    dataIn:
+                                      array: =..apiRequest.hashTagFromRelationProfile.docQueryResp.doc
+                                      len: 0
+                                - continue
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =.builtIn.math.greater:
+                                            dataIn:
+                                              num1: =.Global.formData.hashTag.name.data.hashTime
+                                              num2: =..apiRequest.hashTagFromRelationProfile.docQueryResp.doc.0.name.data.hashTime
+                                        - continue
+                                        - actionType: popUp
+                                          popUpView: updateView
+                                          wait: true
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.array.judgeListLength:
+                                    dataIn:
+                                      array: =..apiRequest.hashTagFromRelationProfile.docQueryResp.doc
+                                      len: 0
+                                - continue
+                                - actionType: popUp
+                                  popUpView: updateView
+                                  wait: true
             - goto: CreateAppointmentToRoom #JH 2021/12/7
     - .BackgroundColorGray:
       viewTag: timeWarning

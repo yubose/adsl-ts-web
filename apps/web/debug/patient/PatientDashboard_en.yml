@@ -183,9 +183,9 @@ PatientDashboard:
                 - actionType: evalObject
                   object:
                     # 自动代入用户vertex中的某些信息以创建profile
-                    - =.builtIn.utils.toaster:
-                        dataIn:
-                          toastMessage: "Warning: dont get patientProfile , will create a new one ， if you see this warning, please contact our developer"
+                    # - =.builtIn.utils.toaster:
+                    #     dataIn:
+                    #       toastMessage: "Warning: dont get patientProfile , will create a new one ， if you see this warning, please contact our developer"
                     - =.builtIn.string.concat:
                         dataIn:
                           - =.Global.currentUser.vertex.name.firstName
@@ -564,6 +564,7 @@ PatientDashboard:
     document:
       type: .DocType.PatientProfile
       eid: .Global.rootNotebookID
+      atimes: -10
       name:
         data:
           #first create profile or not

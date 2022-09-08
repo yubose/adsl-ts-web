@@ -66,10 +66,6 @@ MobileContacts:
     - actionType: updateObject
       dataKey: VaccineFormDM.newPatientFormDM
       dataObject: .MobileContacts.newPatientForm
-    #  重置pifzerVaccineFirDoseFormDM
-    - actionType: updateObject
-      dataKey: VaccineFormDM.pifzerVaccineFirDoseFormDM
-      dataObject: .MobileContacts.patientChart
     #  重置modernaVaccineSecDoseFormDM
     - actionType: updateObject
       dataKey: VaccineFormDM.modernaVaccineSecDoseFormDM
@@ -387,6 +383,9 @@ MobileContacts:
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: .Global.Profile.name.data.basicInfo.fullName
+      participateName: .Global.formData.participateName
     patientInfo:
       firstName: " "
       middleName: " "
@@ -431,6 +430,9 @@ MobileContacts:
       display: block
     statusTag:
       display: none
+    userInfo:
+      patientName: ""
+      participateName: ""
     patientInfo:
       firstName: " "
       middleName: " "

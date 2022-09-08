@@ -190,7 +190,14 @@ ScheduleAppointment:
                 - type: listItem
                   itemObject: ""
                   style:
-                    ..style.dataListItem:
+                    width: "1"
+                    height: "auto"
+                    margin: "0"
+                    # border:
+                    #   style: "2"
+                    # borderWidth: "1"
+                    # borderColor: "0xdededf"
+                    overflow: hidden
                   onClick:
                     - ..event.providerItemClick
                   children:
@@ -215,7 +222,7 @@ ScheduleAppointment:
                                 - text: "&nbsp;-&nbsp;"
                                 - text: ""
                                   dataKey: itemObject.name.data.title
-                              dataKey:
+                              dataKey: 
                               style:
                                 ..style.fullLabel:
                             - type: label
@@ -226,6 +233,12 @@ ScheduleAppointment:
                     - type: view
                       style:
                         marginTop: "0.0198"
+                      children:
+                        - type: label
+                          style:
+                            height: "0.001"
+                            width: "1"
+                            backgroundColor: "0xdededf"
         # facility list
         - type: view
           viewTag: facilitysTag

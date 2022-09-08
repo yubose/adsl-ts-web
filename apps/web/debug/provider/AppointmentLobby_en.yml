@@ -18,6 +18,9 @@ AppointmentLobby: #xd page
     - actionType: updateObject
       dataKey: Global.formData.goodNameList
       dataObject: []
+    - actionType: updateObject
+      dataKey: Global.currentRoomInfo
+      dataObject: []
     #为解决安卓bug，创建完关联预约返回此页面，特加中间页面
     - .Global.MiddlePage.createRelationAppointment@: "AppointmentLobby"
     - ..dataObject@: =.Global.roomInfo.edge
@@ -38,6 +41,7 @@ AppointmentLobby: #xd page
             - ..formData.backAble@: block
             - ..formData.displayTitle@: none
     # 将当前normal appointment赋值给Global.currentRoomInfo以便后续的invite等操作
+
     - .Global.currentRoomInfo@: =.Global.roomInfo
     #change E10   Global.currentRoom.edge, this is can access edge
     - if:
@@ -86,7 +90,7 @@ AppointmentLobby: #xd page
         dataIn:
           stime: =.Global.roomInfo.edge.stime
         dataOut: AppointmentLobby.startIf
-    
+
     - if:
         - =.builtIn.date.timeRange:
             dataIn:
@@ -154,17 +158,17 @@ AppointmentLobby: #xd page
     - actionType: builtIn
       funcName: redraw
       viewTag: participants
-    
+
     - if:
         - =..apiRequest.patientChart.docQueryResp.doc.0
         - .Global.formData.patientChart@: =..apiRequest.patientChart.docQueryResp.doc.0
         - continue
-    
+
     - if:
         - =..apiRequest.visitQuestionnaire.docQueryResp.doc.0
         - .Global.formData.visitQuestionnaire@: =..apiRequest.visitQuestionnaire.docQueryResp.doc.0
         - continue
-    
+
     - if:
         - =..apiRequest.paymentEdge.edgeResp.edge.0.id
         - actionType: evalObject
@@ -193,7 +197,7 @@ AppointmentLobby: #xd page
           object:
             - ..formData.payStatus.fontColor@: "#e24445"
             - ..formData.payStatus.name@: "Payment"
-    
+
     - if:
         - =.builtIn.utils.judgeAll:
             dataIn:
@@ -238,7 +242,7 @@ AppointmentLobby: #xd page
     - actionType: evalObject
       object:
         # 获取自己房间的小尾巴， 目的： 1。 reid 是跟房间 2. 自己的id 为下一个 related app的fid
-       
+
         # 判断是否有关联预约tag，如果没有，则建立一个
         - if:
             - =.builtIn.array.judgeListLength:
@@ -339,10 +343,19 @@ AppointmentLobby: #xd page
             - .Global.formData.isFirstRecommendation@: false
             - .Global.formData.providerDoc.recommendationDoc@: =..apiRequest.recommendation.docResp.doc.0
             - .Global.formData.productionSelectionList@: =..apiRequest.recommendation.docResp.doc.0.name.data.goodsList
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.roomInfo.edge.evid
+              string2: =.Global.roomInfo.edge.name.providerId
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.bvid
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.evid
+    - .Global.formData.auditLog.patientName@: =.Global.roomInfo.edge.name.patientName
+
   formData:
     payStatus:
       name: ""
-    mainProviderDisplay: ""
+    mainProviderDisplay: "none"
     # 获取当前系统时间
     currentTime: ""
     displayTitle: "none"
@@ -1745,7 +1758,9 @@ AppointmentLobby: #xd page
                               user: =.Global.MyProfile.name.data.fullName
                               userId: =.Global.currentUser.vertex.id
                               targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                              targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
                               accessPort: provider
+                            dataOut: Global.formData.auditLog.result
                         - if:
                             - =.builtIn.string.equal:
                                 dataIn:

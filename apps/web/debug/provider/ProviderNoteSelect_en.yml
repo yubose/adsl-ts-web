@@ -165,7 +165,9 @@ ProviderNoteSelect:
               string2: =.Global.roomInfo.edge.name.providerId
         - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.bvid
         - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.evid
+    - .Global.formData.auditLog.patientName@: =.Global.roomInfo.edge.name.patientName
 
+    - .Global.formData.patientName@: .Global.currentMeetingPatientProfile.basicInfo.fullName
   dataTemp:
     checkArr:
       ["RecommendationShared", "SelectRecommendation", "SuperbillReview"]

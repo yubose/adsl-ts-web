@@ -865,6 +865,7 @@ CreateSchedule:
                     border:
                       style: 3
                     borderColor: "0xdededf"
+                    textIndent: "8px"
                     borderRadius: "5"
                     backgroundColor: "0xffffff"
                   onChange:
@@ -1222,6 +1223,7 @@ CreateSchedule:
                         borderRadius: "5"
                         borderWidth: "1"
                         backgroundColor: "0xffffff"
+                        textIndent: "8px"
                       onChange:
                         - actionType: evalObject
                           object:

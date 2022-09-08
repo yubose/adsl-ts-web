@@ -45,6 +45,7 @@ BasePublicHeaderLeft:
     - actionType: builtIn
       funcName: goBack
       reload: true
+  onClick: _.leftClick
   children:
     - type: image
       path: __.path
@@ -52,7 +53,6 @@ BasePublicHeaderLeft:
         marginTop: "0.012"
         height: "0.0295"
         width: "2.95vh"
-      onClick: __.leftClick
 
 BasePublicHeaderTitle:
   type: label
@@ -1282,6 +1282,17 @@ HeaderPopUpMultiplePDF:
                       originY: =.Global.formData.downloadPDF.originY
                       timeDeno: 1000
                       timeOut: 1000
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: =.Global.formData.auditLog.actionTypeCode
+                      recordTypeCode: =.Global.formData.auditLog.recordTypeCode
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
                 - actionType: popUpDismiss
                   popUpView: MenuBoxTag
           style:
@@ -1446,6 +1457,7 @@ HeaderPopUpMenu:
                       user: =.Global.MyProfile.name.data.fullName
                       userId: =.Global.currentUser.vertex.id
                       targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
                       accessPort: provider
                     dataOut: Global.formData.auditLog.result
                 - actionType: popUpDismiss

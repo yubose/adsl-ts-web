@@ -16,6 +16,9 @@ PatientConsentFormEditPage1:
         - actionType: evalObject
           object:
             - ..apiRequest.patientConsentForm.docReq.name.data@: =.VaccineFormDM.patientConsentFormDM
+            - ..apiRequest.patientConsentForm.docReq.name.data.userInfo@: 
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
             # 初始化模板之后
             - ..apiRequest.patientConsentForm.docReq.name.data.patientName@: =.Global.Profile.name.data.basicInfo.fullName
             # 发服务器之前
@@ -52,6 +55,7 @@ PatientConsentFormEditPage1:
         eid: .Global.rootNotebookID
         type: .DocType.PatientConsentForm
         subtype:
+          isEncrypted: "1"
           mediaType: "application/json"
         name:
           data: ""

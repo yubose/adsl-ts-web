@@ -153,6 +153,10 @@ DeleteAccount:
                   type: "35840"
                 dataOut: DeleteAccount.formData.res
             - if:
+                - =.FirebaseToken.response.edge.id
+                - =.FirebaseToken.edgeAPI.delete: ""
+                - continue
+            - if:
                 - true
                 - =.builtIn.cleanLocalStorage
                 - continue

@@ -964,7 +964,7 @@ ComparisonProfile:
       boxSizing: border-box
     item:
       marginTop: "0.0197044"
-      width: "auto"
+      width: "0.92"
       # height: "0.2426108"
       height: "auto"
       overflow: hidden

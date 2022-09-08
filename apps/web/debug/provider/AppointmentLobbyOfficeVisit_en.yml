@@ -303,6 +303,8 @@ AppointmentLobbyOfficeVisit: #xd page
             - .Global.formData.isFirstRecommendation@: false
             - .Global.formData.providerDoc.recommendationDoc@: =..apiRequest.recommendation.docResp.doc.0
             - .Global.formData.productionSelectionList@: =..apiRequest.recommendation.docResp.doc.0.name.data.goodsList
+    - .Global.formData.auditLog.patientName@: =.Global.roomInfo.edge.name.patientName
+
   sendNotification:
     document:
       .Document: ""
@@ -1715,30 +1717,34 @@ AppointmentLobbyOfficeVisit: #xd page
                       object:
                         - =..cancelEmail.docAPI.store: ""
                         - if:
-                          - =.builtIn.string.equal:
-                              dataIn:
-                                string1: =.Global.currentRoomInfo.edge.subtype
-                                string2: 131078
-                          # cancel office visit log
-                          - =.builtIn.utils.createAuditLog:
-                              dataIn:
-                                actionTypeCode: =.ActionTypeCode.cancel
-                                recordTypeCode: =.EdgeType.scheduleSubtype.Office
-                                eid: =.Global.formData.currentFacility.relationEdge.id
-                                user: =.Global.MyProfile.name.data.fullName
-                                userId: =.Global.currentUser.vertex.id
-                                targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
-                                accessPort: provider
-                          # cancel room log
-                          - =.builtIn.utils.createAuditLog:
-                              dataIn:
-                                actionTypeCode: =.ActionTypeCode.cancel
-                                recordTypeCode: 393219
-                                eid: =.Global.formData.currentFacility.relationEdge.id
-                                user: =.Global.MyProfile.name.data.fullName
-                                userId: =.Global.currentUser.vertex.id
-                                targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
-                                accessPort: provider
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.currentRoomInfo.edge.subtype
+                                  string2: 131078
+                            # cancel office visit log
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.cancel
+                                  recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                                  accessPort: provider
+                                dataOut: Global.formData.auditLog.result
+                            # cancel room log
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.cancel
+                                  recordTypeCode: 393219
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                                  accessPort: provider
+                                dataOut: Global.formData.auditLog.result
                     - goto: DisagreeRequest2
                 - type: view
                   style:
@@ -1778,30 +1784,32 @@ AppointmentLobbyOfficeVisit: #xd page
         - actionType: evalObject
           object:
             - if:
-              - =.builtIn.string.equal:
-                  dataIn:
-                    string1: =.Global.currentRoomInfo.edge.name.visitType
-                    string2: Office Visit
-              # finish office visit log
-              - =.builtIn.utils.createAuditLog:
-                  dataIn:
-                    actionTypeCode: =.ActionTypeCode.finish
-                    recordTypeCode: =.EdgeType.scheduleSubtype.Office
-                    eid: =.Global.formData.currentFacility.relationEdge.id
-                    user: =.Global.MyProfile.name.data.fullName
-                    userId: =.Global.currentUser.vertex.id
-                    targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
-                    accessPort: Provider
-              # finish room log
-              - =.builtIn.utils.createAuditLog:
-                  dataIn:
-                    actionTypeCode: =.ActionTypeCode.finish
-                    recordTypeCode: =.EdgeType.scheduleSubtype.RoomType
-                    eid: =.Global.formData.currentFacility.relationEdge.id
-                    user: =.Global.MyProfile.name.data.fullName
-                    userId: =.Global.currentUser.vertex.id
-                    targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
-                    accessPort: Provider
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =.Global.currentRoomInfo.edge.name.visitType
+                      string2: Office Visit
+                # finish office visit log
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: =.ActionTypeCode.finish
+                      recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                      targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                      accessPort: Provider
+                # finish room log
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: =.ActionTypeCode.finish
+                      recordTypeCode: =.EdgeType.scheduleSubtype.RoomType
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                      targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                      accessPort: Provider
             - if:
                 - =.builtIn.utils.judgeAll:
                     dataIn:
@@ -1938,13 +1946,6 @@ AppointmentLobbyOfficeVisit: #xd page
                   onClick:
                     - actionType: popUpDismiss
                       popUpView: confirmView
-                - type: view
-                  style:
-                    marginLeft: "0"
-                    width: "1px"
-                    display: "inline-block"
-                    backgroundColor: "0xa1a0a1"
-                    height: "0.06"
                 - type: button
                   text: "Yes"
                   style:
@@ -2055,6 +2056,38 @@ AppointmentLobbyOfficeVisit: #xd page
                             - continue
                         - ..apiRequest.cancelMeetingDoc.docCreateReq.name.data.reason@: =..cancelEmail.docReq.name.data.content
                         - =..apiRequest.cancelMeetingDoc.docAPI.store: ""
+
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.currentRoomInfo.edge.subtype
+                                  string2: 131078
+                            # cancel office visit log
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.cancel
+                                  recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                                  accessPort: provider
+                                dataOut: Global.formData.auditLog.result
+                            # cancel room log
+                            - =.builtIn.utils.createAuditLog:
+                                dataIn:
+                                  actionTypeCode: =.ActionTypeCode.cancel
+                                  recordTypeCode: 393219
+                                  eid: =.Global.formData.currentFacility.relationEdge.id
+                                  user: =.Global.MyProfile.name.data.fullName
+                                  userId: =.Global.currentUser.vertex.id
+                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                  targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                                  accessPort: provider
+                                dataOut: Global.formData.auditLog.result
                     - actionType: popUp
                       popUpView: success
                       wait: 2000

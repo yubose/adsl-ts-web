@@ -172,6 +172,7 @@ ProviderNotes:
               string2: =.Global.roomInfo.edge.name.providerId
         - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.bvid
         - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.evid
+    - .Global.formData.auditLog.patientName@: =.Global.roomInfo.edge.name.patientName
 
   formData:
     medicalDocument: []
@@ -422,10 +423,10 @@ ProviderNotes:
       style:
         width: "1"
         height: "auto"
-        border:
-          style: 2
-        borderWidth: "1"
-        borderColor: "0xdedede"
+        # border:
+        #   style: 2
+        # borderWidth: "1"
+        # borderColor: "0xdedede"
         boxSizing: "border-box"
         overflow: hidden
       children:
@@ -475,7 +476,13 @@ ProviderNotes:
 
         - type: view
           style:
-            marginTop: "0.0198"
+            height: "0.0198"
+            marginTop: "0"
+            width: "1"
+            border:
+              style: 2
+            borderWidth: "1"
+            borderColor: "0xdedede"
     - type: view
       viewTag: docListTag
       style:

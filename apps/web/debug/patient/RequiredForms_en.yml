@@ -106,16 +106,21 @@ RequiredForms:
                     - .Global.formData.visitQuestionnaireDoc@: =..apiRequest.visitQuestionnaire.docQueryResp.doc.0
                     - .Global.visitQuestionnaireDoc@: true
                 - continue
-            - if:
-                - =.builtIn.array.has:
-                    dataIn:
-                      object: =.Global.roomInfo.edge.name.finishDoc
-                      value: "Financial Responsibility Form"
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.financialForm.docAPI.get: ""
-                    - .Global.formData.patientDoc.financialForm@: =..apiRequest.financialForm.docQueryResp.doc.0
-                - continue
+            # Financial Responsibility Form
+            - actionType: evalObject
+              object:
+                - =..apiRequest.financialForm.docAPI.get: ""
+                - .Global.formData.patientDoc.financialForm@: =..apiRequest.financialForm.docQueryResp.doc.0
+            # - if:
+            #     - =.builtIn.array.has:
+            #         dataIn:
+            #           object: =.Global.roomInfo.edge.name.finishDoc
+            #           value: "Financial Responsibility Form"
+            #     - actionType: evalObject
+            #       object:
+            #         - =..apiRequest.financialForm.docAPI.get: ""
+            #         - .Global.formData.patientDoc.financialForm@: =..apiRequest.financialForm.docQueryResp.doc.0
+            #     - continue
             # newPatientForm
             - if:
                 - =.builtIn.array.has:
@@ -845,27 +850,29 @@ RequiredForms:
                                           value: $var.key
                                     - selectOnBlue.svg
                                     - selectOffBlue.svg
-                          onClick:
-                            - emit:
-                                dataKey:
-                                  var: itemObject
-                                actions:
-                                  - if:
-                                      - =.builtIn.array.has:
-                                          dataIn:
-                                            object: =..formData.formSelect
-                                            value: $var.key
-                                      - =.builtIn.array.removeByValue:
-                                          dataIn:
-                                            object: =..formData.formSelect
-                                            value: $var.key
-                                      - =.builtIn.array.add:
-                                          dataIn:
-                                            object: =..formData.formSelect
-                                            value: $var.key
-                            - actionType: builtIn
-                              funcName: redraw
-                              viewTag: formSelectTag
+                          # 根据许凯于2022.9.6的需求，此处不让点击，patient填完patient chart自动勾上。
+                          # onClick:
+                          #   - emit:
+                          #       dataKey:
+                          #         var: itemObject
+                          #       actions:
+                          #         - if:
+                          #             - =.builtIn.array.has:
+                          #                 dataIn:
+                          #                   object: =..formData.formSelect
+                          #                   value: $var.key
+                          #             - =.builtIn.array.removeByValue:
+                          #                 dataIn:
+                          #                   object: =..formData.formSelect
+                          #                   value: $var.key
+                          #             - =.builtIn.array.add:
+                          #                 dataIn:
+                          #                   object: =..formData.formSelect
+                          #                   value: $var.key
+                          #         - .Global.optionalForms@: =..formData.formSelect
+                          #   - actionType: builtIn
+                          #     funcName: redraw
+                          #     viewTag: formSelectTag
                         - type: label
                           dataKey: itemObject.value
                           style:
@@ -1074,7 +1081,7 @@ RequiredForms:
                 - actionType: evalObject
                   object:
                     - actionType: evalObject
-                      async: true
+                      # async: true
                       object:
                         - =..apiRequest.appointment.edgeAPI.store: ""
                         # create meeting tag

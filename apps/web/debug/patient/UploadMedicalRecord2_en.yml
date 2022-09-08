@@ -56,8 +56,9 @@ UploadMedicalRecord2:
         eid: .Global.roomInfo.edge.id
         reid: ""
         subtype:
-          isEncrypted: "0"
           isOnServer: "0"
+          isEncrypted: "1"
+          mediaType: "application/json"
         type: .DocType.PatMedicalUpload
         name:
           data:
@@ -77,6 +78,9 @@ UploadMedicalRecord2:
               display: block
             statusTag:
               display: none
+            userInfo:
+              patientName: .Global.Profile.name.data.basicInfo.fullName
+              participateName: .Global.formData.participateName
           type: "application/json"
           title: ""
           user: .Global.Profile.name.data.basicInfo.fullName

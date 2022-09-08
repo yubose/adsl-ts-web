@@ -1,7 +1,7 @@
 # BaseecosObj: # This is page name
 AppName: com.aitmed.icare
-AWSKeyIDEncrypted: "rvjQxuRo0QZ0WXTzwJx/VakMW1WAZ8r79qkxt5A0uZks34M00hOWCNYmYNQbL3vH7bY2iXTKO4Qr4y6s"
-AWSKeyEncrypted: "cQbRQNh/S4DsFw9ZNqUrXFbzds535CR6uedpKEB4SW2iEkvTnZm8hQMW4EocWyN0CBIaMLo9bwOf0wZPyDI4c6uvDKt2bXF8V6clhEvFGTU="
+AWSKeyIDEncrypted: "cIBs8Gee93SFNx3wIMjTbMXG7SyXsG6lih8AyDmAyPygjx+3JGfNdEPEGl89Z2vWYNc/sEy7Uk4DhL85"
+AWSKeyEncrypted: "oGSRKPe0uUoac/4RBiTmLJpLmeiOk2DbJRqbPSNHYMklDxTQnraPXG+sBCZDI6cnjefKtWJLRuVGhzOaq8Bxr+uiFqFMYuNyIx5W3khg4aQ="
 # notification target app name
 TargetApp:
   provider: com.aitmed.iprovider
@@ -54,7 +54,7 @@ Document:
     isOnServer: "1" # 0 server    1  S3
     isZipped: auto # 0 not gziped  1  gziped
     isBinary: "0" # 0 Base64       1  binary
-    isEncryped: "0" #0 no         1  encryped
+    isEncryped: "0" #0 no         1  encryped isEncrypted
     isExtraKeyNeeded: "0" #0 no   1  yes
     isEditable: "0" #0  no        1  yes
     isCached: "1"
@@ -190,6 +190,40 @@ Global: # name of an object
         dataIn: Global.createjwt.edge
         dataOut: Global.createjwt.response
   E2Subtype: 0
+  sendNotification:
+    document:
+      .Document: ""
+      eid: ""
+      subtype:
+        isOnServer: 1
+        isZipped: 0
+        isBinary: 0
+        isEncrypted: 0
+        isExtraKeyNeeded: 0
+        isEditable: 0
+        applicationDataType: 0
+        # 7 th bit
+        notification: 1
+        ringToneNotify: 0
+        sendtoSelf: 0
+        # 10 bit
+        textMessage: 1
+        mediaType: 8
+      type: .DocType.Notification
+      tage: 2
+      name:
+        data: ""
+        notification:
+          title: The participant has declined
+          context: The participant has declined
+          body: The participant has declined
+          # landingPage: RingTonePage
+          # onClickLandingPage: RingTonePage
+          #targetApp: =.FirebaseToken.response.edge.evid
+    docAPI:
+      store:
+        api: cd
+        dataIn: sendNotification.document
   globalRegister:
     # we will handle the normal notification click action here
     - type: register
@@ -229,7 +263,12 @@ Global: # name of an object
               - continue
           - actionType: evalObject
             object:
-              - goto: =.NotificationMap.notificationGoto
+              - if:
+                  - =.NotificationMap.notificationGoto
+                  - actionType: evalObject
+                    object:
+                      - goto: =.NotificationMap.notificationGoto
+                  - continue
                 #=.NotificationMap.-1231412413.name.notification.onClickLandingPage
     # When the app obtain the current token (either from login or Firebase auto update)
     # send the access token to server via 1090 edge
@@ -289,6 +328,32 @@ Global: # name of an object
               - =.FirebaseToken.response.edge.id
               - =.FirebaseToken.edgeAPI.delete: ""
               - continue
+    # when the user rejects the call from callkit system calling screen
+    - type: register
+      onEvent: onCallRejected
+      emit:
+        dataKey:
+          var: eid
+        actions:
+          - .Global.sendNotification.document.fid@: =.Global.prodAPPID
+          - .Global.sendNotification.document.name.notification.title@: The participant has declined
+          - .Global.sendNotification.document.name.notification.context@: The participant has declined
+          - .Global.sendNotification.document.name.notification.body@: The participant has declined
+          - .Global.sendNotification.document.eid@: $var
+          - =.Global.sendNotification.docAPI.store: ""
+    # when the user didn't answer the call from callkit system calling screen
+    - type: register
+      onEvent: onCallNoAnswer
+      emit:
+        dataKey:
+          var: eid
+        actions:
+          - .Global.sendNotification.document.name.notification.title@: The participant did not answer
+          - .Global.sendNotification.document.name.notification.context@: The participant did not answer
+          - .Global.sendNotification.document.name.notification.body@: The participant did not answer
+          - .Global.sendNotification.document.fid@: =.Global.prodAPPID
+          - .Global.sendNotification.document.eid@: $var
+          - =.Global.sendNotification.docAPI.store: ""
     - type: register
       onEvent: onNewEcosDoc # will be automatically invoked when receive a message
       emit:
@@ -311,7 +376,42 @@ Global: # name of an object
           #以 accessToken 判断会议是否开始,若开始了,则不接电话
           - if:
               - =.Global.roomInfoDoc.document.deat.accessToken
-              - continue
+              - if:
+                  - =.builtIn.utils.isOnPage:
+                      dataIn: "VideoChat"
+                  - if:
+                      - =.builtIn.number.typeIsValid:
+                          dataIn:
+                            docType: =.Global.ecosDocObj.doc.0.subtype
+                            localArr: [9]
+                            binaryArr: [0]
+                      - if: 
+                        - =.builtIn.notification.isNotification:
+                            dataIn:
+                              doc: =.Global.ecosDocObj.doc.0
+                            dataOut: NotificationMap
+                        - actionType: evalObject
+                          object:
+                            
+                            - if: 
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =.Global.ecosDocObj.doc.0.name.notification.title
+                                    string2: "The participant has declined"
+                              - actionType: popUp
+                                popUpView: participantDeclined
+                              - continue
+                            - if: 
+                              - =.builtIn.string.equal:
+                                  dataIn:
+                                    string1: =.Global.ecosDocObj.doc.0.name.notification.title
+                                    string2: "The participant did not answer"
+                              - actionType: popUp
+                                popUpView: participantNotAnswer
+                              - continue
+                        - continue
+                      - continue
+                  - continue
               # - if:
               #     # if in the target meeting room
               #     - =.builtIn.string.equal:
@@ -349,6 +449,7 @@ Global: # name of an object
                 #- goto: =.Global.ecosDocObj.doc.0.name.notification.landingPage
           #- continue
   vaccine: []
+  lazyDoc: true
   vaccineDoc: []
   queryScondition: ""
   currentRleatedRoomInfo:
@@ -370,6 +471,8 @@ Global: # name of an object
     request: ""
   currentFacility: "" # 用来在预约的时候查看的表格，该provider属于哪个facility
   formData:
+    # 文档userInfo下与会者的名字
+    participateName: ""
     # 直接从MyProfile进入，修改insurance
     editInsuranceFromMyProfile: ""
     patientChartStatus: false
@@ -531,6 +634,8 @@ Global: # name of an object
       hippa: ""
       coronavirus: ""
     fee: ""
+
+    patientAmendmentForm: ""
   connectionId: ""
   ActiveLocation: ""
   # 是否已经填完visitQuestionnaire
@@ -907,6 +1012,7 @@ DocType:
   SuperAdminAvatar: 235521 # 920 << 8+1
   CovIDPCRTestResult: 238081 #930 << 8+1
   autoLogOut: 243201 # 950 << 8+1
+  PatientAmendment: 245761 #960 << 8+1
   DEAPicture: "258561" # 1010<<8+1
   MedicalLicensePicture: "28901"
   ## From 1050 videochat status
@@ -941,7 +1047,7 @@ EdgeType:
   Order: "2113"
 DocumentQuery:
   ProviderAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,171521,284160,186881,184321,189441,166401) AND type & 0xff = 1
-  PatientAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,171521,284160,186881,184321,189441) AND type & 0xff = 1 AND tage = 0
+  PatientAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,171521,284160,186881,184321,189441,245761,248321) AND type & 0xff = 1 AND tage = 0
   PatientAllMeetingDocumentsFor1344: E.type = 40000; D.type NOT IN (102401,0x2800,0x2900,770,25601,28161,220161,171521,284160,166401,148481,151040,186881,179201,189441,192001,184321,1025,89601) AND D.type & 0xff = 1 AND tage = 0
   AdminAllMeetingDocuments: type NOT IN (102401,0x2800,0x2900,770,25601,28161,284160)
 VertexType:
