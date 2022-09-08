@@ -780,7 +780,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               ndomPage.node.contentDocument.body.textContent = ''
             }
           }
-          await app.navigate(ndomPage, destination, { isGoto: true })
+          await app.navigate(ndomPage, destination, { isGoto: true },destinationParam.startsWith('http')?true:false)
         }
 
         if (!destination) {
