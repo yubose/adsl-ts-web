@@ -9,8 +9,8 @@ VideoChat:
     # meeting time
     - actionType: evalObject
       object:
-        - ..cameraOn@: .Global.cameraOn
-        - ..micOn@: .Global.micOn
+        - ..cameraOn@: =.Global.cameraOn
+        - ..micOn@: =.Global.micOn
     #join in meeting
     - actionType: builtIn
       funcName: videoChat
@@ -136,6 +136,7 @@ VideoChat:
           body: Click to jump to Appointment Lobby
           landingPage: RingTonePage
           onClickLandingPage: RingTonePage
+          roomId: =.Global.roomInfoDoc.document.deat.roomID
           #targetApp: =.FirebaseToken.response.edge.evid
           caller: =.Global.Profile.name.data.basicInfo.fullName
     docAPI:
@@ -1224,6 +1225,176 @@ VideoChat:
           style:
             marginLeft: "0.345"
             width: "0.0347"
+
+    - type: popUp
+      viewTag: participantDeclined
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: participantDeclined
+        # leave the meeting
+        - actionType: builtIn
+          funcName: disconnectMeeting
+        # clear roomDoc
+        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+          dataKey: Global.roomInfoDoc.document
+          dataObject: {}
+        - actionType: evalObject
+          object:
+            - .Global.timer@: 0
+            - .Global.micOn@: "true"
+            - .Global.cameraOn@: "true"
+            - =..apiRequest.appointment.edgeAPI.get: ""
+            - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+        - actionType: evalObject
+          object:
+            # 判断会议是否超时，如果未超时，则返回appointmentlobby，否则返回visit detail
+            # - =.builtIn.date.getTime:
+            #     dataIn:
+            #     dataOut: VideoChat.formData.currentTime
+            # - if:
+            #     - =.builtIn.math.greater:
+            #         dataIn:
+            #           num1: =.VideoChat.formData.currentTime
+            #           num2: =.Global.roomInfo.edge.etime
+            #     - goto: VisitDetial
+            - goto: AppointmentLobby
+      children:
+        - type: view
+          style:
+            width: "0.72"
+            marginLeft: "0.14"
+            backgroundColor: "0xf4f3f3"
+            borderRadius: "14px"
+          children:
+            - type: label
+              text: The participant has declined
+              style:
+                marginLeft: "0.069"
+                width: "0.582"
+                color: "#333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                marginTop: "0.0185"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                height: "0.035"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+                width: "0.72"
+            - type: view
+              style:
+                width: "0.72"
+              children:
+                - type: button
+                  text: "OK"
+                  style:
+                    color: "0x007AFF"
+                    backgroundColor: "0xf4f3f3"
+                    display: inline-block
+                    width: "0.72"
+                    borderRadius: "0 0 14px 14px"
+                    fontSize: .Nfont.h14
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick: ____.leftButton
+    - type: popUp
+      viewTag: participantNotAnswer
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: participantNotAnswer
+        # leave the meeting
+        - actionType: builtIn
+          funcName: disconnectMeeting
+        # clear roomDoc
+        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+          dataKey: Global.roomInfoDoc.document
+          dataObject: {}
+        - actionType: evalObject
+          object:
+            - .Global.timer@: 0
+            - .Global.micOn@: "true"
+            - .Global.cameraOn@: "true"
+            - =..apiRequest.appointment.edgeAPI.get: ""
+            - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+        - actionType: evalObject
+          object:
+            # 判断会议是否超时，如果未超时，则返回appointmentlobby，否则返回visit detail
+            # - =.builtIn.date.getTime:
+            #     dataIn:
+            #     dataOut: VideoChat.formData.currentTime
+            # - if:
+            #     - =.builtIn.math.greater:
+            #         dataIn:
+            #           num1: =.VideoChat.formData.currentTime
+            #           num2: =.Global.roomInfo.edge.etime
+            #     - goto: VisitDetial
+            - goto: AppointmentLobby
+      children:
+        - type: view
+          style:
+            width: "0.72"
+            marginLeft: "0.14"
+            backgroundColor: "0xf4f3f3"
+            borderRadius: "14px"
+          children:
+            - type: label
+              text: The participant did not answer
+              style:
+                marginLeft: "0.069"
+                width: "0.582"
+                color: "#333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                marginTop: "0.0185"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                height: "0.035"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+                width: "0.72"
+            - type: view
+              style:
+                width: "0.72"
+              children:
+                - type: button
+                  text: "OK"
+                  style:
+                    color: "0x007AFF"
+                    backgroundColor: "0xf4f3f3"
+                    display: inline-block
+                    width: "0.72"
+                    borderRadius: "0 0 14px 14px"
+                    fontSize: .Nfont.h14
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick: ____.leftButton
+
     # auto disconnect extension confirm view
     - type: popUp
       viewTag: exitWarningView
@@ -1509,7 +1680,18 @@ VideoChat:
           popUpView: timeoutPopup
       rightButton:
         - actionType: builtIn
-          funcName: goBack
-          reload: true
+          funcName: disconnectMeeting
+        # clear roomDoc
         - actionType: popUpDismiss
           popUpView: timeoutPopup
+        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+          dataKey: Global.roomInfoDoc.document
+          dataObject: { }
+        - actionType: evalObject
+          object:
+            - .Global.timer@: 0
+            - .Global.micOn@: "true"
+            - .Global.cameraOn@: "true"
+            - =..apiRequest.appointment.edgeAPI.get: ""
+            - .Global.roomInfo.edge@: =..apiRequest.appointment.edgeQueryResp.edge.0
+        - goto: AppointmentLobby

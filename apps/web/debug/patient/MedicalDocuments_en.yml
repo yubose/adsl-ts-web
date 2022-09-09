@@ -455,6 +455,7 @@ MedicalDocuments:
 
                     - actionType: evalObject
                       object:
+                        - .Global.formData.patientAmendmentForm@: ""
                         - .Global.formData.pageName@: MedicalDocuments
                         - .Global.DocReference.document@: ""
                         - .Global.DocReference.document@: =.MedicalDocuments.formData.tempData

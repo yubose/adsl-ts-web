@@ -324,6 +324,7 @@ InboxDashboard:
                           dataKey: itemObject.ctime
                           style:
                             height: "auto"
+                            fontSize: .Nfont.h14
                             width: "0.2"
                         - type: view
                           style:

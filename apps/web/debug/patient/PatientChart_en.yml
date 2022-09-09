@@ -255,6 +255,23 @@ PatientChart:
                   string2: "0"
             - ..formData.familyHistoryDefault@: "block"
             - ..formData.familyHistoryList@: "block"
+
+    - actionType: evalObject
+      object:
+        - if:
+            - =..docResponse.doc.0.name.data.userInfo
+            - continue
+            - actionType: evalObject
+              object:
+                - ..docResponse.doc.0.name.data.userInfo.patientName@: .Global.Profile.name.data.basicInfo.fullName
+                - ..docResponse.doc.0.name.data.userInfo.participateName@: .Global.formData.participateName
+                - ..docResponse.doc.0.name.data.classTag@:
+                    name: Patient
+                    fontColor: "0xf8ae29"
+                    backgroundColor: "0xfff4e0"
+                    display: block
+                - ..docResponse.doc.0.name.data.statusTag@:
+                    display: none
   formData:
     scrollHeight: "0.92"
     btnShow: "none"
@@ -327,6 +344,9 @@ PatientChart:
         tage: 0
         name:
           data: ""
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
       docAPI:
         store:
           api: cd

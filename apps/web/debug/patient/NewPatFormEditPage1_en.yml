@@ -93,6 +93,10 @@ NewPatFormEditPage1:
         - actionType: evalObject
           object:
             - ..apiRequest.patientForm.docReq.name.data@: =.VaccineFormDM.newPatientFormDM
+
+            - ..apiRequest.patientForm.docReq.name.data.userInfo@: 
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
             - ..patientInfo@: =.VaccineFormDM.newPatientFormDM.patientInfo
             - =..apiRequest.patientForm.docAPI.store: ""
             # 复显Patient信息
@@ -215,6 +219,9 @@ NewPatFormEditPage1:
           title: "New Patient Forms"
           user: .Global.Profile.name.data.basicInfo.fullName
           type: "application/json"
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
       docAPI:
         store:
           api: cd

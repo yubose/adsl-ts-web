@@ -361,6 +361,9 @@ AppointmentLobby: #xd page
     - =.builtIn.date.getTime:
         dataIn:
         dataOut: AppointmentLobby.formData.currentTime
+    # 重置patient form 与会者名称
+    - .Global.formData.participateName@: .Global.roomInfo.edge.name.providerName
+ 
   sendNotification:
     document:
       .Document: ""

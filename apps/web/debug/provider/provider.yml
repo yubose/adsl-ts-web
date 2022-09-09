@@ -1,4 +1,4 @@
-apiHost: ecosapip1.aitmed.io
+apiHost: albh2.aitmed.io
 apiPort: '443'
 webApiHost: apiHost
 appApiHost: apiHost
@@ -8,22 +8,22 @@ debug: console_log_api
 syncHost: https://sync.aitmed.io:443
 elasticClient: https://elastic.aitmed.io
 isGetPosition: false
-superAdminID: 'Xa2FfgAAAAAI8AJCrBIABQ=='
+superAdminID: "Xa2FfgAAAAAI8AJCrBIABQ=="
 viewWidthHeightRatio:
-  min: 0.45
-  max: 0.5
+    min: 0.45
+    max: 0.5
 web:
-  cadlVersion:
-    stable: 9.89
-    test: 9.89
+  cadlVersion :
+    stable: 10.23.1
+    test : 10.23.1
 ios:
   cadlVersion:
-    stable: 9.89
-    test: 9.89
+    stable: 10.23.1
+    test : 10.23.1
 android:
   cadlVersion:
-    stable: 9.89
-    test: 9.89
+    stable : 10.23.1
+    test : 10.23.1
 cadlBaseUrl: http://127.0.0.1:3000/
 cadlMain: cadlEndpoint.yml
-timestamp: 08032022.1PDT
+timestamp: 09022022PDT

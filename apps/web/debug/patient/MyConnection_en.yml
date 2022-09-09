@@ -111,18 +111,20 @@ MyConnection:
           dataIn: MyConnection.apiRequest.isContact.edge
           dataOut: MyConnection.apiRequest.isContact.response
     facilityConnections:
-      connectionList:
-        edge: ""
+      connectionList: ""
+      docQueryReq:
+        type: 271361
+        xfname: E.bvid|E.evid
+        id: .Global.currentUser.vertex.id
+        ObjType: 12
+        _nonce: =.Global._nonce
+        sCondition: E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x20000
       docAPI:
         get:
           api: rd
-          type: 271361
-          xfname: E.bvid|E.evid
-          id: .Global.currentUser.vertex.id
-          ObjType: 12
-          _nonce: =.Global._nonce
-          dataKey: apiRequest.facilityConnections.connectionList
-          sCondition: E.type=10002 AND E.tage=1 AND E.subtype&0xff0000=0x20000
+          dataIn: apiRequest.facilityConnections.docQueryReq
+          dataOut: apiRequest.facilityConnections.connectionList
+          
   newConnection:
     newConnectionList:
       edge: ""
@@ -436,6 +438,11 @@ MyConnection:
                           paths: =..searchArray
                           value: =..formData.searchContent
                         dataOut: MyConnection.formData.allProviders
+                    - =.builtIn.array.uniqueByObjectKey:
+                        dataIn:
+                          objArr: =..formData.allProviders
+                          path: "id"
+                        dataOut: MyConnection.formData.allProviders
                 - actionType: builtIn
                   funcName: show
                   viewTag: searchResultVT
@@ -574,7 +581,7 @@ MyConnection:
             - type: view
               style:
                 width: "1"
-                height: "0.6"
+                height: "0.78"
               children:
                 - type: view
                   style:
@@ -622,11 +629,11 @@ MyConnection:
                       onClick:
                         - ..event.tabChange
 
-                - type: scrollView
+                - type: view
                   style:
                     height: "0.67"
                     width: "1"
-                    marginTop: "0.01"
+                    # marginTop: "0.01"
                   children:
                     - type: view
                       viewTag: listInfoView1

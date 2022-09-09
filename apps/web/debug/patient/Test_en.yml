@@ -1,464 +1,86 @@
 Test:
-  init: #Page initialization
-    # - .SignInCheck
+  pageNumber: "176.5"
+  title: "TestRightAlign"
+  flag: "1"
+  init:
+  
+    - =..apiRequest.createjwt.edgeApi.create: ""
+    # - =..apiRequest.getJson.docApi.create: ""
+    - =..apiRequest.getJson.docApi.get: ""
+    - if:
+      - false
+      - continue
+      - goto: Test3
 
-    - ..formDataTemp.titleData2@: =..formDataTemp.titleData
-    - ..formData.sideDislpay@: =..countryside.display
+    # - formData.page@: =.getResp.0
+    # # json zhuan yaml
+    # - =.butiltIn.util.json2yaml
+    #     dataIn:
+    #       json: =..formData.page
+    #     dataOut: formData.yaml
   formData:
-    tempData: ""
-    backgroundColor: "0xe4f5e9"
-    fontColor: "0x30b354"
-    name: "Provider"
-    vitalsList: []
-    sideDislpay: block
-
-  countryside:
-    display: none
-  formDataTemp:
-    optionsList:
-      optionsOne:
-        - title: Patient Chart
-          path: patientChartIcon.svg
-          border: "1px solid #f0f0f0"
-          pageJump: "PatientChart"
-        - title: Family Member
-          path: familyMemberIcon.svg
-          border: "none"
-          pageJump: "FamilyMemberList"
-    titleData:
-      - title: All Type
-        fontWeight: "700"
-        isHidden: "visible"
-        block: "block"
-        itemBackgroundColor: "0xf7f7f7"
-        boxBackgroundColor: "0xf7f7f7"
-        boxBorderRadius: "0"
-        backgroundColor: "0xe4f5e9"
-        fontColor: "0x30b354"
-        name: "Provider"
-        borderStyle: "2px solid #2988e6"
-
-    titleData2: []
-
-  serverRequest: #Input data request here
-
-  style: #Input style fragment here
-    blockBox:
-      marginTop: "0.0246"
-      width: "1"
-      height: "auto"
-      oveflow: hidden
-    inlineTitle:
-      color: "#333333"
-      fontSize: .Nfont.h14
-      height: "auto"
-      width: "auto"
-    inlineBox:
-      display: "inline-block"
-      width: "auto"
-      height: "auto"
-      oveflow: hidden
-      verticalAlign: middle
-    # inputBox:
-    #   marginTop: "0.009852"
-    #   height: "0.0443"
-    #   width: "0.2"
-    #   fontSize: .Nfont.h14
-    #   color: "#333333"
-    #   border:
-    #     style: 3
-    #   borderWidth: "1.5"
-    #   borderColor: "#dededf"
-    #   boxSizing: border-box
-    #   borderRadius: "4"
-    #   textIndent: "8px"
-    #
-    btn:
-      # marginTop: "0.029556"
-      marginLeft: "0.032"
-      height: "0.0443"
-      width: "0.16"
-      border:
-        style: 1
-      borderRadius: "5"
-      backgroundColor: "#2988e6"
-      color: "#ffffff"
-      fontSize: .Nfont.h12
-      boxSizing: border-box
-      display: inline-block
-      verticalAlign: bottom
-      fontWeight: "600"
-      textAlign:
-        x: center
-    inputBox:
-      marginTop: "0.011083"
-      width: "0.92"
-      height: "auto"
-      borderRadius: "4"
-      backgroundColor: "#f4f4f4"
-      padding: "6px 30px"
-      # padding: "16px 12px"
-      lineHeight: "2.58vh"
-      boxSizing: border-box
-      fontSize: .Nfont.h14
-      color: "#333333"
-      marginLeft: "0.06"
-    default:
-      color: "#333333"
-      fontSize: .Nfont.h14
-      width: "0.8"
-      height: "0.001"
-      border:
-        style: 3
-    inputValue:
-      width: "auto"
-      height: "auto"
-      boxSizing: border-box
-      wordBreak: break-word
-      fontSize: .Nfont.h14
-      color: "#333333"
-      lineHeight: "2.58vh"
-    dataList:
-      width: "auto"
-      margin: "0"
-      height: "auto"
-      boxSizing: border-box
-    dataListItem:
-      width: "auto"
-      height: "auto"
-      boxSizing: border-box
-      backgroundColor: "#f4f4f4"
-    dot:
-      display: "inline-block"
-      height: "auto"
-      width: "auto"
-      fontSize: .Nfont.h16
-      color: "#4c5264"
-      verticalAlign: middle
-    itemBox:
-      height: "auto"
-      width: "auto"
-      boxSizing: border-box
-    listItemPath:
-      display: "inline-block"
-      # width: "0.08"
-      height: "0.036945"
-      verticalAlign: middle
-      marginLeft: "0"
-    listItemTitle:
-      fontSize: .Nfont.h14
-      # marginLeft: "0.032"
-      display: "inline-block"
-      verticalAlign: middle
-      width: "0.6506666"
-    listItemRight:
-      display: "inline-block"
-      marginLeft: "0.032"
-      verticalAlign: middle
-      width: "0.0533333"
-      height: "0.02463"
-    list:
-      width: "0.92"
-      margin: "0"
-      marginLeft: "0.04"
-      marginTop: "0.01"
-      height: auto
-      backgroundColor: "0xffffff"
-      borderRadius: "8"
-      overflow: hidden
-      boxShadow: "0 3px 4px #dededf"
-    listItem:
-      width: "0.92"
-      height: "auto"
-      boxSizing: border-box
-    itemView:
-      paddingRight: "0.032"
-      # paddingLeft: "0.04"
-      paddingTop: "0.0123"
-      paddingBottom: "0.0123"
-      borderBottom: itemObject.border
-  components:
-    - type: view
-      style:
-        paddingTop: "0.0246"
-        paddingBottom: "0.0246"
-        width: "1"
-        height: "auto"
-        border:
-          style: 2
-          color: "0xDEDEDF"
-        borderWidth: "2"
-      children:
-        - type: list
-          contentType: listObject
-          listObject: ..formDataTemp.optionsList.optionsOne
-          iteratorVar: itemObject
-          style:
-            ..style.list:
-          children:
-            - type: listItem
-              itemObject:
+    page: ""
+    yaml: ""
+  apiRequest:
+    createjwt:
+      resp: ""
+      edge:
+        bvid: 'XeKoZgAAAAAMwQJCrBIABQ=='
+        type: 1030
+      edgeApi:
+        create:
+          api: ce
+          dataIn: apiRequest.createjwt.edge
+    getJson:
+      resp: ""
+      docCreateResp: ""
+      docCreateReq:
+        type: 1537
+        eid: 'XeKoZgAAAACM4AJCrBIABQ=='
+        name:
+          data: 
+            - type: view
               style:
-                ..style.listItem:
-              onClick:
-                - ..event.itemClick
+                width: "1"
+                height: "1"
+                display: "block"
               children:
-                - type: view
+                - type: label
+                  text: this is page2
+                  dataKey: 
                   style:
-                    ..style.itemView:
-                  children:
-                    - type: image
-                      path: leftStep.svg
-                      style:
-                        ..style.listItemPath:
-                    - type: label
-                      dataKey: itemObject.title
-                      style:
-                        ..style.listItemTitle:
-                    - type: image
-                      path: menuRight.svg
-                      style:
-                        ..style.listItemRight:
-        # - type: image
-        #   path: patientImage.png
-        #   path=func: =.builtIn.utils.prepareDocToPath
-        #   dataKey: Global.Profile.name.data.basicInfo.avatar
-        #   contentType: file
-        #   style:
-        #     marginLeft: "0.064"
-        #     verticalAlign: middle
-        #     display: "inline-block"
-        #     height: "0.0788177"
-        #     width: "0.1706666"
-        #     border:
-        #       style: 3
-        #     borderWidth: "1"
-        #     borderColor: "#dedede"
-        #     boxSizing: border-box
-        #     borderRadius: "4"
-        # - type: view
-        #   style:
-        #     verticalAlign: middle
-        #     marginLeft: "0.032"
-        #     display: "inline-block"
-        #     height: "auto"
-        #     width: "0.6"
-        #     overflow: hidden
-        #   children:
-        #     - type: view
-        #       style:
-        #         height: "auto"
-        #         width: "0.6"
-        #         overflow: hidden
-        #       children:
-        #         - type: label
-        #           dataKey: Global.Profile.name.data.basicInfo.fullName
-        #           style:
-        #             display: "inline-block"
-        #             fontSize: .Nfont.h18
-        #             color: "0x333333"
-        #             fontWeight: "600"
-        #             border: "2px solid #dedede"
-        #             width: "auto"
-        #             overflow: hidden
-        #             text-overflow: ellipsis
-        #             whiteSpace: nowrap
-
-    #         - type: view
-    #           style:
-    #             marginTop: "0.01"
-    #             height: "auto"
-    #             width: "0.6"
-    #             overflow: hidden
-    #             text-overflow: ellipsis
-    #             whiteSpace: nowrap
-    #           children:
-    #             - type: label
-    #               text: "User Name:"
-    #               style:
-    #                 display: "inline-block"
-    #                 fontSize: .Nfont.h16
-    #                 color: "0x666666"
-    #             - type: label
-    #               dataKey: Global.Profile.name.data.basicInfo.userName
-    #               style:
-    #                 marginLeft: "0.032"
-    #                 display: "inline-block"
-    #                 fontSize: .Nfont.h16
-    #                 # backgroundColor: "pink"
-    #                 color: "0x666666"
-    #                 fontWeight: "400"
-    #                 width: "0.336"
-    #                 # wordBreak: break-word
-    #     - type: image
-    #       path: blueRight.svg
-    #       style:
-    #         verticalAlign: middle
-    #         marginLeft: "0.032"
-    #         display: "inline-block"
-    #         height: "0.029556"
-    #         width: "0.0373333"
-    #       onClick:
-    #         - actionType: updateObject
-    #           dataKey: Global.selfMedicalLicense
-    #           dataObject: []
-    #         - actionType: evalObject
-    #           object:
-    #             - if:
-    #                 - =.builtIn.string.equal:
-    #                     dataIn:
-    #                       string1: =.Global.patientProfileVar
-    #                       string2: "About"
-    #                 - continue
-    #                 - .Global.patientProfileVar@: "About"
-    #             - if:
-    #                 - =.builtIn.string.equal:
-    #                     dataIn:
-    #                       string1: =.Global.loginUser.vertex.id
-    #                       string2: =.Global.currentUser.vertex.id
-    #                 - goto: MyProfile
-    #                 - actionType: popUp
-    #                   popUpView: minorUser
-    #                   wait: true
-
-    # - type: view
-    #   style:
-    #     width: "1"
-    #     height: "0.1"
-    #     overflow: hidden
-    #     backgroundColor: "#2988e6"
-    # children:
-    #   - type: list
-    #     contentType: listObject
-    #     listObject: ..formDataTemp.titleData
-    #     iteratorVar: itemObject
-    #     viewTag: calendarColor
-    #     scrollable: false
-    #     style:
-    #       width: "1"
-    #       margin: "0"
-    #       height: "auto"
-    #       fontSize: .Nfont.h2
-    #     children:
-    #       - type: listItem
-    #         itemObject: ""
-    #         style:
-    #           width: "1"
-    #           left: "0"
-    #           height: "0.06"
-    #           border:
-    #             style: "2"
-    #           borderWidth: "1"
-    #           borderColor: "0xdddddd"
-    #         children:
-    #           - type: view
-    #             style:
-    #               wedth: auto
-    #               height: auto
-    #             children:
-    #               - type: image
-    #                 path: about.png
-    #                 style:
-    #                   marginLeft: "0.06"
-    #                   display: "inline-block"
-    #                   height: "0.025"
-    #                   width: "0.05"
-    #                   verticalAlign: middle
-    #               - type: label
-    #                 dataKey: itemObject.title
-    #                 style:
-    #                   marginLeft: "0.032"
-    #                   display: "inline-block"
-    #                   width: "0.5"
-    #                   fontSize: .Nfont.h16
-    #                   height: "0.06"
-    #                   lineHeight: 6vh
-    #                   fontWeight: "400"
-    #                   verticalAlign: middle
-    #                   color: itemObject.color
-
-    # display: ..formData.pastMedicalDefault
-    # - type: label
-    #   dataKey: charts.pastMedicalHistory
-    #   style:
-    #     ..style.inputValue:
-    #     display: ..formData.pastMedicalList
-    # - type: view
-    #   style:
-    #     ..style.inlineBox:
-    #     marginLeft: "0.032"
-    #   children:
-    #     - type: label
-    #       textBoard:
-    #         - text: Phone Number
-    #         - text: "*"
-    #           color: "0xff0000"
-    #       style:
-    #         ..style.inlineTitle:
-    #     - type: textField
-    #       viewTag: phoneTag
-    #       placeholder: "000-000-0000"
-    #       dataKey: inviteHelper.edge.name.phoneNumber
-    #       style:
-    #         ..style.inputBox:
-    # width: "0.48"
-    # - type: label
-    #   text: Add
-    #   style:
-    #     ..style.btn:
-
-    # - type: list
-    #   viewTag: docListTag
-    #   contentType: listObject
-    #   listObject: ..formDataTemp.titleData
-    #   iteratorVar: itemObject
-    #   style:
-    #     margin: "0"
-    #     width: "1"
-    #     height: "0.5"
-    #     overflow-y: scroll
-    #     overflow-x: hidden
-    #   children:
-    #     - type: listItem
-    #       itemObject:
-    #       style:
-    #         marginLeft: "0.04"
-    #         width: "0.92"
-    #         marginTop: "0.01478"
-    #         overflow: hidden
-    #         backgroundColor: "0xffffff"
-    #         borderRadius: "5"
-    #         height: "0.098"
-    #         boxShadow: "0px 0px 5px #0000001a"
-    #         textAlign:
-    #           y: center
-    #       children:
-    #         - type: view
-    #           style:
-    #             width: "0.6667"
-    #             display: inline-block
-
-    #             verticalAlign: middle
-    #           children:
-    #             - type: view # time
-    #               style:
-    #                 width: auto
-    #                 height: auto
-    #
-    #         - type: button
-    #           dataKey: itemObject.name
-    #           text: Photo
-    #           style:
-    #             height: "0.02955"
-    #             width: "0.2"
-    #             display: inline-block
-    #             verticalAlign: middle
-    #             fontSize: .Nfont.h12
-    #             color: itemObject.fontColor
-    #             border:
-    #               style: 1
-    #             backgroundColor: "0x2988e6"
-    #             fontWeight: "600"
-    #             boxSizing: "border-box"
-    #
-    #             borderRadius: "3"
+                    top: "0.4"
+                    width: "1"
+                    textAlign:
+                      x: center
+                      y: center
+                - type: button
+                  text: go to by TestPage1
+                  onClick:
+                    - goto: TestPage1
+                  dataKey: 
+                  style:
+                    top: "0.5"
+                    width: "0.6"
+                    left: "0.2"
+                    height: "0.08"
+                    textAlign:
+                      x: center
+                      y: center
+      doc:
+        id: 'XeKoZgAAAACM4AJCrBIABQ=='
+        type: '1537'
+        xfname: eid
+        maxcount: "1"
+        obfname: ctime
+      docApi:
+        get:
+          api: rd
+          dataIn: apiRequest.getJson.doc
+          dataOut: Test.apiRequest.getJson.resp
+        create:
+          api: cd
+          dataIn: apiRequest.getJson.docCreateReq
+          dataOut: Test.apiRequest.getJson.docCreateResp
+  # components: 
+  #   .Test.apiRequest.getJson.resp.doc.0.name.data

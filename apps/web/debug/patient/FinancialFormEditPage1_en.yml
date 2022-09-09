@@ -145,7 +145,7 @@ FinancialFormEditPage1:
             - actionType: evalObject
               object:
                 - ..formData.tipsDisplay@: block
-                - ..formData.contentDisplay@: block
+                - ..formData.contentDisplay@: none
   calendarDate:
     year: ""
     month: ""
@@ -314,6 +314,9 @@ FinancialFormEditPage1:
       docCreateReq:
         eid: .Global.rootNotebookID
         type: .DocType.FinancialForm
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
         name:
           title: Financial Responsibility Form
           user: .Global.Profile.name.data.basicInfo.fullName
@@ -335,6 +338,9 @@ FinancialFormEditPage1:
               display: block
             statusTag:
               display: none
+            userInfo:
+              patientName: .Global.Profile.name.data.basicInfo.fullName
+              participateName: .Global.formData.participateName
             patientInfo:
               fullName: ""
               firstName: ""

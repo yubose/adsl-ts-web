@@ -9,6 +9,9 @@ Cov19TestFormEditPage1:
         - actionType: evalObject
           object:
             - ..apiRequest.cov19TestForm.docReq.name.data@: =.VaccineFormDM.cov19TestFormDM
+            - ..apiRequest.cov19TestForm.docReq.name.data.userInfo@:
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
             - ..apiRequest.cov19TestForm.docReq.name.data.patientInfo.fullName@: =.Global.Profile.name.data.basicInfo.fullName
             - =..apiRequest.cov19TestForm.docAPI.store: ""
             # 将文档保存到本地存储
@@ -30,6 +33,9 @@ Cov19TestFormEditPage1:
         id: ""
         eid: .Global.rootNotebookID
         type: .DocType.Cov19TestForm
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
         name:
           data: ""
           title: "COVID-19 Testing Consent Form"

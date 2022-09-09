@@ -2,7 +2,9 @@ ModernaVaccineFirDoseReviewPage4:
   title: "Moderna Vaccine Form - First Dose"
   init:
     - .SignInCheck
-
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
   formDataTemp:
     checkBoxTemp:
       - key: consent
@@ -243,6 +245,20 @@ ModernaVaccineFirDoseReviewPage4:
               style:
                 ..style.btn:
               onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          date: =.Global.formData.auditLog.startTime
+                          actionTypeCode: .ActionTypeCode.view
+                          recordTypeCode: 117761
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
                 - goto: ProviderNotes
     - .HeaderPopUpMenu:
   event:

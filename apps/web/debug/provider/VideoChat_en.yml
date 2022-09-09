@@ -12,8 +12,8 @@ VideoChat:
           =.builtIn.math.random: ""
     - actionType: evalObject
       object:
-        - ..cameraOn@: .Global.cameraOn
-        - ..micOn@: .Global.micOn
+        - ..cameraOn@: =.Global.cameraOn
+        - ..micOn@: =.Global.micOn
     - actionType: builtIn
       funcName: videoChat
       roomId: .Global.roomInfoDoc.document.deat.roomID
@@ -27,6 +27,9 @@ VideoChat:
       numberofExtensions: 0
       popUpWaitSeconds: 30
       meetingEndTime: .Global.roomInfo.edge.etime
+    - actionType: builtIn
+      funcName: initConnectTimeout
+      timeoutSeconds: 10
     - if:
         - .builtIn.isAndroid
         - ..isWorkingStethoscope@: block
@@ -265,7 +268,7 @@ VideoChat:
         - actionType: evalObject
           object:
             - ..sendNotification.document.fid@: =.Global.patdAPPID
-            - ..sendNotification.document.eid@: =.Global.currentRoom.edge.id
+            - ..sendNotification.document.eid@: =.Global.roomInfo.edge.id
             - =..sendNotification.docAPI.store: ""
     # - type: register
     #   onEvent: onDisconnect
@@ -333,8 +336,17 @@ VideoChat:
       onEvent: onDisconnect
       actions:
         - actionType: builtIn
+          funcName: hide
+          viewTag: waitForOtherTag
+        - actionType: builtIn
           funcName: show
           viewTag: leftTag
+    - type: register
+      onEvent: showTimeoutPopup
+      actions:
+        - actionType: popUp
+          popUpView: timeoutPopup
+          wait: true
     - type: view
       style:
         left: "0"
@@ -1306,6 +1318,8 @@ VideoChat:
               onClick:
                 - actionType: popUpDismiss
                   popUpView: confirmView
+                - actionType: builtIn
+                  funcName: disconnectMeeting
                 # clear roomDoc
                 - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
                   dataKey: Global.roomInfoDoc.document
@@ -1878,6 +1892,162 @@ VideoChat:
     #               height: "0.07"
     #               backgroundColor: "0x00000088"
     # auto-disconnect last pop up after all extension before exit
+    - type: popUp
+      viewTag: participantDeclined
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: participantDeclined
+        # clear roomDoc
+        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+          dataKey: Global.roomInfoDoc.document
+          dataObject: {}
+        - actionType: builtIn
+          funcName: disconnectMeeting #wangchen 11/20 2021 Keep Open Should not disconnect Meeting
+        - actionType: evalObject
+          object:
+            - .Global.timer@: 0
+            - .Global.micOn@: "true"
+            - .Global.cameraOn@: "true"
+        # TODO add time
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: popUpDismiss
+          popUpView: minimizeVideoChat
+        # - actionType: popUp
+        #   popUpView: minimizeVideoChat #wangchen 11/20 2021 Show minizevideochat before goto
+        - goto: AppointmentLobby
+      children:
+        - type: view
+          style:
+            width: "0.72"
+            marginLeft: "0.14"
+            backgroundColor: "0xf4f3f3"
+            borderRadius: "14px"
+          children:
+            - type: label
+              text: The participant has declined
+              style:
+                marginLeft: "0.069"
+                width: "0.582"
+                color: "#333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                marginTop: "0.0185"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                height: "0.035"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+                width: "0.72"
+            - type: view
+              style:
+                width: "0.72"
+              children:
+                - type: button
+                  text: "OK"
+                  style:
+                    color: "0x007AFF"
+                    backgroundColor: "0xf4f3f3"
+                    display: inline-block
+                    width: "0.72"
+                    borderRadius: "0 0 14px 14px"
+                    fontSize: .Nfont.h14
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick: ____.leftButton
+    - type: popUp
+      viewTag: participantNotAnswer
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        zIndex: "50"
+        textAlign:
+          y: center
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: participantNotAnswer
+        # clear roomDoc
+        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+          dataKey: Global.roomInfoDoc.document
+          dataObject: {}
+        - actionType: builtIn
+          funcName: disconnectMeeting #wangchen 11/20 2021 Keep Open Should not disconnect Meeting
+        - actionType: evalObject
+          object:
+            - .Global.timer@: 0
+            - .Global.micOn@: "true"
+            - .Global.cameraOn@: "true"
+        # TODO add time
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: popUpDismiss
+          popUpView: minimizeVideoChat
+        # - actionType: popUp
+        #   popUpView: minimizeVideoChat #wangchen 11/20 2021 Show minizevideochat before goto
+        - goto: AppointmentLobby
+      children:
+        - type: view
+          style:
+            width: "0.72"
+            marginLeft: "0.14"
+            backgroundColor: "0xf4f3f3"
+            borderRadius: "14px"
+          children:
+            - type: label
+              text: The participant did not answer
+              style:
+                marginLeft: "0.069"
+                width: "0.582"
+                color: "#333333"
+                fontSize: .Nfont.h14
+                lineHeight: "2.58vh"
+                marginTop: "0.0185"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                height: "0.035"
+                border:
+                  style: 2
+                  color: "0x919192"
+                borderWidth: "1"
+                width: "0.72"
+            - type: view
+              style:
+                width: "0.72"
+              children:
+                - type: button
+                  text: "OK"
+                  style:
+                    color: "0x007AFF"
+                    backgroundColor: "0xf4f3f3"
+                    display: inline-block
+                    width: "0.72"
+                    borderRadius: "0 0 14px 14px"
+                    fontSize: .Nfont.h14
+                    height: "0.054"
+                    border:
+                      style: "1"
+                  onClick: ____.leftButton
 
     - type: popUp
       viewTag: exitWarningView
@@ -1969,6 +2139,38 @@ VideoChat:
                   onClick:
                     - actionType: popUpDismiss
                       popUpView: exitWarningView
+    - .Normal:
+      viewTag: timeoutPopup
+      message: "This connection took longer than usual, please check your network connection and re-enter the room."
+      leftText: "Retry"
+      rightText: "Go Back"
+      leftButton:
+        - actionType: refresh
+        - actionType: popUpDismiss
+          popUpView: timeoutPopup
+      rightButton:
+        - actionType: popUpDismiss
+          popUpView: timeoutPopup
+        - actionType: updateObject # updateObject(dataKey, dataObject, dataObjectKey)
+          dataKey: Global.roomInfoDoc.document
+          dataObject: { }
+        - actionType: evalObject
+          object:
+            - .Global.timer@: 0
+            - .Global.micOn@: "true"
+            - .Global.cameraOn@: "true"
+        # TODO add time
+        - actionType: builtIn
+          funcName: disconnectMeeting #wangchen 11/20 2021 Keep Open Should not disconnect Meeting
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+        - actionType: evalObject
+          object:
+            - =.VideoChat.apiRequest.appointment.edgeAPI.get: ""
+            - .Global.roomInfo.edge@: =.VideoChat.apiRequest.appointment.edgeQueryResp.edge.0
+        - goto: AppointmentLobby
                 # - type: view
                 #   style:
                 #     width: "0.002"

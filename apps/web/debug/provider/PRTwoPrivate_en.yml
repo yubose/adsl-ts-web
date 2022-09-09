@@ -6,6 +6,20 @@ PRTwoPrivate:
         dataIn:
         dataOut: Global.formData.auditLog.startTime
     - .Global.formData.lastPage@: ProviderNotes
+    # 判断是否从PatientAmendmentRequest进入
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.unPageName
+              string2: "PatientAmendmentRequest"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "none"
+            - ..formDataTemp.updateBtnShow@: "block"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "block"
+            - ..formDataTemp.updateBtnShow@: "none"
     # 判断本地会议是否有diagnoses存在,存在update,否则create
     - if:
         - =.Global.formData.providerDoc.diagnosesDoc.id
@@ -139,6 +153,53 @@ PRTwoPrivate:
     todayDate: ""
     monthName: ""
   apiRequest: #Input data request here
+    # provider同意修改的email
+    email:
+      docCreateResp: ""
+      docCreateReq:
+        tage: 8
+        eid: ""
+        type: .DocType.InboxMessage
+        reid: .Global.email.esig
+        name:
+          data:
+            # 邮件内容
+            content: ""
+            # 收件人姓名,provider或admin的fullName
+            receiverName: .Global.email.name.data.patientName
+            # 固定，为aitmed系统回复
+            senderName: automatic-reply@aitmed.com
+            # 空，这样可以显示为aitmed-logo
+            senderAvatarId: ""
+            # 被质疑的记录的名字
+            recordName: .Global.email.name.data.recordName
+            # 执行这个操作的人员的fullName，可能是admin，也可能是provider
+            executorName: .Global.MyProfile.name.data.fullName
+            #邮件标题
+          title: Patient Amendment Reply Notification
+          #收件人头像的id
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: PRTwoPrivate.apiRequest.email.docCreateReq
+          dataOut: PRTwoPrivate.apiRequest.email.docCreateResp
+    # provider和patient之间的10002
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.email.bsig
+        xfname: (bvid,evid)|(evid,bvid)
+        obfname: mtime
+        type: .EdgeType.Email
+        maxcount: 1
+      edgeAPI:
+        get:
+          api: re
+          dataIn: PRTwoPrivate.apiRequest.relation.edgeQueryReq
+          dataOut: PRTwoPrivate.apiRequest.relation.edgeQueryResp
     pRTwo:
       docResp: ""
       docReq:
@@ -247,6 +308,10 @@ PRTwoPrivate:
       examDate: ""
       workStatusWay: "0" # work status 三个日期单选框标志
   formDataTemp: #Input data temp here, datatemp should not mix with formData
+    # 控制原逻辑按钮显示
+    originalBtnShow: "block"
+    # 控制更新按钮逻辑显示
+    updateBtnShow: "none"
     allListInfo: []
     allListString: []
     allCodes: []
@@ -272,6 +337,31 @@ PRTwoPrivate:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: .ActionTypeCode.edit
+                      recordTypeCode: .DocType.pRTwo
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      date: =.Global.formData.auditLog.startTime
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formDataTemp.updateBtnShow
+                          string2: "block"
+                    - actionType: popUp
+                      popUpView: judgmentOperation
+                    - actionType: builtIn
+                      funcName: goBack
+                  reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
@@ -2064,7 +2154,7 @@ PRTwoPrivate:
         #           object:
         #             # 更新本地
         #             - .Global.formData.providerDoc.diagnosesDoc@: =..apiRequest.diagnosesDoc.docReq
-        #             - .Global.formData.parentPage@: PROnePrivate
+        #             - .Global.formData.parentPage@: PRTwoPrivate
         #         - actionType: evalObject
         #           object:
         #             - if:
@@ -2219,7 +2309,7 @@ PRTwoPrivate:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: apiRequest.pRTwo.docReq.ctime
+                  dataKey: apiRequest.pRTwo.docReq.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -2317,118 +2407,16 @@ PRTwoPrivate:
       children:
         - type: view
           style:
-            height: auto
-            width: "auto"
+            display: =..formDataTemp.updateBtnShow
           children:
             - .DocButtonPrivate:
+              text: Cancel
               onClick:
-                # 处理Diagnosis
-                - actionType: evalObject
-                  object:
-                    # 同步线上
-                    - =.PRTwoPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
-                    # 更新本地
-                    - .Global.formData.providerDoc.diagnosesDoc@: =.PRTwoPrivate.apiRequest.diagnosesDoc.docResp.doc
-                # 签名处理
-                - actionType: saveSignature
-                  dataObject: BLOB
-                  dataKey: PRTwoPrivate.apiRequest.newSign.docReq.name.data
-                  isEmpty: PRTwoPrivate.formData.whetherSign
-
-                # 保存签名
-                - actionType: evalObject
-                  object:
-                    # 签名reid指向 doc 的id
-                    - ..apiRequest.newSign.docReq.reid@: =.PRTwoPrivate.apiRequest.pRTwo.docReq.id
-
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =..formData.whetherSign
-                        - continue
-                        - =..apiRequest.newSign.docAPI.store: ""
-
-                #  指定 eid 和 reid
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =.builtIn.string.equal:
-                            dataIn:
-                              string1: =.Global.formData.unPageName
-                              string2: ""
-                        - actionType: evalObject
-                          object:
-                            - ..apiRequest.pRTwo.docReq.eid@: =.Global.currentRoom.edge.id
-                            - ..apiRequest.pRTwo.docReq.reid@: =.Global.roomInfo.edge.id
-                        - continue
-
-                # 签名处理
-                - actionType: evalObject
-                  object:
-                    - if:
-                        - =..formData.temporarySignature
-                        - actionType: evalObject
-                          object:
-                            - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..formData.signatureTime
-                            - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..formData.temporarySignature
-                            - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: false
-                            - ..formData.whetherSign@: false
-                        - actionType: evalObject
-                          object:
-                            - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..apiRequest.newSign.docRes.doc.ctime
-                            - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
-                            - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: =..formData.whetherSign
-
-                - actionType: evalObject
-                  object:
-                    - ..apiRequest.pRTwo.docReq.name.data.other@: =..formData.other
-                    - ..apiRequest.pRTwo.docReq.name.data.workStatus@: =..formData.workStatus
-                    - ..apiRequest.pRTwo.docReq.name.data.submitReport@: =..formData.reportList
-
-                #  修改type
-                - actionType: evalObject
-                  object:
-                    - =.builtIn.number.inhx:
-                        dataIn:
-                          intHex: =..apiRequest.pRTwo.docReq.type
-                          index: 1
-                          hex: 0
-                        dataOut: PRTwoPrivate.apiRequest.pRTwo.docReq.type
-
-                # 保存
-                - actionType: evalObject
-                  object:
-                    - =..apiRequest.pRTwo.docAPI.store: ""
-
-                    - =.builtIn.array.add:
-                        dataIn:
-                          object: =.Global.currentMeetingDoc
-                          value: =..apiRequest.pRTwo.docResp.doc
-
-                - actionType: evalObject
-                  object:
-                    .Global._nonce@:
-                      =.builtIn.math.random: ""
-
-                - actionType: evalObject
-                  object:
-                    - =.builtIn.utils.createAuditLog:
-                        dataIn:
-                          actionTypeCode: .ActionTypeCode.edit
-                          recordTypeCode: .DocType.pRTwo
-                          eid: =.Global.formData.currentFacility.relationEdge.id
-                          date: =.Global.formData.auditLog.startTime
-                          user: =.Global.MyProfile.name.data.fullName
-                          userId: =.Global.currentUser.vertex.id
-                          targetUserId: =.Global.formData.auditLog.patientId
-                          accessPort: provider
-                        dataOut: Global.formData.auditLog.result
-
-                - actionType: evalObject
-                  object:
-                    - goto: MoreOptions
+                - actionType: popUp
+                  popUpView: judgmentOperation
 
             - .DocButtonRelease:
+              text: Update & Send
               onClick:
                 # 处理Diagnosis
                 - actionType: evalObject
@@ -2641,10 +2629,384 @@ PRTwoPrivate:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
+                          amendment: Amendment
+                          amendmentId: =.Global.email.esig
                         dataOut: Global.formData.auditLog.result
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                # 邮件逻辑
+                - actionType: evalObject
+                  object:
+                    - actionType: evalObject
+                      async: true
+                      object:
+                        - =..apiRequest.pRTwo.docAPI.store: ""
+                        # 向patient发送accept的邮件
+                        # 获取10002edge
+                        - =..apiRequest.relation.edgeAPI.get: ""
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "Hello,"
+                          - =.Global.MyProfile.name.data.fullName
+                          - " has updated the "
+                          - =.Global.email.name.data.recordName
+                          - "."
+                        dataOut: PRTwoPrivate.apiRequest.email.docCreateReq.name.data.content
+                    - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+                    - =..apiRequest.email.docAPI.store: ""
                 - actionType: popUp
-                  popUpView: dialogueTag
+                  popUpView: successTag
+                  wait: 2000
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - goto: MessageShow
+        - type: view
+          style:
+            display: =..formDataTemp.originalBtnShow
+          children:
+            - type: view
+              style:
+                height: auto
+                width: "auto"
+              children:
+                - .DocButtonPrivate:
+                  onClick:
+                    # 处理Diagnosis
+                    - actionType: evalObject
+                      object:
+                        # 同步线上
+                        - =.PRTwoPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+                        # 更新本地
+                        - .Global.formData.providerDoc.diagnosesDoc@: =.PRTwoPrivate.apiRequest.diagnosesDoc.docResp.doc
+                    # 签名处理
+                    - actionType: saveSignature
+                      dataObject: BLOB
+                      dataKey: PRTwoPrivate.apiRequest.newSign.docReq.name.data
+                      isEmpty: PRTwoPrivate.formData.whetherSign
+
+                    # 保存签名
+                    - actionType: evalObject
+                      object:
+                        # 签名reid指向 doc 的id
+                        - ..apiRequest.newSign.docReq.reid@: =.PRTwoPrivate.apiRequest.pRTwo.docReq.id
+
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =..formData.whetherSign
+                            - continue
+                            - =..apiRequest.newSign.docAPI.store: ""
+
+                    #  指定 eid 和 reid
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.formData.unPageName
+                                  string2: ""
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.pRTwo.docReq.eid@: =.Global.currentRoom.edge.id
+                                - ..apiRequest.pRTwo.docReq.reid@: =.Global.roomInfo.edge.id
+                            - continue
+
+                    # 签名处理
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =..formData.temporarySignature
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..formData.signatureTime
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..formData.temporarySignature
+                                - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: false
+                                - ..formData.whetherSign@: false
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..apiRequest.newSign.docRes.doc.ctime
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                                - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.pRTwo.docReq.name.data.other@: =..formData.other
+                        - ..apiRequest.pRTwo.docReq.name.data.workStatus@: =..formData.workStatus
+                        - ..apiRequest.pRTwo.docReq.name.data.submitReport@: =..formData.reportList
+
+                    #  修改type
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.number.inhx:
+                            dataIn:
+                              intHex: =..apiRequest.pRTwo.docReq.type
+                              index: 1
+                              hex: 0
+                            dataOut: PRTwoPrivate.apiRequest.pRTwo.docReq.type
+
+                    # 保存
+                    - actionType: evalObject
+                      object:
+                        - =..apiRequest.pRTwo.docAPI.store: ""
+
+                        - =.builtIn.array.add:
+                            dataIn:
+                              object: =.Global.currentMeetingDoc
+                              value: =..apiRequest.pRTwo.docResp.doc
+
+                    - actionType: evalObject
+                      object:
+                        .Global._nonce@:
+                          =.builtIn.math.random: ""
+
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.utils.createAuditLog:
+                            dataIn:
+                              actionTypeCode: .ActionTypeCode.edit
+                              recordTypeCode: .DocType.pRTwo
+                              eid: =.Global.formData.currentFacility.relationEdge.id
+                              date: =.Global.formData.auditLog.startTime
+                              user: =.Global.MyProfile.name.data.fullName
+                              userId: =.Global.currentUser.vertex.id
+                              targetUserId: =.Global.formData.auditLog.patientId
+                              targetUser: =.Global.formData.auditLog.patientName
+                              accessPort: provider
+                            dataOut: Global.formData.auditLog.result
+
+                    - actionType: evalObject
+                      object:
+                        - goto: MoreOptions
+
+                - .DocButtonRelease:
+                  onClick:
+                    # 处理Diagnosis
+                    - actionType: evalObject
+                      object:
+                        # 同步线上
+                        - =.PRTwoPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+                        # 更新本地
+                        - .Global.formData.providerDoc.diagnosesDoc@: =.PRTwoPrivate.apiRequest.diagnosesDoc.docResp.doc
+                    # 签名处理
+                    - actionType: saveSignature
+                      dataObject: BLOB
+                      dataKey: PRTwoPrivate.apiRequest.newSign.docReq.name.data
+                      isEmpty: PRTwoPrivate.formData.whetherSign
+
+                    # 保存签名
+                    - actionType: evalObject
+                      object:
+                        # 签名reid指向 doc 的id
+                        - ..apiRequest.newSign.docReq.reid@: =.PRTwoPrivate.apiRequest.pRTwo.docReq.id
+
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =..formData.whetherSign
+                            - continue
+                            - =..apiRequest.newSign.docAPI.store: ""
+
+                    #  指定 eid 和 reid
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =.Global.formData.unPageName
+                                  string2: ""
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.pRTwo.docReq.eid@: =.Global.currentRoom.edge.id
+                                - ..apiRequest.pRTwo.docReq.reid@: =.Global.roomInfo.edge.id
+                            - continue
+
+                    # 签名处理
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =..formData.temporarySignature
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..formData.signatureTime
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..formData.temporarySignature
+                                - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: false
+                                - ..formData.whetherSign@: false
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..apiRequest.newSign.docRes.doc.ctime
+                                - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+                                - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+                    # 判断other
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.array.has:
+                                dataIn:
+                                  object: =..formData.reportList
+                                  value: "Other"
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.other.value
+                                          string2: ""
+                                    - actionType: popUp
+                                      popUpView: unCompleteTag
+                                      wait: true
+                                      popUpDismiss: 2000
+                                    - continue
+                            - continue
+
+                    # 判斷Diagnoses
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.array.getListLength:
+                            dataIn:
+                              object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+                            dataOut: PRTwoPrivate.formData.listDatalength
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..apiRequest.pRTwo.docReq.name.data.diagnosis.isInvolved
+                                  string2: "Yes"
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.listDatalength
+                                          string2: "0"
+                                    - actionType: popUp
+                                      popUpView: unCompleteTag
+                                      wait: true
+                                      popUpDismiss: 2000
+                                    - continue
+                            - continue
+
+                    # 判断Work Status
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.workStatus.workStatusWay
+                                  string2: "1"
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.workStatus.claimsAd.ClaimsAdDate
+                                          string2: ""
+                                    - actionType: popUp
+                                      popUpView: unCompleteTag
+                                      wait: true
+                                      popUpDismiss: 2000
+                                    - continue
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.workStatus.workStatusWay
+                                  string2: "2"
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.workStatus.modifiedWork.modifiedDate
+                                          string2: ""
+                                    - actionType: popUp
+                                      popUpView: unCompleteTag
+                                      wait: true
+                                      popUpDismiss: 2000
+                                    - continue
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.workStatus.restrictions
+                                          string2: ""
+                                    - actionType: popUp
+                                      popUpView: unCompleteTag
+                                      wait: true
+                                      popUpDismiss: 2000
+                                    - continue
+                            - continue
+                        - if:
+                            - =.builtIn.string.equal:
+                                dataIn:
+                                  string1: =..formData.workStatus.workStatusWay
+                                  string2: "3"
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.workStatus.fullDuty.fullDutyDate
+                                          string2: ""
+                                    - actionType: popUp
+                                      popUpView: unCompleteTag
+                                      wait: true
+                                      popUpDismiss: 2000
+                                    - continue
+                            - continue
+
+                    - actionType: evalObject
+                      object:
+                        - ..apiRequest.pRTwo.docReq.name.data.other@: =..formData.other
+                        - ..apiRequest.pRTwo.docReq.name.data.workStatus@: =..formData.workStatus
+                        - ..apiRequest.pRTwo.docReq.name.data.submitReport@: =..formData.reportList
+                    # 未签名警告
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            - =.PRTwoPrivate.formData.whetherSign
+                            - actionType: popUp
+                              popUpView: BaseWarningView
+                              wait: true
+                              popUpDismiss: 2000
+                            - continue
+
+                    #  修改type
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.number.inhx:
+                            dataIn:
+                              intHex: =..apiRequest.pRTwo.docReq.type
+                              index: 1
+                              hex: 1
+                            dataOut: PRTwoPrivate.apiRequest.pRTwo.docReq.type
+                    - actionType: evalObject
+                      object:
+                        - =.builtIn.utils.createAuditLog:
+                            dataIn:
+                              actionTypeCode: .ActionTypeCode.edit
+                              recordTypeCode: .DocType.pRTwo
+                              eid: =.Global.formData.currentFacility.relationEdge.id
+                              date: =.Global.formData.auditLog.startTime
+                              user: =.Global.MyProfile.name.data.fullName
+                              userId: =.Global.currentUser.vertex.id
+                              targetUserId: =.Global.formData.auditLog.patientId
+                              targetUser: =.Global.formData.auditLog.patientName
+                              accessPort: provider
+                            dataOut: Global.formData.auditLog.result
+
+                    - actionType: popUp
+                      popUpView: dialogueTag
 
     - .Normal:
       message: "Do you want the patient to see it?"
@@ -2668,11 +3030,13 @@ PRTwoPrivate:
             .Global._nonce@:
               =.builtIn.math.random: ""
 
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
         - actionType: evalObject
           object:
             - goto: MoreOptions
-        - actionType: popUpDismiss
-          popUpView: dialogueTag
+
       rightButton:
         # 更新文档状态
         - actionType: evalObject
@@ -2697,16 +3061,20 @@ PRTwoPrivate:
             .Global._nonce@:
               =.builtIn.math.random: ""
 
+        - actionType: popUpDismiss
+          popUpView: dialogueTag
+
         - actionType: evalObject
           object:
             - goto: MoreOptions
 
-        - actionType: popUpDismiss
-          popUpView: dialogueTag
-
     - .BaseWarningView:
       message: "Please complete required fields: Search&Description"
       viewTag: SearchWarning
+
+    - .SuccessfulOneLine:
+      message: "Update Successfully!"
+      viewTag: successTag
 
     - .BaseWarningView:
       message: "You haven't signed the form"
@@ -2714,6 +3082,269 @@ PRTwoPrivate:
     - .BaseWarningView:
       viewTag: unCompleteTag
       message: "Please complete the items you selected."
+
+    # 对话弹窗
+    - .Normal:
+      message: "Cancel the changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+      rightButton:
+        # # 处理Diagnosis
+        # - actionType: evalObject
+        #   object:
+        #     # 同步线上
+        #     - =.PRTwoPrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+        #     # 更新本地
+        #     - .Global.formData.providerDoc.diagnosesDoc@: =.PRTwoPrivate.apiRequest.diagnosesDoc.docResp.doc
+        # # 签名处理
+        # - actionType: saveSignature
+        #   dataObject: BLOB
+        #   dataKey: PRTwoPrivate.apiRequest.newSign.docReq.name.data
+        #   isEmpty: PRTwoPrivate.formData.whetherSign
+
+        # # 保存签名
+        # - actionType: evalObject
+        #   object:
+        #     # 签名reid指向 doc 的id
+        #     - ..apiRequest.newSign.docReq.reid@: =.PRTwoPrivate.apiRequest.pRTwo.docReq.id
+
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.whetherSign
+        #         - continue
+        #         - =..apiRequest.newSign.docAPI.store: ""
+
+        # #  指定 eid 和 reid
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =.Global.formData.unPageName
+        #               string2: ""
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.pRTwo.docReq.eid@: =.Global.currentRoom.edge.id
+        #             - ..apiRequest.pRTwo.docReq.reid@: =.Global.roomInfo.edge.id
+        #         - continue
+
+        # # 签名处理
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.temporarySignature
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..formData.signatureTime
+        #             - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..formData.temporarySignature
+        #             - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: false
+        #             - ..formData.whetherSign@: false
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.pRTwo.docReq.name.data.signatureCtime@: =..apiRequest.newSign.docRes.doc.ctime
+        #             - ..apiRequest.pRTwo.docReq.name.data.signatureId@: =..apiRequest.newSign.docRes.doc.id
+        #             - ..apiRequest.pRTwo.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+        # # 判断other
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.array.has:
+        #             dataIn:
+        #               object: =..formData.reportList
+        #               value: "Other"
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..formData.other.value
+        #                       string2: ""
+        #                 - actionType: popUp
+        #                   popUpView: unCompleteTag
+        #                   wait: true
+        #                   popUpDismiss: 2000
+        #                 - continue
+        #         - continue
+
+        # # 判斷Diagnoses
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.array.getListLength:
+        #         dataIn:
+        #           object: =..apiRequest.diagnosesDoc.docReq.name.data.diagnosis.descriptiveList
+        #         dataOut: PRTwoPrivate.formData.listDatalength
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =..apiRequest.pRTwo.docReq.name.data.diagnosis.isInvolved
+        #               string2: "Yes"
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..formData.listDatalength
+        #                       string2: "0"
+        #                 - actionType: popUp
+        #                   popUpView: unCompleteTag
+        #                   wait: true
+        #                   popUpDismiss: 2000
+        #                 - continue
+        #         - continue
+
+        # # 判断Work Status
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =..formData.workStatus.workStatusWay
+        #               string2: "1"
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..formData.workStatus.claimsAd.ClaimsAdDate
+        #                       string2: ""
+        #                 - actionType: popUp
+        #                   popUpView: unCompleteTag
+        #                   wait: true
+        #                   popUpDismiss: 2000
+        #                 - continue
+        #         - continue
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =..formData.workStatus.workStatusWay
+        #               string2: "2"
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..formData.workStatus.modifiedWork.modifiedDate
+        #                       string2: ""
+        #                 - actionType: popUp
+        #                   popUpView: unCompleteTag
+        #                   wait: true
+        #                   popUpDismiss: 2000
+        #                 - continue
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..formData.workStatus.restrictions
+        #                       string2: ""
+        #                 - actionType: popUp
+        #                   popUpView: unCompleteTag
+        #                   wait: true
+        #                   popUpDismiss: 2000
+        #                 - continue
+        #         - continue
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =..formData.workStatus.workStatusWay
+        #               string2: "3"
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..formData.workStatus.fullDuty.fullDutyDate
+        #                       string2: ""
+        #                 - actionType: popUp
+        #                   popUpView: unCompleteTag
+        #                   wait: true
+        #                   popUpDismiss: 2000
+        #                 - continue
+        #         - continue
+
+        # - actionType: evalObject
+        #   object:
+        #     - ..apiRequest.pRTwo.docReq.name.data.other@: =..formData.other
+        #     - ..apiRequest.pRTwo.docReq.name.data.workStatus@: =..formData.workStatus
+        #     - ..apiRequest.pRTwo.docReq.name.data.submitReport@: =..formData.reportList
+        # # 未签名警告
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.PRTwoPrivate.formData.whetherSign
+        #         - actionType: popUp
+        #           popUpView: BaseWarningView
+        #           wait: true
+        #           popUpDismiss: 2000
+        #         - continue
+
+        # #  修改type
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.number.inhx:
+        #         dataIn:
+        #           intHex: =..apiRequest.pRTwo.docReq.type
+        #           index: 1
+        #           hex: 1
+        #         dataOut: PRTwoPrivate.apiRequest.pRTwo.docReq.type
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.utils.createAuditLog:
+        #         dataIn:
+        #           actionTypeCode: .ActionTypeCode.edit
+        #           recordTypeCode: .DocType.pRTwo
+        #           eid: =.Global.formData.currentFacility.relationEdge.id
+        #           date: =.Global.formData.auditLog.startTime
+        #           user: =.Global.MyProfile.name.data.fullName
+        #           userId: =.Global.currentUser.vertex.id
+        #           targetUserId: =.Global.formData.auditLog.patientId
+        # targetUser: =.Global.formData.auditLog.patientName
+        #           accessPort: provider
+        #         dataOut: Global.formData.auditLog.result
+
+        # - actionType: evalObject
+        #   object:
+        #     .Global._nonce@:
+        #       =.builtIn.math.random: ""
+
+        # # 邮件逻辑
+        # - actionType: evalObject
+        #   object:
+        #     - actionType: evalObject
+        #       async: true
+        #       object:
+        #         - =..apiRequest.pRTwo.docAPI.store: ""
+        #         # 向patient发送accept的邮件
+        #         # 获取10002edge
+        #         - =..apiRequest.relation.edgeAPI.get: ""
+        #     - =.builtIn.string.concat:
+        #         dataIn:
+        #           - "Hello,"
+        #           - =.Global.MyProfile.name.data.fullName
+        #           - " has updated the "
+        #           - =.Global.email.name.data.recordName
+        #           - "."
+        #         dataOut: PRTwoPrivate.apiRequest.email.docCreateReq.name.data.content
+        #     - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+        #     - =..apiRequest.email.docAPI.store: ""
+
+        # - actionType: popUpDismiss
+        #   popUpView: judgmentOperation
+
+        # - actionType: popUp
+        #   popUpView: successTag
+        #   wait: 2000
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - goto: MessageShow
 
     - type: popUp
       viewTag: selectInjuryDate

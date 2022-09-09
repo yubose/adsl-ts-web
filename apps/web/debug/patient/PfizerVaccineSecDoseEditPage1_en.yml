@@ -10,6 +10,9 @@ PfizerVaccineSecDoseEditPage1:
         - actionType: evalObject
           object:
             - ..apiRequest.pifzerVaccineSecDoseForm.docReq.name.data@: =.VaccineFormDM.pifzerVaccineSecDoseFormDM
+            - ..apiRequest.pifzerVaccineSecDoseForm.docReq.name.data.userInfo@:
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
             - ..apiRequest.pifzerVaccineSecDoseForm.docReq.name.data.patientInfo.fullName@: =.Global.Profile.name.data.basicInfo.fullName
             - =..apiRequest.pifzerVaccineSecDoseForm.docAPI.store: ""
             - .Global.formData.pifzerVaccineSecDoseForm@: =..apiRequest.pifzerVaccineSecDoseForm.docResp.doc
@@ -51,6 +54,9 @@ PfizerVaccineSecDoseEditPage1:
           title: "Pfizer-BioNTech Vaccine - Second Dose"
           user: .Global.Profile.name.data.basicInfo.fullName
           type: "application/json"
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
       docAPI:
         store:
           api: cd

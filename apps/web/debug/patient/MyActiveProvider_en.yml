@@ -51,6 +51,8 @@ MyActiveProvider:
           docList: =..formData.providerList
           path: bsig
         dataOut: MyActiveProvider.formData.providerList
+    # 根据与何静商量，not remind在此处置为false以便于下一个页面关于admin更改patient profile弹框的弹出判断。
+    - .Global.formData.meetingStatus.notRemind@: false
   apiRequest:
     # get all facilitys which provider belongs to
     facility:
@@ -84,16 +86,19 @@ MyActiveProvider:
     # 获取所有和patient是好友的facility
     facilityConnections:
       facilityConList: ""
+      docQueryReq:
+        type: 271361
+        xfname: E.bvid|E.evid
+        id: .Global.currentUser.vertex.id
+        ObjType: 12
+        sCondition: E.type=10002 AND E.tage>0 AND E.subtype&0xff0000=0x20000 #accept tage=1
+        _nonce: =.Global._nonce
       docAPI:
         get:
           api: rd
-          type: 271361
-          xfname: E.bvid|E.evid
-          id: .Global.currentUser.vertex.id
-          ObjType: 12
+          dataIn: MyActiveProvider.apiRequest.facilityConnections.docQueryReq
           dataOut: MyActiveProvider.apiRequest.facilityConnections.facilityConList
-          sCondition: E.type=10002 AND E.tage>0 #accept tage=1
-          _nonce: =.Global._nonce
+          
   formData:
     currentTab: []
     providerList: []

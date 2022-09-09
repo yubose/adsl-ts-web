@@ -2,70 +2,72 @@ MyConnection:
   title: My Connection #"My Health Network"
   init:
     - .SignInCheck
+    - =.builtIn.fetch:
+        dataIn: http://localhost:3000/all-providers?limit=25
+        dataOut: MyConnection.formData.allProviders
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-    - actionType: evalObject
-      object:
-        - actionType: evalObject
-          async: true
-          object:
-            - =..newConnection.edgeAPI.get: ""
-            - =..connection.docAPI.get: ""
-            - =..apiRequest.facilityConnections.docAPI.get: ""
-    - =.builtIn.array.getListLength:
-        dataIn:
-          object: =..newConnection.newConnectionList.edge
-        dataOut: MyConnection.formData.newConnectionLength
-    - if:
-        - =.builtIn.string.equal:
-            dataIn:
-              string1: =..formData.newConnectionLength
-              string2: "0"
-        - ..connectionHidden@: "true"
-        - ..connectionHidden@: "false"
-    - =.builtIn.array.keepLatestDoc:
-        dataIn:
-          docList: =..connection.connectionList.doc
-          path: bsig
-        dataOut: MyConnection.connection.connectionList.doc
-    - =.builtIn.object.setProperty:
-        dataIn:
-          obj: =..formDataTemp.titleData
-          label: "title"
-          text: .Global.providerOrFacility
-          arr: ["fontColor", "fontWeight", "block"]
-          valueArr: ["0x2988e6", "500", "block"]
-          errorArr: ["0x666666", "400", "none"]
-        dataOut: MyConnection.formDataTemp.titleData
-    - if:
-        - =.builtIn.string.equal:
-            dataIn:
-              string1: =.Global.providerOrFacility
-              string2: "Providers"
-        - actionType: evalObject
-          object:
-            - ..showList@: =..connection.connectionList.doc
-            - ..searchArray@: =..formDataTemp.searchArray.provider
-            - ..localSearchQ@: =..apiRequest.localSearchProvider.connectionList.get
-            - ..formDataTemp.providerDisplayView@: "block"
-            - ..formDataTemp.facilityDisplayView@: "none"
-        - continue
-    - if:
-        - =.builtIn.string.equal:
-            dataIn:
-              string1: =.Global.providerOrFacility
-              string2: "Medical Facilities"
-        - actionType: evalObject
-          object:
-            - ..showList@: =..apiRequest.facilityConnections.connectionList.doc
-            - ..searchArray@: =..formDataTemp.searchArray.Facility
-            - ..localSearchQ@: =..apiRequest.localSearchFacility.connectionList.get
-            - ..formDataTemp.providerDisplayView@: "none"
-            - ..formDataTemp.facilityDisplayView@: "block"
-        - continue
-
+    # - actionType: evalObject
+    #   object:
+    #     - actionType: evalObject
+    #       async: true
+    #       object:
+    #         - =..newConnection.edgeAPI.get: ""
+    #         - =..connection.docAPI.get: ""
+    #         - =..apiRequest.facilityConnections.docAPI.get: ""
+    # - =.builtIn.array.getListLength:
+    #     dataIn:
+    #       object: =..newConnection.newConnectionList.edge
+    #     dataOut: MyConnection.formData.newConnectionLength
+    # - if:
+    #     - =.builtIn.string.equal:
+    #         dataIn:
+    #           string1: =..formData.newConnectionLength
+    #           string2: "0"
+    #     - ..connectionHidden@: "true"
+    #     - ..connectionHidden@: "false"
+    # - =.builtIn.array.keepLatestDoc:
+    #     dataIn:
+    #       docList: =..connection.connectionList.doc
+    #       path: bsig
+    #     dataOut: MyConnection.connection.connectionList.doc
+    # - =.builtIn.object.setProperty:
+    #     dataIn:
+    #       obj: =..formDataTemp.titleData
+    #       label: "title"
+    #       text: .Global.providerOrFacility
+    #       arr: ["fontColor", "fontWeight", "block"]
+    #       valueArr: ["0x2988e6", "500", "block"]
+    #       errorArr: ["0x666666", "400", "none"]
+    #     dataOut: MyConnection.formDataTemp.titleData
+    # - if:
+    #     - =.builtIn.string.equal:
+    #         dataIn:
+    #           string1: =.Global.providerOrFacility
+    #           string2: "Providers"
+    #     - actionType: evalObject
+    #       object:
+    #         - ..showList@: =..connection.connectionList.doc
+    #         - ..searchArray@: =..formDataTemp.searchArray.provider
+    #         - ..localSearchQ@: =..apiRequest.localSearchProvider.connectionList.get
+    #         - ..formDataTemp.providerDisplayView@: "block"
+    #         - ..formDataTemp.facilityDisplayView@: "none"
+    #     - continue
+    # - if:
+    #     - =.builtIn.string.equal:
+    #         dataIn:
+    #           string1: =.Global.providerOrFacility
+    #           string2: "Medical Facilities"
+    #     - actionType: evalObject
+    #       object:
+    #         - ..showList@: =..apiRequest.facilityConnections.connectionList.doc
+    #         - ..searchArray@: =..formDataTemp.searchArray.Facility
+    #         - ..localSearchQ@: =..apiRequest.localSearchFacility.connectionList.get
+    #         - ..formDataTemp.providerDisplayView@: "none"
+    #         - ..formDataTemp.facilityDisplayView@: "block"
+    #     - continue
   medicalHidden: "true"
   connectionHidden: "true"
   # get all facility profile
@@ -968,7 +970,7 @@ MyConnection:
       style:
         height: "0.82"
         backgroundColor: "0xffffff"
-        display: none
+        display: block
         top: "0.1477832"
         width: "1"
         zIndex: "100"
@@ -1010,6 +1012,7 @@ MyConnection:
             height: "auto"
             # overflow: scroll
             margin: "0"
+            display: none
           children:
             - type: listItem
               itemObject: ""
@@ -1082,7 +1085,7 @@ MyConnection:
             overflowX: hidden
           children:
             - type: listItem
-              itemObject:
+              itemObject: ''
               style:
                 width: "1"
                 height: "auto"

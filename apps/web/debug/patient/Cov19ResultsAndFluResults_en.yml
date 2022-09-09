@@ -152,7 +152,7 @@ Cov19ResultsAndFluResults:
                 - .DocPublicStyleOneLeft:
                   text: "Main #"
                 - .DocPublicStyleOneRight:
-                  dataKey: formData.name.data.facilityInfo.facilityName
+                  dataKey: formData.name.data.facilityInfo.phoneNumber
             - .DocPublicStyleOneBox:
               children:
                 - .DocPublicStyleOneLeft:

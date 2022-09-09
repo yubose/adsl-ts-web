@@ -8,7 +8,7 @@ SuccessfulOneLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   onClick:
@@ -54,7 +54,7 @@ SuccessfulMultiLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   onClick:
@@ -99,7 +99,7 @@ Tip:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "100"
+    zIndex: "1100"
     textAlign:
       y: center
   leftText: "No"
@@ -168,7 +168,7 @@ Tip:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: ____.rightText
               style:
@@ -194,7 +194,7 @@ SuccessfulTitleMultiLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   onClick:
@@ -297,7 +297,7 @@ TipsMultiLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   onClick:
@@ -344,7 +344,7 @@ TipsTitleMultiLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   onClick:
@@ -470,7 +470,7 @@ publicDeleteUP:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Confirm"
               style:
@@ -578,7 +578,7 @@ warnDialogue:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Confirm"
               style:
@@ -670,7 +670,7 @@ Normal:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: ____.rightText
               style:
@@ -695,7 +695,7 @@ Success:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   leftButton:
@@ -762,7 +762,7 @@ Success:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Confirm"
               style:
@@ -787,7 +787,7 @@ Warning:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   leftButton:
@@ -881,7 +881,7 @@ Warning:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Confirm"
               style:
@@ -905,7 +905,7 @@ SoftTips:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   onClick:
@@ -945,7 +945,7 @@ SoftTipsEmphasisMultiLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   onClick:
@@ -1022,7 +1022,7 @@ InputPopUp:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   leftButton:
@@ -1096,7 +1096,7 @@ InputPopUp:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Confirm"
               style:
@@ -1121,7 +1121,7 @@ InputMultiLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   leftButton:
@@ -1207,7 +1207,7 @@ InputMultiLine:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Yes"
               style:
@@ -1232,7 +1232,7 @@ InviteOneorMultLine:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   leftButton:
@@ -1345,7 +1345,7 @@ InviteOneorMultLine:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Confirm"
               style:
@@ -1371,7 +1371,7 @@ InvitePhone:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
   leftButton:
@@ -1454,7 +1454,7 @@ InvitePhone:
                 backgroundColor: "0x919192"
                 display: inline-block
                 height: "0.054"
-                zIndex: "50"
+                zIndex: "5000"
             - type: button
               text: "Confirm"
               style:
@@ -1481,7 +1481,7 @@ HelloPerson:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
       x: center
@@ -1588,7 +1588,7 @@ TwoChoices:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
   children:
     - type: view
       style:
@@ -1621,7 +1621,7 @@ TwoChoices:
             width: "0.9"
             height: "0.001"
             backgroundColor: "0x00000066"
-            zIndex: "100"
+            zIndex: "1100"
         - type: button
           text: ___.choice2Text
           style:
@@ -1689,7 +1689,7 @@ ThreeChoices:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
   children:
     - type: view
       style:
@@ -1721,7 +1721,7 @@ ThreeChoices:
           style:
             width: "0.9"
             height: "0.001"
-            zIndex: "100"
+            zIndex: "1100"
             backgroundColor: "0x00000066"
         - type: button
           text: ___.choice2Text
@@ -1743,7 +1743,7 @@ ThreeChoices:
             width: "0.9"
             height: "0.001"
             backgroundColor: "0x00000066"
-            zIndex: "100"
+            zIndex: "1100"
         - type: button
           text: ___.choice3Text
           style:
@@ -1799,7 +1799,7 @@ SecondConfirmation:
     width: "1"
     height: "1"
     backgroundColor: "0x00000066"
-    zIndex: "50"
+    zIndex: "5000"
     textAlign:
       y: center
       x: center

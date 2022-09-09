@@ -3,16 +3,20 @@ PatientChart:
   title: "Patient Chart"
   init:
     - .SignInCheck
-    - =.builtIn.utils.createAuditLog:
+
+    # 处理patientid
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.roomInfo.edge.evid
+              string2: =.Global.roomInfo.edge.name.providerId
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.bvid
+        - .Global.formData.auditLog.patientId@: =.Global.roomInfo.edge.evid
+
+    - .Global.formData.auditLog.patientName@: =.Global.roomInfo.edge.name.patientName
+    - =.builtIn.date.currentDateTime:
         dataIn:
-          actionTypeCode: .ActionTypeCode.view
-          recordTypeCode: 25601
-          eid: =.Global.formData.currentFacility.relationEdge.id
-          user: =.Global.MyProfile.name.data.fullName
-          userId: =.Global.currentUser.vertex.id
-          targetUserId: =.Global.formData.auditLog.patientId
-          accessPort: provider
-        dataOut: Global.formData.auditLog.result
+        dataOut: Global.formData.auditLog.startTime
     # 判断是否为 related app
     - if:
         - =.Global.formData.isisRelatedApp
@@ -413,6 +417,25 @@ PatientChart:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      date: =.Global.formData.auditLog.startTime
+                      actionTypeCode: .ActionTypeCode.view
+                      recordTypeCode: 25601
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+            - actionType: builtIn
+              funcName: goBack
+              reload: true
+
         - .BasePublicHeaderTitle:
     - type: scrollView
       style:

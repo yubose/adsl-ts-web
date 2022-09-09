@@ -1,0 +1,3 @@
+Test3:
+  components: 
+    .Test.apiRequest.getJson.resp.doc.0.name.data

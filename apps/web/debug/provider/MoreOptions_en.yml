@@ -76,6 +76,7 @@ MoreOptions:
   formData:
     currentPageName: ""
   formDataTemp:
+    pageArr: ["UnfinishProviderNotes", "PatientAmendmentRequest"]
     checkArr:
       ["RecommendationShared", "SelectRecommendation", "SuperbillReview"]
     menuList:
@@ -278,12 +279,12 @@ MoreOptions:
           popUpView: warnDialogueTag
         - actionType: evalObject
           object:
-            # 判断是否从unfinishProvidersn进入
+            # 判断是否从unfinishProvidersn PatientAmendmentRequest进入
             - if:
-                - =.builtIn.string.equal:
+                - =.builtIn.array.has:
                     dataIn:
-                      string1: =.Global.formData.unPageName
-                      string2: "UnfinishProviderNotes"
+                      object: =..formData.pageArr
+                      value: =.Global.formData.unPageName
                 - .Global.formData.lastPage@: =.Global.formData.unPageName
                 - continue
         - actionType: evalObject

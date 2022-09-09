@@ -81,6 +81,9 @@ FluVaccinationConsentFormEditPage1:
                 - =.Global.roomInfo.edge.stime
                 - ..apiRequest.fluVaccinationConsentForm.docReq.name.data.patientInfo.examDate@: =.Global.roomInfo.edge.stime
                 - ..apiRequest.fluVaccinationConsentForm.docReq.name.data.patientInfo.examDate@: =.Global.clock.stime
+            - ..apiRequest.fluVaccinationConsentForm.docReq.name.data.userInfo@: 
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
             - ..apiRequest.fluVaccinationConsentForm.docReq.name.data.patientInfo.patientName@: =.Global.Profile.name.data.basicInfo.fullName
             - ..apiRequest.fluVaccinationConsentForm.docReq.name.data.patientInfo.dob@: =.Global.Profile.name.data.basicInfo.dateOfBirth
             - ..apiRequest.fluVaccinationConsentForm.docReq.name.data.patientInfo.phone@: =.Global.Profile.name.data.basicInfo.phone
@@ -129,6 +132,7 @@ FluVaccinationConsentFormEditPage1:
         eid: .Global.rootNotebookID
         type: .DocType.FluVaccinationConsent
         subtype:
+          isEncrypted: "1"
           mediaType: "application/json"
         name:
           data:

@@ -1,0 +1,1024 @@
+PatientAmendmentRequest:
+  title: Patient Amendment Request
+  pageNumber:
+  init:
+    - =.builtIn.date.getTime:
+        dataIn:
+        dataOut: PatientAmendmentRequest.apiRequest.patAmendmentDoc.docReq.name.data.requestDate
+    # - if:
+    #     - =.Global.formData.patientAmendmentForm.id
+    #     - actionType: evalObject
+    #       object:
+    #         - ..apiRequest.patAmendmentDoc.docReq@: =.Global.formData.patientAmendmentForm
+    #     - continue
+    # 判断是否签名
+    # - if:
+    #     - =..apiRequest.patAmendmentDoc.docReq.name.data.whetherSign
+    #     - continue
+    #     - actionType: evalObject
+    #       object:
+    #         - ..formData.signatureTime@: =..apiRequest.patAmendmentDoc.docReq.name.data.signatureTime
+    #         - ..formData.temporarySignature@: =..apiRequest.patAmendmentDoc.docReq.name.data.signatureId
+    #         - ..formData.flag@: "block"
+
+    # 控制email
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.Profile.name.data.contactInfo.email
+              string2: ""
+        - actionType: evalObject
+          object:
+            - ..apiRequest.patAmendmentDoc.docReq.name.data.email@: ""
+        - actionType: evalObject
+          object:
+            - ..apiRequest.patAmendmentDoc.docReq.name.data.email@: =.Global.Profile.name.data.contactInfo.email
+  formData:
+    flag: "none"
+    temporarySignature: ""
+    signatureTime: ""
+    whetherSign: ""
+    errorArr: []
+
+    inputShow: "block"
+    lableShow: "none"
+  formDataTemp:
+    questionTemp:
+      - key: isQuestion
+        value: "Yes"
+      - key: isQuestion
+        value: "No"
+  apiRequest:
+    # patient与provider notes持有者之间的10002
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.Note.bsig
+        xfname: (bvid,evid)|(evid,bvid)
+        type: .EdgeType.Email
+        maxcount: 1
+        obfname: mtime
+      edgeAPI:
+        get:
+          api: re
+          dataIn: PatientAmendmentRequest.apiRequest.relation.edgeQueryReq
+          dataOut: PatientAmendmentRequest.apiRequest.relation.edgeQueryResp
+    email:
+      docCreateResp: ""
+      docCreateReq:
+        # patient和admin/provider之间的10002edge
+        tage: 4
+        eid: ""
+        type: .DocType.InboxMessage
+        reid: ""
+        name:
+          data:
+            # patient的fullName
+            patientName: .Global.Profile.name.data.basicInfo.fullName
+            # 被质疑的记录的名字
+            recordName: .Global.Note.name.title
+            # 会议的时间
+            appointmentTime: ""
+            # 邮件内容
+            content: ""
+            # 收件人姓名,provider或admin的fullName
+            receiverName: ""
+            # 固定，为aitmed系统回复
+            senderName: automatic-reply@aitmed.com
+            # 空，这样可以显示为默认头像
+            senderAvatarId: ""
+          #邮件标题
+          title: Patient Amendment Request Notification
+          #收件人头像的id
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientAmendmentRequest.apiRequest.email.docCreateReq
+          dataOut: PatientAmendmentRequest.apiRequest.email.docCreateResp
+    patAmendmentDoc:
+      docResp: ""
+      docReq:
+        eid: .Global.currentRoomInfo.edge.id
+        type: .DocType.PatientAmendment
+        reid: .Global.currentRoomInfo.edge.id
+        fid: .Global.Note.id
+        name:
+          data:
+            classTag:
+              name: Patient
+              fontColor: "0xf8ae29"
+              backgroundColor: "0xfff4e0"
+              display: block
+            statusTag:
+              display: none
+            patientInfo:
+              examDate: .Global.roomInfo.edge.stime
+              patientName: .Global.Profile.name.data.basicInfo.fullName
+              dob: .Global.Profile.name.data.basicInfo.dateOfBirth
+              phone: .Global.Profile.name.data.basicInfo.phone
+              address: .Global.Profile.name.data.contactInfo.address.fullAddress
+            email: ""
+            amended: ""
+            reason: ""
+            records: ""
+            question:
+              isQuestion: ""
+              show: "none"
+              content: ""
+            signatureId: ""
+            signatureTime: ""
+            requestDate: ""
+            whetherSign: true
+          user: .Global.Profile.name.data.basicInfo.fullName
+      docAPI:
+        store:
+          api: cd
+          dataIn: PatientAmendmentRequest.apiRequest.patAmendmentDoc.docReq
+          dataOut: PatientAmendmentRequest.apiRequest.patAmendmentDoc.docResp
+    newSign:
+      docResp: ""
+      docReq: #DOC
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.docReq.subtype.mediaType
+          data: ""
+        eid: .Global.currentRoomInfo.edge.id
+        subtype:
+          mediaType: ""
+      docAPI: # DOCAPI
+        store:
+          api: cd
+          dataIn: PatientAmendmentRequest.apiRequest.newSign.docReq
+          dataOut: PatientAmendmentRequest.apiRequest.newSign.docResp
+  components:
+    - .BasePublicHeader:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: evalObject
+                object:
+                  - .Global.formData.patientAmendmentForm@: ""
+              - actionType: popUp
+                popUpView: judgmentOperation
+          - .BasePublicHeaderTitle:
+    - type: scrollView
+      style:
+        ..style.scrollBox:
+      children:
+        - type: view
+          style:
+            ..style.blockBox:
+          children:
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Exam Date
+                - .DocPublicStyleTwoRight:
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.patientInfo.examDate
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Patient Name
+                - .DocPublicStyleTwoRight:
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.patientInfo.patientName
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: Date of Birth
+                - .DocPublicStyleTwoRight:
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.patientInfo.dob
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Phone #"
+                - .DocPublicStyleTwoRight:
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.patientInfo.phone
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Patient Address"
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.patientInfo.address
+                  style:
+                    ..style.addressLabel:
+                    width: "0.92"
+                    color: "#333333"
+                    fontSize: .Nfont.h14
+            - .DocPublicStyleTwoBox:
+              children:
+                - .DocPublicStyleTwoLeft:
+                  text: "Email"
+                  style:
+                    fontWeight: "600"
+                    fontSize: .Nfont.h14
+                    verticalAlign: middle
+                    color: "#333333"
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.email
+                  style:
+                    ..style.emailInput:
+
+        - type: view
+          style:
+            ..style.blockBox:
+          children:
+            - type: label
+              textBoard:
+                - text: "1. Description of the information/statement you are requesting to be amended"
+                  fontWeight: "600"
+                - text: "(e.g., health record, lab results):"
+              style:
+                ..style.firstLevelTitle:
+            - type: textView
+              placeholder: Enter here
+              dataKey: apiRequest.patAmendmentDoc.docReq.name.data.amended
+              style:
+                ..style.thirdInput:
+            - type: label
+              textBoard:
+                - text: "2. What is the reason for requesting this amendment "
+                  fontWeight: "600"
+                - text: "(*Is the information inaccurate, incomplete, irrelevant, or untimely)."
+              style:
+                ..style.firstLevelTitle:
+            - type: textView
+              placeholder: Enter here
+              dataKey: apiRequest.patAmendmentDoc.docReq.name.data.reason
+              style:
+                ..style.thirdInput:
+            - type: label
+              text: "3. How should the records be stated, *please specify in writing below."
+              style:
+                ..style.firstLevelTitle:
+                  fontWeight: "600"
+            - type: label
+              text: "Example 1: Please change statement XYZ to the statement ABC"
+              dataKey:
+              style:
+                fontSize: .Nfont.h14
+                width: "0.92"
+            - type: label
+              text: "Example 2: Please delete the entire statement from my health record"
+              dataKey:
+              style:
+                fontSize: .Nfont.h14
+                width: "0.92"
+            - type: textView
+              placeholder: Enter here
+              dataKey: apiRequest.patAmendmentDoc.docReq.name.data.records
+              style:
+                ..style.thirdInput:
+            - type: label
+              text: "4. Do you know of anyone who may have received or relied on the information in question? "
+              style:
+                ..style.firstLevelTitle:
+                fontWeight: "600"
+
+            - type: list
+              contentType: listObject
+              listObject: ..formDataTemp.questionTemp
+              iteratorVar: itemObject
+              androidGrid: true
+              viewTag: isQuestionTag
+              style:
+                ..style.selectList:
+              children:
+                - type: listItem
+                  itemObject:
+                  style:
+                    ..style.selectListItem:
+                  children:
+                    - type: image
+                      path:
+                        ..event.raidoPath:
+                      style:
+                        ..style.itemImg:
+                      onClick:
+                        - ..event.renderClick
+                    - type: label
+                      text:
+                      dataKey: itemObject.value
+                      style:
+                        ..style.itemValue:
+
+            - type: view
+              viewTag: isQuestionTag
+              style:
+                ..style.blockBox:
+                display: =..apiRequest.patAmendmentDoc.docReq.name.data.question.show
+              children:
+                - type: label
+                  text: "If yes, who?"
+                  dataKey:
+                  style:
+                    fontSize: .Nfont.h14
+                    marginTop: "0.022167"
+                - type: textField
+                  placeholder: Enter here
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.question.content
+                  style:
+                    ..style.input:
+            - type: label
+              text: "Signature of Patient"
+              dataKey:
+              style:
+                marginTop: "0.027093"
+                fontWeight: "600"
+                fontSize: .Nfont.h14
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Click on the signature box below to finger sign
+                  dataKey:
+                  style:
+                    ..style.signatureTitle:
+                - type: label
+                  text: Clear
+                  style:
+                    ..style.clearTitle:
+                  onClick:
+                    - ..event.clearClick
+        - type: view
+          style:
+            ..style.canvasBox:
+          children:
+            - type: label
+              text: X
+              style:
+                .SignLabelStyle:
+            - type: canvas
+              dataKey: PatientAmendmentRequest.apiRequest.newSign.docReq.name.data
+              viewTag: signatureTag
+              style:
+                ..style.canvas:
+            # 显示暂存的签名
+            - type: image
+              viewTag: signatureShowTag
+              path=func: .builtIn.utils.prepareDocToPath
+              # 传入签名文档的id
+              dataKey: PatientAmendmentRequest.formData.temporarySignature
+              style:
+                ..style.canvasImg:
+                display: =..formData.flag
+        - type: view
+          style:
+            ..style.timeBox:
+          children:
+            - type: view
+              viewTag: signatureTimeTag
+              style:
+                ..style.signatureTimeBox:
+                display: ..formData.flag
+              children:
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.signatureTime
+                  style:
+                    ..style.signatureTime:
+                - type: label
+                  text: "Digitally Signed"
+                  dataKey:
+                  style:
+                    ..style.digitally:
+            - type: view
+              style:
+                ..style.dateView:
+              children:
+                - type: label
+                  text: Request Date
+                  style:
+                    ..style.dateLabel:
+                - type: label
+                  text=func: .builtIn.string.formatUnixtimeL_en
+                  dataKey: apiRequest.patAmendmentDoc.docReq.name.data.requestDate
+                  style:
+                    ..style.dateCtime:
+        - type: view
+          style:
+            marginTop: "0.03"
+    - type: view
+      style:
+        ..style.btnBox:
+      children:
+        - type: view
+          style:
+            ..style.auto:
+          children:
+            - .DocButtonPrivate:
+              text: Cancel
+              onClick:
+                - ..event.cancelClick
+
+            - .DocButtonRelease:
+              text: Send
+              onClick:
+                - ..event.sendClick
+    # 弹窗区域
+    - .Normal:
+      message: "Cancel the changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+      rightButton:
+        # # 签名处理
+        # - actionType: saveSignature
+        #   dataObject: BLOB
+        #   dataKey: PatientAmendmentRequest.apiRequest.newSign.docReq.name.data
+        #   isEmpty: PatientAmendmentRequest.formData.whetherSign
+        # # 保存签名
+        # - actionType: evalObject
+        #   object:
+        #     - ..apiRequest.newSign.docReq.reid@: =.PatientAmendmentRequest.apiRequest.patAmendmentDoc.docReq.id
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.whetherSign
+        #         - continue
+        #         - =..apiRequest.newSign.docAPI.store: ""
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =..formData.temporarySignature
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureTime@: =..formData.signatureTime
+        #             - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureId@: =..formData.temporarySignature
+        #             - ..apiRequest.patAmendmentDoc.docReq.name.data.whetherSign@: false
+        #             - ..formData.whetherSign@: false
+        #         - actionType: evalObject
+        #           object:
+        #             - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureTime@: =..apiRequest.newSign.docResp.doc.ctime
+        #             - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureId@: =..apiRequest.newSign.docResp.doc.id
+        #             - ..apiRequest.patAmendmentDoc.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.PatientAmendmentRequest.formData.whetherSign
+        #         - actionType: popUp
+        #           popUpView: BaseWarningView
+        #           wait: true
+        #           popUpDismiss: 2000
+        #         - continue
+
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.array.judgeKeyAndReturnValue:
+        #         dataIn:
+        #           objArr:
+        #             - key: " 1"
+        #               value: =..apiRequest.patAmendmentDoc.docReq.name.data.amended
+        #             - key: " 2"
+        #               value: =..apiRequest.patAmendmentDoc.docReq.name.data.reason
+        #             - key: " 3"
+        #               value: =..apiRequest.patAmendmentDoc.docReq.name.data.records
+        #             - key: " 4"
+        #               value: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+        #           pathKey: "key"
+        #           pathValue: "value"
+        #           valueArr: ["", "Select"]
+        #         dataOut: PatientAmendmentRequest.formData.errorArr
+
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.string.equal:
+        #             dataIn:
+        #               string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+        #               string2: "Yes"
+        #         - actionType: evalObject
+        #           object:
+        #             - if:
+        #                 - =.builtIn.string.equal:
+        #                     dataIn:
+        #                       string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.content
+        #                       string2: ""
+        #                 - =.builtIn.array.judgeKeyAndReturnValue:
+        #                     dataIn:
+        #                       objArr:
+        #                         - key: " 1"
+        #                           value: =..apiRequest.patAmendmentDoc.docReq.name.data.amended
+        #                         - key: " 2"
+        #                           value: =..apiRequest.patAmendmentDoc.docReq.name.data.reason
+        #                         - key: " 3"
+        #                           value: =..apiRequest.patAmendmentDoc.docReq.name.data.records
+        #                         - key: " 4"
+        #                           value: =..apiRequest.patAmendmentDoc.docReq.name.data.question.content
+        #                       pathKey: "key"
+        #                       pathValue: "value"
+        #                       valueArr: ["", "Select"]
+        #                     dataOut: PatientAmendmentRequest.formData.errorArr
+
+        #                 - continue
+        #         - continue
+        # - actionType: builtIn
+        #   funcName: redraw
+        #   viewTag: formCheckPopup
+
+        # - actionType: evalObject
+        #   object:
+        #     - if:
+        #         - =.builtIn.string.judgeFillinAll:
+        #             dataIn:
+        #               - =..apiRequest.patAmendmentDoc.docReq.name.data.email
+        #               - =..apiRequest.patAmendmentDoc.docReq.name.data.amended
+        #               - =..apiRequest.patAmendmentDoc.docReq.name.data.records
+        #               - =..apiRequest.patAmendmentDoc.docReq.name.data.reason
+        #               - =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+        #         - actionType: popUp
+        #           popUpView: formCheckPopup
+        #           wait: true
+        #           popUpDismiss: 2000
+        #         - continue
+
+        # - actionType: evalObject
+        #   object:
+        #     - =.PatientAmendmentRequest.apiRequest.patAmendmentDoc.docAPI.store: ""
+        #     - .Global.formData.patientAmendmentForm@: =..apiRequest.patAmendmentDoc.docResp.doc
+        # - actionType: popUpDismiss
+        #   popUpView: judgmentOperation
+        # - actionType: popUp
+        #   popUpView: successTag
+        #   wait: true
+        #   popUpDismiss: 2000
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
+
+    - .BaseWarningView:
+      viewTag: BaseWarningView
+      message: "You haven't signed the form"
+    - .SuccessfulOneLine:
+      message: "Send Successfully!"
+      viewTag: successTag
+
+    - type: popUp
+      viewTag: formCheckPopup
+      style:
+        top: "0"
+        left: "0"
+        width: "1"
+        height: "1"
+        backgroundColor: "0x00000066"
+        zIndex: "200"
+        textAlign:
+          y: center
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: __.viewTag
+      children:
+        - type: view
+          style:
+            width: "0.6"
+            marginLeft: "0.2"
+            backgroundColor: "0xE6E6E6"
+            borderRadius: "14px"
+            textAlign:
+              x: center
+          children:
+            - type: image
+              path: aboutRed.svg
+              style:
+                marginTop: "0.029"
+                width: "0.13"
+            - type: label
+              textBoard:
+                - text: "Please fill out the required fields: "
+                - text: ""
+                  dataKey: formData.errorArr
+              style:
+                width: "0.55"
+                marginLeft: "0.025"
+                marginTop: "0.01"
+                fontSize: .Nfont.h14
+
+                lineHeight: 2.58vh
+                textAlign:
+                  x: center
+                color: "0x333333"
+            - type: view
+              style:
+                height: "0.029"
+  event:
+    raidoPath:
+      emit:
+        dataKey:
+          var: itemObject
+        actions:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+                    string2: $var.value
+              - radioOn.svg
+              - radioOff.svg
+    renderClick:
+      - emit:
+          dataKey:
+            var: itemObject
+          actions:
+            - if:
+                - =.builtIn.string.equal:
+                    dataIn:
+                      string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+                      string2: $var.value
+                - continue
+                - =.builtIn.object.set:
+                    dataIn:
+                      object: =..apiRequest.patAmendmentDoc.docReq.name.data.question
+                      key: $var.key
+                      value: $var.value
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+                    string2: "Yes"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.question.show@: "block"
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.question.content@: ""
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.question.show@: "none"
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: isQuestionTag
+    clearClick:
+      - actionType: removeSignature
+        dataObject: BLOB
+        dataKey: PatientAmendmentRequest.apiRequest.newSign.docReq.name.data
+        viewTag: signatureTag
+      - actionType: evalObject
+        object:
+          - ..formData.temporarySignature@: ""
+          - ..formData.signatureTime@: ""
+          - ..formData.flag@: "none"
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: signatureTimeTag
+      # 显示签名区域隐藏
+      - actionType: builtIn
+        funcName: hide
+        viewTag: signatureShowTag
+      - actionType: builtIn
+        funcName: show
+        viewTag: signatureTag
+    sendClick:
+      # 签名处理
+      - actionType: saveSignature
+        dataObject: BLOB
+        dataKey: PatientAmendmentRequest.apiRequest.newSign.docReq.name.data
+        isEmpty: PatientAmendmentRequest.formData.whetherSign
+      # 保存签名
+      - actionType: evalObject
+        object:
+          - ..apiRequest.newSign.docReq.reid@: =.PatientAmendmentRequest.apiRequest.patAmendmentDoc.docReq.id
+      - actionType: evalObject
+        object:
+          - if:
+              - =..formData.whetherSign
+              - continue
+              - =..apiRequest.newSign.docAPI.store: ""
+      - actionType: evalObject
+        object:
+          - if:
+              - =..formData.temporarySignature
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureTime@: =..formData.signatureTime
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureId@: =..formData.temporarySignature
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.whetherSign@: false
+                  - ..formData.whetherSign@: false
+              - actionType: evalObject
+                object:
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureTime@: =..apiRequest.newSign.docResp.doc.ctime
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.signatureId@: =..apiRequest.newSign.docResp.doc.id
+                  - ..apiRequest.patAmendmentDoc.docReq.name.data.whetherSign@: =..formData.whetherSign
+
+      - actionType: evalObject
+        object:
+          - if:
+              - =.PatientAmendmentRequest.formData.whetherSign
+              - actionType: popUp
+                popUpView: BaseWarningView
+                wait: true
+                popUpDismiss: 2000
+              - continue
+
+      - actionType: evalObject
+        object:
+          - =.builtIn.array.judgeKeyAndReturnValue:
+              dataIn:
+                objArr:
+                  - key: " 1"
+                    value: =..apiRequest.patAmendmentDoc.docReq.name.data.amended
+                  - key: " 2"
+                    value: =..apiRequest.patAmendmentDoc.docReq.name.data.reason
+                  - key: " 3"
+                    value: =..apiRequest.patAmendmentDoc.docReq.name.data.records
+                  - key: " 4"
+                    value: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+                pathKey: "key"
+                pathValue: "value"
+                valueArr: ["", "Select"]
+              dataOut: PatientAmendmentRequest.formData.errorArr
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+                    string2: "Yes"
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.equal:
+                          dataIn:
+                            string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.content
+                            string2: ""
+                      - =.builtIn.array.judgeKeyAndReturnValue:
+                          dataIn:
+                            objArr:
+                              - key: " 1"
+                                value: =..apiRequest.patAmendmentDoc.docReq.name.data.amended
+                              - key: " 2"
+                                value: =..apiRequest.patAmendmentDoc.docReq.name.data.reason
+                              - key: " 3"
+                                value: =..apiRequest.patAmendmentDoc.docReq.name.data.records
+                              - key: " 4"
+                                value: =..apiRequest.patAmendmentDoc.docReq.name.data.question.content
+                            pathKey: "key"
+                            pathValue: "value"
+                            valueArr: ["", "Select"]
+                          dataOut: PatientAmendmentRequest.formData.errorArr
+                      - continue
+              - continue
+      - actionType: builtIn
+        funcName: redraw
+        viewTag: formCheckPopup
+
+      - actionType: evalObject
+        object:
+          - if:
+              - =.builtIn.string.judgeFillinAll:
+                  dataIn:
+                    - =..apiRequest.patAmendmentDoc.docReq.name.data.amended
+                    - =..apiRequest.patAmendmentDoc.docReq.name.data.records
+                    - =..apiRequest.patAmendmentDoc.docReq.name.data.reason
+                    - =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+              - actionType: popUp
+                popUpView: formCheckPopup
+                wait: true
+                popUpDismiss: 2000
+              - continue
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =..apiRequest.patAmendmentDoc.docReq.name.data.question.isQuestion
+                    string2: "Yes"
+              - actionType: evalObject
+                object:
+                  - if:
+                      - =.builtIn.string.judgeFillinAll:
+                          dataIn:
+                            - =..apiRequest.patAmendmentDoc.docReq.name.data.amended
+                            - =..apiRequest.patAmendmentDoc.docReq.name.data.records
+                            - =..apiRequest.patAmendmentDoc.docReq.name.data.reason
+                            - =..apiRequest.patAmendmentDoc.docReq.name.data.question.content
+                      - actionType: popUp
+                        popUpView: formCheckPopup
+                        wait: true
+                        popUpDismiss: 2000
+                      - continue
+              - continue
+      - actionType: evalObject
+        object:
+          - =.PatientAmendmentRequest.apiRequest.patAmendmentDoc.docAPI.store: ""
+          - .Global.formData.patientAmendmentForm@: =..apiRequest.patAmendmentDoc.docResp.doc
+          - ..apiRequest.email.docCreateReq.reid@: =.Global.formData.patientAmendmentForm.id
+          # 发送通知邮件
+          - =..apiRequest.relation.edgeAPI.get: ""
+          - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+          # 拼接邮件中的预约日期
+          - =.builtIn.date.converTimestamp:
+              dataIn:
+                date: =.Global.currentRoomInfo.edge.stime
+              dataOut: PatientAmendmentRequest.apiRequest.email.docCreateReq.name.data.appointmentTime
+          # 根据对方是admin还是provider来确定收件人的姓名
+          - if:
+              - =.builtIn.string.equal:
+                  dataIn:
+                    string1: =.Global.Note.name.data.classTag.name
+                    string2: Provider
+              - ..apiRequest.email.docCreateReq.name.data.receiverName@: =.Global.Note.name.user
+              - ..apiRequest.email.docCreateReq.name.data.receiverName@: =.Global.currentFacility.name.data.basicInfo.medicalFacilityName
+          # 拼接邮件的content
+          - =.builtIn.string.concat:
+              dataIn:
+                - "Hello, "
+                - =..apiRequest.email.docCreateReq.name.data.patientName
+                - " has requested to amend information in "
+                - =..apiRequest.email.docCreateReq.name.data.recordName
+                - " from "
+                - =..apiRequest.email.docCreateReq.name.data.appointmentTime
+                - " appointment"
+              dataOut: PatientAmendmentRequest.apiRequest.email.docCreateReq.name.data.content
+          - =..apiRequest.email.docAPI.store: ""
+      - actionType: popUp
+        popUpView: successTag
+        wait: 2000
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+    cancelClick:
+      - actionType: builtIn
+        funcName: goBack
+        reload: true
+  style:
+    auto:
+      width: "auto"
+      height: "auto"
+    scrollBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      height: "0.84729"
+      boxSizing: "border-box"
+    btnBox:
+      width: "1"
+      height: "0.0972"
+      boxSizing: "border-box"
+      overflow: "scroll"
+      backgroundColor: "#ffffff"
+      boxShadow: "1px 1px 4px 1px #dededf"
+      textAlign:
+        x: center
+    blockBox:
+      marginTop: "0.00738"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    addressLabel:
+      height: "auto"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      wordWrap: break-word
+      color: "0x333333"
+      fontWeight: "600"
+
+    emailInput:
+      width: "0.6"
+      height: "0.037"
+      fontSize: .Nfont.h14
+      textIndent: "12px"
+      display: "inline-block"
+      borderRadius: "4"
+      boxSizing: "border-box"
+      borderColor: "#dedede"
+      border:
+        style: 3
+        width: "1.5px"
+    firstLevelTitle:
+      marginTop: "0.034482"
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+      width: "0.92"
+    thirdInput:
+      marginTop: "0.009852"
+      height: "0.087438"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+      padding: "6px 12px"
+    selectList:
+      width: "0.92"
+      height: "auto"
+      margin: "0"
+      marginTop: "0.017241"
+    selectListItem:
+      display: "inline-block"
+      width: "0.25333"
+      height: "auto"
+    itemImg:
+      display: "inline-block"
+      height: "0.02093"
+      width: "0.0442"
+      verticalAlign: middle
+    itemValue:
+      marginLeft: "0.02133"
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      width: "auto"
+      height: "auto"
+      verticalAlign: middle
+    input:
+      marginTop: "0.009852"
+      height: "0.03694"
+      width: "0.92"
+      fontSize: .Nfont.h14
+      color: "#333333"
+      border:
+        style: 3
+      borderWidth: "1.5"
+      borderColor: "#dededf"
+      boxSizing: border-box
+      borderRadius: "4"
+      textIndent: "12px"
+    signatureTitle:
+      display: "inline-block"
+      width: "0.816"
+      fontSize: .Nfont.h12
+      height: "auto"
+      color: "#666666"
+      textAlign:
+        x: left
+    clearTitle:
+      display: "inline-block"
+      width: "auto"
+      fontSize: .Nfont.h14
+      height: "auto"
+      color: "#e24445"
+    canvasBox:
+      marginTop: "0.01"
+      height: "0.128"
+      width: "0.9"
+      border:
+        style: "4"
+        color: "0xa9a9a9"
+      borderWidth: "2"
+    canvas:
+      left: "0"
+      width: "0.88"
+      height: "0.128"
+      overflow: scroll
+    canvasImg:
+      # 控制显示
+      left: "0"
+      width: "0.88"
+      top: "0"
+      height: "0.128"
+      overflow: scroll
+      zIndex: "1000"
+    timeBox:
+      marginTop: "0.0146"
+      width: "0.92"
+      height: "auto"
+      overflow: hidden
+    signatureTimeBox:
+      marginTop: "0.01"
+      height: "auto"
+      width: "0.92"
+    signatureTime:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h12
+      color: "0x757575"
+      verticalAlign: middle
+    digitally:
+      marginLeft: "0.02"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      fontSize: .Nfont.h12
+      color: "0x757575"
+      verticalAlign: middle
+    dateView:
+      marginTop: "0.01"
+      width: "auto"
+      height: "auto"
+    dateLabel:
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x666666"
+      fontSize: .Nfont.h12
+    dateCtime:
+      marginLeft: "0.0373"
+      display: "inline-block"
+      width: "auto"
+      height: "auto"
+      color: "0x333333"
+      fontSize: .Nfont.h14
+      fontWeight: "600"

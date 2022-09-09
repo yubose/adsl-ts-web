@@ -455,10 +455,24 @@ InitEvalReport:
         reid: ""
         subtype:
           mediaType: "application/json"
+          isEncrypted: "1"
         name:
           title: Initial Evaluation Report
           user: .Global.formData.providerTitle
           data:
+            classTag:
+              name: Provider
+              fontColor: "0x30b354"
+              backgroundColor: "0xe4f5e9"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"
+              backgroundColor: "0xececee"
+              display: block
+            userInfo:
+              patientName: .Global.formData.patientName
+              participateName: .Global.formData.providerTitle
             facilityInfo:
               facilityAvatarID: .Global.currentFacilityDoc.name.data.basicInfo.businessLogo
               facilityName: .Global.currentFacilityDoc.name.data.basicInfo.medicalFacilityName
@@ -482,16 +496,6 @@ InitEvalReport:
               npi: .Global.MyProfile.name.data.NPI
               dea: .Global.MyProfile.name.data.DEA
               email: .Global.MyProfile.name.data.email
-            classTag:
-              name: Provider
-              fontColor: "0x30b354"
-              backgroundColor: "0xe4f5e9"
-              display: block
-            statusTag:
-              name: Private
-              fontColor: "0x4c5264"
-              backgroundColor: "0xececee"
-              display: block
             isInvolved: ""
             signatureId: ""
             signatureTime: ""
@@ -2286,6 +2290,7 @@ InitEvalReport:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
                 - actionType: evalObject
@@ -2377,6 +2382,7 @@ InitEvalReport:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
 

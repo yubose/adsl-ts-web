@@ -25,8 +25,48 @@ declare global {
   }
 
   interface Window {
+    /** @deprecated */
     __NOODL_SDK_SEARCH_CLIENT__: any
+    /** @deprecated */
     __NOODL_SEARCH_CLIENT__: any
+    // Injected from noodl-app (Electron desktop app)
+    __NOODL_SEARCH__: (options?: {
+      sdk?: any
+      meeting?: any
+      nui?: any
+      notification?: any
+      registers?: any
+      spinner?: any
+    }) => {
+      apiCache: {
+        clear(): void
+        createHash(value: any): string
+        get(): Record<string, any>
+        get(key: string): any
+        get(key: 'limit'): number
+        isHashExist(hash: string): boolean
+        isHashStale(hash: string, limit?: number): boolean
+        set(key: LiteralUnion<'limit', string>, value: any): void
+      }
+      searchClient: InstanceType<
+        new (options?: BetterSQLite3Options) => {
+          search(params: {
+            api: 'ce' | 'cd' | 'cv' | 're' | 'rd' | 'rv' | 'dx'
+            type: number // ex: 271361
+            xfname?: string // ex: 'E.bvid|E.evid'
+            id?: string // ex: '.Global.currentUser.vertex.id'
+            maxcount?: string | number // ex: '500'
+            obfname?: string // ex: 'mtime'
+            ObjType?: number // ex: 3
+            dataKey?: string // ex: 'apiRequest.facilityConnections.connectionList'
+            key?: string // ex: '=..formData.searchContent'
+            sCondition?: string // ex: 'E.type=10002 AND E.tage=1 AND E.subtype&0xff0000=0x30000'
+            _nonce?: string // ex: '=.Global._nonce'
+            [key: string]: any
+          }): any
+        }
+      >
+    }
     ac: any
     app: any
     build: any

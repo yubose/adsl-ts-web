@@ -5,7 +5,7 @@ languageSuffix:
   es_ES: _es8885098864
   unknown: _en
 fileSuffix: .yml
-startPage: SignIn
+startPage: MyConnection
 preload:
   - SelectINformationDM
   - BaseDataModel
@@ -17,21 +17,10 @@ preload:
   - BaseMessage
   - NewPatientFormDM
 page:
-  - LockPage
-  - Recommendations
-  - MedicalRecommendation
-  - FinancialFormReviewPage1
-  - FinancialFormReviewPage2
-  - RelatedAppointmentDetail
-  - VitalHistoryInfo
-  - AppointmentInviteMessage
-  - ChooseInvite
-  - ChooseFacilitiesInvite
   - AboutAitmed
   - AbsentNotePrivate
   - AbsentNoteShared
   - AbsentNote
-  - FinancialResponsibility
   - AcceptedInsuranceFacility
   - AcceptedInsurance
   - AddConnect
@@ -40,6 +29,7 @@ page:
   - AgreeRequest
   - AppointmentDetail
   - AppointmentHistory
+  - AppointmentInviteMessage
   - AppointmentLobbyOfficeVisit
   - AppointmentLobby
   - AppointmentRequest
@@ -53,11 +43,19 @@ page:
   - BlankNoteShared
   - BlankNote
   - BluetoothDevices
+  - CPTInfo
+  - CPTsearch
+  - ChargeEntry
+  - ChooseFacilitiesInvite
+  - ChooseFacilities
+  - ChooseInvite
+  - ChooseProviders
   - ConactSupport
+  - ConfidentialMorbidityReport
   - ContactInformation
   - Contacts
-  - Cov19ResultsAndFluResults
   - Cov19PCRTestResults
+  - Cov19ResultsAndFluResults
   - Cov19Results
   - Cov19TestFormPreviewPage1
   - Cov19TestFormPreviewPage2
@@ -77,34 +75,29 @@ page:
   - Cov19TestNewPatReviewPage4
   - Cov19TestNewPatReviewPage5
   - Cov19TestNewPatReviewPage6
-  - CPTInfo
-  - CPTsearch
+  - CreateAppointment1
   - CreateAppointmentNewNext
   - CreateAppointmentNew
   - CreateAppointment
   - CreateAvailability
   - CreateNewAccount
-  - ConfidentialMorbidityReport
   - CreateSchedule
-  - ChooseFacilities
   - CreateTransferAppointment
-  - ChooseProviders
-  - ChargeEntry
-  - MoreOptions
   - DWCFormRFAPrivate
   - DWCFormRFAShared
   - DWCFormRFA
   - Dashboard
   - DeleteAccount
+  - DiagnosesView
   - DisagreeRequest2
   - DisagreeRequest
+  - DocumentAdmin
   - DocumentDetail
+  - DocumentForReasonPreview
   - DocumentForReason
   - DocumentPatient
   - DocumentPrivate
-  - DocumentAdmin
   - DocumentShared
-  - DiagnosesView
   - Drafts
   - EditInboxOther
   - EditInboxSelf
@@ -118,11 +111,14 @@ page:
   - FacilityProviderInfo
   - FavoriteContact
   - FileForms
+  - FinancialFormReviewPage1
+  - FinancialFormReviewPage2
+  - FinancialResponsibility
   - FluVaccinationConsentFormEnglishShared
   - FluVaccinationConsentFormEnglish
-  - FluVaccinationConsentFormSpanish
-  - FluVaccinationConsentFormReviewPage1
   - FluVaccinationConsentFormPreviewPage1
+  - FluVaccinationConsentFormReviewPage1
+  - FluVaccinationConsentFormSpanish
   - FolderPage
   - HippaConsentShow
   - HippaConsent
@@ -136,14 +132,15 @@ page:
   - InviteSuccessfuk
   - InvitingList
   - LocationInformation
+  - LockPage
   - LogOut
-  - MedicalRecommendation
   - Maillist
   - MasterSubscriptionSigned
   - MasterSubscription
   - MedicalDocuments_VistoryHistory
   - MedicalInsuranceShow
   - MedicalLicense
+  - MedicalRecommendation
   - MedicalRecords
   - MenuBars
   - Message2
@@ -165,6 +162,7 @@ page:
   - ModernaVaccineSecDosePreviewPage2
   - ModernaVaccineSecDoseReviewPage1
   - ModernaVaccineSecDoseReviewPage2
+  - MoreOptions
   - MyConnection
   - MyPatient
   - MyProfile
@@ -181,10 +179,9 @@ page:
   - NewPatFormReviewPage3
   - NewPatients
   - NewRequest
+  - Objtype3
   - OrganizationInfo
   - OrganizationProvider
-  - Objtype3
-  - ProductDetails
   - PROnePrivate
   - PROneShared
   - PROne
@@ -192,20 +189,21 @@ page:
   - PRTwoShared
   - PRTwo
   - ParticipantsInvite
+  - PatientAmendmentRequest
   - PatientBlankNote
   - PatientChart
+  - PatientConsentFormPreviewPage1
   - PatientConsentFormPrivate
+  - PatientConsentFormReviewPage1
   - PatientConsentFormShared
   - PatientConsentForm
-  - PatientConsentFormPreviewPage1
-  - PatientConsentFormReviewPage1
   - PatientContacts
   - PatientList
   - PatientProfile
   - PatientVisitInfo
+  - PaymentFinancialResponsibility
   - PaymentInformation
   - PaymentReceipt
-  - PharmacyList
   - PfizerVaccineFirDosePreviewPage1
   - PfizerVaccineFirDosePreviewPage2
   - PfizerVaccineFirDosePreviewPage3
@@ -220,11 +218,13 @@ page:
   - PfizerVaccineSecDosePreviewPage2
   - PfizerVaccineSecDoseReviewPage1
   - PfizerVaccineSecDoseReviewPage2
+  - PharmacyList
   - PrescriptionDrug
   - PrescriptionPrivate
   - PrescriptionShared
   - Prescription
   - PrivacyPolicy
+  - ProductDetails
   - ProgressReportPrivate
   - ProgressReportShared
   - ProgressReport
@@ -236,23 +236,28 @@ page:
   - ProviderProviderInfo
   - ProviderQRCode
   - PulmonaryFunctionReport
-  - ReasonFormFiles
   - ReasonForVisit
+  - ReasonFormFiles
   - RecentContact
+  - RecommendationShared
+  - RecommendationsRecord
+  - Recommendations
+  - RelatedAppointmentDetail
+  - RelatedAppointments
   - RequiredForms
   - Result
   - RingTonePage
-  - RecommendationShared
-  - RelatedAppointments
-  - Recommendations
-  - RecommendationsRecord
+  - ScheduleAppointment
   - ScheduleProfile
   - SearchOutProviderInfo
   - SearchProvider
+  - SelectDiagnosis
   - SelectForShare
   - SelectLanguages
   - SelectMedicalLicense
+  - SelectRecommendation
   - SelectSpecialty
+  - SelectSuperbill
   - SentMessage
   - Sent
   - ServicesAgreement
@@ -264,15 +269,11 @@ page:
   - SortPatient
   - Starred
   - SubmitMasterSubscription
+  - SuperbillReview
   - SurgeryAuthorizationPrivate
   - SurgeryAuthorizationReviewPage1
   - SurgeryAuthorization
   - SwitchFacility
-  - ScheduleAppointment
-  - SelectSuperbill
-  - SelectDiagnosis
-  - SuperbillReview
-  - SelectRecommendation
   - Test
   - TitleOrTrainingDoc
   - TrashMessage
@@ -287,14 +288,17 @@ page:
   - ViewMedicalInsurance
   - ViewMedicalRecord
   - VisitDetial
+  - VisitHistory
   - VisitQuestionnaire
-  - VitalSigns
+  - VitalHistoryInfo
   - VitalHistoryList
+  - VitalSigns
   - WaitingRoom
   - Welcome
   - WorkStatusFormPrivate
   - WorkStatusFormShared
   - WorkStatusForm
+  - Scan
 dataSource:
   - CPT
   - CPTMod

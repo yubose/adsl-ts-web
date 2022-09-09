@@ -94,7 +94,9 @@ Cov19TestNewPatEditPage1:
           object:
             - ..apiRequest.cov19TestNewPatForm.docReq.name.data@: =.VaccineFormDM.cov19TestNewPatFormDM
             - ..patientInfo@: =.VaccineFormDM.cov19TestNewPatFormDM.patientInfo
-
+            - ..apiRequest.cov19TestNewPatForm.docReq.name.data.userInfo@:
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName 
             - =..apiRequest.cov19TestNewPatForm.docAPI.store: ""
             # 复显Patient信息
             - ..patientInfo.address@: =.Global.Profile.name.data.contactInfo.address.fullAddress
@@ -210,6 +212,9 @@ Cov19TestNewPatEditPage1:
         id: ""
         eid: .Global.rootNotebookID
         type: .DocType.Cov19TestNewPatForm
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
         name:
           data: ""
           title: "COVID-19 Testing Consent - New Patient"

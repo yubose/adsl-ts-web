@@ -33,6 +33,7 @@ BasePublicHeaderLeft:
     - actionType: builtIn
       funcName: goBack
       reload: true
+  onClick: _.leftClick
   children:
     - type: image
       path: __.path
@@ -40,7 +41,6 @@ BasePublicHeaderLeft:
         marginTop: "0.012"
         height: "0.0295"
         width: "2.95vh"
-      onClick: __.leftClick
 
 BasePublicHeaderTitle:
   type: label
@@ -3981,8 +3981,8 @@ HeaderPopUpMenu:
       bubble: true
       style:
         top: "0.0431034"
-        left: "0.52266666"
-        width: "0.4453333"
+        left: "0.453333"
+        width: "0.512"
         boxSizing: "border-box"
         borderRadius: "5"
         border: "1px solid #dedede"
@@ -3990,38 +3990,130 @@ HeaderPopUpMenu:
         overflow: hidden
         zIndex: 10
       children:
-        - type: image
-          path: PDFIcon.svg
-          style:
-            marginLeft: "0.053"
-            display: "inline-block"
-            verticalAlign: middle
-            height: "0.024"
-            width: "0.05333"
-        - type: label
-          text: Download PDF
-          onClick:
-            - actionType: evalObject
-              object:
-                - =.builtIn.utils.downloadPDF:
-                    dataIn:
-                      viewTag: mainView
-                      titleName: =.Global.formData.downloadPDF.titleName
-                      scaleX: =.Global.formData.downloadPDF.scaleX
-                      scaleY: =.Global.formData.downloadPDF.scaleY
-                      originX: =.Global.formData.downloadPDF.originX
-                      originY: =.Global.formData.downloadPDF.originY
-                - actionType: popUpDismiss
-                  popUpView: MenuBoxTag
-          style:
-            marginLeft: "0.0213"
-            display: "inline-block"
-            wordWrap: break-word
-            verticalAlign: middle
-            fontSize: .Nfont.h14
-            lineHeight: 5.75492vh
-            fontWeight: "400"
-            color: "0x333333"
+        - type: view
+          children:
+            - type: image
+              path: PDFIcon.svg
+              style:
+                marginLeft: "0.053"
+                display: "inline-block"
+                verticalAlign: middle
+                height: "0.024"
+                width: "0.05333"
+            - type: label
+              text: Download PDF
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.downloadPDF:
+                        dataIn:
+                          viewTag: mainView
+                          titleName: =.Global.formData.downloadPDF.titleName
+                          scaleX: =.Global.formData.downloadPDF.scaleX
+                          scaleY: =.Global.formData.downloadPDF.scaleY
+                          originX: =.Global.formData.downloadPDF.originX
+                          originY: =.Global.formData.downloadPDF.originY
+                    - actionType: popUpDismiss
+                      popUpView: MenuBoxTag
+              style:
+                marginLeft: "0.0213"
+                display: "inline-block"
+                wordWrap: break-word
+                verticalAlign: middle
+                fontSize: .Nfont.h14
+                lineHeight: 5.75492vh
+                fontWeight: "400"
+                color: "0x333333"
+
+HeaderAmendmentMenu:
+  type: popUp
+  viewTag: MenuBoxTag
+  style:
+    top: "0"
+    left: "0"
+    width: "1"
+    height: "1"
+    marginTop: "0"
+    overflow: hidden
+    zIndex: "100000"
+  children:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+      onClick:
+        - actionType: popUpDismiss
+          popUpView: MenuBoxTag
+    - type: view
+      bubble: true
+      style:
+        top: "0.0431034"
+        left: "0.453333"
+        width: "0.512"
+        boxSizing: "border-box"
+        borderRadius: "5"
+        border: "1px solid #dedede"
+        backgroundColor: "#ffffff"
+        overflow: hidden
+        zIndex: 10
+      children:
+        - type: view
+          children:
+            - type: image
+              path: PDFIcon.svg
+              style:
+                marginLeft: "0.053"
+                display: "inline-block"
+                verticalAlign: middle
+                height: "0.024"
+                width: "0.05333"
+            - type: label
+              text: Download PDF
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.downloadPDF:
+                        dataIn:
+                          viewTag: mainView
+                          titleName: =.Global.formData.downloadPDF.titleName
+                          scaleX: =.Global.formData.downloadPDF.scaleX
+                          scaleY: =.Global.formData.downloadPDF.scaleY
+                          originX: =.Global.formData.downloadPDF.originX
+                          originY: =.Global.formData.downloadPDF.originY
+                    - actionType: popUpDismiss
+                      popUpView: MenuBoxTag
+              style:
+                marginLeft: "0.0213"
+                display: "inline-block"
+                wordWrap: break-word
+                verticalAlign: middle
+                fontSize: .Nfont.h14
+                lineHeight: 5.75492vh
+                fontWeight: "400"
+                color: "0x333333"
+        - type: view
+          children:
+            - type: image
+              path: amendmentIcon.svg
+              style:
+                marginLeft: "0.053"
+                display: "inline-block"
+                verticalAlign: middle
+                height: "0.024"
+                width: "0.05333"
+            - type: label
+              text: Amendment Request
+              onClick:
+                - goto: PatientAmendmentRequest
+              style:
+                marginLeft: "0.0213"
+                display: "inline-block"
+                wordWrap: break-word
+                verticalAlign: middle
+                fontSize: .Nfont.h14
+                lineHeight: 5.75492vh
+                fontWeight: "400"
+                color: "0x333333"
 
 HeaderPopUpDownload:
   type: popUp

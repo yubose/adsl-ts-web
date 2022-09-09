@@ -137,6 +137,7 @@ EvaluationNoteShared:
                       user: =.Global.MyProfile.name.data.fullName
                       userId: =.Global.currentUser.vertex.id
                       targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
                       accessPort: provider
                     dataOut: Global.formData.auditLog.result
             - actionType: builtIn
@@ -700,7 +701,7 @@ EvaluationNoteShared:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: formData.ctime
+                  dataKey: formData.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -829,6 +830,21 @@ EvaluationNoteShared:
               dataIn:
                 object: =.Global.currentMeetingDoc
                 value: =..apiRequest.evaluationNote.docResp.doc
+
+      - actionType: evalObject
+        object:
+          - =.builtIn.utils.createAuditLog:
+              dataIn:
+                actionTypeCode: .ActionTypeCode.view
+                recordTypeCode: .DocType.EvaluationNote
+                eid: =.Global.formData.currentFacility.relationEdge.id
+                date: =.Global.formData.auditLog.startTime
+                user: =.Global.MyProfile.name.data.fullName
+                userId: =.Global.currentUser.vertex.id
+                targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
+                accessPort: provider
+              dataOut: Global.formData.auditLog.result
       - actionType: evalObject
         object:
           .Global._nonce@:

@@ -2,16 +2,9 @@ Cov19TestNewPatReviewPage1:
   title: "COVID-19 Testing Consent - New Patient"
   init:
     - .SignInCheck
-    - =.builtIn.utils.createAuditLog:
+    - =.builtIn.date.currentDateTime:
         dataIn:
-          actionTypeCode: .ActionTypeCode.view
-          recordTypeCode: 107521
-          eid: =.Global.formData.currentFacility.relationEdge.id
-          user: =.Global.MyProfile.name.data.fullName
-          userId: =.Global.currentUser.vertex.id
-          targetUserId: =.Global.formData.auditLog.patientId
-          accessPort: provider
-        dataOut: Global.formData.auditLog.result
+        dataOut: Global.formData.auditLog.startTime
     - if:
         - =.Global.roomInfo.edge.id
         - ..apiRequest.cov19TestNewPatForm.docAPI.get
@@ -43,7 +36,9 @@ Cov19TestNewPatReviewPage1:
         - .Global.formData.downloadPDF.scaleY@: 1
         - .Global.formData.downloadPDF.originX@: 0
         - .Global.formData.downloadPDF.originY@: 0
-
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: 107521
   apiRequest:
     cov19TestNewPatForm:
       docRes: ""
@@ -70,6 +65,24 @@ Cov19TestNewPatReviewPage1:
         - .BasePublicHeader:
           children:
             - .BasePublicHeaderLeft:
+              leftClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          date: =.Global.formData.auditLog.startTime
+                          actionTypeCode: .ActionTypeCode.view
+                          recordTypeCode: 107521
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14

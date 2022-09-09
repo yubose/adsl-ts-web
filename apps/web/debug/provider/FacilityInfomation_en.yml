@@ -8,20 +8,30 @@ FacilityInfomation:
           =.builtIn.math.random: ""
     - ..formData.dataObject@: =.Global.formData.temporaryFacilityId
     - ..formData.bsig@: =.Global.formData.temporaryFacilityId.bsig
-    - ..apiRequest.provderList.docAPI.get
-    - ..apiRequest.getLocationsId.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.provderList.docAPI.get: ""
+            - =..apiRequest.getLocationsId.docAPI.get: ""
     - =.builtIn.array.selectOneToArr:
         dataIn:
           arr: =..apiRequest.getLocationsId.docResp.vertex
           key: "id"
         dataOut: FacilityInfomation.apiRequest.locationsProfile.doc.ids
-    - ..apiRequest.locationsProfile.docAPI.get
+    - =..apiRequest.locationsProfile.docAPI.get: ""
     - ..apiRequest.roomsProfile.doc.id@: =..apiRequest.locationsProfile.docResp.doc.0.bsig
-    - ..apiRequest.roomsProfile.docAPI.get
     - ..apiRequest.photoDEAProfile.docReq.id@: =.Global.formData.temporaryFacilityId.eid
-    - ..apiRequest.photoDEAProfile.docAPI.get
     - ..apiRequest.photoLicenceProfile.docReq.id@: =.Global.formData.temporaryFacilityId.eid
-    - ..apiRequest.photoLicenceProfile.docAPI.get
+    - actionType: evalObject
+      object:
+        - actionType: evalObject
+          async: true
+          object:
+            - =..apiRequest.roomsProfile.docAPI.get: ""
+            - =..apiRequest.photoDEAProfile.docAPI.get: ""
+            - =..apiRequest.photoLicenceProfile.docAPI.get: ""
     # 获取facilityInfo
     #使用formData.roomList存储当前location的room信息,便于后面对数据的展示与重置
     - .FacilityInfomation.formData.roomList@: =..apiRequest.roomsProfile.docResp.doc

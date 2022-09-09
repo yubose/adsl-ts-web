@@ -3,7 +3,9 @@ ModernaVaccineSecDoseReviewPage1:
   pageNumber:
   init: #Page initialization
     - .SignInCheck
-
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     - if:
         - =.Global.roomInfo.edge.id
         - ..apiRequest.modernaVaccineSecDoseForm.docAPI.get
@@ -20,13 +22,16 @@ ModernaVaccineSecDoseReviewPage1:
               viewTag: mainView
         # 下载pdf的样式控制
         - .Global.formData.downloadPDF.titleName@: "Moderna Vaccine Form - Second Dose"
-        - .Global.formData.downloadPDF.pageIntervalList@: 
-          - 0
+        - .Global.formData.downloadPDF.pageIntervalList@:
+            - 0
         - .Global.formData.downloadPDF.scaleX@: 1
         - .Global.formData.downloadPDF.scaleY@: 1
         - .Global.formData.downloadPDF.originX@: 0
         - .Global.formData.downloadPDF.originY@: 0
 
+    # 记录下载行为
+    - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
+    - .Global.formData.auditLog.recordTypeCode@: 120321
   formData: #Input data here
     screeningEligibility:
       recevingDose: ""
@@ -64,6 +69,24 @@ ModernaVaccineSecDoseReviewPage1:
         - .BasePublicHeader:
           children:
             - .BasePublicHeaderLeft:
+              leftClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          date: =.Global.formData.auditLog.startTime
+                          actionTypeCode: .ActionTypeCode.view
+                          recordTypeCode: 120321
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
+                          accessPort: provider
+                        dataOut: Global.formData.auditLog.result
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
             - .BasePublicHeaderTitle:
               style:
                 fontSize: .Nfont.h14

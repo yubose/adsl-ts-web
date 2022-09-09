@@ -206,6 +206,10 @@ LogOut: # This is page name
                     - actionType: evalObject
                       object:
                         - if:
+                            - =.FirebaseToken.response.edge.id
+                            - =.FirebaseToken.edgeAPI.delete: ""
+                            - continue
+                        - if:
                             - =..formData.pass
                             - =.builtIn.cleanLocalStorage
                             - continue

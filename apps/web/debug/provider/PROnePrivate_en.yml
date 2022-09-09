@@ -7,6 +7,20 @@ PROnePrivate:
         dataIn:
         dataOut: Global.formData.auditLog.startTime
     - .Global.formData.lastPage@: ProviderNotes
+    # 判断是否从PatientAmendmentRequest进入
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =.Global.formData.unPageName
+              string2: "PatientAmendmentRequest"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "none"
+            - ..formDataTemp.updateBtnShow@: "block"
+        - actionType: evalObject
+          object:
+            - ..formDataTemp.originalBtnShow@: "block"
+            - ..formDataTemp.updateBtnShow@: "none"
     # 判断本地会议是否有diagnoses存在,存在update,否则create
     - if:
         - =.Global.formData.providerDoc.diagnosesDoc.id
@@ -162,6 +176,10 @@ PROnePrivate:
         isWork: ""
         isShow: "none"
   formDataTemp:
+    # 控制原逻辑按钮显示
+    originalBtnShow: "block"
+    # 控制更新按钮逻辑显示
+    updateBtnShow: "none"
     allListInfo: []
     allListString: []
     allCodes: []
@@ -193,6 +211,53 @@ PROnePrivate:
         value: "No"
     timeSpan: []
   apiRequest:
+    # provider同意修改的email
+    email:
+      docCreateResp: ""
+      docCreateReq:
+        tage: 8
+        eid: ""
+        type: .DocType.InboxMessage
+        reid: .Global.email.esig
+        name:
+          data:
+            # 邮件内容
+            content: ""
+            # 收件人姓名,provider或admin的fullName
+            receiverName: .Global.email.name.data.patientName
+            # 固定，为aitmed系统回复
+            senderName: automatic-reply@aitmed.com
+            # 空，这样可以显示为aitmed-logo
+            senderAvatarId: ""
+            # 被质疑的记录的名字
+            recordName: .Global.email.name.data.recordName
+            # 执行这个操作的人员的fullName，可能是admin，也可能是provider
+            executorName: .Global.MyProfile.name.data.fullName
+            #邮件标题
+          title: Patient Amendment Reply Notification
+          #收件人头像的id
+          user: ""
+      docAPI:
+        store:
+          api: cd
+          dataIn: PROnePrivate.apiRequest.email.docCreateReq
+          dataOut: PROnePrivate.apiRequest.email.docCreateResp
+    # provider和patient之间的10002
+    relation:
+      edgeQueryResp: ""
+      edgeQueryReq:
+        id:
+          - .Global.currentUser.vertex.id
+          - .Global.email.bsig
+        xfname: (bvid,evid)|(evid,bvid)
+        obfname: mtime
+        type: .EdgeType.Email
+        maxcount: 1
+      edgeAPI:
+        get:
+          api: re
+          dataIn: PROnePrivate.apiRequest.relation.edgeQueryReq
+          dataOut: PROnePrivate.apiRequest.relation.edgeQueryResp
     insurance:
       docResp: ""
       docReq:
@@ -273,6 +338,31 @@ PROnePrivate:
     - .BasePublicHeader:
       children:
         - .BasePublicHeaderLeft:
+          leftClick:
+            - actionType: evalObject
+              object:
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: .ActionTypeCode.edit
+                      recordTypeCode: .DocType.pROne
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      date: =.Global.formData.auditLog.startTime
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.auditLog.patientId
+                      targetUser: =.Global.formData.auditLog.patientName
+                      accessPort: provider
+                    dataOut: Global.formData.auditLog.result
+                - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: =..formDataTemp.updateBtnShow
+                          string2: "block"
+                    - actionType: popUp
+                      popUpView: judgmentOperation
+                    - actionType: builtIn
+                      funcName: goBack
+                      reload: true
         - .BasePublicHeaderTitle:
         - .BasePublicHeaderRightText:
           onClick:
@@ -1474,7 +1564,7 @@ PROnePrivate:
                     ..style.dateLabel:
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: apiRequest.pROne.docReq.ctime
+                  dataKey: apiRequest.pROne.docReq.mtime
                   style:
                     ..style.dateCtime:
         - type: view
@@ -1593,17 +1683,202 @@ PROnePrivate:
       children:
         - type: view
           style:
-            width: auto
-            height: auto
+            display: =..formDataTemp.updateBtnShow
           children:
             - .DocButtonPrivate:
+              text: Cancel
               onClick:
-                - ..event.publicClck
-                - ..event.privateClick
+                - actionType: popUp
+                  popUpView: judgmentOperation
+
             - .DocButtonRelease:
+              text: Update & Send
               onClick:
+                # 原文档分享逻辑此处省略
                 - ..event.publicClck
-                - ..event.releaseClick
+                #  指定 eid 和 reid
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.pROne.docReq.eid@: =.Global.currentRoom.edge.id
+                    - ..apiRequest.pROne.docReq.reid@: =.Global.roomInfo.edge.id
+                - actionType: evalObject
+                  object:
+                    # 同步线上
+                    - =.PROnePrivate.apiRequest.diagnosesDoc.docAPI.store: ""
+                    # 更新本地
+                    - .Global.formData.providerDoc.diagnosesDoc@: =.PROnePrivate.apiRequest.diagnosesDoc.docResp.doc
+                #  修改type
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.number.inhx:
+                        dataIn:
+                          intHex: =..apiRequest.pROne.docReq.type
+                          index: 1
+                          hex: 1
+                        dataOut: PROnePrivate.apiRequest.pROne.docReq.type
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.selectStatus.illness.isIllness
+                              string2: "No"
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..apiRequest.pROne.docReq.name.data.diagnosis.noExplain
+                                      string2: ""
+                                - actionType: popUp
+                                  popUpView: unCompleteTag
+                                  wait: true
+                                  popUpDismiss: 2000
+                                - continue
+                        - continue
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.selectStatus.recovery.isRecovery
+                              string2: "Yes"
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..apiRequest.pROne.docReq.name.data.diagnosis.yesExplain
+                                      string2: ""
+                                - actionType: popUp
+                                  popUpView: unCompleteTag
+                                  wait: true
+                                  popUpDismiss: 2000
+                                - continue
+                        - continue
+
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.selectStatus.work.isWork
+                              string2: "No"
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..apiRequest.pROne.docReq.name.data.diagnosis.regularWork
+                                      string2: ""
+                                - actionType: popUp
+                                  popUpView: unCompleteTag
+                                  wait: true
+                                  popUpDismiss: 2000
+                        - continue
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =..formData.selectStatus.work.isWork
+                              string2: "No"
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..apiRequest.pROne.docReq.name.data.diagnosis.modifiedWork
+                                      string2: ""
+                                - actionType: popUp
+                                  popUpView: unCompleteTag
+                                  wait: true
+                                  popUpDismiss: 2000
+                                - continue
+                        - continue
+
+                # 未签名警告
+                - actionType: evalObject
+                  object:
+                    - if:
+                        - =.PROnePrivate.formData.whetherSign
+                        - actionType: popUp
+                          popUpView: BaseWarningView
+                          wait: true
+                          popUpDismiss: 2000
+                        - continue
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.utils.createAuditLog:
+                        dataIn:
+                          actionTypeCode: .ActionTypeCode.edit
+                          recordTypeCode: .DocType.pROne
+                          eid: =.Global.formData.currentFacility.relationEdge.id
+                          date: =.Global.formData.auditLog.startTime
+                          user: =.Global.MyProfile.name.data.fullName
+                          userId: =.Global.currentUser.vertex.id
+                          targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
+                          accessPort: provider
+                          amendment: Amendment
+                          amendmentId: =.Global.email.esig
+                        dataOut: Global.formData.auditLog.result
+                # 保存
+                - actionType: evalObject
+                  object:
+                    - ..apiRequest.pROne.docReq.name.data.selectStatus@: =..formData.selectStatus
+                # 邮件逻辑
+                - actionType: evalObject
+                  object:
+                    - actionType: evalObject
+                      async: true
+                      object:
+                        - =..apiRequest.pROne.docAPI.store: ""
+                        # 向patient发送accept的邮件
+                        # 获取10002edge
+                        - =..apiRequest.relation.edgeAPI.get: ""
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - "Hello,"
+                          - =.Global.MyProfile.name.data.fullName
+                          - " has updated the "
+                          - =.Global.email.name.data.recordName
+                          - "."
+                        dataOut: PROnePrivate.apiRequest.email.docCreateReq.name.data.content
+                    - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+                    - =..apiRequest.email.docAPI.store: ""
+                - actionType: popUp
+                  popUpView: successTag
+                  wait: 2000
+
+                - actionType: evalObject
+                  object:
+                    .Global._nonce@:
+                      =.builtIn.math.random: ""
+
+                - goto: MessageShow
+
+        - type: view
+          style:
+            display: =..formDataTemp.originalBtnShow
+          children:
+            - type: view
+              style:
+                width: auto
+                height: auto
+              children:
+                - .DocButtonPrivate:
+                  onClick:
+                    - ..event.publicClck
+                    - ..event.privateClick
+                - .DocButtonRelease:
+                  onClick:
+                    - ..event.publicClck
+                    - ..event.releaseClick
+                    - actionType: popUp
+                      popUpView: dialogueTag
 
     # 弹框区域
     - .BaseWarningView:
@@ -1616,6 +1891,75 @@ PROnePrivate:
     - .BaseWarningView:
       viewTag: unCompleteTag
       message: "Please complete the items you selected."
+
+    - .SuccessfulOneLine:
+      message: "Update Successfully!"
+      viewTag: successTag
+
+    # 对话弹窗
+    - .Normal:
+      message: "Cancel the changes?"
+      viewTag: judgmentOperation
+      leftButton:
+        - actionType: popUpDismiss
+          popUpView: judgmentOperation
+      rightButton:
+        # # 原文档分享逻辑
+        # - ..event.publicClck
+        # - ..event.releaseClick
+        # # 保存
+        # - actionType: evalObject
+        #   object:
+        #     - ..apiRequest.pROne.docReq.name.data.selectStatus@: =..formData.selectStatus
+        # # 向patient发送accept的邮件
+        # # 获取10002edge
+        # # 邮件逻辑
+        # - actionType: evalObject
+        #   object:
+        #     - actionType: evalObject
+        #       async: true
+        #       object:
+        #         - =..apiRequest.pROne.docAPI.store: ""
+        #         # 向patient发送accept的邮件
+        #         # 获取10002edge
+        #         - =..apiRequest.relation.edgeAPI.get: ""
+        #     - =.builtIn.string.concat:
+        #         dataIn:
+        #           - "Hello,"
+        #           - =.Global.MyProfile.name.data.fullName
+        #           - " has updated the "
+        #           - =.Global.email.name.data.recordName
+        #           - "."
+        #         dataOut: PROnePrivate.apiRequest.email.docCreateReq.name.data.content
+        #     - ..apiRequest.email.docCreateReq.eid@: =..apiRequest.relation.edgeQueryResp.edge.0.id
+        #     - =..apiRequest.email.docAPI.store: ""
+        # - actionType: evalObject
+        #   object:
+        #     - =.builtIn.utils.createAuditLog:
+        #         dataIn:
+        #           actionTypeCode: .ActionTypeCode.edit
+        #           recordTypeCode: .DocType.pROne
+        #           eid: =.Global.formData.currentFacility.relationEdge.id
+        #           date: =.Global.formData.auditLog.startTime
+        #           user: =.Global.MyProfile.name.data.fullName
+        #           userId: =.Global.currentUser.vertex.id
+        #           targetUserId: =.Global.formData.auditLog.patientId
+        # targetUser: =.Global.formData.auditLog.patientName
+        #           accessPort: provider
+        #         dataOut: Global.formData.auditLog.result
+        # - actionType: popUpDismiss
+        #   popUpView: judgmentOperation
+
+        # - actionType: popUp
+        #   popUpView: successTag
+        #   wait: 2000
+
+        - actionType: evalObject
+          object:
+            .Global._nonce@:
+              =.builtIn.math.random: ""
+
+        - goto: MessageShow
 
     - type: popUp
       viewTag: selectInjuryDate
@@ -2388,6 +2732,7 @@ PROnePrivate:
                 user: =.Global.MyProfile.name.data.fullName
                 userId: =.Global.currentUser.vertex.id
                 targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
                 accessPort: provider
               dataOut: Global.formData.auditLog.result
 
@@ -2519,10 +2864,10 @@ PROnePrivate:
                 user: =.Global.MyProfile.name.data.fullName
                 userId: =.Global.currentUser.vertex.id
                 targetUserId: =.Global.formData.auditLog.patientId
+                targetUser: =.Global.formData.auditLog.patientName
                 accessPort: provider
               dataOut: Global.formData.auditLog.result
-      - actionType: popUp
-        popUpView: dialogueTag
+
   style:
     scrollBox:
       width: "1"

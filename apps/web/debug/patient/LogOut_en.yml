@@ -11,6 +11,10 @@ LogOut: # This is page name
           num1: =.Global.PasswordExpireTime
           num2: =.Global.currentDateTime
         dataOut: LogOut.formData.passOk
+    - =.builtIn.string.equal:
+        dataIn:
+          string1: =.FirebaseToken.response.edge.id
+          string2: ""
   formData:
     password: ""
     sk: ""
@@ -282,6 +286,10 @@ LogOut: # This is page name
                             - continue   
                       - actionType: evalObject
                         object:
+                          - if:
+                            - =.FirebaseToken.response.edge.id
+                            - =.FirebaseToken.edgeAPI.delete: ""
+                            - continue
                           - if:
                             - =..formData.pass
                             - =.builtIn.cleanLocalStorage

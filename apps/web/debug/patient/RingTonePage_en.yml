@@ -43,7 +43,6 @@ RingTonePage:
         - continue
         - actionType: evalObject
           object:
-            - ..formData.participants_others@: ""
             - =.builtIn.array.removeByName:
                 dataIn:
                   object: =..apiRequest.appointment_E10.edgeQueryResp.edge
@@ -80,12 +79,56 @@ RingTonePage:
           array: =..formData.participants
           field: roleName
         dataOut: RingTonePage.formData.participantsName
+    - if:
+        - =.builtIn.array.judgeListLength:
+            dataIn:
+              array: =.RingTonePage.formData.participantsName
+              len: 0
+        - continue
+        - ..formData.participants_others@: ""
     - ..apiRequest.facility.documentReq.id@: =.RingTonePage.roomInfo.edge.name.facilityId
     - =..apiRequest.facility.docAPI.get: ""
     - .RingTonePage.currentFacility@: =..apiRequest.facility.response.doc.0
     - actionType: evalObject
       object:
-        - =.builtIn.phoneService.minRingtoneVibrate
+        - =.builtIn.string.formatUnixtimeLT_en:
+            dataIn:
+              - =.Global.roomInfo.edge.stime
+            dataOut: RingTonePage.formData.stimeTranslated
+        - =.builtIn.string.formatUnixtimeLT_en:
+            dataIn:
+              - =.Global.roomInfo.edge.etime
+            dataOut: RingTonePage.formData.etimeTranslated
+        - =.builtIn.string.concat:
+            dataIn:
+              - Your
+              - "&nbsp;"
+              - =..formData.stimeTranslated
+              - "-"
+              - =..formData.etimeTranslated
+              - "&nbsp;"
+            dataOut: RingTonePage.formData.time
+        - =.builtIn.phoneService.minRingtoneVibrate:
+            dataIn:
+              delayTime: 50000
+              actions:
+                - =.builtIn.phoneService.stopVibrate
+                - =.builtIn.phoneService.stopRingtone
+                - =.builtIn.string.concat:
+                    dataIn:
+                      - =.RingTonePage.formData.time
+                      - appointment invitation was no answer
+                    dataOut: RingTonePage.sendNotification.document.name.notification.context
+                - ..sendNotification.document.name.notification.title@: The participant did not answer
+                # - ..sendNotification.document.name.notification.context@: The participant did not answer
+                - ..sendNotification.document.name.notification.body@: The participant did not answer
+
+                - ..sendNotification.document.fid@: =.Global.prodAPPID
+                - ..sendNotification.document.eid@: =.RingTonePage.roomInfo.edge.id
+                - =..sendNotification.docAPI.store: ""
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: false
         # - =.builtIn.phoneService.startRingtone
     # - actionType: evalObject
     #   object:
@@ -149,6 +192,9 @@ RingTonePage:
     edge: ""
   formData:
     providerId: ""
+    stimeTranslated: ""
+    etimeTranslated: ""
+    time: ""
     participants_others: "none"
     participants: []
     participantsName: []
@@ -248,7 +294,7 @@ RingTonePage:
         applicationDataType: 0
         # 7 th bit
         notification: 1
-        ringToneNotify: 1
+        ringToneNotify: 0
         sendtoSelf: 0
         # 10 bit
         textMessage: 1
@@ -258,11 +304,11 @@ RingTonePage:
       name:
         data: ""
         notification:
-          title: Patient In Virtual Room
-          context: Click to jump to Appointment Lobby
-          body: Click to jump to Appointment Lobby
-          landingPage: RingTonePage
-          onClickLandingPage: RingTonePage
+          title: The participant has declined
+          context: The participant has declined
+          body: The participant has declined
+          # landingPage: RingTonePage
+          # onClickLandingPage: RingTonePage
           #targetApp: =.FirebaseToken.response.edge.evid
     docAPI:
       store:
@@ -450,6 +496,14 @@ RingTonePage:
                   onClick:
                     - =.builtIn.phoneService.stopVibrate
                     - =.builtIn.phoneService.stopRingtone
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - =.RingTonePage.formData.time
+                          - appointment invitation has been declined
+                        dataOut: RingTonePage.sendNotification.document.name.notification.context
+                    - ..sendNotification.document.fid@: =.Global.prodAPPID
+                    - ..sendNotification.document.eid@: =.RingTonePage.roomInfo.edge.id
+                    - =..sendNotification.docAPI.store: ""
                     - actionType: builtIn
                       funcName: goBack
                       reload: false

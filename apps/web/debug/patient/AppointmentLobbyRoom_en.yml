@@ -1,4 +1,4 @@
-AppointmentLobbyOfficeVisit: #xd page
+AppointmentLobbyRoom: #xd page
   title: Appointment Lobby
   init:
     - .SignInCheck

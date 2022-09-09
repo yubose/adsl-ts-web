@@ -92,6 +92,10 @@ ModernaVaccineFirDoseEditPage1:
         - actionType: evalObject
           object:
             - ..apiRequest.modernaVaccineFirDoseForm.docReq.name.data@: =.VaccineFormDM.modernaVaccineFirDoseFormDM
+            - ..apiRequest.modernaVaccineFirDoseForm.docReq.name.data.userInfo@:
+                patientName: =.Global.Profile.name.data.basicInfo.fullName
+                participateName: =.Global.formData.participateName
+
             - ..patientInfo@: =.VaccineFormDM.pifzerVaccineFirDoseFormDM.patientInfo
 
             - =..apiRequest.modernaVaccineFirDoseForm.docAPI.store: ""
@@ -214,6 +218,9 @@ ModernaVaccineFirDoseEditPage1:
           title: "Moderna Vaccine Form - First Dose"
           user: .Global.Profile.name.data.basicInfo.fullName
           type: "application/json"
+        subtype:
+          isEncrypted: "1"
+          mediaType: "application/json"
       docAPI:
         store:
           api: cd

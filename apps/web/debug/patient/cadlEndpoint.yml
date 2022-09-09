@@ -21,57 +21,50 @@ preload:
   - SuggestAddressDM
   - VaccineFormDM # 表格的数据
 page:
-  - ChooseFacilities
-  - Test
-  - UploadIdentification
-  - VitalHistoryInfo
-  - FinancialFormEditPage1
-  - FinancialFormEditPage2
-  - FinancialFormReviewPage1
-  - FinancialFormReviewPage2
-  - CreateAppointmentToProvider
-  - ProgressReport
-  - LocationInformation
-  - InitEvalReport
-  - Maillist
+  - Test3
   - About
   - AbsentNote
-  - AcceptedInsurance
   - AcceptedInsuranceFacility
+  - AcceptedInsurance
   - AddConnect
   - AddContact
   - AddDocuments
+  - AddFamilyMember
   - AddHealthNetWork
   - AddMedicalRecordsToMeeting
   - AddMeetingDocuments
   - AddPasswordRecovery
-  - AddFamilyMember
-  - AgreeRequest
-  - VisitHistory
-  - AppointmentInfo
-  - FacilityPatientInfo
-  - AppointmentLobbyOfficeVisit
-  - AppointmentLobby
-  - AppointmentHistory
-  - AppointmentSearch
-  - AppointmentSearchList
-  - ApproveInfo
-  - AppointmentInviteMessage
-  - Attachment
   - AddressManagement
+  - AgreeRequest
+  - AppointmentHistory
+  - AppointmentInfo
+  - AppointmentInviteMessage
+  - AppointmentLobbyOfficeVisit
+  - AppointmentLobbyRoom
+  - AppointmentLobby
+  - AppointmentSearchList
+  - AppointmentSearch
+  - ApproveInfo
+  - Attachment
   - BlankNote
+  - BluetoothDevices
   - BookingSummaryComplete
   - BookingSummarySelect
-  - RequiredForms
   - CheckIn
+  - ChooseFacilitiesInvite
+  - ChooseFacilities
+  - ChooseInvite
   - ChooseProviders
   - ChooseRooms
+  - ChooseUser
+  - ComparisonProfile
+  - ConfidentialMorbidityReport
   - ConnectionList
   - ContactInformation
-  - SearchOutProviderInfo
   - ContactSupport
   - Contacts
-  - ChooseUser
+  - Cov19PCRTestResults
+  - Cov19ResultsAndFluResults
   - Cov19TestFormEditPage1
   - Cov19TestFormEditPage2
   - Cov19TestFormEditPage3
@@ -90,81 +83,91 @@ page:
   - Cov19TestNewPatReviewPage4
   - Cov19TestNewPatReviewPage5
   - Cov19TestNewPatReviewPage6
-  # - Cov19TestNewPatReviewPage7
-  - Cov19PCRTestResults
-  - Cov19ResultsAndFluResults
-  - ChooseInvite
-  - ChooseFacilitiesInvite
+  - CreateAppointment2
+  - CreateAppointmentNewNext
+  - CreateAppointmentNew
+  - CreateAppointmentPage
+  - CreateAppointmentToProvider
+  - CreateAppointmentToRoom
   - CreateAppointment
   - CreateNewAccount
-  - ConfidentialMorbidityReport
-  - ComparisonProfile
-  - DisagreeRequest2
-  - DisagreeRequest
-  - DocumentDetail
-  - DocumentProvider
-  - DocumentPatient
-  - DocumentAdmin
   - DWCFormRFA
   - DeleteAccount
+  - DisagreeRequest2
+  - DisagreeRequest
+  - DocumentAdmin
+  - DocumentDetail
+  - DocumentPatient
+  - DocumentProvider
   - Drafts
+  - EditAddress
   - EditContact
-  - EditInbox
+  - EditFamilyMemberInfo
   - EditInboxOther
   - EditInboxSelf
+  - EditInbox
   - EditProfile
-  - EditFamilyMemberInfo
+  - EditShoppingCart
   - EvaluationNote
-  - EditAddress
   - FAQs
-  - FolderPage
   - FacilityInfomationShow
-  - FavoriteContact
-  - FinancialResponsibility
+  - FacilityInfomation
+  - FacilityPatientInfo
+  - FacilityProviderInfo
   - FamilyMemberInfo
   - FamilyMemberList
+  - FavoriteContact
+  - FinancialFormEditPage1
+  - FinancialFormEditPage2
+  - FinancialFormReviewPage1
+  - FinancialFormReviewPage2
+  - FinancialResponsibility
+  - FluVaccinationConsentFormEditPage1
   - FluVaccinationConsentFormEnglishEditPage1
   - FluVaccinationConsentFormEnglishPrivate
   - FluVaccinationConsentFormEnglishShared
-  - FluVaccinationConsentFormSpanish
+  - FluVaccinationConsentFormReviewPage1
   - FluVaccinationConsentFormSpanishPrivate
   - FluVaccinationConsentFormSpanishShared
-  - FluVaccinationConsentFormEditPage1
-  - FluVaccinationConsentFormReviewPage1
+  - FluVaccinationConsentFormSpanish
+  - FolderPage
   - HaveSchedule
   - Help
+  - InHomeFinancialResponsibility
   - InboxContacts
   - InboxDashboard
   - InboxFavoriteContact
   - InboxFolder
   - InboxMenu
+  - InitEvalReport
   - InviteCompletedForm2
   - InviteSuccessful
   - Invite
+  - LocationInformation
   - LocationsForCov19
   - LogOut
-  - MyOrders
-  - MedicalRecommendation
+  - Maillist
   - MedicalDocumentsHistory
   - MedicalDocuments
-  - MedicalRecords
-  - MedicalRecordsEdit
   - MedicalInsuranceShow
   - MedicalInsurance
+  - MedicalRecommendation
+  - MedicalRecordsEdit
+  - MedicalRecords
   - MeetingDocumentsNotes
   - MeetingDocumentsShared
   - MeetingVitalSigns
   - MenuBars
-  - MessageShow
-  - MessageShowReplyDetails
-  - MessageRecommendation
-  - MessageOrder
-  - SentMessage
+  - Message1
+  - Message2
   - Message3
+  - MessageOrder
+  - MessageRecommendation
+  - MessageShowReplyDetails
+  - MessageShow
   - MobileContacts2
   - MobileContacts3
   - MobileContacts
-  - MedicalInsurance
   - ModernaVaccineFirDoseEditPage1
   - ModernaVaccineFirDoseEditPage2
   - ModernaVaccineFirDoseEditPage3
@@ -175,16 +178,17 @@ page:
   - ModernaVaccineFirDoseReviewPage3
   - ModernaVaccineFirDoseReviewPage4
   - ModernaVaccineFirDoseReviewPage5
-  # - ModernaVaccineFirDoseReviewPage6
-  - ModernaVaccineSecDoseReviewPage1
-  - ModernaVaccineSecDoseReviewPage2
   - ModernaVaccineSecDoseEditPage1
   - ModernaVaccineSecDoseEditPage2
+  - ModernaVaccineSecDoseReviewPage1
+  - ModernaVaccineSecDoseReviewPage2
   - MyActiveFacility
   - MyActiveProvider
   - MyConnection
+  - MyOrders
   - MyPastProvider
   - MyPatient
+  - MyProfile
   - MyQRCode
   - NewConnections
   - NewFacilities
@@ -198,19 +202,19 @@ page:
   - NewPatFormReviewPage2
   - NewPatFormReviewPage3
   - NoSchedule
+  - OrderConfirmation
+  - OrderDetails
   - OrganizationInfoAbout
   - OrganizationInfoProviders
   - OrganizationInfoServices
   - OrganizationInfo
   - OrganizationLocation
   - OrganizationProvider
-  - OrderConfirmation
-  - OrderDetails
-  - ProviderQRCode
-  - PRTwo
   - PROne
+  - PRTwo
   - ParticipantsInvite
   - PasswordRecoveryHelper
+  - PatientAmendmentRequest
   - PatientChartAddAllergies
   - PatientChartAddHospitalization
   - PatientChartAddMedications
@@ -225,7 +229,12 @@ page:
   - PatientChartSexualHistory
   - PatientChartSocialHistory
   - PatientChart
+  - PatientConsentFormEditPage1
+  - PatientConsentFormReviewPage1
+  - PatientConsentForm
   - PatientDashboard
+  - PaymentConfirmation
+  - PaymentReceipt
   - PfizerVaccineFirDoseEditPage1
   - PfizerVaccineFirDoseEditPage2
   - PfizerVaccineFirDoseEditPage3
@@ -236,53 +245,57 @@ page:
   - PfizerVaccineFirDoseReviewPage3
   - PfizerVaccineFirDoseReviewPage4
   - PfizerVaccineFirDoseReviewPage5
-  # - PfizerVaccineFirDoseReviewPage6
   - PfizerVaccineSecDoseEditPage1
   - PfizerVaccineSecDoseEditPage2
   - PfizerVaccineSecDoseReviewPage1
   - PfizerVaccineSecDoseReviewPage2
-  - PatientConsentForm
-  - PatientConsentFormEditPage1
-  - PatientConsentFormReviewPage1
   - Prescription
   - PrivacyPolicy
-  - ProviderActive
   - ProductDetails
-  - FacilityProviderInfo
-  - MyProfile
-  - RecommendationsRecord
+  - ProfileUpdateMessage
+  - Profile
+  - ProgressReport
+  - ProviderActive
+  - ProviderFacilityInfo
   - ProviderNotes
   - ProviderPast
-  - ProfileUpdateMessage
+  - ProviderQRCode
+  - PublicComponents
   - RecentContact
   - RecentList
+  - RecommendationsRecord
+  - RelatedAppointmentDetail
+  - RelatedAppointments
   - ReplyToMessage
   - RequestComplete
   - RequestList
-  - RelatedAppointments
-  - RelatedAppointmentDetail
-  - PaymentConfirmation
-  - PaymentReceipt
+  - RequiredForms
   - ResultDetail
   - ResultList
-  - RoomInfo
   - RingTonePage
-  - SurgeryAuthorization
+  - RoomInfo
+  - SearchCarriers
+  - SearchOutProviderInfo
   - SearchPosition
+  - SearchProvider
   - SearchSpecialty
+  - SentMessage
   - Sent
   - ServicesAgreement
   - SettingsUpdate
   - Settings
+  - ShoppingCart
   - ShowAttachment
   - SignIn
   - SignUp
   - Starred
   - SuperbillReview
-  - ShoppingCart
-  - EditShoppingCart
-  - Trash
+  - SurgeryAuthorization
+  - TelemedicineFinancialResponsibility
+  - Test
   - TrashMessage
+  - Trash
+  - UploadIdentification
   - UploadMedicalRecord2
   - UploadMedicalRecord
   - UserAgreement
@@ -290,24 +303,17 @@ page:
   - ViewAttachment
   - ViewMedicalRecord
   - VisitDetial
-  - VisitQuestionnaireShow
+  - VisitHistory
   - VisitQuestionnaire2
   - VisitQuestionnaireHistory
+  - VisitQuestionnaireShow
   - VisitQuestionnaire
+  - VitalHistoryInfo
+  - VitalHistoryList
   - VitalSigns4
   - VitalSigns
-  - VitalHistoryList
   - WaitingRoom
   - Welcome1
   - Welcome
-  - BluetoothDevices
   - WorkStatusForm
-  - SearchProvider
-  - TelemedicineFinancialResponsibility
-  - InHomeFinancialResponsibility
-  - CreateAppointmentNew
-  - CreateAppointmentNewNext
-  - ProviderFacilityInfo
-  - CreateAppointmentToRoom
-  - AcceptedInsuranceFacility
-  - SearchCarriers
+  # - test2

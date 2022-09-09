@@ -1180,8 +1180,8 @@ PRTwo:
           style:
             width: "0.92"
             fontSize: .Nfont.h14
-            lineHeight: "2.58vh"   
-            marginLeft: "0.04"    
+            lineHeight: "2.58vh"
+            marginLeft: "0.04"
         - type: label
           text: No content
           dataKey: formData.name.data.planAndRecommendations
@@ -1197,7 +1197,6 @@ PRTwo:
             padding: "6px 12px"
             wordBreak: break-word
             backgroundColor: "#f4f4f4"
-
 
         # - type: view
         #   viewTag: defaultTag
@@ -1319,7 +1318,7 @@ PRTwo:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: formData.ctime
+                  dataKey: formData.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -1413,7 +1412,7 @@ PRTwo:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpMenu:
+    - .HeaderAmendmentMenu:
   event:
     checkBoxPath:
       emit:

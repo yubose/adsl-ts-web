@@ -1000,7 +1000,7 @@ InitEvalReport:
                     fontSize: .Nfont.h12
                 - type: label
                   text=func: .builtIn.string.formatUnixtimeL_en
-                  dataKey: formData.ctime
+                  dataKey: formData.mtime
                   style:
                     marginLeft: "0.0373"
                     display: "inline-block"
@@ -1096,7 +1096,7 @@ InitEvalReport:
         - type: view
           style:
             marginTop: "0.03"
-    - .HeaderPopUpMenu:
+    - .HeaderAmendmentMenu:
   event:
     checkBoxPath:
       emit:

@@ -518,6 +518,7 @@ CreateAppointmentNewNext:
                         borderColor: "#d8d8d8"
                         borderWidth: "1px"
                         backgroundColor: "0xfafafa"
+                        textIndent: "8px"
                 - type: view
                   style:
                     display: "inline-block"
@@ -541,6 +542,7 @@ CreateAppointmentNewNext:
                         borderColor: "#d8d8d8"
                         borderWidth: "1px"
                         backgroundColor: "0xfafafa"
+                        textIndent: "8px"
                 - type: view
                   style:
                     display: "inline-block"
@@ -564,6 +566,7 @@ CreateAppointmentNewNext:
                         borderColor: "#d8d8d8"
                         borderWidth: "1px"
                         backgroundColor: "0xfafafa"
+                        textIndent: "8px"
             - type: view
               style:
                 height: "0.1"
@@ -591,6 +594,7 @@ CreateAppointmentNewNext:
                           style: "3"
                         borderRadius: "3"
                         borderColor: "#d8d8d8"
+                        textIndent: "8px"
                         borderWidth: "1px"
                         backgroundColor: "0xfafafa"
                         # textAlign:
@@ -615,6 +619,7 @@ CreateAppointmentNewNext:
                           style: "3"
                         borderRadius: "3"
                         borderColor: "#d8d8d8"
+                        textIndent: "8px"
                         borderWidth: "1px"
                         backgroundColor: "0xfafafa"
 
@@ -832,47 +837,50 @@ CreateAppointmentNewNext:
                 - actionType: evalObject
                   object:
                     - if:
-                      - =.builtIn.string.equal:
-                          dataIn:
-                            string1: =.Global.subtype
-                            string2: 196616
-                      # change telemedicine log
-                      - =.builtIn.utils.createAuditLog:
-                          dataIn:
-                            actionTypeCode: =.ActionTypeCode.change
-                            recordTypeCode: =.EdgeType.scheduleSubtype.Telemedicine
-                            eid: =.Global.formData.currentFacility.relationEdge.id
-                            user: =.Global.MyProfile.name.data.fullName
-                            userId: =.Global.currentUser.vertex.id
-                            targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
-                            accessPort: provider
-                      - actionType: evalObject
-                        object:
-                          - if:
-                            - =.builtIn.string.equal:
-                                dataIn:
-                                  string1: =.Global.subtype
-                                  string2: 131080
-                            # change office visit log
-                            - =.builtIn.utils.createAuditLog:
-                                dataIn:
-                                  actionTypeCode: =.ActionTypeCode.change
-                                  recordTypeCode: =.EdgeType.scheduleSubtype.Office
-                                  eid: =.Global.formData.currentFacility.relationEdge.id
-                                  user: =.Global.MyProfile.name.data.fullName
-                                  userId: =.Global.currentUser.vertex.id
-                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
-                                  accessPort: provider
-                            # change room log
-                            - =.builtIn.utils.createAuditLog:
-                                dataIn:
-                                  actionTypeCode: =.ActionTypeCode.change
-                                  recordTypeCode: =.EdgeType.scheduleSubtype.RoomType
-                                  eid: =.Global.formData.currentFacility.relationEdge.id
-                                  user: =.Global.MyProfile.name.data.fullName
-                                  userId: =.Global.currentUser.vertex.id
-                                  targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
-                                  accessPort: provider
+                        - =.builtIn.string.equal:
+                            dataIn:
+                              string1: =.Global.subtype
+                              string2: 196616
+                        # change telemedicine log
+                        - =.builtIn.utils.createAuditLog:
+                            dataIn:
+                              actionTypeCode: =.ActionTypeCode.change
+                              recordTypeCode: =.EdgeType.scheduleSubtype.Telemedicine
+                              eid: =.Global.formData.currentFacility.relationEdge.id
+                              user: =.Global.MyProfile.name.data.fullName
+                              userId: =.Global.currentUser.vertex.id
+                              targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                              targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                              accessPort: provider
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =.Global.subtype
+                                      string2: 131080
+                                # change office visit log
+                                - =.builtIn.utils.createAuditLog:
+                                    dataIn:
+                                      actionTypeCode: =.ActionTypeCode.change
+                                      recordTypeCode: =.EdgeType.scheduleSubtype.Office
+                                      eid: =.Global.formData.currentFacility.relationEdge.id
+                                      user: =.Global.MyProfile.name.data.fullName
+                                      userId: =.Global.currentUser.vertex.id
+                                      targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                      targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                                      accessPort: provider
+                                # change room log
+                                - =.builtIn.utils.createAuditLog:
+                                    dataIn:
+                                      actionTypeCode: =.ActionTypeCode.change
+                                      recordTypeCode: =.EdgeType.scheduleSubtype.RoomType
+                                      eid: =.Global.formData.currentFacility.relationEdge.id
+                                      user: =.Global.MyProfile.name.data.fullName
+                                      userId: =.Global.currentUser.vertex.id
+                                      targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                                      targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                                      accessPort: provider
                     - if:
                         - =.builtIn.string.equal:
                             dataIn:

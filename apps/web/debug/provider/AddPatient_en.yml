@@ -113,6 +113,21 @@ AddPatient:
         dataIn: AddPatient.invite.edge
         dataOut: AddPatient.invite.response
   apiRequest:
+    # 获取patient profile以获取patient fullName，以放在audit log中。
+    patientProfile:
+      docQueryResp: ""
+      docQueryReq:
+        id:
+        xfname: ovid
+        _nonce: =.Global._nonce
+        type: .DocType.PatientProfile
+        maxcount: 1
+        obfname: mtime
+      docAPI:
+        get:
+          api: rd
+          dataIn: AddPatient.apiRequest.patientProfile.docQueryReq
+          dataOut: AddPatient.apiRequest.patientProfile.docQueryResp
     checkConnection:
       getResp:
         edge: []
@@ -216,6 +231,8 @@ AddPatient:
             # notification change jwt logic
             - ..invite.edge.facilityName@: =.Global.currentFacility.name.basicInfo.medicalFacilityName
             - =.AddPatient.invite.edgeAPI.store: ""
+            - ..apiRequest.patientProfile.docQueryReq.id@: =..invite.response.edge.evid
+            - =..apiRequest.patientProfile.docAPI.get: ""
             - ..sendNotification.document.fid@: =.Global.patdAPPID
             - ..sendNotification.document.eid@: =.AddPatient.invite.response.edge.refid
             - =..sendNotification.docAPI.store: ""
@@ -227,6 +244,7 @@ AddPatient:
                   eid: =.Global.formData.currentFacility.relationEdge.id
                   user: =.Global.MyProfile.name.data.fullName
                   userId: =.Global.currentUser.vertex.id
+                  targetUser: =..apiRequest.patientProfile.docQueryResp.doc.0.name.data.basicInfo.fullName
                   targetUserId: =..invite.response.edge.evid
                   accessPort: provider
         - actionType: popUpDismiss
@@ -234,9 +252,9 @@ AddPatient:
         - actionType: popUp
           popUpView: success
           wait: 2000
-        # - actionType: builtIn
-        #   funcName: goBack
-        #   reload: true
+        - actionType: builtIn
+          funcName: goBack
+          reload: true
       children:
         - type: view
           style:
@@ -360,32 +378,9 @@ AddPatient:
       message: "You cannot add yourself"
       viewTag: selfCheck
 
-    - .BaseCheckView:
+    - .BaseWarningView:
+      message: "This patient has been invited."
       viewTag: phoneInvited
-      message: "The phone number is already invited"
-      colorChange: "0x2988e6"
-      imgPath: aboutBlue.svg
-      children:
-        - type: view
-          style:
-            width: "0.8"
-            height: "0.3"
-            top: "0.3"
-            left: "0.1"
-            zIndex: "100"
-            backgroundColor: "0xffffff"
-            borderRadius: "7"
-            border:
-              style: "3"
-            borderColor: "#f4f8fa"
-            borderWidth: "3"
-          children:
-            - .BaseCheckViewImg:
-            - .BaseCheckViewLabel:
-            - .BaseCheckViewButton:
-              onClick:
-                - actionType: popUpDismiss
-                  popUpView: ____.viewTag
 
     - .BaseWarningView:
       message: "The phone number is wrong"
@@ -565,6 +560,7 @@ AddPatient:
               - actionType: popUp
                 popUpView: phoneInvited
                 wait: true
+                popUpDismiss: 2000
 
       - actionType: builtIn
         funcName: redraw

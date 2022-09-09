@@ -3,6 +3,9 @@ VitalSigns:
   title: "Vital Signs"
   init:
     - .SignInCheck
+    - =.builtIn.date.currentDateTime:
+        dataIn:
+        dataOut: Global.formData.auditLog.startTime
     # get appointment (40000) vital
     - =..apiRequest.vital.docAPI.get: ""
     - if:
@@ -392,6 +395,18 @@ VitalSigns:
                     - actionType: popUp
                       popUpView: goBackPopup
                       wait: true
+
+                - =.builtIn.utils.createAuditLog:
+                    dataIn:
+                      actionTypeCode: =.ActionTypeCode.view
+                      date: =.Global.formData.auditLog.startTime
+                      recordTypeCode: =.DocType.VitalSigns
+                      eid: =.Global.formData.currentFacility.relationEdge.id
+                      user: =.Global.MyProfile.name.data.fullName
+                      userId: =.Global.currentUser.vertex.id
+                      targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                      targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                      accessPort: provider
                 - actionType: builtIn
                   funcName: goBack
                   reload: true
@@ -645,7 +660,7 @@ VitalSigns:
                             #   funcName: btRedraw
                       style:
                         #backgroundColor: "#2988e6"    #blue
-                        backgroundColor: "0xC1C1C1"   #grey
+                        backgroundColor: "0xC1C1C1" #grey
                         marginTop: "0.0443"
                         height: "0.03"
                         # borderRadius: "2"
@@ -718,12 +733,25 @@ VitalSigns:
                         # update vital signs log
                         - =.builtIn.utils.createAuditLog:
                             dataIn:
-                              actionTypeCode: =.ActionTypeCode.update
+                              actionTypeCode: =.ActionTypeCode.edit
+                              date: =.Global.formData.auditLog.startTime
                               recordTypeCode: =.DocType.VitalSigns
                               eid: =.Global.formData.currentFacility.relationEdge.id
                               user: =.Global.MyProfile.name.data.fullName
                               userId: =.Global.currentUser.vertex.id
                               targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                              targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
+                              accessPort: provider
+                        - =.builtIn.utils.createAuditLog:
+                            dataIn:
+                              actionTypeCode: =.ActionTypeCode.view
+                              date: =.Global.formData.auditLog.startTime
+                              recordTypeCode: =.DocType.VitalSigns
+                              eid: =.Global.formData.currentFacility.relationEdge.id
+                              user: =.Global.MyProfile.name.data.fullName
+                              userId: =.Global.currentUser.vertex.id
+                              targetUserId: =.Global.formData.currentMeetingPatientProfile.bsig
+                              targetUser: =.Global.formData.currentMeetingPatientProfile.name.data.basicInfo.fullName
                               accessPort: provider
                         - .VitalSigns.apiRequest.vital.docCreateReq.name.data.vitals@: =.VitalSigns.tempVitalsData #Ensures that the data being sent is correct, in case page is not reloaded
                         - =..apiRequest.vital.docAPI.store: ""

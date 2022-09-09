@@ -479,18 +479,19 @@ FacilityProviderInfo:
                 ..style.contentItemLeft:
                 ..style.contentItem:
                 width: "0.9"
-
+                display: block
             - type: list
               scrollable: "false"
               contentType: listObject
               listObject: ..formData.providerInfo.specialty
               iteratorVar: itemObject
               style:
+                ..style.contentItem:
               children:
                 - type: listItem
                   itemObject:
                   style:
-                    ..style.contentItem:
+                    # ..style.contentItem:
                   children:
                     - type: label
                       dataKey: itemObject.specialty
@@ -510,17 +511,19 @@ FacilityProviderInfo:
                 ..style.contentItemLeft:
                 ..style.contentItem:
                 width: "0.9"
+                display: block
             - type: list
               scrollable: "false"
               contentType: listObject
               listObject: ..formData.providerInfo.MedicalLicense
               iteratorVar: itemObject
               style:
+                ..style.contentItem:
               children:
                 - type: listItem
                   itemObject:
                   style:
-                    ..style.contentItem:
+                    # ..style.contentItem:
                   children:
                     - type: label
                       dataKey: itemObject.medicalLicense
@@ -575,6 +578,7 @@ FacilityProviderInfo:
                 ..style.contentItemLeft:
                 ..style.contentItem:
                 width: "0.9"
+                display: block
             - type: label
               dataKey: formData.providerInfo.description
               style:
@@ -582,17 +586,19 @@ FacilityProviderInfo:
                 fontWeight: "400"
                 width: "0.9"
                 marginLeft: "0.05"
-
+                display: block
             - type: label
               text: "Education and training:"
               style:
                 ..style.contentItemLeft:
                 ..style.contentItem:
                 width: "0.9"
+                display: block
             - type: label
               dataKey: formData.providerInfo.education
               style:
                 ..style.contentItemLeft:
+                display: block
                 fontWeight: "400"
                 width: "0.9"
                 marginLeft: "0.05"
@@ -601,12 +607,14 @@ FacilityProviderInfo:
               text: "CV:"
               style:
                 ..style.contentItemLeft:
+                display: block
                 ..style.contentItem:
                 width: "0.9"
             - type: view
               viewTag: cvBox
               style:
                 ..style.cvBox:
+                display: block
               children:
                 - type: image
                   viewTag: cvTag
@@ -1130,6 +1138,8 @@ FacilityProviderInfo:
     username:
       width: "0.92"
       fontSize: .Nfont.h18
+      textAlign: 
+        x: center
       fontWeight: "600"
       color: "0x4B4B4B"
       marginLeft: "0.04"
@@ -1178,6 +1188,7 @@ FacilityProviderInfo:
       boxSizing: border-box
       paddingLeft: "0.04"
       paddingTop: "0.0123"
+      width: "1"
       paddingBottom: "0.0123"
       color: "0x666666"
       fontSize: .Nfont.h14

@@ -120,6 +120,7 @@ AbsentNote:
         type: .DocType.AbsentNote
         subtype:
           mediaType: "application/json"
+          isEncrypted: "1"
         name:
           data:
             classTag:
@@ -132,6 +133,9 @@ AbsentNote:
               fontColor: "0x4c5264"
               backgroundColor: "0xececee"
               display: block
+            userInfo:
+              patientName: .Global.formData.patientName
+              participateName: .Global.formData.providerTitle
             signatureId: ""
             signatureTime: ""
             whetherSign: "true"
@@ -994,6 +998,7 @@ AbsentNote:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
                 - actionType: evalObject
@@ -1074,6 +1079,7 @@ AbsentNote:
                           user: =.Global.MyProfile.name.data.fullName
                           userId: =.Global.currentUser.vertex.id
                           targetUserId: =.Global.formData.auditLog.patientId
+                          targetUser: =.Global.formData.auditLog.patientName
                           accessPort: provider
                         dataOut: Global.formData.auditLog.result
                 - actionType: popUp

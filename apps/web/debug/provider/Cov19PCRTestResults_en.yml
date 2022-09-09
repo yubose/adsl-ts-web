@@ -1,88 +1,19 @@
 Cov19PCRTestResults:
   title: COVID-19 PCR Test Results
   pageNumber:
-  init: #Page initialization
+  init:
     - .SignInCheck
-
-    - =.builtIn.utils.createAuditLog:
+    - =.builtIn.date.currentDateTime:
         dataIn:
-          actionTypeCode: .ActionTypeCode.view
-          recordTypeCode: 238081
-          eid: =.Global.formData.currentFacility.relationEdge.id
-          user: =.Global.MyProfile.name.data.fullName
-          userId: =.Global.currentUser.vertex.id
-          targetUserId: =.Global.formData.auditLog.patientId
-          accessPort: provider
-        dataOut: Global.formData.auditLog.result
+        dataOut: Global.formData.auditLog.startTime
     # 记录下载行为
     - .Global.formData.auditLog.actionTypeCode@: =.ActionTypeCode.download
     - .Global.formData.auditLog.recordTypeCode@: 238081
-
     - ..formData@: =.Global.Note
     - actionType: evalObject
       object:
         .Global._nonce@:
           =.builtIn.math.random: ""
-
-    - actionType: evalObject
-      object:
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formData.name.data.antigen.antigenResults
-                  string2: ""
-            - continue
-            - actionType: evalObject
-              object:
-                - ..formDataTemp.antigen.flag@: "block"
-                - ..formDataTemp.antigen.textFlag@: "none"
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formData.name.data.antibody.antibodylgGResults
-                  string2: ""
-            - continue
-            - actionType: evalObject
-              object:
-                - ..formDataTemp.antibodyLG.flag@: "block"
-                - ..formDataTemp.antibodyLG.textFlag@: "none"
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formData.name.data.antibody.antibodylgMResults
-                  string2: ""
-            - continue
-            - actionType: evalObject
-              object:
-                - ..formDataTemp.antibodyLM.flag@: "block"
-                - ..formDataTemp.antibodyLM.textFlag@: "none"
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formData.name.data.fluResults
-                  string2: ""
-            - continue
-            - actionType: evalObject
-              object:
-                - ..formDataTemp.fluResults.flag@: "block"
-                - ..formDataTemp.fluResults.textFlag@: "none"
-    - actionType: evalObject
-      object:
-        - if:
-            - =.builtIn.string.equal:
-                dataIn:
-                  string1: =..formData.name.data.statusTag.name
-                  string2: "Released"
-            - continue
-            - ..formDataTemp.downFlag@: "none"
-
-    # 判断签名是否存在
-    - actionType: evalObject
-      object:
-        - if:
-            - =.Cov19PCRTestResults.formData.name.data.MAsignature
-            - ..formData.displaySign@: "block"
-            - ..formData.displaySign@: "none"
 
     - actionType: evalObject
       object:
@@ -92,35 +23,40 @@ Cov19PCRTestResults:
         - .Global.formData.downloadPDF.scaleY@: 1
         - .Global.formData.downloadPDF.originX@: 0
         - .Global.formData.downloadPDF.originY@: 0
-  formData:
-    # 控制签名是否显示
-    displaySign: "none"
+  formData: ""
 
-  formDataTemp: #Input data temp here, datatemp should not mix with formData
-    downFlag: "inline-block"
-    antigen:
-      flag: "none"
-      textFlag: "block"
-    antibodyLG:
-      flag: "none"
-      textFlag: "block"
-    antibodyLM:
-      flag: "none"
-      textFlag: "block"
-    fluResults:
-      flag: "none"
-      textFlag: "block"
+  formDataTemp:
+
+  apiRequest:
+
   components:
     - .BasePublicHeader:
-      children:
-        - .BasePublicHeaderLeft:
-        - .BasePublicHeaderTitle:
-        - .BasePublicHeaderMenu:
+        children:
+          - .BasePublicHeaderLeft:
+            leftClick:
+              - actionType: evalObject
+                object:
+                  - =.builtIn.utils.createAuditLog:
+                      dataIn:
+                        actionTypeCode: .ActionTypeCode.view
+                        recordTypeCode: 238081
+                        date: =.Global.formData.auditLog.startTime
+                        eid: =.Global.formData.currentFacility.relationEdge.id
+                        user: =.Global.MyProfile.name.data.fullName
+                        userId: =.Global.currentUser.vertex.id
+                        targetUserId: =.Global.formData.auditLog.patientId
+                        targetUser: =.Global.formData.auditLog.patientName
+                        accessPort: provider
+                      dataOut: Global.formData.auditLog.result
+              - actionType: builtIn
+                funcName: goBack
+                reload: true
+          - .BasePublicHeaderTitle:
+          - .BasePublicHeaderMenu:
     - type: scrollView
       viewTag: mainView
       style:
-        width: "1"
-        height: "0.94"
+        ..style.scrollBox:
       children:
         - type: view
           style:
@@ -202,6 +138,7 @@ Cov19PCRTestResults:
                   dataKey: formData.name.data.facilityInfo.fax
 
         - .DocPublicLine:
+
         - type: view
           style:
             marginLeft: "0.04"
@@ -225,22 +162,24 @@ Cov19PCRTestResults:
                 width: "0.92"
                 height: "auto"
               children:
-                - type: image
-                  path: selectOnBlue.svg
-                  style:
-                    display: "inline-block"
-                    verticalAlign: top
-                    height: "0.0197"
                 - type: label
                   dataKey: formData.name.data.companyAddress
                   style:
-                    marginLeft: "0.02"
-                    display: "inline-block"
-                    verticalAlign: top
                     lineHeight: "2.5vh"
                     fontSize: .Nfont.h14
                     height: "auto"
-                    width: "0.856"
+                    width: "0.92"
+                    wordWrap: break-word
+                - type: label
+                  textBoard:
+                    - text: "CLIA #&emsp;&emsp;"
+                    - text: "--"
+                      dataKey: formData.name.data.clia
+                  style:
+                    lineHeight: "3.58vh"
+                    fontSize: .Nfont.h14
+                    height: "auto"
+                    width: "0.92"
                     wordWrap: break-word
             - .DocPublicStyleTwoBox:
               style:
@@ -256,24 +195,28 @@ Cov19PCRTestResults:
                 - .DocPublicStyleTwoLeft:
                   text: Patient Name
                 - .DocPublicStyleTwoRight:
+                  text: "--"
                   dataKey: formData.name.data.patientInfo.patientName
             - .DocPublicStyleTwoBox:
               children:
                 - .DocPublicStyleTwoLeft:
                   text: Date of Birth
                 - .DocPublicStyleTwoRight:
+                  text: "--"
                   dataKey: formData.name.data.patientInfo.dob
             - .DocPublicStyleTwoBox:
               children:
                 - .DocPublicStyleTwoLeft:
                   text: "Phone #"
                 - .DocPublicStyleTwoRight:
+                  text: "--"
                   dataKey: formData.name.data.patientInfo.phone
             - .DocPublicStyleTwoBox:
               children:
                 - .DocPublicStyleTwoLeft:
                   text: "Email"
                 - .DocPublicStyleTwoRight:
+                  text: "--"
                   dataKey: formData.name.data.patientInfo.email
             - .DocPublicStyleTwoBox:
               children:
@@ -282,6 +225,7 @@ Cov19PCRTestResults:
             - .DocPublicStyleTwoBox:
               children:
                 - .DocPublicStyleTwoLeft:
+                  text: "--"
                   dataKey: formData.name.data.patientInfo.address
                   style:
                     height: "auto"
@@ -291,446 +235,172 @@ Cov19PCRTestResults:
                     color: "0x333333"
                     fontWeight: "600"
         - .DocPublicLine:
-        - type: label
-          text: "OFFICE USE ONLY"
-          dataKey:
-          style:
-            marginTop: "0.0246"
-            marginLeft: "0.04"
-            width: "0.92"
-            height: "auto"
-            fontSize: .Nfont.h14
-            fontWeight: "600"
-            color: "0x333333"
-        - type: view
-          style:
-            marginTop: "0.0123"
-            marginLeft: "0.04"
-            height: "auto"
-            width: "0.92"
-            overflow: hidden
-          children:
-            - .publicTextBox:
-              children:
-                - .publicTextTitle:
-                  text: Date of Test
-                - .publicTextValue:
-                  dataKey: formData.name.data.dateOfTest
-            - .publicTextBox:
-              children:
-                - .publicTextTitle:
-                  text: Providers name
-                  dataKey:
-                - .publicTextValue:
-                  dataKey: formData.name.data.providerName
-        - type: view
-          style:
-            marginTop: "0.0246"
-            marginLeft: "0.04"
-            height: "auto"
-            width: "0.92"
-            border:
-              style: 3
-            borderColor: "0xdedede"
-            boxSizing: border-box
-            overflow: hidden
-          children:
-            - type: label
-              text: COVID-19 PCR Test Results
-              style:
-                marginTop: "0.0246"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.92"
-                height: "auto"
-                color: "0x333333"
-                textAlign:
-                  x: center
-            - type: label
-              text: "Test kit name/Manufacture:"
-              style:
-                marginTop: "0.01847"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "COVID-19 PCR Test"
-              style:
-                marginTop: "0.01"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "COVID-19 PCR Test Results"
-              style:
-                marginTop: "0.0246"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "--"
-              style:
-                display: ..formDataTemp.antigen.textFlag
-                marginTop: "0.01"
-                marginLeft: "0.04"
-                height: "auto"
-                width: "0.2"
-                boxSizing: border-box
-                fontSize: .Nfont.h18
-            - type: view
-              style:
-                display: ..formDataTemp.antigen.flag
-                width: "auto"
-                height: "auto"
-              children:
-                - type: label
-                  dataKey: formData.name.data.antigen.antigenResults
-                  style:
-                    marginTop: "0.01"
-                    marginLeft: "0.04"
-                    border:
-                      style: 3
-                    borderColor: ..formData.name.data.antigen.antigenResultsColor
-                    borderWidth: "2px"
-                    color: ..formData.name.data.antigen.antigenResultsColor
-                    height: "0.04"
-                    width: "0.2"
-                    boxSizing: border-box
-                    fontSize: .Nfont.h14
-                    textAlign:
-                      x: "center"
-                      y: "center"
-            - type: view
-              style:
-                marginTop: "0.02"
-                marginLeft: "0.04"
-                width: "0.92"
-                height: "auto"
-              children:
-                - type: view
-                  style:
-                    display: "inline-block"
-                    height: "auto"
-                    width: "0.4"
-                  children:
-                    - type: label
-                      text: "LOT #"
-                      style:
-                        display: "inline-block"
-                        fontSize: .Nfont.h12
-                        width: "auto"
-                        height: "auto"
-                        color: "0x666666"
-                        verticalAlign: middle
-                    - type: label
-                      dataKey: formData.name.data.antigen.lot
-                      style:
-                        marginLeft: "0.02"
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                        fontWeight: "600"
-                        width: "0.25"
-                        height: "auto"
-                        color: "0x333333"
-                        wordWrap: break-word
-                        verticalAlign: middle
-                - type: view
-                  style:
-                    display: "inline-block"
-                    height: "auto"
-                    width: "0.4"
-                  children:
-                    - type: label
-                      text: "Expiration"
-                      style:
-                        display: "inline-block"
-                        fontSize: .Nfont.h12
-                        width: "auto"
-                        height: "auto"
-                        color: "0x666666"
-                        verticalAlign: middle
-                    - type: label
-                      dataKey: formData.name.data.antigen.expiration
-                      style:
-                        marginLeft: "0.02"
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                        fontWeight: "600"
-                        width: "0.2"
-                        height: "auto"
-                        color: "0x333333"
-                        verticalAlign: middle
-            - type: view
-              style:
-                marginTop: "0.02"
-        - type: view
-          style:
-            marginTop: "0.0246"
-            marginLeft: "0.04"
-            height: "auto"
-            width: "0.92"
-            border:
-              style: 3
-            borderColor: "0xdedede"
-            boxSizing: border-box
-            overflow: hidden
-          children:
-            - type: label
-              text: COVID-19 Rapid Antibody Test Results
-              style:
-                marginTop: "0.0246"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.92"
-                height: "auto"
-                color: "0x333333"
-                textAlign:
-                  x: center
-            - type: label
-              text: "Test kit name/Manufacture:"
-              style:
-                marginTop: "0.01847"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "Healgen COVID-19 Antibody IgG/IgM Test"
-              style:
-                marginTop: "0.01"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "Rapid COVID-19 Antibody IgG"
-              style:
-                marginTop: "0.0246"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "--"
-              style:
-                display: ..formDataTemp.antibodyLG.textFlag
-                marginTop: "0.01"
-                marginLeft: "0.04"
-                height: "auto"
-                width: "0.2"
-                boxSizing: border-box
-                fontSize: .Nfont.h18
-            - type: view
-              style:
-                display: ..formDataTemp.antibodyLG.flag
-                width: "auto"
-                height: "auto"
-              children:
-                - type: label
-                  dataKey: formData.name.data.antibody.antibodylgGResults
-                  style:
-                    marginTop: "0.01"
-                    marginLeft: "0.04"
-                    border:
-                      style: 3
-                    borderColor: ..formData.name.data.antibody.antibodylgGResultsColor
-                    borderWidth: "2px"
-                    color: ..formData.name.data.antibody.antibodylgGResultsColor
-                    height: "0.04"
-                    width: "0.2"
-                    boxSizing: border-box
-                    fontSize: .Nfont.h14
-                    textAlign:
-                      x: "center"
-                      y: "center"
-            - type: label
-              text: "Rapid COVID-19 Antibody IgM"
-              style:
-                marginTop: "0.02"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "--"
-              style:
-                display: ..formDataTemp.antibodyLM.textFlag
-                marginTop: "0.01"
-                marginLeft: "0.04"
-                height: "auto"
-                width: "0.2"
-                boxSizing: border-box
-                fontSize: .Nfont.h18
-            - type: view
-              style:
-                display: ..formDataTemp.antibodyLM.flag
-                width: "auto"
-                height: "auto"
-              children:
-                - type: label
-                  dataKey: formData.name.data.antibody.antibodylgMResults
-                  style:
-                    marginTop: "0.01"
-                    marginLeft: "0.04"
-                    border:
-                      style: 3
-                    borderColor: ..formData.name.data.antibody.antibodylgMResultsColor
-                    borderWidth: "2px"
-                    color: ..formData.name.data.antibody.antibodylgMResultsColor
-                    height: "0.04"
-                    width: "0.2"
-                    boxSizing: border-box
-                    fontSize: .Nfont.h14
-                    textAlign:
-                      x: "center"
-                      y: "center"
-
-            - type: view
-              style:
-                marginTop: "0.02"
-                marginLeft: "0.04"
-                width: "0.92"
-                height: "auto"
-              children:
-                - type: view
-                  style:
-                    display: "inline-block"
-                    height: "auto"
-                    width: "0.4"
-                  children:
-                    - type: label
-                      text: "LOT #"
-                      style:
-                        display: "inline-block"
-                        fontSize: .Nfont.h12
-                        width: "auto"
-                        height: "auto"
-                        color: "0x666666"
-                        verticalAlign: middle
-                    - type: label
-                      dataKey: formData.name.data.antibody.lot
-                      style:
-                        marginLeft: "0.02"
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                        fontWeight: "600"
-                        width: "0.25"
-                        height: "auto"
-                        color: "0x333333"
-                        wordWrap: break-word
-                        verticalAlign: middle
-                - type: view
-                  style:
-                    display: "inline-block"
-                    height: "auto"
-                    width: "0.4"
-                  children:
-                    - type: label
-                      text: "Expiration"
-                      style:
-                        display: "inline-block"
-                        fontSize: .Nfont.h12
-                        width: "auto"
-                        height: "auto"
-                        color: "0x666666"
-                    - type: label
-                      dataKey: formData.name.data.antibody.expiration
-                      style:
-                        marginLeft: "0.02"
-                        display: "inline-block"
-                        fontSize: .Nfont.h14
-                        fontWeight: "600"
-                        width: "0.2"
-                        height: "auto"
-                        color: "0x333333"
-            - type: view
-              style:
-                marginTop: "0.02"
 
         - type: view
           style:
-            marginTop: "0.0246"
-            marginLeft: "0.04"
-            height: "auto"
-            width: "0.92"
-            border:
-              style: 3
-            borderColor: "0xdedede"
-            boxSizing: border-box
-            overflow: hidden
+            ..style.boderBox:
           children:
             - type: label
-              text: FLU A&B Results
+              text: COVID-19 SARS-CoV2
               style:
-                marginTop: "0.0246"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.92"
-                height: "auto"
-                color: "0x333333"
-                textAlign:
-                  x: center
-            - type: label
-              text: "FLU A&B Test results"
-              style:
-                marginTop: "0.01847"
-                marginLeft: "0.04"
-                fontSize: .Nfont.h14
-                fontWeight: "600"
-                width: "0.88"
-                height: "auto"
-                color: "0x333333"
-            - type: label
-              text: "--"
-              style:
-                display: ..formDataTemp.fluResults.textFlag
-                marginTop: "0.01"
-                marginLeft: "0.04"
-                height: "auto"
-                width: "0.2"
-                boxSizing: border-box
-                fontSize: .Nfont.h18
+                ..style.blodTitle:
             - type: view
               style:
-                display: ..formDataTemp.fluResults.flag
-                width: "auto"
-                height: "auto"
+                ..style.blockBox:
               children:
                 - type: label
-                  dataKey: formData.name.data.fluResults
+                  text: Date Collected
                   style:
-                    marginTop: "0.01"
-                    marginLeft: "0.04"
-                    border:
-                      style: 3
-                    borderColor: ..formData.name.data.fluResultsColor
-                    borderWidth: "2px"
-                    color: ..formData.name.data.fluResultsColor
-                    height: "0.04"
-                    width: "0.2"
-                    boxSizing: border-box
-                    fontSize: .Nfont.h14
-                    textAlign:
-                      x: "center"
-                      y: "center"
+                    ..style.leftLabel:
+                - type: label
+                  text: "--"
+                  dataKey: formData.name.data.dateCollected
+                  style:
+                    ..style.rightLabel:
             - type: view
               style:
-                marginTop: "0.02"
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Time
+                  style:
+                    ..style.leftLabel:
+                - type: label
+                  text: "--"
+                  dataKey: formData.name.data.dateCollectedTime
+                  style:
+                    ..style.rightLabel:
+
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: Final Report
+                  style:
+                    ..style.leftLabel:
+                - type: label
+                  text: "--"
+                  text=func: .builtIn.string.formatUnixtimeSecond
+                  dataKey: formData.ctime
+                  style:
+                    ..style.rightLabel:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: "LOT #"
+                  style:
+                    ..style.leftLabel:
+                - type: label
+                  text: "--"
+                  dataKey: formData.name.data.lot
+                  style:
+                    ..style.rightLabel:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: "Expiration"
+                  style:
+                    ..style.leftLabel:
+                - type: label
+                  text: "--"
+                  dataKey: formData.name.data.expiration
+                  style:
+                    ..style.rightLabel:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: "PCR Record #"
+                  style:
+                    ..style.leftLabel:
+                - type: label
+                  text: "--"
+                  dataKey: formData.name.data.pcrRecord
+                  style:
+                    ..style.rightLabel:
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: "Panel Test"
+                  style:
+                    ..style.leftLabel:
+                - type: label
+                  text: SARS-CoV2 RT-PCR
+                  style:
+                    ..style.rightLabel:
+                    fontWeight: "400"
+            - type: view
+              style:
+                ..style.blockBox:
+              children:
+                - type: label
+                  text: "Source"
+                  style:
+                    ..style.leftLabel:
+                - type: label
+                  text: Throat/Saliva
+                  style:
+                    ..style.rightLabel:
+                    fontWeight: "400"
+
+            - type: label
+              text: Final Result for SARS CoV-2 (COVID-19)
+              style:
+                ..style.blodTitle:
+                marginTop: "0.02463"
+                textAlign:
+                  x: left
+
+            - type: label
+              dataKey: formData.name.data.finalResult.select
+              style:
+                ..style.blodTitle:
+                marginTop: "0.01"
+                color: =..formData.name.data.finalResult.color
+                textAlign:
+                  x: left
+
+            # description text
+            # Negative (Not Detected)
+            - type: label
+              style:
+                ..style.description:
+                display: =..formData.name.data.finalResult.negativeShow
+              textBoard:
+                - text: "Negative results do not preclude SARS-CoV-2 infection and should not be used as the sole basis for patient management decisions. Negative results must be combined with clinical observations, patient history, and epidemiological information. Optimum specimen types and timing for peak viral levels during infections caused by SARS-CoV-2 have not been determined. "
+                - br:
+                - br:
+                - text: "This test is authorized for the qualitative detection of nucleic acid from SARS-CoV-2 in saliva specimens from individuals suspected of COVID-19 by a healthcare provider. Emergency use of this test is limited to authorized laboratories. Collection of multiple specimens or types of specimens may be necessary to detect virus. A negative test result means that the virus that causes COVID-19 was not found in your sample. However, it is possible for this test to give a negative result that is incorrect (false negative) in some people with COVID-19. You might test negative if the sample was collected early during your infection. You could also be exposed to COVID-19 after your sample was collected and then have become infected. "
+                - br:
+                - br:
+                - text: "Positive and negative predictive values of testing are highly dependent on prevalence. False negative test results are more likely when prevalence is high. "
+                - br:
+                - br:
+                - text: "The SARS-CoV-2 test is intended for the qualitative detection of nucleic acids from SARS-CoV-2 in nasal, nasopharyngeal, oropharyngeal swab or saliva samples from patients who meet COVID-19 clinical and/or epidemiological criteria. Testing methodology is real-time RT-PCR. The assay target ORF1ab gene. If received as separate collection devices, saliva, nasal, nasopharyngeal and oro-pharyngeal specimens are combined for analysis.  "
+                - br:
+                - br:
+                - text: "Test results must be correlated with clinical presentation and evaluated in the context of other laboratory and epidemiologic data. Test performance can be affected because the epidemiology and clinical spectrum of infection caused by SARS-CoV-2 is not fully understood. For example, the optimum types of specimens to collect and when during the course of infection these specimens are most likely to contain detectable viral RNA may not be known. "
+            # Positive (Virus Detected)
+            - type: label
+              style:
+                ..style.description:
+                display: =..formData.name.data.finalResult.positiveShow
+              textBoard:
+                - text: "Positive results conclude SARS-CoV-2 infection has been detected. This test is designed to detect the virus that causes COVID-19 in saliva specimens. iIf you have a positive test result, it is very likely that you have COVID-19. Therefore, it is also likely that you may be placed in isolation to avoid spreading the virus to others. You should follow CDC guidance to reduce the potential transmission of disease. Saliva specimen types and timing for peak viral levels during infections caused by SARS-CoV-2 has been determined. This test is authorized for the qualitative detection of nucleic acid from SARS-CoV-2 in saliva specimens from individuals suspected of COVID-19 by a healthcare provider. Emergency use of this test is limited to authorized laboratories. Collection of multiple specimensor types of specimens may be necessary to detect virus. A positive test result means that the virus that causes COVID-19 was found In your sample. There is a small possibility that this test can give a positive results that is wrong (a false positive result) particularly when used in a population without many cases of COVID-19. Your healthcare provider will work with you to determine how to best care for you based on the test results alone with medical history and your symptoms. "
+                - br:
+                - br:
+                - text: "The SARS-CoV-2 saliva test os intended for the qualitative detection for nucleic acids from SARS-CoV-2 in nasal, nasopharyngeal, Oropharyngeal swab, or saliva samples from patients who meet COVID-19 clinical and/or epidemiological criteria. Testing methodology is real-time RT-PCR. The assay target ORF1ab gene. If received as separate collection devices, saliva, nasal nasopharyngeal, and oro-pharyngeal specimens are combined for analysis. Test results must be correlated with clinical presentation and evaluated in the context of other laboratory and epidemiological data. Test performance can be affected because the epidemiology and clinical spectrum of infection cause by SARS-CoV-2 is not fully understood. For example, these specimens are mostly to contain detectable viral RNA may not be known."
+                - br:
+                - br:
+                - text: "Where can I go for updates and more information? The most up-to-date information on COVID-19 is available at the CDC general webpage http://www.cdc.gov/covid19. In addition, please also contact your healthcare provider with any questions/concerns.   "
 
         - type: label
           textBoard:
@@ -738,7 +408,7 @@ Cov19PCRTestResults:
               color: "0x333333"
             - text: "A&C Urgent Care"
               dataKey: formData.name.data.facilityInfo.facilityName
-              color: "0x005795"
+              color: "#2988e6"
               fontWeight: "600"
             - text: "&ensp;MA has been"
               color: "0x333333"
@@ -752,7 +422,6 @@ Cov19PCRTestResults:
             lineHeight: "2vh"
             fontSize: .Nfont.h14
             wordWrap: break-word
-        - .DocPublicLine:
         - .publicTextBox:
           style:
             marginTop: "0.0246"
@@ -767,7 +436,10 @@ Cov19PCRTestResults:
                 fontSize: .Nfont.h12
               dataKey:
             - .publicTextValue:
-              dataKey: formData.name.data.MAname
+              style:
+                width: "0.66133333"
+                wordBreak: break-word
+              dataKey: formData.name.data.performedName
 
         - type: view
           style:
@@ -813,7 +485,7 @@ Cov19PCRTestResults:
               viewTag: signatureShowTag
               path=func: .builtIn.utils.prepareDocToPath
               # 传入签名文档的id
-              dataKey: formData.name.data.MAsignature
+              dataKey: formData.name.data.signatureId
               style:
                 left: "0"
                 width: "0.88"
@@ -821,7 +493,6 @@ Cov19PCRTestResults:
                 height: "0.128"
                 overflow: scroll
                 zIndex: "1000"
-                display: ..formData.displaySign
 
         - type: view
           style:
@@ -830,7 +501,6 @@ Cov19PCRTestResults:
             width: "0.92"
             height: "auto"
             overflow: hidden
-            display: ..formData.displaySign
           children:
             - type: view
               viewTag: signatureTimeTag
@@ -888,3 +558,43 @@ Cov19PCRTestResults:
           style:
             marginTop: "0.03"
     - .HeaderPopUpMenu:
+  event:
+
+  style:
+    scrollBox:
+      width: "1"
+      height: "0.94"
+      boxSizing: "border-box"
+      color: "#333333"
+      paddingBottom: "0.03"
+    boderBox:
+      marginLeft: "0.04"
+      width: "0.92"
+      marginTop: "0.02463"
+      border: "1px solid #dedede"
+      paddingTop: "0.027093"
+      paddingBottom: "0.027093"
+      paddingLeft: "0.032"
+      paddingRight: "0.032"
+      boxSizing: border-box
+    blodTitle:
+      fontSize: .Nfont.h14
+      fontWeight: "700"
+      textAlign:
+        x: center
+    blockBox:
+      marginTop: "0.0184729"
+    leftLabel:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      width: "0.352"
+    rightLabel:
+      display: "inline-block"
+      fontSize: .Nfont.h14
+      fontWeight: "600"
+      width: "0.49"
+      wordBreak: break-word
+    description:
+      fontSize: .Nfont.h14
+      lineHeight: "2.58vh"
+      marginTop: "0.01"

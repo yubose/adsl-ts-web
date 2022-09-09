@@ -116,6 +116,13 @@ CreateAppointmentToProvider:
           - " - "
           - =.Global.ActiveProvider.name.data.title
         dataOut: CreateAppointmentToProvider.apiRequest.appointment.edgeCreateReq.name.providerName
+
+    - =.builtIn.string.concat:
+        dataIn:
+          - =.Global.ActiveProvider.name.data.fullName
+          - " - "
+          - =.Global.ActiveProvider.name.data.title
+        dataOut: Global.formData.participateName
   formData:
     financialForm: ""
     insurance: ""
@@ -278,6 +285,7 @@ CreateAppointmentToProvider:
     appointment:
       edgeCreateResp: ""
       edgeCreateReq:
+        atimes: -10
         # the provider id
         evid: .Global.ActiveProvider.bsig
         # the patient id
@@ -319,6 +327,7 @@ CreateAppointmentToProvider:
     approveAppointment:
       response: ""
       edge:
+        atimes: -10
         bvid: .Global.currentUser.vertex.id
         evid: ""
         refid: ""
@@ -870,10 +879,8 @@ CreateAppointmentToProvider:
       viewTag: uploading
   event:
     go_back:
-      - actionType: builtIn
-        funcName: goBack
-        reload: true
-
+      # 因为admin更改patint profile可能存在回退问题，直接跳转而不使用go back
+      - goto: MobileContacts3
     # body
     visitQueImg:
       emit:
@@ -1288,13 +1295,14 @@ CreateAppointmentToProvider:
       height: "0.022167"
     scrollBox:
       width: "1"
-      height: "0.84729"
+      height: "0.81729"
       boxSizing: "border-box"
       overflow: "scroll"
-      paddingBottom: "0.03"
+      # paddingBottom: "0.03"
     btnBox:
+      marginTop: "0.02"
       width: "1"
-      height: "0.0972"
+      height: "0.1072"
       boxSizing: "border-box"
       backgroundColor: "#ffffff"
       boxShadow: "1px 1px 4px 1px #dededf"
@@ -1362,7 +1370,7 @@ CreateAppointmentToProvider:
       color: "#333333"
       display: "inline-block"
     inlineValue:
-      width: "0.4"
+      width: "0.39"
       height: "auto"
       fontSize: .Nfont.h14
       color: "#333333"
@@ -1401,7 +1409,6 @@ CreateAppointmentToProvider:
       display: "inline-block"
       fontSize: .Nfont.n2
       width: "0.67"
-      verticalAlign: middle
       marginLeft: "0.02"
 # 2022年7月29日10:09:14 注释
 # CreateAppointmentToProvider:

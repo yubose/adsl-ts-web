@@ -915,6 +915,34 @@ ProductDetails:
                           # - ..formData.pointerEvents.confirm@: ""
                           - ..formData.backgroundColor.confirm@: "#2988e6"
                           - ..formData.pointerEvents.addBtn@: ""
+
+                  # 判断当前选择的规格数量是否超过 库存
+                  - actionType: evalObject
+                    object:
+                      - =.builtIn.string.retainNumber:
+                          dataIn:
+                            value: =..formData.selectItem.num
+                          dataOut: ProductDetails.formData.selectItem.num
+                      - =.builtIn.string.retainNumber:
+                          dataIn:
+                            value: =..formData.inventory.name.title
+                          dataOut: ProductDetails.formData.inventory.name.title
+                  - actionType: evalObject
+                    object:
+                      # 判断数量是否超出当前库存
+                      - if:
+                          - =.builtIn.math.greater:
+                              dataIn:
+                                num1: =..formData.selectItem.num
+                                num2: =..formData.inventory.name.title
+                          - actionType: evalObject
+                            object:
+                              - ..formData.pointerEvents.addBtn@: "none"
+                              - ..formData.selectItem.num@: =..formData.inventory.name.title
+                          - actionType: evalObject
+                            object:
+                              - ..formData.pointerEvents.addBtn@: ""
+                              - ..formData.isClick@: ""
               - continue
       - actionType: builtIn
         funcName: redraw
@@ -1080,7 +1108,7 @@ ProductDetails:
           .Global._nonce@:
             =.builtIn.math.random: ""
       - actionType: evalObject
-        object:      
+        object:
           - if:
               - =..formData.inventory.id
               - continue
@@ -1091,7 +1119,8 @@ ProductDetails:
               - =..formData.shoppingState
               - actionType: evalObject
                 object:
-                  - ..apiRequest.shopCartUnderCurrentAppointment.docQueryResp.doc@: []
+                  - ? ..apiRequest.shopCartUnderCurrentAppointment.docQueryResp.doc@
+                    : []
                   - =..apiRequest.shopCartUnderCurrentAppointment.docAPI.get: ""
                   - =.builtIn.array.getSpecifiedObject:
                       dataIn:
@@ -1213,7 +1242,8 @@ ProductDetails:
                               dataOut: ProductDetails.formData.orderDetail.productionList
                           - .Global.formData.orderDetail@: =..formData.orderDetail
                           - .Global.formData.inventory@: =..formData.inventory
-                          - ..apiRequest.order.docCreateReq.name.data.orderList@: []
+                          - ? ..apiRequest.order.docCreateReq.name.data.orderList@
+                            : []
                           - =.builtIn.array.pushAny:
                               dataIn:
                                 newMessage: =.Global.formData.orderDetail
