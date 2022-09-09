@@ -30,7 +30,14 @@ declare global {
     /** @deprecated */
     __NOODL_SEARCH_CLIENT__: any
     // Injected from noodl-app (Electron desktop app)
-    __NOODL_SEARCH__: () => {
+    __NOODL_SEARCH__: (options?: {
+      sdk?: any
+      meeting?: any
+      nui?: any
+      notification?: any
+      registers?: any
+      spinner?: any
+    }) => {
       apiCache: {
         clear(): void
         createHash(value: any): string

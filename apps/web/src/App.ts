@@ -47,7 +47,6 @@ import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
-import type { Options as BetterSQLite3Options } from 'better-sqlite3'
 import * as c from './constants'
 import * as t from './app/types'
 
@@ -136,15 +135,36 @@ class App {
     this.#ndom = ndom
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
-    this.#spinner = new Spinner()
+    const spinner = new Spinner()
+    const registers = new createRegisters(this)
+    this.#spinner = spinner
     this.goto = createGoto(this)
-    this.register = new createRegisters(this)
+    this.register = registers
 
     noodl && this.use(noodl)
     this.#parser = new nu.Parser()
 
     this.#electron = u.isFnc(window.__NOODL_SEARCH__)
-      ? window.__NOODL_SEARCH__()
+      ? window.__NOODL_SEARCH__({
+          get sdk() {
+            return noodl
+          },
+          get meeting() {
+            return meeting
+          },
+          get nui() {
+            return nui
+          },
+          get notification() {
+            return notification
+          },
+          get registers() {
+            return registers
+          },
+          get spinner() {
+            return spinner
+          },
+        })
       : null
   }
 
@@ -299,14 +319,14 @@ class App {
     page: NDOMPage,
     pageRequesting?: string,
     opts?: { isGoto?: boolean },
-    play?: boolean
+    play?: boolean,
   ): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
   async navigate(
     page?: NDOMPage | string,
     pageRequesting?: string,
     { isGoto }: { isGoto?: boolean } = {},
-    play?: boolean
+    play?: boolean,
   ) {
     function getParams(pageName: string) {
       const nameParts = pageName.split('&')
@@ -362,7 +382,9 @@ class App {
       }
       if (nu.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
-        return !play?(void (window.location.href = pageUrl as string)):window.open(pageUrl,"_blank")
+        return !play
+          ? void (window.location.href = pageUrl as string)
+          : window.open(pageUrl, '_blank')
       }
 
       if (_page.page && _page.requesting && _page.page !== _page.requesting) {
