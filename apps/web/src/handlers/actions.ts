@@ -1073,7 +1073,7 @@ const createActions = function createActions(app: App) {
               butCancel.style.cssText = `
               position: absolute;
               width: 8vw;
-              top: 5vh;
+              top: 10vh;
               left: 30px;
               `;
               contanierDivImg?.append(butCancel);
