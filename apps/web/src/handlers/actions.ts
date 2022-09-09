@@ -1040,15 +1040,17 @@ const createActions = function createActions(app: App) {
               cameraId, // retreived in the previous step.
               {
                 fps: 60, // sets the framerate to 10 frame per second
-                // qrbox: 250
-
-                qrbox: 250
+                qrbox: 400
               },
               (decodedText, decodedResult) => {
-                console.log(decodedText);
-                console.log(decodedResult);
+                console.log(decodedText,decodedResult);
                 try{
-                  ac!.data.set(dataKey, new Function("return "+decodedText)());
+                  if(decodedText.startsWith("https://microgembio.com:80")){
+                    let en = atob(decodedText.split("data=")[1]);
+                    ac!.data.set(dataKey, new Function("return "+en)());
+                  }else{
+                    ac!.data.set(dataKey, new Function("return "+decodedText)());
+                  }
                 }catch{
                   ac!.data.set(dataKey, decodedText);
                 }
