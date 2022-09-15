@@ -39,8 +39,8 @@
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.721",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.203",
+    "@aitmed/cadl": "^1.0.722",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.205",
     "@babel/core": "^7.17.9",
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
