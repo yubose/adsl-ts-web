@@ -51,8 +51,14 @@ function useRenderer() {
   const { getR, root, setR } = useCtx()
   const { createActionChain, execute, executeIf } = useActionChain()
   const builtInFns = useBuiltInFns()
-  const { assetsUrl, getDataObject, getIteratorVar, isListConsumer, name } =
-    usePageCtx()
+  const {
+    assetsUrl,
+    getDataObject,
+    getListObject,
+    getIteratorVar,
+    isListConsumer,
+    name,
+  } = usePageCtx()
 
   const render = React.useCallback(
     (
@@ -104,11 +110,41 @@ function useRenderer() {
         }
 
         if (key === 'children') {
-          u.array(value).forEach((child: t.StaticComponentObject, index) =>
-            children.push(
-              render(child, componentPath.concat('children', index)),
-            ),
-          )
+          if (component.type === 'list') {
+            let listObject = getListObject(id, root, name)
+            let numDataObjects = 0
+
+            if (u.isStr(listObject) && nt.Identify.reference(listObject)) {
+              let datapath = trimReference(listObject)
+
+              if (nt.Identify.localReference(listObject)) {
+                listObject = get(root[name], datapath)
+              } else {
+                listObject = get(root, `${name}.${datapath}`)
+              }
+            }
+
+            if (u.isArr(listObject)) {
+              numDataObjects = listObject.length
+            }
+
+            for (let index = 0; index < numDataObjects; index++) {
+              const child = value[index]
+              children.push(
+                render(child, componentPath.concat('children', index)),
+              )
+
+              if (index + 1 > numDataObjects) {
+                break
+              }
+            }
+          } else {
+            u.array(value).forEach((child: t.StaticComponentObject, index) =>
+              children.push(
+                render(child, componentPath.concat('children', index)),
+              ),
+            )
+          }
         } else if (/popUpView\/viewTag/.test(key)) {
           props['data-viewtag'] = value
         } else if (key === 'data-value') {

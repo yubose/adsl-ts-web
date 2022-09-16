@@ -441,12 +441,38 @@ function useActionChain() {
             else if (
               [is.action.popUp, is.action.popUpDismiss].some((fn) => fn(obj))
             ) {
-              const el = document.querySelector(
-                `[data-viewtag=${obj.popUpView}]`,
-              ) as HTMLElement
+              const selector = `[data-viewtag=${obj.popUpView}]`
+              const el = document.querySelector(selector) as HTMLElement
+              const isPopUpDismiss = is.action.popUpDismiss(obj)
+
               if (el) {
-                el.style.visibility =
-                  obj.actionType === 'popUpDismiss' ? 'hidden' : 'visible'
+                if (isPopUpDismiss) {
+                  el.style.visibility = 'hidden'
+                } else {
+                  el.style.visibility = 'visible'
+
+                  if (obj.dismissOnTouchOutside) {
+                    function registerDismissOnTouchOutsideListener() {
+                      function registerListener(event: MouseEvent) {
+                        const target = event.target as HTMLElement
+                        if (!el.contains(target)) el.style.visibility = 'hidden'
+                        document.removeEventListener('click', registerListener)
+                      }
+
+                      document.removeEventListener(
+                        'click',
+                        registerDismissOnTouchOutsideListener,
+                      )
+
+                      document.addEventListener('click', registerListener)
+                    }
+
+                    document.addEventListener(
+                      'click',
+                      registerDismissOnTouchOutsideListener,
+                    )
+                  }
+                }
               } else {
                 log.error(
                   `The popUp component with popUpView "${obj.popUpView}" is not in the DOM`,
