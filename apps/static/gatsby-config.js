@@ -2,9 +2,10 @@ const u = require('@jsmanifest/utils')
 
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
 const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'www'
-const viewport = process.env.MOBILE
-  ? { width: 414, height: 736 } // iPhone 8 Plus
-  : { width: 1024, height: 768 }
+const viewport =
+  process.env.MOBILE || process.env.CONFIG === 'mob'
+    ? { width: 414, height: 736 } // iPhone 8 Plus
+    : { width: 1024, height: 768 }
 
 const {
   name: siteName,

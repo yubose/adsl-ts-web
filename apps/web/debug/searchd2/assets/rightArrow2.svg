@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
-  <g id="buttons_square_green" data-name="buttons/square/green" transform="translate(30 30) rotate(180)">
-    <path id="bg" d="M2,0H28a2,2,0,0,1,2,2V28a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V2A2,2,0,0,1,2,0Z" transform="translate(0 0)" fill="#2988e6"/>
-    <g id="icons_back-light" data-name="icons/back-light" transform="translate(3.811 3.81)">
-      <rect id="bg-2" data-name="bg" width="21.189" height="21.189" transform="translate(0 0)" fill="none"/>
-      <path id="icon" d="M6.353,14.562.317,8.066a.822.822,0,0,1-.265-.938.828.828,0,0,1,.183-.313A.789.789,0,0,1,.314,6.74L6.353.24a.726.726,0,0,1,1.079,0,.866.866,0,0,1,0,1.163L2.608,6.6H15.466a.822.822,0,1,1,0,1.643H2.637l4.8,5.161a.866.866,0,0,1,0,1.163.726.726,0,0,1-1.079,0Z" transform="translate(2.748 3.482)" fill="#fff"/>
-    </g>
-  </g>
-</svg>
