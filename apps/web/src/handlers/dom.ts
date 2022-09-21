@@ -520,7 +520,7 @@ const createExtendedDOMResolvers = function (app: App) {
           } else {
             // default echart
             console.log(`not define`);
-            
+
             // let myChart = echarts.init(node)
             // let option = dataValue
             // option && myChart.setOption(option)
@@ -1708,6 +1708,49 @@ const createExtendedDOMResolvers = function (app: App) {
     }else{
       console.error("Image array is empty");
     }
+      },
+    },
+    '[App] Checkbox': {
+      cond: 'checkbox',
+      resolve({ node, component }) {
+        if(node&&Object.keys(component.get("data-value"))){
+          let pageName = app.currentPage;
+          const dataKey = component.get('data-key') || component.blueprint?.dataKey || ''
+          const dataValue = (component.get('data-option') as {})["reason"] as {};
+          const dataOptions = component.get('data-option') as {};
+          let fragment:null|DocumentFragment = document.createDocumentFragment();
+          let childrenConta = document.createElement("div");
+          for(let i =0;i<dataValue["allData"].length;i++){
+            let childInput = document.createElement("input");
+            let spanDom = document.createElement("div");
+            childInput.type = "checkbox";
+            childInput.value = i+1+ "";
+            spanDom.textContent = dataValue["allData"][i];
+            if(dataValue["selectedData"].includes(i+1)){
+              childInput.checked = true;
+            }
+              for(let index =0;index<Object.keys(dataOptions["inputStyle"]).length;index++){
+                let styleKey = `${Object.keys(dataOptions["inputStyle"])[index]}`;
+                let styleValue = dataOptions["inputStyle"][`${Object.keys(dataOptions["inputStyle"])[index]}`];
+                childInput.style[styleKey] = styleValue;
+              }
+            fragment.appendChild(childInput);
+            fragment.appendChild(spanDom);
+          }
+          childrenConta.append(fragment)
+          fragment = null;
+          childrenConta.addEventListener("click",(e)=>{
+            let dataInput = +(e.target as HTMLInputElement).value;
+            if((e.target as HTMLInputElement).nodeName == "INPUT"){
+              let selected =  dataValue["selectedData"] as number[];
+              (!(selected.includes(dataInput)))?selected?.push(dataInput):selected?.splice(selected.indexOf(dataInput),1);
+              app.updateRoot((draft)=>{
+                set(draft?.[pageName],dataKey,selected)
+              })
+            }
+          })
+          node.appendChild(childrenConta);
+        }
       },
     },
   }
