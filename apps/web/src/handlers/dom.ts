@@ -1720,35 +1720,113 @@ const createExtendedDOMResolvers = function (app: App) {
           const dataOptions = component.get('data-option') as {};
           let fragment:null|DocumentFragment = document.createDocumentFragment();
           let childrenConta = document.createElement("div");
+          const styleCheckBox = dataOptions["classStyle"];
+          let A = `{
+              appearance: none;
+              position: relative;
+              background: wheat;
+              border-radius: 50%;
+          }`;
+          let chechedA = `{
+              content: "";
+              background: orange;
+              position: absolute;
+              top: 25%;
+              left: 25%;
+              width: 50%;
+              height: 50%;
+              border: none;
+              border-radius: 50%;
+          }`;
+          let B = `{
+            appearance: none;
+            background: #fff;
+            width: 100%;
+            position: relative;
+            height: 100%;
+            border: 2px solid #d9d9d9;
+            border-radius: 50%;
+        }`;
+        let chechedB = `{
+          content: "";
+          background-color: #fff;
+          position: absolute;
+          top: -2px;
+          left: -1px;
+          width: 100%;
+          height: 100%;
+          border: 2px solid #800080;
+          border-radius: 50%;
+          color: #7d7d7d;
+          // font-size: 20px;
+          font-weight: bold;
+          text-align: center;
+          line-height: 5vw;
+        }`;
           for(let i =0;i<dataValue["allData"].length;i++){
             let childInput = document.createElement("input");
             let spanDom = document.createElement("div");
+            let contanierDiv = document.createElement("div");
             childInput.type = "checkbox";
             childInput.value = i+1+ "";
             spanDom.textContent = dataValue["allData"][i];
             if(dataValue["selectedData"].includes(i+1)){
               childInput.checked = true;
             }
+            childInput.setAttribute("class",dataOptions["classStyle"]);
               for(let index =0;index<Object.keys(dataOptions["inputStyle"]).length;index++){
                 let styleKey = `${Object.keys(dataOptions["inputStyle"])[index]}`;
                 let styleValue = dataOptions["inputStyle"][`${Object.keys(dataOptions["inputStyle"])[index]}`];
                 childInput.style[styleKey] = styleValue;
               }
-            fragment.appendChild(childInput);
-            fragment.appendChild(spanDom);
+              for(let index =0;index<Object.keys(dataOptions["textStyle"]).length;index++){
+                let styleKey = `${Object.keys(dataOptions["textStyle"])[index]}`;
+                let styleValue = dataOptions["textStyle"][`${Object.keys(dataOptions["textStyle"])[index]}`];
+                spanDom.style[styleKey] = styleValue;
+              }
+              for(let index =0;index<Object.keys(dataOptions["containerStyle"]).length;index++){
+                let styleKey = `${Object.keys(dataOptions["containerStyle"])[index]}`;
+                let styleValue = dataOptions["containerStyle"][`${Object.keys(dataOptions["containerStyle"])[index]}`];
+                contanierDiv.style[styleKey] = styleValue;
+              }
+            contanierDiv.appendChild(childInput);
+            contanierDiv.appendChild(spanDom);
+            fragment.appendChild(contanierDiv)
           }
           childrenConta.append(fragment)
           fragment = null;
+          let arrReturnNew: any = [];
           childrenConta.addEventListener("click",(e)=>{
             let dataInput = +(e.target as HTMLInputElement).value;
             if((e.target as HTMLInputElement).nodeName == "INPUT"){
               let selected =  dataValue["selectedData"] as number[];
               (!(selected.includes(dataInput)))?selected?.push(dataInput):selected?.splice(selected.indexOf(dataInput),1);
+              // selected.forEach((val)=>{
+              //   arrReturnNew.push(dataValue["allData"][val-1]);
+              // })
               app.updateRoot((draft)=>{
                 set(draft?.[pageName],dataKey,selected)
               })
+              app.root.Global.checkboxArr = selected;
+              localStorage.setItem("Global",JSON.stringify(app.root.Global));
+
             }
           })
+          switch (styleCheckBox) {
+            case 'A': {
+              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]${A}`,0);
+              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]:checked::before${chechedA}`,0);
+              break
+            }
+            case 'B': {
+              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]${B}`,0);
+              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]:checked::before${chechedB}`,0);
+              break
+            }
+            default: {
+              break
+            }
+          }
           node.appendChild(childrenConta);
         }
       },
