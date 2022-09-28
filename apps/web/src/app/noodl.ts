@@ -25,7 +25,10 @@ export const lvl3Options = {
     // if (process.env.LOCAL_CONFIG_URL) return process.env.LOCAL_CONFIG_URL
     // This will be returned (normal use) if NOT using -- env APP=<config name>
     const port = 3000
-    return safeDeployUrl
+    return isDeploying
+    ? safeDeployUrl
+    : `http://127.0.0.1:${port}/${lvl3Options.app}.yml`
+
     // return `./analysis.yml`
   },
 }
