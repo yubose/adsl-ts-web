@@ -1,4 +1,4 @@
-import * as mock from 'noodl-ui-test-utils'
+import * as mock from 'noodl-test-utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'

@@ -1,4 +1,4 @@
-import * as mock from 'noodl-ui-test-utils'
+import * as mock from 'noodl-test-utils'
 import { getFirstByElementId } from 'noodl-ui-dom'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'

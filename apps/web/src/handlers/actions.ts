@@ -1,11 +1,10 @@
 import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import add from 'date-fns/add'
-import startOfDay from 'date-fns/startOfDay'
+import { Html5Qrcode } from 'html5-qrcode'
 import * as imageConversion from 'image-conversion'
 import {
   asHtmlElement,
@@ -52,10 +51,7 @@ import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
 import Cropper from 'cropperjs'
-import '../../node_modules/cropperjs/dist/cropper.min.css'
-import { Html5Qrcode } from 'html5-qrcode'
 
-const log = Logger.create('actions.ts')
 const _pick = pickActionKey
 const _has = pickHasActionKey
 
@@ -76,8 +72,6 @@ const createActions = function createActions(app: App) {
           try {
             !app.getState().spinner.active && app.enableSpinner()
 
-            log.func(`emit [${trigger}]`)
-
             const emitParams = {
               actions: _pick(action, 'actions'),
               pageName:
@@ -97,7 +91,7 @@ const createActions = function createActions(app: App) {
               await app.noodl.emitCall(emitParams as any),
             )
 
-            log.grey(`Emitted`, {
+            log.debug(`Emitted`, {
               action: action?.snapshot?.(),
               emitParams,
               emitResult,
@@ -119,16 +113,14 @@ const createActions = function createActions(app: App) {
   )
 
   const anonymous: Store.ActionObject['fn'] = async (a) => {
-    log.func('anonymous')
-    log.grey('', a.snapshot())
+    log.debug('', a.snapshot())
   }
 
   const evalObject: Store.ActionObject['fn'] = async function onEvalObject(
     action,
     options,
   ) {
-    log.func('evalObject')
-    log.grey('', {
+    log.debug('', {
       action: action?.snapshot?.(),
       actionChain: options?.ref?.snapshot?.(),
       options,
@@ -162,12 +154,14 @@ const createActions = function createActions(app: App) {
 
             if (u.isObj(result)) {
               if (u.isBrowser()) {
-                getActionObjectErrors(result).forEach((errMsg: string) =>{log.red(errMsg, result)})
+                getActionObjectErrors(result).forEach((errMsg: string) => {
+                  log.error(errMsg, result)
+                })
               }
 
               if (result.abort) {
                 strategies.push({ type: 'abort-true', object: result })
-                log.grey(
+                log.debug(
                   `An evalObject returned an object with abort: true. ` +
                     `The action chain will no longer proceed`,
                   { actionChain, injectedObject: result },
@@ -188,7 +182,7 @@ const createActions = function createActions(app: App) {
                           `These popUp actions will still be called to ensure`,
                           `the behavior persists for global popUps`,
                         ].join(' ')
-                        log.salmon(msg, globalPopUp)
+                        log.debug(msg, globalPopUp)
                         await action?.execute?.()
                       }
                     }
@@ -223,17 +217,17 @@ const createActions = function createActions(app: App) {
                     }
                   }
                   let action = {
+                    actionChain,
+                    instance: actionChain?.inject.call(
                       actionChain,
-                      instance: actionChain?.inject.call(
-                        actionChain,
-                        result as any,
-                      ),
-                      object: result,
-                      queue: actionChain?.queue.slice(),
+                      result as any,
+                    ),
+                    object: result,
+                    queue: actionChain?.queue.slice(),
                   }
-                  log.grey(
+                  log.debug(
                     `An evalObject action is injecting a new object to the chain`,
-                    action
+                    action,
                   )
                 }
               }
@@ -264,7 +258,7 @@ const createActions = function createActions(app: App) {
           if (u.isFnc(object)) {
             const result = await object()
             if (result) {
-              log.hotpink(
+              log.info(
                 `Received a value from evalObject's "if" evaluation. ` +
                   `Returning it back to the action chain now`,
                 { action: action?.snapshot?.(), result },
@@ -275,7 +269,10 @@ const createActions = function createActions(app: App) {
         }
       }
     } catch (error) {
-      toast(error.message, { type: 'error' })
+      toast(
+        (error instanceof Error ? error : new Error(String(error))).message,
+        { type: 'error' },
+      )
     } finally {
       if (!app.noodl.getState().queue?.length) {
         app.disableSpinner()
@@ -292,8 +289,7 @@ const createActions = function createActions(app: App) {
 
       if (!app.getState().spinner.active) app.enableSpinner()
 
-      log.func('goto')
-      log.grey(
+      log.debug(
         _pick(action, 'goto'),
         u.isObj(action) ? action?.snapshot?.() : action,
       )
@@ -305,6 +301,7 @@ const createActions = function createActions(app: App) {
           ? goto.destination || goto.dataIn?.destination || goto
           : '') || ''
 
+      // @ts-expect-error
       destProps = app.parse.destination(
         is.pageComponentUrl(destinationParam)
           ? resolvePageComponentUrl({
@@ -353,6 +350,7 @@ const createActions = function createActions(app: App) {
 
       if (id) {
         const isInsidePageComponent =
+          // @ts-expect-error
           isPageConsumer(options.component) || !!destProps.targetPage
         const node = findByViewTag(id) || findByElementId(id)
         if (node) {
@@ -384,7 +382,7 @@ const createActions = function createActions(app: App) {
           else;
           ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
         } else {
-          log.red(
+          log.error(
             `Could not search for a DOM node with an identity of "${id}"`,
             {
               id,
@@ -406,7 +404,7 @@ const createActions = function createActions(app: App) {
             pageUrl: ndomPage.pageUrl,
             startPage: app.startPage,
           })
-          log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+          log.debug(`Page URL evaluates to: ${ndomPage.pageUrl}`)
         } else {
           // TODO - Move this to an official location in noodl-ui-dom
           if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
@@ -419,7 +417,7 @@ const createActions = function createActions(app: App) {
         destination = destinationParam
       }
 
-      log.grey(`Goto info`, {
+      log.debug(`Goto info`, {
         goto: { goto },
         destinationParam,
         isSamePage,
@@ -437,10 +435,14 @@ const createActions = function createActions(app: App) {
         if (ndomPage.page && ndomPage.page !== destination) {
           // delete app.noodl.root[ndomPage.page]
         }
-        await app.navigate(ndomPage, destination, { isGoto: true },destinationParam.startsWith('http')?true:false)
+        await app.navigate(
+          ndomPage,
+          destination,
+          { isGoto: true },
+          destinationParam.startsWith('http') ? true : false,
+        )
         if (!destination) {
-          log.func('goto')
-          log.red(
+          log.error(
             'Tried to go to a page but could not find information on the whereabouts',
             { action: action?.snapshot?.(), options },
           )
@@ -449,24 +451,24 @@ const createActions = function createActions(app: App) {
     },
   )
 
-  const getBlob = (file:File | undefined,action,options):Promise<Blob>=>{
-    return new Promise((res,rej)=>{
-      let blob:Blob = new Blob();
-      let img = document.createElement("img") as HTMLImageElement;
-      let rootDom = document.getElementsByTagName("body")[0];
-      let divRootDom = document.createElement("div") as HTMLDivElement;
-      let divImgDom = document.createElement("div") as HTMLDivElement;
-      let btnResult = document.createElement("button") as HTMLButtonElement;
-      let btnCancel = document.createElement("button") as HTMLButtonElement;
-      let divDom = document.createElement("div") as HTMLDivElement;
-      let divBtn = document.createElement("div") as HTMLDivElement;
-      let cropper;
-        btnResult.textContent = "Confirm";
-        btnCancel.textContent = "Cancel";
-        divRootDom.setAttribute("id","rootDom");
-        let w = document.documentElement.scrollWidth;
-        let h = document.documentElement.scrollHeight;
-        divRootDom.style.cssText = `
+  const getBlob = (file: File | undefined, action, options): Promise<Blob> => {
+    return new Promise((res, rej) => {
+      let blob: Blob = new Blob()
+      let img = document.createElement('img') as HTMLImageElement
+      let rootDom = document.getElementsByTagName('body')[0]
+      let divRootDom = document.createElement('div') as HTMLDivElement
+      let divImgDom = document.createElement('div') as HTMLDivElement
+      let btnResult = document.createElement('button') as HTMLButtonElement
+      let btnCancel = document.createElement('button') as HTMLButtonElement
+      let divDom = document.createElement('div') as HTMLDivElement
+      let divBtn = document.createElement('div') as HTMLDivElement
+      let cropper
+      btnResult.textContent = 'Confirm'
+      btnCancel.textContent = 'Cancel'
+      divRootDom.setAttribute('id', 'rootDom')
+      let w = document.documentElement.scrollWidth
+      let h = document.documentElement.scrollHeight
+      divRootDom.style.cssText = `
             position: relative;
             background-color: #fff;
             z-index: 10000000;
@@ -583,52 +585,65 @@ const createActions = function createActions(app: App) {
       })
     })
   }
-  const requireCsv = async (files,dataKey,ac,comp)=>{
-    const CSVToJSON = (data, csvTitleKbn:string[], delimiter = ',') => {
-      let hanleData:string[] = data.slice(data.indexOf('\n')+1).split('\n');
-      return hanleData.filter(Boolean).map(v => {
-          const values = v.split(delimiter);
-          return v&&csvTitleKbn.reduce(
-              (obj, title, index) => (obj[title] = values[index], obj),{});
-      });
-  };
-    const reader:FileReader  = new FileReader();
+  const requireCsv = async (files, dataKey, ac, comp) => {
+    const CSVToJSON = (data, csvTitleKbn: string[], delimiter = ',') => {
+      let hanleData: string[] = data.slice(data.indexOf('\n') + 1).split('\n')
+      return hanleData.filter(Boolean).map((v) => {
+        const values = v.split(delimiter)
+        return (
+          v &&
+          csvTitleKbn.reduce(
+            (obj, title, index) => ((obj[title] = values[index]), obj),
+            {},
+          )
+        )
+      })
+    }
+    const reader: FileReader = new FileReader()
     // 将上传的文件读取为文本
-    reader.readAsText(files?.[0]);
-    let result = new Promise((res)=>{
-      reader.addEventListener("load", (csvText:ProgressEvent<FileReader>) => {
+    reader.readAsText(files?.[0])
+    let result = new Promise((res) => {
+      reader.addEventListener('load', (csvText: ProgressEvent<FileReader>) => {
         // 将CSV文本转换为JSON数据
-        const jsonFromCsvFile = CSVToJSON(csvText.target?.result, comp.get("data-option") as string[]);
+        const jsonFromCsvFile = CSVToJSON(
+          csvText.target?.result,
+          comp.get('data-option') as string[],
+        )
         res(jsonFromCsvFile)
-    });
-    });
-  return await result;
+      })
+    })
+    return await result
   }
-  const _getInjectBlob: (name: string) => Store.ActionObject['fn']|Function = (name) =>
-  // true?function hh(){}:
+  const _getInjectBlob: (
+    name: string,
+  ) => Store.ActionObject['fn'] | Function = (name) =>
+    // true?function hh(){}:
     async function getInjectBlob(action, options) {
       options.ref?.clear('timeout')
-      log.func(name)
-      log.gold('', action?.snapshot?.())
       const result = await openFileSelector()
-      log.func(name)
       switch (result.status) {
         case 'selected':
-          const { files } = result;
-          const ac = options?.ref;
-          const comp = options?.component;
-          const dataKey = _pick(action, 'dataKey');
-          const documentType = _pick(action, 'documentType');
-          const downloadStatus = _pick(action, 'downloadStatus');
-          const fileType = _pick(action, 'fileType');
-          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000;
-          const fileFormat = _pick(action, 'fileFormat');
-          const shearState = _pick(action,"shearState");
-          let fileRell:File|undefined;
+          const { files } = result
+          const ac = options?.ref
+          const comp = options?.component
+          const dataKey = _pick(action, 'dataKey')
+          const documentType = _pick(action, 'documentType')
+          const downloadStatus = _pick(action, 'downloadStatus')
+          const fileType = _pick(action, 'fileType')
+          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
+          const fileFormat = _pick(action, 'fileFormat')
+          const shearState = _pick(action, 'shearState')
+          let fileRell: File | undefined
 
-          if(Boolean(shearState)){
-            const hreFile = await getBlob(files?.[0],action,options);
-            fileRell = new File([hreFile],files?.[0].name as string,(!(files?.[0].type.includes("svg"))?{type: files?.[0].type} as FilePropertyBag:undefined))
+          if (Boolean(shearState)) {
+            const hreFile = await getBlob(files?.[0], action, options)
+            fileRell = new File(
+              [hreFile],
+              files?.[0].name as string,
+              !files?.[0].type.includes('svg')
+                ? ({ type: files?.[0].type } as FilePropertyBag)
+                : undefined,
+            )
           }
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
@@ -636,12 +651,12 @@ const createActions = function createActions(app: App) {
               const status = (documentType as string[])?.some(
                 (item) => item === files?.[0]?.['type'].split('/')[1],
               )
-              ac.data.set(downloadStatus,status)
+              ac.data.set(downloadStatus, status)
               app.updateRoot(downloadStatus, status)
             }
-            if(fileType){
-              const type = files?.[0]?.name.split(".").at(-1);
-              ac.data.set(fileType,type)
+            if (fileType) {
+              const type = files?.[0]?.name.split('.').at(-1)
+              ac.data.set(fileType, type)
               app.updateRoot(fileType, type)
             }
             if (fileFormat) {
@@ -649,29 +664,35 @@ const createActions = function createActions(app: App) {
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
             }
             if (u.isStr(dataKey)) {
-              if(files?.[0].type.endsWith("/csv")){
+              if (files?.[0].type.endsWith('/csv')) {
                 // CSV标题汉字所对应的区分名
-               // 构建文件读取对象
-              let jsonFromCsvFile = await requireCsv(files,dataKey,ac,comp);
-              ac.data.set(dataKey, {"name":files?.[0]?.name,"data":jsonFromCsvFile});
-              app.updateRoot(dataKey, ac.data.get(dataKey))
-              break;
-            }else{
-              await imageConversion
-              .compressAccurately(fileRell||ac.data.get(dataKey), size)
-              .then((dataBlob) => {
-                let newFile = dataBlob instanceof File ? dataBlob :  new File([dataBlob], ac.data.get(dataKey).name, {
-                  type: files?.[0].type,
+                // 构建文件读取对象
+                let jsonFromCsvFile = await requireCsv(files, dataKey, ac, comp)
+                ac.data.set(dataKey, {
+                  name: files?.[0]?.name,
+                  data: jsonFromCsvFile,
                 })
-                app.updateRoot(dataKey, newFile)
-              })
-            }
-            }else {
-              log.red(
+                app.updateRoot(dataKey, ac.data.get(dataKey))
+                break
+              } else {
+                await imageConversion
+                  .compressAccurately(fileRell || ac.data.get(dataKey), size)
+                  .then((dataBlob) => {
+                    let newFile =
+                      dataBlob instanceof File
+                        ? dataBlob
+                        : new File([dataBlob], ac.data.get(dataKey).name, {
+                            type: files?.[0].type,
+                          })
+                    app.updateRoot(dataKey, newFile)
+                  })
+              }
+            } else {
+              log.error(
                 `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
               )
             }
-            log.green(`Selected file for dataKey "${dataKey}"`, {
+            log.info(`Selected file for dataKey "${dataKey}"`, {
               file: files?.[0],
               actionChain: ac,
             })
@@ -692,7 +713,7 @@ const createActions = function createActions(app: App) {
             //       app.updateRoot(dataKey, newFile)
             //     })
             // } else {
-            //   log.red(
+            //   log.error(
             //     `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
             //   )
             // }
@@ -701,7 +722,7 @@ const createActions = function createActions(app: App) {
             //   actionChain: ac,
             // })
           } else {
-            log.red(
+            log.error(
               `%cBoth action and component is needed to inject a blob to the action chain`,
               `color:#ec0000;`,
               {
@@ -718,7 +739,7 @@ const createActions = function createActions(app: App) {
           await options?.ref?.abort?.('File input window was closed')
           break
         case 'error':
-          return log.red(`An error occurred for action "${name}"`, {
+          return log.error(`An error occurred for action "${name}"`, {
             action: action?.snapshot?.(),
             ...result,
           })
@@ -761,8 +782,7 @@ const createActions = function createActions(app: App) {
     action,
     options,
   ) {
-    log.func('popUp')
-    log.grey('', action?.snapshot?.())
+    log.debug('', action?.snapshot?.())
     return new Promise(async (resolve, reject) => {
       try {
         const { ref } = options
@@ -895,7 +915,7 @@ const createActions = function createActions(app: App) {
             // If popUp has wait: true, the action chain should pause until a response
             // is received from something (ex: waiting on user confirming their password)
             if (is.isBooleanTrue(_pick(action, 'wait'))) {
-              log.grey(
+              log.debug(
                 `Popup action for popUpView "${popUpView}" is ` +
                   `waiting on a response. Aborting now...`,
                 action?.snapshot?.(),
@@ -907,8 +927,7 @@ const createActions = function createActions(app: App) {
             let msg = `Tried to ${
               action?.actionType === 'popUp' ? 'show' : 'hide'
             }`
-            log.func(action?.actionType)
-            log.red(
+            log.error(
               `${msg} a ${action?.actionType} element but the element ` +
                 `was null or undefined`,
               { action: action?.snapshot?.(), popUpView },
@@ -927,16 +946,14 @@ const createActions = function createActions(app: App) {
     action,
     options,
   ) {
-    log.func('popUpDismiss')
-    log.grey('', action?.snapshot?.())
+    log.debug('', action?.snapshot?.())
     for (const obj of app.actions.popUp) {
       await (obj as Store.ActionObject)?.fn?.(action, options)
     }
   }
 
   const refresh: Store.ActionObject['fn'] = async function onRefresh(action) {
-    log.func('refresh')
-    log.grey('', action?.snapshot?.())
+    log.debug('', action?.snapshot?.())
     window.location.reload()
   }
 
@@ -944,8 +961,7 @@ const createActions = function createActions(app: App) {
     action,
     options,
   ) {
-    log.func('saveObject')
-    log.grey('', action?.snapshot?.())
+    log.debug('', action?.snapshot?.())
 
     const { getRoot, ref } = options
     const object = _pick(action, 'object')
@@ -978,15 +994,13 @@ const createActions = function createActions(app: App) {
                 const params = { ...nameField }
                 'verificationCode' in params && delete params.verificationCode
                 await save(params)
-                log.func('saveObject')
-                log.grey(`Called saveObject with:`, params)
+                log.debug(`Called saveObject with:`, params)
               }
             }
           }
         }
       } else if (u.isStr(object)) {
-        log.func('saveObject')
-        log.red(
+        log.error(
           `The "object" property in the saveObject action is a string which ` +
             `is in the incorrect format. Possibly a parsing error?`,
           action?.snapshot?.(),
@@ -1001,12 +1015,12 @@ const createActions = function createActions(app: App) {
     action,
     options,
   ) {
-    log.func('onscanCamera');
-    const ac = options?.ref;
-    const dataKey = _pick(action, 'dataKey');
-    let contanierDivFragment:DocumentFragment|null = document.createDocumentFragment()
-    let contanierDiv:HTMLElement|null = document.createElement("div");
-    let contanierDivImg:HTMLElement|null = document.createElement("div");
+    const ac = options?.ref
+    const dataKey = _pick(action, 'dataKey')
+    let contanierDivFragment: DocumentFragment | null =
+      document.createDocumentFragment()
+    let contanierDiv: HTMLElement | null = document.createElement('div')
+    let contanierDivImg: HTMLElement | null = document.createElement('div')
     contanierDiv.style.cssText = `
       width: 100vw;
       height: 100vh;
@@ -1016,96 +1030,101 @@ const createActions = function createActions(app: App) {
       position: relative;
       align-items: center;
       justify-content: center;
-    `;
+    `
     contanierDivImg.style.cssText = `
       width: 100%;
-    `;
-    contanierDivImg.setAttribute("id","reader")
-    contanierDiv.append(contanierDivImg);
-    contanierDivFragment.append(contanierDiv);
-    document.body.append(contanierDivFragment);
-    let cameraId;
-    return new Promise((resolve,rej)=>{
+    `
+    contanierDivImg.setAttribute('id', 'reader')
+    contanierDiv.append(contanierDivImg)
+    contanierDivFragment.append(contanierDiv)
+    document.body.append(contanierDivFragment)
+    let cameraId
+    return new Promise((resolve, rej) => {
       Html5Qrcode.getCameras()
-      .then((devices) => {
-        if (devices && devices.length) {
-          // 如果有2个摄像头，1为前置的
-          if (devices.length > 1) {
-            cameraId = devices[1].id;
-          } else {
-            cameraId = devices[0].id;
-          }
-          const html5QrCode = new Html5Qrcode("reader");
-          html5QrCode.start(
-              cameraId, // retreived in the previous step.
-              {
-                fps: 60, // sets the framerate to 10 frame per second
-                qrbox: 400
-              },
-              (decodedText, decodedResult) => {
-                console.log(decodedText,decodedResult);
-                try{
-                  if(decodedText.startsWith("https://microgembio.com:80")){
-                    let en = atob(decodedText.split("data=")[1]);
-                    ac!.data.set(dataKey, new Function("return "+en)());
-                  }else{
-                    ac!.data.set(dataKey, new Function("return "+decodedText)());
+        .then((devices) => {
+          if (devices && devices.length) {
+            // 如果有2个摄像头，1为前置的
+            if (devices.length > 1) {
+              cameraId = devices[1].id
+            } else {
+              cameraId = devices[0].id
+            }
+            const html5QrCode = new Html5Qrcode('reader')
+            html5QrCode
+              .start(
+                cameraId, // retreived in the previous step.
+                {
+                  fps: 60, // sets the framerate to 10 frame per second
+                  qrbox: 400,
+                },
+                (decodedText, decodedResult) => {
+                  console.log(decodedText, decodedResult)
+                  try {
+                    if (decodedText.startsWith('https://microgembio.com:80')) {
+                      let en = atob(decodedText.split('data=')[1])
+                      ac!.data.set(dataKey, new Function('return ' + en)())
+                    } else {
+                      ac!.data.set(
+                        dataKey,
+                        new Function('return ' + decodedText)(),
+                      )
+                    }
+                  } catch {
+                    ac!.data.set(dataKey, decodedText)
                   }
-                }catch{
-                  ac!.data.set(dataKey, decodedText);
-                }
-                app.updateRoot(dataKey, ac!.data.get(dataKey));
-                (contanierDivImg as HTMLElement).remove();
-                (contanierDiv as HTMLElement).remove();
-                contanierDivImg = null;
-                contanierDiv = null;
-                contanierDivFragment = null;
-                html5QrCode.stop();
-                resolve()
-              },
-              (e) => {
-              }
-            ).then(()=>{
-              let butCancel:HTMLElement|null = document.createElement("img");
-              const assetsUrl = app.nui.getAssetsUrl() || '';
-              const cancelScan = assetsUrl + 'markCancel.png'
-              butCancel.setAttribute('src', cancelScan)
-              butCancel.style.cssText = `
+                  app.updateRoot(dataKey, ac!.data.get(dataKey))
+                  ;(contanierDivImg as HTMLElement).remove()
+                  ;(contanierDiv as HTMLElement).remove()
+                  contanierDivImg = null
+                  contanierDiv = null
+                  contanierDivFragment = null
+                  html5QrCode.stop()
+                  resolve()
+                },
+                (e) => {},
+              )
+              .then(() => {
+                let butCancel: HTMLElement | null =
+                  document.createElement('img')
+                const assetsUrl = app.nui.getAssetsUrl() || ''
+                const cancelScan = assetsUrl + 'markCancel.png'
+                butCancel.setAttribute('src', cancelScan)
+                butCancel.style.cssText = `
               position: absolute;
               width: 8vw;
               top: 10vh;
               left: 30px;
-              `;
-              contanierDivImg?.append(butCancel);
-              // let res = document.getElementById("qr-shaded-region") as HTMLElement;
-              // let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
-              // res.style.borderTopWidth = whValue;
-              // res.style.borderBottomWidth = whValue;
-              butCancel.addEventListener("click",()=>{
-                (contanierDivImg as HTMLElement).remove();
-                (contanierDiv as HTMLElement).remove();
-                contanierDivImg = null;
-                contanierDiv = null;
-                contanierDivFragment = null;
-                (butCancel as HTMLElement).remove();
-                butCancel = null;
-                html5QrCode.stop();
-                resolve()
+              `
+                contanierDivImg?.append(butCancel)
+                // let res = document.getElementById("qr-shaded-region") as HTMLElement;
+                // let whValue = Number.parseFloat(res.style.borderTopWidth) -3 +"px";
+                // res.style.borderTopWidth = whValue;
+                // res.style.borderBottomWidth = whValue;
+                butCancel.addEventListener('click', () => {
+                  ;(contanierDivImg as HTMLElement).remove()
+                  ;(contanierDiv as HTMLElement).remove()
+                  contanierDivImg = null
+                  contanierDiv = null
+                  contanierDivFragment = null
+                  ;(butCancel as HTMLElement).remove()
+                  butCancel = null
+                  html5QrCode.stop()
+                  resolve()
+                })
               })
-            })
-        }
-      }).catch((err) => {
-        // handle err
-        console.log(err);    // 获取设备信息失败
-      });
+          }
+        })
+        .catch((err) => {
+          // handle err
+          console.log(err) // 获取设备信息失败
+        })
     })
-    };
+  }
 
   const removeSignature: Store.ActionObject['fn'] =
     async function onRemoveSignature(action, options) {
       try {
-        log.func('removeSignature')
-        log.grey('', { action: action?.snapshot?.(), options })
+        log.debug('', { action: action?.snapshot?.(), options })
         const dataKey = _pick(action, 'dataKey')
         const node = findFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
@@ -1115,19 +1134,19 @@ const createActions = function createActions(app: App) {
             console.log('test', signaturePad)
             if (signaturePad) {
               signaturePad.clear()
-              log.grey(
+              log.debug(
                 `Cleared signature for dataKey "${dataKey}"`,
                 signaturePad,
               )
             } else {
-              log.red(
+              log.error(
                 `Tried to clear the signature using dataKey "${dataKey}" ` +
                   `but the component did not have the signature pad stored in its instance`,
                 component,
               )
             }
           } else {
-            log.red(
+            log.error(
               `Tried to clear the signature using dataKey "${dataKey}" ` +
                 `but the component did not exist in the component cache`,
               { node, component, cachedComponents: app.cache.component.get() },
@@ -1142,8 +1161,7 @@ const createActions = function createActions(app: App) {
   const saveSignature: Store.ActionObject['fn'] =
     async function onSaveSignature(action, options) {
       return new Promise((resolve, reject) => {
-        log.func('saveSignature')
-        log.grey('', { action: action?.snapshot?.(), options })
+        log.debug('', { action: action?.snapshot?.(), options })
         const dataKey = _pick(action, 'dataKey')
         if (dataKey) {
           const node = findFirstByDataKey(dataKey) as HTMLCanvasElement
@@ -1161,11 +1179,10 @@ const createActions = function createActions(app: App) {
               if (has(dataObject, dataKey)) {
                 getBlobFromCanvas(node, mimeType).then((blob) => {
                   if (isEmpty) {
-                    set(dataObject, isEmpty, signaturePad._isEmpty)
+                    set(dataObject, isEmpty, signaturePad.isEmpty())
                   }
                   set(dataObject, dataKey, blob)
-                  log.func('saveSignature')
-                  log.grey(`Saved blob to "${dataKey}"`, {
+                  log.debug(`Saved blob to "${dataKey}"`, {
                     blob,
                     dataKey,
                     dataObject,
@@ -1175,7 +1192,7 @@ const createActions = function createActions(app: App) {
                 })
               } else {
                 resolve(
-                  log.red(
+                  log.error(
                     `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
                     { action: action?.snapshot?.(), component },
                   ),
@@ -1183,7 +1200,7 @@ const createActions = function createActions(app: App) {
               }
             } else {
               resolve(
-                log.red(`Missing signature pad from a canvas component`, {
+                log.error(`Missing signature pad from a canvas component`, {
                   action: action?.snapshot?.(),
                   component,
                 }),
@@ -1191,7 +1208,7 @@ const createActions = function createActions(app: App) {
             }
           } else {
             resolve(
-              log.red(
+              log.error(
                 `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
                 { action: action?.snapshot?.(), component },
               ),
@@ -1199,7 +1216,7 @@ const createActions = function createActions(app: App) {
           }
         } else {
           resolve(
-            log.red(
+            log.error(
               `Cannot save the signature because there is no dataKey`,
               action?.snapshot?.(),
             ),
@@ -1210,8 +1227,7 @@ const createActions = function createActions(app: App) {
 
   const toastAction: Store.ActionObject['fn'] = async function onToast(action) {
     try {
-      log.func('toast')
-      log.gold('', action?.snapshot?.())
+      log.debug('', action?.snapshot?.())
       toast(_pick(action, 'message') || '')
     } catch (error) {
       error instanceof Error && toast(error.message, { type: 'error' })
@@ -1223,8 +1239,7 @@ const createActions = function createActions(app: App) {
     { component, ref },
   ) {
     ref?.clear('timeout')
-    log.func('updateObject')
-    log.grey('', action?.snapshot?.())
+    log.debug('', action?.snapshot?.())
 
     let file: File | undefined
 
@@ -1235,7 +1250,7 @@ const createActions = function createActions(app: App) {
           if (ref.data.has(dataKey)) {
             file = ref.data.get(dataKey)
           } else {
-            log.orange(
+            log.warn(
               `No blob was found for dataKey "${dataKey}" on the action chain. ` +
                 `Opening the file selector...`,
             )
@@ -1243,11 +1258,11 @@ const createActions = function createActions(app: App) {
             if (status === 'selected') {
               file = files?.[0]
               ref.data.set(dataKey, file)
-              log.green(`Selected file`, file)
+              log.debug(`Selected file`, file)
             }
           }
         } else {
-          log.red(
+          log.error(
             `Action chain does not exist. No blob will be available`,
             action?.snapshot?.(),
           )
@@ -1267,9 +1282,9 @@ const createActions = function createActions(app: App) {
 
       if (u.isFnc(object)) {
         const result = await object()
-        log.grey(`Invoked "object" that was a function`, { object, result })
+        log.debug(`Invoked "object" that was a function`, { object, result })
       } else if (u.isStr(object)) {
-        log.red(
+        log.error(
           `A string was received as the "object" property. Possible parsing error?`,
           action?.snapshot?.(),
         )
@@ -1282,9 +1297,9 @@ const createActions = function createActions(app: App) {
         if (u.isStr(dataObject)) {
           if (/(file|blob)/i.test(dataObject)) {
             const name = dataObject
-            log.grey(`The data object is requesting a "${name}"`)
+            log.debug(`The data object is requesting a "${name}"`)
             dataObject = file || dataObject
-            log.grey(`Attached the "${name}"`, dataObject)
+            log.debug(`Attached the "${name}"`, dataObject)
           } else if (dataObject.startsWith(iteratorVar)) {
             dataObject = findListDataObject(component)
             !dataObject && (dataObject = file)
@@ -1292,19 +1307,19 @@ const createActions = function createActions(app: App) {
         }
 
         const params = { dataKey, dataObject }
-        log.func('updateObject')
-        log.grey(`Calling updateObject`, { params })
+        log.debug(`Calling updateObject`, { params })
         await app.noodl.updateObject(params)
       }
     } catch (error) {
-      toast(error.message, { type: 'error' })
+      toast(
+        (error instanceof Error ? error : new Error(String(error))).message,
+        { type: 'error' },
+      )
     }
   }
 
   const getLocationAddress: Store.ActionObject['fn'] =
     async function onGetLocationAddress(action, options) {
-      log.func('getLocationAddress')
-      log.grey('', action?.snapshot?.())
       const types = 'address'
       const access_token =
         'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'

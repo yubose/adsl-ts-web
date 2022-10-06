@@ -1,5 +1,5 @@
 // @ts-nocheck
-import * as mock from 'noodl-ui-test-utils'
+import * as mock from 'noodl-test-utils'
 import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import { prettyDOM, waitFor } from '@testing-library/dom'

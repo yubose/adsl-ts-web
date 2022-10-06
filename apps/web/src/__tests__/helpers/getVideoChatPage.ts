@@ -1,4 +1,4 @@
-import * as mock from 'noodl-ui-test-utils'
+import * as mock from 'noodl-test-utils'
 import { ComponentObject } from 'noodl-types'
 import omit from 'lodash/omit'
 

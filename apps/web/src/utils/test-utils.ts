@@ -4,7 +4,7 @@ import type { Status } from '@aitmed/ecos-lvl2-sdk'
 import type { LocalParticipant } from 'twilio-video'
 import type { ComponentObject, PageObject } from 'noodl-types'
 import { EventEmitter } from 'events'
-import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
+import { actionFactory, componentFactory } from 'noodl-test-utils'
 import {
   actionTypes as nuiActionTypes,
   nuiEmitTransaction,

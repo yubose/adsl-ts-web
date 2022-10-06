@@ -1,5 +1,4 @@
 import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
 import 'firebase/app'
 import 'firebase/auth'
 import 'firebase/messaging'
@@ -11,8 +10,6 @@ import {
   AppNotificationHooks,
   AppNotificationMessageObject,
 } from './types'
-
-const log = Logger.create('Notifications.ts')
 
 export interface Options {}
 
@@ -59,9 +56,6 @@ class AppNotification {
         const onMessageNextOrObserver = (
           obs: firebase.NextFn<any> | firebase.Observer<any, Error>,
         ) => {
-          log.func('onMessage<nextOrObserver>')
-          log.green('obs', obs)
-
           let data = {} as AppNotificationMessageObject
 
           if (u.isFnc(obs)) {
@@ -75,14 +69,10 @@ class AppNotification {
         }
 
         const onMessageError = (err: Error) => {
-          log.func('onMessage<error>')
-          log.red(err.message, err)
           this.emit('error', err)
         }
 
         const onMessageComplete = () => {
-          log.func('onMessage<completed>')
-          log.grey(`from onMessage`)
           this.emit('complete')
         }
 

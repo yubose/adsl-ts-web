@@ -1,4 +1,4 @@
-import * as mock from 'noodl-ui-test-utils'
+import * as mock from 'noodl-test-utils'
 import * as u from '@jsmanifest/utils'
 import userEvent from '@testing-library/user-event'
 import { prettyDOM, waitFor } from '@testing-library/dom'

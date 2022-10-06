@@ -2,7 +2,6 @@ import * as u from '@jsmanifest/utils'
 import { isAction } from 'noodl-action-chain'
 import { createAction } from 'noodl-ui'
 import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
-import Logger from 'logsnap'
 import App from '../../App'
 
 /**
@@ -10,8 +9,6 @@ import App from '../../App'
  * src/actions.ts and src/builtIns.ts
  */
 const registerMiddleware = function (app: App) {
-  const log = Logger.create('middlewares.ts')
-
   /**
    * Transforms abnormal args to the expected [action, options] structure
    * Useful to handle dynamically injected actions (goto strings for

@@ -1,7 +1,6 @@
-import type { LiteralUnion } from 'type-fest'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
-import { Account, subscribeToRefs } from '@aitmed/cadl'
+import { Account,  } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
@@ -49,8 +48,6 @@ import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as c from './constants'
 import * as t from './app/types'
-
-const log = Logger.create('App.ts')
 
 class App {
   #state = {
@@ -315,6 +312,7 @@ class App {
    * @param { NDOMPage } page
    * @param { string | undefined } pageRequesting
    */
+  // @ts-expect-error
   async navigate(
     page: NDOMPage,
     pageRequesting?: string,
@@ -467,7 +465,7 @@ class App {
       if (!this.#notification) {
         try {
           this.#notification = new AppNotification()
-          log.grey(`Initialized notifications`, this.#notification)
+          log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
         } catch (error) {
           console.error(
@@ -488,8 +486,7 @@ class App {
       if (this.noodl) await this.noodl.init()
       onSdkInit?.(this.noodl)
 
-      log.func('initialize')
-      log.grey(`Initialized @aitmed/cadl sdk instance`)
+      log.debug(`Initialized @aitmed/cadl sdk instance`)
 
       const storedCode = isUnitTestEnv() ? 0 : (await this.getStatus())?.code
       // Initialize the user's state before proceeding to decide on how to direct them
@@ -667,8 +664,7 @@ class App {
         loadingState.push({ id: page.id as string, init: true })
       }
 
-      log.func('getPageObject')
-      log.teal(`Running noodl.initPage for page "${pageRequesting}"`)
+      log.debug(`Running noodl.initPage for page "${pageRequesting}"`)
 
       if (pageRequesting === currentPage) {
         console.log(
@@ -689,16 +685,14 @@ class App {
           ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
-            log.func('onBeforeInit')
             // console.log(localStorage.getItem("keepingLockState"))
-            log.grey('', { init, page: pageRequesting })
+            log.debug('', { init, page: pageRequesting })
             //   if(localStorage.getItem("lockPreUrl")){
             //     history.go(-(history.length-countJumpPage-1))
             // }
           },
           onInit: async (current, index, init) => {
-            log.func('onInit')
-            log.grey('', { current, index, init, page: pageRequesting })
+            log.debug('', { current, index, init, page: pageRequesting })
 
             const validateReference = (ref: string) => {
               const datapath = nu.trimReference(ref as ReferenceString)
@@ -713,8 +707,7 @@ class App {
                   datapath.split('.'),
                 )
               ) {
-                log.func(`${pageRequesting} init`)
-                log.red(
+                log.error(
                   `The reference "${ref}" is missing from the ${
                     location === 'local'
                       ? `local root for page "${pageRequesting}"`
@@ -867,8 +860,7 @@ class App {
         })
       )?.aborted
 
-      log.func('createPreparePage')
-      log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
+      log.debug(`Ran noodl.initPage on page "${pageRequesting}"`, {
         pageRequesting,
         pageModifiers: page.modifiers,
         pageObject: this?.root[pageRequesting],
@@ -876,14 +868,14 @@ class App {
       })
 
       if (isAbortedFromSDK) {
-        log.hotpink(
+        log.info(
           `Aborting from ${pageRequesting} due to abort request from lvl3`,
         )
         return { aborted: true }
       }
 
       if (isAborted) {
-        log.hotpink(
+        log.info(
           `Aborting from ${pageRequesting} because a newer call was instantiated`,
         )
         return { aborted: true }
@@ -970,8 +962,7 @@ class App {
     refreshWidthAndHeight()
 
     viewport.onResize = async (args) => {
-      log.func('onResiz')
-      log.grey('Resizing')
+      log.debug('Resizing')
       if (
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight
@@ -991,8 +982,7 @@ class App {
   observePages(page: NDOMPage) {
     const onNavigateStart = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
-        log.func('onNavigateStart')
-        log.grey(`Removing room listeners...`)
+        log.debug(`Removing room listeners...`)
         this.meeting.room?.removeAllListeners?.()
       }
     }
@@ -1002,14 +992,13 @@ class App {
       newPageRequesting: string
       snapshot: ReturnType<NDOMPage['snapshot']>
     }) => {
-      log.func('onNavigateStale')
       if (args.newPageRequesting) {
-        log.green(
+        log.info(
           `Aborted a previous request to "${args.previouslyRequesting}" for "${args.newPageRequesting}"`,
           args.snapshot,
         )
       } else {
-        log.green(
+        log.info(
           `Aborted an old/stale request to "${args.previouslyRequesting}"`,
         )
       }
@@ -1017,12 +1006,11 @@ class App {
 
     const onBeforeClearnode = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
-        log.func('onBeforeClearnode')
         const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
           const getSnapshot = () => this[label]?.snapshot()
           const before = getSnapshot()
           this[label]?.reset()
-          log.grey(`Wiping ${label} state`, { before, after: getSnapshot() })
+          log.debug(`Wiping ${label} state`, { before, after: getSnapshot() })
         }
         this.meeting.calledOnConnected = false
         this.getSdkParticipants()?.length && this.setSdkParticipants([])
@@ -1033,13 +1021,12 @@ class App {
     }
 
     const onComponentsRendered = (page: NDOMPage) => {
-      log.func('onComponentsRendered')
-      log.grey(`Done rendering DOM nodes for ${page.page}`)
+      log.debug(`Done rendering DOM nodes for ${page.page}`)
       if (page.page === 'VideoChat') {
         if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)
           this.meeting.calledOnConnected = true
-          log.grey(`Republishing tracks with meeting.onConnected`)
+          log.debug(`Republishing tracks with meeting.onConnected`)
         }
       }
       // Handle pages that have { viewPort: "top" }
@@ -1068,8 +1055,7 @@ class App {
     try {
       if (!page) {
         if (arguments.length) {
-          log.func('render')
-          log.red(
+          log.error(
             `The page instance passed to App.render is null or undefined. The root page be used instead`,
           )
         }
@@ -1129,6 +1115,7 @@ class App {
                   result = actionChain?.execute?.()
                   // result = results.find((val) => !!val?.result)?.result
                 } else {
+                  // @ts-expect-error
                   results = await actionChain?.execute?.()
                   result = results.find((val) => !!val?.result)?.result
                 }
@@ -1176,6 +1163,7 @@ class App {
   }
 
   reset(soft?: boolean): Promise<void>
+  // @ts-expect-error
   reset(): this
   async reset(soft?: boolean) {
     if (soft) {

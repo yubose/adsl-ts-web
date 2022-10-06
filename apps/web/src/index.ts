@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
 import type * as jss from 'jsstore'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import { asHtmlElement, findByViewTag } from 'noodl-ui'
 import { toast } from './utils/dom'
 import { isChrome } from './utils/common'
@@ -11,14 +11,15 @@ import { __NOODL_SEARCH_CLIENT__ } from './constants'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
 import 'vercel-toast/css'
+import '../node_modules/cropperjs/dist/cropper.min.css'
 import './spinner/three-dots.css'
 import './styles.css'
 import lf from './utils/lf'
+
 let app: App
-let log = Logger.create('App.ts')
 let localForage = lf
-Object.defineProperties(window,{
-  localForage:{  configurable: true, get: () => lf }
+Object.defineProperties(window, {
+  localForage: { configurable: true, get: () => lf },
 })
 async function initializeApp(
   args: {
@@ -158,18 +159,16 @@ window.addEventListener('load', async (e) => {
     window.build = process.env.BUILD
     window.local = process.env.LOCAL_INFO
     window.ac = []
-    log.func('onload')
 
     const { Account } = await import('@aitmed/cadl')
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    log.grey('Initializing [App] instance')
+    log.debug('Initializing [App] instance')
 
     app = await initializeApp({ noodl, Account })
 
-    log.func('onload')
-    log.grey('Initialized [App] instance')
+    log.debug('Initialized [App] instance')
 
     if (/(127.0.0.1|localhost)/i.test(location.hostname)) {
       const { default: createWssDiagnosticsClient } = await import(
@@ -238,7 +237,7 @@ window.addEventListener('load', async (e) => {
   }
 })
 
-window.addEventListener('beforeunload', async(evt) => {
+window.addEventListener('beforeunload', async (evt) => {
   const html = document.getElementById('root')?.innerHTML || ''
   if (html) {
     await localForage.setItem(
@@ -322,8 +321,7 @@ function initPiBackgroundWorker(worker: Worker) {
         newVersion: number
       }
       const { database, isCreated } = result
-      log.func('message')
-      log.grey(
+      log.debug(
         `Database ${
           isCreated
             ? `"${database.name}" created with ${database.tables.length} tables`
@@ -332,7 +330,7 @@ function initPiBackgroundWorker(worker: Worker) {
         isCreated ? database : database.tables,
       )
     } else {
-      log.grey(`Message "${type}"`, data)
+      log.debug(`Message "${type}"`, data)
     }
 
     switch (String(type)) {

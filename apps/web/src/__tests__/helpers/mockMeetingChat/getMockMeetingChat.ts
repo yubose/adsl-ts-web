@@ -1,4 +1,4 @@
-import * as mock from 'noodl-ui-test-utils'
+import * as mock from 'noodl-test-utils'
 import * as u from '@jsmanifest/utils'
 import fs from 'fs-extra'
 import path from 'path'

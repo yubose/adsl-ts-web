@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import { isComponent } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import Stream from '../meeting/Stream'
@@ -17,8 +17,6 @@ import is from '../utils/is'
 import App from '../App'
 import { LocalParticipant } from 'twilio-video'
 
-const log = Logger.create('meeting(handlers).ts')
-
 type RemoteParticipantConnectionChangeEvent =
   | 'participantConnected'
   | 'participantDisconnected'
@@ -30,17 +28,13 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     event: RemoteParticipantConnectionChangeEvent,
   ) {
     function onConnectionChange(participant: RemoteParticipant) {
-      log.func('onConnectionChange')
-      log.grey(`${event} "${participant.sid}",participant`)
+      log.debug(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
         // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
         const participantsNumber = app.meeting.room.participants.size
-        if(
-          participantsNumber == 0 &&
-          app.meeting.room.state === 'connected'
-          ){
+        if (participantsNumber == 0 && app.meeting.room.state === 'connected') {
           app.register.extendVideoFunction('onDisconnect')
         }
         toast(`A participant disconnected`, { type: 'error' })
@@ -106,8 +100,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       if (app.selfStream.getElement()) {
         app.selfStream.getElement().style.zIndex = '1000'
       }
-      log.func('onConnected')
-      log.grey(`Bound local participant to selfStream`, app.selfStream)
+      log.debug(`Bound local participant to selfStream`, app.selfStream)
     }
     for (const participant of room.participants.values()) {
       await app.meeting.addRemoteParticipant(participant)
@@ -124,8 +117,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     participant: RemoteParticipant,
     stream: Stream,
   ) {
-    log.func('onAddRemoteParticipant')
-    log.grey(`Bound remote participant to ${stream.type}`, {
+    log.debug(`Bound remote participant to ${stream.type}`, {
       participant,
       stream,
     })
@@ -140,7 +132,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         ]),
       )
       if (!has(app.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
-        log.red(
+        log.error(
           'Could not find a path to remote participants in the VideoChat page! Path: ' +
             PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
           app.root,
@@ -174,13 +166,11 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
    */
   function createElementBinding(component: NuiComponent.Instance) {
     if (!isComponent(component)) {
-      log.red(`The "component" is not a Component!`, component)
+      log.error(`The "component" is not a Component!`, component)
       return component
     }
 
     if (is.isGlobalStreamComponent(component)) {
-      log.func('createElementBinding')
-
       const selfStream = app.meeting.streams?.selfStream
       // Nodes in this stream will be inserted from the Stream instance
       // These are considered "new" and will be used to replace the current stream nodes later
@@ -191,7 +181,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       let viewTag = component.blueprint?.viewTag || ''
 
       if (viewTag === 'selfStream') {
-        log.grey(`Entered element binding resolver for selfStream`, {
+        log.debug(`Entered element binding resolver for selfStream`, {
           component,
           selfStream: selfStream.snapshot(),
         })
@@ -208,7 +198,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               selfStream.reloadTracks()
             }
           } else {
-            log.grey(
+            log.debug(
               `The selfStream instance does not have any DOM elements. Will ` +
                 `assume the "join" function will load the tracks`,
             )
@@ -232,8 +222,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
 
         // Currently used for the popUp in the VideoChat page that have global: true
         function onMutation(mutations: Parameters<MutationCallback>[0]) {
-          log.func(`onMutation`)
-          log.grey(`Mutation change`, mutations)
+          log.debug(`Mutation change`, mutations)
 
           const prevStyle = parseCssText(mutations[0]?.oldValue || '')
           const newStyle = parseCssText(
@@ -258,7 +247,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               if (/audio|video/.test(type)) {
                 const el = node.querySelector(type)
                 if (el) {
-                  log.green(
+                  log.info(
                     `Replacing the existing ${type} element with the one in the loop`,
                     node.replaceChild(elem, el),
                   )
@@ -320,30 +309,32 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   | HTMLVideoElement
                   | HTMLAudioElement
                   | null
-              
+
                 if (is.isBooleanTrue(isBinding)) {
                   const el = app.meeting.mainStream.getElement()
-                  el.style.width = "100%"
-                  el.style.height = "100%"
-                  log.grey(
+                  el.style.width = '100%'
+                  el.style.height = '100%'
+                  log.debug(
                     `${streamLabel} is set to true. ` +
                       `Proceeding to turn on ${type} streaming now...`,
                   )
-                  
+
                   if (el) {
-                    log.grey(
+                    log.debug(
                       `${streamLabel} element exists. Checking if it is paused...`,
                     )
+                    // @ts-expect-error
                     if (el.paused) {
-                      log.grey(`${streamLabel} was paused. Playing now...`)
+                      log.debug(`${streamLabel} was paused. Playing now...`)
+                      // @ts-expect-error
                       el.play()
                     } else {
-                      log.grey(
+                      log.debug(
                         `${streamLabel} is not paused and is currently playing`,
                       )
                     }
                     if (node.querySelector(type)) {
-                      log.grey(
+                      log.debug(
                         `There is already an ${type} element in children. Replacing it with the selfStream one...`,
                       )
                       node.replaceChild(
@@ -356,28 +347,28 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                       node.appendChild(el)
                     }
                   } else {
-                    log.grey(
+                    log.debug(
                       `${streamLabel} element does not exist on selfStream. Checking the current node now..`,
                     )
                     if (node.querySelector(type)) {
-                      log.grey(
+                      log.debug(
                         `${streamLabel} element already exists in the node`,
                         node,
                       )
                     } else {
-                      log.grey(`TODO - Create + start ${type} stream`, {
+                      log.debug(`TODO - Create + start ${type} stream`, {
                         previousSnapshot,
                       })
                     }
                   }
                 } else {
-                  log.grey(
+                  log.debug(
                     `${streamLabel} is set to false. Checking the node for an ${type} element...`,
                     previousSnapshot,
                   )
                   const el = node.querySelector(type)
                   if (el) {
-                    log.grey(`Found an ${type} element. Removing it now...`)
+                    log.debug(`Found an ${type} element. Removing it now...`)
                     try {
                       node.removeChild(el)
                       el.remove()
@@ -389,7 +380,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                       console.error(err)
                     }
                   } else {
-                    log.grey(
+                    log.debug(
                       `Did not to clean up any ${type} element because it is already removd`,
                     )
                   }
@@ -397,13 +388,13 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
               }
             }
           } else if (node) {
-            log.grey(
+            log.debug(
               `Element is hidden. Checking and removing audio or video elements if present...`,
             )
             for (const type of ['audio', 'video']) {
               const el = node.querySelector(type)
               if (el) {
-                log.grey(`Removing ${type} element`)
+                log.debug(`Removing ${type} element`)
                 try {
                   node.removeChild(el)
                   el.remove()
@@ -413,7 +404,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   )
                 }
               } else {
-                log.grey(
+                log.debug(
                   `Did not need to delete any ${type} elements because none were present`,
                 )
               }

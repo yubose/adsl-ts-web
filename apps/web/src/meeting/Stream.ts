@@ -1,4 +1,4 @@
-import Logger from 'logsnap'
+import log from 'loglevel'
 import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
@@ -16,8 +16,6 @@ import {
 } from '../app/types'
 import { resolveAssetUrl } from 'noodl-ui'
 
-const log = Logger.create('Streams.ts')
-
 class MeetingStream {
   #id = getRandomKey()
   #node: HTMLElement | null = null
@@ -33,7 +31,9 @@ class MeetingStream {
   constructor(type: StreamType, { node }: { node?: HTMLElement } = {}) {
     if (node) this.#node = node
     this.type = type
-    if (!type){ console.log({ this: this, node })}
+    if (!type) {
+      console.log({ this: this, node })
+    }
   }
 
   get tracks() {
@@ -71,7 +71,7 @@ class MeetingStream {
   }
 
   #log = (name: string, s?: string, o?: Record<string, any>) => {
-    s ? ({}) : (s = name)
+    s ? {} : (s = name)
     console.log(s, this.snapshot(o))
   }
 
@@ -357,7 +357,6 @@ class MeetingStream {
   #handleTrackToggle = (
     trackOrPublication: LocalTrack | RemoteTrackPublication,
   ) => {
-    log.func('handleTrackToggle')
     if ('isTrackEnabled' in trackOrPublication) {
       if (trackOrPublication.kind === 'video') {
         this.toggleBackdrop(
@@ -366,7 +365,7 @@ class MeetingStream {
       }
     } else {
       const localTrack = trackOrPublication
-      log.green(`localTrack`, localTrack)
+      log.info(`localTrack`, localTrack)
     }
   }
 
@@ -388,13 +387,16 @@ class MeetingStream {
       backdrop.style.left = '0px'
       backdrop.style.background = '#000'
       const img = document.createElement('img')
-      img.style.width = "50%"
-      img.style.height = "auto"
+      img.style.width = '50%'
+      img.style.height = 'auto'
       img.style.position = 'absolute'
       img.style.top = '25%'
-      img.style.left = "25%"
-      let srcPath = resolveAssetUrl('default.svg', window.app.nui.getAssetsUrl())
-      img.setAttribute('src',srcPath)
+      img.style.left = '25%'
+      let srcPath = resolveAssetUrl(
+        'default.svg',
+        window.app.nui.getAssetsUrl(),
+      )
+      img.setAttribute('src', srcPath)
       backdrop.appendChild(img)
       this.#node?.appendChild?.(backdrop)
     }

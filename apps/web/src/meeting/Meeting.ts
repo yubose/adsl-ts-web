@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import { EventEmitter } from 'events'
 import unary from 'lodash/unary'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import { findFirstByViewTag, findByUX } from 'noodl-ui'
 import { isMobile, isUnitTestEnv } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
@@ -9,8 +9,6 @@ import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
 import * as t from '../app/types'
-
-const log = Logger.create('Meeting.ts')
 
 const createMeetingFns = function _createMeetingFns(app: App) {
   let _room = new EventEmitter() as t.Room & { _isMock?: boolean }
@@ -37,7 +35,6 @@ const createMeetingFns = function _createMeetingFns(app: App) {
    * Start LocalParticipant tracks (intended to be used immediately after room.join)
    */
   async function _startTracks() {
-    log.func('_startTracks')
     function handleTrackErr(kind: 'audio' | 'video', err: Error) {
       let errMsg = ''
       if (/NotAllowedError/i.test(err.name)) {
@@ -53,12 +50,12 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       toast(errMsg, { type: 'error' })
     }
     if (o.selfStream?.hasElement?.()) {
-      log.grey(
+      log.debug(
         `Starting tracks using the existent selfStream instance`,
         o.selfStream.snapshot(),
       )
       if (!o.selfStream.hasParticipant()) {
-        log.grey(
+        log.debug(
           `Missing LocalParticipant in selfStream. Setting the LocalParticipant on it now`,
           o.selfStream.snapshot(),
         )
@@ -67,11 +64,12 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       try {
         o.selfStream.reloadTracks()
       } catch (error) {
-        console.error(error)
-        toast(error.message, { type: 'error' })
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.error(err)
+        toast(err.message, { type: 'error' })
       }
     } else {
-      log.grey(
+      log.debug(
         `Starting brand new tracks because selfStream did not have an element`,
         o.selfStream.snapshot(),
       )
@@ -80,14 +78,20 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           await Twilio.Video.createLocalAudioTrack(),
         )
       } catch (error) {
-        handleTrackErr('audio', error)
+        handleTrackErr(
+          'audio',
+          error instanceof Error ? error : new Error(String(error)),
+        )
       }
       try {
         _room.localParticipant?.publishTrack(
           await Twilio.Video.createLocalVideoTrack(),
         )
       } catch (error) {
-        handleTrackErr('video', error)
+        handleTrackErr(
+          'video',
+          error instanceof Error ? error : new Error(String(error)),
+        )
       }
     }
   }
@@ -144,7 +148,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         return _room
       } catch (error) {
         console.error(error)
-        toast(error.message, { type: 'error' })
+        toast(
+          (error instanceof Error ? error : new Error(String(error))).message,
+          { type: 'error' },
+        )
         if (isUnitTestEnv()) throw error
       }
     },
@@ -152,8 +159,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       if (isUnitTestEnv() && !_room._isMock) {
         throw new Error(`Meeting room should be mocked when testing`)
       }
-      log.func('rejoin')
-      log.grey(`Rejoining room`, _room)
+      log.debug(`Rejoining room`, _room)
       await _startTracks()
       setTimeout(() => app.meeting.onConnected?.(_room), 2000)
       o.calledOnConnected = true
@@ -167,8 +173,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     /** Disconnects from the room */
     leave() {
-      log.func('leave')
-      log.red(`LEAVING MEETING ROOM`)
+      log.error(`LEAVING MEETING ROOM`)
       if (_room?.state) {
         const unpublishTracks = (
           trackPublication:
@@ -230,7 +235,6 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           if (o.subStreams) {
             // Adds the remote participant to the substreams collection
             if (force || !o.subStreams.participantExists(participant)) {
-              log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = o.subStreams.blueprint
               const node = (await app.ndom.draw(
@@ -245,7 +249,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                   participant: participant as t.RemoteParticipant,
                 })
                 .last()
-              log.green(
+              log.info(
                 `Created a new subStream and bound the newly connected participant to it`,
                 { blueprint: props, node, participant, subStream },
               )
@@ -254,8 +258,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                 subStream as Stream,
               )
             } else {
-              log.func('addRemoteParticipant')
-              log.orange(
+              log.warn(
                 `Did not proceed to add this remotes participant to a ` +
                   `subStream because they are already in one`,
               )
@@ -264,8 +267,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
             // NOTE: We cannot create a container here because the container is
             // only created while rendering/parsing the NOODL components. It should
             // stay that way to reduce complexity
-            log.func('addRemoteParticipant')
-            log.red(
+            log.error(
               `Cannot add participant without the subStreams container, ` +
                 `which doesn't exist. This participant will not be shown on ` +
                 `the page`,
@@ -274,7 +276,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           }
         }
       } else {
-        log.red(`Cannot add participant to a disconnected room`, {
+        log.error(`Cannot add participant to a disconnected room`, {
           participant,
           room: _room,
         })
@@ -289,8 +291,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         let subStream: Stream | null | undefined = null
 
         if (app.mainStream.isParticipant?.(participant)) {
-          log.func('removeRemoteParticipant')
-          log.orange(
+          log.warn(
             'This participant was mainstreaming. Removing it from mainStream now',
           )
           // NOTE: Be careful not to call mainStream.removeElement() here.
@@ -319,21 +320,16 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               if (nextMainParticipant) {
                 subStream?.unpublish().removeElement()
                 app.mainStream.setParticipant(nextMainParticipant)
-                log.func('removeRemoteParticipant')
-                log.green(
-                  `Bound the next immediate participant to mainStream`,
-                  {
-                    mainStream: app.mainStream,
-                    participant: nextMainParticipant,
-                  },
-                )
+                log.info(`Bound the next immediate participant to mainStream`, {
+                  mainStream: app.mainStream,
+                  participant: nextMainParticipant,
+                })
                 app.subStreams?.removeSubStream(subStream)
               }
             }
           }
         } else if (app.streams?.isSubStreaming(participant)) {
-          log.func('removeRemoteParticipant')
-          log.orange('This remote participant was substreaming')
+          log.warn('This remote participant was substreaming')
           subStream = app.subStreams?.findByParticipant(participant)
           if (subStream) {
             subStream.unpublish().removeElement()

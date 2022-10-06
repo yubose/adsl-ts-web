@@ -27,7 +27,7 @@ import {
 } from 'noodl-ui'
 import QRCode from 'qrcode'
 import { BuiltInActionObject, EcosDocument } from 'noodl-types'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import {
   download,
   exportToPDF,
@@ -55,7 +55,6 @@ import {
 } from '../app/types'
 import type { Format as PdfPageFormat } from '../modules/ExportPdf'
 
-const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
@@ -65,8 +64,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     (app.pickNDOMPage(options?.page) || app.mainPage) as NDOMPage
 
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
-    log.func(`(${kind}) toggleDevice`)
-    log.grey(`Toggling ${kind}`)
+    log.debug(`Toggling ${kind}`)
     let devicePath = `VideoChat.${kind === 'audio' ? 'micOn' : 'cameraOn'}`
     let localParticipant = app.meeting.localParticipant
     let localTrack: LocalAudioTrack | LocalVideoTrack | undefined
@@ -78,12 +76,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (localTrack) {
           localTrack[localTrack.isEnabled ? 'disable' : 'enable']?.()
           set(draft, devicePath, !localTrack.isEnabled)
-          log.grey(
+          log.debug(
             `Toggled ${kind} ${localTrack.isEnabled ? 'off' : 'on'}`,
             localParticipant,
           )
         } else {
-          log.red(
+          log.error(
             `Tried to toggle ${kind} track on/off for LocalParticipant but a ${kind} ` +
               `track was not available`,
             app.meeting.localParticipant,
@@ -96,12 +94,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('copy')
-    log.grey('', action?.snapshot?.())
+    log.debug('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     const node: any = findByViewTag(viewTag)
-    if(!node){
-      log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    if (!node) {
+      log.error(`Cannot find a DOM node for viewTag "${viewTag}"`)
     }
     // !node &&
     try {
@@ -114,22 +111,21 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           select.addRange(range)
           document.execCommand('copy')
           select.removeAllRanges()
-          log.grey(`Copy successfully in viewTag "${viewTag}"`)
+          log.debug(`Copy successfully in viewTag "${viewTag}"`)
           // toast('Copy successfully')
         }
       } else {
-        log.red(`Copy failed in viewTag "${viewTag}"`)
+        log.error(`Copy failed in viewTag "${viewTag}"`)
       }
     } catch (e) {
-      log.red(`Copy failed in viewTag "${viewTag}"`)
+      log.error(`Copy failed in viewTag "${viewTag}"`)
     }
   }
 
   const checkField: Store.BuiltInObject['fn'] = async function onCheckField(
     action,
   ) {
-    log.func('checkField')
-    log.grey('', action?.snapshot?.())
+    log.debug('', action?.snapshot?.())
     const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
       u.array(findByUX(_pick(action, 'contentType'))).forEach(
@@ -202,6 +198,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       link.id = 'lnkDwnldLnk'
       link.style.visibility = 'hidden'
       document.body.appendChild(link)
+      // @ts-expect-error
       const blob = new Blob([csv], { type: 'text/csv' })
       const csvUrl = URL.createObjectURL(blob)
       let filename = ''
@@ -238,8 +235,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     open?: boolean
   }) {
     try {
-      log.func('exportPDF')
-      log.grey('Downloading PDF file', options)
+      log.debug('Downloading PDF file', options)
 
       // Blob will be returned to sdk and written to dataOut if dataOut is given
       let pdfBlob: Blob | undefined
@@ -294,17 +290,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 open: shouldOpen,
                 filename: title,
               })
-              log.green('Exported successfully')
+              log.info('Exported successfully')
             } catch (error) {
               console.error(error)
             }
           } else {
-            log.red(
+            log.error(
               `Tried to export the document to PDF but the "data" property is empty`,
             )
           }
         } else {
-          log.red('The name field in an ecosObj was not an object', ecosObj)
+          log.error('The name field in an ecosObj was not an object', ecosObj)
         }
       }
       return pdfBlob
@@ -316,8 +312,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
-      log.func('disconnectMeeting')
-      log.grey('', action?.snapshot?.())
       app.meeting.room.disconnect
       app.meeting.leave()
     }
@@ -326,8 +320,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('goBack')
-    log.grey('', action?.snapshot?.())
     const reload = _pick(action, 'reload')
     const ndomPage = pickNDOMPageFromOptions(options)
     if (ndomPage) {
@@ -345,8 +337,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   }
 
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
-    // log.func('hide')
-    // log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     let wait = _pick(action, 'wait')
     const onElem = (node: HTMLElement) => {
@@ -359,9 +349,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     const onHide = () => {
       let elemCount
       elemCount = hide(findByViewTag(viewTag), onElem)
-      if(!elemCount){
-        log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
-
+      if (!elemCount) {
+        log.error(`Cannot find a DOM node for viewTag "${viewTag}"`)
       }
     }
     !u.isUnd(wait) ? setTimeout(onHide, wait === true ? 0 : wait) : onHide()
@@ -371,8 +360,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('show')
-    log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     let wait = _pick(action, 'wait') || 0
     const onElem = (node: HTMLElement) => {
@@ -384,8 +371,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
     const showNode = (vTag: string) => {
       let elemCount = show(findByViewTag(vTag), onElem)
-      if(!elemCount){
-        log.red(`Cannot find a DOM node for viewTag "${vTag}"`)
+      if (!elemCount) {
+        log.error(`Cannot find a DOM node for viewTag "${vTag}"`)
       }
     }
     if (!u.isUnd(wait)) {
@@ -395,15 +382,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const toggleCameraOnOff: Store.BuiltInObject['fn'] =
     async function onToggleCameraOnOff(action) {
-      log.func('toggleCameraOnOff')
-      log.green('', action?.snapshot?.())
       _toggleMeetingDevice('video')
     }
 
   const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] =
     async function onToggleMicrophoneOnOff(action) {
-      log.func('toggleMicrophoneOnOff')
-      log.green('', action?.snapshot?.())
       _toggleMeetingDevice('audio')
     }
 
@@ -411,8 +394,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('toggleFlag')
-    log.grey('', action?.snapshot?.())
     try {
       const { component, getAssetsUrl } = options
       const dataKey = _pick(action, 'dataKey') || ''
@@ -491,7 +472,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             },
           })
         } else {
-          log.red(
+          log.error(
             `${dataKey} is not a path of the data object. ` +
               `Defaulting to attaching ${dataKey} as a path to the root object`,
             { action: action?.snapshot?.(), dataObject, dataKey },
@@ -516,7 +497,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           ?.fn?.(action, options)
       }
 
-      log.grey('', {
+      log.debug('', {
         action: action?.snapshot?.(),
         component,
         dataKey,
@@ -561,9 +542,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const goto = createBuiltInHandler(
     useGotoSpinner(app, async function onGoto(action, options) {
-      log.func('goto')
-      log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
-
       if (!app.getState().spinner.active) app.enableSpinner()
 
       let destinationParam = ''
@@ -613,6 +591,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
 
+      // @ts-expect-error
       destProps = app.parse.destination(
         is.pageComponentUrl(destinationParam)
           ? resolvePageComponentUrl({
@@ -640,11 +619,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
         if (!ndomPage || isNuiPage(ndomPage)) {
           ndomPage =
+            // @ts-expect-error
             app.ndom.findPage(pageComponentParent || options.component) ||
             app.mainPage
         }
       } else if ('targetPage' in destProps) {
+        // @ts-expect-error
         destination = destProps.targetPage || ''
+        // @ts-expect-error
         id = destProps.viewTag || ''
         if (id) {
           const pageNode = findByViewTag(id)
@@ -679,7 +661,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         ndomPage.setModifier(destinationParam, { ...dataIn })
       }
 
-      log.grey(`Goto info`, {
+      log.debug(`Goto info`, {
         action: action?.snapshot?.(),
         ...destProps,
         destinationParam,
@@ -694,6 +676,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       if (id) {
         const isInsidePageComponent =
+          // @ts-expect-error
           isPageConsumer(options?.component) || !!destProps.targetPage
         const node = findByViewTag(id) || findFirstByElementId(id)
 
@@ -733,7 +716,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
           }
         } else {
-          log.red(
+          log.error(
             `Could not search for a DOM node with an identity of "${id}"`,
             {
               action: action?.snapshot?.(),
@@ -780,12 +763,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               ndomPage.node.contentDocument.body.textContent = ''
             }
           }
-          await app.navigate(ndomPage, destination, { isGoto: true },destinationParam.startsWith('http')?true:false)
+          await app.navigate(
+            ndomPage,
+            destination,
+            { isGoto: true },
+            destinationParam.startsWith('http') ? true : false,
+          )
         }
 
         if (!destination) {
-          log.func('builtIn')
-          log.red(
+          log.error(
             'Tried to go to a page but could not find information on the whereabouts',
             { action, snapshot: action?.snapshot?.(), ...options },
           )
@@ -827,14 +814,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       components.push(component) && numComponents++
     }
 
-    log.func('redraw')
-    log.hotpink('', metadata)
-
     try {
       if (!numComponents) {
-        log.red(`Could not find any components to redraw`, action?.snapshot?.())
+        log.error(
+          `Could not find any components to redraw`,
+          action?.snapshot?.(),
+        )
       } else {
-        log.grey(`Redrawing ${numComponents} components`, {
+        log.debug(`Redrawing ${numComponents} components`, {
           components,
           nodes: components.map((c) => findFirstBySelector(`#${c?.id}`)),
         })
@@ -843,8 +830,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       for (const _component of components) {
         const _node = findFirstBySelector(`#${_component?.id}`)
         if (!_node) {
-          log.func('redraw')
-          log.red(
+          log.error(
             `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
             { component: _component, node: _node },
           )
@@ -879,7 +865,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       //     const _node = findFirstBySelector(`#${_component?.id}`)
       //     if (!_node) {
       //       log.func('redraw')
-      //       log.red(
+      //       log.error(
       //         `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
       //         { component: _component, node: _node },
       //       )
@@ -905,81 +891,78 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     }
-    log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
+    log.error(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
 
-  const redrawCurrent: Store.BuiltInObject['fn'] = async function onRedrawCurrent(
-    action,
-    options,
-  ) {
-    log.func('redrawCurrent')
-    const component = options?.component as NuiComponent.Instance
-    const metadata = getActionMetadata(action, {
-      component,
-      pickKeys: 'viewTag',
-    })
-    const { viewTag } = metadata
-    try{
-      let _component
-      if (component?.get?.('data-viewtag') === viewTag.fromAction){
-        _component = component as NuiComponent.Instance
-      }else{
-        let newComponent = component
-        while(newComponent && !_component){
-          newComponent = newComponent?.parent as NuiComponent.Instance
-          if(newComponent?.blueprint?.viewTag && newComponent?.get?.('data-viewtag') === viewTag.fromAction){
-            _component = newComponent as NuiComponent.Instance
-          }
-        }
-      }
-
-      if(_component){
-        log.red(`Redrawing current component`, {
-          _component
-        })
-        const _node = findFirstBySelector(`#${_component?.id}`)
-        if (!_node) {
-          log.func('redraw')
-          log.red(
-            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
-            { component: _component, node: _node },
-          )
+  const redrawCurrent: Store.BuiltInObject['fn'] =
+    async function onRedrawCurrent(action, options) {
+      const component = options?.component as NuiComponent.Instance
+      const metadata = getActionMetadata(action, {
+        component,
+        pickKeys: 'viewTag',
+      })
+      const { viewTag } = metadata
+      try {
+        let _component
+        if (component?.get?.('data-viewtag') === viewTag.fromAction) {
+          _component = component as NuiComponent.Instance
         } else {
-          const ctx = {} as any
-          if (isListConsumer(_component)) {
-            const dataObject = findListDataObject(_component)
-            dataObject && (ctx.dataObject = dataObject)
-            if (is.component.list(_component)) {
-              ctx.listObject =
-                _component.get?.('listObject') ||
-                _component.blueprint?.listObject ||
-                _component?.['listObject']
-              ctx.index = 0
-              ctx.dataObject = ctx.listObject?.[0]
-              ctx.iteratorVar = _component.blueprint?.iteratorVar
+          let newComponent = component
+          while (newComponent && !_component) {
+            newComponent = newComponent?.parent as NuiComponent.Instance
+            if (
+              newComponent?.blueprint?.viewTag &&
+              newComponent?.get?.('data-viewtag') === viewTag.fromAction
+            ) {
+              _component = newComponent as NuiComponent.Instance
             }
           }
-          const ndomPage = pickNDOMPageFromOptions(options)
-          await app.ndom.redraw(_node, _component, ndomPage, {
-            context: ctx,
-          })
         }
-      }else{
-        log.red(`Could not find any components to redraw`, action?.snapshot?.())
-      }
-    }catch (error) {
+
+        if (_component) {
+          log.error(`Redrawing current component`, {
+            _component,
+          })
+          const _node = findFirstBySelector(`#${_component?.id}`)
+          if (!_node) {
+            log.error(
+              `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+              { component: _component, node: _node },
+            )
+          } else {
+            const ctx = {} as any
+            if (isListConsumer(_component)) {
+              const dataObject = findListDataObject(_component)
+              dataObject && (ctx.dataObject = dataObject)
+              if (is.component.list(_component)) {
+                ctx.listObject =
+                  _component.get?.('listObject') ||
+                  _component.blueprint?.listObject ||
+                  _component?.['listObject']
+                ctx.index = 0
+                ctx.dataObject = ctx.listObject?.[0]
+                ctx.iteratorVar = _component.blueprint?.iteratorVar
+              }
+            }
+            const ndomPage = pickNDOMPageFromOptions(options)
+            await app.ndom.redraw(_node, _component, ndomPage, {
+              context: ctx,
+            })
+          }
+        } else {
+          log.error(
+            `Could not find any components to redraw`,
+            action?.snapshot?.(),
+          )
+        }
+      } catch (error) {
         console.error(error)
         error instanceof Error && toast(error.message, { type: 'error' })
+      }
     }
-  }
-
-
-
-
 
   const dismissOnTouchOutside: Store.BuiltInObject['fn'] =
     async function onDismissOnTouchOutside(action, options) {
-      log.func('dismissOnTouchOutside')
       const component = options?.component as NuiComponent.Instance
       const metadata = getActionMetadata(action, {
         component,
@@ -1000,58 +983,53 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
 
-  const extendMeeting : Store.BuiltInObject['fn'] = async function onExtendMeeting(
-        action,
-        options,
-      ) {
-        log.func('initExtend')
-        let numberofExtensions = app.register.getNumberofExtensions()
-        let timePerExtendSeconds = _pick(action, 'timePerExtendSeconds')
-        let oldTimePerExtendSeconds = app.register.getTimePerExtendSeconds()
-        app.register.setTimePerExtendSeconds(timePerExtendSeconds)
-        app.register.setNumberofExtensions(numberofExtensions-1)
-        const popUpWaitSeconds = 30
-        let remainTime = oldTimePerExtendSeconds - popUpWaitSeconds
-        console.log(remainTime,numberofExtensions)
-        if (remainTime > 0 && numberofExtensions>=0){
-          app.register.removeTime('extendVideoChatTime')
-          app.register.removeTime('PopUPTimeInterval')
-          app.register.removeTime('PopUPToDisconnectTime')
-          const id = setTimeout(
-            ()=>{
-              app.meeting.room.state === 'connected' && app.register.extendVideoFunction('showExtendView')
-              clearTimeout(id)
-            }
-          ,remainTime*1000)
-          app.register.setTimeId('extendVideoChatTime',id)
-
-        }else{
-          console.log('The meeting might had already ended. Please reschedule or cancel it.')
-          app.meeting.leave()
-          app.register.extendVideoFunction('onDisconnect')
-        }
-
+  const extendMeeting: Store.BuiltInObject['fn'] =
+    async function onExtendMeeting(action, options) {
+      let numberofExtensions = app.register.getNumberofExtensions()
+      let timePerExtendSeconds = _pick(action, 'timePerExtendSeconds')
+      let oldTimePerExtendSeconds = app.register.getTimePerExtendSeconds()
+      app.register.setTimePerExtendSeconds(timePerExtendSeconds)
+      app.register.setNumberofExtensions(numberofExtensions - 1)
+      const popUpWaitSeconds = 30
+      let remainTime = oldTimePerExtendSeconds - popUpWaitSeconds
+      console.log(remainTime, numberofExtensions)
+      if (remainTime > 0 && numberofExtensions >= 0) {
+        app.register.removeTime('extendVideoChatTime')
+        app.register.removeTime('PopUPTimeInterval')
+        app.register.removeTime('PopUPToDisconnectTime')
+        const id = setTimeout(() => {
+          app.meeting.room.state === 'connected' &&
+            app.register.extendVideoFunction('showExtendView')
+          clearTimeout(id)
+        }, remainTime * 1000)
+        app.register.setTimeId('extendVideoChatTime', id)
+      } else {
+        console.log(
+          'The meeting might had already ended. Please reschedule or cancel it.',
+        )
+        app.meeting.leave()
+        app.register.extendVideoFunction('onDisconnect')
       }
-  const routeRediredct : Store.BuiltInObject['fn'] = async function onRouteRediredct(
-    action,
-    options,
-  ){
-    let pageNames = _pick(action, 'pageNames')
-    let routeStr:string = ''
-    if(u.isArr(pageNames)){
-      let url = window.location.href
-      const parts  = url.split('?')
-      const basePart = parts[0]
-      const oldRouteStr = parts[1]
-      u.reduce(
-        pageNames,
-        (acc, key) => (routeStr = `${routeStr?routeStr+'-':routeStr}${key}`),
-        ""
-      )
-      if(oldRouteStr !== routeStr) app.mainPage.pageUrl = `${basePart}?${routeStr}`
     }
-  }
-
+  const routeRediredct: Store.BuiltInObject['fn'] =
+    async function onRouteRediredct(action, options) {
+      let pageNames = _pick(action, 'pageNames')
+      let routeStr: string = ''
+      if (u.isArr(pageNames)) {
+        let url = window.location.href
+        const parts = url.split('?')
+        const basePart = parts[0]
+        const oldRouteStr = parts[1]
+        u.reduce(
+          pageNames,
+          (acc, key) =>
+            (routeStr = `${routeStr ? routeStr + '-' : routeStr}${key}`),
+          '',
+        )
+        if (oldRouteStr !== routeStr)
+          app.mainPage.pageUrl = `${basePart}?${routeStr}`
+      }
+    }
 
   const builtIns = {
     checkField,
@@ -1087,9 +1065,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (isVisible) hiddenPwLabel.style.visibility = 'hidden'
     }
     // Validate if their password is correct or not
-    const isValid = (
-      await import('@aitmed/cadl')
-    ).Account?.verifyUserPassword?.(password)
+    const isValid = (await import('@aitmed/cadl'))// @ts-expect-error
+    .Account?.verifyUserPassword?.(password)
     if (!isValid) {
       console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
@@ -1114,17 +1091,19 @@ export const extendedSdkBuiltIns = {
    * Called when user clicks the download icon. The passed in args should contain
    * the ecosObj that contains the file data
    */
-  download(this: App, { ecosObj,fileName }: { ecosObj?: EcosDocument<any>,fileName?:string}) {
-    log.func('download (document)')
+  download(
+    this: App,
+    { ecosObj, fileName }: { ecosObj?: EcosDocument<any>; fileName?: string },
+  ) {
     if (!ecosObj) {
-      return log.red(
+      return log.error(
         `Cannot prompt with the download dialog because the "ecosObj" ` +
           `object was passed in as typeof "${typeof ecosObj}"`,
         ecosObj,
       )
     }
     if (!ecosObj.name?.data || !u.isStr(ecosObj.name?.data)) {
-      return log.red(
+      return log.error(
         `Tried to prompt a download window for the user but the "data" ` +
           `field in the name object is empty`,
         ecosObj,
@@ -1149,8 +1128,8 @@ export const extendedSdkBuiltIns = {
     }
 
     // ext && u.isStr(filename) && (filename += ext)
-    !data && (data = ecosObj.name?.data || '');
-    !fileName&&(fileName = ecosObj.name.title);
+    !data && (data = ecosObj.name?.data || '')
+    !fileName && (fileName = ecosObj.name.title)
     // console.log(ecosObj.name.title,"kkkk")
     return download(data, fileName)
   },
@@ -1162,7 +1141,6 @@ export const extendedSdkBuiltIns = {
       viewTag,
     }: { content?: any; scale?: number; viewTag?: string } = {},
   ) {
-    log.func('download (QRCode)')
     // Generate QRCode image
     let ext = ''
     let filename = ('QRCode' || '') as string
@@ -1213,15 +1191,14 @@ export const extendedSdkBuiltIns = {
       timerTag: string
     },
   ) {
-    log.func('onVideoChat')
     try {
       if (action) {
         let msg = ''
         if (action?.accessToken) msg += 'Received access token '
         if (action?.roomId) msg += 'and room id'
-        log.grey(msg, action)
+        log.debug(msg, action)
       } else {
-        log.red(
+        log.error(
           'Expected an action object but the value passed in was null or undefined',
           action,
         )
@@ -1235,19 +1212,18 @@ export const extendedSdkBuiltIns = {
       //   if (connecting) setConnecting(false)
       // }
 
-      log.func('onVideoChat')
       // Reuse the existing room
       if (this.meeting.isConnected) {
         newRoom = await this.meeting.rejoin()
-        log.green(
+        log.info(
           `Reusing existent room that you are already connected to`,
           newRoom,
         )
       } else {
-        log.grey(`Connecting to room id: ${action?.roomId}`)
+        log.debug(`Connecting to room id: ${action?.roomId}`)
         newRoom = (await this.meeting.join(action?.accessToken)) as Room
-        if(newRoom){
-          log.green(`Connected to room: ${newRoom.name}`, newRoom)
+        if (newRoom) {
+          log.info(`Connected to room: ${newRoom.name}`, newRoom)
         }
         // newRoom &&
       }
@@ -1291,8 +1267,7 @@ export const extendedSdkBuiltIns = {
           disable(localParticipant?.audioTracks)
         }
       } else {
-        log.func('onVideoChat')
-        log.red(
+        log.error(
           `Expected a room instance to be returned but received null or undefined instead`,
           newRoom,
         )
@@ -1311,33 +1286,30 @@ export const extendedSdkBuiltIns = {
       meetingEndTime: number
     },
   ) {
-    log.func('initExtend')
     let countDownNum = 0
     let isPopUpOnScreen = false
     let numberofExtensions = action?.numberofExtensions
     let popUpWaitSeconds = action?.popUpWaitSeconds
     let currentTime = Math.ceil(new Date().getTime() / 1000)
     let meetingEndTime = action?.meetingEndTime
-    let remainTime = meetingEndTime-currentTime-popUpWaitSeconds
+    let remainTime = meetingEndTime - currentTime - popUpWaitSeconds
     let timePerExtendSeconds = action.timePerExtendSeconds
-    this.register.setNumberofExtensions(numberofExtensions-1)
+    this.register.setNumberofExtensions(numberofExtensions - 1)
     this.register.setTimePerExtendSeconds(timePerExtendSeconds)
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
-    if (remainTime > 0 && numberofExtensions > 0){
-      const id = setTimeout(
-        ()=>{
-          this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExtendView')
-          clearTimeout(id)
-        }
-      ,remainTime*1000)
-      this.register.setTimeId('extendVideoChatTime',id)
-    }else if(remainTime > 0 && numberofExtensions == 0){
-      const id = setTimeout(
-        ()=>{
-          this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExitWarningView')
-          clearTimeout(id)
-        }
-      ,remainTime*1000)
+    if (remainTime > 0 && numberofExtensions > 0) {
+      const id = setTimeout(() => {
+        this.meeting.room.state === 'connected' &&
+          this.register.extendVideoFunction('showExtendView')
+        clearTimeout(id)
+      }, remainTime * 1000)
+      this.register.setTimeId('extendVideoChatTime', id)
+    } else if (remainTime > 0 && numberofExtensions == 0) {
+      const id = setTimeout(() => {
+        this.meeting.room.state === 'connected' &&
+          this.register.extendVideoFunction('showExitWarningView')
+        clearTimeout(id)
+      }, remainTime * 1000)
     }
     // else{
     //   console.log('The meeting might had already ended. Please reschedule or cancel it.')
@@ -1351,7 +1323,6 @@ export const extendedSdkBuiltIns = {
     //   // this.register.setTimeId('extendVideoChatTime',id)
 
     // }
-
   },
   async initAutoDC(
     this: App,
@@ -1360,25 +1331,21 @@ export const extendedSdkBuiltIns = {
       meetingEndTime: number
     },
   ) {
-    log.func('initAutoDC')
     const popUpWaitSeconds = action?.popUpWaitSeconds
     const currentTime = Math.ceil(new Date().getTime() / 1000)
     const meetingEndTime = action?.meetingEndTime
-    const remainTime = meetingEndTime-currentTime-popUpWaitSeconds
+    const remainTime = meetingEndTime - currentTime - popUpWaitSeconds
     // const remainTime2 = meetingEndTime-currentTime
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
     this.register.setMeetingEndTime(meetingEndTime)
-    if (remainTime > 0){
-      const initAutoDcTime = setTimeout(
-        ()=>{
-            if(this.meeting.room.state === 'connected'){
-              this.register.extendVideoFunction('showExitWarningView')
-            }
-            clearTimeout(initAutoDcTime)
-        },
-        remainTime*1000
-      )
-      this.register.setTimeId('extendVideoChatTime',initAutoDcTime)
+    if (remainTime > 0) {
+      const initAutoDcTime = setTimeout(() => {
+        if (this.meeting.room.state === 'connected') {
+          this.register.extendVideoFunction('showExitWarningView')
+        }
+        clearTimeout(initAutoDcTime)
+      }, remainTime * 1000)
+      this.register.setTimeId('extendVideoChatTime', initAutoDcTime)
 
       // const endMeetingId = setTimeout(
       //   ()=>{
@@ -1390,13 +1357,8 @@ export const extendedSdkBuiltIns = {
       //   },
       //   remainTime2*1000
       // )
-
-
     }
-  }
-
+  },
 }
-
-
 
 export default createBuiltInActions

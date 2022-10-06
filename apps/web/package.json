@@ -83,7 +83,7 @@
     "idb": "^7.0.1",
     "inject-body-webpack-plugin": "^1.3.0",
     "invariant": "^2.2.4",
-    "jsdom": "^16.6.0",
+    "jsdom": "^16.7.0",
     "jsdom-global": "^3.0.2",
     "jsstore": "^4.3.8",
     "loglevel": "^1.8.0",
@@ -91,6 +91,7 @@
     "mocha": "^8.2.1",
     "mutation-observer": "^1.0.3",
     "nock": "^13.1.4",
+    "noodl-test-utils": "^0.0.2",
     "parse-imports-ts": "^1.0.2",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
@@ -115,6 +116,7 @@
     "ts-node": "^10.0.0",
     "tslib": "^2.3.1",
     "twilio-video": "^2.15.0",
+    "typescript": "^4.8.4",
     "webpack": "^5.42.0",
     "webpack-cli": "^4.7.0",
     "webpack-dev-middleware": "^5.0.0",
@@ -247,7 +249,7 @@
     "start:stable": "cross-env NODE_ENV=development HMR=true ECOS_ENV=stable USE_DEV_PATHS=true npm run start",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start -- --env ECOS_ENV=test",
     "sync": "node scripts/op sync",
-    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
+    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src"
   },
   "version": "1.0.29"

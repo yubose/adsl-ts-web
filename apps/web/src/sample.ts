@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import {
   findByDataAttrib,
   findByDataKey,

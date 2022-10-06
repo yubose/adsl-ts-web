@@ -4,16 +4,11 @@
 import { BASE_PAGE_URL } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import curry from 'lodash/curry'
-import set from 'lodash/set'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import App from '../App'
-
-const log = Logger.create('history')
 
 export const createOnPopState = curry(
   async (app: App, event: PopStateEvent) => {
-    log.func('onPopState')
-
     if (!app.getState().spinner.active) app.enableSpinner()
 
     // Restore the states that are missing because of the native browser back button behavior
@@ -40,9 +35,9 @@ export const createOnPopState = curry(
       app.startPage !== 'SignIn' &&
       app.previousPage !== app.startPage
     ) {
-      log.grey(`Received the "goBack" page as ${app.previousPage}`)
+      log.debug(`Received the "goBack" page as ${app.previousPage}`)
     } else {
-      log.grey(`Received the "goBack" page as ${app.previousPage}`)
+      log.debug(`Received the "goBack" page as ${app.previousPage}`)
     }
     if (parts.length > 1) {
       popped = parts.pop()

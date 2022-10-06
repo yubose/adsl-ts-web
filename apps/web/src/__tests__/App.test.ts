@@ -1,8 +1,7 @@
-import * as mock from 'noodl-ui-test-utils'
+import * as m from 'noodl-test-utils'
 import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
 import { expect } from 'chai'
-import { coolGold, italic, magenta } from 'noodl-common'
 import { nuiEmitTransaction, NUI, NDOMPage, Viewport, Store } from 'noodl-ui'
 import { initializeApp, ndom } from '../utils/test-utils'
 import getMockMeetingChat from './helpers/mockMeetingChat/getMockMeetingChat'
@@ -13,7 +12,7 @@ import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
 
-describe(coolGold(`App`), () => {
+describe.only(`App`, () => {
   describe(`use`, () => {
     it(`should set lvl 3 sdk`, () => {
       const app = new App()
@@ -36,7 +35,7 @@ describe(coolGold(`App`), () => {
     expect(new App().initialize())
   })
 
-  describe(italic(`Instantiating`), () => {
+  describe(`Instantiating`, () => {
     it('should initiate the viewport', async () => {
       const app = await initializeApp()
       expect(app.viewport).to.be.instanceOf(Viewport)
@@ -51,7 +50,7 @@ describe(coolGold(`App`), () => {
     })
   })
 
-  describe(italic(`initialize`), () => {
+  describe(`initialize`, () => {
     it(
       `should register the ${nuiEmitTransaction.REQUEST_PAGE_OBJECT} ` +
         `transaction callback`,
@@ -71,9 +70,7 @@ describe(coolGold(`App`), () => {
 
     xdescribe(`noodl actions (excluding builtIns)`, () => {
       u.entries(createActions({} as any)).forEach(([actionType, fn]) => {
-        it(`should attach at least one handler for the ${magenta(
-          actionType,
-        )} to the store`, async () => {
+        it(`should attach at least one handler for the actionType to the store`, async () => {
           const app = await initializeApp()
           if (actionType === 'emit') {
             u.entries(fn).forEach(([trigger, f]) => {
@@ -93,9 +90,7 @@ describe(coolGold(`App`), () => {
           actionFactory: { createBuiltInHandler: () => {} },
         } as any),
       ).forEach(([funcName, fn]) => {
-        it(`should attach the builtIn "${magenta(
-          funcName,
-        )}" to the store`, async () => {
+        it(`should attach the builtIn "funcName" to the store`, async () => {
           const app = await initializeApp()
           expect(app.nui.cache.actions.builtIn.has(funcName)).to.be.true
           expect(app.nui.cache.actions.builtIn.get(funcName)).to.have.lengthOf(
@@ -107,9 +102,7 @@ describe(coolGold(`App`), () => {
 
     describe(`extended DOM resolvers`, () => {
       createExtendedDOMResolvers({} as any).forEach((obj) => {
-        it(`should attach the extended DOM resolver ${magenta(
-          obj.name,
-        )} to the list of DOM resolvers`, async () => {
+        it(`should attach the extended DOM resolver ${obj.name} to the list of DOM resolvers`, async () => {
           const app = await initializeApp()
           expect(app.ndom.consumerResolvers).to.satisfy((objs: any) =>
             objs.some((r: any) => r.name === obj.name),
@@ -125,27 +118,22 @@ describe(coolGold(`App`), () => {
     })
 
     describe(`noodl registers`, () => {
-      const onNewEcosDocObject = mock.getRegisterComponent({
+      const onNewEcosDocObject = m.getRegisterComponent({
         onEvent: 'onNewEcosDoc',
-        emit: mock.getEmitObject({
+        emit: m.getEmitObject({
           dataKey: { var: 'ecosDocOj' },
           actions: [],
         }),
       })
 
-      describe(`when working with ${magenta(
-        `noodl.root.Global.globalRegister`,
-      )}`, () => {
+      describe(`when working with noodl.root.Global.globalRegister`, () => {
         it(``, () => {
           getMockMeetingChat()
         })
       })
 
       createRegisters({} as any).forEach((obj) => {
-        it(`should register the "${magenta(
-          // @ts-expect-error
-          obj.name,
-        )}" object to the register store`, async () => {
+        it(`should register the "${obj.name}" object to the register store`, async () => {
           const app = await initializeApp()
           expect(app.ndom.cache.register.has(obj['name']))
         })
@@ -214,14 +202,14 @@ describe(coolGold(`App`), () => {
     })
   })
 
-  describe(italic(`navigate`), () => {
+  describe(`navigate`, () => {
     it(``, async () => {
       const app = await initializeApp({
         pageName: 'SignIn',
         root: {
-          SignIn: { components: [mock.getButtonComponent()] },
-          Cereal: { components: [mock.getLabelComponent()] },
-          Paper: { components: [mock.getDividerComponent()] },
+          SignIn: { components: [m.getButtonComponent()] },
+          Cereal: { components: [m.getLabelComponent()] },
+          Paper: { components: [m.getDividerComponent()] },
         },
       })
       await app.navigate('Cereal')

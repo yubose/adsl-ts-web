@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
 import { createAction } from 'noodl-ui'
 import { nui } from '../../utils/test-utils'
-import * as mock from 'noodl-ui-test-utils'
+import * as mock from 'noodl-test-utils'
 import * as com from '../../utils/common'
 
 describe(coolGold(`common (utils)`), () => {

@@ -1,13 +1,11 @@
 import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import { Identify, ReferenceString } from 'noodl-types'
 import { trimReference } from 'noodl-utils'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import App from '../App'
 import createRegisters from '../handlers/register'
-
-const log = Logger.create(`trackers`)
 
 function validateRef(
   app: App,
@@ -19,7 +17,7 @@ function validateRef(
     const pathInSplits = datapath.split('.')
     if (Identify.localKey(datapath)) {
       if (!has(app.root?.[page], pathInSplits)) {
-        log.red(
+        log.error(
           `The reference "${key}" is not found in the local root object for page "${page}"`,
           { datapath, key, page, pathInSplits },
         )
@@ -119,7 +117,7 @@ const trackProperty = function trackProperty({
             const fn = get(subject?.root, path)
 
             if (!u.isFnc(fn)) {
-              log.red(`A function is not found for builtIn: "${ref}"`, {
+              log.error(`A function is not found for builtIn: "${ref}"`, {
                 ref,
                 path,
                 ...args,
@@ -173,10 +171,13 @@ const trackProperty = function trackProperty({
         }
       }
 
-      if(combinedArgs?.key && combinedArgs?.key?.indexOf('storeCredentials') !== -1){
+      if (
+        combinedArgs?.key &&
+        combinedArgs?.key?.indexOf('storeCredentials') !== -1
+      ) {
         let key = combinedArgs?.key
         let datain = combinedArgs?.['command']?.[key]?.['dataIn']
-        if(datain?.hasOwnProperty('userId')){
+        if (datain?.hasOwnProperty('userId')) {
           // const registers = new createRegisters(app)
           app.register.createNotification()
           // u.forEach(

@@ -8,6 +8,7 @@
  */
 
 import * as u from '@jsmanifest/utils'
+import type { Action } from 'noodl-action-chain'
 import {
   ConsumerOptions,
   NUIAction,
@@ -20,8 +21,8 @@ import App from '../App'
 export type ActionKind = 'action' | 'builtIn'
 
 export type ActionHandlerArgs =
-  | [destination: string, ...rest: any[]]
-  | [obj: NUIActionObject | { pageName: string; goto: string }, ...rest: any[]]
+  | [destination: string, rest: any]
+  | [obj: NUIActionObject | { pageName: string; goto: string }, rest: any]
   | Parameters<Store.ActionObject['fn']>
   | Parameters<Store.BuiltInObject['fn']>
 
@@ -77,6 +78,7 @@ const actionFactory = function (app: App) {
    * @param { string } id
    * @param { MiddlewareFn } fn
    */
+  // @ts-expect-error
   function _createMiddleware(id: string, fn?: MiddlewareFn): Middleware
   function _createMiddleware(fn: MiddlewareFn): Middleware
   function _createMiddleware(id: string | MiddlewareFn, fn?: MiddlewareFn) {
@@ -91,6 +93,7 @@ const actionFactory = function (app: App) {
    * @param { Store.ActionObject['fn'] | Store.BuiltInObject['fn'] } fn
    * @returns { Store.ActionObject['fn'] | Store.BuiltInObject['fn'] }
    */
+  // @ts-expect-error
   function _createActionHandler(
     kind?: 'action' | Store.ActionObject['fn'],
   ): Store.ActionObject['fn']
@@ -179,6 +182,7 @@ const actionFactory = function (app: App) {
         let args = [action, options, ...rest]
         await runMiddleware(args)
 
+        // @ts-expect-error
         return _fn?.(...args)
       } catch (error) {
         throw error

@@ -1,13 +1,11 @@
 import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import inRange from 'lodash/inRange'
 import last from 'lodash/last'
 import { ComponentObject } from 'noodl-types'
 import { NUI, NDOMElement } from 'noodl-ui'
 import Stream from './Stream'
 import * as t from '../app/types'
-
-const log = Logger.create('Substreams.ts')
 
 /** The container for subStreams */
 class MeetingSubstreams {
@@ -46,18 +44,16 @@ class MeetingSubstreams {
     node,
     participant,
   }: { node?: HTMLElement; participant?: t.RemoteParticipant } = {}) {
-    log.func('create')
-
     const stream = new Stream('subStream', { node })
 
     if (node && this.container && !this.container.contains(node)) {
       this.container?.appendChild(node)
-      log.grey(`Appended new child DOM element to substreams's node`)
+      log.debug(`Appended new child DOM element to substreams's node`)
     }
     // Apply the blueprint onto the new node to align with the current items
     if (participant) {
       stream.setParticipant(participant)
-      log.grey(
+      log.debug(
         `The participant "${participant.sid}" was set on the stream`,
         stream.snapshot(),
       )
@@ -73,23 +69,21 @@ class MeetingSubstreams {
    * @param { number | undefined } index
    */
   addToCollection(stream: Stream, index?: number) {
-    log.func('addToCollection')
     if (!this.#subStreams.includes(stream)) {
       if (typeof index === 'number') {
         this.#subStreams.splice(index, 0, stream)
-        log.grey(
+        log.debug(
           `Inserted subStream to subStreams collection at index: ${index}`,
         )
       } else {
         this.#subStreams.push(stream)
-        log.grey('Added new subStream to subStreams collection', {
+        log.debug('Added new subStream to subStreams collection', {
           stream,
           subStreamsCollection: this.getSubstreamsCollection(),
         })
       }
     } else {
-      log.func('addToCollection')
-      log.orange('The stream is already in the subStreams collection', {
+      log.warn('The stream is already in the subStreams collection', {
         stream,
         subStreams: this.#subStreams,
       })

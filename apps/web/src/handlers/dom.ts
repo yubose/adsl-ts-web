@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
+import log from 'loglevel'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
 import tippy, { followCursor, MultipleTargets } from 'tippy.js'
@@ -38,7 +38,6 @@ import { hide } from '../utils/dom'
 type ToolbarInput = any
 // import { isArray } from 'lodash'
 
-const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
   /**
@@ -80,7 +79,7 @@ const createExtendedDOMResolvers = function (app: App) {
           component.edit('data-value', value)
           node.dataset.value = value
         } else {
-          log.red(
+          log.error(
             `A ${component.type} component from a "${evtName}" handler tried ` +
               `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
@@ -1238,8 +1237,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const setImportantStream = (label: 'mainStream' | 'selfStream') => {
           if (!app[label].isSameElement(node)) {
             app[label].setElement(node)
-            log.func('[App] onMeetingComponent')
-            log.grey(
+            log.debug(
               `Bound an element to ${label}`,
               app[label],
               app[label].snapshot(),
@@ -1255,8 +1253,7 @@ const createExtendedDOMResolvers = function (app: App) {
               blueprint: component.blueprint?.children?.[0],
               resolver: app.nui.resolveComponents.bind(app.nui),
             })
-            log.func('[App] onMeetingComponent')
-            log.grey(
+            log.debug(
               'Initiated subStreams container',
               subStreams,
               subStreams.snapshot(),
@@ -1273,16 +1270,14 @@ const createExtendedDOMResolvers = function (app: App) {
         else if (/subStream/i.test(viewTag)) {
           if (app.subStreams) {
             if (app.subStreams.elementExists(node)) {
-              log.func('[App] onMeetingComponent')
-              log.red(
+              log.error(
                 `Attempted to add an element to a subStream but it ` +
                   `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
           } else {
-            log.func('[App] onMeetingComponent')
-            log.red(
+            log.error(
               `Attempted to create "subStreams" but a container (DOM element) ` +
                 `was not available`,
               { node, component, ...app.streams.snapshot() },
@@ -1317,8 +1312,8 @@ const createExtendedDOMResolvers = function (app: App) {
         // }
         // iframeEl.addEventListener('load', function (evt) {
         //   log.func('load')
-        //   log.grey(`Entered onload event for page remote (http) component`)
-        //   log.grey('', this)
+        //   log.debug(`Entered onload event for page remote (http) component`)
+        //   log.debug('', this)
         //   log.green(
         //     `[ComponentPage] Attaching MutationObserver to body element`,
         //     { componentPage, thisValue: this, window: this.contentWindow },
@@ -1478,8 +1473,7 @@ const createExtendedDOMResolvers = function (app: App) {
               if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
                 if (seconds === updatedSecs) {
                   // Not updated
-                  log.func('text=func timer:ref')
-                  log.red(
+                  log.error(
                     `Tried to update the value of ${dataKey} but the value remained the same`,
                     { component, seconds, updatedSecs, timer },
                   )

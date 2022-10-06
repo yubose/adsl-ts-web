@@ -1,13 +1,8 @@
 import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
-import { PageObject } from 'noodl-types'
+import log from 'loglevel'
 import {
   createAction,
-  createActionChain,
   EmitAction,
-  NUI,
-  NUIActionChain,
-  NUIActionObject,
   NuiComponent,
   Register,
   Store,
@@ -17,20 +12,16 @@ import { copyToClipboard } from '../utils/dom'
 import is from '../utils/is'
 import { GlobalRegisterComponent } from '../app/types'
 
-type Room = any
-
-const log = Logger.create('register.ts')
-
-class createRegisters{
+class createRegisters {
   app: App
   o: Record<string, any>
   registrees: Record<string, any>
   numberofExtensions: number = 0
   timePerExtendSeconds: number = 0
   popUpWaitSeconds: number = 30
-  meetingEndTime:number = 0
+  meetingEndTime: number = 0
   public timeId: Record<string, any>[] = []
-  constructor(app: App){
+  constructor(app: App) {
     this.app = app
 
     this.app.notification?.on('message', (message) => {
@@ -41,6 +32,7 @@ class createRegisters{
           const onNewEcosDocRegisterComponent = app.globalRegister?.find?.(
             (obj) => obj?.eventId === 'onNewEcosDoc',
           )
+          // @ts-expect-error
           onNewEcosDocRegisterComponent?.onEvent?.(data.did)
         } else {
           console.log({ message })
@@ -54,20 +46,16 @@ class createRegisters{
         obj: Register.Object,
         { options }: { options?: Record<string, any> } = {},
       ) {
-        log.func('FCMOnTokenReceive')
-        log.hotpink('', obj)
         try {
           const permission = await Notification.requestPermission()
-          log.func('messaging.requestPermission')
-          log.grey(`Notification permission ${permission}`)
+          log.debug(`Notification permission ${permission}`)
         } catch (err) {
-          log.func('messaging.requestPermission')
-          log.red('Unable to get permission to notify.', err)
+          log.error('Unable to get permission to notify.', err)
         }
         try {
           if (app.notification?.supported) {
           } else {
-            log.red(
+            log.error(
               `Could not emit the "FCMOnTokenReceive" event because firebase ` +
                 `messaging is disabled. Is it supported by app browser?`,
               app,
@@ -84,13 +72,10 @@ class createRegisters{
           return error
         }
       },
-      async onNotificationClicked(obj: Register.Object, arg) {
-        log.func('onNotificationClicked')
-        log.hotpink('', { obj, arg })
-      },
+      async onNotificationClicked(obj: Register.Object, arg) {},
       // twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
       //   log.func('twilioOnPeopleJoin')
-      //   log.grey(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
+      //   log.debug(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
       //     register: obj,
       //     params,
       //   })
@@ -101,28 +86,37 @@ class createRegisters{
       //   { room }: { room?: Room } = {},
       // ) {
       //   log.func('twilioOnNoParticipant')
-      //   log.grey(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
+      //   log.debug(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
       //   if (room?.participants?.size === 0) {
       //     app.meeting.showWaitingOthersMessage()
       //   }
       // },
 
       async twilioOnPeopleShowRoom(obj: Register.Object, arg) {
-        log.func('twilioOnPeopleShowRoom')
-        log.hotpink('', { obj, arg })
         // debugger
       },
     }
 
-    const handleRegister = async(componentObject: GlobalRegisterComponent)=>{
+    const handleRegister = async (componentObject: GlobalRegisterComponent) => {
       let actions = componentObject.props.actions
-      try{
+      try {
         const component = (await this.app.nui?.resolveComponents(
           componentObject,
         )) as NuiComponent.Instance
-        const actionTypeKeys = ['goto','popUp','popUpDismiss','toast','getLocationAddress','pageJump','refresh']
-        for(const action of actions){
-          if(action?.actionType && actionTypeKeys.includes(action?.actionType) ){
+        const actionTypeKeys = [
+          'goto',
+          'popUp',
+          'popUpDismiss',
+          'toast',
+          'getLocationAddress',
+          'pageJump',
+          'refresh',
+        ]
+        for (const action of actions) {
+          if (
+            action?.actionType &&
+            actionTypeKeys.includes(action?.actionType)
+          ) {
             const newAction = createAction({
               action: action,
               trigger: 'register',
@@ -135,53 +129,54 @@ class createRegisters{
                 this.app.nui?.getConsumerOptions({
                   component,
                   page: this.app.mainPage?.getNuiPage(),
-                })
+                }),
               ))
-          }else if(action?.actionType && action?.actionType == 'builtIn'){
+          } else if (action?.actionType && action?.actionType == 'builtIn') {
             // const newAction = createAction({
             //   action: action,
             //   trigger: 'register',
             // })
             const functName = action.funcName
-            const builtInFn = app.root.builtIn[functName] || app.root.extendedBuiltIn[functName]
+            const builtInFn =
+              app.root.builtIn[functName] || app.root.extendedBuiltIn[functName]
             u.isFnc(builtInFn) &&
-            (await builtInFn?.(
-              action,
-              this.app.nui?.getConsumerOptions({
-                component,
-                page: this.app.mainPage?.getNuiPage(),
-              })
-            ))
-          }else{
-            const emitAction = createAction({
-              action: {
-                emit: {
-                  actions: [action]
-                },
-                actionType: 'register'
-              },
-              trigger: 'register',
-            }) as EmitAction
-            await this.app.actions?.emit.get('register')?.map((obj: Store.ActionObject) =>
-              obj?.fn?.(
-                emitAction,
+              (await builtInFn?.(
+                action,
                 this.app.nui?.getConsumerOptions({
                   component,
                   page: this.app.mainPage?.getNuiPage(),
                 }),
-              ),
-            )
+              ))
+          } else {
+            const emitAction = createAction({
+              action: {
+                emit: {
+                  actions: [action],
+                },
+                actionType: 'register',
+              },
+              trigger: 'register',
+            }) as EmitAction
+            await this.app.actions?.emit
+              .get('register')
+              ?.map((obj: Store.ActionObject) =>
+                obj?.fn?.(
+                  emitAction,
+                  this.app.nui?.getConsumerOptions({
+                    component,
+                    page: this.app.mainPage?.getNuiPage(),
+                  }),
+                ),
+              )
           }
         }
-      }catch(error){
+      } catch (error) {
         console.error(error)
       }
     }
 
     this.registrees = {
       async FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
-        log.func('FCMOnTokenReceive')
-
         componentObject.eventId = 'FCMOnTokenReceive'
 
         const action = createAction({
@@ -199,15 +194,17 @@ class createRegisters{
           try {
             action.dataKey = { var: token }
             await Promise.all(
-              app.actions?.emit.get('register')?.map((obj: Store.ActionObject) =>
-                obj?.fn?.(
-                  action,
-                  app.nui?.getConsumerOptions({
-                    component,
-                    page: app.mainPage?.getNuiPage(),
-                  }),
-                ),
-              ) || [],
+              app.actions?.emit
+                .get('register')
+                ?.map((obj: Store.ActionObject) =>
+                  obj?.fn?.(
+                    action,
+                    app.nui?.getConsumerOptions({
+                      component,
+                      page: app.mainPage?.getNuiPage(),
+                    }),
+                  ),
+                ) || [],
             )
             return token
           } catch (error) {
@@ -221,17 +218,17 @@ class createRegisters{
               app.serviceWorkerRegistration as ServiceWorkerRegistration,
           })
           .then(async (token) => {
-            log.grey('', {
+            log.debug('', {
               token,
               serviceWorkerRegistration: app.serviceWorkerRegistration,
             })
             await componentObject.onEvent?.(token)
           })
-          .catch((err) => {log.red(`[Error]: ${err.message}`)})
+          .catch((err) => {
+            log.error(`[Error]: ${err.message}`)
+          })
       },
       async onNewEcosDoc(componentObject: GlobalRegisterComponent) {
-        log.func('onNewEcosDoc')
-
         componentObject.eventId = 'onNewEcosDoc'
 
         const action = createAction({
@@ -244,20 +241,20 @@ class createRegisters{
         )) as NuiComponent.Instance
 
         componentObject.onEvent = async function onNewEcosDoc(did: string) {
-          log.func('onNewEcosDoc onEvent')
-          log.gold(``, did)
           try {
             action.dataKey = { var: did }
             await Promise.all(
-              app.actions?.emit.get('register')?.map((obj: Store.ActionObject) =>
-                obj?.fn?.(
-                  action,
-                  app.nui?.getConsumerOptions({
-                    component,
-                    page: app.mainPage?.getNuiPage(),
-                  }),
-                ),
-              ) || [],
+              app.actions?.emit
+                .get('register')
+                ?.map((obj: Store.ActionObject) =>
+                  obj?.fn?.(
+                    action,
+                    app.nui?.getConsumerOptions({
+                      component,
+                      page: app.mainPage?.getNuiPage(),
+                    }),
+                  ),
+                ) || [],
             )
             return did
           } catch (error) {
@@ -266,13 +263,11 @@ class createRegisters{
         }
       },
       async onNewMeetingInvite(componentObject: GlobalRegisterComponent) {
-        log.func('onNewMeetingInvite')
         componentObject.eventId = 'onNewMeetingInvite'
       },
-      async onDisconnect(componentObject: GlobalRegisterComponent){
-        log.func('onDisconnect')
+      async onDisconnect(componentObject: GlobalRegisterComponent) {
         componentObject.eventId = 'onDisconnect'
-        if(u.isArr(this.timeId)){
+        if (u.isArr(this.timeId)) {
           for (let i = 0; i < this.timeId.length; i++) {
             clearTimeout(this.timeId[i]?.id)
           }
@@ -280,31 +275,23 @@ class createRegisters{
         this.timeId = []
         await handleRegister(componentObject)
       },
-      async showExtendView(componentObject: GlobalRegisterComponent){
-        log.func('showExtendView')
+      async showExtendView(componentObject: GlobalRegisterComponent) {
         componentObject.eventId = 'showExtendView'
         await handleRegister(componentObject)
-
       },
-      async onProviderDisconnect(componentObject: GlobalRegisterComponent){
-        log.func('onProviderDisconnect')
+      async onProviderDisconnect(componentObject: GlobalRegisterComponent) {
         componentObject.eventId = 'onProviderDisconnect'
         await handleRegister(componentObject)
-
       },
-      async showExitWarningView(componentObject: GlobalRegisterComponent){
-        log.func('showExitWarningView')
+      async showExitWarningView(componentObject: GlobalRegisterComponent) {
         componentObject.eventId = 'showExitWarningView'
         await handleRegister(componentObject)
-
       },
-      async twilioOnPeopleJoin(componentObject: GlobalRegisterComponent){
-        log.func('twilioOnPeopleJoin')
+      async twilioOnPeopleJoin(componentObject: GlobalRegisterComponent) {
         componentObject.eventId = 'twilioOnPeopleJoin'
         await handleRegister(componentObject)
-      }
+      },
     }
-
   }
   registerHandlers = {
     onNewDocument() {
@@ -318,17 +305,14 @@ class createRegisters{
     },
   }
 
-
   createNotification() {
     if (this.app.globalRegister) {
-      log.func('createNotification')
-
       for (const componentObject of this.app.globalRegister) {
         if (is.component.register(componentObject)) {
           // Already attached a function
           if (u.isFnc(componentObject.onEvent)) continue
           if (!componentObject.onEvent) {
-            log.red(
+            log.error(
               `The "onEvent" identifier was not found in the register component!`,
               componentObject,
             )
@@ -345,8 +329,7 @@ class createRegisters{
             // This block runs if the event is not in registrees
             this.app.nui.use({ register: componentObject })
 
-            log.func('onInitPage')
-            log.orange(
+            log.warn(
               `The register component "${componentObject.onEvent}" is not handled in the app yet`,
               componentObject,
             )
@@ -358,18 +341,18 @@ class createRegisters{
             if (register) {
               if (u.isFnc(register.fn)) {
                 componentObject.onEvent = register.fn.bind(register) as any
-                log.grey(`A function was attached on the "onEvent" property`, {
+                log.debug(`A function was attached on the "onEvent" property`, {
                   register,
                   component: componentObject,
                 })
               } else if (!register.handler) {
-                log.red(
+                log.error(
                   `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
                   { componentObject, register },
                 )
               }
             } else {
-              log.red(
+              log.error(
                 `Alert! The register component of event "${componentObject.onEvent}" was sent to noodl-ui but nothing was returned`,
                 componentObject,
               )
@@ -380,9 +363,8 @@ class createRegisters{
     }
   }
 
-  extendVideoFunction(onEvent:string){
-    if(this.app.ndom.global.register){
-      log.func('extendVideoFunction')
+  extendVideoFunction(onEvent: string) {
+    if (this.app.ndom.global.register) {
       const componentObject = this.app.ndom.global.register.get(onEvent)
       if (componentObject) {
         const onEvent = componentObject.props.onEvent as any
@@ -391,41 +373,41 @@ class createRegisters{
     }
   }
 
-  setNumberofExtensions(numberofExtensions){
+  setNumberofExtensions(numberofExtensions) {
     this.numberofExtensions = numberofExtensions as number
   }
-  getNumberofExtensions(){
+  getNumberofExtensions() {
     return this.numberofExtensions
   }
 
-  setTimePerExtendSeconds(timePerExtendSeconds){
+  setTimePerExtendSeconds(timePerExtendSeconds) {
     this.timePerExtendSeconds = timePerExtendSeconds
   }
-  getTimePerExtendSeconds(){
+  getTimePerExtendSeconds() {
     return this.timePerExtendSeconds
   }
 
-  setPopUpWaitSeconds(popUpWaitSeconds){
+  setPopUpWaitSeconds(popUpWaitSeconds) {
     this.popUpWaitSeconds = popUpWaitSeconds
   }
-  getPopUpWaitSeconds(){
+  getPopUpWaitSeconds() {
     return this.popUpWaitSeconds
   }
-  setMeetingEndTime(meetingEndTime){
+  setMeetingEndTime(meetingEndTime) {
     this.meetingEndTime = meetingEndTime
   }
-  getMeetingEndTime(){
+  getMeetingEndTime() {
     return this.meetingEndTime
   }
 
-  setTimeId(key:string,id:unknown){
+  setTimeId(key: string, id: unknown) {
     this.timeId.push({
       key: key,
       id: id,
     })
   }
-  removeTime(key:string){
-    if(u.isArr(this.timeId)){
+  removeTime(key: string) {
+    if (u.isArr(this.timeId)) {
       for (let i = 0; i < this.timeId.length; i++) {
         if (this.timeId[i]?.key === key) {
           clearTimeout(this.timeId[i]?.id)
@@ -436,16 +418,14 @@ class createRegisters{
     }
   }
 
-  removeAllTime(){
-    if(u.isArr(this.timeId)){
+  removeAllTime() {
+    if (u.isArr(this.timeId)) {
       for (let i = 0; i < this.timeId.length; i++) {
         clearTimeout(this.timeId[i]?.id)
         this.timeId.splice(i, 1)
       }
     }
   }
-
-
 }
 
 export default createRegisters
