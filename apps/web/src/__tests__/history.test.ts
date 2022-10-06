@@ -1,34 +1,28 @@
-import * as mock from 'noodl-test-utils'
-import { getFirstByElementId } from 'noodl-ui-dom'
-import { prettyDOM, waitFor } from '@testing-library/dom'
-import { expect } from 'chai'
-import { coolGold, italic } from 'noodl-common'
-import { createOnPopState } from '../handlers/history'
+import m from 'noodl-test-utils'
+import { findFirstByElementId } from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
 
 const getDefaultPageName = () => 'Hello'
 const getDefaultPageObject = (other?: Record<string, any>) => ({
   components: [
-    mock.getButtonComponent({
+    m.button({
       id: 'hi',
-      onClick: [mock.getBuiltInAction('goBack')],
+      onClick: [m.builtIn('goBack')],
     }),
   ],
   ...other,
 })
 const getRoot = (other?: Record<string, any>) => ({
   [getDefaultPageName()]: getDefaultPageObject(),
-  Cereal: { components: [mock.getLabelComponent({ viewTag: 'fruit' })] },
+  Cereal: { components: [m.label({ viewTag: 'fruit' })] },
   Chips: {
-    components: [
-      mock.getImageComponent({ path: 'squirrel.png', viewTag: 'imageTag' }),
-    ],
+    components: [m.image({ path: 'squirrel.png', viewTag: 'imageTag' })],
   },
   ...other,
 })
 
-describe(coolGold(`history`), () => {
-  describe(italic(`createOnPopState`), () => {
+describe(`history`, () => {
+  describe(`createOnPopState`, () => {
     it(``, async () => {
       const app = await getApp({
         navigate: true,
@@ -36,7 +30,7 @@ describe(coolGold(`history`), () => {
         pageObject: getDefaultPageObject(),
       } as any)
       const page = app.mainPage
-      const node = getFirstByElementId('hi')
+      const node = findFirstByElementId('hi')
       node.click()
       page.previous = 'Cereal'
       page.page = ''

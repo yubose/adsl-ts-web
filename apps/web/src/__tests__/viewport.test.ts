@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import { expect } from 'chai'
-import { coolGold, italic } from 'noodl-common'
 import { Viewport as VP } from 'noodl-ui'
 import { deviceSize, viewport } from '../utils/test-utils'
 import createViewportHandler, {
@@ -36,8 +35,8 @@ afterEach(() => {
   })
 })
 
-describe(coolGold(`viewport`), () => {
-  describe(italic(`viewWidthHeightMinMax`), () => {
+describe(`viewport`, () => {
+  describe(`viewWidthHeightMinMax`, () => {
     describe(
       `when the user\'s aspect ratio is less than the ` +
         `${chalk.yellow('min')}`,

@@ -1,7 +1,4 @@
-import * as mock from 'noodl-test-utils'
-import * as u from '@jsmanifest/utils'
-import fs from 'fs-extra'
-import path from 'path'
+import m from 'noodl-test-utils'
 import { ComponentObject } from 'noodl-types'
 // import { getMostRecentApp } from '../../utils/test-utils'
 
@@ -404,9 +401,9 @@ function getMockMeetingChat({
     pageNumber: '180',
     title: 'Meeting Chat',
     init: [
-      mock.getIfObject(),
-      mock.getIfObject(),
-      mock.getIfObject(),
+      m.ifObject(),
+      m.ifObject(),
+      m.ifObject(),
       { '.Global.DocReference.document@': '=.MeetingChat.newNote.document' },
       {
         '.MeetingChat.newNote.document.name.targetRoomName@':
@@ -424,51 +421,48 @@ function getMockMeetingChat({
     ],
     listData,
     onNewMessageToDisplay: [
-      mock.getEvalObjectAction(),
-      mock.getBuiltInAction({ funcName: 'redraw', viewTag: 'ChatList' }),
+      m.evalObject(),
+      m.builtIn({ funcName: 'redraw', viewTag: 'ChatList' }),
     ],
     components: [
-      mock.getRegisterComponent({
+      m.register({
         onEvent: 'onNewMessageDisplay',
-        emit: mock.getFoldedEmitObject({
+        emit: m.emitObject({
           dataKey: { var: 'onNewMessageDisplay' },
           actions: [
-            mock.getEvalObjectAction(),
-            mock.getBuiltInAction({ funcName: 'redraw', viewTag: 'ChatList' }),
+            m.evalObject(),
+            m.builtIn({ funcName: 'redraw', viewTag: 'ChatList' }),
           ],
-        }),
+        }).emit,
       }),
-      mock.getPopUpComponent({
+      m.popUpComponent({
         viewTag: 'noTitle',
         message: 'Please input note title',
         style: { top: '0.3', left: '0.06', width: '0.88', height: '0.3' },
         children: [
-          mock.getLabelComponent({
+          m.label({
             text: 'Please input note title',
             text2: 'v',
             text3: 'v',
             text4: 'ok',
             style: { top: '0.08', left: '0', width: '0.89333', height: '0.05' },
           }),
-          mock.getButtonComponent({
+          m.button({
             text: 'ok',
             style: { width: '0.2', left: '0.35', height: '0.05', top: '0.2' },
-            onClick: [mock.getPopUpDismissAction('noTitle')],
+            onClick: [m.popUpDismiss('noTitle')],
           }),
-          mock.getHeaderComponent({
-            children: [mock.getButtonComponent({ text: 'Meeting Chat' })],
+          m.header({
+            children: [m.button({ text: 'Meeting Chat' })],
           }),
-          mock.getButtonComponent({
+          m.button({
             onClick: [
-              mock.getEvalObjectAction(),
-              mock.getGotoObject({
+              m.evalObject(),
+              m.goto({
                 dataIn: { destination: 'VideoChat', reload: false },
               }),
             ],
-            children: [
-              mock.getImageComponent('backWhiteArrow.png'),
-              mock.getLabelComponent('Back'),
-            ],
+            children: [m.image('backWhiteArrow.png'), m.label('Back')],
           }),
         ],
       }),

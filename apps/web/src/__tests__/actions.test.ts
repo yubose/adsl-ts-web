@@ -1,26 +1,26 @@
 import * as u from '@jsmanifest/utils'
+import m from 'noodl-test-utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { coolGold, italic, magenta } from 'noodl-common'
 import {
   actionTypes as nuiActionTypes,
+  findFirstByElementId,
+  findFirstBySelector,
   triggers,
   NUIActionType,
 } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
-import { findFirstByElementId, findFirstBySelector } from 'noodl-ui-dom'
 import { getApp, ndom } from '../utils/test-utils'
 import createActions from '../handlers/actions'
-import { ui } from '../utils/test-utils'
 import * as dom from '../utils/dom'
 
 const nonEmitBuiltInActionTypes = nuiActionTypes.filter(
   (t) => !/(builtIn|emit|register)/.test(t),
 ) as Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>[]
 
-describe(coolGold(`actions`), () => {
-  describe(italic(`evalObject`), () => {
+describe(`actions`, () => {
+  describe(`evalObject`, () => {
     describe(`when dynamically receiving actions in the middle of the call`, () => {
       it(
         `should still invoke global popUp actions if there are any ` +
@@ -31,12 +31,14 @@ describe(coolGold(`actions`), () => {
             navigate: true,
             pageName: 'Cereal',
             components: [
-              ui.popUpComponent({ global: true, popUpView }),
-              ui.button({
+              m.popUpComponent({ global: true, popUpView }),
+              m.button({
                 id: 'button',
                 onClick: [
-                  ui.evalObject({ object: async () => ({ abort: true }) }),
-                  ui.popUp(popUpView),
+                  m.evalObject({
+                    object: async () => ({ abort: true }),
+                  } as any),
+                  m.popUp(popUpView),
                 ],
               }),
             ],
@@ -63,9 +65,7 @@ describe(coolGold(`actions`), () => {
   })
 
   nonEmitBuiltInActionTypes.forEach((actionType) => {
-    it(`should only call the ${magenta(
-      actionType,
-    )} callback once`, async () => {
+    it(`should only call the ${actionType} callback once`, async () => {
       const spy = sinon.spy()
       const opts = { pageObject: { components: [] as ComponentObject[] } }
       const {
@@ -74,8 +74,8 @@ describe(coolGold(`actions`), () => {
 
       if (actionType === 'evalObject') {
         components.push(
-          ui.button({
-            onClick: [ui.evalObject()],
+          m.button({
+            onClick: [m.evalObject()],
           }),
         )
       }
@@ -98,7 +98,7 @@ describe(coolGold(`actions`), () => {
   })
 
   triggers.forEach((trigger) => {
-    xit(`should only call the ${magenta(trigger)} emit callback once`, () => {
+    xit(`should only call the ${trigger} emit callback once`, () => {
       if (trigger === 'onClick') {
         //
       }
@@ -109,6 +109,7 @@ describe(coolGold(`actions`), () => {
     const getGotoFn = () => createActions({} as any).goto
 
     it.only(`should go to new page`, () => {
+      // @ts-expect-error
       const goto = getGotoFn({}, {})
       console.log(goto)
     })
@@ -119,10 +120,10 @@ describe(coolGold(`actions`), () => {
       const app = await getApp({
         navigate: true,
         components: [
-          ui.canvas({
+          m.canvas({
             type: 'canvas',
             id: 'hello',
-            onClick: [ui.saveSignature()],
+            onClick: [m.saveSignature()],
           }),
         ],
       })

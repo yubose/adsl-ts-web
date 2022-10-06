@@ -1,34 +1,29 @@
-import * as mock from 'noodl-test-utils'
+import m from 'noodl-test-utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { coolGold, italic } from 'noodl-common'
-import { PageObject } from 'noodl-types'
-import { prettyDOM, waitFor } from '@testing-library/dom'
-import { findFirstByElementId, findFirstByViewTag } from 'noodl-ui-dom'
-import { NuiComponent, createAction } from 'noodl-ui'
+import { waitFor } from '@testing-library/dom'
+import {
+  findFirstByElementId,
+  findFirstByViewTag,
+  NuiComponent,
+  createAction,
+} from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
 import { isVisible } from '../utils/dom'
 import is from '../utils/is'
-import getVideoChatPageObject, {
-  cameraOnSrc,
-  cameraOffSrc,
-  micOnSrc,
-  micOffSrc,
-} from './helpers/getVideoChatPage'
+import getVideoChatPageObject, { cameraOnSrc } from './helpers/getVideoChatPage'
 
 const hideShowKey = ['hide', 'show'] as const
 
-describe(coolGold(`builtIn`), () => {
-  describe(italic('goBack'), () => {
+describe(`builtIn`, () => {
+  describe('goBack', () => {
     it(`should set the requesting page to the previous page`, async () => {
       const pageName = 'Oreo'
       const app = await getApp({
         pageName,
         components: [
-          mock.getButtonComponent({
-            onClick: [
-              mock.getBuiltInAction({ funcName: 'goBack', reload: true }),
-            ],
+          m.button({
+            onClick: [m.builtIn({ funcName: 'goBack', reload: true })],
           }),
         ],
       })
@@ -57,20 +52,20 @@ describe(coolGold(`builtIn`), () => {
     })
   })
 
-  describe(italic('goto'), () => {
+  describe('goto', () => {
     const getActionObject = (destination: string) =>
-      mock.getBuiltInAction({ funcName: 'goto', dataIn: { destination } })
+      m.builtIn({ funcName: 'goto', dataIn: { destination } })
     const getRoot = (other?: Record<string, any>) => ({
       Abc: {
         components: [
-          mock.getButtonComponent({
+          m.button({
             id: 'hello',
             viewTag: 'helloTag',
             onClick: [getActionObject('Hello')],
           }),
         ],
       },
-      Hello: { components: [mock.getLabelComponent({ id: 'block' })] },
+      Hello: { components: [m.label({ id: 'block' })] },
       ...other,
     })
 
@@ -89,13 +84,15 @@ describe(coolGold(`builtIn`), () => {
         `{ goto } or { destination } syntax`,
       async () => {
         const thirdPageObject = {
-          components: [mock.getDividerComponent({ viewTag: 'dividerTag' })],
+          components: [m.divider({ viewTag: 'dividerTag' })],
         }
         // prettier-ignore
         const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot({Cereal:thirdPageObject}) })
         expect(app.mainPage.page).to.eq('Abc')
         expect(findFirstByViewTag('helloTag')).to.exist
-        await app.actions.builtIn.get('goto')?.[0].fn({ destination: 'Hello' })
+        await app.actions.builtIn
+          .get('goto')?.[0]
+          .fn({ destination: 'Hello' })
         expect(findFirstByElementId('block')).to.exist
         await app.actions.builtIn.get('goto')?.[0].fn({ goto: 'Cereal' })
         expect(findFirstByViewTag('dividerTag')).to.exist
@@ -107,7 +104,7 @@ describe(coolGold(`builtIn`), () => {
       const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot() })
       expect(app.mainPage.page).to.eq('Abc')
       expect(findFirstByViewTag('helloTag')).to.exist
-      await app.actions.builtIn.get('goto')?.[0].fn('Hello')
+      await app.actions.builtIn.get('goto')?.[0].fn('Hello', {})
       expect(findFirstByElementId('block')).to.exist
     })
 
@@ -120,22 +117,22 @@ describe(coolGold(`builtIn`), () => {
         expect(app.mainPage.page).to.eq('Abc')
         expect(findFirstByViewTag('helloTag')).to.exist
         const action = createAction('onClick', { goto: 'Hello' })
-        await app.actions.builtIn.get('goto')?.[0].fn(action)
+        await app.actions.builtIn.get('goto')?.[0].fn(action, {})
         await waitFor(() => expect(findFirstByElementId('block')).to.exist)
       },
     )
   })
 
   hideShowKey.forEach((funcName) => {
-    describe(italic(funcName), () => {
+    describe(funcName, () => {
       it(`should ${funcName} the DOM node`, async () => {
         const viewTag = 'helloTag'
-        const actionObject = mock.getBuiltInAction({ funcName, viewTag })
+        const actionObject = m.builtIn({ funcName, viewTag })
         await getApp({
           navigate: true,
           components: [
-            mock.getViewComponent({ viewTag }),
-            mock.getButtonComponent({ id: 'hello', onClick: [actionObject] }),
+            m.view({ viewTag }),
+            m.button({ id: 'hello', onClick: [actionObject] }),
           ],
         })
         const node = findFirstByViewTag(viewTag)
@@ -152,12 +149,12 @@ describe(coolGold(`builtIn`), () => {
 
       it(`should still ${funcName} when given plain objects`, async () => {
         const viewTag = 'helloTag'
-        const actionObject = mock.getBuiltInAction({ funcName, viewTag })
+        const actionObject = m.builtIn({ funcName, viewTag })
         const app = await getApp({
           navigate: true,
           components: [
-            mock.getViewComponent({ id: 'hello', viewTag }),
-            mock.getButtonComponent({ id: 'abc', onClick: [actionObject] }),
+            m.view({ id: 'hello', viewTag }),
+            m.button({ id: 'abc', onClick: [actionObject] }),
           ],
         })
         const node = findFirstByViewTag(viewTag)
@@ -165,7 +162,7 @@ describe(coolGold(`builtIn`), () => {
         expect(isVisible(node)).to.be.true
         await app._test.triggerAction({
           action: actionObject,
-          component: button,
+          component: button as any,
         })
         await waitFor(
           () =>
@@ -183,10 +180,10 @@ describe(coolGold(`builtIn`), () => {
       const app = await getApp({
         navigate: true,
         components: [
-          mock.getViewComponent({ viewTag }),
-          mock.getButtonComponent({
+          m.view({ viewTag }),
+          m.button({
             id: 'hello',
-            onClick: [mock.getBuiltInAction('redraw')],
+            onClick: [m.builtIn('redraw')],
           }),
         ],
       })
@@ -208,12 +205,12 @@ describe(coolGold(`builtIn`), () => {
 
     it(`should rerender the DOM nodes`, async () => {
       let viewTag = 'helloTag'
-      let redrawObject = mock.getBuiltInAction({ funcName: 'redraw', viewTag })
+      let redrawObject = m.builtIn({ funcName: 'redraw', viewTag })
       await getApp({
         navigate: true,
         components: [
-          mock.getViewComponent({ viewTag }),
-          mock.getButtonComponent({ id: 'hello', onClick: [redrawObject] }),
+          m.view({ viewTag }),
+          m.button({ id: 'hello', onClick: [redrawObject] }),
         ],
       })
       let node = findFirstByViewTag(viewTag)
@@ -242,19 +239,19 @@ describe(coolGold(`builtIn`), () => {
     it(`should still rerender normally when given a plain object as the first arg`, async () => {
       let button: NuiComponent.Instance | undefined
       let viewTag = 'helloTag'
-      let redrawObject = mock.getBuiltInAction({
+      let redrawObject = m.builtIn({
         funcName: 'redraw',
         viewTag,
       })
       let app = await getApp({
         navigate: true,
         components: [
-          mock.getViewComponent({ viewTag }),
-          mock.getButtonComponent({ onClick: [redrawObject] }),
+          m.view({ viewTag }),
+          m.button({ onClick: [redrawObject] }),
         ],
       })
       for (const component of app.cache.component) {
-        is.component.button(component) && (button = component)
+        is.component.button(component) && (button = component as any)
       }
       let node = findFirstByViewTag(viewTag)
       await waitFor(() => {
@@ -280,10 +277,11 @@ describe(coolGold(`builtIn`), () => {
     xit(`should change the value on the sdk to off`, async () => {
       const pageName = 'VideoChat'
       const pageObject = getVideoChatPageObject()
-      pageObject.micOn = true
+      pageObject.micOn = true as any
       await getApp({
         emit: {
-          onClick: async () => void (pageObject.micOn = !pageObject.micOn),
+          onClick: async () =>
+            void (pageObject.micOn = !pageObject.micOn as any),
         },
         navigate: true,
         pageName,
@@ -318,11 +316,11 @@ describe(coolGold(`builtIn`), () => {
     it(`should change the value on the sdk to on/off expectedly`, async () => {
       const pageName = 'VideoChat'
       const pageObject = getVideoChatPageObject()
-      pageObject.cameraOn = true
+      pageObject.cameraOn = true as any
       await getApp({
         emit: {
           onClick: async () =>
-            void (pageObject.cameraOn = !pageObject.cameraOn),
+            void (pageObject.cameraOn = !pageObject.cameraOn as any),
         },
         navigate: true,
         pageName,
@@ -343,11 +341,11 @@ describe(coolGold(`builtIn`), () => {
     xit(`should switch the camera on/off icons expectedly`, async () => {
       const pageName = 'VideoChat'
       const pageObject = getVideoChatPageObject()
-      pageObject.cameraOn = true
+      pageObject.cameraOn = true as any
       await getApp({
         emit: {
           onClick: async () =>
-            void (pageObject.cameraOn = !pageObject.cameraOn),
+            void (pageObject.cameraOn = !pageObject.cameraOn as any),
         },
         navigate: true,
         pageName,

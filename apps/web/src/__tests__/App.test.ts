@@ -1,9 +1,9 @@
-import * as m from 'noodl-test-utils'
+import m from 'noodl-test-utils'
 import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
 import { expect } from 'chai'
-import { nuiEmitTransaction, NUI, NDOMPage, Viewport, Store } from 'noodl-ui'
-import { initializeApp, ndom } from '../utils/test-utils'
+import { nuiEmitTransaction, NDOMPage, Viewport,  } from 'noodl-ui'
+import { initializeApp,  } from '../utils/test-utils'
 import getMockMeetingChat from './helpers/mockMeetingChat/getMockMeetingChat'
 import App from '../App'
 import { createInstance } from '../app/noodl'
@@ -118,12 +118,12 @@ describe.only(`App`, () => {
     })
 
     describe(`noodl registers`, () => {
-      const onNewEcosDocObject = m.getRegisterComponent({
+      const onNewEcosDocObject = m.register({
         onEvent: 'onNewEcosDoc',
-        emit: m.getEmitObject({
+        emit: m.emitObject({
           dataKey: { var: 'ecosDocOj' },
           actions: [],
-        }),
+        }).emit,
       })
 
       describe(`when working with noodl.root.Global.globalRegister`, () => {
@@ -132,12 +132,14 @@ describe.only(`App`, () => {
         })
       })
 
-      createRegisters({} as any).forEach((obj) => {
-        it(`should register the "${obj.name}" object to the register store`, async () => {
-          const app = await initializeApp()
-          expect(app.ndom.cache.register.has(obj['name']))
-        })
-      })
+      u.entries(new createRegisters({} as any).registrees).forEach(
+        ([fnName, obj]) => {
+          it(`should register the "${obj.name}" object to the register store`, async () => {
+            const app = await initializeApp()
+            expect(app.ndom.cache.register.has(obj['name']))
+          })
+        },
+      )
     })
 
     xit(`should initialize the meeting state`, () => {
@@ -207,9 +209,9 @@ describe.only(`App`, () => {
       const app = await initializeApp({
         pageName: 'SignIn',
         root: {
-          SignIn: { components: [m.getButtonComponent()] },
-          Cereal: { components: [m.getLabelComponent()] },
-          Paper: { components: [m.getDividerComponent()] },
+          SignIn: { components: [m.button()] },
+          Cereal: { components: [m.label()] },
+          Paper: { components: [m.divider()] },
         },
       })
       await app.navigate('Cereal')
