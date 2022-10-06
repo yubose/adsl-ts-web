@@ -11,7 +11,7 @@ import {
   NUIActionType,
 } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
-import { getApp, ndom } from '../utils/test-utils'
+import { getApp, ndom } from './test-utils'
 import createActions from '../handlers/actions'
 import * as dom from '../utils/dom'
 

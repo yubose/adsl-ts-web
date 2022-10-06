@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { expect } from 'chai'
 import { Viewport as VP } from 'noodl-ui'
-import { deviceSize, viewport } from '../utils/test-utils'
+import { deviceSize, viewport } from './test-utils'
 import createViewportHandler, {
   getViewportSizeWithMinMax,
 } from '../handlers/viewport'

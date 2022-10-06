@@ -4,7 +4,6 @@ import type { Status } from '@aitmed/ecos-lvl2-sdk'
 import type { LocalParticipant } from 'twilio-video'
 import type { ComponentObject, PageObject } from 'noodl-types'
 import { EventEmitter } from 'events'
-import { actionFactory, componentFactory } from 'noodl-test-utils'
 import {
   actionTypes as nuiActionTypes,
   nuiEmitTransaction,
@@ -24,17 +23,13 @@ import {
 } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import App from '../App'
-import createActions from '../handlers/actions'
-import createBuiltIns from '../handlers/builtIns'
-import getMockRoom, { MockRoom } from '../__tests__/helpers/getMockRoom'
-import getVideoChatPage from '../__tests__/helpers/getVideoChatPage'
+import getMockRoom, { MockRoom } from './helpers/getMockRoom'
+import getVideoChatPage from './helpers/getVideoChatPage'
 import getMockParticipant, {
   MockParticipant,
-} from '../__tests__/helpers/getMockParticipant'
+} from './helpers/getMockParticipant'
 import * as c from '../constants'
-import { getRandomKey } from './common'
-
-export const ui = { ...actionFactory, ...componentFactory }
+import { getRandomKey } from '../utils/common'
 
 export const deviceSize = {
   galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
@@ -454,24 +449,4 @@ export async function getApp(
 
   navigate && (await app.navigate(_args.pageName as string))
   return app
-}
-
-export function getActions(app: any = {}) {
-  return createActions(app)
-}
-
-export function getBuiltIns<FuncName extends string = string>(
-  app: FuncName | FuncName[] | App | {},
-) {
-  if (u.isStr(app) || u.isArr(app)) {
-    const _fns = createBuiltIns({} as any)
-    const funcNames = u.array(app)
-    return u.entries(_fns).reduce((acc, [funcName, fn]) => {
-      if (funcNames.includes(funcName as FuncName)) {
-        acc[funcName as FuncName] = fn
-      }
-      return acc
-    }, {} as Record<FuncName, Store.BuiltInObject['fn']>)
-  }
-  return createBuiltIns(app || ({} as any))
 }

@@ -3,10 +3,9 @@ import * as mock from 'noodl-test-utils'
 import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import { prettyDOM, waitFor } from '@testing-library/dom'
-import { coolGold, italic, magenta } from 'noodl-common'
 import { expect } from 'chai'
 import { asHtmlElement, findByGlobalId } from 'noodl-ui-dom'
-import { getApp as _getApp } from '../../utils/test-utils'
+import { getApp as _getApp } from '../test-utils'
 import Stream from '../../meeting/Stream'
 import getMockParticipant from '../helpers/getMockParticipant'
 import * as dom from '../../utils/dom'
@@ -15,12 +14,10 @@ const getApp: typeof _getApp = async (args) => {
   return _getApp({ ...args, preset: 'meeting' })
 }
 
-describe(coolGold(`Meeting`), () => {
+describe(`Meeting`, () => {
   describe(`when connecting to a room`, () => {
     describe(`when there are participants in the room`, () => {
-      it(`should call the ${magenta(
-        `twilioOnPeopleJoin`,
-      )} register event`, async () => {
+      it(`should call the ${`twilioOnPeopleJoin`} register event`, async () => {
         const participant = getMockParticipant()
         const app = await getApp({
           room: {

@@ -1,6 +1,6 @@
 import m from 'noodl-test-utils'
 import { findFirstByElementId } from 'noodl-ui'
-import { getApp } from '../utils/test-utils'
+import { getApp } from './test-utils'
 
 const getDefaultPageName = () => 'Hello'
 const getDefaultPageObject = (other?: Record<string, any>) => ({

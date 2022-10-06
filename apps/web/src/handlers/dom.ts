@@ -9,10 +9,10 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import QRCode from 'qrcode'
-import { Calendar } from '@fullcalendar/core';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import listPlugin from '@fullcalendar/list';
+import { Calendar } from '@fullcalendar/core'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import listPlugin from '@fullcalendar/list'
 import { excludeIteratorVar } from 'noodl-utils'
 import {
   asHtmlElement,
@@ -34,10 +34,8 @@ import { hide } from '../utils/dom'
 // import Swiper from 'swiper';
 // import '../../node_modules/swiper/swiper-bundle.css';
 
-
 type ToolbarInput = any
 // import { isArray } from 'lodash'
-
 
 const createExtendedDOMResolvers = function (app: App) {
   /**
@@ -67,7 +65,6 @@ const createExtendedDOMResolvers = function (app: App) {
       const value = (event.target as any)?.value || ''
 
       if (iteratorVar) {
-        console.log('test4')
         const dataObject = findListDataObject(component)
         if (dataObject) {
           set(
@@ -364,7 +361,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     defaultData = []
                   }
                   let calendar = new Calendar(node, {
-                    plugins: [dayGridPlugin,timeGridPlugin,listPlugin],
+                    plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
                     height: '77.9vh',
@@ -518,7 +515,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           } else {
             // default echart
-            console.log(`not define`);
+            console.log(`not define`)
 
             // let myChart = echarts.init(node)
             // let option = dataValue
@@ -543,10 +540,9 @@ const createExtendedDOMResolvers = function (app: App) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
-          const maxLen =
-          component.get('maxLength') || ''
-        if(maxLen){
-          node?.setAttribute("maxlength",maxLen)
+        const maxLen = component.get('maxLength') || ''
+        if (maxLen) {
+          node?.setAttribute('maxlength', maxLen)
         }
         if (dataKey) {
           if (
@@ -686,7 +682,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] BubbleCaptureEvent': {
-      cond: ({ component }) => component.has('bubble')||component.has('defaultEvent'),
+      cond: ({ component }) =>
+        component.has('bubble') || component.has('defaultEvent'),
       resolve({ node, component }) {
         if (
           component?.blueprint?.bubble &&
@@ -701,8 +698,8 @@ const createExtendedDOMResolvers = function (app: App) {
           )
         }
         if (
-          component?.blueprint?.defaultEvent  &&
-          component?.blueprint?.defaultEvent  === true
+          component?.blueprint?.defaultEvent &&
+          component?.blueprint?.defaultEvent === true
         ) {
           node?.addEventListener(
             'click',
@@ -983,7 +980,6 @@ const createExtendedDOMResolvers = function (app: App) {
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
-            console.log('test map', dataValue)
             let map = new mapboxgl.Map({
               container: parent?.id,
               style: 'mapbox://styles/mapbox/streets-v11',
@@ -1032,7 +1028,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
                 featuresData.push(item)
               })
-              console.log('test map2', featuresData)
               map.on('load', function () {
                 // Add a new source from our GeoJSON data and
                 // set the 'cluster' option to true. GL-JS will
@@ -1140,7 +1135,6 @@ const createExtendedDOMResolvers = function (app: App) {
                   // 'Speciality': element.Speciality,
                   // 'Title': element.Title,
                   // 'address'
-                  console.log('test map3', e)
                   let coordinates = e.features[0].geometry.coordinates.slice()
                   let Name = e.features[0].properties.name
                   let Speciality = e.features[0].properties.speciality
@@ -1164,7 +1158,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
 
                 map.on('mouseenter', 'clusters', function () {
-                  console.log('test map12', 'mouse enter point')
                   map.getCanvas().style.cursor = 'pointer'
                 })
                 map.on('mouseleave', 'clusters', function () {
@@ -1175,7 +1168,6 @@ const createExtendedDOMResolvers = function (app: App) {
               let canvasContainer: any = document.querySelector(
                 '.mapboxgl-canvas-container',
               )
-              console.log('test map show canvas', canvasContainer)
               canvasContainer['style']['width'] = '100%'
               canvasContainer['style']['height'] = '100%'
 
@@ -1223,7 +1215,6 @@ const createExtendedDOMResolvers = function (app: App) {
             let canvasContainer: any = document.querySelector(
               '.mapboxgl-canvas-container',
             )
-            console.log('test map show canvas', canvasContainer)
             canvasContainer['style']['width'] = '100%'
             canvasContainer['style']['height'] = '100%'
           }
@@ -1494,111 +1485,119 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         if (node && component.get('data-value').length) {
           type optionSetting = {
-            borderRadius?:number,
-            direction?: "vertical"|"horizontal",
-            spaceBetween?: number,
-            autoplay?: boolean|{
-              delay: number,
-              stopOnLastSlide?: boolean,
-              disableOnInteraction?: boolean,
-            },
-            slidesPerView?: number,
-            effect?: "slide"|"fade"|"cube"|"coverflow"|"flip",
-            pagination?:boolean|{
-              type?: 'bullets'|"fraction"|"progressbar"|"custom",
-              clickable?:boolean
-            },
-            navigation?:boolean,
-            childStyle?:{
-              width?: number|string,
-              height?: number|string
-            },
-            loop?:boolean
+            borderRadius?: number
+            direction?: 'vertical' | 'horizontal'
+            spaceBetween?: number
+            autoplay?:
+              | boolean
+              | {
+                  delay: number
+                  stopOnLastSlide?: boolean
+                  disableOnInteraction?: boolean
+                }
+            slidesPerView?: number
+            effect?: 'slide' | 'fade' | 'cube' | 'coverflow' | 'flip'
+            pagination?:
+              | boolean
+              | {
+                  type?: 'bullets' | 'fraction' | 'progressbar' | 'custom'
+                  clickable?: boolean
+                }
+            navigation?: boolean
+            childStyle?: {
+              width?: number | string
+              height?: number | string
+            }
+            loop?: boolean
           }
 
-          const dataValue = component.get('data-value') as (({[key in string]:any}|string)[]);
-          const videoData = component.get('video-option');
+          const dataValue = component.get('data-value') as (
+            | { [key in string]: any }
+            | string
+          )[]
+          const videoData = component.get('video-option')
           // console.log(videoData,"kkkk")
-            const option:optionSetting  = component.get('data-option') as {[key in string]:any};
-            node.setAttribute('class', 'swiper-container');
-            let listDom: HTMLUListElement = document.createElement('ul');
-            listDom.setAttribute('class', 'swiper-wrapper');
-            listDom.style.listStyleType = "none";
-            for (let index = 0; index < dataValue.length; index++) {
-                let liDom: HTMLLIElement = document.createElement('li');
-                if(typeof dataValue[index] === "object"){
-                  if((dataValue[index] as object)["type"].includes("video")){
-                    let videoDom: HTMLVideoElement = document.createElement('video');
-                    videoDom.src = dataValue[index]?.["path"];
-                    videoDom.setAttribute("controls","controls");
-                    videoDom.setAttribute("preload","auto");
-                    videoDom.setAttribute("poster",videoData);
-                    videoDom.setAttribute("width",node.style.width);
-                    videoDom.setAttribute("height",node.style.height);
-                    liDom.appendChild(videoDom);
-                    listDom.appendChild(liDom);
-                  }else if((dataValue[index] as object)["type"].includes("image")){
-                    let img: HTMLImageElement = document.createElement('img')
+          const option: optionSetting = component.get('data-option') as {
+            [key in string]: any
+          }
+          node.setAttribute('class', 'swiper-container')
+          let listDom: HTMLUListElement = document.createElement('ul')
+          listDom.setAttribute('class', 'swiper-wrapper')
+          listDom.style.listStyleType = 'none'
+          for (let index = 0; index < dataValue.length; index++) {
+            let liDom: HTMLLIElement = document.createElement('li')
+            if (typeof dataValue[index] === 'object') {
+              if ((dataValue[index] as object)['type'].includes('video')) {
+                let videoDom: HTMLVideoElement = document.createElement('video')
+                videoDom.src = dataValue[index]?.['path']
+                videoDom.setAttribute('controls', 'controls')
+                videoDom.setAttribute('preload', 'auto')
+                videoDom.setAttribute('poster', videoData)
+                videoDom.setAttribute('width', node.style.width)
+                videoDom.setAttribute('height', node.style.height)
+                liDom.appendChild(videoDom)
+                listDom.appendChild(liDom)
+              } else if (
+                (dataValue[index] as object)['type'].includes('image')
+              ) {
+                let img: HTMLImageElement = document.createElement('img')
 
-                    img.src = dataValue[index]?.["path"];
-                    img.style.width = option.childStyle?.width + "";
-                    img.style.height = option.childStyle?.height + "";
-                    // img.style.cursor = "pointer" ;
-                    liDom.appendChild(img);
-                    listDom.appendChild(liDom);
-                  }
-                }else{
-                  if((dataValue[index] as string).endsWith("mp4")){
-                    let videoDom: HTMLVideoElement = document.createElement('video');
-                    videoDom.src = dataValue[index] as string;
-                    videoDom.setAttribute("controls","controls");
-                    videoDom.setAttribute("preload","auto");
-                    videoDom.setAttribute("poster",videoData[0]);
-                    videoDom.setAttribute("width",node.style.width);
-                    videoDom.setAttribute("height",node.style.height);
-                    liDom.appendChild(videoDom);
-                    listDom.appendChild(liDom);
-                  }
-                  else
-                  {
-                    let img: HTMLImageElement = document.createElement('img')
-                    img.src = dataValue[index] as string;
-                    img.style.width = option.childStyle?.width + "";
-                    img.style.height = option.childStyle?.height + "";
-                    // img.style.cursor = "pointer" ;
-                    liDom.appendChild(img);
-                    listDom.appendChild(liDom);
-                  }
-                }
-
+                img.src = dataValue[index]?.['path']
+                img.style.width = option.childStyle?.width + ''
+                img.style.height = option.childStyle?.height + ''
+                // img.style.cursor = "pointer" ;
+                liDom.appendChild(img)
+                listDom.appendChild(liDom)
+              }
+            } else {
+              if ((dataValue[index] as string).endsWith('mp4')) {
+                let videoDom: HTMLVideoElement = document.createElement('video')
+                videoDom.src = dataValue[index] as string
+                videoDom.setAttribute('controls', 'controls')
+                videoDom.setAttribute('preload', 'auto')
+                videoDom.setAttribute('poster', videoData[0])
+                videoDom.setAttribute('width', node.style.width)
+                videoDom.setAttribute('height', node.style.height)
+                liDom.appendChild(videoDom)
+                listDom.appendChild(liDom)
+              } else {
+                let img: HTMLImageElement = document.createElement('img')
+                img.src = dataValue[index] as string
+                img.style.width = option.childStyle?.width + ''
+                img.style.height = option.childStyle?.height + ''
+                // img.style.cursor = "pointer" ;
+                liDom.appendChild(img)
+                listDom.appendChild(liDom)
+              }
             }
-            for (let index = 0; index < listDom.childElementCount; index++) {
-              (listDom.children[index] as HTMLLIElement).setAttribute(
-                'class',
-                'swiper-slide',
-              );
-              (listDom.children[index] as HTMLLIElement).style.cssText = `
+          }
+          for (let index = 0; index < listDom.childElementCount; index++) {
+            ;(listDom.children[index] as HTMLLIElement).setAttribute(
+              'class',
+              'swiper-slide',
+            )
+            ;(listDom.children[index] as HTMLLIElement).style.cssText = `
                 display: flex;
                 justify-content: center;
                 align-items: center;
             `
-            }
-            node.appendChild(listDom);
-            let prevBtn: HTMLDivElement = document.createElement('div');
-            prevBtn.setAttribute('class', 'swiper-button-prev')
-            let nextBtn: HTMLDivElement = document.createElement('div');
-            nextBtn.setAttribute('class', 'swiper-button-next')
-            let pagination: HTMLDivElement = document.createElement('div');
-            pagination.setAttribute('class', 'swiper-pagination')
-            node.appendChild(prevBtn);
-            node.appendChild(nextBtn);
-            node.appendChild(pagination);
-            prevBtn.style.opacity = "0";
-            nextBtn.style.opacity = "0";
-            prevBtn.style.transition = "opacity 0.3s";
-            nextBtn.style.transition = "opacity 0.3s";
-            node.style
-            node.style.cssText = `
+          }
+          node.appendChild(listDom)
+          let prevBtn: HTMLDivElement = document.createElement('div')
+          prevBtn.setAttribute('class', 'swiper-button-prev')
+          let nextBtn: HTMLDivElement = document.createElement('div')
+          nextBtn.setAttribute('class', 'swiper-button-next')
+          let pagination: HTMLDivElement = document.createElement('div')
+          pagination.setAttribute('class', 'swiper-pagination')
+          node.appendChild(prevBtn)
+          node.appendChild(nextBtn)
+          node.appendChild(pagination)
+          prevBtn.style.opacity = '0'
+          nextBtn.style.opacity = '0'
+          prevBtn.style.transition = 'opacity 0.3s'
+          nextBtn.style.transition = 'opacity 0.3s'
+          node.style
+          node.style.cssText = `
               width: ${node.style.width};
               height: ${node.style.height};
               borderRadius: ${option.borderRadius}px;
@@ -1607,120 +1606,117 @@ const createExtendedDOMResolvers = function (app: App) {
               align-items: center;
               margin: 0;
               padding: 0;
-            `;
-            let videoBor = document.getElementsByClassName("swiper-container")[0];
-            let videolist = videoBor.getElementsByTagName("video");
-            let v = videolist[0];
+            `
+          let videoBor = document.getElementsByClassName('swiper-container')[0]
+          let videolist = videoBor.getElementsByTagName('video')
+          let v = videolist[0]
 
-              let mySwiper: Swiper= new Swiper('.swiper-container', {
-                // 内部元素之间的空隙
-                spaceBetween: option.spaceBetween,
-                // 垂直或水平切换选项
-                // direction: 'horizontal',
-                // 循环模式选项
-                loop: option.loop,
-                // 自动切换选项
-                autoplay: (option.autoplay)&&{
-                  // delay: 2000,
-                  // 鼠标置于swiper时暂停自动切换，鼠标离开时恢复自动切换
-                  pauseOnMouseEnter: true,
-                  // 触发时，是否以后停止自动切换，默认true
-                  disableOnInteraction: false,
-                  ...option.autoplay as {},
-                },
-                // slide的切换效果，默认为"slide"（位移切换），可设置为'slide'（普通切换、默认）,"fade"（淡入）"cube"（方块）"coverflow"（3d流）"flip"（3d翻转）。
-                effect: option.effect||"slide",
-                // 设置slider容器能够同时显示的slides数量(carousel模式)
-                slidesPerView: option.slidesPerView,
-                // 设定为true时，active slide会居中，而不是默认状态下的居左。
-                centeredSlides: true,
-                // coverflowEffect: {
-                  //     rotate: 0,
-                  //     stretch: 70, // 指的时后面一张图片被前一张图片遮挡的部分
-                  //     depth: 160, // 图片缩小的部分
-                  //     modifier: 2
-                  // }
-              pagination: (option.pagination)&&{
-                el: '.swiper-pagination',
-                ...option.pagination as {}
-              },
-              navigation: (option.navigation)&&{
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev'
-              },
-              on:{
-                slideChangeTransitionStart: function () {
-                  if(v){
-                    // @ts-ignore
-                    if (this.activeIndex!==0) {
-                      v.pause();
-                    }
-                    v.addEventListener("play", ()=>{
-                      mySwiper.autoplay.stop();
-                    })
+          let mySwiper: Swiper = new Swiper('.swiper-container', {
+            // 内部元素之间的空隙
+            spaceBetween: option.spaceBetween,
+            // 垂直或水平切换选项
+            // direction: 'horizontal',
+            // 循环模式选项
+            loop: option.loop,
+            // 自动切换选项
+            autoplay: option.autoplay && {
+              // delay: 2000,
+              // 鼠标置于swiper时暂停自动切换，鼠标离开时恢复自动切换
+              pauseOnMouseEnter: true,
+              // 触发时，是否以后停止自动切换，默认true
+              disableOnInteraction: false,
+              ...(option.autoplay as {}),
+            },
+            // slide的切换效果，默认为"slide"（位移切换），可设置为'slide'（普通切换、默认）,"fade"（淡入）"cube"（方块）"coverflow"（3d流）"flip"（3d翻转）。
+            effect: option.effect || 'slide',
+            // 设置slider容器能够同时显示的slides数量(carousel模式)
+            slidesPerView: option.slidesPerView,
+            // 设定为true时，active slide会居中，而不是默认状态下的居左。
+            centeredSlides: true,
+            // coverflowEffect: {
+            //     rotate: 0,
+            //     stretch: 70, // 指的时后面一张图片被前一张图片遮挡的部分
+            //     depth: 160, // 图片缩小的部分
+            //     modifier: 2
+            // }
+            pagination: option.pagination && {
+              el: '.swiper-pagination',
+              ...(option.pagination as {}),
+            },
+            navigation: option.navigation && {
+              nextEl: '.swiper-button-next',
+              prevEl: '.swiper-button-prev',
+            },
+            on: {
+              slideChangeTransitionStart: function () {
+                if (v) {
+                  // @ts-ignore
+                  if (this.activeIndex !== 0) {
+                    v.pause()
                   }
-
-                }
-              }
-            // observer:true,//修改swiper自己或子元素时，自动初始化swiper
-            // observeParents:true//修改swiper的父元素时，自动初始化swiper
-              })
-              if(v){
-
-                // v.addEventListener("click",()=>{
-                //   console.log("vvvv",v);
-
-                //   v.play();
-
-                // })
-                v.load();
-                v.addEventListener("click",()=>{
-                  if (!v.played) {
-                    v.play();
-                }
-                })
-                if(option.autoplay){
-                  v.addEventListener("pause",()=>{
-                    mySwiper.autoplay.start();
+                  v.addEventListener('play', () => {
+                    mySwiper.autoplay.stop()
                   })
                 }
+              },
+            },
+            // observer:true,//修改swiper自己或子元素时，自动初始化swiper
+            // observeParents:true//修改swiper的父元素时，自动初始化swiper
+          })
+          if (v) {
+            // v.addEventListener("click",()=>{
+            //   console.log("vvvv",v);
 
+            //   v.play();
+
+            // })
+            v.load()
+            v.addEventListener('click', () => {
+              if (!v.played) {
+                v.play()
               }
+            })
+            if (option.autoplay) {
+              v.addEventListener('pause', () => {
+                mySwiper.autoplay.start()
+              })
+            }
+          }
 
-              if(option.navigation){
-                node.addEventListener("mouseenter",()=>{
-                  prevBtn.style.opacity = "1";
-                  nextBtn.style.opacity = "1";
-                })
-                node.addEventListener("mouseleave",()=>{
-                  prevBtn.style.opacity = "0";
-                  nextBtn.style.opacity = "0";
-                })
-              }
-
-
-    }else{
-      console.error("Image array is empty");
-    }
+          if (option.navigation) {
+            node.addEventListener('mouseenter', () => {
+              prevBtn.style.opacity = '1'
+              nextBtn.style.opacity = '1'
+            })
+            node.addEventListener('mouseleave', () => {
+              prevBtn.style.opacity = '0'
+              nextBtn.style.opacity = '0'
+            })
+          }
+        } else {
+          console.error('Image array is empty')
+        }
       },
     },
     '[App] Checkbox': {
       cond: 'checkbox',
       resolve({ node, component }) {
-        if(node&&Object.keys(component.get("data-value"))){
-          let pageName = app.currentPage;
-          const dataKey = component.get('data-key') || component.blueprint?.dataKey || ''
-          const dataValue = (component.get('data-option') as {})["reason"] as {};
-          const dataOptions = component.get('data-option') as {};
-          let fragment:null|DocumentFragment = document.createDocumentFragment();
-          let childrenConta = document.createElement("div");
-          const styleCheckBox = dataOptions["classStyle"];
+        if (node && Object.keys(component.get('data-value'))) {
+          let pageName = app.currentPage
+          const dataKey =
+            component.get('data-key') || component.blueprint?.dataKey || ''
+          const dataValue = (component.get('data-option') as {})['reason'] as {}
+          const dataOptions = component.get('data-option') as {}
+          let fragment: null | DocumentFragment =
+            document.createDocumentFragment()
+          let childrenConta = document.createElement('div')
+          const styleCheckBox = dataOptions['classStyle']
           let A = `{
               appearance: none;
               position: relative;
               background: wheat;
               border-radius: 50%;
-          }`;
+          }`
           let chechedA = `{
               content: "";
               background: orange;
@@ -1731,7 +1727,7 @@ const createExtendedDOMResolvers = function (app: App) {
               height: 50%;
               border: none;
               border-radius: 50%;
-          }`;
+          }`
           let B = `{
             appearance: none;
             background: #fff;
@@ -1740,8 +1736,8 @@ const createExtendedDOMResolvers = function (app: App) {
             height: 100%;
             border: 2px solid #d9d9d9;
             border-radius: 50%;
-        }`;
-        let chechedB = `{
+        }`
+          let chechedB = `{
           content: "";
           background-color: #fff;
           position: absolute;
@@ -1756,72 +1752,108 @@ const createExtendedDOMResolvers = function (app: App) {
           font-weight: bold;
           text-align: center;
           line-height: 5vw;
-        }`;
-          for(let i =0;i<dataValue["allData"].length;i++){
-            let childInput = document.createElement("input");
-            let spanDom = document.createElement("div");
-            let contanierDiv = document.createElement("div");
-            childInput.type = "checkbox";
-            childInput.value = i+1+ "";
-            spanDom.textContent = dataValue["allData"][i];
-            if(dataValue["selectedData"].includes(i+1)){
-              childInput.checked = true;
+        }`
+          for (let i = 0; i < dataValue['allData'].length; i++) {
+            let childInput = document.createElement('input')
+            let spanDom = document.createElement('div')
+            let contanierDiv = document.createElement('div')
+            childInput.type = 'checkbox'
+            childInput.value = i + 1 + ''
+            spanDom.textContent = dataValue['allData'][i]
+            if (dataValue['selectedData'].includes(i + 1)) {
+              childInput.checked = true
             }
-            childInput.setAttribute("class",dataOptions["classStyle"]);
-              for(let index =0;index<Object.keys(dataOptions["inputStyle"]).length;index++){
-                let styleKey = `${Object.keys(dataOptions["inputStyle"])[index]}`;
-                let styleValue = dataOptions["inputStyle"][`${Object.keys(dataOptions["inputStyle"])[index]}`];
-                childInput.style[styleKey] = styleValue;
-              }
-              for(let index =0;index<Object.keys(dataOptions["textStyle"]).length;index++){
-                let styleKey = `${Object.keys(dataOptions["textStyle"])[index]}`;
-                let styleValue = dataOptions["textStyle"][`${Object.keys(dataOptions["textStyle"])[index]}`];
-                spanDom.style[styleKey] = styleValue;
-              }
-              for(let index =0;index<Object.keys(dataOptions["containerStyle"]).length;index++){
-                let styleKey = `${Object.keys(dataOptions["containerStyle"])[index]}`;
-                let styleValue = dataOptions["containerStyle"][`${Object.keys(dataOptions["containerStyle"])[index]}`];
-                contanierDiv.style[styleKey] = styleValue;
-              }
-            contanierDiv.appendChild(childInput);
-            contanierDiv.appendChild(spanDom);
+            childInput.setAttribute('class', dataOptions['classStyle'])
+            for (
+              let index = 0;
+              index < Object.keys(dataOptions['inputStyle']).length;
+              index++
+            ) {
+              let styleKey = `${Object.keys(dataOptions['inputStyle'])[index]}`
+              let styleValue =
+                dataOptions['inputStyle'][
+                  `${Object.keys(dataOptions['inputStyle'])[index]}`
+                ]
+              childInput.style[styleKey] = styleValue
+            }
+            for (
+              let index = 0;
+              index < Object.keys(dataOptions['textStyle']).length;
+              index++
+            ) {
+              let styleKey = `${Object.keys(dataOptions['textStyle'])[index]}`
+              let styleValue =
+                dataOptions['textStyle'][
+                  `${Object.keys(dataOptions['textStyle'])[index]}`
+                ]
+              spanDom.style[styleKey] = styleValue
+            }
+            for (
+              let index = 0;
+              index < Object.keys(dataOptions['containerStyle']).length;
+              index++
+            ) {
+              let styleKey = `${
+                Object.keys(dataOptions['containerStyle'])[index]
+              }`
+              let styleValue =
+                dataOptions['containerStyle'][
+                  `${Object.keys(dataOptions['containerStyle'])[index]}`
+                ]
+              contanierDiv.style[styleKey] = styleValue
+            }
+            contanierDiv.appendChild(childInput)
+            contanierDiv.appendChild(spanDom)
             fragment.appendChild(contanierDiv)
           }
           childrenConta.append(fragment)
-          fragment = null;
-          let arrReturnNew: any = [];
-          childrenConta.addEventListener("click",(e)=>{
-            let dataInput = +(e.target as HTMLInputElement).value;
-            if((e.target as HTMLInputElement).nodeName == "INPUT"){
-              let selected =  dataValue["selectedData"] as number[];
-              (!(selected.includes(dataInput)))?selected?.push(dataInput):selected?.splice(selected.indexOf(dataInput),1);
+          fragment = null
+          let arrReturnNew: any = []
+          childrenConta.addEventListener('click', (e) => {
+            let dataInput = +(e.target as HTMLInputElement).value
+            if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
+              let selected = dataValue['selectedData'] as number[]
+              !selected.includes(dataInput)
+                ? selected?.push(dataInput)
+                : selected?.splice(selected.indexOf(dataInput), 1)
               // selected.forEach((val)=>{
               //   arrReturnNew.push(dataValue["allData"][val-1]);
               // })
-              app.updateRoot((draft)=>{
-                set(draft?.[pageName],dataKey,selected)
+              app.updateRoot((draft) => {
+                set(draft?.[pageName], dataKey, selected)
               })
-              app.root.Global.checkboxArr = selected;
-              localStorage.setItem("Global",JSON.stringify(app.root.Global));
-
+              app.root.Global.checkboxArr = selected
+              localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
           switch (styleCheckBox) {
             case 'A': {
-              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]${A}`,0);
-              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]:checked::before${chechedA}`,0);
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${A}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedA}`,
+                0,
+              )
               break
             }
             case 'B': {
-              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]${B}`,0);
-              document.styleSheets[0].insertRule(`input[class=${styleCheckBox}]:checked::before${chechedB}`,0);
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]${B}`,
+                0,
+              )
+              document.styleSheets[0].insertRule(
+                `input[class=${styleCheckBox}]:checked::before${chechedB}`,
+                0,
+              )
               break
             }
             default: {
               break
             }
           }
-          node.appendChild(childrenConta);
+          node.appendChild(childrenConta)
         }
       },
     },

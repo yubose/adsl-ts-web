@@ -1,10 +1,9 @@
 import { expect } from 'chai'
-import { coolGold, italic } from 'noodl-common'
 import Timers from '../../modules/Timers'
 import Timer from '../../modules/Timer'
 
-describe(coolGold('Timers'), () => {
-  describe(italic('set'), () => {
+describe('Timers', () => {
+  describe('set', () => {
     it(`should create a new timer instance to the store and return the instance`, () => {
       const page = 'SignIn'
       const timers = new Timers()
@@ -29,7 +28,7 @@ describe(coolGold('Timers'), () => {
     })
   })
 
-  describe(italic('create'), () => {
+  describe('create', () => {
     it(
       `should create a new timer instance to the store (overwrites existing ` +
         `reference) and return it`,

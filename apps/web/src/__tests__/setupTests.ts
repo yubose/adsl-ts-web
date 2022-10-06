@@ -1,4 +1,5 @@
 import JSDOM from 'jsdom-global'
+import log from 'loglevel'
 JSDOM('', {
   resources: 'usable',
   runScripts: 'dangerously',
@@ -11,6 +12,7 @@ JSDOM('', {
     global.EventTarget = win.EventTarget
     global.localStorage = win.localStorage
     localStorage = win.localStorage
+    // @ts-expect-error
     win.HTMLCanvasElement.prototype.getContext = () => {}
   },
 })
@@ -20,6 +22,7 @@ import sinonChai from 'sinon-chai'
 
 chai.use(chaiAsPromised)
 chai.use(sinonChai)
+log.setLevel('error')
 
 before(() => {
   process.stdout.write('\x1Bc')

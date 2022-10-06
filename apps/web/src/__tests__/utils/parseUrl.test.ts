@@ -1,11 +1,6 @@
-import * as mock from 'noodl-test-utils'
 import * as nt from 'noodl-types'
-import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
 import { expect } from 'chai'
-import { coolGold, italic, magenta } from 'noodl-common'
-import { nuiEmitTransaction, NUI, Viewport, Store } from 'noodl-ui'
-import { Page as NOODLDOMPage } from 'noodl-ui-dom'
 import parseUrl from '../../utils/parseUrl'
 
 const getMockAppConfig = () =>

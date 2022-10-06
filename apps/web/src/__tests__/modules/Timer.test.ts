@@ -1,10 +1,9 @@
 import { expect } from 'chai'
-import { coolGold, italic } from 'noodl-common'
 import sinon from 'sinon'
 import Timer from '../../modules/Timer'
 
-describe(coolGold('Timer'), () => {
-  describe(italic('Instantiation'), () => {
+describe('Timer', () => {
+  describe('Instantiation', () => {
     it(`should throw if page isn't provided`, () => {
       expect(() => {
         new Timer({ dataKey: 'hello' } as any)
@@ -17,7 +16,7 @@ describe(coolGold('Timer'), () => {
     })
   })
 
-  describe(italic('start'), () => {
+  describe('start', () => {
     it(`should set the setInterval ref on the instance`, () => {
       const timer = new Timer({ page: 'Hello', dataKey: 'hello' })
       expect(timer.ref).to.be.null
@@ -27,7 +26,7 @@ describe(coolGold('Timer'), () => {
     })
   })
 
-  describe(italic('stop'), () => {
+  describe('stop', () => {
     it(`should clear the interval and set the setInterval ref to null`, () => {
       const timer = new Timer({ page: 'Hello', dataKey: 'hello' })
       timer.start()
@@ -37,7 +36,7 @@ describe(coolGold('Timer'), () => {
     })
   })
 
-  describe(italic('increment'), () => {
+  describe('increment', () => {
     it(`should call the increment func and update the value if it expects it to be`, () => {
       const timer = new Timer({
         page: 'Hello',
@@ -57,7 +56,7 @@ describe(coolGold('Timer'), () => {
     })
   })
 
-  describe(italic('clear'), () => {
+  describe('clear', () => {
     it(`should clear the interval and the ref reference`, () => {
       const timer = new Timer({ page: 'Hello', dataKey: 'hello' })
       const spy = sinon.spy(timer, 'clear')
@@ -90,7 +89,7 @@ describe(coolGold('Timer'), () => {
     })
   })
 
-  describe(italic('Observers'), () => {
+  describe('Observers', () => {
     it(`should call onStart when start() was called`, () => {
       const spy = sinon.spy()
       const timer = new Timer({

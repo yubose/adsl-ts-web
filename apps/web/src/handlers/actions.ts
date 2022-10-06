@@ -1131,7 +1131,6 @@ const createActions = function createActions(app: App) {
           const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
             const signaturePad = component.get('signaturePad') as SignaturePad
-            console.log('test', signaturePad)
             if (signaturePad) {
               signaturePad.clear()
               log.debug(

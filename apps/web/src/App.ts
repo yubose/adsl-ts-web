@@ -1,6 +1,6 @@
 import log from 'loglevel'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
-import { Account,  } from '@aitmed/cadl'
+import { Account } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
@@ -500,7 +500,6 @@ class App {
       } else if (storedCode === 3) {
         this.#state.authStatus = 'temporary'
       }
-      console.log('test', this.noodl)
       this.nui.use({
         getAssetsUrl: () => {
           return this.noodl.assetsUrl
@@ -667,7 +666,7 @@ class App {
       log.debug(`Running noodl.initPage for page "${pageRequesting}"`)
 
       if (pageRequesting === currentPage) {
-        console.log(
+        log.warn(
           `%cYou are already on the "${pageRequesting}" page. ` +
             `The page is unnecessarily rendering twice to the DOM`,
           `color:#ec0000;`,
@@ -860,12 +859,7 @@ class App {
         })
       )?.aborted
 
-      log.debug(`Ran noodl.initPage on page "${pageRequesting}"`, {
-        pageRequesting,
-        pageModifiers: page.modifiers,
-        pageObject: this?.root[pageRequesting],
-        ...page.snapshot(),
-      })
+      log.debug(`Ran noodl.initPage on page "${pageRequesting}"`)
 
       if (isAbortedFromSDK) {
         log.info(

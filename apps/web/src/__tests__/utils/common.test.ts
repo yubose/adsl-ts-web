@@ -1,15 +1,14 @@
 import { expect } from 'chai'
-import { coolGold, italic } from 'noodl-common'
 import { createAction } from 'noodl-ui'
-import { nui } from '../../utils/test-utils'
-import * as mock from 'noodl-test-utils'
+import { nui } from '../test-utils'
+import m from 'noodl-test-utils'
 import * as com from '../../utils/common'
 
-describe(coolGold(`common (utils)`), () => {
+describe(`common (utils)`, () => {
   describe(`getActionMetadata`, () => {
     it(`should create subfields as { fromAction, fromComponent } if a component is provided`, () => {
       const component = nui.resolveComponents(
-        mock.getButtonComponent({ viewTag: 'buttonTag', text: 'submit' }),
+        m.button({ viewTag: 'buttonTag', text: 'submit' }),
       )
       const ac = nui.createActionChain(
         'onClick',
@@ -27,7 +26,7 @@ describe(coolGold(`common (utils)`), () => {
 
     xit(`should create subfields as { [pickKey[number]]: any } if a component is NOT provided`, () => {
       const component = nui.resolveComponents(
-        mock.getButtonComponent({ viewTag: 'buttonTag', text: 'submit' }),
+        m.button({ viewTag: 'buttonTag', text: 'submit' }),
       )
       const ac = nui.createActionChain(
         'onClick',
@@ -49,12 +48,12 @@ describe(coolGold(`common (utils)`), () => {
 
   describe(`isPlainAction`, () => {
     it(`should return true for action objects`, () => {
-      const action = com.isPlainAction(mock.getBuiltInAction('redraw'))
+      const action = com.isPlainAction(m.builtIn('redraw'))
       expect(action).to.be.true
     })
 
     it(`should return false for action instances`, () => {
-      const action = createAction('onClick', mock.getBuiltInAction('redraw'))
+      const action = createAction('onClick', m.builtIn('redraw'))
       expect(com.isPlainAction(action)).to.be.false
     })
   })

@@ -1,19 +1,14 @@
-import * as mock from 'noodl-test-utils'
+import m from 'noodl-test-utils'
 import * as u from '@jsmanifest/utils'
 import userEvent from '@testing-library/user-event'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { coolGold, italic, magenta } from 'noodl-common'
-import {
-  findByViewTag,
-  getFirstByElementId,
-  getFirstByViewTag,
-} from 'noodl-ui-dom'
-import { createRender, getApp, getBuiltIns } from '../../utils/test-utils'
+import { findByViewTag, findFirstByViewTag } from 'noodl-ui'
+import { createRender, getApp } from '../test-utils'
 import * as d from '../../utils/dom'
 
-describe(coolGold(`dom (utils)`), () => {
-  describe(italic(`hide`), () => {
+describe(`dom (utils)`, () => {
+  describe(`hide`, () => {
     xit(`should set the position to "relative" if top is auto (NiL)`, () => {
       //
     })
@@ -23,17 +18,16 @@ describe(coolGold(`dom (utils)`), () => {
     })
 
     it(`should set its visibility to "hidden"`, async () => {
-      // @ts-expect-error
       await getApp({
         navigate: true,
         components: [
-          mock.getButtonComponent({
-            onClick: [mock.getBuiltInAction({ funcName: 'hide' })],
+          m.button({
+            onClick: [m.builtIn({ funcName: 'hide' })],
             viewTag: 'hello',
           }),
         ],
       })
-      const node = getFirstByViewTag('hello')
+      const node = findFirstByViewTag('hello')
       expect(node.style).to.have.property('visibility', '')
       node.click()
       await waitFor(() =>
@@ -55,13 +49,13 @@ describe(coolGold(`dom (utils)`), () => {
       const getRender = () => {
         return createRender({
           components: [
-            mock.getViewComponent({
+            m.view({
               children: [
-                mock.getViewComponent({
+                m.view({
                   children: [
-                    mock.getViewComponent({
+                    m.view({
                       children: [
-                        mock.getLabelComponent({
+                        m.label({
                           viewTag,
                           display: 'block',
                           style: { height: '0.2', left: '0.1' },
@@ -70,18 +64,16 @@ describe(coolGold(`dom (utils)`), () => {
                     }),
                   ],
                 }),
-                mock.getViewComponent({
+                m.view({
                   children: [
-                    mock.getTextViewComponent({
+                    m.textView({
                       viewTag: viewTag2,
                       style: { top: '0', display: 'block' },
                     }),
-                    mock.getButtonComponent({
+                    m.button({
                       viewTag: btnTag,
                       text: 'hello',
-                      onClick: [
-                        mock.getBuiltInAction({ funcName: 'hide', viewTag }),
-                      ],
+                      onClick: [m.builtIn({ funcName: 'hide', viewTag })],
                     }),
                   ],
                 }),
@@ -94,11 +86,10 @@ describe(coolGold(`dom (utils)`), () => {
       for (const [key, val] of u.entries(hideKeyValues)) {
         xit(`should set ${key} to "${val}"`, async () => {
           const { nui, ndom, render } = getRender()
-          const { hide, show } = getBuiltIns(['hide', 'show'])
           const component = await render()
           const vTagNode = findByViewTag(viewTag) as HTMLElement
           const btnNode = findByViewTag(btnTag)
-          getFirstByViewTag(btnTag)?.click()
+          findFirstByViewTag(btnTag)?.click()
           await waitFor(() => {
             expect(vTagNode.style[key as any]).to.eq(val)
           })
@@ -125,14 +116,13 @@ describe(coolGold(`dom (utils)`), () => {
     })
   })
 
-  describe(italic(`show`), () => {
+  describe(`show`, () => {
     it(`should set its visibility to "visible"`, async () => {
-      // @ts-expect-error
       await getApp({
         navigate: true,
         components: [
-          mock.getButtonComponent({
-            onClick: [mock.getBuiltInAction({ funcName: 'show' })],
+          m.button({
+            onClick: [m.builtIn({ funcName: 'show' })],
             id: 'hello',
           }),
         ],
@@ -145,9 +135,7 @@ describe(coolGold(`dom (utils)`), () => {
     })
   })
 
-  describe(`${italic(
-    `openFileSelector`,
-  )} (passing in an existing input)`, () => {
+  describe(`${`openFileSelector`} (passing in an existing input)`, () => {
     xit('should be able to receive the image file and status: selected', async () => {
       const input = document.createElement('input')
       const result = await d.openFileSelector(input)

@@ -8,7 +8,7 @@ import {
   NuiComponent,
   createAction,
 } from 'noodl-ui'
-import { getApp } from '../utils/test-utils'
+import { getApp } from './test-utils'
 import { isVisible } from '../utils/dom'
 import is from '../utils/is'
 import getVideoChatPageObject, { cameraOnSrc } from './helpers/getVideoChatPage'
@@ -90,9 +90,7 @@ describe(`builtIn`, () => {
         const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot({Cereal:thirdPageObject}) })
         expect(app.mainPage.page).to.eq('Abc')
         expect(findFirstByViewTag('helloTag')).to.exist
-        await app.actions.builtIn
-          .get('goto')?.[0]
-          .fn({ destination: 'Hello' })
+        await app.actions.builtIn.get('goto')?.[0].fn({ destination: 'Hello' })
         expect(findFirstByElementId('block')).to.exist
         await app.actions.builtIn.get('goto')?.[0].fn({ goto: 'Cereal' })
         expect(findFirstByViewTag('dividerTag')).to.exist

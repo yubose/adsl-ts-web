@@ -4,15 +4,10 @@ import type jsPDF from 'jspdf'
 import fs from 'fs-extra'
 import path from 'path'
 import * as u from '@jsmanifest/utils'
-import * as nc from 'noodl-common'
-import * as nt from 'noodl-types'
-import * as nu from 'noodl-utils'
-import { findFirstByViewTag } from 'noodl-ui-dom'
+import { findFirstByViewTag } from 'noodl-ui'
 import cheerio from 'cheerio'
 import jsdom from 'jsdom-global'
 import ExportPdf from '../../modules/ExportPdf'
-import Cov19ResultsAndFluResultsReviewGeneratedData from '../fixtures/Cov19ResultsAndFluResultsReview.json'
-import getElementTreeDimensions from '../../utils/getElementTreeDimensions'
 
 const viewport = { width: 1464.94, height: 823 }
 const { sizes } = ExportPdf
