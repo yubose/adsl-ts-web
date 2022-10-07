@@ -62,6 +62,8 @@ const createActions = function createActions(app: App) {
   const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
     (app.pickNDOMPage(options.page) || app.mainPage) as NDOMPage
 
+  const { createActionHandler } = app.actionFactory
+
   const emit = triggers.reduce(
     (acc: Partial<Record<string, Store.ActionObject<'emit'>['fn']>>, trigger) =>
       u.assign(acc, {
@@ -280,9 +282,8 @@ const createActions = function createActions(app: App) {
     }
   }
 
-  const goto: Store.ActionObject['fn'] = useGotoSpinner(
-    app,
-    async function onGoto(action, options) {
+  const goto: Store.ActionObject['fn'] = createActionHandler(
+    useGotoSpinner(app, async function onGoto(action, options) {
       let goto = _pick(action, 'goto') || ''
       let ndomPage = pickNDOMPageFromOptions(options)
       let destProps: ReturnType<typeof app.parse.destination>
@@ -448,7 +449,7 @@ const createActions = function createActions(app: App) {
           )
         }
       }
-    },
+    }),
   )
 
   const getBlob = (file: File | undefined, action, options): Promise<Blob> => {

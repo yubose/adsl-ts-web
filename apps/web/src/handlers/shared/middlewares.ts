@@ -8,7 +8,7 @@ import App from '../../App'
  * This file contains middleware functions wrapping functions from
  * src/actions.ts and src/builtIns.ts
  */
-const registerMiddleware = function (app: App) {
+const middlewares = function (app: App) {
   /**
    * Transforms abnormal args to the expected [action, options] structure
    * Useful to handle dynamically injected actions (goto strings for
@@ -17,24 +17,29 @@ const registerMiddleware = function (app: App) {
   const handleInjections: MiddlewareFn = (
     args: ActionHandlerArgs,
   ): ActionHandlerArgs => {
-    let origArgs = [...args]
+    const originalArgs = [...args]
+
+    // Dynamically injected goto destination from lvl 3
     if (u.isStr(args[0])) {
       const prevArgs = [...args]
+      // Create missing options
       if (!prevArgs[1]) {
         args[1] = app.nui.getConsumerOptions({
           page: app.mainPage.getNuiPage(),
         })
       }
-      // Dynamically injected goto action from lvl 2
+      // Dynamically injected goto object from lvl 3.
+      // Convert to a noodl-ui Action
       args[0] = createAction({
         action: { actionType: 'goto', goto: args[0] },
         trigger: 'onClick',
       })
-    } else if (u.isObj(args[0]) && !isAction(args[0])) {
-      // const prevArgs = [...args]
+    }
 
+    // Dynamically injected goto object from lvl 3
+    else if (u.isObj(args[0]) && !isAction(args[0])) {
       if ('destination' in args[0] || 'goto' in args[0]) {
-        // Dynamically injected plain objects as potential actions from lvl 2
+        // Convert to a noodl-ui Action
         args[0] = createAction({
           action: {
             actionType: 'goto',
@@ -46,23 +51,20 @@ const registerMiddleware = function (app: App) {
     }
 
     if (!args[1]) {
+      // Create options argument if missing
       args[1] = app.nui.getConsumerOptions({
         page: app.mainPage.getNuiPage(),
       })
     }
 
-    if (isAction(args[0])) {
-      args[1] = { ...args[1], snapshot: args[0].snapshot() }
-    }
-
-    if (u.isObj(origArgs[0]) && 'pageName' in origArgs[0]) {
-      const currentPage = origArgs[0].pageName || ''
-      if (args[1].page && args[1].page.page !== currentPage) {
+    // TODO - Where is "pageName" coming from?
+    if (u.isObj(originalArgs[0]) && 'pageName' in originalArgs[0]) {
+      const currentPage = originalArgs[0].pageName || ''
+      if (args[1]?.page && args[1].page.page !== currentPage) {
+        // Replace the NDOM page with a matching NDOM page
         args[1].page = app.ndom.findPage(currentPage)
       }
     }
-
-    return args
   }
 
   return {
@@ -70,4 +72,4 @@ const registerMiddleware = function (app: App) {
   }
 }
 
-export default registerMiddleware
+export default middlewares
