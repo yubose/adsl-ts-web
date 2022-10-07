@@ -59,6 +59,11 @@ export let noodl: NOODL | undefined
 
 resetInstance()
 
+export function clearInstance() {
+  // @ts-expect-error
+  noodl = null
+}
+
 export function getInstance(
   opts?: Partial<ConstructorParameters<typeof NOODL>[0]>,
 ) {
