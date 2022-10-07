@@ -1,4 +1,8 @@
 {
+  "compilerOptions": {
+    "baseUrl": ".",
+    "declaration": false
+  },
   "include": [
     "apps"
   ],
@@ -8,7 +12,6 @@
     "build",
     "dist",
     "generated",
-    "output",
-    "**/*.d.ts"
+    "output"
   ]
 }
