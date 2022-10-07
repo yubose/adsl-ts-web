@@ -1,11 +1,22 @@
 {
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
-    "declaration": false
+    "declaration": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "keyofStringsOnly": true,
+    "moduleResolution": "node",
+    "noEmitOnError": false,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
   },
-  "include": [
-    "apps"
-  ],
   "exclude": [
     "docs",
     "node_modules",
