@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.740",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.205",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.206",
     "@babel/core": "^7.17.9",
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
@@ -91,12 +91,13 @@
       "Twilio": "readonly"
     },
     "ignorePatterns": [
-      "**/*.js",
-      "**/*.js.map",
-      "build",
-      "dist",
-      "generated",
-      "node_modules"
+      "apps/**/*.js",
+      "apps/**/*.js.map",
+      "output/**/*",
+      "build/**/*",
+      "dist/**/*",
+      "generated/**/*",
+      "node_modules/**/*"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
