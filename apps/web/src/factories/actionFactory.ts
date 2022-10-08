@@ -8,15 +8,13 @@
  */
 
 import * as u from '@jsmanifest/utils'
-import type { Action } from 'noodl-action-chain'
-import {
+import type {
   ConsumerOptions,
-  NUIAction,
   NUIActionGroupedType,
   NUIActionObject,
   Store,
 } from 'noodl-ui'
-import App from '../App'
+import type App from '../App'
 
 export type ActionKind = 'action' | 'builtIn'
 
@@ -32,7 +30,11 @@ export interface MiddlewareObject {
 }
 
 export interface MiddlewareFn {
-  (args: ActionHandlerArgs): Promise<ActionHandlerArgs> | ActionHandlerArgs
+  (args: ActionHandlerArgs, options: MiddlewareFnOptions): Promise<void> | void
+}
+
+export interface MiddlewareFnOptions {
+  app: App
 }
 
 export type StoreActionObject<
@@ -56,19 +58,20 @@ class Middleware {
   }
 }
 
-const actionFactory = function (app: App) {
+export function actionFactory(app: App) {
   const middlewares = [] as MiddlewareObject[]
 
   /**
-   *
    * @param { ActionHandlerArgs } args
    * @returns { Promise<any>[] }
    */
-  async function runMiddleware(args: ActionHandlerArgs | ActionHandlerArgs[]) {
-    args = u.array(args)
-    await Promise.all(
-      middlewares.map(async (mo) => mo.fn?.(args as ActionHandlerArgs)),
-    )
+  async function runMiddleware(args: ActionHandlerArgs) {
+    for (const middleware of middlewares) {
+      const control = await middleware.fn?.(args, { app })
+      if (control) {
+        if (control === 'abort') return 'abort'
+      }
+    }
     return args
   }
 
@@ -153,44 +156,18 @@ const actionFactory = function (app: App) {
       }
 
       try {
-        let _action: NUIAction | undefined
-
-        // if (u.isStr(action)) {
-        //   // Goto action (page navigation)
-        //   const destination = action
-        //   _action = createAction({
-        //     action: { actionType: 'goto', goto: destination },
-        //     trigger: 'onClick',
-        //   })
-        // } else if (isAction(action)) {
-        //   _action = action
-        //   if (!options) {
-        //     //
-        //   }
-        // } else if (u.isObj(action)) {
-        //   if (
-        //     [Identify.action.any, Identify.folds.emit, Identify.goto].some(
-        //       (identify) => identify(action),
-        //     )
-        //   ) {
-        //     _action = createAction({ action, trigger: 'onClick' })
-        //   } else {
-        //     //
-        //   }
-        // }
-
-        let args = [action, options, ...rest]
-        await runMiddleware(args)
-
+        const args = [action, options, ...rest]
+        const res = await runMiddleware(args as ActionHandlerArgs)
+        if (res === 'abort') return
         // @ts-expect-error
         return _fn?.(...args)
       } catch (error) {
-        throw error
+        throw error instanceof Error ? error : new Error(String(error))
       }
     }
   }
 
-  return {
+  const o = {
     createActionHandler(fn: Store.ActionObject['fn']) {
       return _createActionHandler(fn)
     },
@@ -198,12 +175,11 @@ const actionFactory = function (app: App) {
       return _createActionHandler('builtIn', fn)
     },
     createMiddleware(idProp: string | MiddlewareFn, fnProp?: MiddlewareFn) {
-      let id = u.isStr(idProp) ? idProp : ''
-      let fn = u.isFnc(idProp) ? idProp : u.isFnc(fnProp) ? fnProp : null
-      let middleware: MiddlewareFn = (args) => (u.isFnc(fn) ? fn(args) : args)
-      _createMiddleware(id, middleware)
+      const id = u.isStr(idProp) ? idProp : ''
+      const fn = u.isFnc(idProp) ? idProp : u.isFnc(fnProp) ? fnProp : null
+      if (fn) _createMiddleware(id, fn)
     },
   }
-}
 
-export default actionFactory
+  return o
+}
