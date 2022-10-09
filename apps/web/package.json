@@ -24,7 +24,7 @@
     "logsnap": "^0.0.21",
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.222",
-    "noodl-ui": "^0.1.181",
+    "noodl-ui": "^0.1.182",
     "noodl-utils": "^0.0.95",
     "noodl-yaml": "^0.0.12",
     "qrcode": "^1.4.4",
