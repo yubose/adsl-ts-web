@@ -452,26 +452,28 @@ const createActions = function createActions(app: App) {
     }),
   )
 
-  const getBlob = (file: File | undefined, action, options): Promise<Blob> => {
-    return new Promise((res, rej) => {
-      let blob: Blob = new Blob()
-      let img = document.createElement('img') as HTMLImageElement
-      let rootDom = document.getElementsByTagName('body')[0]
-      let divRootDom = document.createElement('div') as HTMLDivElement
-      let divImgDom = document.createElement('div') as HTMLDivElement
-      let btnResult = document.createElement('button') as HTMLButtonElement
-      let btnCancel = document.createElement('button') as HTMLButtonElement
-      let divDom = document.createElement('div') as HTMLDivElement
-      let divBtn = document.createElement('div') as HTMLDivElement
-      let cropper
-      btnResult.textContent = 'Confirm'
-      btnCancel.textContent = 'Cancel'
-      divRootDom.setAttribute('id', 'rootDom')
-      let w = document.documentElement.scrollWidth
-      let h = document.documentElement.scrollHeight
-      divRootDom.style.cssText = `
+  const getBlob = (file:File | undefined,action,options):Promise<Blob>=>{
+    return new Promise((res,rej)=>{
+      let blob:Blob = new Blob();
+      let img = document.createElement("img") as HTMLImageElement;
+      let rootDom = document.getElementsByTagName("body")[0];
+      let titleText = document.createElement("h4") as HTMLHeadingElement;
+      let divRootDom = document.createElement("div") as HTMLDivElement;
+      let divImgDom = document.createElement("div") as HTMLDivElement;
+      let btnResult = document.createElement("button") as HTMLButtonElement;
+      let btnCancel = document.createElement("button") as HTMLButtonElement;
+      let divDom = document.createElement("div") as HTMLDivElement;
+      let divBtn = document.createElement("div") as HTMLDivElement;
+      let cropper;
+        titleText.innerHTML = "Upload Files"
+        btnResult.textContent = "Confirm";
+        btnCancel.textContent = "Cancel";
+        divRootDom.setAttribute("id","rootDom");
+        let w = document.documentElement.scrollWidth;
+        let h = document.documentElement.scrollHeight;
+        divRootDom.style.cssText = `
             position: relative;
-            background-color: #fff;
+            background-color: rgba(0,0,0,0.3);
             z-index: 10000000;
             display: flex;
             width: ${w}px;
@@ -480,57 +482,68 @@ const createActions = function createActions(app: App) {
             justify-content: center;
             align-items: center;
         `
-      divDom.style.cssText = `
-            height: 100%;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;`
       divImgDom.style.cssText = `
-            height: 80%;
-            width: 65%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-end;`
+          height: 50%;
+          width: 35%;
+          display: flex;
+          border-radius: 5px;
+          position: relative;
+          background-color: #fff;
+          flex-direction: column;
+          align-items: center;
+          `
+      titleText.style.cssText = `
+          margin-top: 3%;
+          height: 10%;
+          width: 90%;
+          font-color: #333;
+          border-bottom: 1px solid #f0f0f0;
+          display: flex;
+          align-items: center;
+          `
+      divDom.style.cssText = `
+          margin-top: 3%;
+          height: 65%;
+          width: 90%;
+          border-radius: 5px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;`
       btnResult.style.cssText = `
             cursor: pointer;
-            outline: none;
             border: none;
-            padding: 10px 5px;
-            height: 40px;
-            width: 100px;
+            height: 32px;
+            width: 80px;
             border-radius: 5px;
-            font-size: 0.8vw;
-            font-weight: 600;
+            font-size: 0.7vw;
             color: #fff;
             background-color: #0c5793;
-            margin-top: 10px;
         `
       btnCancel.style.cssText = `
             cursor: pointer;
-            outline: none;
-            height: 30px;
+            height: 32px;
             border: none;
             border-radius: 5px;
             color: #0c5793;
-            margin-right: 60px;
-            font-size: 1vw;
+            margin-right: 5%;
+            font-size: 0.7vw;
             text-decoration: underline;
             background: none;
             margin-top: 10px;
         `
       divBtn.style.cssText = `
+            margin-top: 3%;
             font-size: 15px;
-            background-color: red
             color: #fff;
-            width: 100%;
+            width: 90%;
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
     `
       divDom.appendChild(img)
+      divImgDom.appendChild(titleText)
       divImgDom.appendChild(divDom)
       divBtn.appendChild(btnCancel)
       divBtn.appendChild(btnResult)
