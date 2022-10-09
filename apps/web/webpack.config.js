@@ -226,7 +226,7 @@ function getWebpackConfig(env) {
             },
           ],
         },
-        ...arrObject
+        // ...arrObject
       ],
     },
     resolve: {
