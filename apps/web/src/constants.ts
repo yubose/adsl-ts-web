@@ -4,6 +4,7 @@ export const DEFAULT_SPINNER_DELAY = 100
 export const DEFAULT_SPINNER_TIMEOUT = 30000
 export const PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT =
   'VideoChat.listData.participants'
+export const __NOODL_SEARCH_CLIENT__ = '__NOODL_SEARCH_CLIENT__'
 
 export enum ActionEvent {
   Anonymous = 'Anonymous',

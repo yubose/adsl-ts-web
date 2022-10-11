@@ -62,7 +62,9 @@ const createActions = function createActions(app: App) {
   const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
     (app.pickNDOMPage(options.page) || app.mainPage) as NDOMPage
 
-  const { createActionHandler } = app.actionFactory
+  const { createActionHandler } = app.actionFactory || {}
+
+  let _emitCache = new Map()
 
   const emit = triggers.reduce(
     (acc: Partial<Record<string, Store.ActionObject<'emit'>['fn']>>, trigger) =>
@@ -93,11 +95,11 @@ const createActions = function createActions(app: App) {
               await app.noodl.emitCall(emitParams as any),
             )
 
-            log.debug(`Emitted`, {
-              action: action?.snapshot?.(),
-              emitParams,
-              emitResult,
-            })
+            // log.debug(`Emitted`, {
+            //   action: action?.snapshot?.(),
+            //   emitParams,
+            //   emitResult,
+            // })
 
             return u.isArr(emitResult)
               ? emitResult.length > 1

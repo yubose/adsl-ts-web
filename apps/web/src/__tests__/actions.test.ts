@@ -108,7 +108,7 @@ describe(`actions`, () => {
   describe(`goto`, () => {
     const getGotoFn = () => createActions({} as any).goto
 
-    it.only(`should go to new page`, () => {
+    it(`should go to new page`, () => {
       // @ts-expect-error
       const goto = getGotoFn({}, {})
       console.log(goto)

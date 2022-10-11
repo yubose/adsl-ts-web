@@ -1,4 +1,6 @@
 // @ts-nocheck
+import fs from 'fs'
+import path from 'path'
 import type { LiteralUnion } from 'type-fest'
 import type { Status } from '@aitmed/ecos-lvl2-sdk'
 import type { LocalParticipant } from 'twilio-video'
@@ -41,7 +43,7 @@ export const deviceSize = {
 let _app: App
 
 export const getMostRecentApp = () => _app
-export const baseUrl = 'https://aitmed.com/'
+export const baseUrl = 'http://127.0.0.1:3000/'
 export const assetsUrl = `${baseUrl}assets/`
 export const nui = NUI
 export const ndom = new NDOM()
@@ -449,4 +451,13 @@ export async function getApp(
 
   navigate && (await app.navigate(_args.pageName as string))
   return app
+}
+
+export function loadFixture(...p: string[]) {
+  const basePath = path.join(__dirname, 'fixtures')
+  if (p[p.length - 1].endsWith('.json')) {
+    const content = fs.readFileSync(path.join(basePath, ...p))
+    return JSON.parse(content)
+  }
+  return fs.readFileSync(path.join(basePath, ...p))
 }
