@@ -133,7 +133,7 @@ div.pluginBodyTail {
 }
 
 .noodl-onclick-disabled {
-  opacity: 0.2;
+  opacity: 1;
   pointer-events: none;
   cursor: none;
 }
