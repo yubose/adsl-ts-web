@@ -4,9 +4,38 @@ import { NDOM, NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
 import { ActionObject, PageObject, RegisterComponentObject } from 'noodl-types'
 import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'
+import { ActionEvent } from '../../constants'
 export * from './domTypes'
 export * from './meetingTypes'
 export * from './twilio'
+
+export interface AppState {
+  actionEvents: AppStateActionEvent[]
+  authStatus: AuthStatus | ''
+  initialized: boolean
+  loadingPages: Record<string, { id: string; init: boolean }[]>
+  spinner: AppSpinnerState
+  tracking: {}
+}
+
+export interface AppStateActionEvent {
+  type: 'action'
+  kind: ActionEvent
+  timestamp: number
+  status: 'ready' | 'pending' | 'ended'
+}
+
+export interface AppSpinnerState {
+  active: boolean
+  config: {
+    delay: number
+    timeout: number
+  }
+  page: string | null
+  ref: null | NodeJS.Timeout
+  timeout: null | NodeJS.Timeout
+  trigger: 'inject' | NUITrigger | null
+}
 
 export interface AppConstructorOptions {
   configKey?: string
@@ -70,18 +99,6 @@ export interface AppNotificationMessageObject<
   data: O
   from?: string
   priority?: 'normal'
-}
-
-export interface SpinnerState {
-  active: boolean
-  config: {
-    delay: number
-    timeout: number
-  }
-  page: string | null
-  ref: null | NodeJS.Timeout
-  timeout: null | NodeJS.Timeout
-  trigger: 'inject' | NUITrigger | null
 }
 
 export interface CachedPageObject {

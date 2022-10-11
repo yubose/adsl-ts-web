@@ -256,3 +256,7 @@ NUI.emit({
 - fixed rendering `&nbsp;`
 
 # Other
+
+1. sdk init 1.8s
+2. sdk initPage 0.8s
+3. web 0.123s rendering

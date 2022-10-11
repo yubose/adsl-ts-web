@@ -24,11 +24,10 @@ import {
 } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
+import { actionFactory } from './factories/actionFactory'
 import AppNotification from './app/Notifications'
-import actionFactory from './factories/actionFactory'
 import createActions from './handlers/actions'
 import createBuiltIns from './handlers/builtIns'
-import createGoto from './handlers/shared/goto'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
@@ -38,7 +37,7 @@ import createNoodlConfigValidator from './modules/NoodlConfigValidator'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
-import createMiddleware from './handlers/shared/middlewares'
+import getMiddlewares from './handlers/shared/middlewares'
 import * as lf from './utils/lf'
 import is from './utils/is'
 import parseUrl from './utils/parseUrl'
@@ -50,8 +49,9 @@ import * as c from './constants'
 import * as t from './app/types'
 
 class App {
-  #state = {
-    authStatus: '' as AuthStatus | '',
+  #state: t.AppState = {
+    actionEvents: [],
+    authStatus: '',
     initialized: false,
     loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
     spinner: {
@@ -61,9 +61,10 @@ class App {
         timeout: c.DEFAULT_SPINNER_TIMEOUT,
       },
       page: null,
+      ref: null,
       timeout: null,
       trigger: null,
-    } as t.SpinnerState,
+    },
     tracking: {},
   }
 
@@ -73,6 +74,7 @@ class App {
       page: '',
     },
   }
+  #actionFactory = actionFactory(this)
   #electron: ReturnType<NonNullable<Window['__NOODL_SEARCH__']>> | null
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
@@ -84,8 +86,6 @@ class App {
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
   #piBackgroundWorker: Worker | null = null
-  actionFactory = actionFactory(this)
-  goto: ReturnType<typeof createGoto>
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NDOM['page']
@@ -135,7 +135,6 @@ class App {
     const spinner = new Spinner()
     const registers = new createRegisters(this)
     this.#spinner = spinner
-    this.goto = createGoto(this)
     this.register = registers
 
     noodl && this.use(noodl)
@@ -163,6 +162,10 @@ class App {
           },
         })
       : null
+  }
+
+  get actionFactory() {
+    return this.#actionFactory
   }
 
   get aspectRatio() {
@@ -486,6 +489,8 @@ class App {
       if (this.noodl) await this.noodl.init()
       onSdkInit?.(this.noodl)
 
+      console.time('a')
+
       log.debug(`Initialized @aitmed/cadl sdk instance`)
 
       const storedCode = isUnitTestEnv() ? 0 : (await this.getStatus())?.code
@@ -501,9 +506,7 @@ class App {
         this.#state.authStatus = 'temporary'
       }
       this.nui.use({
-        getAssetsUrl: () => {
-          return this.noodl.assetsUrl
-        },
+        getAssetsUrl: () => this.noodl.assetsUrl,
         getBaseUrl: () => this.noodl.cadlBaseUrl || '',
         getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
         getPages: () => this.noodl.cadlEndpoint?.page || [],
@@ -516,7 +519,7 @@ class App {
       // const registers = createRegisters(this)
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
-      const middlewares = createMiddleware(this)
+      const middlewares = getMiddlewares()
       const transactions = createTransactions(this)
 
       this.ndom.use(actions)
@@ -530,10 +533,6 @@ class App {
       this.root.extendedBuiltIn = builtIns
       this.root.localForage = lf
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
-      // u.forEach(
-      //   (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
-      //   registers,
-      // )
       u.entries(middlewares).forEach(([id, fn]) =>
         this.actionFactory.createMiddleware(id, fn),
       )
@@ -681,6 +680,16 @@ class App {
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, [], {
+          onReceive(obj) {
+            // debugger
+          },
+          onFirstProcess(obj) {
+            // debugger
+          },
+          onSecondProcess: (obj) => {
+            this.enableSpinner()
+            // debugger
+          },
           ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
@@ -1062,6 +1071,25 @@ class App {
         this.instances.FullCalendar.page = ''
       }
 
+      function onExecuteStart(
+        this: NDOMPage,
+        { actions, args, data, queue, timeout, trigger },
+      ) {
+        for (const el of document.getElementsByClassName('noodl-onclick')) {
+          if (!el.classList.contains('noodl-onclick-disabled')) {
+            el.classList.add('noodl-onclick-disabled')
+          }
+        }
+      }
+
+      function onExecuteEnd(this: NDOMPage, { actions, data, trigger }) {
+        for (const el of document.getElementsByClassName('noodl-onclick')) {
+          if (el.classList.contains('noodl-onclick-disabled')) {
+            el.classList.remove('noodl-onclick-disabled')
+          }
+        }
+      }
+
       return this.ndom.render(page, {
         on: {
           actionChain: {
@@ -1080,21 +1108,15 @@ class App {
             // onAbortError() {
             //   console.log(`[onAbortError]`, this)
             // },
-            onExecuteStart: () => {
-              // console.log(`[onExecuteStart]`, this)
-              // this.enableSpinner({ target: document.body, page: page?.page })
-            },
+            onExecuteStart: onExecuteStart.bind(page),
             // onBeforeActionExecute() {
             //   console.log(`[onBeforeActionExecute]`, this)
             // },
-            onExecuteError: () => {
-              //   console.log(`[onExecuteError]`, this)
-              // this.disableSpinner()
-            },
-            onExecuteEnd: () => {
-              // console.log(`[onExecuteEnd]`, this)
-              // this.disableSpinner()
-            },
+            // onExecuteError: () => {
+            //   console.log(`[onExecuteError]`, this)
+            // this.disableSpinner()
+            // },
+            onExecuteEnd: onExecuteEnd.bind(page),
           },
           emit: {
             createActionChain: async ({ actionChain, component, trigger }) => {
@@ -1171,7 +1193,6 @@ class App {
           delete currentRoot[currentPage]
           this.#noodl = resetSdk()
           await this.noodl.init()
-
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
           this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)
@@ -1267,7 +1288,7 @@ class App {
     page?: string
     target?: HTMLElement
     timeout?: number
-    trigger?: t.SpinnerState['trigger']
+    trigger?: t.AppSpinnerState['trigger']
   } = {}) {
     if (this.#state.spinner.ref || this.#state.spinner.timeout) {
       this.disableSpinner()

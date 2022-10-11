@@ -15,6 +15,7 @@
     "date-fns": "^2.21.2",
     "elasticsearch-browser": "^16.7.1",
     "firebase": "^8.7.0",
+    "hash-sum": "^2.0.0",
     "html2canvas": "^1.4.1",
     "idb-keyval": "^6.0.3",
     "image-conversion": "^2.1.1",
@@ -25,7 +26,7 @@
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.222",
     "noodl-ui": "^0.1.182",
-    "noodl-utils": "^0.0.95",
+    "noodl-utils": "^0.0.121",
     "noodl-yaml": "^0.0.12",
     "qrcode": "^1.4.4",
     "signature_pad": "^3.0.0-beta.4",
@@ -248,7 +249,7 @@
     "start:stable": "cross-env NODE_ENV=development HMR=true ECOS_ENV=stable USE_DEV_PATHS=true npm run start",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start -- --env ECOS_ENV=test",
     "sync": "node scripts/op sync",
-    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts",
+    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src src/**/*.test.ts --watch-files ../../aitmed-noodl-lib/noodl-ui/dist/**/*",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src"
   },
   "version": "1.0.29"

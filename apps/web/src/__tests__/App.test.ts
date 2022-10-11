@@ -11,7 +11,7 @@ import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
 
-describe.only(`App`, () => {
+describe(`App`, () => {
   describe(`use`, () => {
     it(`should set lvl 3 sdk`, () => {
       const app = new App()
@@ -68,19 +68,19 @@ describe.only(`App`, () => {
     )
 
     xdescribe(`noodl actions (excluding builtIns)`, () => {
-      u.entries(createActions({} as any)).forEach(([actionType, fn]) => {
-        it(`should attach at least one handler for the actionType to the store`, async () => {
-          const app = await initializeApp()
-          if (actionType === 'emit') {
-            u.entries(fn).forEach(([trigger, f]) => {
-              expect(app.nui.cache.actions.emit.has(trigger as any)).to.be.true
-              expect(
-                app.nui.cache.actions.emit.get(trigger as any),
-              ).to.have.lengthOf(1)
-            })
-          }
-        })
-      })
+      // u.entries(createActions({} as any)).forEach(([actionType, fn]) => {
+      //   it(`should attach at least one handler for the actionType to the store`, async () => {
+      //     const app = await initializeApp()
+      //     if (actionType === 'emit') {
+      //       u.entries(fn).forEach(([trigger, f]) => {
+      //         expect(app.nui.cache.actions.emit.has(trigger as any)).to.be.true
+      //         expect(
+      //           app.nui.cache.actions.emit.get(trigger as any),
+      //         ).to.have.lengthOf(1)
+      //       })
+      //     }
+      //   })
+      // })
     })
 
     xdescribe(`noodl builtIns`, () => {
