@@ -249,7 +249,10 @@ export function getVcodeElem(dataKey = 'formData.code') {
 }
 export const hide = makeElemFn((node) => {
   if (!node?.style) return
-  node.style.display!== "flex"&&(node.style.display = 'none');
+  if(!(["inline-block","flex"].includes(node.style.display)))
+  {
+    node.style.display = 'none'
+  };
   node.style.visibility = 'hidden'
 })
 export const show = makeElemFn((node) => {
