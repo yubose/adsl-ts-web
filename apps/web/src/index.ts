@@ -165,9 +165,7 @@ window.addEventListener('load', async (e) => {
     const { createOnPopState } = await import('./handlers/history')
 
     log.debug('Initializing [App] instance')
-
     app = await initializeApp({ noodl, Account })
-
     log.debug('Initialized [App] instance')
 
     if (/(127.0.0.1|localhost)/i.test(location.hostname)) {

@@ -248,9 +248,11 @@ export function getVcodeElem(dataKey = 'formData.code') {
   return u.array(asHtmlElement(findByDataKey(dataKey)))[0] as HTMLInputElement
 }
 
-export const hide = makeElemFn(
-  (node) => node?.style && (node.style.visibility = 'hidden'),
-)
+export const hide = makeElemFn((node) => {
+  if (!node?.style) return
+  node.style.display = 'none'
+  node.style.visibility = 'hidden'
+})
 export const show = makeElemFn((node) => {
   if (!node?.style) return
   node.style.visibility !== 'visible' && (node.style.visibility = 'visible')
@@ -269,8 +271,9 @@ export function isDisplayable(value: unknown): value is string | number {
 
 export function isVisible(node: HTMLElement | null) {
   return node
-    ? node.style?.visibility === 'visible' ||
-        node.style?.visibility !== 'hidden'
+    ? (node.style?.visibility === 'visible' ||
+        node.style?.visibility !== 'hidden') &&
+        node.style?.display !== 'none'
     : false
 }
 
