@@ -715,6 +715,9 @@ class App {
                   datapath.split('.'),
                 )
               ) {
+                location === 'local'?
+                  set(this.root[pageRequesting],datapath,''):
+                  set(this.root,datapath,'')
                 log.error(
                   `The reference "${ref}" is missing from the ${
                     location === 'local'
