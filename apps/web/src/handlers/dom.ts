@@ -126,7 +126,7 @@ const createExtendedDOMResolvers = function (app: App) {
           })
         }
         // console.log("test actionChain",actionChain)
-        // await actionChain?.execute?.(event)
+        await actionChain?.execute?.(event)
       }
     }
 
