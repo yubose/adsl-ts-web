@@ -33,6 +33,10 @@ import is from '../utils/is'
 import { hide } from '../utils/dom'
 // import Swiper from 'swiper';
 // import '../../node_modules/swiper/swiper-bundle.css';
+import flatpickr from 'flatpickr'
+// import "../../node_modules/flatpickr/dist/flatpickr.min.css"
+import "../../node_modules/flatpickr/dist/themes/material_blue.css"
+// import moment from "moment"
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -1855,6 +1859,40 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           node.appendChild(childrenConta)
         }
+      },
+    },
+    '[App] Calendar': {
+      cond: 'calendar',
+      resolve({ node, component }) {
+        const inputTarget = document.createElement("input");
+        inputTarget.style.width = node.style.width;
+        inputTarget.style.height = node.style.height;
+        // inputTarget.setAttribute("class","latpickr form-control input")
+        flatpickr(inputTarget,{
+          // altInput: true,
+          // enableTime: true,
+          appendTo: node,
+          dateFormat: "Y-m-d",
+          // altFormat: "DD-MM-YYYY",
+          allowInput: true,
+          // inline: true,
+          // parseDate: (datestr, format) => {
+          //   return moment(datestr, format, true).toDate();
+          // },
+          // formatDate: (date, format, locale) => {
+          //   // locale can also be used
+          //   return moment(date).format(format);
+          // }
+          // onChange: function(selectedDates, dateStr, instance){
+          //   console.log(selectedDates, dateStr, instance)
+
+          //   instance.calendarContainer.style.visibility = "visible"
+          // }
+        });
+      node.append(inputTarget);
+
+        // if (node && Object.keys(component.get('data-value'))) {
+        // }
       },
     },
   }

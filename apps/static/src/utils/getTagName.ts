@@ -29,6 +29,10 @@ function getTagName(type: string) {
     textView: 'textarea',
     video: 'video',
     view: 'div',
+    table: "table",
+    tr: "tr",
+    td: "td",
+    th: "th",
   }[type]
 }
 
