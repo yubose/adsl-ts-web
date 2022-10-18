@@ -2,7 +2,7 @@
   "_id": "web@1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.0.748",
+    "@aitmed/cadl": "^1.0.751",
     "@aitmed/ecos-lvl2-sdk": "^1.4.206",
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",
@@ -26,7 +26,7 @@
     "logsnap": "^0.0.21",
     "noodl-action-chain": "^0.0.113",
     "noodl-types": "^1.0.222",
-    "noodl-ui": "^0.1.186",
+    "noodl-ui": "^0.1.189",
     "noodl-utils": "^0.0.121",
     "noodl-yaml": "^0.0.12",
     "qrcode": "^1.4.4",
