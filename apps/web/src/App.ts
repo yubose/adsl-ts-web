@@ -329,6 +329,7 @@ class App {
     { isGoto }: { isGoto?: boolean } = {},
     play?: boolean,
   ) {
+    let s = Date.now()
     function getParams(pageName: string) {
       const nameParts = pageName.split('&')
       let params = {}
@@ -440,6 +441,8 @@ class App {
     } catch (error) {
       throw new Error(error as any)
     }
+    let e = Date.now()
+    console.log('%c[timerLog]页面整体渲染','color: green;',`${e-s}`)
   }
 
   async initialize({
@@ -646,7 +649,7 @@ class App {
     if (!this.getState().spinner.active) {
       this.enableSpinner({ target: page?.node || this.mainPage?.node })
     }
-
+    let s = Date.now()
     try {
       const pageRequesting = page.requesting
       const currentPage = page.page
@@ -764,6 +767,7 @@ class App {
             }
           },
           onAfterInit: (err, init) => {
+            let s2 = Date.now()
             if (err) throw err
             let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
               (o) => o.id === page.id,
@@ -856,6 +860,8 @@ class App {
               // setTimeBoard(0.2)
               setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
+            let e2 = Date.now()
+            console.log('%c[timerLog]afterinit','color: green;',`${e2-s2}`)
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -869,6 +875,8 @@ class App {
       )?.aborted
 
       log.debug(`Ran noodl.initPage on page "${pageRequesting}"`)
+      let e = Date.now()
+      console.log('%c[timerLog]获取页面和init','color: green;',`${e-s}`)
 
       if (isAbortedFromSDK) {
         log.info(
