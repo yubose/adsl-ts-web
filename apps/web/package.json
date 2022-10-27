@@ -2,7 +2,7 @@
   "_id": "web@1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.0.756",
+    "@aitmed/cadl": "^1.0.759",
     "@aitmed/ecos-lvl2-sdk": "^1.4.206",
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",
@@ -130,115 +130,13 @@
     "ws": "^8.2.2"
   },
   "eslintConfig": {
-    "env": {
-      "es6": true,
-      "mocha": true,
-      "node": true,
-      "serviceworker": true
-    },
-    "extends": [
-      "plugin:@typescript-eslint/eslint-recommended",
-      "eslint:recommended",
-      "prettier"
-    ],
     "globals": {
       "Twilio": "readonly"
-    },
-    "ignorePatterns": [
-      "**/*.js",
-      "**/*.js.map",
-      "build",
-      "dist",
-      "generated",
-      "node_modules"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "ecmaFeatures": {},
-      "ecmaVersion": 2021,
-      "project": "./tsconfig.json",
-      "sourceType": "module"
-    },
-    "plugins": [
-      "@typescript-eslint",
-      "prettier"
-    ],
-    "rules": {
-      "@typescript-eslint/await-thenable": "warn",
-      "@typescript-eslint/ban-ts-comment": "off",
-      "@typescript-eslint/consistent-type-assertions": "warn",
-      "@typescript-eslint/explicit-module-boundary-types": "off",
-      "@typescript-eslint/lines-between-class-members": [
-        "error",
-        "always",
-        {
-          "exceptAfterSingleLine": true
-        }
-      ],
-      "@typescript-eslint/no-confusing-non-null-assertion": "warn",
-      "@typescript-eslint/no-empty-function": "off",
-      "@typescript-eslint/no-extra-semi": "off",
-      "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-inferrable-types": "off",
-      "@typescript-eslint/no-misused-promises": "off",
-      "@typescript-eslint/no-namespace": "off",
-      "@typescript-eslint/no-this-alias": "off",
-      "@typescript-eslint/no-unused-vars": [
-        1,
-        {
-          "argsIgnorePattern": "^_"
-        }
-      ],
-      "@typescript-eslint/prefer-enum-initializers": "error",
-      "@typescript-eslint/prefer-nullish-coalescing": "warn",
-      "@typescript-eslint/prefer-optional-chain": "error",
-      "@typescript-eslint/prefer-ts-expect-error": "error",
-      "@typescript-eslint/promise-function-async": "warn",
-      "@typescript-eslint/quotes": "off",
-      "@typescript-eslint/sort-type-union-intersection-members": "warn",
-      "@typescript-eslint/unified-signatures": "error",
-      "eqeqeq": 0,
-      "implicit-arrow-linebreak": "off",
-      "import/export": "off",
-      "import/extensions": "off",
-      "import/no-extraneous-dependencies": "off",
-      "import/no-unresolved": "off",
-      "import/prefer-default-export": "off",
-      "no-async-promise-executor": "off",
-      "no-dupe-class-members": "off",
-      "no-inner-declarations": "off",
-      "no-redeclare": "off",
-      "no-setter-return": "off",
-      "no-undef": "off",
-      "no-unreachable": "off",
-      "no-unused-vars": "off",
-      "prefer-const": "off",
-      "prefer-rest-params": "off",
-      "prettier/prettier": "error",
-      "quotes": "off"
-    },
-    "settings": {
-      "import/resolver": {
-        "node": {
-          "moduleDirectory": [
-            "node_modules"
-          ]
-        }
-      }
     }
   },
   "keywords": [],
   "license": "ISC",
   "name": "web",
-  "prettier": {
-    "arrowParens": "always",
-    "endOfLine": "lf",
-    "printWidth": 80,
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "all"
-  },
   "private": true,
   "scripts": {
     "build": "cross-env ECOS_ENV=stable NODE_ENV=production webpack --mode=production",

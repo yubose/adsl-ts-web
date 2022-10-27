@@ -4,6 +4,7 @@ import * as nt from 'noodl-types'
 import { deref, triggers, resolveAssetUrl } from 'noodl-ui'
 import type { NUITrigger } from 'noodl-ui'
 import { excludeIteratorVar, trimReference } from 'noodl-utils'
+import type { PageContext } from 'gatsby-plugin-noodl'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import useActionChain from '@/hooks/useActionChain'
@@ -45,11 +46,15 @@ export const noodlKeysToStrip = [
 const keysToStrip = noodlKeysToStrip.concat('index')
 const keysToStripRegex = new RegExp(`(${keysToStrip.join('|')})`, 'i')
 
+function isPathInPageContext(paths: Record<string, any>, componentId: string) {
+  if (paths?.[componentId]) return true
+}
+
 function useRenderer() {
   // Used to prevent infinite loops when dereferencing references
   const refsRef = React.useRef<Record<string, any>>({})
   const { getR, root, setR } = useCtx()
-  const { createActionChain, execute, executeIf } = useActionChain()
+  const { createActionChain, execute, executeIf, createEmit } = useActionChain()
   const builtInFns = useBuiltInFns()
   const {
     assetsUrl,
@@ -58,6 +63,7 @@ function useRenderer() {
     getIteratorVar,
     isListConsumer,
     name,
+    paths: pageContextPaths,
   } = usePageCtx()
 
   const render = React.useCallback(
@@ -114,6 +120,8 @@ function useRenderer() {
             let listObject = getListObject(id, root, name)
             let numDataObjects = 0
 
+            // if (component.id === '_vo688fj1f') debugger
+
             if (u.isStr(listObject) && nt.Identify.reference(listObject)) {
               let datapath = trimReference(listObject)
 
@@ -123,6 +131,8 @@ function useRenderer() {
                 listObject = get(root, `${name}.${datapath}`)
               }
             }
+
+            // if (component.id === '_vo688fj1f') debugger
 
             if (u.isArr(listObject)) {
               numDataObjects = listObject.length
@@ -157,7 +167,8 @@ function useRenderer() {
           }
         } else if (
           key === 'data-src' ||
-          (key === 'path' && /(image|video)/i.test(type))
+          (key === 'path' && /(image|video)/i.test(type)) ||
+          isPathInPageContext(pageContextPaths, id)
         ) {
           if (isListConsumer(component)) {
             const dataObject = deref({
@@ -204,8 +215,10 @@ function useRenderer() {
 
             props['data-src'] = props.src
           } else {
-            if (is.folds.emit(component.path)) {
-              const emitObject = component.path
+            let path: any = component.path
+
+            if (is.folds.emit(path)) {
+              const emitObject = path
               Promise.resolve().then(async () => {
                 const results = [] as any[]
 
@@ -227,9 +240,7 @@ function useRenderer() {
                   if (results.length === 1) {
                     props.src = results[0]
                     if (typeof window !== 'undefined') {
-                      const el = document.getElementById(
-                        component.id,
-                      ) as HTMLImageElement
+                      const el = document.getElementById(id) as HTMLImageElement
                       if (el) el.src = props.src
                     }
                   } else {
@@ -357,7 +368,53 @@ function useRenderer() {
         props.src = props['data-src']
       }
 
-      return renderElement({ children, componentPath, ...props })
+      const renderElementOptions = { componentPath, ...props }
+      if (children?.length) renderElementOptions.children = children
+
+      // TODO - This is hardcoded. Investigate this. `props.src` is being applied with component.parentId so this is a hack to restore the img to display in the UI. (Happening on mob.yml in page MobAiTmedProvider)
+      if (
+        // Checking for window/document is required here or build fails. This is because we touched the DOM during the build process
+        typeof window !== 'undefined' &&
+        typeof document !== 'undefined' &&
+        pageContextPaths[component.id]
+      ) {
+        if (is.folds.emit(pageContextPaths[component.id])) {
+          const emitObject = pageContextPaths[component.id]
+          const emit = createEmit(
+            createActionChain(component, 'path', emitObject),
+            component,
+            'path',
+            emitObject,
+          )
+          emit.execute().then((value) => {
+            if (u.isArr(value)) value = value.find(Boolean)
+            if (is.reference(value)) value = getR(root, value, name)
+            const previousPropsSrc = props.src
+            if (u.isStr(value)) {
+              props.src = resolveAssetUrl(value, assetsUrl)
+            } else {
+              props.src = String(value)
+            }
+            if (previousPropsSrc === component.parentId) {
+              const el = document
+                .getElementById(previousPropsSrc)
+                ?.querySelector('img') as HTMLImageElement
+              if (el) {
+                if (previousPropsSrc === component.parentId) {
+                  el.src = props.src
+                  if (u.isObj(component.style)) {
+                    Object.entries(component.style).forEach(
+                      ([k, v]) => (el.style[k] = v),
+                    )
+                  }
+                }
+              }
+            }
+          })
+        }
+      }
+
+      return renderElement(renderElementOptions)
     },
     [assetsUrl, getDataObject, root],
   )

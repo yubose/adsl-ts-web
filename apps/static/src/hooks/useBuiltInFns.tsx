@@ -65,12 +65,12 @@ function getBuiltInFns(options: CommonRenderComponentHelpers) {
       const str1 = String(dataIn?.string1)
       const str2 = String(dataIn?.string2)
       const isEqual = str1 === str2
-      // log.debug(
-      //   `%c[=.builtIn] Comparing: ${str1 === '' ? "''" : `'${str1}'`} === ${
-      //     str2 === '' ? "''" : `'${str2}'`
-      //   }: ${isEqual}`,
-      //   'color:rgb(98, 143, 42)',
-      // )
+      log.debug(
+        `%c[=.builtIn] Comparing: ${str1 === '' ? "''" : `'${str1}'`} === ${
+          str2 === '' ? "''" : `'${str2}'`
+        }: ${isEqual}`,
+        'color:rgb(98, 143, 42)',
+      )
       return isEqual
     },
     // Branched from lvl3
@@ -111,16 +111,16 @@ function getBuiltInFns(options: CommonRenderComponentHelpers) {
       rootKey?: string
     }) => {
       dataKey = createEmitDataKey(dataKey, dataObject, { iteratorVar })
-      const cond = is.reference(actions[0]?.if?.[0])
+      const cond = is.reference(actions?.[0]?.if?.[0])
         ? deref({
             dataObject,
             iteratorVar,
-            ref: actions[0]?.if?.[0],
+            ref: actions?.[0]?.if?.[0],
             root,
             rootKey,
           })
-        : actions[0]?.if?.[0]
-      const result = cond ? actions[0]?.if?.[1] : actions[0]?.if?.[2]
+        : actions?.[0]?.if?.[0]
+      const result = cond ? actions?.[0]?.if?.[1] : actions?.[0]?.if?.[2]
       return is.reference(result)
         ? deref({ dataObject, iteratorVar, ref: result, root, rootKey })
         : result

@@ -63,7 +63,7 @@ function useActionChain() {
     try {
       if (is.reference(value)) {
         if (value === '.WebsitePathSearch') {
-          return (window.location.href = 'https://search.aitmed.com')
+          return window.open('https://search.aitmed.com', '_blank')
         }
         value = deref({
           root: getRootDraftOrRoot(args.actionChain),
@@ -76,7 +76,7 @@ function useActionChain() {
       }
 
       if (value.startsWith('http')) {
-        window.location.href = value
+        window.open(value, '_blank')
       } else if (value.startsWith('^')) {
         await handleSamePageScroll(navigate, value)
       } else {
@@ -140,6 +140,8 @@ function useActionChain() {
             if (is.awaitReference(property)) {
               let datapath = toDataPath(trimReference(property))
               let datavalue: any
+
+              // debugger
 
               if (is.localReference(property)) {
                 datapath.unshift(pageCtx.name)
@@ -217,6 +219,7 @@ function useActionChain() {
             ...args,
             ...cond[key],
           })
+          // debugger
           value = result ? truthy : falsy
         }
 
@@ -286,12 +289,11 @@ function useActionChain() {
     ) => {
       {
         const action = createAction({ action: emitObject, trigger })
-        const dataObject =
-          pageCtx.getDataObject(
-            component,
-            getRootDraftOrRoot(actionChain),
-            pageCtx.name,
-          ) || {}
+        const dataObject = pageCtx.getDataObject(
+          component,
+          getRootDraftOrRoot(actionChain),
+          pageCtx.name,
+        )
 
         if (dataObject) {
           if (u.isStr(action.dataKey)) {
@@ -362,6 +364,71 @@ function useActionChain() {
           return action
         } else {
           // TODO
+          if (u.isStr(action.dataKey)) {
+            action.dataKey = dataObject
+          } else if (u.isObj(action.dataKey)) {
+            const iteratorVar = pageCtx.getIteratorVar(component)
+            action.dataKey = u.entries(action.dataKey).reduce(
+              (acc, [key, value]) =>
+                u.assign(acc, {
+                  [key]: iteratorVar
+                    ? value === iteratorVar
+                      ? dataObject
+                      : get(
+                          iteratorVar,
+                          `${excludeIteratorVar(value, iteratorVar)}`,
+                        )
+                    : get(dataObject, value),
+                }),
+              {},
+            )
+          }
+
+          action.executor = (function (actions: any[] = [], dataObject) {
+            return async function onExecuteEmitAction(event) {
+              let draftedActionObject: any
+              let results = [] as any[]
+
+              try {
+                for (const actionObject of actions) {
+                  let result: any
+                  // draftedActionObject = createDraft(actionObject)
+
+                  if (is.folds.if(actionObject)) {
+                    const [cond, truthy, falsy] = actionObject.if || []
+                    if (cond) result = truthy
+                    else result = falsy
+                  } else {
+                    // result = await execute({
+                    //   action: actionObject,
+                    //   actionChain,
+                    //   component,
+                    //   trigger,
+                    // })
+                  }
+
+                  // finishDraft(draftedActionObject)
+                  // draftedActionObject = undefined
+                  if (result === 'abort') {
+                    results.push('abort')
+                    action.abort('Received abort')
+                    await actionChain.abort()
+                    return 'abort'
+                  } else results.push(result)
+                }
+
+                return results
+              } catch (error) {
+                log.error(
+                  error instanceof Error ? error : new Error(String(error)),
+                )
+              } finally {
+                if (draftedActionObject) finishDraft(draftedActionObject)
+              }
+            }
+          })(emitObject.emit.actions, dataObject)
+
+          return action
         }
       }
     },
@@ -413,7 +480,9 @@ function useActionChain() {
             // { actionType: 'builtIn', funcName: 'redraw' }
             else if (is.action.builtIn(obj)) {
               const funcName = obj.funcName
-              // log.debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj)
+              log.debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj)
+
+              // return executeEvalBuiltIn()
             }
             // { emit: { dataKey: {...}, actions: [...] } }
             else if (is.folds.emit(obj)) {
@@ -503,6 +572,7 @@ function useActionChain() {
                     isLocal = is.localReference(key)
                     isAwaiting = is.awaitReference(key)
                     if (isAwaiting) awaitKey = key
+                    // debugger
                   }
 
                   if (u.isStr(value) && is.reference(value)) {
