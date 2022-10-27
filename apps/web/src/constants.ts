@@ -22,4 +22,5 @@ export enum ActionEvent {
   SaveSignature = 'SaveSignature',
   UpdateObject = 'UpdateObject',
   GetLocationAddress = 'GetLocationAddress',
+  UpdateGlobal = 'UpdateGlobal',
 }
