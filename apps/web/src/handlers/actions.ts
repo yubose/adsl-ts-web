@@ -93,6 +93,100 @@ const createActions = function createActions(app: App) {
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )
+            const strategies = [] as {
+              type: 'abort-true' | 'abort-wait'
+              object?: any
+            }[]
+            const { ref: actionChain } = options
+            while (emitResult.length) {
+              let result = emitResult.pop()
+  
+              while (u.isArr(result)) {
+                emitResult.push(...result)
+                result = emitResult.pop()
+              }
+              if (u.isObj(result)) {
+                if (u.isBrowser()) {
+                  getActionObjectErrors(result).forEach((errMsg: string) => {
+                    log.error(errMsg, result)
+                  })
+                }
+  
+                if (result.abort) {
+                  strategies.push({ type: 'abort-true', object: result })
+                  log.debug(
+                    `An evalObject returned an object with abort: true. ` +
+                      `The action chain will no longer proceed`,
+                    { actionChain, injectedObject: result },
+                  )
+                  if (actionChain) {
+                    // There is a bug with global popups not being able to be visible because of this abort block.
+                    // For now until a better solution is implemented we can do a check here
+                    for (const action of actionChain.queue) {
+                      const popUpView = _pick(action, 'popUpView')
+                      if (popUpView) {
+                        const globalPopUp =
+                          app.ndom.global.components.get(popUpView)
+                        if (globalPopUp) {
+                          const msg = [
+                            `An "abort: true" was injected from evalObject`,
+                            `but a global component with popUpView`,
+                            `"${popUpView}" was found.`,
+                            `These popUp actions will still be called to ensure`,
+                            `the behavior persists for global popUps`,
+                          ].join(' ')
+                          log.debug(msg, globalPopUp)
+                          await action?.execute?.()
+                        }
+                      }
+                    }
+                    if (!actionChain.isAborted()) {
+                      await actionChain.abort(
+                        `An evalObject is requesting to abort using the "abort" key`,
+                      )
+                    }
+                  }
+                } else {
+                  const isPossiblyAction = 'actionType' in result
+                  const isPossiblyToastMsg = 'message' in result
+                  const isPossiblyGoto =
+                    'goto' in result || 'destination' in result
+  
+                  if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                    if (isPossiblyGoto) {
+                      const destination = result.goto || result.destination || ''
+                      const pageComponentParent = findParent(
+                        options?.component,
+                        is.component.page,
+                      )
+                      if (
+                        pageComponentParent &&
+                        pageComponentParent.get('page')
+                      ) {
+                        const ndomPage = app.ndom.findPage(pageComponentParent)
+                        if (ndomPage && ndomPage.requesting !== destination) {
+                          ndomPage.requesting = destination
+                        }
+                      }
+                    }
+                    let action = {
+                      actionChain,
+                      instance: actionChain?.inject.call(
+                        actionChain,
+                        result as any,
+                      ),
+                      object: result,
+                      queue: actionChain?.queue.slice(),
+                    }
+                    log.debug(
+                      `An evalObject action is injecting a new object to the chain`,
+                      action,
+                    )
+                  }
+                }
+              }
+            }
+            
 
             // log.debug(`Emitted`, {
             //   action: action?.snapshot?.(),
