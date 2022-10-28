@@ -12,6 +12,7 @@ function PageContext({
   lists: listsMap,
   name,
   components,
+  paths,
   refs,
   slug,
 }: React.PropsWithChildren<
@@ -44,6 +45,7 @@ function PageContext({
     lists,
     name,
     components,
+    paths,
     refs,
     slug,
   }

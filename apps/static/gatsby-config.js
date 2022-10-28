@@ -1,3 +1,5 @@
+process.stdout.write('\x1Bc')
+
 const u = require('@jsmanifest/utils')
 
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
@@ -81,33 +83,18 @@ module.exports = {
       ),
       options: {
         // Defaults to "aitmed"
-        config: configKey,
-        // Defaults to current directory
+        config: {
+          name: configKey,
+          protocol: 'https',
+          host: 'public.aitmed.com',
+          pathPrefix: '/config',
+        },
         cwd: __dirname,
-        // Used to grab the version in the config object (defaults to "web")
-        deviceType: 'web',
-        // Defaults to "info"
         loglevel: 'debug',
-        // If introspection is true, it will dump all of the TRANSFORMED noodl
-        // pages in json to the output path specified below as
-        //  "<outputPath>/<config>.introspection.json"
-        // It will also dump a "metadata" file which is a snapshot of the internal key mappings it has collected from the plugin life cycle
-        introspection: true,
-        /**
-         * If true it will dump a file with useful metadata about the most recent build
-         * The output file will be saved at <cwd>/output/metadata.json
-         */
-        metadata: true,
         paths: {
-          // If we provide this assets will be downloaded to this path.
-          // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
-          assets: `${__dirname}/src/resources/assets`,
-          // If we provide this path the yml files/assets will be made available
-          output: `${__dirname}/output`,
-          // Ensures the assets will be correctly located
-          src: `${__dirname}/src`,
-          // Path to the template used to render noodl pages
-          template: require.resolve(`./src/templates/page.tsx`),
+          output: `output`,
+          src: `src`,
+          template: `src/templates/page.tsx`,
         },
         // Defaults to { width: 1024, height: 768 }
         viewport,

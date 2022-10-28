@@ -75,7 +75,6 @@ const createActions = function createActions(app: App) {
         ) {
           try {
             !app.getState().spinner.active && app.enableSpinner()
-
             const emitParams = {
               actions: _pick(action, 'actions'),
               pageName:
@@ -1375,6 +1374,13 @@ const createActions = function createActions(app: App) {
           })
       }
     }
+  
+  const updateGlobal:Store.ActionObject['fn'] = 
+    async function onUpdateGlobal(action,options){
+      await app?.noodl?.dispatch({
+          type: 'UPDATE_LOCAL_STORAGE'
+        })
+    }
 
   return {
     anonymous,
@@ -1395,6 +1401,7 @@ const createActions = function createActions(app: App) {
     scanCamera,
     updateObject,
     getLocationAddress,
+    updateGlobal,
   }
 }
 

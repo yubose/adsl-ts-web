@@ -230,3 +230,6 @@ textarea {
     opacity: 1;
   }
 }
+img:not([src]) {
+  opacity: 0;
+}
