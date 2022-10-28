@@ -5,6 +5,7 @@ const meow = require('meow')
 const cli = meow('', {
   flags: {
     build: { type: 'boolean' },
+    config: { type: 'string' },
     start: { type: 'boolean' },
     deploy: { type: 'boolean' },
     serve: { type: 'boolean' },
@@ -19,6 +20,8 @@ const execOptions = {
 }
 
 let cmd = `npm `
+let config = cli.flags.config || 'www'
+let version = cli.flags.version // example: 4.06.20
 
 if (cli.flags.deploy) {
   if (cli.flags.build) {
@@ -26,15 +29,13 @@ if (cli.flags.deploy) {
     execSync(cmd, execOptions)
   }
 
-  if (!cli.flags.version) {
+  if (!version) {
     throw new Error(
       `Must pass in a version using ${u.yellow('--version')} when deploying`,
     )
   }
 
-  const version = cli.flags.version // example: 4.06.20
-
-  cmd = `aws s3 sync ./public s3://public.aitmed.com/static/www/${version}/`
+  cmd = `aws s3 sync ./public s3://public.aitmed.com/static/${config}/${version}/`
 
   execSync(cmd, execOptions)
 } else {
