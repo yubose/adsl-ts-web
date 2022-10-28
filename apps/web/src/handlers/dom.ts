@@ -544,7 +544,8 @@ const createExtendedDOMResolvers = function (app: App) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
-        const maxLen = component.get('maxLength') || ''
+        const maxLen = component.get('maxLength') || '';
+        const showFocus = component.get('showSoftInput') || '';
         if (maxLen) {
           node?.setAttribute('maxlength', maxLen)
         }
@@ -618,7 +619,6 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           }
         }
-
         if (component.blueprint?.onBlur) {
           node.addEventListener(
             'blur',
@@ -631,6 +631,12 @@ const createExtendedDOMResolvers = function (app: App) {
               page,
             }),
           )
+        }
+        if(showFocus){
+          node?.setAttribute("showSoftInput","true")
+          setTimeout(()=>{
+            node?.focus();
+          },100)
         }
       },
     },

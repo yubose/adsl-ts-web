@@ -856,8 +856,17 @@ const createActions = function createActions(app: App) {
             }
             document.body.addEventListener('click', onTouchOutside)
           }
+
           if (elem?.style) {
             if (is.action.popUp(action) && !u.isNum(_pick(action, 'wait'))) {
+              let inp_dom:NodeListOf<HTMLInputElement> = elem.querySelectorAll("input");
+              for(let di_inp of inp_dom){
+                if((di_inp as HTMLInputElement).getAttribute("showSoftInput")){
+                    setTimeout(()=>{
+                      di_inp?.focus();
+                    },100)
+                }
+              }
               show(elem)
             } else if (u.isNum(_pick(action, 'wait'))) {
               show(elem)
