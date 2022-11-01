@@ -98,12 +98,13 @@ const createActions = function createActions(app: App) {
               object?: any
             }[]
             const { ref: actionChain } = options
-            while (emitResult.length) {
-              let result = emitResult.pop()
+            let results = u.cloneDeep(emitResult)
+            while (results.length) {
+              let result = results.pop()
   
               while (u.isArr(result)) {
-                emitResult.push(...result)
-                result = emitResult.pop()
+                results.push(...result)
+                result = results.pop()
               }
               if (u.isObj(result)) {
                 if (u.isBrowser()) {
@@ -193,7 +194,6 @@ const createActions = function createActions(app: App) {
             //   emitParams,
             //   emitResult,
             // })
-
             return u.isArr(emitResult)
               ? emitResult.length > 1
                 ? emitResult
