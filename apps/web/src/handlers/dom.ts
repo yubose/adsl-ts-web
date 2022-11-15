@@ -101,7 +101,7 @@ const createExtendedDOMResolvers = function (app: App) {
               warningMsg += `dataKey path "${dataKey}" did not exist `
               warningMsg += `in the local root object. `
               warningMsg += `If this is intended then ignore this message.`
-              log.orange(warningMsg, { component, dataKey, pageName, value })
+              // log.orange(warningMsg, { component, dataKey, pageName, value })
             }
             set(draft?.[pageName], dataKey, value)
             component.edit('data-value', value)
