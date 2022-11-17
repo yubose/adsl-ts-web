@@ -168,7 +168,9 @@ textarea {
   /* Fixed size */
   resize: none;
 }
-
+textarea::-webkit-scrollbar{
+  display: none;
+}
 .popup-global {
   border: 1px solid magenta;
   /* position: fixed; */
