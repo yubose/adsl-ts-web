@@ -326,7 +326,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     center: 'title',
                     right: 'timeGridDay,timeGridWeek',
                   }
-                  let defaultData = dataValue.chartData
+                  let defaultData = dataValue.chartData;
+                  defaultData = defaultData.filter((element)=>{
+                    if(!(+element.etime - +element.stime === 86400))return element;
+                  })
                   if (u.isArr(defaultData)) {
                     defaultData.forEach((element) => {
                       let duration = element.etime - element.stime
@@ -461,7 +464,38 @@ const createExtendedDOMResolvers = function (app: App) {
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
                     ).scrollIntoView({ behavior: 'smooth' })
-                    let docEventPrevClick: HTMLButtonElement =
+                    // let docEventPrevClick: HTMLButtonElement =
+                    //   document.querySelectorAll(
+                    //     '.fc-prev-button',
+                    //   )[0] as HTMLButtonElement
+                    // let docEventNextClick: HTMLButtonElement =
+                    //   document.querySelectorAll(
+                    //     '.fc-next-button',
+                    //   )[0] as HTMLButtonElement
+                    // let docEventTimeGridDayClick: HTMLButtonElement =
+                    //   document.querySelectorAll(
+                    //     '.fc-timeGridDay-button',
+                    //   )[0] as HTMLButtonElement
+                    // let docEventTimeGridWeekClick: HTMLButtonElement =
+                    //   document.querySelectorAll(
+                    //     '.fc-timeGridWeek-button',
+                    //   )[0] as HTMLButtonElement
+
+                    // // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
+                    // docEventPrevClick.addEventListener('click', (e) => {
+                    //   dataValue.data = 'prev'
+                    // })
+                    // docEventNextClick.addEventListener('click', (e) => {
+                    //   dataValue.data = 'next'
+                    // })
+                    // docEventTimeGridDayClick.addEventListener('click', (e) => {
+                    //   dataValue.data = 'timeGridDay'
+                    // })
+                    // docEventTimeGridWeekClick.addEventListener('click', (e) => {
+                    //   dataValue.data = 'timeGridWeek'
+                    // })
+                  }, 0)
+                  let docEventPrevClick: HTMLButtonElement =
                       document.querySelectorAll(
                         '.fc-prev-button',
                       )[0] as HTMLButtonElement
@@ -469,29 +503,16 @@ const createExtendedDOMResolvers = function (app: App) {
                       document.querySelectorAll(
                         '.fc-next-button',
                       )[0] as HTMLButtonElement
-                    let docEventTimeGridDayClick: HTMLButtonElement =
-                      document.querySelectorAll(
-                        '.fc-timeGridDay-button',
-                      )[0] as HTMLButtonElement
-                    let docEventTimeGridWeekClick: HTMLButtonElement =
-                      document.querySelectorAll(
-                        '.fc-timeGridWeek-button',
-                      )[0] as HTMLButtonElement
-
-                    // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
+                    let timeTable = document.querySelector("[data-name=timeTable]") as HTMLElement;
+                    timeTable?.addEventListener('click',(e)=>{
+                        dataValue.data = ''
+                    },true)
                     docEventPrevClick.addEventListener('click', (e) => {
                       dataValue.data = 'prev'
                     })
                     docEventNextClick.addEventListener('click', (e) => {
                       dataValue.data = 'next'
                     })
-                    docEventTimeGridDayClick.addEventListener('click', (e) => {
-                      dataValue.data = 'timeGridDay'
-                    })
-                    docEventTimeGridWeekClick.addEventListener('click', (e) => {
-                      dataValue.data = 'timeGridWeek'
-                    })
-                  }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {
