@@ -367,13 +367,21 @@ const createExtendedDOMResolvers = function (app: App) {
                   } else {
                     defaultData = []
                   }
+                  let initialView = "timeGridDay";
+                  if(dataValue.dataWeek == "week"){
+                    if(dataValue.dataDay === "day"){
+                    initialView = "timeGridDay";
+                    }else{
+                      initialView = "timeGridWeek";
+                    }
+                  }
                   let calendar = new Calendar(node, {
                     plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
                     height: '77.9vh',
                     allDaySlot: false, // 是否显示表头的全天事件栏
-                    initialView: 'timeGridDay',
+                    initialView: initialView,
                     //locale: 'zh-cn',             // 区域本地化
                     firstDay: 0, // 每周的第一天： 0:周日
                     nowIndicator: true, // 是否显示当前时间的指示条
@@ -456,63 +464,136 @@ const createExtendedDOMResolvers = function (app: App) {
                     inst: calendar,
                     page: pageName,
                   }
-                  calendar.render()
-                  // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
+                  if(dataValue.start&&dataValue.end){
+                    if(dataValue.currentDate){
+                      if(dataValue.dataWeek == "week"){
+                        calendar.gotoDate( dataValue.start*1000)
+                      }else{
+                        calendar.gotoDate( dataValue.currentDate*1000)
+                      }
+                    }else if(dataValue.end - dataValue.start>86400){
+                    calendar.gotoDate( new Date().getTime())
+                    }else{
+                    calendar.gotoDate( dataValue.start*1000)
+                    }
+                  }
+                  calendar.render();
                   window.setTimeout(() => {
-                    ;(
+                    (
                       document.querySelectorAll(
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
-                    ).scrollIntoView({ behavior: 'smooth' })
-                    // let docEventPrevClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-prev-button',
-                    //   )[0] as HTMLButtonElement
-                    // let docEventNextClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-next-button',
-                    //   )[0] as HTMLButtonElement
-                    // let docEventTimeGridDayClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-timeGridDay-button',
-                    //   )[0] as HTMLButtonElement
-                    // let docEventTimeGridWeekClick: HTMLButtonElement =
-                    //   document.querySelectorAll(
-                    //     '.fc-timeGridWeek-button',
-                    //   )[0] as HTMLButtonElement
+                    )?.scrollIntoView({ behavior: 'smooth' });
+                    let docEventPrevClick: HTMLButtonElement =
+                    document.querySelectorAll(
+                      '.fc-prev-button',
+                    )[0] as HTMLButtonElement
+                  let docEventNextClick: HTMLButtonElement =
+                    document.querySelectorAll(
+                      '.fc-next-button',
+                    )[0] as HTMLButtonElement
+                  let docEventDayClick: HTMLButtonElement =
+                  document.querySelectorAll(
+                    '.fc-timeGridDay-button',
+                  )[0] as HTMLButtonElement
+                  let docEventWeekClick: HTMLButtonElement =
+                    document.querySelectorAll(
+                      '.fc-timeGridWeek-button',
+                    )[0] as HTMLButtonElement
+                  let timeTable = document.querySelector("[data-name=timeTable]") as HTMLElement;
+                  let titleTime = document.getElementsByClassName('fc-toolbar-title')[0];
+                    let months = [
+                      'January',
+                      'February',
+                      'March',
+                      'April',
+                      'May',
+                      'June',
+                      'July',
+                      'August',
+                      'September',
+                      'October',
+                      'November',
+                      'December',
+                    ];
+                    let abbMonths = [
+                      'Jan',
+                      'Feb',
+                      'Mar',
+                      'Apr',
+                      'May',
+                      'Jun',
+                      'Jul',
+                      'Aug',
+                      'Sep',
+                      'Oct',
+                      'Nov',
+                      'Dec',
+                    ];
+                  timeTable?.addEventListener('click',(e)=>{
+                      dataValue.data = ''
+                  },true)
+                  function getEventTime(){
+                    let getMonth =  titleTime.textContent?.split(" ")[0] as string;
+                    let getDay =  titleTime.textContent?.split(" ")[1]?.split(",")[0] as string;
+                    let getYear=  titleTime.textContent?.split(",")[1] as string;
+                    let getTimeNow = new Date(+getYear, (+months.indexOf(getMonth)),+getDay).getTime();
+                    if(dataValue.currentDate!==dataValue.start){
+                      dataValue.start = dataValue.currentDate;
+                    dataValue.end = dataValue.currentDate + 86400;
+                    }else{
+                      dataValue.start = getTimeNow/1000;
+                    dataValue.end = getTimeNow/1000 + 86400;
+                    }
+                  }
+                  function getEventTimeWeek(){
+                    let getMonth =  titleTime.textContent?.split(" ")[0] as string;
+                    let getDay =  titleTime.textContent?.split("-")[0]?.split(" ")[1] as string;
+                    let getYear=  titleTime.textContent?.split(",")[1] as string;
+                    let getTimeNow = new Date(+getYear, (+abbMonths.indexOf(getMonth)),+getDay).getTime();
+                    dataValue.start = getTimeNow/1000;
+                    dataValue.end = getTimeNow/1000 + 604800;
+                    if(!dataValue.currentDate){
+                      dataValue.currentDate = new Date(new Date().toLocaleDateString()).getTime()/1000;
+                    }
+                  }
+                  docEventPrevClick.addEventListener('click', (e) => {
+                    if(!dataValue.dataWeek&&dataValue.dataWeek !== 'week'){
+                      getEventTime();
+                    }else{
+                      getEventTimeWeek()
+                    }
+                    if(!(dataValue.dataDay||dataValue.dataWeek)||(dataValue.dataDay =="day"&&dataValue.dataWeek == '')){
+                      dataValue.currentDate = dataValue.start;
+                    }
+                    dataValue.data = 'prev';
+                  })
+                  docEventNextClick.addEventListener('click', (e) => {
+                    if(!dataValue.dataWeek&&dataValue.dataWeek !== 'week'){
+                      getEventTime();
+                    }else{
+                      getEventTimeWeek()
+                    }
+                    if(!(dataValue.dataDay||dataValue.dataWeek)||(dataValue.dataDay =="day"&&dataValue.dataWeek == '')){
+                      dataValue.currentDate = dataValue.start;
+                    }
+                    dataValue.data = 'next';
+                  })
+                  docEventDayClick.addEventListener('click', (e) => {
+                    getEventTime();
+                    dataValue.data = 'day'
+                    dataValue.dataDay = 'day'
+                    dataValue.dataWeek = ''
+                    titleTime.textContent =  ""
 
-                    // // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
-                    // docEventPrevClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'prev'
-                    // })
-                    // docEventNextClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'next'
-                    // })
-                    // docEventTimeGridDayClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'timeGridDay'
-                    // })
-                    // docEventTimeGridWeekClick.addEventListener('click', (e) => {
-                    //   dataValue.data = 'timeGridWeek'
-                    // })
+                  })
+                  docEventWeekClick.addEventListener('click', (e) => {
+                    getEventTimeWeek();
+                    dataValue.data = 'week'
+                    dataValue.dataWeek = 'week'
+                    dataValue.dataDay = ''
+                  })
                   }, 0)
-                  let docEventPrevClick: HTMLButtonElement =
-                      document.querySelectorAll(
-                        '.fc-prev-button',
-                      )[0] as HTMLButtonElement
-                    let docEventNextClick: HTMLButtonElement =
-                      document.querySelectorAll(
-                        '.fc-next-button',
-                      )[0] as HTMLButtonElement
-                    let timeTable = document.querySelector("[data-name=timeTable]") as HTMLElement;
-                    timeTable?.addEventListener('click',(e)=>{
-                        dataValue.data = ''
-                    },true)
-                    docEventPrevClick.addEventListener('click', (e) => {
-                      dataValue.data = 'prev'
-                    })
-                    docEventNextClick.addEventListener('click', (e) => {
-                      dataValue.data = 'next'
-                    })
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {

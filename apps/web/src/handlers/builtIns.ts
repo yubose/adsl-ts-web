@@ -1144,11 +1144,12 @@ export const extendedSdkBuiltIns = {
 			content,
 			scale,
 			viewTag,
-		}: { content?: any; scale?: number; viewTag?: string } = {}
+      fileName,
+		}: { content?: any; scale?: number; viewTag?: string,fileName?: string } = {}
 	) {
 		// Generate QRCode image
 		let ext = "";
-		let filename = ("QRCode" || "") as string;
+		let filename = (fileName || "QRCode") as string;
 		let mimeType = ("image/png" || "") as string;
 		ext = mimeType.substring(mimeType.lastIndexOf("/")).replace("/", ".");
 		ext && u.isStr(filename) && (filename += ext);
