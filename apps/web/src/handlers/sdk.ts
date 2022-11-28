@@ -86,6 +86,9 @@ export function getSdkHelpers(app: App) {
     get extendMeeting() {
       return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
     },
+    get delayTask() {
+      return app.builtIns.get('delayTask')?.find(Boolean)?.fn
+    },
     async diagnostics(
       dataIn:
         | string

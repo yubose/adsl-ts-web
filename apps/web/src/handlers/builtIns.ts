@@ -540,6 +540,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		window.location.reload();
 	};
 
+
 	const goto = createBuiltInHandler(
 		useGotoSpinner(app, async function onGoto(action, options) {
 			if (!app.getState().spinner.active) app.enableSpinner();
@@ -1034,7 +1035,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 					app.mainPage.pageUrl = `${basePart}?${routeStr}`;
 			}
 		};
-
+	const delayTask: Store.BuiltInObject['fn'] = 
+		async function onDelayTask(action, options){
+			const onEvent = _pick(action, "onEvent")
+			const delayTime = _pick(action,'delayTime')
+			const id = setTimeout(() => {
+				app.register.extendVideoFunction(onEvent);
+				clearTimeout(id);
+			}, delayTime);
+		};
 	const builtIns = {
 		checkField,
 		disconnectMeeting,
@@ -1056,6 +1065,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		routeRediredct,
 		dismissOnTouchOutside,
 		extendMeeting,
+		delayTask,
 	};
 
 	/** Shared common logic for both lock/logout logic */

@@ -291,6 +291,11 @@ class createRegisters {
         componentObject.eventId = 'twilioOnPeopleJoin'
         await handleRegister(componentObject)
       },
+      async codeTask(componentObject:GlobalRegisterComponent){
+        componentObject.eventId = 'codeTasks'
+        await handleRegister(componentObject)
+      },
+
     }
   }
   registerHandlers = {
