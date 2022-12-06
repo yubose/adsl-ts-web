@@ -1052,12 +1052,37 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       color: string,
       pointerEvents: string
     }){
-      const attributeTimeOut = setTimeout((t) => {
-      let viewTagDiv = document.querySelector(`[data-viewtag=${options.viewTag}]`) as HTMLElement;
-        viewTagDiv.style.color = options.color;
-        viewTagDiv.style.pointerEvents = options.pointerEvents;
-        clearTimeout(attributeTimeOut);
-      }, (+options.time)*1000);
+      return new Promise((res,rej)=>{
+        const attributeTimeOut = setInterval(() => {
+          if(options.time<0){
+            clearInterval(attributeTimeOut);
+            res("Stop")
+          }
+          let viewTagDiv = document.querySelector(`[data-viewtag=${options.viewTag}]`) as HTMLElement;
+          viewTagDiv.style.color = options.color;
+          viewTagDiv.style.pointerEvents = options.pointerEvents;
+          viewTagDiv.textContent = `Resend (${(options.time as number)--}s)`
+        }, 1000);
+
+      })
+
+      // let start = new Date().getTime();
+      // let jetime = 1;
+      // let viewTagDiv = document.querySelector(`[data-viewtag=${options.viewTag}]`) as HTMLElement;
+      // viewTagDiv.style.color = options.color;
+      // viewTagDiv.style.pointerEvents = options.pointerEvents;
+      // while (Math.floor(new Date().getTime() - start) < options.time && Math.floor((new Date().getTime() - start)/1000)==jetime) {
+      //   viewTagDiv.textContent = `Resend (${(options.time as number)--}s)`;
+      //   console.log(999)
+      //   jetime++;
+      //   continue
+      // }
+      // if(options.time<0){
+      //   // clearInterval(attributeTimeOut);
+      //   // res("Stop")
+      // }
+
+
   };
 	const builtIns = {
 		checkField,
