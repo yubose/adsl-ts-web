@@ -89,6 +89,9 @@ export function getSdkHelpers(app: App) {
     get delayTask() {
       return app.builtIns.get('delayTask')?.find(Boolean)?.fn
     },
+    get countDown() {
+      return app.builtIns.get('countDown')?.find(Boolean)?.fn
+    },
     async diagnostics(
       dataIn:
         | string

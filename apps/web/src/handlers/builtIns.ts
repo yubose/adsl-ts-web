@@ -1035,7 +1035,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 					app.mainPage.pageUrl = `${basePart}?${routeStr}`;
 			}
 		};
-	const delayTask: Store.BuiltInObject['fn'] = 
+	const delayTask: Store.BuiltInObject['fn'] =
 		async function onDelayTask(action, options){
 			const onEvent = _pick(action, "onEvent")
 			const delayTime = _pick(action,'delayTime')
@@ -1044,6 +1044,27 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 				clearTimeout(id);
 			}, delayTime);
 		};
+  const countDown =
+    async function onCountDown(options:{
+      viewTag: string,
+      timeFormat: string,
+      time: number|string,
+      color: string,
+      pointerEvents: string
+    }){
+      // const onEvent = _pick(action, "onEvent")
+      // const delayTime = _pick(action,'delayTime')
+      console.log(8888)
+      const attributeTimeOut = setTimeout((t) => {
+      let viewTagDiv = document.querySelector(`[data-viewtag=${options.viewTag}]`) as HTMLElement;
+
+        console.log(9999,viewTagDiv)
+        viewTagDiv.style.color = options.color;
+        viewTagDiv.style.pointerEvents = options.pointerEvents;
+        // app.register.extendVideoFunction(onEvent);
+        clearTimeout(attributeTimeOut);
+      }, (+options.time)*1000);
+  };
 	const builtIns = {
 		checkField,
 		disconnectMeeting,
@@ -1066,6 +1087,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		dismissOnTouchOutside,
 		extendMeeting,
 		delayTask,
+    countDown
 	};
 
 	/** Shared common logic for both lock/logout logic */
