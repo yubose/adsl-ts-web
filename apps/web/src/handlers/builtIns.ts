@@ -1052,16 +1052,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       color: string,
       pointerEvents: string
     }){
-      // const onEvent = _pick(action, "onEvent")
-      // const delayTime = _pick(action,'delayTime')
-      console.log(8888)
       const attributeTimeOut = setTimeout((t) => {
       let viewTagDiv = document.querySelector(`[data-viewtag=${options.viewTag}]`) as HTMLElement;
-
-        console.log(9999,viewTagDiv)
         viewTagDiv.style.color = options.color;
         viewTagDiv.style.pointerEvents = options.pointerEvents;
-        // app.register.extendVideoFunction(onEvent);
         clearTimeout(attributeTimeOut);
       }, (+options.time)*1000);
   };
