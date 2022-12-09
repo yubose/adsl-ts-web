@@ -16,8 +16,10 @@ import type { Env } from 'noodl-types'
 import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
-  baseConfigUrl: 'https://public.aitmed.com/config',
-  app: process.env.ANALYSIS_APP ?? process.env.DEBUG_APP ?? 'patient',
+    //@ts-ignore
+    baseConfigUrl: window.configRoot || 'https://public.aitmed.com/config',
+    //@ts-ignore
+    app: window.appName || (process.env.ANALYSIS_APP ?? process.env.DEBUG_APP ?? 'patient'),
   get url() {
     // ONLY used if passed in as cli args via --env APP=<config name>
     // See webpack.config.js for details in the "_getLocalAppHelpers" function
