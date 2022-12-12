@@ -1050,7 +1050,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       timeFormat: string,
       time: number|string,
       color: string,
-      pointerEvents: string
+      pointerEvents: string,
+	  resendText: string
     }){
 		if(options.time<=0) return
 		let viewTagDiv = findByViewTag(options.viewTag) as HTMLElement;
@@ -1059,10 +1060,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		viewTagDiv.style.color = options.color;
 		viewTagDiv.style.pointerEvents = options.pointerEvents;
 		viewTagDiv.textContent = `Resend (${(options.time as number)--}s)`
+		// console.error('oldTextContent');
+		// console.error(oldTextContent);
 		const attributeTimeOut = setInterval(() => {
 			if(options.time<=0){
 				viewTagDiv.style.color = oldColor
-				viewTagDiv.textContent = oldTextContent
+				viewTagDiv.textContent = options.resendText
 				viewTagDiv.style.pointerEvents = "auto"
 			  	clearInterval(attributeTimeOut);
 			}else{
