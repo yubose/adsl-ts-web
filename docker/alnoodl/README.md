@@ -1,3 +1,11 @@
+copy aitmed-noodl-web app build files to htdocs folder
+copy noodl files and config file under htdocs
+link noodl files with config
+insert <script>
+      window.configRoot='http://localhost:8081/config'
+      window.appName='admin'</script>
+into index.html
+
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/m4rcu5/lighttpd.svg)](https://hub.docker.com/r/m4rcu5/lighttpd/) [![Build Status](https://travis-ci.org/m4rcu5nl/docker-lighttpd-alpine.svg?branch=master)](https://travis-ci.org/m4rcu5nl/docker-lighttpd-alpine) [![GitHub issues](https://img.shields.io/github/issues/m4rcu5nl/docker-lighttpd-alpine.svg)](https://github.com/m4rcu5nl/docker-lighttpd-alpine/issues)
 
