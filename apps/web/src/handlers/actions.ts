@@ -101,7 +101,7 @@ const createActions = function createActions(app: App) {
             let results = u.cloneDeep(emitResult)
             while (results.length) {
               let result = results.pop()
-  
+
               while (u.isArr(result)) {
                 results.push(...result)
                 result = results.pop()
@@ -112,7 +112,7 @@ const createActions = function createActions(app: App) {
                     log.error(errMsg, result)
                   })
                 }
-  
+
                 if (result.abort) {
                   strategies.push({ type: 'abort-true', object: result })
                   log.debug(
@@ -152,7 +152,7 @@ const createActions = function createActions(app: App) {
                   const isPossiblyToastMsg = 'message' in result
                   const isPossiblyGoto =
                     'goto' in result || 'destination' in result
-  
+
                   if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
                     if (isPossiblyGoto) {
                       const destination = result.goto || result.destination || ''
@@ -187,7 +187,7 @@ const createActions = function createActions(app: App) {
                 }
               }
             }
-            
+
 
             // log.debug(`Emitted`, {
             //   action: action?.snapshot?.(),
@@ -410,7 +410,10 @@ const createActions = function createActions(app: App) {
             })
           : destinationParam,
       )
-
+      if(destinationParam.startsWith('blob')){
+        app.disableSpinner();
+        return void window.open(destProps.destination, '_blank');
+      }
       let { destination, id = '', isSamePage, duration } = destProps
 
       let pageModifiers = {} as any
@@ -531,6 +534,7 @@ const createActions = function createActions(app: App) {
         if (ndomPage.page && ndomPage.page !== destination) {
           // delete app.noodl.root[ndomPage.page]
         }
+
         await app.navigate(
           ndomPage,
           destination,
@@ -1468,8 +1472,8 @@ const createActions = function createActions(app: App) {
           })
       }
     }
-  
-  const updateGlobal:Store.ActionObject['fn'] = 
+
+  const updateGlobal:Store.ActionObject['fn'] =
     async function onUpdateGlobal(action,options){
       await app?.noodl?.dispatch({
           type: 'UPDATE_LOCAL_STORAGE'
