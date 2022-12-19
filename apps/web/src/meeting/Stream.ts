@@ -378,8 +378,8 @@ class MeetingStream {
     if (!backdrop) {
       backdrop = document.createElement('div')
       backdrop.id = backdropId
-      backdrop.style.width = this.#node?.style?.width || '100%'
-      backdrop.style.height = this.#node?.style?.height || '100%'
+      backdrop.style.width = '100%'
+      backdrop.style.height = '100%'
       backdrop.style.position = 'absolute'
       backdrop.style.top = '0px'
       backdrop.style.right = '0px'

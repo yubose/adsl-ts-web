@@ -311,6 +311,10 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   | null
 
                 if (is.isBooleanTrue(isBinding)) {
+                  //Prevent duplicate windows
+                  const selfStreamEl = app.meeting.selfStream.getElement()
+                  selfStreamEl.style.visibility = 'hidden'
+                  
                   const el = app.meeting.mainStream.getElement()
                   el.style.width = '100%'
                   el.style.height = '100%'
