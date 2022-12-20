@@ -84,6 +84,12 @@ function getWebpackConfig(env) {
     lvl3:
       pkgJson.current.dependencies['@aitmed/cadl'] ||
       pkgJson.current.devDependencies['@aitmed/cadl'],
+    noodlUi:
+      pkgJson.current.dependencies['noodl-ui'] ||
+      pkgJson.current.devDependencies['noodl-ui'],
+    noodlTypes:
+      pkgJson.current.dependencies['noodl-types'] ||
+      pkgJson.current.devDependencies['noodl-types'],
   }
 
   const staticPaths = [paths.public]
@@ -289,9 +295,9 @@ function getWebpackConfig(env) {
           packages: {
             '@aitmed/cadl': version.lvl3,
             '@aitmed/ecos-lvl2-sdk': version.lvl2,
-            'noodl-types': version['noodl-types'],
-            'noodl-ui': version['noodl-ui'],
-            'noodl-utils': version['noodl-utils'],
+            '@aitmed/cadl': version.lvl3,
+            'noodl-types': version.noodlTypes,
+            'noodl-ui': version.noodlUi
           },
           timestamp: new Date().toLocaleString(),
         },
