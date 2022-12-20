@@ -1,6 +1,13 @@
 #!/bin/bash
 npm install @aitmed/cadl@latest
 npm install @aitmed/ecos-lvl2-sdk@latest
+npm i noodl-ui@latest
+
+cd apps/web
+npm install @aitmed/cadl@latest
+npm install @aitmed/ecos-lvl2-sdk@latest
+npm i noodl-ui@latest
+
 git add .
-git commit -a -m "update aitmed sdk"
+git commit -a -m "update aitmed sdk, inlcude lvl2,lvl3,noodl-ui"
 git push
