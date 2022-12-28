@@ -2022,7 +2022,7 @@ const createExtendedDOMResolvers = function (app: App) {
           private pdfCss: PdfCss
           private boxCss: BoxCss
           constructor(dataSource: Array<any>) {
-            this.dataSource = dataSource.reverse()
+            this.dataSource = dataSource
             this.chatBox = document.createElement('div')
             this.pdfCss = {
               pdfContentWidth: 200,
