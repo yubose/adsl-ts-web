@@ -2222,23 +2222,16 @@ const createExtendedDOMResolvers = function (app: App) {
             return pdfInfo
           }
         }
+        // const scrollH = component
+        const scrollH = component.get('data-value') || '' || 'dataKey'
         const liveChatObject = new liveChat(component.get('listObject'))
         let liveChatBox = liveChatObject.dom()
         node.innerHTML = liveChatBox.innerHTML
         // node.appendChild(liveChatBox)
         setTimeout(() => {
-          node.scrollTop = node.scrollHeight
+          node.scrollTop = scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH  - 40
         }, 0)
-        // console.dir(component.get('onPull'))
-        let onPullFun = () => {
-          let scrollTop = node.scrollTop
-          if (scrollTop <= 50) {
-            // console.dir()
-            component.get('onPull')[0].object()
-            node.removeEventListener('scroll', onPullFun)
-          }
-        }
-        node.addEventListener('scroll', onPullFun)
+      
       },
     },
   }
