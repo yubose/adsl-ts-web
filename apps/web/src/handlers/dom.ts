@@ -2224,9 +2224,13 @@ const createExtendedDOMResolvers = function (app: App) {
         }
         const liveChatObject = new liveChat(component.get('listObject'))
         let liveChatBox = liveChatObject.dom()
-        node.appendChild(liveChatBox)
-        liveChatBox.scrollTop = liveChatBox.scrollHeight
-        console.dir(component)
+        node.innerHTML = liveChatBox.innerHTML
+        // node.appendChild(liveChatBox)
+        setTimeout(() => {
+          node.scrollTop = node.scrollHeight
+        }, 0);
+        
+        // console.dir(component)
       },
     },
   }
