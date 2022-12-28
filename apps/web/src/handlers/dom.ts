@@ -2228,9 +2228,17 @@ const createExtendedDOMResolvers = function (app: App) {
         // node.appendChild(liveChatBox)
         setTimeout(() => {
           node.scrollTop = node.scrollHeight
-        }, 0);
-        
-        // console.dir(component)
+        }, 0)
+        // console.dir(component.get('onPull'))
+        let onPullFun = () => {
+          let scrollTop = node.scrollTop
+          if (scrollTop <= 50) {
+            // console.dir()
+            component.get('onPull')[0].object()
+            node.removeEventListener('scroll', onPullFun)
+          }
+        }
+        node.addEventListener('scroll', onPullFun)
       },
     },
   }
