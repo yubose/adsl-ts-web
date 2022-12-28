@@ -2006,17 +2006,6 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] chatList': {
       cond: 'chatList',
       resolve({ node, component }) {
-        console.log('test1000', node)
-        interface Msg {
-          info: string
-          size: string
-        }
-        interface Message {
-          type: string
-          message: Msg
-          ovid: string
-          contentId: any
-        }
         interface PdfCss {
           pdfContentWidth: number
           pdfContentHeight: number
@@ -2035,7 +2024,6 @@ const createExtendedDOMResolvers = function (app: App) {
           constructor(dataSource: Array<any>) {
             this.dataSource = dataSource.reverse()
             this.chatBox = document.createElement('div')
-            this.chatBox.id = 'test'
             this.pdfCss = {
               pdfContentWidth: 200,
               pdfContentHeight: 60,
@@ -2074,7 +2062,6 @@ const createExtendedDOMResolvers = function (app: App) {
               domNode,
               this.IsOwner(Msg.bsig),
             )
-            console.log(Msg)
             const urlRegex =
               /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
             // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
@@ -2166,11 +2153,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           private IsOwner(ovid: string): boolean {
             let judgeOvid = localStorage.getItem('user_vid')
-            if (ovid === judgeOvid) {
-              return true
-            } else {
-              return false
-            }
+            return ovid === judgeOvid
           }
 
           private judgeIsOwner(
@@ -2239,11 +2222,11 @@ const createExtendedDOMResolvers = function (app: App) {
             return pdfInfo
           }
         }
-        const liveChat0 = new liveChat(component.get('listObject'))
-        let liveChatBox = liveChat0.dom()
+        const liveChatObject = new liveChat(component.get('listObject'))
+        let liveChatBox = liveChatObject.dom()
         node.appendChild(liveChatBox)
-        console.log('test1001', node, liveChatBox)
         liveChatBox.scrollTop = liveChatBox.scrollHeight
+        console.dir(component)
       },
     },
   }
