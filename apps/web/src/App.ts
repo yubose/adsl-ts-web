@@ -1083,19 +1083,19 @@ class App {
         this: NDOMPage,
         { actions, args, data, queue, timeout, trigger },
       ) {
-        for (const el of document.getElementsByClassName('noodl-onclick')) {
-          if (!el.classList.contains('noodl-onclick-disabled')) {
-            el.classList.add('noodl-onclick-disabled')
-          }
-        }
+        // for (const el of document.getElementsByClassName('noodl-onclick')) {
+        //   if (!el.classList.contains('noodl-onclick-disabled')) {
+        //     el.classList.add('noodl-onclick-disabled')
+        //   }
+        // }
       }
 
       function onExecuteEnd(this: NDOMPage, { actions, data, trigger }) {
-        for (const el of document.getElementsByClassName('noodl-onclick')) {
-          if (el.classList.contains('noodl-onclick-disabled')) {
-            el.classList.remove('noodl-onclick-disabled')
-          }
-        }
+        // for (const el of document.getElementsByClassName('noodl-onclick')) {
+        //   if (el.classList.contains('noodl-onclick-disabled')) {
+        //     el.classList.remove('noodl-onclick-disabled')
+        //   }
+        // }
       }
 
       return this.ndom.render(page, {
