@@ -92,6 +92,9 @@ export function getSdkHelpers(app: App) {
     get countDown() {
       return app.builtIns.get('countDown')?.find(Boolean)?.fn
     },
+    get getViewTagValue() {
+      return app.builtIns.get('getViewTagValue')?.find(Boolean)?.fn
+    },
     async diagnostics(
       dataIn:
         | string

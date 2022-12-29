@@ -2003,6 +2003,237 @@ const createExtendedDOMResolvers = function (app: App) {
         // }
       },
     },
+    '[App] chatList': {
+      cond: 'chatList',
+      resolve({ node, component }) {
+        interface PdfCss {
+          pdfContentWidth: number
+          pdfContentHeight: number
+          pdfIconWidth: number
+          pdfIconHeight: number
+        }
+        interface BoxCss {
+          width: string
+          height: string
+        }
+        class liveChat {
+          protected chatBox: HTMLElement
+          private dataSource: Array<any>
+          private pdfCss: PdfCss
+          private boxCss: BoxCss
+          constructor(dataSource: Array<any>) {
+            this.dataSource = dataSource
+            this.chatBox = document.createElement('div')
+            this.pdfCss = {
+              pdfContentWidth: 200,
+              pdfContentHeight: 60,
+              pdfIconWidth: 40,
+              pdfIconHeight: 40,
+            }
+            this.boxCss = {
+              width: node.style.width,
+              height: node.style.height,
+            }
+            this.setBox()
+            for (let i = 0; i < this.dataSource.length; i++) {
+              this.chatBox.appendChild(this.judgeType(this.dataSource[i]))
+            }
+          }
+
+          private setBox() {
+            this.chatBox.style.cssText = `
+              position: absolute;
+              width: ${this.boxCss.width};
+              height: ${this.boxCss.height};
+              overflow: auto;
+              background-color: #f2f2f2;
+            `
+          }
+
+          public dom() {
+            return this.chatBox
+          }
+
+          private createTextNode(Msg: any): HTMLElement {
+            let domNode = this.createChatNode()
+            let domNodeContent: HTMLElement
+            let chatBackground: string
+            ;[domNode, domNodeContent, chatBackground] = this.judgeIsOwner(
+              domNode,
+              this.IsOwner(Msg.bsig),
+            )
+            const urlRegex =
+              /(\b((https?|ftp|file|http):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)[-A-Z0-9+&@#%?=~_|!:,.;]*[-A-Z0-9+&@#%=~_|])/gi
+            // const urlRegex = /\b(?:(http|https|ftp):\/\/)?((?:[\w-]+\.)+[a-z0-9]+)((?:\/[^/?#]*)+)?(\?[^#]+)?(#.+)?$/ig;
+            let data = Msg.name.data
+            if (typeof data == 'string') {
+              data = JSON.parse(data)
+            }
+            let messageInfo = data.text.replace(urlRegex, (url) => {
+              return `<a href = "${url}">${url}</a>`
+            })
+            let textContent = document.createElement('div')
+            // textContent.innerHTML = Msg.message.info
+            textContent.innerHTML = messageInfo
+            textContent.style.cssText = `
+                margin-top: 10px;
+                border-radius: 10px;
+                padding: 5px 7.5px 5px 7.5px;
+                background-color: ${chatBackground};
+                word-wrap: break-word;
+            `
+            domNodeContent.appendChild(textContent)
+            return domNode
+          }
+
+          private createPdfNode(Msg: any): HTMLElement {
+            let domNode = this.createChatNode()
+            let domNodeContent: HTMLElement
+            ;[domNode, domNodeContent] = this.judgeIsOwner(
+              domNode,
+              this.IsOwner(Msg.bsig),
+            )
+            let pdfInfo = this.judgePdfIsOwner(
+              domNodeContent,
+              this.IsOwner(Msg.bsig),
+            )
+            pdfInfo.innerHTML = `
+                <div>${Msg.name.data.text}</div>
+                <div style='font-size: 12pxcolor: grey;'>${Msg.name.data.text}</div>
+            `
+            return domNode
+          }
+
+          private judgeType(Msg: any): HTMLElement {
+            let domNode: HTMLElement
+            switch (Msg.name.title) {
+              case 'textMessage':
+                domNode = this.createTextNode(Msg)
+                return domNode
+              case 'pdfMessage':
+                domNode = this.createPdfNode(Msg)
+                return domNode
+              default:
+                return new HTMLElement()
+            }
+          }
+
+          private createChatNode(): HTMLElement {
+            let domNode = document.createElement('div')
+            domNode.style.cssText = `
+              width: 100%;
+              height: auto;
+              margin: 10px 0px 10px 0px;
+              display: flex;
+            `
+            return domNode
+          }
+
+          private createChatNodeContent(): HTMLElement {
+            let domNodeContent = document.createElement('div')
+            domNodeContent.style.cssText = `
+                max-width: 60%;
+                width: auto;
+                height: auto;
+            `
+            return domNodeContent
+          }
+
+          private createChatNodeAvatar(): HTMLElement {
+            let domNodeAvatar = document.createElement('img')
+            domNodeAvatar.src = './assert/avatar.png'
+            domNodeAvatar.style.cssText = `
+                width: 50px;
+                height: 50px;
+                border-radius: 5px;
+                margin: auto 10px auto 10px;
+            `
+            return domNodeAvatar
+          }
+
+          private IsOwner(ovid: string): boolean {
+            let judgeOvid = localStorage.getItem('user_vid')
+            return ovid === judgeOvid
+          }
+
+          private judgeIsOwner(
+            domNode: HTMLElement,
+            isOwner: boolean,
+          ): [HTMLElement, HTMLElement, string] {
+            let domNodeContent = this.createChatNodeContent()
+            let domNodeAvatar = this.createChatNodeAvatar()
+            let chatBackground = '#FFFFFF'
+            if (isOwner) {
+              domNode.style.justifyContent = 'end'
+              domNode.appendChild(domNodeContent)
+              domNode.appendChild(domNodeAvatar)
+              chatBackground = '#A9EA7A'
+            } else {
+              domNode.style.justifyContent = 'start'
+              domNode.appendChild(domNodeAvatar)
+              domNode.appendChild(domNodeContent)
+              chatBackground = '#FFFFFF'
+            }
+            return [domNode, domNodeContent, chatBackground]
+          }
+
+          private judgePdfIsOwner(
+            domNodeContent: HTMLElement,
+            isOwner: boolean,
+          ): HTMLElement {
+            let pdfContent = document.createElement('div')
+            pdfContent.style.cssText = `
+                width: ${this.pdfCss.pdfContentWidth}px;
+                height: ${this.pdfCss.pdfContentHeight}px;
+                border-radius: 10px;
+                display: flex;
+                background-color: #FFFFFF;
+            `
+            let pdfIcon = document.createElement('img')
+            pdfIcon.src = './assert/pdf.png'
+            pdfIcon.style.cssText = `
+              width: ${this.pdfCss.pdfIconWidth}px;
+              height: ${this.pdfCss.pdfIconHeight}px;
+              margin: ${
+                (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+              }px 10px ${
+              (this.pdfCss.pdfContentHeight - this.pdfCss.pdfIconHeight) / 2
+            }px 10px;
+            `
+            let pdfInfo = document.createElement('div')
+            pdfInfo.style.cssText = `
+                width: ${
+                  this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
+                }px;
+                height: auto;
+                margin: 5px 10px 5px 10px; 
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            `
+            domNodeContent.appendChild(pdfContent)
+            if (isOwner) {
+              pdfContent.appendChild(pdfIcon)
+              pdfContent.appendChild(pdfInfo)
+            } else {
+              pdfContent.appendChild(pdfInfo)
+              pdfContent.appendChild(pdfIcon)
+            }
+            return pdfInfo
+          }
+        }
+        // const scrollH = component
+        const scrollH = component.get('data-value') || '' || 'dataKey'
+        const liveChatObject = new liveChat(component.get('listObject'))
+        let liveChatBox = liveChatObject.dom()
+        node.innerHTML = liveChatBox.innerHTML
+        // node.appendChild(liveChatBox)
+        setTimeout(() => {
+          node.scrollTop = scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
+        }, 0)
+      
+      },
+    },
   }
 
   return u

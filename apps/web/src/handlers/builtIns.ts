@@ -389,7 +389,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		async function onToggleMicrophoneOnOff(action) {
 			_toggleMeetingDevice("audio");
 		};
-
+	const getViewTagValue = async function onGetViewTagValue(
+		options: {
+			viewTag: string
+		}
+	) {
+		let viewTagDiv = findByViewTag(options.viewTag) as HTMLElement;
+		let scrollTop = viewTagDiv.scrollHeight
+		return scrollTop
+	}
 	const toggleFlag: Store.BuiltInObject["fn"] = async function onToggleFlag(
 		action,
 		options
@@ -1101,7 +1109,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		dismissOnTouchOutside,
 		extendMeeting,
 		delayTask,
-    countDown
+		getViewTagValue,
+    	countDown
 	};
 
 	/** Shared common logic for both lock/logout logic */
