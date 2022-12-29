@@ -2229,7 +2229,7 @@ const createExtendedDOMResolvers = function (app: App) {
         node.innerHTML = liveChatBox.innerHTML
         // node.appendChild(liveChatBox)
         setTimeout(() => {
-          node.scrollTop = scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH  - 40
+          node.scrollTop = scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
         }, 0)
       
       },
