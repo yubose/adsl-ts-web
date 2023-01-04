@@ -426,9 +426,9 @@ const createExtendedDOMResolvers = function (app: App) {
                           info.event._def.extendedProps.visitType +
                           '</div>\
                                         <div style="padding-top:3px">Reason ：' +
-                          info.event._def.extendedProps.name +
+                          (info.event._def.extendedProps.name??info.event._def.extendedProps.Reason) +
                           '</div>\
-                                        <div style="padding:4px 0">StartTime：' +
+                                        <div style="padding:4px 0">Sta rtTime：' +
                           formatDate(
                             new Date(
                               info.event._instance.range.start,
@@ -2206,7 +2206,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   this.pdfCss.pdfContentWidth - this.pdfCss.pdfIconWidth - 40
                 }px;
                 height: auto;
-                margin: 5px 10px 5px 10px; 
+                margin: 5px 10px 5px 10px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -2231,7 +2231,7 @@ const createExtendedDOMResolvers = function (app: App) {
         setTimeout(() => {
           node.scrollTop = scrollH == 0 ? node.scrollHeight : node.scrollHeight - scrollH
         }, 0)
-      
+
       },
     },
   }
