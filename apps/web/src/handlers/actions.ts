@@ -768,6 +768,9 @@ const createActions = function createActions(app: App) {
               app.updateRoot(downloadStatus, status)
             }
             if (fileType) {
+              console.error('files');
+              console.error(files);
+              
               const type = files?.[0]?.name.split('.').at(-1)
               ac.data.set(fileType, type)
               app.updateRoot(fileType, type)
