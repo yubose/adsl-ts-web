@@ -240,10 +240,8 @@ const createActions = function createActions(app: App) {
         if (result) {
           const { ref: actionChain } = options
           const results = u.array(result)
-
           while (results.length) {
             let result = results.pop()
-
             while (u.isArr(result)) {
               results.push(...result)
               result = results.pop()
@@ -299,6 +297,7 @@ const createActions = function createActions(app: App) {
                 if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
                   if (isPossiblyGoto) {
                     const destination = result.goto || result.destination || ''
+
                     const pageComponentParent = findParent(
                       options?.component,
                       is.component.page,
@@ -410,7 +409,7 @@ const createActions = function createActions(app: App) {
             })
           : destinationParam,
       )
-      if(destinationParam.startsWith('blob')){
+      if(destinationParam.startsWith('blob') ){
         app.disableSpinner();
         return void window.open(destProps.destination, '_blank');
       }
@@ -534,12 +533,15 @@ const createActions = function createActions(app: App) {
         if (ndomPage.page && ndomPage.page !== destination) {
           // delete app.noodl.root[ndomPage.page]
         }
-
+        if(_pick(action, 'blank')){
+          app.disableSpinner();
+          return void window.open(destination, '_blank');
+        }
         await app.navigate(
           ndomPage,
           destination,
           { isGoto: true },
-          destinationParam.startsWith('http') ? true : false,
+          destinationParam.startsWith('http')? true : false,
         )
         if (!destination) {
           log.error(
