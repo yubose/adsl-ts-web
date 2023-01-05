@@ -384,9 +384,10 @@ class App {
       }
       if (nu.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
+
         return !play
           ? void (window.location.href = pageUrl as string)
-          : window.open(pageUrl, '_blank')
+          : window.open(pageUrl, '_self')
       }
 
       if (_page.page && _page.requesting && _page.page !== _page.requesting) {

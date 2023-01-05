@@ -1211,6 +1211,10 @@ export const extendedSdkBuiltIns = {
 
 		if (viewTag) {
 			const node = findByViewTag(viewTag) as HTMLElement;
+			let imgArr = node.getElementsByTagName('img')
+			for(let i = 0;i < imgArr.length;i++){
+				imgArr[i].setAttribute('crossOrigin', 'anonymous')
+			}
 			html2canvas(node, {
 				allowTaint: true, //跨域
 				useCORS: true, //跨域
