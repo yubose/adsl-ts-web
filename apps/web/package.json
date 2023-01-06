@@ -2,7 +2,7 @@
   "_id": "web@1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
   "dependencies": {
-    "@aitmed/cadl": "^1.0.827",
+    "@aitmed/cadl": "^1.0.828",
     "@aitmed/ecos-lvl2-sdk": "^1.4.210",
     "@emotion/css": "^11.9.0",
     "@fullcalendar/daygrid": "^5.7.2",

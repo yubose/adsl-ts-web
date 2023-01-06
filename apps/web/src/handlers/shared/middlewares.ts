@@ -141,7 +141,7 @@ function getMiddlewares() {
 
 					if (pendingPage && currentPage && newPageRequesting) {
 						if (pendingPage !== currentPage) {
-							if (pendingPage !== newPageRequesting) {
+							if (pendingPage !== newPageRequesting && !(pendingPage.startsWith('https://search'))) {
 								// This block is reached when the user clicks several buttons too fast and it tries to navigate to all of the pages in the onClicks.
 								// Prevent the goto
 								log.error(

@@ -535,6 +535,7 @@ const createActions = function createActions(app: App) {
         }
         if(_pick(action, 'blank')){
           app.disableSpinner();
+          options.ref?.abort();
           return void window.open(destination, '_blank');
         }
         await app.navigate(
@@ -772,8 +773,8 @@ const createActions = function createActions(app: App) {
             if (fileType) {
               console.error('files');
               console.error(files);
-              
-              const type = files?.[0]?.name.split('.').at(-1)
+
+const type = files?.[0]?.name.split('.').at(-1)
               ac.data.set(fileType, type)
               app.updateRoot(fileType, type)
             }
@@ -791,7 +792,8 @@ const createActions = function createActions(app: App) {
                   data: jsonFromCsvFile,
                 })
                 app.updateRoot(dataKey, ac.data.get(dataKey))
-                break
+
+     break
               } else {
                 await imageConversion
                   .compressAccurately(fileRell || ac.data.get(dataKey), size)
