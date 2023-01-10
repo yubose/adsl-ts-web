@@ -15,6 +15,7 @@ import type {
   Store,
 } from 'noodl-ui'
 import type App from '../App'
+import log from '../log'
 
 export type ActionKind = 'action' | 'builtIn'
 
@@ -147,7 +148,7 @@ export function actionFactory(app: App) {
       ...rest: any[]
     ) {
       if (!action) {
-        return console.log(
+        return log.log(
           `%cA function handler was invoked but the argument received was ` +
             `empty. The function will not continue`,
           `color:#FF5722;`,

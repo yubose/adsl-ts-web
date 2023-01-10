@@ -5,6 +5,7 @@ import * as nt from 'noodl-types'
 import { NUIAction, NUIActionObjectInput, NuiComponent, Store } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
 import { ActionMetadata } from '../app/types'
+import log from '../log'
 
 export function getActionMetadata<PKey extends string = string>(
   action: NUIAction | nt.ActionObject | undefined,
@@ -142,7 +143,7 @@ export function openOutboundURL(url: string) {
 export function logError(err?: any) {
   if (!err) err = new Error(`[Error] Error occurred`)
   else if (!(err instanceof Error)) err = new Error(String(err))
-  console.log(`[${err.name}] ${err.message}`, err.stack)
+  log.log(`[${err.name}] ${err.message}`, err.stack)
 }
 
 export function throwError(err?: any) {

@@ -2,7 +2,7 @@ import * as u from "@jsmanifest/utils";
 import type { ConsumerOptions, NDOMPage } from "noodl-ui";
 import { isAction } from "noodl-action-chain";
 import { createAction } from "noodl-ui";
-import log from "loglevel";
+import log from "../../log";
 import { ActionHandlerArgs, MiddlewareFn } from "../../factories/actionFactory";
 import App from "../../App";
 import { useGotoSpinner } from "./goto";
@@ -77,7 +77,7 @@ function getMiddlewares() {
 	 * @param param1
 	 */
 	const actionsEventState: MiddlewareFn = (args, { app }) => {
-		console.log(`[actionsEventState]`, {
+		log.log(`[actionsEventState]`, {
 			action: args?.[0],
 			options: args?.[1],
 		});

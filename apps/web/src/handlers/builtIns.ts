@@ -27,7 +27,7 @@ import {
 } from "noodl-ui";
 import QRCode from "qrcode";
 import { BuiltInActionObject, EcosDocument } from "noodl-types";
-import log from "loglevel";
+import log from "../log";
 import {
 	download,
 	exportToPDF,
@@ -218,7 +218,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 			URL.revokeObjectURL(csvUrl);
 		} catch (error) {
 			const err = error instanceof Error ? error : new Error(String(error));
-			console.error(err);
+			log.error(err);
 		}
 	};
 
@@ -292,7 +292,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 							});
 							log.info("Exported successfully");
 						} catch (error) {
-							console.error(error);
+							log.error(error);
 						}
 					} else {
 						log.error(
@@ -519,7 +519,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 				options,
 			});
 		} catch (error) {
-			console.error(error);
+			log.error(error);
 			throw error;
 		}
 	};
@@ -901,7 +901,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 			//   }),
 			// )
 		} catch (error) {
-			console.error(error);
+			log.error(error);
 			error instanceof Error && toast(error.message, { type: "error" });
 		}
 		log.error(`COMPONENT CACHE SIZE: ${app.cache.component.length}`);
@@ -969,7 +969,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 					);
 				}
 			} catch (error) {
-				console.error(error);
+				log.error(error);
 				error instanceof Error && toast(error.message, { type: "error" });
 			}
 		};
@@ -1005,7 +1005,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 			app.register.setNumberofExtensions(numberofExtensions - 1);
 			const popUpWaitSeconds = 30;
 			let remainTime = oldTimePerExtendSeconds - popUpWaitSeconds;
-			console.log(remainTime, numberofExtensions);
+			log.log(remainTime, numberofExtensions);
 			if (remainTime > 0 && numberofExtensions >= 0) {
 				app.register.removeTime("extendVideoChatTime");
 				app.register.removeTime("PopUPTimeInterval");
@@ -1017,7 +1017,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 				}, remainTime * 1000);
 				app.register.setTimeId("extendVideoChatTime", id);
 			} else {
-				console.log(
+				log.log(
 					"The meeting might had already ended. Please reschedule or cancel it."
 				);
 				app.meeting.leave();
@@ -1068,8 +1068,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		viewTagDiv.style.color = options.color;
 		viewTagDiv.style.pointerEvents = options.pointerEvents;
 		viewTagDiv.textContent = `Resend (${(options.time as number)--}s)`
-		// console.error('oldTextContent');
-		// console.error(oldTextContent);
+		// log.error('oldTextContent');
+		// log.error(oldTextContent);
 		const attributeTimeOut = setInterval(() => {
 			if(options.time<=0){
 				viewTagDiv.style.color = oldColor
@@ -1128,7 +1128,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 			await import("@aitmed/cadl")
 		).Account?.verifyUserPassword?.(password); // @ts-expect-error
 		if (!isValid) {
-			console.log(`%cisValid ?`, "color:#e74c3c;font-weight:bold;", isValid);
+			log.log(`%cisValid ?`, "color:#e74c3c;font-weight:bold;", isValid);
 			if (hiddenPwLabel) hiddenPwLabel.style.visibility = "visible";
 			else {
 				toast("Password is incorrect", { type: "error" });
@@ -1190,7 +1190,7 @@ export const extendedSdkBuiltIns = {
 		// ext && u.isStr(filename) && (filename += ext)
 		!data && (data = ecosObj.name?.data || "");
 		!fileName && (fileName = ecosObj.name.title);
-		// console.log(ecosObj.name.title,"kkkk")
+		// log.log(ecosObj.name.title,"kkkk")
 		return download(data, fileName);
 	},
 	downloadQRCode(
@@ -1338,7 +1338,7 @@ export const extendedSdkBuiltIns = {
 				);
 			}
 		} catch (error) {
-			console.error(error);
+			log.error(error);
 			error instanceof Error && toast(error.message, { type: "error" });
 		}
 	},
@@ -1377,7 +1377,7 @@ export const extendedSdkBuiltIns = {
 			}, remainTime * 1000);
 		}
 		// else{
-		//   console.log('The meeting might had already ended. Please reschedule or cancel it.')
+		//   log.log('The meeting might had already ended. Please reschedule or cancel it.')
 		//   this.meeting.leave()
 		//   this.register.extendVideoFunction('onDisconnect')
 		//   // const id = setTimeout(

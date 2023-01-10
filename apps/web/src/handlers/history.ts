@@ -4,7 +4,7 @@
 import { BASE_PAGE_URL } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import curry from 'lodash/curry'
-import log from 'loglevel'
+import log from '../log'
 import App from '../App'
 
 export const createOnPopState = curry(
@@ -64,7 +64,7 @@ export const createOnPopState = curry(
       await app.navigate(app.previousPage)
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
-      console.error(err)
+      log.error(err)
     } finally {
       if (!app.noodl.getState().queue?.length) {
         if (app.getState().spinner?.active) app.disableSpinner()

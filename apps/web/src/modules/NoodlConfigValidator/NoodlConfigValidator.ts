@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import log from '../../log'
 
 export interface ConfigValidatorOptions {
   configKey: string
@@ -28,7 +29,7 @@ function createNoodlConfigValidator({
       if (u.isStr(cfg)) return JSON.parse(cfg)
       return cfg
     } catch (error) {
-      console.error(error)
+      log.error(error)
     }
   }
 

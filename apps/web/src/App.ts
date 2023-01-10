@@ -1,4 +1,4 @@
-import log from 'loglevel'
+import log from './log'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
 import { Account } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
@@ -412,7 +412,7 @@ class App {
                 ) {
                   if (pageToDestroy in this.noodl.root) {
                     delete this.noodl.root[pageToDestroy]
-                    console.log(
+                    log.log(
                       `%cRemoved "${pageToDestroy}" from the page stack`,
                       `color:#00b406;`,
                     )
@@ -443,7 +443,7 @@ class App {
       throw new Error(error as any)
     }
     let e = Date.now()
-    console.log('%c[timerLog]页面整体渲染','color: green;',`${e-s}`)
+    log.log('%c[timerLog]页面整体渲染','color: green;',`${e-s}`)
   }
 
   async initialize({
@@ -475,7 +475,7 @@ class App {
           log.debug(`Initialized notifications`, this.#notification)
           onInitNotification && (await onInitNotification?.(this.#notification))
         } catch (error) {
-          console.error(
+          log.error(
             error instanceof Error ? error : new Error(String(error)),
           )
         }
@@ -493,7 +493,7 @@ class App {
       if (this.noodl) await this.noodl.init()
       onSdkInit?.(this.noodl)
 
-      console.time('a')
+      // console.time('a')
 
       log.debug(`Initialized @aitmed/cadl sdk instance`)
 
@@ -630,12 +630,12 @@ class App {
       }
 
       // subscribeToRefs(({ key, isLocal, parent, path, ref, result }) => {
-      //   console.log(`[App] Ref`, { key, isLocal, path, ref, result })
+      //   log.log(`[App] Ref`, { key, isLocal, path, ref, result })
       // })
 
       this.#state.initialized = true
     } catch (error) {
-      console.error(error)
+      log.error(error)
       throw error
     } finally {
       if (!this.noodl?.getState?.()?.queue?.length) {
@@ -697,7 +697,7 @@ class App {
           ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
-            // console.log(localStorage.getItem("keepingLockState"))
+            // log.log(localStorage.getItem("keepingLockState"))
             log.debug('', { init, page: pageRequesting })
             //   if(localStorage.getItem("lockPreUrl")){
             //     history.go(-(history.length-countJumpPage-1))
@@ -862,7 +862,7 @@ class App {
               setTimeBoard(+(localStorage.getItem('lockTime') as string))
             }
             let e2 = Date.now()
-            console.log('%c[timerLog]afterinit','color: green;',`${e2-s2}`)
+            log.log('%c[timerLog]afterinit','color: green;',`${e2-s2}`)
           },
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
@@ -877,7 +877,7 @@ class App {
 
       log.debug(`Ran noodl.initPage on page "${pageRequesting}"`)
       let e = Date.now()
-      console.log('%c[timerLog]获取页面和init','color: green;',`${e-s}`)
+      log.log('%c[timerLog]获取页面和init','color: green;',`${e-s}`)
 
       if (isAbortedFromSDK) {
         log.info(
@@ -896,7 +896,7 @@ class App {
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
       return this.root[pageRequesting]
     } catch (error) {
-      console.error(error)
+      log.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     } finally {
       this.disableSpinner()
@@ -1103,26 +1103,26 @@ class App {
         on: {
           actionChain: {
             // onBeforeInject() {
-            //   console.log(`[onBeforeInject]`, this)
+            //   log.log(`[onBeforeInject]`, this)
             // },
             // onAfterInject() {
-            //   console.log(`[onAfterInject]`, this)
+            //   log.log(`[onAfterInject]`, this)
             // },
             // onAbortEnd() {
-            //   console.log(`[onAbortEnd]`, this)
+            //   log.log(`[onAbortEnd]`, this)
             // },
             // onAbortStart() {
-            //   console.log(`[onAbortStart]`, this)
+            //   log.log(`[onAbortStart]`, this)
             // },
             // onAbortError() {
-            //   console.log(`[onAbortError]`, this)
+            //   log.log(`[onAbortError]`, this)
             // },
             onExecuteStart: onExecuteStart.bind(page),
             // onBeforeActionExecute() {
-            //   console.log(`[onBeforeActionExecute]`, this)
+            //   log.log(`[onBeforeActionExecute]`, this)
             // },
             // onExecuteError: () => {
-            //   console.log(`[onExecuteError]`, this)
+            //   log.log(`[onExecuteError]`, this)
             // this.disableSpinner()
             // },
             onExecuteEnd: onExecuteEnd.bind(page),
@@ -1181,7 +1181,7 @@ class App {
         },
       })
     } catch (error) {
-      console.error(error)
+      log.error(error)
       if (error instanceof Error) toast(`[${error.name}] ${error.message}`)
       else if (error) toast(`[Error] ${String(error)}`)
     }
@@ -1209,7 +1209,7 @@ class App {
           this.mainPage.requesting = currentPage
           return this.navigate(this.mainPage)
         } catch (error) {
-          console.error(error)
+          log.error(error)
         }
       }
       return softAppReset()

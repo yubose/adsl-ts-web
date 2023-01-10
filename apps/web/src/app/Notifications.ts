@@ -10,6 +10,7 @@ import {
   AppNotificationHooks,
   AppNotificationMessageObject,
 } from './types'
+import log from '../log'
 
 export interface Options {}
 
@@ -86,7 +87,7 @@ class AppNotification {
       this.emit('initiated', this.client as firebase.app.App)
       return this.client
     } catch (error) {
-      console.error(error)
+      log.error(error)
       this.emit('initError', error as Error)
     }
   }
@@ -102,7 +103,7 @@ class AppNotification {
       }
       this.emit('token', token)
     } catch (error) {
-      console.error(error)
+      log.error(error)
     }
     return token
   }

@@ -17,6 +17,7 @@ import { copyToClipboard, exportToPDF, fromClipboard, toast } from './dom'
 import * as lf from './lf'
 import type App from '../App'
 import is from './is'
+import log from '../log'
 
 export function getWindowDebugUtils(app: App) {
   const navigate = (destination: string) => async () =>
@@ -138,23 +139,23 @@ export function getWindowDebugUtils(app: App) {
         return fromClipboard()
           .then((path) => {
             if (!path) {
-              console.error(
+              log.error(
                 new Error(
                   `Nothing was passed in and nothing was in the clipboard`,
                 ),
               )
             } else {
               const value = getValue(path)
-              console.log(value)
+              log.log(value)
               window['v'] = value
               return value
             }
           })
-          .catch(console.error)
+          .catch(log.error)
       } else {
         const value = getValue(path)
         window['v'] = value
-        console.log(value)
+        log.log(value)
         return value
       }
     },

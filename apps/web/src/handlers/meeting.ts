@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
-import log from 'loglevel'
+import log from '../log'
 import { isComponent } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import Stream from '../meeting/Stream'
@@ -381,7 +381,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                         error instanceof Error
                           ? error
                           : new Error(String(error))
-                      console.error(err)
+                      log.error(err)
                     }
                   } else {
                     log.debug(
@@ -403,7 +403,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                   node.removeChild(el)
                   el.remove()
                 } catch (error) {
-                  console.error(
+                  log.error(
                     error instanceof Error ? error : new Error(String(error)),
                   )
                 }

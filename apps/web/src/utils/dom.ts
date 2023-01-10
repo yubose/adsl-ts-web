@@ -11,6 +11,7 @@ import type {
   Format as PdfPageFormat,
   Orientation as PDFPageOrientation,
 } from '../modules/ExportPdf'
+import log from '../log'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -198,17 +199,17 @@ export function exportToPDF(
           ? await createDocByObject(data)
           : null
       } catch (error) {
-        console.error(error instanceof Error ? error : new Error(String(error)))
+        log.error(error instanceof Error ? error : new Error(String(error)))
 
         if (u.isObj(data) && 'tagName' in data) {
-          console.log(
+          log.log(
             `[exportToPDF] Creating a PDF document failed. Retrying one more time...`,
           )
 
           try {
             doc = ((await ExportPdf.create(data, formatProp)) as jsPDF) || null
           } catch (error) {
-            console.log(
+            log.log(
               `[exportToPDF] Creating a PDF document failed both times`,
               error instanceof Error ? error : new Error(String(error)),
             )

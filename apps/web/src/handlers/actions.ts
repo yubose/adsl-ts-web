@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import log from 'loglevel'
+import log from '../log'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
@@ -200,7 +200,7 @@ const createActions = function createActions(app: App) {
                 : emitResult?.[0]
               : [emitResult]
           } catch (error) {
-            console.error(error)
+            log.error(error)
           } finally {
             if (!app.noodl.getState().queue?.length) app.disableSpinner()
           }
@@ -771,8 +771,8 @@ const createActions = function createActions(app: App) {
               app.updateRoot(downloadStatus, status)
             }
             if (fileType) {
-              console.error('files');
-              console.error(files);
+              log.error('files');
+              log.error(files);
 
 const type = files?.[0]?.name.split('.').at(-1)
               ac.data.set(fileType, type)
@@ -825,11 +825,11 @@ const type = files?.[0]?.name.split('.').at(-1)
             //   await imageConversion
             //     .compressAccurately(ac.data.get(dataKey), size)
             //     .then((res) => {
-            //       console.log("sssss",res)
+            //       log.log("sssss",res)
             //       let newFile = new File([res], ac.data.get(dataKey).name, {
             //         type: files?.[0].type,
             //       })
-            //       console.log("jjjj",newFile)
+            //       log.log("jjjj",newFile)
             //       app.updateRoot(dataKey, newFile)
             //     })
             // } else {
@@ -1187,7 +1187,7 @@ const type = files?.[0]?.name.split('.').at(-1)
                   qrbox: 400,
                 },
                 (decodedText, decodedResult) => {
-                  console.log(decodedText, decodedResult)
+                  log.log(decodedText, decodedResult)
                   try {
                     if (decodedText.startsWith('https://microgembio.com:80')) {
                       let en = atob(decodedText.split('data=')[1])
@@ -1245,7 +1245,7 @@ const type = files?.[0]?.name.split('.').at(-1)
         })
         .catch((err) => {
           // handle err
-          console.log(err) // 获取设备信息失败
+          log.log(err) // 获取设备信息失败
         })
     })
   }
@@ -1475,7 +1475,7 @@ const type = files?.[0]?.name.split('.').at(-1)
             }
           })
           .catch((error) => {
-            console.log(error)
+            log.log(error)
           })
       }
     }
