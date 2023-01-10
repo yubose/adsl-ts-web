@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
 import type * as jss from 'jsstore'
-import log from 'loglevel'
+import log from './log'
 import { asHtmlElement, findByViewTag } from 'noodl-ui'
 import { toast } from './utils/dom'
 import { isChrome } from './utils/common'
@@ -65,7 +65,7 @@ async function initializeApp(
               )
 
             app.serviceWorker?.addEventListener('statechange', (evt) => {
-              console.log(
+              log.log(
                 `%c[App - serviceWorker] State changed`,
                 `color:#c4a901;`,
                 evt,
@@ -78,7 +78,7 @@ async function initializeApp(
             ) => {
               const awaitStateChange = async (evt?: Event) => {
                 await app.serviceWorkerRegistration?.update()
-                console.log(
+                log.log(
                   `%c[App - serviceWorkerRegistration] Update found`,
                   `color:#c4a901;`,
                   evt,
@@ -103,7 +103,7 @@ async function initializeApp(
             })
 
             navigator.serviceWorker.addEventListener('message', (msg) => {
-              console.log(
+              log.log(
                 `%c[App] serviceWorker message`,
                 `color:#00b406;`,
                 msg,
@@ -132,7 +132,7 @@ async function initializeApp(
         !notification?.initiated && (await notification?.init())
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
-        console.error(err)
+        log.error(err)
       }
     },
     onSdkInit(sdk) {
@@ -150,9 +150,9 @@ async function initializeApp(
 
 window.addEventListener('load', async (e) => {
   if (isChrome()) {
-    console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
+    log.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
   } else {
-    console.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
+    log.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
   }
 
   try {
@@ -186,7 +186,7 @@ window.addEventListener('load', async (e) => {
         } else if (e.key == '2') {
           node = asHtmlElement(findByViewTag('2')) as HTMLElement
         }
-        console.log(node)
+        log.log(node)
         node?.click?.()
       }
     })
@@ -198,7 +198,7 @@ window.addEventListener('load', async (e) => {
 
     window.addEventListener('popstate', createOnPopState(app))
   } catch (error) {
-    console.error(error)
+    log.error(error)
   } finally {
     !attachDebugUtilsToWindow.attached && attachDebugUtilsToWindow(app)
   }
@@ -223,7 +223,7 @@ window.addEventListener('load', async (e) => {
   }
 
   if (__NOODL_SEARCH_CLIENT__ in window) {
-    console.log(
+    log.log(
       `Custom SearchClient available in window.__NOODL_SEARCH_CLIENT__`,
     )
     const searchClient = window.__NOODL_SEARCH_CLIENT__({
@@ -280,14 +280,14 @@ function initPiBackgroundWorker(worker: Worker) {
   const _color = 'navajowhite'
 
   /**
-   * Wraps the worker with a "sendMessage" method. This is the same as postMessage but is being used here so we don't write "console.log" every time to debug logs
+   * Wraps the worker with a "sendMessage" method. This is the same as postMessage but is being used here so we don't write "log.log" every time to debug logs
    * @param worker
    * @returns { Worker }
    */
   const withSendMessage = (worker: Worker) => {
     Object.defineProperty(worker, 'sendMessage', {
       value: function (this: Worker, ...args: any[]) {
-        console.log(
+        log.log(
           `%c[client] Sending "${args[0]?.type}"`,
           `color:${_color};`,
           args[0],
@@ -350,7 +350,7 @@ function initPiBackgroundWorker(worker: Worker) {
         // const { table, result, query } = data
         // const resp = await fetch('/cpt')
         // const respData = await resp.json()
-        // console.log(`searchResult`, result)
+        // log.log(`searchResult`, result)
         break
       }
       // case 'FETCHED_STORE_DATA': {
@@ -369,10 +369,10 @@ function initPiBackgroundWorker(worker: Worker) {
     }
   })
   piWorker.addEventListener('messageerror', function (evt) {
-    console.log(`%c[client] MessageError`, `color:tomato;`, evt)
+    log.log(`%c[client] MessageError`, `color:tomato;`, evt)
   })
   piWorker.addEventListener('error', function (evt) {
-    console.log(`%c[client] Error`, `color:tomato;`, evt)
+    log.log(`%c[client] Error`, `color:tomato;`, evt)
   })
 }
 

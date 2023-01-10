@@ -1,4 +1,4 @@
-import log from 'loglevel'
+import log from '../log'
 import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
@@ -32,7 +32,7 @@ class MeetingStream {
     if (node) this.#node = node
     this.type = type
     if (!type) {
-      console.log({ this: this, node })
+      log.log({ this: this, node })
     }
   }
 
@@ -72,7 +72,7 @@ class MeetingStream {
 
   #log = (name: string, s?: string, o?: Record<string, any>) => {
     s ? {} : (s = name)
-    console.log(s, this.snapshot(o))
+    log.log(s, this.snapshot(o))
   }
 
   getElement() {
@@ -103,7 +103,7 @@ class MeetingStream {
         this.#node.parentElement?.removeChild(this.#node)
         this.#node.remove()
       } catch (error) {
-        console.error(error)
+        log.error(error)
       }
       this.#log('removeElement', `Removed element on a "${this.type} Stream"`)
     }
@@ -261,7 +261,7 @@ class MeetingStream {
         try {
           this.#attachTrack(await fn())
         } catch (err) {
-          console.error(`[${kind}]: ${err.message}`)
+          log.error(`[${kind}]: ${err.message}`)
           toast(err.message, { type: 'error' })
         } finally {
           this.#log(`Created ${kind} track`)
@@ -335,7 +335,7 @@ class MeetingStream {
       this.#node = null
       this.unpublish()
     } catch (error) {
-      console.error(error)
+      log.error(error)
     }
     this.#participant && (this.#participant = null)
     this.previous = {}

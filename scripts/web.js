@@ -69,6 +69,7 @@ if (cli.flags.deploy) {
     cmd += 'npx webpack --mode=production'
   } else if (cli.flags.start) {
     cmd += 'NODE_ENV=development '
+    // cmd += 'NODE_ENV=production '
     cmd += 'USE_DEV_PATHS=true '
 
     if (cli.flags.stable) {
@@ -91,6 +92,6 @@ if (cli.flags.deploy) {
       `Must use --start or --build or --serve if --deploy is not used`,
     )
   }
-
+  console.log('> '+cmd)
   execSync(cmd, execOptions)
 }

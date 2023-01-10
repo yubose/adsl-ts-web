@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import log from 'loglevel'
+import log from '../log'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
 import tippy, { followCursor, MultipleTargets } from 'tippy.js'
@@ -129,7 +129,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
-        // console.log("test actionChain",actionChain)
+        // log.log("test actionChain",actionChain)
         await actionChain?.execute?.(event)
       }
     }
@@ -319,7 +319,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 {
                   // const script = document.createElement('script')
                   // script.onload = () => {
-                  //   console.log('APPENDED js to body')
+                  //   log.log('APPENDED js to body')
 
                   let headerBar: ToolbarInput = {
                     left: 'prev next',
@@ -613,7 +613,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 // link.href =
                 //   'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css'
                 // link.onload = () => {
-                //   console.log('APPENDED css to head')
+                //   log.log('APPENDED css to head')
                 // }
                 // document.head.appendChild(link)
 
@@ -621,7 +621,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           } else {
             // default echart
-            console.log(`not define`)
+            log.log(`not define`)
 
             // let myChart = echarts.init(node)
             // let option = dataValue
@@ -993,7 +993,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
 
                 li.onclick = function () {
-                  console.log(li.innerHTML)
+                  log.log(li.innerHTML)
                   node.innerHTML = li.innerHTML
                   node.setAttribute('data-value', li.innerHTML)
                   ul.innerHTML = ''
@@ -1010,7 +1010,7 @@ const createExtendedDOMResolvers = function (app: App) {
             node.addEventListener('input', function (e) {
               ul.innerHTML = ''
               ul.style.display = 'block'
-              // console.log(node.value)
+              // log.log(node.value)
               let count = 0
               json1.forEach((element) => {
                 let name = element.name.toLowerCase()
@@ -1038,7 +1038,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   })
 
                   li.onclick = function () {
-                    console.log(li.innerHTML)
+                    log.log(li.innerHTML)
                     node.innerHTML = li.innerHTML
                     node.setAttribute('data-value', li.innerHTML)
                     ul.innerHTML = ''
@@ -1411,7 +1411,7 @@ const createExtendedDOMResolvers = function (app: App) {
         //     postMessage?.execute?.(msg)
         //   })
         // } catch (error) {
-        //   console.error(error)
+        //   log.error(error)
         // }
         // iframeEl.addEventListener('load', function (evt) {
         //   log.func('load')
@@ -1422,7 +1422,7 @@ const createExtendedDOMResolvers = function (app: App) {
         //     { componentPage, thisValue: this, window: this.contentWindow },
         //   )
         // const obs = new MutationObserver((mutations) => {
-        //   console.log(`[ComponentPage] Mutations`, mutations)
+        //   log.log(`[ComponentPage] Mutations`, mutations)
         // })
         // obs.observe(this, {
         //   attributes: true,
@@ -1628,7 +1628,7 @@ const createExtendedDOMResolvers = function (app: App) {
             | string
           )[]
           const videoData = component.get('video-option')
-          // console.log(videoData,"kkkk")
+          // log.log(videoData,"kkkk")
           const option: optionSetting = component.get('data-option') as {
             [key in string]: any
           }
@@ -1777,7 +1777,7 @@ const createExtendedDOMResolvers = function (app: App) {
           })
           if (v) {
             // v.addEventListener("click",()=>{
-            //   console.log("vvvv",v);
+            //   log.log("vvvv",v);
 
             //   v.play();
 
@@ -1806,7 +1806,7 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           }
         } else {
-          console.error('Image array is empty')
+          log.error('Image array is empty')
         }
       },
     },
@@ -1992,7 +1992,7 @@ const createExtendedDOMResolvers = function (app: App) {
           //   return moment(date).format(format);
           // }
           // onChange: function(selectedDates, dateStr, instance){
-          //   console.log(selectedDates, dateStr, instance)
+          //   log.log(selectedDates, dateStr, instance)
 
           //   instance.calendarContainer.style.visibility = "visible"
           // }

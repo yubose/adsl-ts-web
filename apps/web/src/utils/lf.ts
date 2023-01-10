@@ -1,4 +1,5 @@
 import localForage from 'localforage'
+import log from '../log'
 
 export const lf = localForage.createInstance({
   driver: [localForage.INDEXEDDB, localForage.WEBSQL, localForage.LOCALSTORAGE],
@@ -19,7 +20,7 @@ export async function each(
 ) {
   await lf.iterate(async (value, key, index) => {
     const result = await cb(key, value, index)
-    console.log(`[each] Result`, result)
+    log.log(`[each] Result`, result)
     return result
   })
 }

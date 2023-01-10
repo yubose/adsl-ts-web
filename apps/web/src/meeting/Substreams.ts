@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import log from 'loglevel'
+import log from '../log'
 import inRange from 'lodash/inRange'
 import last from 'lodash/last'
 import { ComponentObject } from 'noodl-types'
@@ -155,7 +155,7 @@ class MeetingSubstreams {
         stream.removeElement()
         stream.unpublish()
       } catch (error) {
-        console.error(error.message)
+        log.error(error.message)
       }
     } else if (typeof stream === 'number') {
       const index = stream
