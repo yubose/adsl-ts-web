@@ -370,6 +370,8 @@ class App {
         }
         localStorage.setItem('tempParams', JSON.stringify(params))
         // await lf.setItem('tempParams', params)
+      }else{
+        localStorage.setItem('tempParams', JSON.stringify({}))
       }
 
       if (isNDOMPage(page)) {
