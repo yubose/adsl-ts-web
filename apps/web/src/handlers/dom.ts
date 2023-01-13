@@ -1813,7 +1813,7 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Checkbox': {
       cond: 'checkbox',
       resolve({ node, component }) {
-        if (node && Object.keys(component.get('data-value'))) {
+        if (node) {
           let pageName = app.currentPage
           const dataKey =
             component.get('data-key') || component.blueprint?.dataKey || ''
@@ -1850,30 +1850,66 @@ const createExtendedDOMResolvers = function (app: App) {
             border-radius: 50%;
         }`
           let chechedB = `{
-          content: "";
-          background-color: #fff;
-          position: absolute;
-          top: -2px;
-          left: -1px;
-          width: 100%;
-          height: 100%;
-          border: 2px solid #800080;
-          border-radius: 50%;
-          color: #7d7d7d;
-          // font-size: 20px;
-          font-weight: bold;
-          text-align: center;
-          line-height: 5vw;
+            content: "";
+            background-color: #fff;
+            position: absolute;
+            top: -2px;
+            left: -1px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #800080;
+            border-radius: 50%;
+            color: #7d7d7d;
+            // font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 5vw;
         }`
+        switch (styleCheckBox) {
+          case 'A': {
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]${A}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]:checked::before${chechedA}`,
+              0,
+            )
+            break
+          }
+          case 'B': {
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]${B}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]:checked::before${chechedB}`,
+              0,
+            )
+            break
+          }
+          default: {
+            break
+          }
+        }
           for (let i = 0; i < dataValue['allData'].length; i++) {
             let childInput = document.createElement('input')
             let spanDom = document.createElement('div')
             let contanierDiv = document.createElement('div')
-            childInput.type = 'checkbox'
-            childInput.value = i + 1 + ''
+
+            if(dataOptions["module"]=== "radio"){
+              childInput.type = 'radio';
+              childInput.name = "radio";
+            }else{
+              childInput.type = 'checkbox'
+            }
+            childInput.value = i + 1 + '';
             spanDom.textContent = dataValue['allData'][i]
             if (dataValue['selectedData'].includes(i + 1)) {
-              childInput.checked = true
+              childInput.checked = true;
+              app.updateRoot((draft) => {
+                set(draft?.[pageName], dataKey, dataValue['selectedData'])
+              })
             }
             childInput.setAttribute('class', dataOptions['classStyle'])
             for (
@@ -1920,14 +1956,18 @@ const createExtendedDOMResolvers = function (app: App) {
           }
           childrenConta.append(fragment)
           fragment = null
-          let arrReturnNew: any = []
           childrenConta.addEventListener('click', (e) => {
             let dataInput = +(e.target as HTMLInputElement).value
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
-              let selected = dataValue['selectedData'] as number[]
-              !selected.includes(dataInput)
+              let selected = dataValue['selectedData'] as any
+              if(dataOptions["module"]=== "radio"){
+                selected[0] = dataInput;
+              }else{
+                !selected.includes(dataInput)
                 ? selected?.push(dataInput)
                 : selected?.splice(selected.indexOf(dataInput), 1)
+              }
+
               // selected.forEach((val)=>{
               //   arrReturnNew.push(dataValue["allData"][val-1]);
               // })
@@ -1938,33 +1978,6 @@ const createExtendedDOMResolvers = function (app: App) {
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
-          switch (styleCheckBox) {
-            case 'A': {
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]${A}`,
-                0,
-              )
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]:checked::before${chechedA}`,
-                0,
-              )
-              break
-            }
-            case 'B': {
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]${B}`,
-                0,
-              )
-              document.styleSheets[0].insertRule(
-                `input[class=${styleCheckBox}]:checked::before${chechedB}`,
-                0,
-              )
-              break
-            }
-            default: {
-              break
-            }
-          }
           node.appendChild(childrenConta)
         }
       },
