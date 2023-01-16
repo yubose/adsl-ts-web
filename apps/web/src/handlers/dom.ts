@@ -1954,13 +1954,14 @@ const createExtendedDOMResolvers = function (app: App) {
             contanierDiv.appendChild(spanDom)
             fragment.appendChild(contanierDiv)
           }
-          childrenConta.append(fragment)
+          node.append(fragment)
           fragment = null
-          childrenConta.addEventListener('click', (e) => {
+          node.addEventListener('click', (e) => {
             let dataInput = +(e.target as HTMLInputElement).value
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
               let selected = dataValue['selectedData'] as any
               if(dataOptions["module"]=== "radio"){
+                selected = [];
                 selected[0] = dataInput;
               }else{
                 !selected.includes(dataInput)
@@ -1978,7 +1979,7 @@ const createExtendedDOMResolvers = function (app: App) {
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
-          node.appendChild(childrenConta)
+          // node.appendChild(childrenConta)
         }
       },
     },
