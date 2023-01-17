@@ -290,6 +290,7 @@ class MeetingStream {
               videoElem.style.width = '100%'
               videoElem.style.height = '100%'
               videoElem.style.objectFit = 'cover'
+              videoElem.style.position = 'absolute'
               this.#node.appendChild(videoElem)
               this.#log(`Started the video element`)
             }
@@ -432,6 +433,7 @@ class MeetingStream {
         attachee.style.width = '100%'
         attachee.style.height = '100%'
         attachee.style.objectFit = 'cover'
+        attachee.style.position = 'absolute'
         if (this.hasVideoElement()) {
           this.removeVideoElement()
           this.#log(`attachTrack (video)`, `Removed previous video element`)
