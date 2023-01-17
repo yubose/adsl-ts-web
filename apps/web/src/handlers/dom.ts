@@ -1822,10 +1822,9 @@ const createExtendedDOMResolvers = function (app: App) {
           let fragment: null | DocumentFragment =
             document.createDocumentFragment()
           // let childrenConta = document.createElement('div')
-
+          node.textContent = "";
           const styleCheckBox = dataOptions['classStyle']
           let A = `{
-              appearance: none;
               position: relative;
               background: wheat;
               border-radius: 50%;
@@ -1866,6 +1865,21 @@ const createExtendedDOMResolvers = function (app: App) {
             text-align: center;
             line-height: 5vw;
         }`
+          let C = `{
+            appearance: none;
+        }`
+        let chechedC = `{
+          content: "";
+          display: inline-block;
+          vertical-align: middle;
+          width: 13px;
+          height: 13px;
+          background-image: url(selectGray.svg);
+          background-size: 100%;
+        }`
+        let chechedCheck = `{
+          background-image: url(selectGrayBlue.svg);
+        }`
         switch (styleCheckBox) {
           case 'A': {
             document.styleSheets[0].insertRule(
@@ -1885,6 +1899,21 @@ const createExtendedDOMResolvers = function (app: App) {
             )
             document.styleSheets[0].insertRule(
               `input[class=${styleCheckBox}]:checked::before${chechedB}`,
+              0,
+            )
+            break
+          }
+          case 'C': {
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]${C}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]::before${chechedC}`,
+              0,
+            )
+            document.styleSheets[0].insertRule(
+              `input[class=${styleCheckBox}]:checked::before${chechedCheck}`,
               0,
             )
             break
@@ -1954,6 +1983,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }
             contanierDiv.appendChild(childInput)
             contanierDiv.appendChild(spanDom)
+
             fragment.appendChild(contanierDiv)
           }
           node.append(fragment)
@@ -1970,13 +2000,24 @@ const createExtendedDOMResolvers = function (app: App) {
                 ? selected?.push(dataInput)
                 : selected?.splice(selected.indexOf(dataInput), 1)
               }
-
+              // let text =
               // selected.forEach((val)=>{
               //   arrReturnNew.push(dataValue["allData"][val-1]);
               // })
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, selected)
               })
+              if(dataOptions["data"]){
+                const keys = Object.keys(dataOptions["data"]);
+                const values = Object.values(dataOptions["data"]);
+
+                for(let i = 0;i<keys.length;i++){
+                  app.updateRoot((draft) => {
+                    set(draft?.[pageName], keys[i], get(dataValue['allData'][dataInput],`${values[i]}`));
+                  })
+                }
+              }
+
               // app.root.Global.checkboxArr = selected
               set(app.root.Global,dataOptions["checkName"],selected);
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
