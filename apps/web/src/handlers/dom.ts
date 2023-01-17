@@ -1821,7 +1821,8 @@ const createExtendedDOMResolvers = function (app: App) {
           const dataOptions = component.get('data-option') as {}
           let fragment: null | DocumentFragment =
             document.createDocumentFragment()
-          let childrenConta = document.createElement('div')
+          // let childrenConta = document.createElement('div')
+
           const styleCheckBox = dataOptions['classStyle']
           let A = `{
               appearance: none;
@@ -1957,7 +1958,7 @@ const createExtendedDOMResolvers = function (app: App) {
           node.append(fragment)
           fragment = null
           node.addEventListener('click', (e) => {
-            let dataInput = +(e.target as HTMLInputElement).value
+            let dataInput = +(e.target as HTMLInputElement).value;
             if ((e.target as HTMLInputElement).nodeName == 'INPUT') {
               let selected = dataValue['selectedData'] as any
               if(dataOptions["module"]=== "radio"){
@@ -1975,7 +1976,8 @@ const createExtendedDOMResolvers = function (app: App) {
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, selected)
               })
-              app.root.Global.checkboxArr = selected
+              // app.root.Global.checkboxArr = selected
+              set(app.root.Global,dataOptions["checkName"],selected);
               localStorage.setItem('Global', JSON.stringify(app.root.Global))
             }
           })
