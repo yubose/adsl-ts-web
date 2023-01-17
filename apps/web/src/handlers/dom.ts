@@ -1904,9 +1904,10 @@ const createExtendedDOMResolvers = function (app: App) {
             }else{
               childInput.type = 'checkbox'
             }
-            childInput.value = i + 1 + '';
-            spanDom.textContent = dataValue['allData'][i]
-            if (dataValue['selectedData'].includes(i + 1)) {
+            childInput.value = i + '';
+
+            spanDom.textContent = get(dataValue['allData'][i],dataValue["path"])
+            if (dataValue['selectedData'].includes(i)) {
               childInput.checked = true;
               app.updateRoot((draft) => {
                 set(draft?.[pageName], dataKey, dataValue['selectedData'])
