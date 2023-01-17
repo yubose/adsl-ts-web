@@ -428,7 +428,7 @@ const createExtendedDOMResolvers = function (app: App) {
                                         <div style="padding-top:3px">Reason ：' +
                           (info.event._def.extendedProps.name??info.event._def.extendedProps.Reason) +
                           '</div>\
-                                        <div style="padding:4px 0">Sta rtTime：' +
+                                        <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             new Date(
                               info.event._instance.range.start,
