@@ -71,26 +71,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 		if (localParticipant) {
 			for (const publication of localParticipant.tracks.values()) {
 				if (publication.track.kind === kind) localTrack = publication.track;
-				// console.log('test9',publication)
-				// if(kind === 'video'){
-				// 	let node = document.querySelector(`div[data-sid="${localParticipant?.sid}"]`)
-				// 	if(node?.childNodes){
-				// 		for(const elem of node.childNodes){
-				// 			const type = (elem as HTMLElement)?.tagName?.toLowerCase?.() || ''	
-				// 			if((/video/.test(type))){
-				// 				console.log('test',elem?.style.display)
-				// 				elem?.style.display === 'none'?
-				// 					elem.style.display = 'block':
-				// 					elem.style.display = 'none'
-				// 			}
-				// 		}
-				// 	}
-					
-					
-				// }
 			}
 			app.updateRoot((draft) => {
 				if (localTrack) {
+					let videoNode = app.selfStream.getVideoElement()
+					if(videoNode){
+						localTrack.isEnabled? videoNode.style.display='none':videoNode.style.display='block'
+					}
+					
 					localTrack[localTrack.isEnabled ? "disable" : "enable"]?.();
 					set(draft, devicePath, !localTrack.isEnabled);
 					log.debug(

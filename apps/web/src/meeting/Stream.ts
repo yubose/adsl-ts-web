@@ -375,7 +375,8 @@ class MeetingStream {
     let backdrop = this.#node?.querySelector?.(
       `#${backdropId}`,
     ) as HTMLDivElement
-
+    const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
+    videoNode.style.display = type === 'close'?'none':'block'
     // if (!backdrop) {
     //   backdrop = document.createElement('div')
     //   backdrop.id = backdropId
@@ -402,7 +403,7 @@ class MeetingStream {
     //   this.#node?.appendChild?.(backdrop)
     // }
 
-    backdrop.style.visibility = type === 'close' ? 'visible' : 'hidden'
+    // backdrop.style.visibility = type === 'close' ? 'visible' : 'hidden'
   }
 
   /**
@@ -434,6 +435,7 @@ class MeetingStream {
         attachee.style.height = '100%'
         attachee.style.objectFit = 'cover'
         attachee.style.position = 'absolute'
+        attachee.style.top = '0'
         if (this.hasVideoElement()) {
           this.removeVideoElement()
           this.#log(`attachTrack (video)`, `Removed previous video element`)
@@ -447,6 +449,10 @@ class MeetingStream {
           micOn ? track?.['enable']?.() : track?.['disable']?.()
         }else if(track.kind === 'video'){
           cameraOn ? track?.['enable']?.() : track?.['disable']?.()
+          if(attachee){
+            cameraOn? attachee.style.display = 'block':attachee.style.display = 'none'
+          }
+          
         }
       }
       if (attachee) {

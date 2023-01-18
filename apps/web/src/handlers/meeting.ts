@@ -31,6 +31,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.debug(`${event} "${participant.sid}",participant`)
       if (event === 'participantConnected') {
         // app.meeting.room.state === 'connected' && app.register.extendVideoFunction('twilioOnPeopleJoin')
+        // app.meeting.getMainStreamElement()
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
         const participantsNumber = app.meeting.room.participants.size
@@ -38,6 +39,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           app.register.extendVideoFunction('onDisconnect')
         }
         toast(`A participant disconnected`, { type: 'error' })
+        const videoNode = (window as any).app.meeting.mainStream.getVideoElement()
+        videoNode.style.display = 'none'
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })
       } else if (event === 'participantReconnected') {
